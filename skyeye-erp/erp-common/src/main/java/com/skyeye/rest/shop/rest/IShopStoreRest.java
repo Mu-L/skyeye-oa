@@ -5,6 +5,7 @@
 package com.skyeye.rest.shop.rest;
 
 import com.skyeye.common.client.ClientConfiguration;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,5 +39,11 @@ public interface IShopStoreRest {
     @GetMapping("/queryStoreListByParams")
     String queryStoreListByParams(@RequestParam("shopAreaId") String shopAreaId,
                                   @RequestParam("enabled") Integer enabled);
+
+    /**
+     * 分页获取门店列表信息
+     */
+    @PostMapping("/queryStoreListFoServer")
+    String queryStoreListFoServer(CommonPageInfo commonPageInfo);
 
 }

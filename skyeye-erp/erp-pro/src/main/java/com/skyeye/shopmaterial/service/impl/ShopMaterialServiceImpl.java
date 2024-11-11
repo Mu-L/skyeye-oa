@@ -23,6 +23,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.material.classenum.MaterialShelvesState;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.rest.shop.service.IShopStoreService;
 import com.skyeye.shopmaterial.dao.ShopMaterialDao;
 import com.skyeye.shopmaterial.entity.ShopMaterial;
 import com.skyeye.shopmaterial.entity.ShopMaterialNorms;
@@ -62,6 +63,9 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
 
     @Autowired
     private BrandService brandService;
+
+    @Autowired
+    private IShopStoreService iShopStoreService;
 
     @Override
     public void createPrepose(ShopMaterial entity) {
@@ -174,6 +178,12 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     @Override
     public void queryShopMaterialListForStore(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        // 分页查询门店信息
+        List<Map<String, Object>> storeList = iShopStoreService.queryStoreListFoServer(commonPageInfo);
+        if (CollectionUtil.isEmpty(storeList)) {
+            return;
+        }
+        List<String> storeIdList = storeList.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
 
     }
 

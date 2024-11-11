@@ -10,6 +10,7 @@ import lombok.Data;
 
 import javax.validation.Validator;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * @ClassName: FtpFileClientConfig
@@ -32,7 +33,7 @@ public class FtpFileClientConfig implements FileClientConfig {
     @NotBlank(message = "主机地址", groups = {Config.class})
     private String host;
 
-    @NotBlank(message = "主机端口", groups = {Config.class})
+    @NotNull(message = "主机端口", groups = {Config.class})
     private Integer port;
 
     @NotBlank(message = "用户名", groups = {Config.class})

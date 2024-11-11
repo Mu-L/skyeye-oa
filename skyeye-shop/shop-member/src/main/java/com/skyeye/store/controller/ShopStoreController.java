@@ -39,6 +39,13 @@ public class ShopStoreController {
         shopStoreService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryStoreListFoServer", value = "其他微服务调用，获取门店信息", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ShopStoreController/queryStoreListFoServer")
+    public void queryStoreListFoServer(InputObject inputObject, OutputObject outputObject) {
+        shopStoreService.queryPageList(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "writeStore", value = "添加/编辑门店", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopStore.class)
     @RequestMapping("/post/ShopStoreController/writeStore")

@@ -5,6 +5,7 @@
 package com.skyeye.rest.shop.service;
 
 import com.skyeye.base.rest.service.IService;
+import com.skyeye.common.entity.search.CommonPageInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -20,5 +21,7 @@ import java.util.Map;
 public interface IShopStoreService extends IService {
 
     List<Map<String, Object>> queryStoreListByParams(String shopAreaId, Integer enabled);
+
+    List<Map<String, Object>> queryStoreListFoServer(CommonPageInfo commonPageInfo);
 
 }
