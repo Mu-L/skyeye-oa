@@ -4,25 +4,15 @@
 
 package com.skyeye.upload.entity;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.framework.file.core.client.FileClientConfig;
-import com.skyeye.framework.file.core.client.db.DBFileClientConfig;
-import com.skyeye.framework.file.core.client.ftp.FtpFileClientConfig;
-import com.skyeye.framework.file.core.client.local.LocalFileClientConfig;
-import com.skyeye.framework.file.core.client.s3.S3FileClientConfig;
-import com.skyeye.framework.file.core.client.sftp.SftpFileClientConfig;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * @ClassName: FileConfig
@@ -46,41 +36,12 @@ public class FileConfig extends BaseGeneralInfo {
     @ApiModelProperty(value = "存储器，参考#FileStorageEnum", required = "required,num")
     private Integer storage;
 
-    @TableField(value = "config", typeHandler = FileClientConfigTypeHandler.class)
-    @ApiModelProperty(value = "配置信息", required = "required,json")
-    private FileClientConfig config;
+    @TableField(value = "config")
+    @ApiModelProperty(value = "配置信息", required = "required")
+    private String config;
 
-    public static class FileClientConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
-
-        @Override
-        public Object parse(String json) {
-            Map<String, Object> config = JSONUtil.toBean(json, null);
-            if (CollectionUtil.isEmpty(config)) {
-                return null;
-            }
-            // 兼容老版本的包路径
-            String className = StrUtil.subAfter(config.get("@class").toString(), ".", true);
-            switch (className) {
-                case "DBFileClientConfig":
-                    return JSONUtil.toBean(json, DBFileClientConfig.class);
-                case "FtpFileClientConfig":
-                    return JSONUtil.toBean(json, FtpFileClientConfig.class);
-                case "LocalFileClientConfig":
-                    return JSONUtil.toBean(json, LocalFileClientConfig.class);
-                case "SftpFileClientConfig":
-                    return JSONUtil.toBean(json, SftpFileClientConfig.class);
-                case "S3FileClientConfig":
-                    return JSONUtil.toBean(json, S3FileClientConfig.class);
-                default:
-                    throw new IllegalArgumentException("未知的 FileClientConfig 类型：" + json);
-            }
-        }
-
-        @Override
-        public String toJson(Object obj) {
-            return JSONUtil.toJsonStr(obj);
-        }
-
-    }
+    @TableField(exist = false)
+    @Property(value = "配置信息")
+    private FileClientConfig configMation;
 
 }

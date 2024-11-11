@@ -6,6 +6,7 @@ package com.skyeye.upload.service.impl;
 
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -58,9 +59,11 @@ public class FileConfigServiceImpl extends SkyeyeBusinessServiceImpl<FileConfigD
         if (ObjectUtil.isNull(configClass)) {
             throw new CustomException("文件存储类型的配置不存在");
         }
-        Assert.notNull(entity.getConfig());
+        FileClientConfig config = JSONUtil.toBean(entity.getConfig(), configClass);
+        entity.setConfigMation(config);
+        Assert.notNull(entity.getConfigMation());
         // 验证参数
-        entity.getConfig().validate(validator);
+        entity.getConfigMation().validate(validator);
     }
 
     @Override
@@ -86,6 +89,15 @@ public class FileConfigServiceImpl extends SkyeyeBusinessServiceImpl<FileConfigD
     }
 
     @Override
+    public FileConfig selectById(String id) {
+        FileConfig fileConfig = super.selectById(id);
+        Class<? extends FileClientConfig> configClass = FileStorageEnum.getByStorage(fileConfig.getStorage()).getConfigClass();
+        FileClientConfig config = JSONUtil.toBean(fileConfig.getConfig(), configClass);
+        fileConfig.setConfigMation(config);
+        return fileConfig;
+    }
+
+    @Override
     public void deletePostpose(FileConfig entity) {
         if (entity.getIsDefault() == IsDefaultEnum.IS_DEFAULT.getKey()) {
             jedisClientService.del(FILE_CONFIG_IS_DEFAULT_CACHE_KEY);
@@ -99,11 +111,14 @@ public class FileConfigServiceImpl extends SkyeyeBusinessServiceImpl<FileConfigD
         FileConfig fileConfig = redisCache.getBean(FILE_CONFIG_IS_DEFAULT_CACHE_KEY, key -> {
             QueryWrapper<FileConfig> wrapper = new QueryWrapper<>();
             wrapper.eq(MybatisPlusUtil.toColumns(FileConfig::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
-            FileConfig config = getOne(wrapper, false);
-            if (config != null) {
-                fileClientFactory.createOrUpdateFileClient(config.getId(), config.getStorage(), config.getConfig());
+            FileConfig bean = getOne(wrapper, false);
+            Class<? extends FileClientConfig> configClass = FileStorageEnum.getByStorage(bean.getStorage()).getConfigClass();
+            FileClientConfig config = JSONUtil.toBean(bean.getConfig(), configClass);
+
+            if (bean != null) {
+                fileClientFactory.createOrUpdateFileClient(bean.getId(), bean.getStorage(), config);
             }
-            return config;
+            return bean;
         }, RedisConstants.THIRTY_DAY_SECONDS, FileClient.class);
         if (fileConfig == null) {
             throw new CustomException("没有设置默认文件存储");
@@ -120,7 +135,7 @@ public class FileConfigServiceImpl extends SkyeyeBusinessServiceImpl<FileConfigD
             if (fileConfig == null) {
                 throw new CustomException("文件存储配置不存在");
             }
-            fileClientFactory.createOrUpdateFileClient(fileConfig.getId(), fileConfig.getStorage(), fileConfig.getConfig());
+            fileClientFactory.createOrUpdateFileClient(fileConfig.getId(), fileConfig.getStorage(), fileConfig.getConfigMation());
             fileClient = fileClientFactory.getFileClient(configId);
         }
         return fileClient;

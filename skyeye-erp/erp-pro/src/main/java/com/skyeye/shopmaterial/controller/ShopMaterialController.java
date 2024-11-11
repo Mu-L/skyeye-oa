@@ -54,7 +54,12 @@ public class ShopMaterialController {
         shopMaterialService.queryShopMaterialList(inputObject, outputObject);
     }
 
-
+    @ApiOperation(id = "queryShopMaterialListForStore", value = "以门店为主获取商城商品信息列表", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ShopMaterialController/queryShopMaterialListForStore")
+    public void queryShopMaterialListForStore(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialService.queryShopMaterialListForStore(inputObject, outputObject);
+    }
 
     @ApiOperation(id = "queryShopMaterialByNormsIdList", value = "根据规格id获取商城商品信息", method = "POST", allUse = "0")
     @ApiImplicitParams(value = {

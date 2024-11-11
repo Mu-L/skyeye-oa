@@ -15,6 +15,7 @@ import com.skyeye.brand.entity.Brand;
 import com.skyeye.brand.service.BrandService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -168,6 +169,12 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         });
 
         outputObject.setBeans(shopMaterialStoreList);
+    }
+
+    @Override
+    public void queryShopMaterialListForStore(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+
     }
 
     @Override
