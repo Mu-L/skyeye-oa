@@ -215,4 +215,38 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    @Override
+    public Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds) {
+        if (CollectionUtil.isEmpty(storeIds)) {
+            return MapUtil.empty();
+        }
+        QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeIds);
+        List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
+        List<String> materialIds = shopMaterialStoreList.stream()
+            .map(ShopMaterialStore::getMaterialId).distinct().collect(Collectors.toList());
+        Map<String, ShopMaterial> shopMaterialMap = shopMaterialService.queryShopMaterialByMaterialId(materialIds);
+        shopMaterialStoreList.forEach(shopMaterialStore -> {
+            ShopMaterial shopMaterial = shopMaterialMap.get(shopMaterialStore.getMaterialId());
+            shopMaterial.getMaterialMation().setMaterialNorms(null);
+            shopMaterial.getMaterialMation().setBrandMation(null);
+            shopMaterial.getMaterialMation().setUnitGroupMation(null);
+            shopMaterial.getMaterialMation().setFirstInUnitMation(null);
+            shopMaterial.getMaterialMation().setFirstOutUnitMation(null);
+            shopMaterial.getMaterialMation().setNormsSpec(null);
+            shopMaterial.setContent(null);
+            shopMaterialStore.setShopMaterial(shopMaterial);
+        });
+        Map<String, List<ShopMaterialStore>> collect = shopMaterialStoreList.stream().collect(Collectors.groupingBy(ShopMaterialStore::getStoreId, Collectors.collectingAndThen(
+            Collectors.toList(), // 分组的 downstream
+            list -> {
+                if (list.size() > 8) {
+                    return list.subList(0, 8); // 只取前8个元素
+                }
+                return list;
+            }
+        )));
+        return collect;
+    }
+
 }

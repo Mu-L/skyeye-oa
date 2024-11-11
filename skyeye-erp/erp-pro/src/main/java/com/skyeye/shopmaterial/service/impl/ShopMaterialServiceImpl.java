@@ -5,6 +5,7 @@
 package com.skyeye.shopmaterial.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -14,11 +15,13 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.brand.entity.Brand;
 import com.skyeye.brand.service.BrandService;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.ResultEntity;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.material.classenum.MaterialShelvesState;
 import com.skyeye.material.entity.Material;
@@ -178,13 +181,19 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     @Override
     public void queryShopMaterialListForStore(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        ResultEntity resultEntity = iShopStoreService.queryStoreListFoServer(commonPageInfo);
         // 分页查询门店信息
-        List<Map<String, Object>> storeList = iShopStoreService.queryStoreListFoServer(commonPageInfo);
+        List<Map<String, Object>> storeList = resultEntity.getRows();
         if (CollectionUtil.isEmpty(storeList)) {
             return;
         }
         List<String> storeIdList = storeList.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
-
+        Map<String, List<ShopMaterialStore>> stringListMap = shopMaterialStoreService.queryShopMaterialListByStoreIds(storeIdList);
+        storeList.forEach(store -> {
+            store.put("shopMaterialList", stringListMap.get(store.get("id").toString()));
+        });
+        outputObject.setBeans(storeList);
+        outputObject.settotal(resultEntity.getTotal());
     }
 
     @Override
@@ -258,6 +267,24 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
             return null;
         }
         return selectById(shopMaterial.getId());
+    }
+
+    @Override
+    public Map<String, ShopMaterial> queryShopMaterialByMaterialId(List<String> materialIds) {
+        materialIds = materialIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(materialIds)) {
+            return MapUtil.empty();
+        }
+        QueryWrapper<ShopMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ShopMaterial::getMaterialId), materialIds);
+        queryWrapper.select(CommonConstants.ID);
+        List<ShopMaterial> shopMaterialList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(shopMaterialList)) {
+            return MapUtil.empty();
+        }
+        List<String> ids = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
+        List<ShopMaterial> shopMaterials = selectByIds(ids.toArray(new String[]{}));
+        return shopMaterials.stream().collect(Collectors.toMap(ShopMaterial::getMaterialId, shopMaterial -> shopMaterial));
     }
 
     @Override

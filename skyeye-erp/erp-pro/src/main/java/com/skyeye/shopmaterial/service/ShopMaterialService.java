@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.shopmaterial.entity.ShopMaterial;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: ShopMaterialService
  * @Description: 商城商品服务接口层
@@ -30,6 +33,8 @@ public interface ShopMaterialService extends SkyeyeBusinessService<ShopMaterial>
     void queryBrandShopMaterialList(InputObject inputObject, OutputObject outputObject);
 
     ShopMaterial queryShopMaterialByMaterialId(String materialId);
+
+    Map<String, ShopMaterial> queryShopMaterialByMaterialId(List<String> materialIds);
 
     void queryAllShopMaterialListForChoose(InputObject inputObject, OutputObject outputObject);
 

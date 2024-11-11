@@ -8,6 +8,7 @@ import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.ResultEntity;
 import com.skyeye.rest.shop.rest.IShopStoreRest;
 import com.skyeye.rest.shop.service.IShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,7 @@ public class IShopStoreServiceImpl extends IServiceImpl implements IShopStoreSer
     }
 
     @Override
-    public List<Map<String, Object>> queryStoreListFoServer(CommonPageInfo commonPageInfo) {
-        return ExecuteFeignClient.get(() -> iShopStoreRest.queryStoreListFoServer(commonPageInfo)).getRows();
+    public ResultEntity queryStoreListFoServer(CommonPageInfo commonPageInfo) {
+        return ExecuteFeignClient.get(() -> iShopStoreRest.queryStoreListFoServer(commonPageInfo));
     }
 }
