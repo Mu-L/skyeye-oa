@@ -28,6 +28,10 @@ import lombok.Data;
 @ApiModel("品牌表实体类")
 public class Brand extends BaseGeneralInfo {
 
+    @TableField(value = "img")
+    @ApiModelProperty(value = "背景图")
+    private String img;
+
     @TableField(value = "enabled")
     @ApiModelProperty(value = "启用状态，参考#EnableEnum", required = "required,num")
     private Integer enabled;

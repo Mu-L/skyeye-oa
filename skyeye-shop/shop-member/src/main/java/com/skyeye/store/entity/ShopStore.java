@@ -43,6 +43,10 @@ public class ShopStore extends AreaInfo {
     @ApiModelProperty(value = "门店名称", required = "required", fuzzyLike = true)
     private String name;
 
+    @TableField(value = "img")
+    @ApiModelProperty(value = "背景图")
+    private String img;
+
     @TableField(value = "shop_area_id")
     @ApiModelProperty(value = "区域ID", required = "required")
     private String shopAreaId;
