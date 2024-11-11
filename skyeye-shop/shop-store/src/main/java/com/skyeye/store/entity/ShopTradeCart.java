@@ -47,6 +47,10 @@ public class ShopTradeCart extends OperatorUserInfo {
     @ApiModelProperty(value = "商品信息")
     private Map<String, Object> materialMation;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "商城商品信息")
+    private Map<String, Object> shopMaterialMation;
+
     @TableField("norms_id")
     @ApiModelProperty(value = "规格id", required = "required")
     private String normsId;

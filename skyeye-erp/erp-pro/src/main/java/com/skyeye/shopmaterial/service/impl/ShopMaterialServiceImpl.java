@@ -173,7 +173,11 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     @Override
     public void queryShopMaterialByNormsIdList(InputObject inputObject, OutputObject outputObject) {
         List<String> normsIdList = Arrays.asList(inputObject.getParams().get("normsIds").toString()
-            .split(CommonCharConstants.COMMA_MARK));
+                .split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(normsIdList)) {
+            return;
+        }
         List<ShopMaterialNorms> shopMaterialNormsList = shopMaterialNormsService.queryShopMaterialByNormsIdList(normsIdList);
         outputObject.setBeans(shopMaterialNormsList);
         outputObject.settotal(shopMaterialNormsList.size());
@@ -253,6 +257,21 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         }).collect(Collectors.toList());
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
+    }
+
+    @Override
+    public void queryShopMaterialByMaterialIdList(InputObject inputObject, OutputObject outputObject) {
+        List<String> materialIdList = Arrays.asList(inputObject.getParams().get("materialIds").toString()
+                .split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(materialIdList)) {
+            return;
+        }
+        QueryWrapper<ShopMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ShopMaterial::getMaterialId), materialIdList);
+        List<ShopMaterial> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
 }

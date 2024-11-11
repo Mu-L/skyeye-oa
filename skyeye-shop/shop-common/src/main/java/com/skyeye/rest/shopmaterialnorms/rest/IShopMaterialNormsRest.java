@@ -24,6 +24,9 @@ public interface IShopMaterialNormsRest {
     @PostMapping("/queryShopMaterialByNormsIdList")
     String queryShopMaterialByNormsIdList(@RequestParam("normsIds") String normsIds);
 
+    @PostMapping("/queryShopMaterialByMaterialIdList")
+    String queryShopMaterialByMaterialIdList(@RequestParam("materialIds") String materialIds);
+
     /**
      * 新增门店时，将所有商品同步到该门店
      *

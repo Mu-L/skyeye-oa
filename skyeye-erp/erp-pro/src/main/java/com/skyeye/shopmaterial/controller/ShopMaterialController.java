@@ -54,12 +54,22 @@ public class ShopMaterialController {
         shopMaterialService.queryShopMaterialList(inputObject, outputObject);
     }
 
+
+
     @ApiOperation(id = "queryShopMaterialByNormsIdList", value = "根据规格id获取商城商品信息", method = "POST", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "normsIds", name = "normsIds", value = "规格id，多个逗号隔开", required = "required")})
     @RequestMapping("/post/ShopMaterialController/queryShopMaterialByNormsIdList")
     public void queryShopMaterialByNormsIdList(InputObject inputObject, OutputObject outputObject) {
         shopMaterialService.queryShopMaterialByNormsIdList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryShopMaterialByMaterialIdList", value = "根据商品id获取商城商品信息", method = "POST", allUse = "0")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialIds", name = "materialIds", value = "商品id，多个逗号隔开", required = "required")})
+    @RequestMapping("/post/ShopMaterialController/queryShopMaterialByMaterialIdList")
+    public void queryShopMaterialByMaterialIdList(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialService.queryShopMaterialByMaterialIdList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryBrandShopMaterialList", value = "获取商城商品信息列表根据品牌进行分组，只取前8条", method = "GET", allUse = "0")
