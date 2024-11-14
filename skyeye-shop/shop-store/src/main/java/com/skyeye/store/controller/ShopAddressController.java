@@ -74,7 +74,7 @@ public class ShopAddressController {
     }
 
     /**
-     * 分页获取收件地址信息
+     * 获取收件地址信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
