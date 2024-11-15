@@ -16,6 +16,8 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.MapUtil;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.shopmaterialnorms.rest.IShopMaterialNormsRest;
 import com.skyeye.store.dao.ShopStoreDao;
@@ -62,9 +64,29 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
     }
 
     @Override
+    public void setDefaultOrderBy(CommonPageInfo commonPageInfo, QueryWrapper<ShopStore> wrapper) {
+        if (StrUtil.isNotEmpty(commonPageInfo.getLatitude()) && StrUtil.isNotEmpty(commonPageInfo.getLongitude())) {
+            // 使用ST_Distance_Sphere函数计算距离并按距离排序
+            String orderByClause = "ORDER BY ST_Distance_Sphere(point(longitude, latitude), " +
+                "point(" + commonPageInfo.getLongitude() + ", " + commonPageInfo.getLatitude() + ")) ASC";
+            wrapper.last(orderByClause);
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         shopAreaService.setMationForMap(beans, "shopAreaId", "shopAreaMation");
+        if (StrUtil.isNotEmpty(commonPageInfo.getLatitude()) && StrUtil.isNotEmpty(commonPageInfo.getLongitude())) {
+            // 计算距离并添加距离字段
+            beans.forEach(bean -> {
+                double distance = ToolUtil.calculateDistance(Double.parseDouble(commonPageInfo.getLatitude()), Double.parseDouble(commonPageInfo.getLongitude()),
+                    Double.parseDouble(MapUtil.checkKeyIsNull(bean, "latitude") ? "0" : bean.get("latitude").toString()),
+                    Double.parseDouble(MapUtil.checkKeyIsNull(bean, "longitude") ? "0" : bean.get("longitude").toString()));
+                bean.put("distance", distance);
+            });
+        }
         return beans;
     }
 

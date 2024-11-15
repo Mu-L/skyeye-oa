@@ -75,6 +75,10 @@ public class ShopStore extends AreaInfo {
     @ApiModelProperty(value = "纬度")
     private String latitude;
 
+    @TableField(exist = false)
+    @Property(value = "两点之间的距离，单位：米")
+    private Double distance;
+
     @TableField("start_time")
     @ApiModelProperty(value = "开始时间")
     private String startTime;
