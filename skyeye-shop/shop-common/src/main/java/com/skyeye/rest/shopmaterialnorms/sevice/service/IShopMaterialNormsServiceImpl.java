@@ -4,16 +4,22 @@
 
 package com.skyeye.rest.shopmaterialnorms.sevice.service;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.google.common.base.Joiner;
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.object.ResultEntity;
 import com.skyeye.rest.shopmaterialnorms.rest.IShopMaterialNormsRest;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: IShopMaterialNormsServiceImpl
@@ -39,6 +45,21 @@ public class IShopMaterialNormsServiceImpl extends IServiceImpl implements IShop
     @Override
     public List<Map<String, Object>> queryShopMaterialByMaterialIdList(String materialIds) {
         ResultEntity resultEntity = ExecuteFeignClient.get(() -> iShopMaterialNormsRest.queryShopMaterialByMaterialIdList(materialIds));
+        List<Map<String, Object>> rows = resultEntity.getRows();
+        return rows;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryShopMaterialByIds(List<String> ids) {
+        if (ids == null) {
+            return new ArrayList<>();
+        }
+        ids = ids.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(ids)) {
+            return new ArrayList<>();
+        }
+        String joinIds = Joiner.on(CommonCharConstants.COMMA_MARK).join(ids);
+        ResultEntity resultEntity = ExecuteFeignClient.get(() -> iShopMaterialNormsRest.queryShopMaterialByIds(joinIds));
         List<Map<String, Object>> rows = resultEntity.getRows();
         return rows;
     }
