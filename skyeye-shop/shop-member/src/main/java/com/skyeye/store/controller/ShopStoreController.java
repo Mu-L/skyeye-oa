@@ -40,7 +40,8 @@ public class ShopStoreController {
     }
 
     @ApiOperation(id = "queryStoreListFoServer", value = "其他微服务调用，获取门店信息", method = "POST", allUse = "0")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", required = "required,num", defaultValue = "1")})
     @RequestMapping("/post/ShopStoreController/queryStoreListFoServer")
     public void queryStoreListFoServer(InputObject inputObject, OutputObject outputObject) {
         shopStoreService.queryPageList(inputObject, outputObject);
@@ -53,7 +54,7 @@ public class ShopStoreController {
         shopStoreService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStoreById", value = "据ID查询门店信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryStoreById", value = "据ID查询门店信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ShopStoreController/queryStoreById")
@@ -84,14 +85,6 @@ public class ShopStoreController {
     @RequestMapping("/post/ShopStoreController/queryStoreListByParams")
     public void queryStoreListByParams(InputObject inputObject, OutputObject outputObject) {
         shopStoreService.queryStoreListByParams(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryStorePageListByParams", value = "商城分页获取门店列表信息", method = "POST", allUse = "0")
-    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
-        @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", required = "required,num", defaultValue = "1")})
-    @RequestMapping("/post/ShopStoreController/queryStorePageListByParams")
-    public void queryStorePageListByParams(InputObject inputObject, OutputObject outputObject) {
-        shopStoreService.queryPageList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryStoreOnlineById", value = "根据门店ID获取门店设置的线上预约信息(已结合当前登陆用户)", method = "GET", allUse = "2")
