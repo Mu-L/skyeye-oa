@@ -67,7 +67,7 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
     public void setDefaultOrderBy(CommonPageInfo commonPageInfo, QueryWrapper<ShopStore> wrapper) {
         if (StrUtil.isNotEmpty(commonPageInfo.getLatitude()) && StrUtil.isNotEmpty(commonPageInfo.getLongitude())) {
             // 使用ST_Distance_Sphere函数计算距离并按距离排序
-            String orderByClause = "ORDER BY ST_Distance_Sphere(point(longitude, latitude), " +
+            String orderByClause = "ORDER BY CASE WHEN longitude IS NULL THEN 1 ELSE 0 END, ST_Distance_Sphere(point(longitude, latitude), " +
                 "point(" + commonPageInfo.getLongitude() + ", " + commonPageInfo.getLatitude() + ")) ASC";
             wrapper.last(orderByClause);
         }
