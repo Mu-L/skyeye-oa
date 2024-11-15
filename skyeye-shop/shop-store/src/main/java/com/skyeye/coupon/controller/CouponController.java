@@ -46,10 +46,10 @@ public class CouponController {
         couponService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryCouponListByState", value = "根据类型获取已启用的优惠券/模版信息", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryCouponListByState", value = "根据类型/门店获取已启用的优惠券/模版信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id"),
-        @ApiImplicitParam(id = "type", name = "type", value = "类型：优惠券：0，优惠券模板：1，全部：为空")})
+        @ApiImplicitParam(id = "type", name = "type", value = "类型：优惠券：1，优惠券模板：0，全部：为空")})
     @RequestMapping("/post/CouponController/queryCouponListByState")
     public void queryCouponListByState(InputObject inputObject, OutputObject outputObject) {
         couponService.queryCouponListByState(inputObject, outputObject);
