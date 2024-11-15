@@ -13,6 +13,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -201,6 +203,39 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
         outputObject.setBean(shopMaterial);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryShopMaterialByIds(InputObject inputObject, OutputObject outputObject) {
+        String ids = inputObject.getParams().get("ids").toString();
+        List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return;
+        }
+        List<ShopMaterialStore> shopMaterialStoreList = selectByIds(idList.toArray(new String[]{}));
+        Map<String, ShopMaterialStore> storeMap = shopMaterialStoreList.stream()
+            .collect(Collectors.toMap(ShopMaterialStore::getMaterialId, Function.identity(), (v1, v2) -> v1));
+
+        List<String> materialIds = shopMaterialStoreList.stream()
+            .map(ShopMaterialStore::getMaterialId).distinct().collect(Collectors.toList());
+        Map<String, ShopMaterial> shopMaterialMap = shopMaterialService.queryShopMaterialByMaterialId(materialIds);
+        List<ShopMaterial> shopMaterialList = shopMaterialMap.values().stream().collect(Collectors.toList());
+        shopMaterialList.forEach(shopMaterial -> {
+            shopMaterial.getMaterialMation().setMaterialNorms(null);
+            shopMaterial.getMaterialMation().setUnitGroupMation(null);
+            shopMaterial.getMaterialMation().setMaterialProcedure(null);
+            shopMaterial.getMaterialMation().setNormsSpec(null);
+            shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
+                shopMaterialNorms.setEstimatePurchasePrice(null);
+            });
+            // 门店商品数据
+            ShopMaterialStore shopMaterialStore = storeMap.get(shopMaterial.getMaterialId());
+            shopMaterial.setShopMaterialStore(shopMaterialStore);
+            shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
+        });
+        outputObject.setBeans(shopMaterialList);
+        outputObject.settotal(shopMaterialList.size());
     }
 
     @Override

@@ -28,6 +28,15 @@ public interface IShopMaterialNormsRest {
     String queryShopMaterialByMaterialIdList(@RequestParam("materialIds") String materialIds);
 
     /**
+     * 根据id批量获取商城商品信息
+     *
+     * @param ids 主键id，多个逗号隔开
+     * @return
+     */
+    @PostMapping("/queryShopMaterialByIds")
+    String queryShopMaterialByIds(@RequestParam("ids") String ids);
+
+    /**
      * 新增门店时，将所有商品同步到该门店
      *
      * @param storeId 门店id
