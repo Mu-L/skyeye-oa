@@ -532,21 +532,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     /**
-     * 获取还没有分配账号的员工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void querySysUserListByUserName(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-        List<Map<String, Object>> beans = sysEveUserDao.querySysUserListByUserName(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(pages.getTotal());
-    }
-
-    /**
      * 获取该用户拥有的桌面
      *
      * @param inputObject  入参以及用户信息等获取对象

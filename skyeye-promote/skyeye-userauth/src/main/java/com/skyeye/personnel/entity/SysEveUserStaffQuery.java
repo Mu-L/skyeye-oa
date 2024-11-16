@@ -24,4 +24,7 @@ public class SysEveUserStaffQuery extends CommonPageInfo {
     @ApiModelProperty(value = "薪资设定情况，参考#StaffWagesStateEnum")
     private Integer designWages;
 
+    @ApiModelProperty(value = "是否绑定账号，参考#WhetherEnum")
+    private Integer bindAccount;
+
 }

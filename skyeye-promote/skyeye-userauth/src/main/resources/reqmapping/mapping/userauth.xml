@@ -157,11 +157,6 @@
 		<property id="userHomePhone" name="userHomePhone" ref="" var="家庭电话" />
 		<property id="userSign" name="userSign" ref="" var="签名" />
 	</url>
-	<url id="sys034" path="/post/SysEveUserController/querySysUserListByUserName" val="获取还没有分配账号的员工" allUse="2" groupName="系统管理">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-		<property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-		<property id="userName" name="userName" ref="" var="员工姓名" />
-	</url>
 	<!-- 系统管理结束 -->
 	
 	<!-- 便签开始 -->

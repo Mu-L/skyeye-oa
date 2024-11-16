@@ -226,21 +226,6 @@
 		WHERE user_id = #{userId}
 	</update>
 	
-	<select id="querySysUserListByUserName" parameterType="java.util.Map" resultType="java.util.Map">
-		SELECT
-			a.id,
-		    a.job_number jobNumber,
-			a.user_name userName,
-			a.user_sex userSex
-		FROM
-			sys_eve_user_staff a
-		WHERE 
-			(a.user_id IS NULL OR LENGTH(a.user_id) = 0)
-		<if test="userName != '' and userName != null">
-			AND a.user_name LIKE '%${userName}%'
-		</if>
-	</select>
-	
 	<select id="querySysDeskTopByUserId" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT
 			d.id,

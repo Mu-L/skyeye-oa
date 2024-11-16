@@ -37,8 +37,6 @@ public interface SysEveUserDao extends SkyeyeBaseMapper<SysEveUser> {
 
     int editUserDetailsMationByUserId(Map<String, Object> map);
 
-    List<Map<String, Object>> querySysUserListByUserName(Map<String, Object> map);
-
     List<Map<String, Object>> querySysDeskTopByUserId(Map<String, Object> user);
 
     Map<String, Object> queryUserSchoolMationByUserId(@Param("userId") String userId);
