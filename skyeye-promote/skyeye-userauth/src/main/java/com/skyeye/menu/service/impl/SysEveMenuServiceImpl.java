@@ -6,6 +6,7 @@ package com.skyeye.menu.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -93,6 +94,14 @@ public class SysEveMenuServiceImpl extends SkyeyeBusinessServiceImpl<SysEveMenuD
             bean.put("lay_is_open", true);
         });
         return beans;
+    }
+
+    @Override
+    public void validatorEntity(SysMenu entity) {
+        super.validatorEntity(entity);
+        if (StrUtil.equals(entity.getId(), entity.getParentId())) {
+            throw new CustomException("父菜单不能为自己！");
+        }
     }
 
     @Override
