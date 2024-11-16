@@ -33,6 +33,7 @@ import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -176,9 +177,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     @Override
-    public Coupon getDataFromDb(String id) {
-        Coupon coupon = super.getDataFromDb(id);
+    public Coupon getFromCache(String id) {
+        Coupon coupon = super.getFromCache(id);
         coupon.setCouponMaterialList(couponMaterialService.queryListByCouponId(id));
+        setDrawState(Collections.singletonList(coupon));// 设置是否可以领取状态
         return coupon;
     }
 
