@@ -30,6 +30,8 @@ import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
+import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
+import com.skyeye.store.service.ShopStoreService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -258,9 +260,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             return CollectionUtil.newArrayList();
         }
         List<String> idList = list.stream().map(map -> map.get("id").toString()).collect(Collectors.toList());
-        Map<String, Map<String, Object>> mapByIds = orderItemService.selectValIsMapByIds(idList);
+        Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(String.valueOf(idList));
         for (Map<String, Object> map : list) {
-            map.put(map.get("id").toString(), mapByIds.get("id"));
+            String id = map.get("id").toString();
+            map.put("orderItem", mapByIds.containsKey(id) ? mapByIds.get("id") : new ArrayList<>());
         }
         iAreaService.setMationForMap(list, "provinceId", "provinceMation");
         iAreaService.setMationForMap(list, "cityId", "cityMation");
@@ -278,8 +281,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public Order selectById(String id) {
         Order order = super.selectById(id);
-        List<OrderItem> orderItemList = orderItemService.selectByParentId(id);
-        order.setOrderItemList(orderItemList);
+        Map<String, List<OrderItem>> orderItemList = orderItemService.queryListByParentId(id);
+        order.setOrderItemList(orderItemList.get(order.getId()));
         iAreaService.setDataMation(order, Order::getProvinceId);
         iAreaService.setDataMation(order, Order::getCityId);
         iAreaService.setDataMation(order, Order::getAreaId);
