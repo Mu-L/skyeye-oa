@@ -90,7 +90,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         if (sysEveUserStaffQuery.getBindAccount() == WhetherEnum.DISABLE_USING.getKey()) {
             // 未绑定账号
             String userIdKey = MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId);
-            wrapper.isNull(userIdKey).or().eq(userIdKey, StrUtil.EMPTY);
+            wrapper.and(wra -> {
+                wra.isNull(userIdKey).or().eq(userIdKey, StrUtil.EMPTY);
+            });
         }
     }
 
