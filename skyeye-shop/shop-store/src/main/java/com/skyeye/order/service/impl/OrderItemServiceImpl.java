@@ -57,9 +57,9 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
         List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);
-        Map<String, Map<String, Object>> materialMap = materialByIds.stream().collect(Collectors.toMap(map -> map.get("id").toString(), map -> map));
+        Map<String, Map<String, Object>> materialMap = materialByIds.stream().collect(Collectors.toMap(map -> map.get("materialId").toString(), map -> map));
         mapList.forEach(map -> {
-            map.setMaterialMation(materialMap.get(map.getMaterialStoreId()));
+            map.setMaterialMation(materialMap.get(map.getMaterialId()));
         });
         Map<String, List<OrderItem>> result = mapList.stream().collect(Collectors.groupingBy(OrderItem::getParentId));
         return result;
