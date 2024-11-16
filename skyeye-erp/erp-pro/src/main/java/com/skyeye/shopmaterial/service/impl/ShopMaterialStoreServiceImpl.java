@@ -214,6 +214,9 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             return;
         }
         List<ShopMaterialStore> shopMaterialStoreList = selectByIds(idList.toArray(new String[]{}));
+        if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
+            return;
+        }
         Map<String, ShopMaterialStore> storeMap = shopMaterialStoreList.stream()
             .collect(Collectors.toMap(ShopMaterialStore::getMaterialId, Function.identity(), (v1, v2) -> v1));
 
