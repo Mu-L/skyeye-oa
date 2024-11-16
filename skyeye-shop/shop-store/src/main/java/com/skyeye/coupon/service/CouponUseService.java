@@ -7,6 +7,9 @@ package com.skyeye.coupon.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.coupon.entity.CouponUse;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: CouponUseService
  * @Description: 优惠券领取信息管理服务接口层
@@ -16,6 +19,8 @@ import com.skyeye.coupon.entity.CouponUse;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface CouponUseService extends SkyeyeBusinessService<CouponUse> {
+
+    Map<String, Integer> queryIdTotalMapByCouponId(List<String> couponIdList);
 
     void setStateByCouponUse();
 

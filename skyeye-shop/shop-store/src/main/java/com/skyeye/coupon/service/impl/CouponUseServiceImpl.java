@@ -4,6 +4,7 @@
 
 package com.skyeye.coupon.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -32,9 +33,11 @@ import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: CouponUseServiceImpl
@@ -157,6 +160,19 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 查询时获取数据
         List<CouponUse> list = list(queryWrapper);
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+    }
+
+    @Override
+    public Map<String, Integer> queryIdTotalMapByCouponId(List<String> couponIdList) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(MybatisPlusUtil.toColumns(CouponUse::getCouponId), "count(id) as total");
+        queryWrapper.in(MybatisPlusUtil.toColumns(CouponUse::getCouponId), couponIdList);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCreateId), userId);
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(CouponUse::getCouponId));
+        List<Map<String, Object>> mapList = listMaps(queryWrapper);
+        return CollectionUtil.isEmpty(mapList) ? new HashMap<>()
+            : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
     }
 
     /**

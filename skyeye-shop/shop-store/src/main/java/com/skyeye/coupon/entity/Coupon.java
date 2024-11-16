@@ -109,4 +109,8 @@ public class Coupon extends BaseGeneralInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "优惠券适用对象列表", required = "json")
     private List<CouponMaterial> couponMaterialList;
+
+    @TableField(exist = false)
+    @Property(value = "是否可领取")
+    private Boolean canDraw;
 }
