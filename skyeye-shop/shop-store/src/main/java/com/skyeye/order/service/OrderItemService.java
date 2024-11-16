@@ -17,5 +17,5 @@ public interface OrderItemService extends SkyeyeBusinessService<OrderItem> {
 
     List<OrderItem> queryListByStateAndOrderId(String orderId, Integer state);
 
-    Map<String, List<OrderItem>> queryListByParentId(String... idList);
+    Map<String, List<OrderItem>> queryListByParentId(List<String> idList);
 }

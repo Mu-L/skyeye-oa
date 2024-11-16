@@ -3,6 +3,7 @@ package com.skyeye.order.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -30,8 +31,6 @@ import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
-import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
-import com.skyeye.store.service.ShopStoreService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,7 +67,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setPayPrice("0");
         // 调价
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
-        // 优惠券操作
+        // 子单的优惠券操作
         checkAndSetItemCouponUse(order);
         order.setUserIp(IpUtil.getLocalAddress().toString());
         order.setState(ShopOrderState.UNPAID.getKey());
@@ -78,17 +77,18 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         checkAndSetVariable(order);
         // 活动信息及积分操作方法
         checkAndSetActive(order);
-        // 订单优惠券处理
+        // 总单的优惠券处理
         checkAndSetOrderCouponUse(order);
     }
 
-    private void checkAndSetItemCouponUse(Order order) {
+    private void checkAndSetItemCouponUse(Order order) {// 子单的优惠券操作
         List<OrderItem> orderItemList = order.getOrderItemList();
         // 设置商品信息、商品规格信息和优惠券信息
         iMaterialNormsService.setDataMation(orderItemList, OrderItem::getNormsId);
         iMaterialService.setDataMation(orderItemList, OrderItem::getMaterialId);
         couponUseService.setDataMation(orderItemList, OrderItem::getCouponId);
-        boolean b = orderItemList.stream().allMatch(orderItem -> orderItem.getCouponMation().get("state").equals(CouponUseState.UNUSED.getKey()));
+        boolean b = orderItemList.stream().filter(orderItem -> StrUtil.isNotEmpty(orderItem.getCouponId()))
+            .allMatch(orderItem -> orderItem.getCouponMation().get("state").equals(CouponUseState.UNUSED.getKey()));
         if (!b) {
             throw new CustomException("存在不可用优惠券");
         }
@@ -97,6 +97,11 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             String salePrice = orderItem.getNormsMation().get("salePrice").toString();
             // 设置子单总价
             orderItem.setPrice(CalculationUtil.multiply(orderItem.getCount(), salePrice));
+            if (StrUtil.isEmpty(orderItem.getCouponId())) {// 没有优惠券
+                orderItem.setPayPrice(orderItem.getPrice());
+                orderItem.setDiscountPrice("0");
+                continue;
+            }
             // 获取优惠券使用条件，即满多少金额可使用。
             String usePrice = orderItem.getCouponMation().get("usePrice").toString();
             if (CalculationUtil.getMax(orderItem.getPrice(), usePrice, CommonNumConstants.NUM_SIX).equals(usePrice)) {
@@ -140,7 +145,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
     }
 
-    private void checkAndSetOrderCouponUse(Order order) {
+    private void checkAndSetOrderCouponUse(Order order) {// 总单的优惠券处理
         if (StrUtil.isEmpty(order.getCouponId())) {
             return;
         }
@@ -255,22 +260,21 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             wrapper.in(MybatisPlusUtil.toColumns(Order::getState), stateList);
         }
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(Order::getCreateTime));
-        List<Map<String, Object>> list = listMaps(wrapper);
+        List<Order> list = list(wrapper);
         if (CollectionUtil.isEmpty(list)) {
             return CollectionUtil.newArrayList();
         }
-        List<String> idList = list.stream().map(map -> map.get("id").toString()).collect(Collectors.toList());
-        Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(String.valueOf(idList));
-        for (Map<String, Object> map : list) {
-            String id = map.get("id").toString();
-            map.put("orderItem", mapByIds.containsKey(id) ? mapByIds.get("id") : new ArrayList<>());
+        List<String> idList = list.stream().map(Order::getId).collect(Collectors.toList());
+        Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
+        for (Order order : list) {
+            order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
         }
-        iAreaService.setMationForMap(list, "provinceId", "provinceMation");
-        iAreaService.setMationForMap(list, "cityId", "cityMation");
-        iAreaService.setMationForMap(list, "areaId", "areaMation");
-        iAreaService.setMationForMap(list, "townshipId", "townshipMation");
+        iAreaService.setDataMation(list, Order::getProvinceId);
+        iAreaService.setDataMation(list, Order::getCityId);
+        iAreaService.setDataMation(list, Order::getAreaId);
+        iAreaService.setDataMation(list, Order::getTownshipId);
         // 分页查询时获取数据
-        return list;
+        return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
     }
 
     @Override
@@ -281,7 +285,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public Order selectById(String id) {
         Order order = super.selectById(id);
-        Map<String, List<OrderItem>> orderItemList = orderItemService.queryListByParentId(id);
+        Map<String, List<OrderItem>> orderItemList = orderItemService.queryListByParentId(Collections.singletonList(id));
         order.setOrderItemList(orderItemList.get(order.getId()));
         iAreaService.setDataMation(order, Order::getProvinceId);
         iAreaService.setDataMation(order, Order::getCityId);

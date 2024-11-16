@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,20 +37,6 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         remove(queryWrapper);
     }
 
-//    @Override
-//    public List<OrderItem> selectByParentId(String parentId) {
-//        QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), parentId);
-//        List<Map<String, Object>> mapList = listMaps(queryWrapper);
-//        Map<String, Map<String, Object>> collect = mapList.stream().collect(Collectors.toMap(map -> map.get("id").toString(), map -> map));
-//        List<String> materialStoreIds = mapList.stream().map(map -> map.get("materialStoreId").toString()).collect(Collectors.toList());
-//        List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);
-//        for (Map<String, Object> map : materialByIds) {
-//            collect.get(map.get("id").toString()).put("materialMation", map);
-//        }
-//        return BeanUtil.copyToList(mapList, OrderItem.class);
-//    }
-
     @Override
     public List<OrderItem> queryListByStateAndOrderId(String orderId, Integer state) {
         QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
@@ -61,9 +47,12 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
-    public Map<String, List<OrderItem>> queryListByParentId(String... idList) {
+    public Map<String, List<OrderItem>> queryListByParentId(List<String> idList) {
+        if (CollectionUtil.isEmpty(idList)) {
+            return new HashMap<>();
+        }
         QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(OrderItem::getId), Arrays.asList(idList));
+        queryWrapper.in(MybatisPlusUtil.toColumns(OrderItem::getParentId), idList);
         List<OrderItem> mapList = list(queryWrapper);
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
