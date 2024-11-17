@@ -104,14 +104,12 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
                 bean.setShopMaterialMation(shopMaterialListMap.get(bean.getMaterialId()));
             });
         }
-
         iMaterialService.setDataMation(beans, ShopTradeCart::getMaterialId);
-        Map<String, List<ShopTradeCart>> collect = beans.stream().collect(Collectors.groupingBy(ShopTradeCart::getStoreId));
         // 查询店铺信息
         List<String> storeIdList = beans.stream().map(ShopTradeCart::getStoreId).collect(Collectors.toList());
         List<ShopStore> shopStoreList = shopStoreService.selectByIds(storeIdList.toArray(new String[]{}));
         Map<String, Object> shopStoreMap = shopStoreList.stream().collect(Collectors.toMap(ShopStore::getId, ShopStore::getName));
-        outputObject.setBean(collect);
+        outputObject.setBeans(beans);
         outputObject.setCustomBean("AllShopStoreInfo", shopStoreMap);
     }
 
