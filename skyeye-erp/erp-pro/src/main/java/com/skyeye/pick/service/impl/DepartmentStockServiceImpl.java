@@ -118,7 +118,9 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
             queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
         } else {
             String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            queryWrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            queryWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsId);
         return getOne(queryWrapper);
@@ -131,7 +133,9 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
             updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
         } else {
             String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            updateWrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            updateWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
         }
         updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsId);
         updateWrapper.set(MybatisPlusUtil.toColumns(DepartmentStock::getStock), stock);
@@ -156,7 +160,9 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
             queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
         } else {
             String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            queryWrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            queryWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
         }
         queryWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds);
         List<DepartmentStock> departmentStockList = list(queryWrapper);

@@ -70,12 +70,16 @@ public class AssetReportServiceImpl extends SkyeyeBusinessServiceImpl<AssetRepor
         if (StrUtil.equals("unPut", commonPageInfo.getState())) {
             // 未入库的（状态为空）
             String stateKey = MybatisPlusUtil.toColumns(AssetReport::getState);
-            wrapper.isNull(stateKey).or().eq(stateKey, StrUtil.EMPTY);
+            wrapper.and(wra -> {
+                wra.isNull(stateKey).or().eq(stateKey, StrUtil.EMPTY);
+            });
         }
         if (StrUtil.equals("unUse", commonPageInfo.getState())) {
             // 未申领的
             String useUserIdKey = MybatisPlusUtil.toColumns(AssetReport::getUseUserId);
-            wrapper.isNull(useUserIdKey).or().eq(useUserIdKey, StrUtil.EMPTY);
+            wrapper.and(wra -> {
+                wra.isNull(useUserIdKey).or().eq(useUserIdKey, StrUtil.EMPTY);
+            });
             // && 状态不能为空
             String stateKey = MybatisPlusUtil.toColumns(AssetReport::getState);
             wrapper.isNotNull(stateKey).ne(stateKey, StrUtil.EMPTY).ne(stateKey, AssetReportState.RETURN.getKey());
@@ -157,7 +161,9 @@ public class AssetReportServiceImpl extends SkyeyeBusinessServiceImpl<AssetRepor
         queryWrapper.in(MybatisPlusUtil.toColumns(AssetReport::getAssetNum), codeNumList);
         if (!depotState) {
             String stateKey = MybatisPlusUtil.toColumns(AssetReport::getState);
-            queryWrapper.isNull(stateKey).or().eq(stateKey, StrUtil.EMPTY);
+            queryWrapper.and(Wrapper -> {
+                Wrapper.isNull(stateKey).or().eq(stateKey, StrUtil.EMPTY);
+            });
         } else {
             String stateKey = MybatisPlusUtil.toColumns(AssetReport::getState);
             queryWrapper.isNotNull(stateKey).ne(stateKey, StrUtil.EMPTY);
