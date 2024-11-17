@@ -25,7 +25,7 @@ public class Order extends AreaInfo {
     private String id;
 
     @TableField("odd_number")
-    @ApiModelProperty(value = "订单编号", required = "required")
+    @Property(value = "订单编号")
     private String oddNumber;
 
     @TableField("type")
@@ -37,7 +37,7 @@ public class Order extends AreaInfo {
     private Integer terminal;
 
     @TableField("user_ip")
-    @ApiModelProperty(value = "用户ip", required = "required")
+    @Property(value = "用户ip")
     private String userIp;
 
     @TableField("state")

@@ -1,5 +1,6 @@
 package com.skyeye.order.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -59,6 +60,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Override
     public void createPrepose(Order order) {
+        // 订单编号
+        Map<String, Object> business = BeanUtil.beanToMap(order);
+        String oddNumber = iCodeRuleService.getNextCodeByClassName(getClass().getName(), business);
+        order.setOddNumber(oddNumber);
         order.setCount(CommonNumConstants.NUM_ZERO);
         order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
         order.setTotalPrice("0");
@@ -69,6 +74,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
         // 子单的优惠券操作
         checkAndSetItemCouponUse(order);
+        // ip
         order.setUserIp(IpUtil.getLocalAddress().toString());
         order.setState(ShopOrderState.UNPAID.getKey());
         //  物流联通后，此项需要修改
