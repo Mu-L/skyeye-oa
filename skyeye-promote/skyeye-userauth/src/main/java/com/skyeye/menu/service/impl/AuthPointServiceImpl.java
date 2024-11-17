@@ -66,7 +66,7 @@ public class AuthPointServiceImpl extends SkyeyeBusinessServiceImpl<AuthPointDao
         AuthPoint checkSysMenuAuthPoint = getOne(queryWrapper);
 
         if (!ObjectUtils.isEmpty(checkSysMenuAuthPoint)) {
-            throw new CustomException("该菜单下已存在该名称的权限点，请进行更改。");
+            throw new CustomException("该菜单下已存在相同的名称/接口URL，请进行更改。");
         }
     }
 
