@@ -208,6 +208,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     private void setDrawState(List<Coupon> list) {
+        if(CollectionUtil.isEmpty(list))return;
         List<String> couponIdList = list.stream().map(Coupon::getId).collect(Collectors.toList());
         Map<String, Integer> map = couponUseService.queryIdTotalMapByCouponId(couponIdList);
         for (Coupon coupon : list) {
