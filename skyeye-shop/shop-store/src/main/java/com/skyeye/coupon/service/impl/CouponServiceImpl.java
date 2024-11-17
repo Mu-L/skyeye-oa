@@ -132,10 +132,14 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         if (type.equals(CommonNumConstants.NUM_ZERO.toString())) {
-            queryWrapper.isNull(typeKey).or().eq(typeKey, StrUtil.EMPTY);
+            queryWrapper.and(wra -> {
+                wra.isNull(typeKey).or().eq(typeKey, StrUtil.EMPTY);
+            });
         }
         if (type.equals(CommonNumConstants.NUM_ONE.toString())) {
-            queryWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            queryWrapper.and(wra -> {
+                wra.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            });
         }
         return queryWrapper;
     }
@@ -151,10 +155,14 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         if (StrUtil.equals(type, CommonNumConstants.NUM_ZERO.toString())) {
-            queryWrapper.isNull(typeKey).or().eq(typeKey, StrUtil.EMPTY);
+            queryWrapper.and(wrapper -> {
+                wrapper.isNull(typeKey).or().eq(typeKey, StrUtil.EMPTY);
+            });
         }
         if (StrUtil.equals(type, CommonNumConstants.NUM_ONE.toString())) {
-            queryWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            queryWrapper.and(Wrapper -> {
+                Wrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            });
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<Coupon> list = list(queryWrapper);

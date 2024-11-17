@@ -29,11 +29,11 @@ public class Order extends AreaInfo {
     private String oddNumber;
 
     @TableField("type")
-    @ApiModelProperty(value = "订单类型", required = "required")
+    @ApiModelProperty(value = "订单类型,参考#ShopOrderType", required = "required")
     private Integer type;
 
     @TableField("terminal")
-    @ApiModelProperty(value = "订单来源", required = "required")
+    @ApiModelProperty(value = "订单来源,参考#ShopOrderTerminal", required = "required")
     private Integer terminal;
 
     @TableField("user_ip")
@@ -41,7 +41,7 @@ public class Order extends AreaInfo {
     private String userIp;
 
     @TableField("state")
-    @Property(value = "状态")
+    @Property(value = "状态, 参考#ShopOrderState")
     private Integer state;
 
     @TableField("count")
@@ -57,11 +57,11 @@ public class Order extends AreaInfo {
     private String cancelTime;
 
     @TableField("cancel_type")
-    @Property(value = "取消类型")
+    @Property(value = "取消类型,参考#ShopOrderCancelType")
     private Integer cancelType;
 
     @TableField("comment_state")
-    @Property(value = "是否评价")
+    @Property(value = "是否评价,参考#ShopOrderCommentState")
     private Integer commentState;
 
     @TableField("brokerage_user_id")
