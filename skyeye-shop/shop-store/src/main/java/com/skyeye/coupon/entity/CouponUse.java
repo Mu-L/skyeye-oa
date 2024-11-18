@@ -14,6 +14,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: CouponUse
@@ -35,6 +36,10 @@ public class CouponUse extends OperatorUserInfo {
     @TableField(value = "coupon_id")
     @ApiModelProperty(value = "优惠券id", required = "required")
     private String couponId;
+
+    @TableField(exist = false)
+    @Property(value = "优惠券信息")
+    private Map<String, Object> couponMation;
 
     @TableField(value = "state")
     @Property(value = "状态，参考#CouponUseState")

@@ -150,6 +150,13 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     }
 
     @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
+        couponService.setMationForMap(mapList, "couponId", "couponMation");
+        return mapList;
+    }
+
+    @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
         QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
@@ -159,6 +166,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         }
         // 查询时获取数据
         List<CouponUse> list = list(queryWrapper);
+        couponService.setDataMation(list, CouponUse::getCouponId);
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
     }
 
