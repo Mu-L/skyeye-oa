@@ -303,6 +303,7 @@
 			c.id,
 			c.`name`,
 			c.page_url pageURL,
+			c.path,
 			c.open_type openType,
 			'-1' maxOpen,
 			'false' extend,
