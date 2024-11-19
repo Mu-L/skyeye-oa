@@ -9,6 +9,7 @@
             c.icon,
             c.page_type pageType,
             c.page_url pageURL,
+            c.path,
             c.open_type openType,
             c.type,
             c.order_num orderNum,

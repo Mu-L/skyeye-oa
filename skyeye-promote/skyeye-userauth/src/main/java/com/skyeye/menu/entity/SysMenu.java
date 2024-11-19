@@ -57,6 +57,10 @@ public class SysMenu extends IconOrImgInfo {
     @ApiModelProperty(value = "菜单链接", required = "required")
     private String pageUrl;
 
+    @TableField("path")
+    @ApiModelProperty(value = "VUE前端路由路径")
+    private String path;
+
     @TableField("type")
     @ApiModelProperty(value = "菜单类型", required = "required")
     private String type;
