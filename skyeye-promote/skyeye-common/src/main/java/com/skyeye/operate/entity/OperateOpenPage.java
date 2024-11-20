@@ -50,6 +50,10 @@ public class OperateOpenPage extends OperatorUserInfo {
     @ApiModelProperty(value = "自定义页面的地址/表单布局的id", required = "required")
     private String pageUrl;
 
+    @TableField("path")
+    @ApiModelProperty(value = "VUE前端路由路径")
+    private String path;
+
     @TableField(exist = false)
     @Property(value = "当 type 为表单布局时，存储的表单布局信息")
     private DsFormPage dsFormPage;
