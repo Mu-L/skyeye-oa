@@ -6,6 +6,7 @@ package com.skyeye.pay.core.service.impl.weixin;
 
 import cn.hutool.core.collection.CollUtil;
 import com.skyeye.pay.core.PayClientConfig;
+import com.skyeye.pay.enums.PayChannelVersion;
 import lombok.Data;
 
 import javax.validation.ConstraintViolation;
@@ -25,19 +26,6 @@ import java.util.Set;
  */
 @Data
 public class WxPayClientConfig implements PayClientConfig {
-
-    /**
-     * API 版本 - V2
-     *
-     * <a href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_1">V2 协议说明</a>
-     */
-    public static final String API_VERSION_V2 = "v2";
-    /**
-     * API 版本 - V3
-     *
-     * <a href="https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay-1.shtml">V3 协议说明</a>
-     */
-    public static final String API_VERSION_V3 = "v3";
 
     /**
      * 公众号或者小程序的 appid
@@ -106,7 +94,7 @@ public class WxPayClientConfig implements PayClientConfig {
 
     @Override
     public void validate(Validator validator) {
-        Set<ConstraintViolation<Object>> constraintViolations = validator.validate(this, API_VERSION_V2.equals(this.getApiVersion()) ? V2.class : V3.class);
+        Set<ConstraintViolation<Object>> constraintViolations = validator.validate(this, PayChannelVersion.V2.getKey().equals(this.getApiVersion()) ? V2.class : V3.class);
         if (CollUtil.isNotEmpty(constraintViolations)) {
             throw new ConstraintViolationException(constraintViolations);
         }
