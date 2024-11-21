@@ -23,9 +23,9 @@ import lombok.NoArgsConstructor;
 public enum PayChannelVersion implements SkyeyeEnumClass {
 
     // <a href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=4_1">V2 协议说明</a>
-    V2_PROTOCOL("V2", "V2 协议", true, false),
+    V2_VERSION("V2", "V2 协议", true, false),
     // <a href="https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay-1.shtml">V3 协议说明</a>
-    V3_PROTOCOL("V3", "V3 协议", true, true);
+    V3_VERSION("V3", "V3 协议", true, true);
 
     private String key;
 

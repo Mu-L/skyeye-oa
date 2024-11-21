@@ -94,7 +94,7 @@ public class WxPayClientConfig implements PayClientConfig {
 
     @Override
     public void validate(Validator validator) {
-        Set<ConstraintViolation<Object>> constraintViolations = validator.validate(this, PayChannelVersion.V2.getKey().equals(this.getApiVersion()) ? V2.class : V3.class);
+        Set<ConstraintViolation<Object>> constraintViolations = validator.validate(this, PayChannelVersion.V2_VERSION.getKey().equals(this.getApiVersion()) ? V2.class : V3.class);
         if (CollUtil.isNotEmpty(constraintViolations)) {
             throw new ConstraintViolationException(constraintViolations);
         }

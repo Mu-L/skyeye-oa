@@ -68,9 +68,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         BeanUtil.copyProperties(config, payConfig, "keyContent", "privateKeyContent");
         payConfig.setTradeType(tradeType);
         // weixin-pay-java 无法设置内容，只允许读取文件，所以这里要创建临时文件来解决
-        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
             payConfig.setKeyPath(FileUtil.createTempFile(Base64.decode(config.getKeyContent())).getPath());
-        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
             payConfig.setPrivateKeyPath(FileUtil.createTempFile(config.getPrivateKeyContent()).getPath());
         }
 
@@ -84,9 +84,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     @Override
     protected PayOrderRespDTO doUnifiedOrder(PayOrderUnifiedReqDTO reqDTO) throws Exception {
         try {
-            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
                 return doUnifiedOrderV2(reqDTO);
-            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
                 return doUnifiedOrderV3(reqDTO);
             } else {
                 throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
@@ -154,9 +154,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
 
     @Override
     public PayOrderRespDTO doParseOrderNotify(Map<String, String> params, String body) throws WxPayException {
-        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
             return doParseOrderNotifyV2(body);
-        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
             return doParseOrderNotifyV3(body);
         } else {
             throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
@@ -188,9 +188,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     @Override
     protected PayOrderRespDTO doGetOrder(String outTradeNo) throws Throwable {
         try {
-            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
                 return doGetOrderV2(outTradeNo);
-            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
                 return doGetOrderV3(outTradeNo);
             } else {
                 throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
@@ -256,9 +256,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     @Override
     protected PayRefundRespDTO doUnifiedRefund(PayRefundUnifiedReqDTO reqDTO) throws Throwable {
         try {
-            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
                 return doUnifiedRefundV2(reqDTO);
-            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
                 return doUnifiedRefundV3(reqDTO);
             } else {
                 throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
@@ -315,9 +315,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
 
     @Override
     public PayRefundRespDTO doParseRefundNotify(Map<String, String> params, String body) throws WxPayException {
-        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+        if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
             return doParseRefundNotifyV2(body);
-        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+        } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
             return parseRefundNotifyV3(body);
         } else {
             throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
@@ -351,9 +351,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
     @Override
     protected PayRefundRespDTO doGetRefund(String outTradeNo, String outRefundNo) throws WxPayException {
         try {
-            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2.getKey())) {
+            if (Objects.equals(config.getApiVersion(), PayChannelVersion.V2_VERSION.getKey())) {
                 return doGetRefundV2(outTradeNo, outRefundNo);
-            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3.getKey())) {
+            } else if (Objects.equals(config.getApiVersion(), PayChannelVersion.V3_VERSION.getKey())) {
                 return doGetRefundV3(outTradeNo, outRefundNo);
             } else {
                 throw new IllegalArgumentException(String.format("未知的 API 版本(%s)", config.getApiVersion()));
