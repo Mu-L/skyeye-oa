@@ -26,7 +26,7 @@ public enum PayOrderDisplayMode implements SkyeyeEnumClass {
     IFRAME("iframe", "IFrame 内嵌链接的方式【目前暂时用不到】", true, false),
     FORM("form", "HTML 表单提交", true, false),
     QR_CODE("qr_code", "二维码的文字内容", true, false),
-    QR_CODE_URL("qr_code_url", "维码的图片链接", true, false),
+    QR_CODE_URL("qr_code_url", "二维码的图片链接", true, false),
     BAR_CODE("bar_code", "条形码", true, false),
     APP("app", "应用：Android、iOS、微信小程序、微信公众号等，需要做自定义处理的", true, false);
 
