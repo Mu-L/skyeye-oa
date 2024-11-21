@@ -6,6 +6,7 @@ package com.skyeye.pay.config;
 
 import com.skyeye.pay.core.PayClientFactory;
 import com.skyeye.pay.core.service.PayClientFactoryImpl;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Configuration
+@EnableConfigurationProperties(PayProperties.class)
 public class SkyeyePayAutoConfiguration {
 
     @Bean
