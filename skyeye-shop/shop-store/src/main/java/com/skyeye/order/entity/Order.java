@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
 import lombok.Data;
 
@@ -108,12 +107,20 @@ public class Order extends AreaInfo {
     @Property(value = "收货时间")
     private String receiveTime;
 
+    @TableField("address_id")
+    @ApiModelProperty(value = "收货地址id", required = "required")
+    private String addressId;
+
+    @TableField(exist = false)
+    @Property(value = "收货地址信息")
+    private Map<String,Object> addressMation;
+
     @TableField("receiver_name")
-    @ApiModelProperty(value = "收件人姓名")
+    @Property(value = "收件人姓名")
     private String receiverName;
 
     @TableField("receiver_mobile")
-    @ApiModelProperty(value = "收件人手机")
+    @Property(value = "收件人手机")
     private String receiverMobile;
 
     @TableField("pick_up_store_id")

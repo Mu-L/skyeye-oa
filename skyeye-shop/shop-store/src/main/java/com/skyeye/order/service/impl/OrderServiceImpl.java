@@ -32,6 +32,8 @@ import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
+import com.skyeye.store.entity.ShopAddress;
+import com.skyeye.store.service.ShopAddressService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,6 +60,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Autowired
     private CouponUseService couponUseService;
 
+    @Autowired
+    private ShopAddressService shopAddressService;
+
     @Override
     public void createPrepose(Order order) {
         // 订单编号
@@ -70,6 +75,11 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setDiscountPrice("0");
         order.setDeliveryPrice("0");
         order.setPayPrice("0");
+        // 收货人信息
+        ShopAddress shopAddress = shopAddressService.selectById(order.getAddressId());
+        order.setReceiverName(shopAddress.getName());
+        order.setReceiverMobile(shopAddress.getMobile());
+
         // 调价
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
         // 子单的优惠券操作
@@ -265,6 +275,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         if (CollectionUtil.isNotEmpty(stateList)) { // 状态列表为空时，则查询全部订单
             wrapper.in(MybatisPlusUtil.toColumns(Order::getState), stateList);
         }
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        wrapper.eq(MybatisPlusUtil.toColumns(Order::getCreateId), userId);
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(Order::getCreateTime));
         List<Order> list = list(wrapper);
         if (CollectionUtil.isEmpty(list)) {
@@ -279,6 +291,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(list, Order::getCityId);
         iAreaService.setDataMation(list, Order::getAreaId);
         iAreaService.setDataMation(list, Order::getTownshipId);
+        shopAddressService.setDataMation(list, Order::getAddressId);
         // 分页查询时获取数据
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
     }
@@ -297,6 +310,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getCityId);
         iAreaService.setDataMation(order, Order::getAreaId);
         iAreaService.setDataMation(order, Order::getTownshipId);
+        shopAddressService.setDataMation(order, Order::getAddressId);
         return order;
     }
 
