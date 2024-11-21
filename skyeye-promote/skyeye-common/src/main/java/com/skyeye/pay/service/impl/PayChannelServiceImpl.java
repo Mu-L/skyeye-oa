@@ -12,6 +12,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.pay.core.PayClient;
 import com.skyeye.pay.core.PayClientConfig;
@@ -105,5 +106,16 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
         }
         payClientFactory.createOrUpdatePayClient(id, payChannel.getCodeNum(), payChannel.getConfigMation());
         return null;
+    }
+
+    @Override
+    public PayChannel getPayChannelByCode(String codeNum) {
+        QueryWrapper<PayChannel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(PayChannel::getCodeNum), codeNum);
+        PayChannel one = getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(one)) {
+            throw new CustomException("该支付渠道不存在");
+        }
+        return one;
     }
 }

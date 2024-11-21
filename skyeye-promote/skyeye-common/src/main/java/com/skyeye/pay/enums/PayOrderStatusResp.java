@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 /**
  * @ClassName: PayOrderStatusResp
  * @Description: 渠道的支付状态枚举
@@ -23,9 +25,9 @@ import lombok.NoArgsConstructor;
 public enum PayOrderStatusResp implements SkyeyeEnumClass {
 
     WAITING(0, "未支付", true, false),
-    SUCCESS(1, "支付成功", true, false),
-    REFUND(2, "已退款", true, false),
-    CLOSED(3, "支付关闭", true, false);
+    SUCCESS(10, "支付成功", true, false),
+    REFUND(20, "已退款", true, false),
+    CLOSED(30, "支付关闭", true, false);
 
     private Integer key;
 
@@ -34,5 +36,35 @@ public enum PayOrderStatusResp implements SkyeyeEnumClass {
     private Boolean show;
 
     private Boolean isDefault;
+
+    /**
+     * 判断是否支付成功
+     *
+     * @param status 状态
+     * @return 是否支付成功
+     */
+    public static boolean isSuccess(Integer status) {
+        return Objects.equals(status, SUCCESS.getKey());
+    }
+
+    /**
+     * 判断是否已退款
+     *
+     * @param status 状态
+     * @return 是否支付成功
+     */
+    public static boolean isRefund(Integer status) {
+        return Objects.equals(status, REFUND.getKey());
+    }
+
+    /**
+     * 判断是否支付关闭
+     *
+     * @param status 状态
+     * @return 是否支付关闭
+     */
+    public static boolean isClosed(Integer status) {
+        return Objects.equals(status, CLOSED.getKey());
+    }
 
 }

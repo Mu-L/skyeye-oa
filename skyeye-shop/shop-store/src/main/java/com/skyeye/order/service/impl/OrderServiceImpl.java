@@ -32,9 +32,11 @@ import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
+import com.skyeye.rest.pay.service.IPayService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -57,6 +59,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Autowired
     private CouponUseService couponUseService;
+
+    @Autowired
+    private IPayService iPayService;
 
     @Override
     public void createPrepose(Order order) {
@@ -338,20 +343,37 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void payOrder(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, params.get("id"));
-        Order one = getOne(updateWrapper);
+        String id = params.get("id").toString();
+        String channelCode = params.get("channelCode").toString();
+        String channelExtras = params.get("channelExtras").toString();
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        Order one = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("订单不存在");
         }
         if (!Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey())) {
             throw new CustomException("该订单不可支付。");
         }
+        Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, "", channelExtras).getBean();
+        Map<String, Object> payChannel = JSONUtil.toBean(payRresult.get("payChannel").toString(), null);
+        Map<String, Object> payOrderRespDTO = JSONUtil.toBean(payRresult.get("payOrderRespDTO").toString(), null);
+
+
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getPayType), params.get("payType"));
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getPayTime), DateUtil.getTimeAndToString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getPayType), channelCode);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getPayTime), payOrderRespDTO.get("successTime").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getChannelFeeRate), payChannel.get("feeRate").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getChannelFeePrice), CalculationUtil.multiply(
+            one.getPayPrice(), payChannel.get("feeRate").toString()));
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionId), payOrderRespDTO.get("id").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
+
         update(updateWrapper);
     }
 

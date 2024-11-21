@@ -20,4 +20,6 @@ public interface PayChannelService extends SkyeyeBusinessService<PayChannel> {
 
     PayClient getPayClient(String id);
 
+    PayChannel getPayChannelByCode(String codeNum);
+
 }

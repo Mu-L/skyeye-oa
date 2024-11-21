@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
 import lombok.Data;
 
@@ -183,4 +182,20 @@ public class Order extends AreaInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "子单列表", required = "required,json")
     private List<OrderItem> orderItemList;
+
+    @TableField("channel_fee_rate")
+    @Property(value = "渠道手续费，单位：百分比")
+    private Double channelFeeRate;
+
+    @TableField("channel_fee_price")
+    @Property(value = "渠道手续金额，单位：分")
+    private Integer channelFeePrice;
+
+    @TableField("extension_id")
+    @Property(value = "支付成功的订单拓展单编号")
+    private String extensionId;
+
+    @TableField("extension_no")
+    @Property(value = "支付成功的外部订单号")
+    private String extensionNo;
 }

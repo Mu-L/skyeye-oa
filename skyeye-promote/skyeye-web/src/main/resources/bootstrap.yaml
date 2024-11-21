@@ -60,3 +60,6 @@ skyeye:
     send-maximum-quantity-per-day: 10
     begin-code: 1 # 这里配置 9999 的原因是，测试方便。
     end-code: 9999 # 这里配置 9999 的原因是，测试方便。
+  pay:
+    order-notify-url: http://XXX/admin-api/pay/notify/order # 支付渠道的【支付】回调地址
+    refund-notify-url: http://XXX/admin-api/pay/notify/refund # 支付渠道的【退款】回调地址
