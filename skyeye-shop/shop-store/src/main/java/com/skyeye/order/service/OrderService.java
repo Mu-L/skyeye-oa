@@ -16,4 +16,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void deliverGoodsByOrderId(InputObject inputObject, OutputObject outputObject);
 
     void updateCommonState(String id, Integer state);
+
+    void queryOrderPageList(InputObject inputObject, OutputObject outputObject);
 }

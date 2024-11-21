@@ -39,11 +39,24 @@ public class OrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryOrderPageListPC", value = "分页获取商品订单信息(后台管理)", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/OrderController/queryOrderPageListPC")
+    public void queryOrderPageListPC(InputObject inputObject, OutputObject outputObject) {
+        orderService.queryPageList(inputObject, outputObject);
+    }
+
+    /**
+     * 分页获取商品订单信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
     @ApiOperation(id = "queryOrderPageList", value = "分页获取商品订单信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderController/queryOrderPageList")
-    public void queryOrderPageList(InputObject inputObject, OutputObject outputObject) {
-        orderService.queryPageList(inputObject, outputObject);
+    public void queryOrderList(InputObject inputObject, OutputObject outputObject) {
+        orderService.queryOrderPageList(inputObject, outputObject);
     }
 
     /**
