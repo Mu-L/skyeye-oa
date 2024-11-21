@@ -1,5 +1,6 @@
 package com.skyeye.exam.examanchenradio.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -26,27 +27,27 @@ public class ExamAnChenRadio extends CommonInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableId("belong_answer_id")
+    @TableField("belong_answer_id")
     @ApiModelProperty(value = "所属矩阵单选题答案id")
     private String belongAnswerId;
 
-    @TableId("belong_id")
+    @TableField("belong_id")
     @ApiModelProperty(value = "所属矩阵单选题id")
     private String belongId;
 
-    @TableId("qu_col_id")
+    @TableField("qu_col_id")
     @ApiModelProperty(value = "所属矩阵单选题id")
     private String quColId;
 
-    @TableId("qu_id")
+    @TableField("qu_id")
     @ApiModelProperty(value = "所属矩阵单选题")
     private String quId;
 
-    @TableId("qu_row_id")
+    @TableField("qu_row_id")
     @ApiModelProperty(value = "所属矩阵单选题行id")
     private String quRowId;
 
-    @TableId("visibility")
+    @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 

@@ -27,23 +27,23 @@ public class ExamAnChenCheckbox extends CommonInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableId("belong_answer_id")
+    @TableField("belong_answer_id")
     @ApiModelProperty(value = "所属矩阵多选题答案id")
     private String belongAnswerId;
 
-    @TableId("belong_id")
+    @TableField("belong_id")
     @ApiModelProperty(value = "所属矩阵多选题id")
     private String belongId;
 
-    @TableId("qu_id")
+    @TableField("qu_id")
     @ApiModelProperty(value = "所属矩阵多选题")
     private String quId;
 
-    @TableId("qu_col_id")
+    @TableField("qu_col_id")
     @ApiModelProperty(value = "所属矩阵多选题列id")
     private String quColId;
 
-    @TableId("qu_row_id")
+    @TableField("qu_row_id")
     @ApiModelProperty(value = "所属矩阵多选题行id")
     private String quRowId;
 
