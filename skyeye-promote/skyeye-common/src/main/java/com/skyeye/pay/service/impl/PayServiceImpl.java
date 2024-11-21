@@ -13,7 +13,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exception.CustomException;
-import com.skyeye.pay.config.PayProperties;
 import com.skyeye.pay.core.PayClient;
 import com.skyeye.pay.core.dto.order.PayOrderRespDTO;
 import com.skyeye.pay.core.dto.order.PayOrderUnifiedReqDTO;
@@ -49,9 +48,6 @@ public class PayServiceImpl implements PayService {
     @Autowired
     private PayChannelService payChannelService;
 
-    @Autowired
-    private PayProperties payProperties;
-
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void payment(InputObject inputObject, OutputObject outputObject) {
@@ -60,12 +56,13 @@ public class PayServiceImpl implements PayService {
         String channelCode = params.get("channelCode").toString();
         String returnUrl = params.get("returnUrl").toString();
         String channelExtrasStr = params.get("channelExtras").toString();
+        String notifyUrl = params.get("notifyUrl").toString();
         PayOrderUnifiedReqDTO reqDTO = new PayOrderUnifiedReqDTO();
 
         // 1. 钱包支付事，需要额外传 user_id 和 user_type
         if (Objects.equals(channelCode, PayType.WALLET.getKey())) {
             Map<String, String> channelExtras = StrUtil.isBlank(channelExtrasStr) ?
-                Maps.newHashMapWithExpectedSize(2) : JSONUtil.toBean(channelExtrasStr, null);
+                Maps.newHashMapWithExpectedSize(1) : JSONUtil.toBean(channelExtrasStr, null);
             String userId = inputObject.getLogParams().get(CommonConstants.ID).toString();
             channelExtras.put(CommonConstants.USER_ID_KEY, userId);
             reqDTO.setChannelExtras(channelExtras);
@@ -79,7 +76,7 @@ public class PayServiceImpl implements PayService {
         unifiedReqDTO.setOutTradeNo(data.get("oddNumber").toString());
         unifiedReqDTO.setSubject("购买商品");
         unifiedReqDTO.setBody("购买商品信息");
-        unifiedReqDTO.setNotifyUrl(genChannelOrderNotifyUrl(payChannel));
+        unifiedReqDTO.setNotifyUrl(notifyUrl);
         unifiedReqDTO.setReturnUrl(returnUrl);
         unifiedReqDTO.setPrice(Integer.parseInt(data.get("payPrice").toString()));
         PayOrderRespDTO payOrderRespDTO = client.unifiedOrder(unifiedReqDTO);
@@ -116,14 +113,21 @@ public class PayServiceImpl implements PayService {
         // 情况四：REFUND：通过退款回调处理
     }
 
-    /**
-     * 根据支付渠道的编码，生成支付渠道的回调地址
-     *
-     * @param channel 支付渠道
-     * @return 支付渠道的回调地址  配置地址 + "/" + channel id
-     */
-    private String genChannelOrderNotifyUrl(PayChannel channel) {
-        return payProperties.getOrderNotifyUrl() + "/" + channel.getId();
+    @Override
+    public void generatePayRrCode(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        Map<String, Object> data = JSONUtil.toBean(params.get("data").toString(), null);
+        String channelCode = params.get("channelCode").toString();
+        String notifyUrl = params.get("notifyUrl").toString();
+        String ip = params.get("ip").toString();
+        // 支付渠道
+        PayChannel payChannel = payChannelService.getPayChannelByCode(channelCode);
+        PayClient client = payChannelService.getPayClient(payChannel.getId());
+        String qrCodeUrl = client.generateRrCode(data.get("oddNumber").toString(), "购买商品", data.get("payPrice").toString(), ip, notifyUrl);
+        Map<String, Object> result = new HashMap<>();
+        result.put("qrCodeUrl", qrCodeUrl);
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }

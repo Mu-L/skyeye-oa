@@ -102,4 +102,14 @@ public interface PayClient {
      * @return 转账信息
      */
     PayTransferRespDTO getTransfer(String outTradeNo, PayTransferType type);
+
+    /**
+     * @param outTradeNo 订单号
+     * @param body       订单描述
+     * @param totalFee   订单金额，单位：分
+     * @param ip         用户 IP
+     * @param notifyUrl  支付结果通知 URL
+     * @return
+     */
+    String generateRrCode(String outTradeNo, String body, String totalFee, String ip, String notifyUrl);
 }

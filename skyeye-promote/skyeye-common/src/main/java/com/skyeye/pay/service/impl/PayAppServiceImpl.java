@@ -7,10 +7,12 @@ package com.skyeye.pay.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -45,6 +47,17 @@ public class PayAppServiceImpl extends SkyeyeBusinessServiceImpl<PayAppDao, PayA
         PayApp one = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("该支付应用信息不存在");
+        }
+    }
+
+    @Override
+    protected void writePostpose(PayApp entity, String userId) {
+        if (entity.getEnabled().equals(EnableEnum.ENABLE_USING.getKey())) {
+            // 如果将当前数据修改为启动数据，则需要修改之前的数据为禁用
+            UpdateWrapper<PayApp> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.ne(CommonConstants.ID, entity.getId());
+            updateWrapper.set(MybatisPlusUtil.toColumns(PayApp::getEnabled), EnableEnum.DISABLE_USING.getKey());
+            update(updateWrapper);
         }
     }
 

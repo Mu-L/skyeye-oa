@@ -19,6 +19,17 @@ import java.util.Map;
  */
 public interface IPayService extends IService {
 
-    ResultEntity payment(Map<String, Object> data, String channelCode, String returnUrl, String channelExtras);
+    ResultEntity payment(Map<String, Object> data, String channelCode, String returnUrl, String channelExtras, String notifyUrl);
+
+    /**
+     * 生成支付二维码
+     *
+     * @param data        订单数据
+     * @param channelCode 支付渠道
+     * @param ip          支付请求的IP地址
+     * @param notifyUrl   支付结果通知地址
+     * @return
+     */
+    Map<String, Object> generatePayRrCode(Map<String, Object> data, String channelCode, String ip, String notifyUrl);
 
 }

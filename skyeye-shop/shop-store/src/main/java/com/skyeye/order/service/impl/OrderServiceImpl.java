@@ -27,6 +27,7 @@ import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.service.IAreaService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.order.config.PayProperties;
 import com.skyeye.order.dao.OrderDao;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
@@ -69,6 +70,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Autowired
     private ShopAddressService shopAddressService;
+
+    @Autowired
+    private PayProperties payProperties;
 
     @Override
     public void createPrepose(Order order) {
@@ -436,7 +440,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         if (!Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey())) {
             throw new CustomException("该订单不可支付。");
         }
-        Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, "", channelExtras).getBean();
+        Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, "", channelExtras, payProperties.getOrderNotifyUrl()).getBean();
         Map<String, Object> payChannel = JSONUtil.toBean(payRresult.get("payChannel").toString(), null);
         Map<String, Object> payOrderRespDTO = JSONUtil.toBean(payRresult.get("payOrderRespDTO").toString(), null);
 
@@ -477,4 +481,24 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCommentState), state);
         update(updateWrapper);
     }
+
+    @Override
+    public void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String channelCode = params.get("channelCode").toString();
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        Order one = getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(one)) {
+            throw new CustomException("订单不存在");
+        }
+        if (!Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey())) {
+            throw new CustomException("该订单不可支付。");
+        }
+        Map<String, Object> qrCodeResult = iPayService.generatePayRrCode(BeanUtil.beanToMap(one), channelCode, IpUtil.getLocalAddress().toString(), payProperties.getOrderNotifyUrl());
+        outputObject.setBean(qrCodeResult);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
 }

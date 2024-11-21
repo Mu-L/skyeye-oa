@@ -476,4 +476,25 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         return e.getReturnMsg();
     }
 
+    @Override
+    public String generateRrCode(String outTradeNo, String body, String totalFee, String ip, String notifyUrl) {
+        // 创建统一下单请求
+        WxPayUnifiedOrderRequest request = new WxPayUnifiedOrderRequest();
+        request.setBody(body);
+        request.setOutTradeNo(outTradeNo);
+        request.setTotalFee(Integer.parseInt(totalFee)); // 单位为分
+        request.setSpbillCreateIp(ip);
+        request.setTradeType("NATIVE");
+        request.setNotifyUrl(notifyUrl);
+
+        // 调用统一下单接口
+        WxPayUnifiedOrderResult result;
+        try {
+            result = client.unifiedOrder(request);
+        } catch (WxPayException e) {
+            throw new RuntimeException(e);
+        }
+        // 生成支付二维码
+        return result.getCodeURL();
+    }
 }

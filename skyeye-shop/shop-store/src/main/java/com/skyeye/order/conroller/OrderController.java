@@ -143,4 +143,19 @@ public class OrderController {
     public void deliverGoodsByOrderId(InputObject inputObject, OutputObject outputObject) {
         orderService.deliverGoodsByOrderId(inputObject, outputObject);
     }
+
+    /**
+     * 生成支付订单的二维码
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "generatePayOrderRrCode", value = "生成支付订单的二维码", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required")})
+    @RequestMapping("/post/OrderController/generatePayOrderRrCode")
+    public void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject) {
+        orderService.generatePayOrderRrCode(inputObject, outputObject);
+    }
 }

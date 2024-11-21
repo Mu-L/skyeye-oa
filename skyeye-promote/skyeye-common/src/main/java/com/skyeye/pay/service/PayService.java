@@ -19,4 +19,5 @@ public interface PayService {
 
     void payment(InputObject inputObject, OutputObject outputObject);
 
+    void generatePayRrCode(InputObject inputObject, OutputObject outputObject);
 }

@@ -8,9 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
@@ -25,7 +23,6 @@ import lombok.Data;
 @Data
 @UniqueField(value = "appKey")
 @TableName(value = "skyeye_pay_app")
-@RedisCacheField(name = "skyeye:payApp", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @ApiModel("支付应用实体类")
 public class PayApp extends BaseGeneralInfo {
 
@@ -34,8 +31,8 @@ public class PayApp extends BaseGeneralInfo {
     private String appKey;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "状态1:启用，2:禁用", required = "required")
-    private String enabled;
+    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required")
+    private Integer enabled;
 
     @TableField("order_notify_url")
     @ApiModelProperty(value = "支付结果的回调地址", required = "required")

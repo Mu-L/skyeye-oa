@@ -342,4 +342,8 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         return LocalDateTimeUtil.parse(str, NORM_DATETIME_FORMATTER);
     }
 
+    @Override
+    public String generateRrCode(String outTradeNo, String body, String totalFee, String ip, String notifyUrl) {
+        return null;
+    }
 }

@@ -83,4 +83,8 @@ public class MockPayClient extends AbstractPayClient<NonePayClientConfig> {
         throw new UnsupportedOperationException("待实现");
     }
 
+    @Override
+    public String generateRrCode(String outTradeNo, String body, String totalFee, String ip, String notifyUrl) {
+        return null;
+    }
 }

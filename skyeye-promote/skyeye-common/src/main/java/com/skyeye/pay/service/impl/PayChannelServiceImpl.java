@@ -8,9 +8,11 @@ import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -18,6 +20,7 @@ import com.skyeye.pay.core.PayClient;
 import com.skyeye.pay.core.PayClientConfig;
 import com.skyeye.pay.core.PayClientFactory;
 import com.skyeye.pay.dao.PayChannelDao;
+import com.skyeye.pay.entity.PayApp;
 import com.skyeye.pay.entity.PayChannel;
 import com.skyeye.pay.enums.PayType;
 import com.skyeye.pay.service.PayAppService;
@@ -110,9 +113,12 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
 
     @Override
     public PayChannel getPayChannelByCode(String codeNum) {
-        QueryWrapper<PayChannel> queryWrapper = new QueryWrapper<>();
+        MPJLambdaWrapper<PayChannel> queryWrapper = new MPJLambdaWrapper<PayChannel>()
+            .innerJoin(PayApp.class, PayApp::getId, PayChannel::getAppId)
+            .eq(PayApp::getEnabled, EnableEnum.ENABLE_USING.getKey())
+            .eq(PayChannel::getEnabled, EnableEnum.ENABLE_USING.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(PayChannel::getCodeNum), codeNum);
-        PayChannel one = getOne(queryWrapper);
+        PayChannel one = getOne(queryWrapper, false);
         if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("该支付渠道不存在");
         }
