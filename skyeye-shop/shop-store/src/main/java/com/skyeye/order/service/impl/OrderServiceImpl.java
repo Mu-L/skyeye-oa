@@ -7,6 +7,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -33,6 +35,8 @@ import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
 import com.skyeye.rest.pay.service.IPayService;
+import com.skyeye.store.entity.ShopAddress;
+import com.skyeye.store.service.ShopAddressService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,6 +67,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Autowired
     private IPayService iPayService;
 
+    @Autowired
+    private ShopAddressService shopAddressService;
+
     @Override
     public void createPrepose(Order order) {
         // 订单编号
@@ -75,6 +82,11 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setDiscountPrice("0");
         order.setDeliveryPrice("0");
         order.setPayPrice("0");
+        // 收货人信息
+        ShopAddress shopAddress = shopAddressService.selectById(order.getAddressId());
+        order.setReceiverName(shopAddress.getName());
+        order.setReceiverMobile(shopAddress.getMobile());
+
         // 调价
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
         // 子单的优惠券操作
@@ -284,8 +296,73 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(list, Order::getCityId);
         iAreaService.setDataMation(list, Order::getAreaId);
         iAreaService.setDataMation(list, Order::getTownshipId);
+        shopAddressService.setDataMation(list, Order::getAddressId);
         // 分页查询时获取数据
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+    }
+
+    @Override
+    public void queryOrderPageList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<Integer> stateList = new ArrayList<>();
+        switch (commonPageInfo.getType()) {
+            case "1": // 未支付
+                stateList = Arrays.asList(new Integer[]{ShopOrderState.UNPAID.getKey()});
+                break;
+            case "2": // 待收货
+                stateList = Arrays.asList(new Integer[]{
+                    ShopOrderState.UNDELIVERED.getKey(),// 待发货
+                    ShopOrderState.DELIVERED.getKey(), //  已发货
+                    ShopOrderState.TRANSPORTING.getKey()});//运输中
+                break;
+            case "3":// 已完成
+                stateList = Arrays.asList(new Integer[]{
+                    ShopOrderState.SIGN.getKey(),       // 已签收
+                    ShopOrderState.COMPLETED.getKey(),  // 已完成
+                    ShopOrderState.UNEVALUATE.getKey(), // 待评价
+                    ShopOrderState.EVALUATED.getKey()});// 已评价
+                break;
+            case "4":// 已取消
+                stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
+                break;
+            case "5":// 处理中
+                stateList = Arrays.asList(new Integer[]{
+                    ShopOrderState.REFUNDING.getKey(),  // 退款中
+
+                    ShopOrderState.SALESRETURNING.getKey(),//退货中
+
+                    ShopOrderState.EXCHANGEING.getKey()});//换货中
+                break;
+            case "6": // 申请记录
+                stateList = Arrays.asList(new Integer[]{
+                    ShopOrderState.REFUND.getKey(),     // 已退款
+                    ShopOrderState.SALESRETURNED.getKey(),//已退货
+                    ShopOrderState.EXCHANGED.getKey()});//已换货
+        }
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        if (CollectionUtil.isNotEmpty(stateList)) { // 状态列表为空时，则查询全部订单
+            wrapper.in(MybatisPlusUtil.toColumns(Order::getState), stateList);
+        }
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        wrapper.eq(MybatisPlusUtil.toColumns(Order::getCreateId), userId);// 查询自己的订单
+        wrapper.orderByDesc(MybatisPlusUtil.toColumns(Order::getCreateTime));
+        List<Order> list = list(wrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        List<String> idList = list.stream().map(Order::getId).collect(Collectors.toList());
+        Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
+        for (Order order : list) {
+            order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
+        }
+        iAreaService.setDataMation(list, Order::getProvinceId);
+        iAreaService.setDataMation(list, Order::getCityId);
+        iAreaService.setDataMation(list, Order::getAreaId);
+        iAreaService.setDataMation(list, Order::getTownshipId);
+        shopAddressService.setDataMation(list, Order::getAddressId);
+        outputObject.setBeans(JSONUtil.toList(JSONUtil.toJsonStr(list), null));
+        outputObject.settotal(pages.getTotal());
     }
 
     @Override
@@ -302,6 +379,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getCityId);
         iAreaService.setDataMation(order, Order::getAreaId);
         iAreaService.setDataMation(order, Order::getTownshipId);
+        shopAddressService.setDataMation(order, Order::getAddressId);
         return order;
     }
 
