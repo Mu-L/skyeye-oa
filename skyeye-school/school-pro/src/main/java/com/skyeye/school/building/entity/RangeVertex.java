@@ -33,7 +33,6 @@ public class RangeVertex extends OperatorUserInfo {
     @ApiModelProperty(value = "顺序")
     private Integer orderNum;
 
-
     @TableField("longitude")
     @ApiModelProperty(value = "经度",required = "required")
     private Float longitude;

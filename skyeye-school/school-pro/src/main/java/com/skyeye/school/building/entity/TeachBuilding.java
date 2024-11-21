@@ -17,6 +17,9 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: TeachBuilding
  * @Description: 教学楼信息实体类
@@ -60,8 +63,15 @@ public class TeachBuilding extends OperatorUserInfo {
     @ApiModelProperty(value = "地点logo" ,required = "required")
     private String logo;
 
+    @TableField("p_id")
+    @ApiModelProperty(value = "父级id")
+    private Integer pId;
+
+    @TableField("remark")
+    @ApiModelProperty(value = "简介")
+    private String remark;
+
     @TableField(exist = false)
     @Property(value = "所属学校信息")
     private School schoolMation;
-
 }

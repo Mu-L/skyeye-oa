@@ -4,7 +4,6 @@
 
 package com.skyeye.school.building.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.commons.lang.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -15,19 +14,21 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.building.dao.TeachBuildingDao;
-import com.skyeye.school.building.entity.Floor;
-import com.skyeye.school.building.entity.LocationServe;
+import com.skyeye.school.building.entity.Classroom;
+import com.skyeye.school.building.entity.FloorInfo;
 import com.skyeye.school.building.entity.TeachBuilding;
-import com.skyeye.school.building.service.FloorService;
-import com.skyeye.school.building.service.LocationServeService;
+import com.skyeye.school.building.service.ClassroomService;
+import com.skyeye.school.building.service.FloorInfoService;
 import com.skyeye.school.building.service.TeachBuildingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,51 +48,41 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
     private SchoolService schoolService;
 
     @Autowired
-    private FloorService floorService;
+    private IAuthUserService iAuthUserService;
 
     @Autowired
-    private LocationServeService locationServeService;
+    private FloorInfoService floorInfoService;
+
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        schoolService.setMationForMap(beans, "schoolId", "schoolMation");
-        return beans;
+        List<Map<String, Object>> bean = super.queryPageDataList(inputObject);
+        schoolService.setMationForMap(bean, "schoolId", "schoolMation");
+        return bean;
     }
 
     @Override
-    public TeachBuilding selectById(String id) {
-        TeachBuilding teachBuilding = super.selectById(id);
-        schoolService.setDataMation(teachBuilding, TeachBuilding::getSchoolId);
-        return teachBuilding;
+    public void selectById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        TeachBuilding building = selectById(id);
+        iAuthUserService.setName(building,"createId", "createName");
+        iAuthUserService.setName(building,"lastUpdateId", "lastUpdateName");
+        outputObject.setBean(building);
     }
 
-    @Override
-    public List<TeachBuilding> selectByIds(String...ids){
-        List<TeachBuilding> teachBuildingList = super.selectByIds(ids);
-        schoolService.setDataMation(teachBuildingList,TeachBuilding::getSchoolId);
-        return teachBuildingList;
-    }
-
-    /**
-     * 根据学校id获取地点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryTeachBuildingBySchoolId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String schoolId = map.get("schoolId").toString();
-        if (StrUtil.isEmpty(schoolId)) {
-            return;
-        }
+        String schoolId = inputObject.getParams().get("schoolId").toString();
         QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
         List<TeachBuilding> teachBuildingList = list(queryWrapper);
+        schoolService.setDataMation(teachBuildingList,TeachBuilding::getSchoolId);
+        iAuthUserService.setName(teachBuildingList,"createId","createName");
+        iAuthUserService.setName(teachBuildingList,"lastUpdateId","lastUpdateName");
         outputObject.setBeans(teachBuildingList);
         outputObject.settotal(teachBuildingList.size());
     }
+
 
     @Override
     public void queryTeachBuildingByHolderId(InputObject inputObject, OutputObject outputObject) {
@@ -100,33 +91,36 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
         if(StringUtils.isEmpty(typeId)){
             throw new CustomException("地点分类id不能为空");
         }
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        if(commonPageInfo.getIsPaging()){
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            List<TeachBuilding> teachBuildingList = getTeachBuildings(typeId);
+            outputObject.setBeans(teachBuildingList);
+            outputObject.settotal(page.getTotal());
+        }else {
+            List<TeachBuilding> teachBuildingList = getTeachBuildings(typeId);
+            outputObject.setBeans(teachBuildingList);
+            outputObject.settotal(teachBuildingList.size());
+        }
+
+    }
+
+    private List<TeachBuilding> getTeachBuildings(String typeId) {
         QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getTypeId), typeId);
         List<TeachBuilding> teachBuildingList = list(queryWrapper);
         schoolService.setDataMation(teachBuildingList,TeachBuilding::getSchoolId);
-        outputObject.setBeans(teachBuildingList);
-        outputObject.settotal(page.getTotal());
+        return teachBuildingList;
     }
 
     @Transactional
     @Override
     public void deleteById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
-        if(StringUtils.isEmpty(id)){
-            return;
-        }
         deleteById(id);
-        QueryWrapper<Floor> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Floor::getLocationId), id);
-        List<Floor> floorList = floorService.list(queryWrapper);
-        floorService.remove(queryWrapper);
-
-        for(Floor floor : floorList){
-            QueryWrapper<LocationServe> serveQueryWrapper = new QueryWrapper<>();
-            serveQueryWrapper.eq(MybatisPlusUtil.toColumns(LocationServe::getFloorId), floor.getId());
-            locationServeService.remove(serveQueryWrapper);
-        }
+        // 删除楼层、教室、服务
+        QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getLocationId), id);
+        floorInfoService.remove(queryWrapper);
     }
 
 }

@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @ClassName: ClassroomController
  * @Description: 教室管理控制层
- * @author: skyeye云系列--卫志强
+ * @author: skyeye云系列--lqy
  * @date: 2023/9/5 17:12
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -38,7 +38,7 @@ public class ClassroomController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryClassroomList", value = "获取教室信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryClassroomList", value = "获取教室信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ClassroomController/queryClassroomList")
     public void queryClassroomList(InputObject inputObject, OutputObject outputObject) {
@@ -51,7 +51,7 @@ public class ClassroomController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeClassroom", value = "新增/编辑教室信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeClassroom", value = "新增/编辑教室信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Classroom.class)
     @RequestMapping("/post/ClassroomController/writeClassroom")
     public void writeClassroom(InputObject inputObject, OutputObject outputObject) {
@@ -64,7 +64,7 @@ public class ClassroomController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteClassroomById", value = "根据ID删除教室信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteClassroomById", value = "根据ID删除教室信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ClassroomController/deleteClassroomById")
@@ -72,4 +72,18 @@ public class ClassroomController {
         classroomService.deleteById(inputObject, outputObject);
     }
 
+    /**
+     * 根据id获取教室信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryClassroomById", value = "根据ID获取教室信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
+    })
+    @RequestMapping("/post/ClassroomController/queryClassroomById")
+    public void queryClassroomById(InputObject inputObject, OutputObject outputObject) {
+        classroomService.selectById(inputObject, outputObject);
+    }
 }
