@@ -312,6 +312,11 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
                     .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), finalStoreIdList.get(finalI));
             });
         }
+        List<ShopMaterialStore> list = list(queryWrapper);
+        Map<String, String> collect = list.stream()
+            .collect(Collectors.toMap(bean -> String.format("%s_%s", bean.getMaterialId(), bean.getStoreId()), bean -> bean.getId()));
+        outputObject.setBean(collect);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }
