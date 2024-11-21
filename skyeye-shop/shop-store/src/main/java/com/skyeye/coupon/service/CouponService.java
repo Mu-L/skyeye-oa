@@ -20,7 +20,7 @@ import com.skyeye.coupon.entity.Coupon;
 public interface CouponService extends SkyeyeBusinessService<Coupon> {
     void updateTakeCount(String couponId, Integer takeCount);
 
-    void setStateByCoupon();
+    void setStateByCoupon(String surveyId);
 
     void queryCouponListByState(InputObject inputObject, OutputObject outputObject);
 

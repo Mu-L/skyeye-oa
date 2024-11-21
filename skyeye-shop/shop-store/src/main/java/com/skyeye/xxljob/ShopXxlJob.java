@@ -4,11 +4,16 @@
 
 package com.skyeye.xxljob;
 
+import cn.hutool.json.JSONUtil;
 import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseService;
+import com.skyeye.eve.service.IQuartzService;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * @ClassName: ShopXxlJob
@@ -27,13 +32,26 @@ public class ShopXxlJob {
     @Autowired
     private CouponUseService couponUseService;
 
-    @XxlJob("setStateByCoupon")
-    public void setStateByCoupon() {
-        couponService.setStateByCoupon();
+    @Autowired
+    private IQuartzService iQuartzService;
+
+    @XxlJob("setShopCouponStateService")
+    public void setShopCouponStateService() {
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String couponId = paramMap.get("objectId");// 优惠券id
+        couponService.setStateByCoupon(couponId);// 修改优惠券的状态
+        couponUseService.setCouponUseStateByDate(couponId);// 修改领取的优惠券的状态
+        iQuartzService.stopAndDeleteTaskQuartz(couponId);// 删除任务
     }
 
-    @XxlJob("setStateByCouponUse")
-    public void setStateByCouponUse() {
-        couponUseService.setStateByCouponUse();
+    @XxlJob("setShopCouponUseStateService")
+    public void setShopCouponUseStateService() {
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String userId = paramMap.get("userId");
+        String couponUseId = paramMap.get("objectId");// 领取的优惠券id
+        couponUseService.setCouponUseStateByTerm(userId, couponUseId);// 修改领取的优惠券的状态
+        iQuartzService.stopAndDeleteTaskQuartz(couponUseId);// 删除任务
     }
 }

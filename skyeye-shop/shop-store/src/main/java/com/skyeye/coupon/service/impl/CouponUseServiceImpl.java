@@ -12,7 +12,9 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
@@ -28,6 +30,8 @@ import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
+import com.skyeye.eve.rest.quartz.SysQuartzMation;
+import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +59,13 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     private CouponService couponService;
 
     @Autowired
+    private CouponUseService couponUseService;
+
+    @Autowired
     private CouponUseMaterialService couponUseMaterialService;
+
+    @Autowired
+    private IQuartzService iQuartzService;
 
     private void check(Coupon coupon) {
         if (ObjectUtil.isEmpty(coupon)) {
@@ -104,6 +114,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             } else {
                 couponUse.setValidStartTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d").toString());
                 couponUse.setValidEndTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTerm(), "d").toString());
+                // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
+                couponUse.setCouponMation(JSONUtil.toBean(JSONUtil.toJsonStr(coupon), null));
             }
             //折扣类型
             couponUse.setDiscountType(coupon.getDiscountType());
@@ -124,6 +136,20 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCouponId), couponUse.getCouponId());
         couponService.updateTakeCount(couponUse.getCouponId(), (int) count(queryWrapper));
         couponUseMaterialService.createEntity(couponUse.getCouponUseMaterialList(), userId);
+        // 定时任务
+        Map<String, Object> couponMation = couponUse.getCouponMation();
+        if (ObjectUtil.isNotEmpty(couponMation) && Objects.equals(couponMation.get("validityType"), CouponValidityType.TERM.getKey())) {
+            startUpTaskQuartz(couponUse.getId(), couponMation.get("name").toString(), couponUse.getValidEndTime());
+        }
+    }
+
+    private void startUpTaskQuartz(String name, String title, String delayedTime) {
+        SysQuartzMation sysQuartzMation = new SysQuartzMation();
+        sysQuartzMation.setName(name);
+        sysQuartzMation.setTitle(title);
+        sysQuartzMation.setDelayedTime(delayedTime);
+        sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.SHOP_COUPON_USE.getTaskType());
+        iQuartzService.startUpTaskQuartz(sysQuartzMation);
     }
 
     @Override
@@ -147,6 +173,10 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCouponId), couponUse.getCouponId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.USED.getKey());
+        Coupon coupon = couponService.selectById(couponUse.getCouponId());
+        if (ObjectUtil.isNotEmpty(coupon) && Objects.equals(coupon.getValidityType(), CouponValidityType.TERM.getKey())) {
+            iQuartzService.stopAndDeleteTaskQuartz(couponUse.getId());// 删除任务
+        }
     }
 
     @Override
@@ -187,12 +217,21 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
      * xxlJob任务管理器定时修改过期优惠券的状态
      */
     @Override
-    public void setStateByCouponUse() {
+    public void setCouponUseStateByDate(String couponId) {
         UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
         // 取优未使用的优惠券
         updateWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.UNUSED.getKey());
-        // 固定日期类型的优惠券
-        updateWrapper.lt(MybatisPlusUtil.toColumns(CouponUse::getValidEndTime), DateUtil.getTimeAndToString());
+        updateWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCouponId), couponId);
+        // 更改状态为过期
+        updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.EXPIRE.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void setCouponUseStateByTerm(String userId, String couponUseId) {
+        UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, couponUseId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCreateId), userId);
         updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.EXPIRE.getKey());
         update(updateWrapper);
     }

@@ -13,11 +13,11 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
@@ -28,6 +28,8 @@ import com.skyeye.coupon.enums.PromotionMaterialScope;
 import com.skyeye.coupon.service.CouponMaterialService;
 import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseService;
+import com.skyeye.eve.rest.quartz.SysQuartzMation;
+import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Autowired
     private CouponUseService couponUseService;
+
+    @Autowired
+    private IQuartzService iQuartzService;
 
     @Override
     public void validatorEntity(Coupon coupon) {
@@ -93,6 +98,24 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     @Override
     public void createPrepose(Coupon entity) {
         entity.setTakeCount(CommonNumConstants.NUM_ZERO);
+    }
+
+    @Override
+    public void createPostpose(Coupon entity, String userId) {
+        if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
+            if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
+                startUpTaskQuartz(entity.getId(), entity.getName(), entity.getValidEndTime());
+            }
+        }
+    }
+
+    private void startUpTaskQuartz(String name, String title, String delayedTime) {
+        SysQuartzMation sysQuartzMation = new SysQuartzMation();
+        sysQuartzMation.setName(name);
+        sysQuartzMation.setTitle(title);
+        sysQuartzMation.setDelayedTime(delayedTime);
+        sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.SHOP_COUPON.getTaskType());
+        iQuartzService.startUpTaskQuartz(sysQuartzMation);
     }
 
     @Override
@@ -208,7 +231,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     private void setDrawState(List<Coupon> list) {
-        if(CollectionUtil.isEmpty(list))return;
+        if (CollectionUtil.isEmpty(list)) return;
         List<String> couponIdList = list.stream().map(Coupon::getId).collect(Collectors.toList());
         Map<String, Integer> map = couponUseService.queryIdTotalMapByCouponId(couponIdList);
         for (Coupon coupon : list) {
@@ -219,19 +242,23 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     @Override
-    public void setStateByCoupon() {
+    public void setStateByCoupon(String surveyId) {
         UpdateWrapper<Coupon> updateWrapper = new UpdateWrapper<>();
-        // 取优惠券
-        String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
-        updateWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
-        // 固定日期类型的优惠券
-        updateWrapper.lt(MybatisPlusUtil.toColumns(Coupon::getValidEndTime),
-            DateUtil.getTimeAndToString());
-        updateWrapper.or()
-            // 非固定日期的优惠券
-            .lt(MybatisPlusUtil.toColumns(Coupon::getFixedEndTerm),
-                DateUtil.getTimeAndToString());
-        updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        updateWrapper.eq(CommonConstants.ID, surveyId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.DISABLE_USING.getKey());
         update(updateWrapper);
+//        UpdateWrapper<Coupon> updateWrapper = new UpdateWrapper<>();
+//        // 取优惠券
+//        String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
+//        updateWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+//        // 固定日期类型的优惠券
+//        updateWrapper.lt(MybatisPlusUtil.toColumns(Coupon::getValidEndTime),
+//            DateUtil.getTimeAndToString());
+//        updateWrapper.or()
+//            // 非固定日期的优惠券
+//            .lt(MybatisPlusUtil.toColumns(Coupon::getFixedEndTerm),
+//                DateUtil.getTimeAndToString());
+//        updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey());
+//        update(updateWrapper);
     }
 }
