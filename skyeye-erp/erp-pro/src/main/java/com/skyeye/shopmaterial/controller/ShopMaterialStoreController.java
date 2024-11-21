@@ -63,4 +63,13 @@ public class ShopMaterialStoreController {
         shopMaterialStoreService.queryShopMaterialByMaterialIdAndStoreId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryShopMaterialMapByMaterialIdAndStoreId", value = "根据商品id和门店id批量获取商城商品信息", method = "POST", allUse = "0")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id，json数组格式", required = "required,json"),
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id，json数组格式", required = "required,json")})
+    @RequestMapping("/post/ShopMaterialStoreController/queryShopMaterialMapByMaterialIdAndStoreId")
+    public void queryShopMaterialMapByMaterialIdAndStoreId(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.queryShopMaterialMapByMaterialIdAndStoreId(inputObject, outputObject);
+    }
+
 }

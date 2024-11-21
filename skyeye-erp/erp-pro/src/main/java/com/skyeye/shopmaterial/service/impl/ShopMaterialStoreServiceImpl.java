@@ -7,6 +7,7 @@ package com.skyeye.shopmaterial.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -19,6 +20,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.rest.shop.service.IShopStoreService;
@@ -285,6 +287,31 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             }
         )));
         return collect;
+    }
+
+    @Override
+    public void queryShopMaterialMapByMaterialIdAndStoreId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        List<String> materialIdList = JSONUtil.toList(params.get("materialId").toString(), null);
+        List<String> storeIdList = JSONUtil.toList(params.get("storeId").toString(), null);
+        materialIdList = materialIdList.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        storeIdList = storeIdList.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(materialIdList) || CollectionUtil.isEmpty(storeIdList)) {
+            return;
+        }
+        if (materialIdList.size() != storeIdList.size()) {
+            throw new CustomException("参数错误，materialId与storeId数量不一致");
+        }
+        QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
+        for (int i = 0; i < storeIdList.size(); i++) {
+            List<String> finalMaterialIdList = materialIdList;
+            List<String> finalStoreIdList = storeIdList;
+            int finalI = i;
+            queryWrapper.or(wrapper -> {
+                wrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), finalMaterialIdList.get(finalI))
+                    .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), finalStoreIdList.get(finalI));
+            });
+        }
     }
 
 }
