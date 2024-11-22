@@ -481,7 +481,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public void updateCommonState(String id, Integer state) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(Order::getId), id);
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCommentState), state);
         update(updateWrapper);
     }
