@@ -80,8 +80,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, Object> business = BeanUtil.beanToMap(order);
         String oddNumber = iCodeRuleService.getNextCodeByClassName(getClass().getName(), business);
         order.setOddNumber(oddNumber);
-        order.setCount(CommonNumConstants.NUM_ZERO);
-        order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
+        order.setCount(CommonNumConstants.NUM_ZERO);// 商品总数
+        order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());// 评价状态
         order.setTotalPrice("0");
         order.setDiscountPrice("0");
         order.setDeliveryPrice("0");
@@ -90,7 +90,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         ShopAddress shopAddress = shopAddressService.selectById(order.getAddressId());
         order.setReceiverName(shopAddress.getName());
         order.setReceiverMobile(shopAddress.getMobile());
-
         // 调价
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
         // 子单的优惠券操作
@@ -127,6 +126,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             if (StrUtil.isEmpty(orderItem.getCouponId())) {// 没有优惠券
                 orderItem.setPayPrice(orderItem.getPrice());
                 orderItem.setDiscountPrice("0");
+                setLastValue(order, orderItem);
                 continue;
             }
             // 获取优惠券使用条件，即满多少金额可使用。
@@ -165,11 +165,15 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     orderItem.setDiscountPrice(discountLimitPrice);
                 }
             }
-            order.setCount(order.getCount() + orderItem.getCount());
-            orderItem.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
-            order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
-            order.setPayPrice(CalculationUtil.add(order.getPayPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
+            setLastValue(order, orderItem);
         }
+    }
+
+    public void setLastValue(Order order, OrderItem orderItem) {
+        order.setCount(order.getCount() + orderItem.getCount());
+        orderItem.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
+        order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
+        order.setPayPrice(CalculationUtil.add(order.getPayPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
     }
 
     private void checkAndSetOrderCouponUse(Order order) {// 总单的优惠券处理
