@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -374,6 +375,19 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     @Override
+    public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        int adjustPrice = Integer.parseInt(params.get("adjustPrice").toString());
+        if( adjustPrice< CommonNumConstants.NUM_ZERO){
+            throw new CustomException("所调价格不可为负数");
+        }
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, params.get("id").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getAdjustPrice), adjustPrice);
+        update(updateWrapper);
+    }
+
+    @Override
     public void deletePostpose(List<String> ids) {
         orderItemService.deleteByPerentIds(ids);
     }
@@ -504,5 +518,4 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         outputObject.setBean(qrCodeResult);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
-
 }

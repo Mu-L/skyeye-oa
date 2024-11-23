@@ -47,6 +47,21 @@ public class OrderController {
     }
 
     /**
+     * 订单调价
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "changeOrderAdjustPrice", value = "订单调价", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "adjustPrice", name = "adjustPrice", value = "调整的价格，不可为负数", required = "required")})
+    @RequestMapping("/post/OrderController/changeOrderAdjustPrice")
+    public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
+        orderService.changeOrderAdjustPrice(inputObject, outputObject);
+    }
+
+    /**
      * 分页获取商品订单信息
      *
      * @param inputObject  入参以及用户信息等获取对象
