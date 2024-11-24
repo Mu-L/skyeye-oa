@@ -19,6 +19,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @ClassName: FloorInfoServiceImpl
+ * @Description: 楼层教室服务管理控制层
+ * @author: skyeye云系列--lqy
+ * @date: 2023/8/8 14:55
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
 @SkyeyeService(name = "楼层教室服务管理", groupName = "楼层教室服务管理")
 public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao, FloorInfo> implements FloorInfoService {
@@ -46,17 +54,29 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getLocationId), floorInfo.getLocationId());
         if(nodeType == CommonNumConstants.NUM_ONE){
-            // 更新漏测
-            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getName), name);// 确定为哪一层
-            if(count(queryWrapper) > 0){
-                throw new CustomException("该楼层教室名已存在");
+            // 新增、更新楼层
+            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getName), name);
+            if(StrUtil.isEmpty(floorInfo.getId())&& count(queryWrapper) > 0){
+                throw new CustomException("楼层名称已存在");
+            }
+            if(StrUtil.isNotEmpty(floorInfo.getId())){
+                FloorInfo floor = selectById(floorInfo.getId());
+                if(!name.equals(floor.getName()) && count(queryWrapper) > 0){
+                    throw new CustomException("楼层名称已存在1");
+                }
             }
         }else if(nodeType == CommonNumConstants.NUM_TWO){
-            // 更新教室
-            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getParentId), floorInfo.getParentId());// 确定那一层
-            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getName), name);// 确定教室名
-            if(count(queryWrapper) > 0){
-                throw new CustomException("该教室名已存在");
+            // 新增、更新教室
+            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getParentId), floorInfo.getParentId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getName), name);
+            if(StrUtil.isEmpty(floorInfo.getId())&& count(queryWrapper) > 0){
+                throw new CustomException("教室名已存在");
+            }
+            if(StrUtil.isNotEmpty(floorInfo.getId())){
+                FloorInfo floor = selectById(floorInfo.getId());
+                if(!name.equals(floor.getName()) && count(queryWrapper) > 0){
+                    throw new CustomException("教室名已存在1");
+                }
             }
         }
     }
@@ -92,6 +112,9 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
     public void queryFloorInfosByLocationId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String locationId = map.get("locationId").toString();
+        if(StrUtil.isEmpty(locationId)){
+            return;
+        }
         String keyword = map.get("keyword").toString();
         QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getLocationId), locationId);

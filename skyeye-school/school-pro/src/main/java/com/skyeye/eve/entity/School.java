@@ -40,4 +40,24 @@ public class School extends AreaGeneralInfo {
     @ApiModelProperty(value = "数据权限  1.查看所有  2.查看本校", required = "required,num")
     private String power;
 
+    @TableField(value = "ne_longitude")
+    @ApiModelProperty(value = "东北经度")
+    private Float neLongitude;
+
+    @TableField(value = "ne_latitude")
+    @ApiModelProperty(value = "东北纬度")
+    private Float neLatitude;
+
+    @TableField(value = "sw_longitude")
+    @ApiModelProperty(value = "西南经度")
+    private Float swLongitude;
+
+    @TableField(value = "sw_latitude")
+    @ApiModelProperty(value = "西南纬度")
+    private Float swLatitude;
+
+    @TableField(value = "background")
+    @ApiModelProperty(value = "学校背景图")
+    private String background;
+
 }

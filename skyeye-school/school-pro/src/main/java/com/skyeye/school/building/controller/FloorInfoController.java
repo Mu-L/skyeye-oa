@@ -13,6 +13,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @ClassName: FloorInfoController
+ * @Description: 楼层教室服务管理控制层
+ * @author: skyeye云系列--lqy
+ * @date: 2023/9/5 17:12
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+
 @RestController
 @Api(value = "楼层教室服务管理", tags = "楼层教室服务管理", modelName = "楼层教室服务管理")
 public class FloorInfoController {
@@ -39,7 +48,7 @@ public class FloorInfoController {
 
     @ApiOperation(id = "queryFloorInfosByLocationId", value = "根据地点id获取楼层所有信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id= "locationId",name = "locationId", value = "地点id", required = "required"),
+        @ApiImplicitParam(id= "locationId",name = "locationId", value = "地点id"),
         @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字查询")
     })
     @RequestMapping("/post/FloorInfoController/queryFloorInfosByLocationId")
