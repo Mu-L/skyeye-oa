@@ -84,4 +84,17 @@ public class SchoolController {
         schoolService.queryAllSchoolList(inputObject, outputObject);
     }
 
+    /**
+     * 位置覆盖
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "coverBackground", value = "学校背景图位置覆盖", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = School.class)
+    @RequestMapping("/post/SchoolController/coverBackground")
+    public void coverBackground(InputObject inputObject, OutputObject outputObject) {
+        schoolService.updateEntity(inputObject, outputObject);
+    }
+
 }

@@ -12,13 +12,9 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
-import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.entity.features.AreaGeneralInfo;
 import com.skyeye.eve.entity.School;
 import lombok.Data;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: TeachBuilding
@@ -33,7 +29,7 @@ import java.util.Map;
 @RedisCacheField(name = "school:teachBuilding")
 @TableName(value = "school_teach_building")
 @ApiModel(value = "教学楼信息实体类")
-public class TeachBuilding extends OperatorUserInfo {
+public class TeachBuilding extends AreaGeneralInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

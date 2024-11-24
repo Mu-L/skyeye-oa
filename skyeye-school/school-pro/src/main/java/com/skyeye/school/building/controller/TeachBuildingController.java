@@ -67,7 +67,7 @@ public class TeachBuildingController {
      */
     @ApiOperation(id = "queryTeachBuildingBySchoolId", value = "根据学校schoolId获取地点信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required")
+        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id")
     })
     @RequestMapping("/post/TeachBuildingController/queryTeachBuildingBySchoolId")
     public void queryTeachBuildingBySchoolId(InputObject inputObject, OutputObject outputObject) {
@@ -75,13 +75,16 @@ public class TeachBuildingController {
     }
 
     /**
-     * 根据地点类型typeId获取分页获取地点列表
+     * 根据schoolId和地点类型typeId获取取地点列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryTeachBuildingByHolderId", value = "根据holderId(typeId地点类型id)获取地点列表,默认分页，当isPaging=false不分页", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiOperation(id = "queryTeachBuildingByHolderId", value = "根据schoolId和地点类型typeId获取取地点列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
+        @ApiImplicitParam(id = "typeId", name = "typeId", value = "地点类型id", required = "required")
+    })
     @RequestMapping("/post/TeachBuildingController/queryTeachBuildingByHolderId")
     public void queryTeachBuildingByHolderId(InputObject inputObject, OutputObject outputObject) {
         teachBuildingService.queryTeachBuildingByHolderId(inputObject, outputObject);
