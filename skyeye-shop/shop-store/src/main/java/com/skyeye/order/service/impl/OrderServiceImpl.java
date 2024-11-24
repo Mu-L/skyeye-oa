@@ -421,10 +421,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             throw new CustomException("订单不存在");
         }
         // 可取消的订单状态：未提交(0)、已提交(1)、待支付(2)、待发货(5)
-        if (!(one.getState() == ShopOrderState.UNSUBMIT.getKey() ||
+        if (one.getState() == ShopOrderState.UNSUBMIT.getKey() ||
               one.getState() == ShopOrderState.SUBMIT.getKey() ||
               one.getState() == ShopOrderState.UNPAID.getKey() ||
-              one.getState() == ShopOrderState.UNDELIVERED.getKey())) {
+              one.getState() == ShopOrderState.UNDELIVERED.getKey()) {
             throw new CustomException("订单不可取消");
         }
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.CANCELED.getKey());
