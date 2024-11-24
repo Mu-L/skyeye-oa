@@ -14,7 +14,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.SchoolDao;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.SchoolService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,12 +31,16 @@ import java.util.Map;
 @SkyeyeService(name = "学校管理", groupName = "学校管理")
 public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, School> implements SchoolService {
 
-    /**
-     * 获取所有学校列表展示为下拉选择框
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Override
+    public void updatePrepose(School entity) {
+        School school = selectById(entity.getId());
+        entity.setBackground(school.getBackground());
+        entity.setNeLongitude(school.getNeLongitude());
+        entity.setNeLatitude(school.getNeLatitude());
+        entity.setSwLongitude(school.getSwLongitude());
+        entity.setSwLatitude(school.getSwLatitude());
+    }
+
     @Override
     public void queryAllSchoolList(InputObject inputObject, OutputObject outputObject) {
         List<School> schoolList = list();
@@ -51,7 +54,7 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
         UpdateWrapper<School> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, map.get("id").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(School::getBackground), map.get("background").toString());
-        updateWrapper.set(MybatisPlusUtil.toColumns(School::getNeLongitude),map.get("neLongitude").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(School::getNeLongitude), map.get("neLongitude").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(School::getNeLatitude), map.get("neLatitude").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(School::getSwLongitude), map.get("swLongitude").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(School::getSwLatitude), map.get("swLatitude").toString());
