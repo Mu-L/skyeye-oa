@@ -96,13 +96,13 @@ public class OrderItem extends OperatorUserInfo {
     @Property(value = "应付金额（总），单位：分")
     private String payPrice;
 
-    @TableField("coupon_id")
-    @ApiModelProperty(value = "优惠券id")
-    private String couponId;
+    @TableField("coupon_use_id")
+    @ApiModelProperty(value = "用户领取的优惠券id")
+    private String couponUseId;
 
     @TableField(exist = false)
-    @Property(value = "优惠券信息")
-    private Map<String, Object> couponMation;
+    @Property(value = "用户领取的优惠券信息")
+    private Map<String, Object> couponUseMation;
 
     @TableField("coupon_price")
     @Property(value = "优惠劵减免金额，单位：分")

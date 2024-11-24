@@ -64,6 +64,10 @@ public class OrderComment extends OperatorUserInfo {
     @ApiModelProperty(value = "类型,参考#OrderCommentType")
     private Integer type;
 
+    @TableField(value = "start")
+    @ApiModelProperty(value = "星级(1-5)",required = "required")
+    private Integer start;
+
     @TableField(value = "context")
     @ApiModelProperty(value = "评价内容", required = "required")
     private String context;

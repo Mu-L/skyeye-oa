@@ -68,6 +68,10 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
                 throw new CustomException("客户的评价无需父级id");
             }
         }
+        int start = Integer.parseInt(orderComment.getStart().toString());
+        if (start < 0 || start > 5) {
+            throw new CustomException("评价星级为1-5");
+        }
     }
 
     @Override
