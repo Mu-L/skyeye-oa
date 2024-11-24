@@ -24,7 +24,7 @@ public class Order extends AreaInfo {
     private String id;
 
     @TableField("odd_number")
-    @Property(value = "订单编号")
+    @Property(value = "订单编号", fuzzyLike = true)
     private String oddNumber;
 
     @TableField("type")
@@ -113,7 +113,7 @@ public class Order extends AreaInfo {
 
     @TableField(exist = false)
     @Property(value = "收货地址信息")
-    private Map<String,Object> addressMation;
+    private Map<String, Object> addressMation;
 
     @TableField("receiver_name")
     @Property(value = "收件人姓名")

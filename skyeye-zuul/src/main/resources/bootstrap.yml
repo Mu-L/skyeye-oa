@@ -143,6 +143,9 @@ spring:
             - Path=/${spring.profiles.active}/ai/**
           filters:
             - StripPrefix=2
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+        - AddResponseHeader=Access-Control-Allow-Origin, *  # 允许跨域
 logging:
   level:
     com: debug

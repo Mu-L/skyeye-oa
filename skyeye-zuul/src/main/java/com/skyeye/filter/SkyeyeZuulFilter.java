@@ -64,11 +64,11 @@ public class SkyeyeZuulFilter implements WebFilter {
             response.setStatusCode(HttpStatus.METHOD_NOT_ALLOWED);
             return response.setComplete();
         }
-        String uri = request.getURI().getPath();
-        if (uri.contains("/images/")) {
-            response.setStatusCode(HttpStatus.NOT_FOUND);
-            return response.setComplete();
-        }
+//        String uri = request.getURI().getPath();
+//        if (uri.contains("/images/")) {
+//            response.setStatusCode(HttpStatus.NOT_FOUND);
+//            return response.setComplete();
+//        }
         // 放行
         return chain.filter(exchange);
     }

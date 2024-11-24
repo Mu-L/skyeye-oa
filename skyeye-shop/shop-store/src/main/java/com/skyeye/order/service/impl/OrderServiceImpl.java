@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -80,8 +81,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, Object> business = BeanUtil.beanToMap(order);
         String oddNumber = iCodeRuleService.getNextCodeByClassName(getClass().getName(), business);
         order.setOddNumber(oddNumber);
-        order.setCount(CommonNumConstants.NUM_ZERO);
-        order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
+        order.setCount(CommonNumConstants.NUM_ZERO);// 商品总数
+        order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());// 评价状态
         order.setTotalPrice("0");
         order.setDiscountPrice("0");
         order.setDeliveryPrice("0");
@@ -90,7 +91,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         ShopAddress shopAddress = shopAddressService.selectById(order.getAddressId());
         order.setReceiverName(shopAddress.getName());
         order.setReceiverMobile(shopAddress.getMobile());
-
         // 调价
         order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
         // 子单的优惠券操作
@@ -127,6 +127,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             if (StrUtil.isEmpty(orderItem.getCouponId())) {// 没有优惠券
                 orderItem.setPayPrice(orderItem.getPrice());
                 orderItem.setDiscountPrice("0");
+                setLastValue(order, orderItem);
                 continue;
             }
             // 获取优惠券使用条件，即满多少金额可使用。
@@ -165,11 +166,15 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     orderItem.setDiscountPrice(discountLimitPrice);
                 }
             }
-            order.setCount(order.getCount() + orderItem.getCount());
-            orderItem.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
-            order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
-            order.setPayPrice(CalculationUtil.add(order.getPayPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
+            setLastValue(order, orderItem);
         }
+    }
+
+    public void setLastValue(Order order, OrderItem orderItem) {
+        order.setCount(order.getCount() + orderItem.getCount());
+        orderItem.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
+        order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
+        order.setPayPrice(CalculationUtil.add(order.getPayPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
     }
 
     private void checkAndSetOrderCouponUse(Order order) {// 总单的优惠券处理
@@ -370,6 +375,19 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     @Override
+    public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        int adjustPrice = Integer.parseInt(params.get("adjustPrice").toString());
+        if( adjustPrice< CommonNumConstants.NUM_ZERO){
+            throw new CustomException("所调价格不可为负数");
+        }
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, params.get("id").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getAdjustPrice), adjustPrice);
+        update(updateWrapper);
+    }
+
+    @Override
     public void deletePostpose(List<String> ids) {
         orderItemService.deleteByPerentIds(ids);
     }
@@ -477,7 +495,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public void updateCommonState(String id, Integer state) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(Order::getId), id);
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCommentState), state);
         update(updateWrapper);
     }
@@ -500,5 +518,4 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         outputObject.setBean(qrCodeResult);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
-
 }
