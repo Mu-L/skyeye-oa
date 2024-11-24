@@ -148,7 +148,7 @@ public class Order extends AreaInfo {
     private String couponId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "优惠券信息")
+    @Property(value = "优惠券信息")
     private Map<String, Object> couponMation;
 
     @TableField("coupon_price")
