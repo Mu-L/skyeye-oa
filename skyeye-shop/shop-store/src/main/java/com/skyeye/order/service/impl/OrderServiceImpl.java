@@ -167,7 +167,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                 String limitPrice = CalculationUtil.multiply(orderItem.getPrice(), discountLimitPrice, CommonNumConstants.NUM_SIX);
                 // 是否超过折扣上限
                 boolean priceCompare = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX).equals(percentDiscountPrice);
-                // 设置应支付价格和优惠价格
+                // 设置应支付���格和优惠价格
                 if (priceCompare) { // 未超过优惠价
                     orderItem.setPayPrice(percentPrice);
                     orderItem.setDiscountPrice(percentDiscountPrice);
@@ -420,8 +420,11 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("订单不存在");
         }
-        //  大于1和小于8
-        if (!(one.getState() >= ShopOrderState.SIGN.getKey() && one.getState() <= ShopOrderState.SUBMIT.getKey())) {
+        // 可取消的订单状态：未提交(0)、已提交(1)、待支付(2)、待发货(5)
+        if (!(one.getState() == ShopOrderState.UNSUBMIT.getKey() ||
+              one.getState() == ShopOrderState.SUBMIT.getKey() ||
+              one.getState() == ShopOrderState.UNPAID.getKey() ||
+              one.getState() == ShopOrderState.UNDELIVERED.getKey())) {
             throw new CustomException("订单不可取消");
         }
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.CANCELED.getKey());
