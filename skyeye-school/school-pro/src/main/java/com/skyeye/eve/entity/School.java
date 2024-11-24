@@ -42,19 +42,19 @@ public class School extends AreaGeneralInfo {
 
     @TableField(value = "ne_longitude")
     @ApiModelProperty(value = "东北经度")
-    private Float neLongitude;
+    private String neLongitude;
 
     @TableField(value = "ne_latitude")
     @ApiModelProperty(value = "东北纬度")
-    private Float neLatitude;
+    private String neLatitude;
 
     @TableField(value = "sw_longitude")
     @ApiModelProperty(value = "西南经度")
-    private Float swLongitude;
+    private String swLongitude;
 
     @TableField(value = "sw_latitude")
     @ApiModelProperty(value = "西南纬度")
-    private Float swLatitude;
+    private String swLatitude;
 
     @TableField(value = "background")
     @ApiModelProperty(value = "学校背景图")
