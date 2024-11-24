@@ -49,11 +49,11 @@ public class TeachBuilding extends AreaGeneralInfo {
 
     @TableField("longitude")
     @ApiModelProperty(value = "经度",required = "required")
-    private Float longitude;
+    private String longitude;
 
     @TableField("latitude")
     @ApiModelProperty(value = "纬度",required = "required")
-    private Float latitude;
+    private String latitude;
 
     @TableField("logo")
     @ApiModelProperty(value = "地点logo" ,required = "required")
