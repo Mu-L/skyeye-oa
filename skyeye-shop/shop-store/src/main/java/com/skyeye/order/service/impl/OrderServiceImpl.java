@@ -23,8 +23,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.coupon.enums.CouponUseState;
+import com.skyeye.coupon.entity.CouponUse;
+import com.skyeye.coupon.entity.CouponUseMaterial;
 import com.skyeye.coupon.enums.PromotionDiscountType;
+import com.skyeye.coupon.enums.PromotionMaterialScope;
+import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
@@ -85,6 +88,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Autowired
     private PayProperties payProperties;
 
+    @Autowired
+    private CouponUseMaterialService couponUseMaterialService;
+
     @Override
     public void createPrepose(Order order) {
         // 订单编号
@@ -102,7 +108,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setReceiverName(shopAddress.getName());
         order.setReceiverMobile(shopAddress.getMobile());
         // 调价
-        order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : order.getAdjustPrice());
+        order.setAdjustPrice("0");
         // 子单的优惠券操作
         checkAndSetItemCouponUse(order);
         // ip
@@ -120,49 +126,45 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     private void checkAndSetItemCouponUse(Order order) {// 子单的优惠券操作
         List<OrderItem> orderItemList = order.getOrderItemList();
+        checkCouponUseMaterial(order);//  将总单的couponUserId赋值到对应子单
         // 设置商品信息、商品规格信息和优惠券信息
         iMaterialNormsService.setDataMation(orderItemList, OrderItem::getNormsId);
         iMaterialService.setDataMation(orderItemList, OrderItem::getMaterialId);
-        couponUseService.setDataMation(orderItemList, OrderItem::getCouponId);
-        boolean b = orderItemList.stream().filter(orderItem -> StrUtil.isNotEmpty(orderItem.getCouponId()))
-            .allMatch(orderItem -> orderItem.getCouponMation().get("state").equals(CouponUseState.UNUSED.getKey()));
-        if (!b) {
-            throw new CustomException("存在不可用优惠券");
-        }
+//        couponUseService.setDataMation(orderItemList, OrderItem::getCouponUseId);
         for (OrderItem orderItem : orderItemList) {
-            // 获取子单单价
-            String salePrice = orderItem.getNormsMation().get("salePrice").toString();
+            // 获取子单单价  元 -> 分
+            String salePrice = CalculationUtil.multiply(orderItem.getNormsMation().get("salePrice").toString(), "100");
             // 设置子单总价
             orderItem.setPrice(CalculationUtil.multiply(orderItem.getCount(), salePrice));
-            if (StrUtil.isEmpty(orderItem.getCouponId())) {// 没有优惠券
+            if (StrUtil.isEmpty(orderItem.getCouponUseId())) {// 没有优惠券
                 orderItem.setPayPrice(orderItem.getPrice());
                 orderItem.setDiscountPrice("0");
                 setLastValue(order, orderItem);
-                continue;
+                return;
             }
             // 获取优惠券使用条件，即满多少金额可使用。
-            String usePrice = orderItem.getCouponMation().get("usePrice").toString();
+            String usePrice = orderItem.getCouponUseMation().get("usePrice").toString();
             if (CalculationUtil.getMax(orderItem.getPrice(), usePrice, CommonNumConstants.NUM_SIX).equals(usePrice)) {
                 throw new CustomException("优惠券不满足使用金额");
             }
             // 获取折扣类型
-            Integer discountType = (Integer) (orderItem.getCouponMation().get("discountType"));
+            Integer discountType = (Integer) (orderItem.getCouponUseMation().get("discountType"));
             if (Objects.equals(PromotionDiscountType.PRICE.getKey(), discountType)) {// 满减
                 // 取出折扣价格
-                String discountPrice = orderItem.getCouponMation().get("discountPrice").toString();
+                String discountPrice = orderItem.getCouponUseMation().get("discountPrice").toString();
                 // 折后价
                 String afterPrice = CalculationUtil.subtract(orderItem.getPrice(), discountPrice, CommonNumConstants.NUM_SIX);
                 orderItem.setPayPrice(afterPrice);
-                orderItem.setDiscountPrice(discountPrice);
+                orderItem.setCouponPrice(discountPrice);
             } else {//百分比折扣
                 // 取出折扣
-                String discountPercentInt = orderItem.getCouponMation().get("discountPercent").toString();
+                String discountPercentInt = orderItem.getCouponUseMation().get("discountPercent").toString();
                 // 百分比的折后价
                 String percentPrice = CalculationUtil.multiply(orderItem.getPrice(), discountPercentInt, CommonNumConstants.NUM_SIX);
                 // 百分比折扣的优惠价格
                 String percentDiscountPrice = CalculationUtil.subtract(orderItem.getPrice(), percentPrice, CommonNumConstants.NUM_SIX);
                 // 折扣上限
-                String discountLimitPrice = orderItem.getCouponMation().get("discountLimitPrice").toString();
+                String discountLimitPrice = orderItem.getCouponUseMation().get("discountLimitPrice").toString();
                 // 折扣上限的折后价
                 String limitPrice = CalculationUtil.multiply(orderItem.getPrice(), discountLimitPrice, CommonNumConstants.NUM_SIX);
                 // 是否超过折扣上限
@@ -170,10 +172,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                 // 设置应支付价格和优惠价格
                 if (priceCompare) { // 未超过优惠价
                     orderItem.setPayPrice(percentPrice);
-                    orderItem.setDiscountPrice(percentDiscountPrice);
+                    orderItem.setCouponPrice(percentDiscountPrice);
                 } else {// 超过优惠价
                     orderItem.setPayPrice(limitPrice);
-                    orderItem.setDiscountPrice(discountLimitPrice);
+                    orderItem.setCouponPrice(discountLimitPrice);
                 }
             }
             setLastValue(order, orderItem);
@@ -188,56 +190,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     private void checkAndSetOrderCouponUse(Order order) {// 总单的优惠券处理
-        if (StrUtil.isEmpty(order.getCouponId())) {
-            return;
-        }
-        couponUseService.setDataMation(order, Order::getCouponId);
-        Integer couponState = (Integer) (order.getCouponMation().get("state"));
-        if (!Objects.equals(CouponUseState.UNUSED.getKey(), couponState)) {
-            throw new CustomException("存在不可用优惠券");
-        }
-        // 获取总订单总价
-        String totalPrice = order.getTotalPrice();
-        // 获取优惠券使用条件，即满多少金额可使用。
-        String usePrice = order.getCouponMation().get("usePrice").toString();
-        if (CalculationUtil.getMax(totalPrice, usePrice, CommonNumConstants.NUM_SIX).equals(usePrice)) {
-            throw new CustomException("优惠券不满足使用金额");
-        }
-        // 获取折扣类型
-        Integer discountType = (Integer) (order.getCouponMation().get("discountType"));
-        if (Objects.equals(PromotionDiscountType.PRICE.getKey(), discountType)) {// 满减
-            // 取出折扣价格
-            String discountPrice = order.getCouponMation().get("discountPrice").toString();
-            // 折后价
-            String afterPrice = CalculationUtil.subtract(totalPrice, discountPrice, CommonNumConstants.NUM_SIX);
-            order.setPayPrice(afterPrice);
-            // 优惠金额
-            order.setDiscountPrice(CalculationUtil.add(order.getDiscountPrice(), discountPrice, CommonNumConstants.NUM_SIX));
-        } else {//百分比折扣
-            // 取出折扣
-            String discountPercent = order.getCouponMation().get("discountPercent").toString();
-            // 百分比的折后价
-            String percentPrice = CalculationUtil.multiply(totalPrice, discountPercent, CommonNumConstants.NUM_SIX);
-            // 百分比折扣的优惠价格
-            String percentDiscountPrice = CalculationUtil.subtract(totalPrice, percentPrice, CommonNumConstants.NUM_SIX);
-            // 折扣上限
-            String discountLimitPrice = order.getCouponMation().get("discountLimitPrice").toString();
-            // 折扣上限的折后价
-            String limitPrice = CalculationUtil.multiply(totalPrice, discountLimitPrice, CommonNumConstants.NUM_SIX);
-            // 是否超过折扣上限
-            boolean priceCompare = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX).equals(percentDiscountPrice);
-            // 设置应支付价格和优惠价格
-            if (priceCompare) { // 未超过优惠价
-                order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), percentPrice, CommonNumConstants.NUM_SIX));
-                order.setDiscountPrice(CalculationUtil.subtract(order.getDiscountPrice(), percentDiscountPrice, CommonNumConstants.NUM_SIX));
-            } else {// 超过优惠价
-                order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), limitPrice, CommonNumConstants.NUM_SIX));
-                order.setDiscountPrice(CalculationUtil.subtract(order.getDiscountPrice(), discountLimitPrice, CommonNumConstants.NUM_SIX));
-            }
-        }
-        order.setPayPrice(CalculationUtil.divide(order.getPayPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setDiscountPrice(CalculationUtil.divide(order.getDiscountPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setTotalPrice(CalculationUtil.divide(order.getTotalPrice(), "100", CommonNumConstants.NUM_SIX));
+
     }
 
     private void checkAndSetDeliveryPrice(Order order) {
@@ -250,9 +203,48 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     private void checkAndSetActive(Order order) {
     }
 
+    private void checkCouponUseMaterial(Order order) {
+        String couponUseId = order.getCouponUseId();
+        if (StrUtil.isEmpty(couponUseId)) {
+            return;
+        }
+        List<OrderItem> orderItemList = order.getOrderItemList();
+        CouponUse couponUse = couponUseService.selectById(couponUseId);
+        OrderItem orderItem = null;
+        if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.ALL.getKey())) {// 全部商品
+            if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
+                orderItem = orderItemList.stream().max(Comparator.comparing(OrderItem::getPrice)).orElse(null);// 获取优惠券使用商品列表中，价格最高的商品
+            } else {// 满减   将优惠券使用到第一个商品
+                orderItemList.get(0).setCouponUseId(couponUseId);
+                orderItemList.get(0).setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
+                return;
+            }
+        } else if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.SPU.getKey())) {// 指定商品
+            List<String> couponUseMaterialIds = couponUseMaterialService.queryListByCouponIds(Collections.singletonList(couponUseId))
+                .stream().map(CouponUseMaterial::getMaterialId).collect(Collectors.toList());// 收集子单商品id
+            List<OrderItem> newOrderItemList = new ArrayList<>();
+            for (OrderItem item : orderItemList) {
+                if (couponUseMaterialIds.contains(item.getMaterialId())) {
+                    newOrderItemList.add(item);
+                }
+            }
+            orderItem = newOrderItemList.stream().max(Comparator.comparing(OrderItem::getPrice)).orElse(null);// 获取优惠券使用商品列表中，价格最高的商品
+        }
+        if (orderItem == null) {
+            throw new CustomException("优惠券没有匹配的商品");
+        }
+        for (OrderItem item : orderItemList) {
+            if (item.getId().equals(orderItem.getId())) {
+                item.setCouponUseId(couponUseId);
+                item.setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
+            }
+        }
+    }
+
     @Override
     public void createPostpose(Order order, String userId) {
         orderItemService.setValueAndCreateEntity(order, userId);
+        couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
     }
 
     @Override

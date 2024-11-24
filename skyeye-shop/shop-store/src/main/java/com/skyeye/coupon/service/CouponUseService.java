@@ -25,4 +25,6 @@ public interface CouponUseService extends SkyeyeBusinessService<CouponUse> {
     void setCouponUseStateByDate(String surveyId);
 
     void setCouponUseStateByTerm(String userId, String couponUseId);
+
+    void updateState(String couponUseId);
 }

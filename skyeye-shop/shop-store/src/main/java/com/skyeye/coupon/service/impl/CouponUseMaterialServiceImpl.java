@@ -4,12 +4,18 @@
 
 package com.skyeye.coupon.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponUseMaterialDao;
 import com.skyeye.coupon.entity.CouponUseMaterial;
 import com.skyeye.coupon.service.CouponUseMaterialService;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: CouponUseMaterialServiceImpl
@@ -20,6 +26,13 @@ import org.springframework.stereotype.Service;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "用户领取的优惠券适用商品对象管理", groupName = "用户领取的优惠券适用商品对象管理",manageShow = false)
+@SkyeyeService(name = "用户领取的优惠券适用商品对象管理", groupName = "用户领取的优惠券适用商品对象管理", manageShow = false)
 public class CouponUseMaterialServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseMaterialDao, CouponUseMaterial> implements CouponUseMaterialService {
+    @Override
+    public List<CouponUseMaterial> queryListByCouponIds(List<String> couponIds) {
+        QueryWrapper<CouponUseMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CouponUseMaterial::getCouponId), couponIds);
+        List<CouponUseMaterial> list = list(queryWrapper);
+        return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
+    }
 }

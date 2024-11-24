@@ -235,4 +235,12 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.EXPIRE.getKey());
         update(updateWrapper);
     }
+
+    @Override
+    public void updateState(String couponUseId) {
+        UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, couponUseId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.USED.getKey());
+        update(updateWrapper);
+    }
 }
