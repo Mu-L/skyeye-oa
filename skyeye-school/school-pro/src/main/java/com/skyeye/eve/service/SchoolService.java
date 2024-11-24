@@ -21,4 +21,5 @@ public interface SchoolService extends SkyeyeBusinessService<School> {
 
     void queryAllSchoolList(InputObject inputObject, OutputObject outputObject);
 
+    void coverBackground(InputObject inputObject, OutputObject outputObject);
 }

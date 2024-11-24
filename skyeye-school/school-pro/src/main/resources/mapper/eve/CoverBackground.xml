@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyeye.eve.dao.SchoolDao">
+    <update id="coverBackground" parameterType="java.util.Map">
+        UPDATE school_mation as s SET
+        s.background = #{background},
+        s.ne_longitude = #{neLongitude},
+        s.ne_latitude = #{neLatitude},
+        s.sw_longitude = #{swLongitude},
+        s.sw_latitude = #{swLatitude}
+        WHERE s.id = #{id}
+    </update>
+</mapper>

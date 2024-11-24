@@ -11,9 +11,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.dao.SchoolDao;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.SchoolService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: SchoolController
@@ -27,6 +29,9 @@ import java.util.List;
 @SkyeyeService(name = "学校管理", groupName = "学校管理")
 public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, School> implements SchoolService {
 
+    @Autowired
+    private SchoolDao schoolDao;
+
     /**
      * 获取所有学校列表展示为下拉选择框
      *
@@ -38,6 +43,12 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
         List<School> schoolList = list();
         outputObject.setBeans(schoolList);
         outputObject.settotal(schoolList.size());
+    }
+
+    @Override
+    public void coverBackground(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        schoolDao.coverBackground(params);
     }
 
 }
