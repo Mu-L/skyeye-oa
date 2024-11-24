@@ -5,10 +5,12 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.order.dao.OrderItemDao;
+import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
@@ -76,5 +78,26 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         });
         Map<String, List<OrderItem>> result = mapList.stream().collect(Collectors.groupingBy(OrderItem::getParentId));
         return result;
+    }
+
+    @Override
+    public void setValueAndCreateEntity(Order order, String userId) {
+        List<String> materialStoreIds = order.getOrderItemList().stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
+        // shopMaterial -> shopMaterialStore -> storeId
+        List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material
+        Map<String, String> materialStoreMap = materialByIds.stream()
+            .distinct().collect(Collectors.toMap(map -> {
+                Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
+                return shopMaterialStore.get("id").toString();
+            }, map -> {
+                Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
+                return shopMaterialStore.get("storeId").toString();
+            }));
+        for (OrderItem orderItem : order.getOrderItemList()) {
+            orderItem.setCommentState(WhetherEnum.DISABLE_USING.getKey());
+            orderItem.setParentId(order.getId());
+            orderItem.setStoreId(materialStoreMap.containsKey(orderItem.getMaterialStoreId()) ? materialStoreMap.get(orderItem.getMaterialStoreId()) : "");
+        }
+        super.createEntity(order.getOrderItemList(), userId);
     }
 }

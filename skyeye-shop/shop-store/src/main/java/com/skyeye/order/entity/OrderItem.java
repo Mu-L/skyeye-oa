@@ -26,7 +26,7 @@ public class OrderItem extends OperatorUserInfo {
     private String parentId;
 
     @TableField("store_id")
-    @ApiModelProperty(value = "门店id")
+    @Property(value = "门店id")
     private String storeId;
 
     @TableField(exist = false)

@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.object.ResultEntity;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.rest.pay.rest.IPayRest;
 import com.skyeye.rest.pay.service.IPayService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,10 @@ public class IPayServiceImpl extends IServiceImpl implements IPayService {
 
     @Override
     public ResultEntity payment(Map<String, Object> data, String channelCode, String returnUrl, String channelExtras, String notifyUrl) {
+        // 支付金额单位转换为分
+        String payPrice = data.get("payPrice").toString();
+        payPrice = CalculationUtil.multiply(payPrice, "100");
+        data.put("payPrice", payPrice);
         Map<String, Object> params = new HashMap<>();
         params.put("data", JSONUtil.toJsonStr(data));
         params.put("channelCode", channelCode);

@@ -9,13 +9,11 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -242,11 +240,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Override
     public void createPostpose(Order order, String userId) {
-        for (OrderItem orderItem : order.getOrderItemList()) {
-            orderItem.setCommentState(WhetherEnum.DISABLE_USING.getKey());
-            orderItem.setParentId(order.getId());
-        }
-        orderItemService.createEntity(order.getOrderItemList(), userId);
+        orderItemService.setValueAndCreateEntity(order, userId);
     }
 
     @Override
@@ -378,7 +372,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         int adjustPrice = Integer.parseInt(params.get("adjustPrice").toString());
-        if( adjustPrice< CommonNumConstants.NUM_ZERO){
+        if (adjustPrice < CommonNumConstants.NUM_ZERO) {
             throw new CustomException("所调价格不可为负数");
         }
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
