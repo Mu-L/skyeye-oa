@@ -294,8 +294,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         Map<String, Object> params = inputObject.getParams();
         List<String> materialIdList = JSONUtil.toList(params.get("materialId").toString(), null);
         List<String> storeIdList = JSONUtil.toList(params.get("storeId").toString(), null);
-        materialIdList = materialIdList.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-        storeIdList = storeIdList.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        materialIdList = materialIdList.stream().filter(StrUtil::isNotBlank).collect(Collectors.toList());
+        storeIdList = storeIdList.stream().filter(StrUtil::isNotBlank).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(materialIdList) || CollectionUtil.isEmpty(storeIdList)) {
             return;
         }
