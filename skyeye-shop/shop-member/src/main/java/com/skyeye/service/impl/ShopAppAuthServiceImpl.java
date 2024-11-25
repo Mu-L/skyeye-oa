@@ -62,6 +62,9 @@ public class ShopAppAuthServiceImpl implements ShopAppAuthService {
         if (ObjectUtil.isEmpty(member)) {
             throw new CustomException("手机号码不存在，请先注册！");
         }
+        if (StrUtil.isEmpty(member.getPassword())) {
+            throw new CustomException("该用户未设置密码！");
+        }
         String password = map.get("password").toString();
         for (int i = 0; i < member.getPwdNumEnc(); i++) {
             password = ToolUtil.MD5(password);
