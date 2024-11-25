@@ -30,4 +30,6 @@ public interface ShopAppAuthService {
     void smsShopLogin(InputObject inputObject, OutputObject outputObject);
 
     void smsShopMemberRegister(InputObject inputObject, OutputObject outputObject);
+
+    void editShopUserPasswordByPhone(InputObject inputObject, OutputObject outputObject);
 }

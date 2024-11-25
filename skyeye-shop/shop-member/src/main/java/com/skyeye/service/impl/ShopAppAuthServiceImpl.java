@@ -190,4 +190,20 @@ public class ShopAppAuthServiceImpl implements ShopAppAuthService {
         saveMember.setEnabled(EnableEnum.ENABLE_USING.getKey());
         memberService.createEntity(saveMember, null);
     }
+
+    @Override
+    public void editShopUserPasswordByPhone(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String newPassword = map.get("newPassword").toString();
+        String phone = map.get("phone").toString();
+        Member member = memberService.queryMemberByPhone(phone);
+        if (ObjectUtil.isEmpty(member)) {
+            throw new CustomException("手机号码不存在，请先注册！");
+        }
+        int pwdNum = (int) (Math.random() * 100);
+        for (int i = 0; i < pwdNum; i++) {
+            newPassword = ToolUtil.MD5(newPassword);
+        }
+        memberService.editMemberPassword(member.getId(), newPassword, pwdNum);
+    }
 }

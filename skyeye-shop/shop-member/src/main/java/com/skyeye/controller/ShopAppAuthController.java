@@ -63,6 +63,15 @@ public class ShopAppAuthController {
         shopAppAuthService.editShopUserPassword(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "editShopUserPasswordByPhone", value = "根据手机号修改密码", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "newPassword", name = "newPassword", value = "新密码", required = "required"),
+        @ApiImplicitParam(id = "phone", name = "phone", value = "手机号", required = "required")})
+    @RequestMapping("/post/ShopAppAuthController/editShopUserPasswordByPhone")
+    public void editShopUserPasswordByPhone(InputObject inputObject, OutputObject outputObject) {
+        shopAppAuthService.editShopUserPasswordByPhone(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "sendShopSmsCode", value = "发送手机验证码", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "mobile", name = "mobile", value = "手机号"),
