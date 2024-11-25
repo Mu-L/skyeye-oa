@@ -122,6 +122,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         checkAndSetActive(order);
         // 总单的优惠券处理
         checkAndSetOrderCouponUse(order);
+        refreshCache(order.getId());
     }
 
     private void checkAndSetItemCouponUse(Order order) {// 子单的优惠券操作
@@ -383,10 +384,12 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.eq(CommonConstants.ID, params.get("id").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getAdjustPrice), adjustPrice);
         update(updateWrapper);
+        refreshCache(params.get("id").toString());
     }
 
     @Override
     public void deletePostpose(List<String> ids) {
+        refreshCache(ids);
         orderItemService.deleteByPerentIds(ids);
     }
 
@@ -423,6 +426,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelType), params.get("cancelType"));
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
         update(updateWrapper);
+        refreshCache(params.get("id").toString());
     }
 
     @Override
@@ -440,7 +444,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getFinishTime), DateUtil.getTimeAndToString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getReceiveTime), DateUtil.getTimeAndToString());
         update(updateWrapper);
-
+        refreshCache(one.getId());
     }
 
     @Override
@@ -476,6 +480,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
 
         update(updateWrapper);
+        refreshCache(id);
     }
 
     @Override
@@ -491,6 +496,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.DELIVERED.getKey());
         update(updateWrapper);
+        refreshCache(one.getId());
     }
 
     @Override
@@ -499,6 +505,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCommentState), state);
         update(updateWrapper);
+        refreshCache(id);
     }
 
     @Override
