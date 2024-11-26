@@ -20,7 +20,7 @@
 
 ③ 具备低代码、功能全面、快速便捷开发、无需重复的CRUD等优点，短时间内可完成一款系统的开发。
 
-④ [国产开源项目对比](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)。
+④ [国产开源项目对比--以及Skyeye云功能点](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)。
 
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/compare.png)
 
@@ -92,12 +92,6 @@
 |skyeye-project |8109 |PM项目管理模块 |project-web.jar |
 |skyeye-erp |8106 |ERP+生产模块 |erp-web.jar |
 |skyeye-seal-service |8108 |售后服务模块 |seal-service-web.jar |
-
-## 系统功能结构图
-
-> 功能结构图内容较多，加载可能会有点慢，请耐心等待。
-
-![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/out_www.yalijuda.com_%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20240730093239_Ee37d6NUHo.png)
 
 ##  :tw-1f31e:  架构介绍
 
