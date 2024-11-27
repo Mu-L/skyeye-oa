@@ -51,7 +51,7 @@ public class SysEveWinThemeColorController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeSysEveWinThemeColor", value = "添加/编辑win系统主题颜色信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeSysEveWinThemeColor", value = "添加/编辑win系统主题颜色信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysEveWinThemeColor.class)
     @RequestMapping("/post/SysEveWinThemeColorController/writeSysEveWinThemeColor")
     public void writeSysEveWinThemeColor(InputObject inputObject, OutputObject outputObject) {
@@ -64,7 +64,7 @@ public class SysEveWinThemeColorController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteSysEveWinThemeColorById", value = "删除win系统主题颜色信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteSysEveWinThemeColorById", value = "删除win系统主题颜色信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SysEveWinThemeColorController/deleteSysEveWinThemeColorById")
