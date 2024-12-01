@@ -1,9 +1,7 @@
-package com.skyeye.exam.examSurveyClass.service;
+package com.skyeye.exam.examsurveyclass.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examSurveyClass.entity.ExamSurveyClass;
+import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 
 /**
  * @ClassName: ExamSurveyClassService
@@ -15,4 +13,5 @@ import com.skyeye.exam.examSurveyClass.entity.ExamSurveyClass;
  */
 public interface ExamSurveyClassService extends SkyeyeBusinessService<ExamSurveyClass> {
 
+    void createExamSurveyClass(String id,String classId, String userId);
 }

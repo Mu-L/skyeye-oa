@@ -1,13 +1,15 @@
-package com.skyeye.exam.examSurveyAnswer.service.impl;
+package com.skyeye.exam.examsurveyanswer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examSurveyAnswer.dao.ExamSurveyAnswerDao;
-import com.skyeye.exam.examSurveyAnswer.entity.ExamSurveyAnswer;
-import com.skyeye.exam.examSurveyAnswer.service.ExamSurveyAnswerService;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
+import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
+import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,5 +35,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<ExamSurveyAnswer> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
+    }
+
+    @Override
+    public ExamSurveyAnswer queryWhetherExamIngByStuId(String userId, String id) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), id);
+        ExamSurveyAnswer answer = getOne(queryWrapper);
+        return answer;
     }
 }

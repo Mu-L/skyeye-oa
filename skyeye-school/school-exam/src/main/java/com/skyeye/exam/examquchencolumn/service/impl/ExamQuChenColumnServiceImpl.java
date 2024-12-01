@@ -1,19 +1,29 @@
 package com.skyeye.exam.examquchencolumn.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examquchencolumn.dao.ExamQuChenColumnDao;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
+import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @SkyeyeService(name = "矩陈题-列选项管理", groupName = "矩陈题-列选项管理")
@@ -21,6 +31,16 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
 
     @Autowired
     private ExamQuChenRowService examQuChenRowService;
+
+    @Override
+    protected QueryWrapper<ExamQuChenColumn> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ExamQuChenColumn> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), commonPageInfo.getHolderId());
+            examQuChenRowService.QueryExamQuChenRowList(commonPageInfo.getHolderId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public void saveList(List<ExamQuChenColumn> column, List<ExamQuChenRow> row, String quId, String userId) {
@@ -32,7 +52,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
             if (ToolUtil.isBlank(object.getOptionId())) {
-                bean.setQuId(object.getQuId());
+                bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
                 bean.setCreateId(userId);
@@ -59,7 +79,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
             if (ToolUtil.isBlank(object.getOptionId())) {
-                bean.setQuId(object.getQuId());
+                bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
                 bean.setCreateId(userId);
@@ -76,5 +96,37 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         if (!editquRow.isEmpty()) {
             examQuChenRowService.updateRowEntity(editquRow, userId);
         }
+    }
+
+    @Override
+    protected void deletePreExecution(ExamQuChenColumn entity) {
+        String createId = entity.getCreateId();
+        String quId = entity.getQuId();
+        int queryvisibility = examQuChenRowService.QueryvisibilityInRow(quId, createId);
+        Integer visibility = entity.getVisibility();
+        if (visibility == 1 && queryvisibility == 1){
+            throw new CustomException("该选项已显示，请先隐藏再删除");
+        }
+    }
+
+    @Override
+    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        String quId = map.get("quId").toString();
+        String createId = map.get("createId").toString();
+        examQuChenRowService.changeVisibility(quId,createId);
+        UpdateWrapper<ExamQuChenColumn> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getId),id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ZERO);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void removeByQuId(String quId) {
+        examQuChenRowService.removeByQuId(quId);
+        UpdateWrapper<ExamQuChenColumn> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId),quId);
+        update(updateWrapper);
     }
 }

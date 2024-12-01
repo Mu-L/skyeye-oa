@@ -1,7 +1,9 @@
-package com.skyeye.exam.examQuestionLogic.service;
+package com.skyeye.exam.examquestionlogic.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.exam.examQuestionLogic.entity.ExamQuestionLogic;
+import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamQuestionLogicService
@@ -12,4 +14,5 @@ import com.skyeye.exam.examQuestionLogic.entity.ExamQuestionLogic;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQuestionLogic> {
+    List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId);
 }

@@ -1,4 +1,4 @@
-package com.skyeye.exam.examSurveyAnswer.controller;
+package com.skyeye.exam.examsurveyanswer.controller;
 
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
@@ -6,8 +6,8 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examSurveyAnswer.entity.ExamSurveyAnswer;
-import com.skyeye.exam.examSurveyAnswer.service.ExamSurveyAnswerService;
+import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
+import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,7 +49,7 @@ public class ExamSurveyAnswerController {
      */
     @ApiOperation(id = "deleteSurveyAnswerById", value = "根据ID删除试卷回答信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/deleteSurveyAnswerById")
     public void deleteSurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.deleteById(inputObject, outputObject);
@@ -63,7 +63,7 @@ public class ExamSurveyAnswerController {
      */
     @ApiOperation(id = "querySurveyAnswerById", value = "根据ID获取试卷回答信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/querySurveyAnswerById")
     public void querySurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.selectById(inputObject, outputObject);
@@ -77,7 +77,7 @@ public class ExamSurveyAnswerController {
      */
     @ApiOperation(id = "queryMySurveyAnswerList", value = "根据createId获取my试卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "createId", name = "createId", value = "回答人的id", required = "required")})
+            @ApiImplicitParam(id = "createId", name = "createId", value = "回答人的id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/queryMySurveyAnswerList")
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryMySurveyAnswerList(inputObject, outputObject);

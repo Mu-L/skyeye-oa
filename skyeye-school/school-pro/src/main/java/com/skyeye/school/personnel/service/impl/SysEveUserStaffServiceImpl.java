@@ -22,15 +22,8 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public QueryWrapper<SysEveUserStaff> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SysEveUserStaff> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 我创建的
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         Integer type = Integer.valueOf(commonPageInfo.getType());
-        if(type.equals(SIMPLE_STAFF.getKey())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getType), SIMPLE_STAFF.getKey());
-        }
-        else if (type.equals(TEACHER.getKey())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getType), TEACHER.getKey());
-        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getType),type);
         return queryWrapper;
     }
 

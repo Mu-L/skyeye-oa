@@ -1,4 +1,4 @@
-package com.skyeye.exam.examSurveyQuAnswer.entity;
+package com.skyeye.exam.examsurveyquanswer.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

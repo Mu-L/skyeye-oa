@@ -1,6 +1,8 @@
 package com.skyeye.exam.examanenumqu.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanenumqu.dao.ExamAnEnumquDao;
 import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
 
@@ -13,4 +15,5 @@ import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamAnEnumquService extends SkyeyeBusinessService<ExamAnEnumqu> {
+    void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject);
 }

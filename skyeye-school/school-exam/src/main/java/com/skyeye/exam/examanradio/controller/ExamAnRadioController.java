@@ -21,9 +21,6 @@ public class ExamAnRadioController {
     @Autowired
     private ExamAnRadioService examAnRadioService;
 
-    @Autowired
-    private ExamService examService;
-
     /**
      * 添加单选题保存表信息
      *

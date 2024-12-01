@@ -1,8 +1,7 @@
-package com.skyeye.exam.examSurveyDirectory.dao;
+package com.skyeye.exam.examsurveydirectory.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.exam.examSurveyDirectory.entity.ExamSurveyDirectory;
-
+import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 /**
  * @ClassName: ExamSurveyDirectoryDao
  * @Description: 试卷管理数据接口层

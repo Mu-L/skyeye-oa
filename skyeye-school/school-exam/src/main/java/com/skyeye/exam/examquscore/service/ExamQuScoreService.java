@@ -1,9 +1,9 @@
-package com.skyeye.exam.examQuScore.service;
+package com.skyeye.exam.examquscore.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examQuScore.entity.ExamQuScore;
+import com.skyeye.exam.examquscore.entity.ExamQuScore;
 
 import java.util.List;
 
@@ -17,5 +17,7 @@ import java.util.List;
  */
 public interface ExamQuScoreService extends SkyeyeBusinessService<ExamQuScore> {
     void saveList(List<ExamQuScore> list, String quId, String userId);
+
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
 }
 

@@ -1,6 +1,8 @@
 package com.skyeye.exam.examanchenradio.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 
 /**
@@ -13,4 +15,6 @@ import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
  */
 
 public interface ExamAnChenRadioService extends SkyeyeBusinessService<ExamAnChenRadio> {
+    void queryExamAnChenRadioListById(InputObject inputObject, OutputObject outputObject);
+
 }

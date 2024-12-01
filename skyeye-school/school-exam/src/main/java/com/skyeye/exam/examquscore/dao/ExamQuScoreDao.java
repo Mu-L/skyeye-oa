@@ -1,7 +1,7 @@
-package com.skyeye.exam.examQuScore.dao;
+package com.skyeye.exam.examquscore.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.exam.examQuScore.entity.ExamQuScore;
+import com.skyeye.exam.examquscore.entity.ExamQuScore;
 
 /**
  * @ClassName: ExamQuScoreDao

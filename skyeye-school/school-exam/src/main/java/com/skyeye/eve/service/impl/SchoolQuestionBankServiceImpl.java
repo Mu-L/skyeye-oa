@@ -14,7 +14,6 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.question.CheckType;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.dao.SchoolQuestionBankDao;
-import com.skyeye.eve.question.service.QuestionService;
 import com.skyeye.eve.service.SchoolQuestionBankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
-package com.skyeye.exam.examQuRadio.service;
+package com.skyeye.exam.examquradio.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examQuRadio.entity.ExamQuRadio;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 
 import java.util.List;
 
@@ -17,4 +17,8 @@ import java.util.List;
  */
 public interface ExamQuRadioService extends SkyeyeBusinessService<ExamQuRadio> {
     void saveList(List<ExamQuRadio> list,String quId, String userId);
+
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    void removeByQuId(String quId);
 }

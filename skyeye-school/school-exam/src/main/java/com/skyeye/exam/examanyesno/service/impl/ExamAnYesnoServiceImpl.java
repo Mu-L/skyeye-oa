@@ -19,12 +19,6 @@ import java.util.Map;
 public class ExamAnYesnoServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnYesnoDao, ExamAnYesno> implements ExamAnYesnoService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        return beans;
-    }
-
-    @Override
     public void queryExamAnYesnoListById(InputObject inputObject, OutputObject outputObject) {
         String examAnYesnoId = inputObject.getParams().get("id").toString();
         QueryWrapper<ExamAnYesno> queryWrapper = new QueryWrapper<>();

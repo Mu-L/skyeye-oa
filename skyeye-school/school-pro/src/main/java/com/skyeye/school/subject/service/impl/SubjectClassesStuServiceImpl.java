@@ -122,14 +122,14 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     }
 
     @Override
-    public  void deletePostpose(SubjectClassesStu subjectClassesStu){
+    public void deletePostpose(SubjectClassesStu subjectClassesStu) {
         subjectClassesTopService.deleteSubjectClassesTopBySubClassLinkId(subjectClassesStu.getSubClassLinkId());
     }
 
     @Override
-    public void  deletePreExecution(String id){
+    public void deletePreExecution(String id) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,id);
+        queryWrapper.eq(CommonConstants.ID, id);
         SubjectClassesStu subjectClassesStu = getOne(queryWrapper);
         SubjectClasses subjectClasses = subjectClassesService.selectById(subjectClassesStu.getSubClassLinkId());
         if (subjectClasses.getQuit() == CommonNumConstants.NUM_TWO) {
@@ -157,7 +157,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             return CollectionUtil.newArrayList();
         }
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         return userList;
     }
 
@@ -206,7 +206,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         long count = count(queryWrapper);
-        subjectClassesService.updatePeopleNum(subClassLinkId, (int)count);
+        subjectClassesService.updatePeopleNum(subClassLinkId, (int) count);
     }
 
     public void selectRewardList(InputObject inputObject, OutputObject outputObject) {
@@ -216,9 +216,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         outputObject.settotal(selectReward(subClassLinkId).size());
     }
 
-    public List<SubjectClassesStu> selectReward(String subClassLinkId){
+    public List<SubjectClassesStu> selectReward(String subClassLinkId) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId),subClassLinkId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         List<SubjectClassesStu> subjectClassesStuList = list(queryWrapper);
         if (CollectionUtil.isEmpty(subjectClassesStuList)) {
             return subjectClassesStuList;
@@ -240,8 +240,8 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         String subClassLinkId = map.get("subClassLinkId").toString();
         String stuNo = map.get("stuNo").toString();
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId),subClassLinkId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo),stuNo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNo);
         outputObject.setBean(getOne(queryWrapper));
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -265,7 +265,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         Map<String, Object> map = inputObject.getLogParams();
         String subjectClassesStuId = map.get("id").toString();
         String reward = map.get("reward").toString();
-        updateReward(subjectClassesStuId,reward);
+        updateReward(subjectClassesStuId, reward);
     }
 
     public void selectStudentList(InputObject inputObject, OutputObject outputObject) {
@@ -291,7 +291,6 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         outputObject.setBeans(groups);
         outputObject.settotal(groups.size());
     }
-
 
     @Override
     public List<SubjectClassesStu> queryListBySubClassLinkId(String SubClassLinkId) {

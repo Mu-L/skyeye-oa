@@ -19,12 +19,6 @@ import java.util.Map;
 public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScoreDao, ExamAnScore> implements ExamAnScoreService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        return beans;
-    }
-
-    @Override
     public void queryExamAnScoreListById(InputObject inputObject, OutputObject outputObject) {
         String examAnScoreId = inputObject.getParams().get("id").toString();
         QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();

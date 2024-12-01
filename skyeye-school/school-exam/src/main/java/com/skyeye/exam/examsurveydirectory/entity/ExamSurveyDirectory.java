@@ -1,4 +1,4 @@
-package com.skyeye.exam.examSurveyDirectory.entity;
+package com.skyeye.exam.examsurveydirectory.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -90,7 +90,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private String subjectId;
 
     @TableField("session_year")
-    @ApiModelProperty(value = "哪一届的学生，比如：2013")
+    @ApiModelProperty(value = "哪一届的学生，比如：2023")
     private String sessionYear;
 
     @TableField("fraction")

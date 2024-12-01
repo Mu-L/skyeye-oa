@@ -1,7 +1,7 @@
-package com.skyeye.exam.examQuRadio.dao;
+package com.skyeye.exam.examquradio.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.exam.examQuRadio.entity.ExamQuRadio;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 
 /**
  * @ClassName: ExamQuRadioDao

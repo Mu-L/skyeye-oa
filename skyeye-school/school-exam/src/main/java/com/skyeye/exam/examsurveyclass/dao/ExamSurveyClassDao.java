@@ -1,7 +1,7 @@
-package com.skyeye.exam.examSurveyClass.dao;
+package com.skyeye.exam.examsurveyclass.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.exam.examSurveyClass.entity.ExamSurveyClass;
+import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 
 /**
  * @ClassName: ExamSurveyClassDao

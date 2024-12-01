@@ -1,4 +1,4 @@
-package com.skyeye.exam.examSurveyClass.controller;
+package com.skyeye.exam.examsurveyclass.controller;
 
 import com.skyeye.annotation.api.Api;
 import org.springframework.web.bind.annotation.RestController;

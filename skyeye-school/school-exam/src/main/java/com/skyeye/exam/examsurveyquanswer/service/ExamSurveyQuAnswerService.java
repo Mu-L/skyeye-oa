@@ -1,7 +1,9 @@
-package com.skyeye.exam.examSurveyQuAnswer.service;
+package com.skyeye.exam.examsurveyquanswer.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.exam.examSurveyQuAnswer.entity.ExamSurveyQuAnswer;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 
 /**
  * @ClassName: ExamSurveyQuAnswerService
@@ -12,4 +14,5 @@ import com.skyeye.exam.examSurveyQuAnswer.entity.ExamSurveyQuAnswer;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSurveyQuAnswer> {
+    void queryExamSurveyQuAnswerListById(InputObject inputObject, OutputObject outputObject);
 }

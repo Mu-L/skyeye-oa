@@ -1,10 +1,10 @@
-package com.skyeye.exam.examSurveyMarkExam.service.impl;
+package com.skyeye.exam.examsurveymarkexam.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.exam.examSurveyMarkExam.dao.ExamSurveyMarkExamDao;
-import com.skyeye.exam.examSurveyMarkExam.entity.ExamSurveyMarkExam;
-import com.skyeye.exam.examSurveyMarkExam.service.ExamSurveyMarkExamService;
+import com.skyeye.exam.examsurveymarkexam.dao.ExamSurveyMarkExamDao;
+import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
+import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,4 +18,10 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "试卷与阅卷人关系表管理", groupName = "试卷与阅卷人关系表管理")
 public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyMarkExamDao, ExamSurveyMarkExam> implements ExamSurveyMarkExamService {
+    @Override
+    public void createExamSurveyMarkExam(String id, String userId) {
+        ExamSurveyMarkExam examSurveyMarkExam = new ExamSurveyMarkExam();
+        examSurveyMarkExam.setSurveyId(id);
+        examSurveyMarkExam.setUserId(userId);
+    }
 }

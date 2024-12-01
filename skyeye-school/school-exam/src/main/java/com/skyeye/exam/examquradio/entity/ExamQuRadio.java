@@ -1,4 +1,4 @@
-package com.skyeye.exam.examQuRadio.entity;
+package com.skyeye.exam.examquradio.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -6,10 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.eve.question.entity.Question;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * @ClassName: ExamQuRadio
@@ -36,7 +33,7 @@ public class ExamQuRadio extends OperatorUserInfo {
     @ApiModelProperty(value = "选项内容", required = "required")
     private String optionName;
 
-    @TableField("option_id")
+    @TableField(exist = false)
     @ApiModelProperty(value = "选项id")
     private String optionId;
 

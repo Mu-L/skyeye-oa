@@ -1,11 +1,16 @@
-package com.skyeye.exam.examQuestionLogic.service.impl;
+package com.skyeye.exam.examquestionlogic.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.exam.examQuestionLogic.dao.ExamQuestionLogicDao;
-import com.skyeye.exam.examQuestionLogic.entity.ExamQuestionLogic;
-import com.skyeye.exam.examQuestionLogic.service.ExamQuestionLogicService;
+import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.ToolUtil;
+import com.skyeye.exam.examquestionlogic.dao.ExamQuestionLogicDao;
+import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
+import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: ExamQuestionLogicServiceImpl
@@ -17,5 +22,45 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @SkyeyeService(name = "题目逻辑设置管理", groupName = "题目逻辑设置管理")
-public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuestionLogicDao, ExamQuestionLogic> implements ExamQuestionLogicService  {
+public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuestionLogicDao, ExamQuestionLogic> implements ExamQuestionLogicService {
+
+    @Override
+    public List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId) {
+        List<ExamQuestionLogic> insertList = new ArrayList<>();
+        List<ExamQuestionLogic> editList = new ArrayList<>();
+        for (int i = 0; i < logicStr.size(); i++) {
+            ExamQuestionLogic logic = logicStr.get(i);
+            ExamQuestionLogic bean = new ExamQuestionLogic();
+            bean.setCkQuId(logic.getCkQuId());
+            bean.setTitle(logic.getTitle());
+            bean.setLogicType(logic.getLogicType());
+            bean.setScoreNum(logic.getScoreNum());
+            if (!logic.getCgQuItemId().toString().isEmpty() && logic.getCgQuItemId()!=null ) {
+                bean.setCgQuItemId(logic.getCgQuItemId());
+                bean.setCkQuId(logic.getCkQuId());
+            }
+            if (logic.getGeLe()!=null && !logic.getGeLe().isEmpty()) {
+                bean.setGeLe(logic.getGeLe());
+            }
+            if (ToolUtil.isBlank(logic.getId())) {
+                bean.setId(ToolUtil.getSurFaceId());
+                bean.setSkQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(logic.getId());
+                editList.add(bean);
+            }
+        }
+        if (!insertList.isEmpty()) {
+            createEntity(logicStr, userId);
+        }
+        if (!editList.isEmpty()) {
+            updateEntity(logicStr, userId);
+        }
+        insertList.addAll(editList);
+        return insertList;
+    }
 }

@@ -198,10 +198,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     public void updateQuit(String SubjectClassesId, Integer isQuit) {
-//        lambdaUpdate()
-//                .eq(SubjectClasses::getId, SubjectClassesId)
-//                .set(SubjectClasses::getQuit, isQuit)
-//                .update();
         UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
         updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), isQuit);
@@ -230,8 +226,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void updatePeopleNum(String subClassLinkId, Integer count) {
         UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID,subClassLinkId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getPeopleNum),count);
+        updateWrapper.eq(CommonConstants.ID, subClassLinkId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getPeopleNum), count);
         update(updateWrapper);
     }
 
@@ -240,9 +236,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,subClassLinkId);
+        queryWrapper.eq(CommonConstants.ID, subClassLinkId);
         List<SubjectClasses> subjectClassesList = list(queryWrapper);
-        iAuthUserService.setDataMation(subjectClassesList,SubjectClasses::getCreateId);
+        iAuthUserService.setDataMation(subjectClassesList, SubjectClasses::getCreateId);
         outputObject.setBean(subjectClassesList);
         outputObject.settotal(subjectClassesList.size());
     }

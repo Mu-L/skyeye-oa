@@ -1,14 +1,13 @@
 package com.skyeye.exam.examanradio.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.question.QuType;
-import com.skyeye.eve.question.service.QuestionService;
+import com.skyeye.eve.Examquestion.service.QuestionService;
 import com.skyeye.exam.examanradio.dao.ExamAnRadioDao;
 import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
@@ -21,15 +20,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "单选题保存表管理", groupName = "单选题保存表管理")
 public class ExamAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnRadioDao, ExamAnRadio> implements ExamAnRadioService {
-
-    @Autowired
-    private QuestionService questionService;
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        return beans;
-    }
 
     @Override
     public void queryExamAnRadioListById(InputObject inputObject, OutputObject outputObject) {

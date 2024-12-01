@@ -1,9 +1,9 @@
-package com.skyeye.exam.examSurveyDirectory.service;
+package com.skyeye.exam.examsurveydirectory.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examSurveyDirectory.entity.ExamSurveyDirectory;
+import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 
 /**
  * @ClassName: ExamSurveyDirectoryService
@@ -15,7 +15,11 @@ import com.skyeye.exam.examSurveyDirectory.entity.ExamSurveyDirectory;
  */
 public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSurveyDirectory> {
 
-    void queryAllOrMyExamList(InputObject inputObject, OutputObject outputObject);
+    void changeWhetherDeleteById(InputObject inputObject, OutputObject outputObject);
 
-    void deleteDirectoryById(InputObject inputObject, OutputObject outputObject);
+    void setUpExamDirectory(InputObject inputObject, OutputObject outputObject);
+
+    ExamSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject);
+
+    void copyExamDirectory(InputObject inputObject, OutputObject outputObject);
 }

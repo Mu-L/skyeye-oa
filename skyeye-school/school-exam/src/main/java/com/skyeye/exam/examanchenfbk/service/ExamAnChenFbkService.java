@@ -1,6 +1,8 @@
 package com.skyeye.exam.examanchenfbk.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -16,6 +18,5 @@ import org.springframework.beans.factory.annotation.Autowired;
 public interface ExamAnChenFbkService extends SkyeyeBusinessService<ExamAnChenFbk> {
 
 
-
-
+    void queryExamAnChenFbkListById(InputObject inputObject, OutputObject outputObject);
 }

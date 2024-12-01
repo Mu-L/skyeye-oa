@@ -1,5 +1,6 @@
 package com.skyeye.exam.examancompchenradio.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -18,7 +19,6 @@ import lombok.Data;
  */
 
 @Data
-@RedisCacheField(name = "Exam:radio")
 @TableName(value = "exam_an_comp_chen_radio")
 @ApiModel("答卷 复合矩阵单选题实体类")
 public class ExamAnCompChenRadio extends CommonInfo {
@@ -27,31 +27,31 @@ public class ExamAnCompChenRadio extends CommonInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableId("belong_answer_id")
+    @TableField("belong_answer_id")
     @ApiModelProperty(value = "所属复合矩阵单选题答案id")
     private String belongAnswerId;
 
-    @TableId("belong_id")
+    @TableField("belong_id")
     @ApiModelProperty(value = "所属复合矩阵单选题id")
     private String belongId;
 
-    @TableId("qu_col_id")
+    @TableField("qu_col_id")
     @ApiModelProperty(value = "所属复合矩阵单选题列id")
     private String quColId;
 
-    @TableId("qu_id")
+    @TableField("qu_id")
     @ApiModelProperty(value = "所属复合矩阵单选题")
     private String quId;
 
-    @TableId("qu_option_id")
+    @TableField("qu_option_id")
     @ApiModelProperty(value = "请求选项标识")
     private String quOptionId;
 
-    @TableId("qu_row_id")
+    @TableField("qu_row_id")
     @ApiModelProperty(value = "所属复合矩阵单选题行id")
     private String quRowId;
 
-    @TableId("visibility")
+    @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 }

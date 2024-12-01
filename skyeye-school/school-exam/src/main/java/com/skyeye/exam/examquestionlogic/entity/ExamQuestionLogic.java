@@ -1,4 +1,4 @@
-package com.skyeye.exam.examQuestionLogic.entity;
+package com.skyeye.exam.examquestionlogic.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -7,7 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -19,10 +19,9 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:questionlogic")
 @TableName(value = "exam_question_logic")
 @ApiModel("题目逻辑设置实体类")
-public class ExamQuestionLogic extends CommonInfo {
+public class ExamQuestionLogic extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -33,7 +32,7 @@ public class ExamQuestionLogic extends CommonInfo {
     private String title;
 
     @TableField("cg_qu_item_id")
-    @ApiModelProperty(value = "回答选择题的选项ID  （0任意选项）", required = "required")
+    @ApiModelProperty(value = "回答选择题的选项ID  （0任意选项）")
     private Long cgQuItemId;
 
     @TableField("ck_qu_id")
@@ -60,11 +59,4 @@ public class ExamQuestionLogic extends CommonInfo {
     @ApiModelProperty(value = "是否显示  1显示 0不显示", required = "required")
     private Integer visibility;
 
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private Data createTime;
 }

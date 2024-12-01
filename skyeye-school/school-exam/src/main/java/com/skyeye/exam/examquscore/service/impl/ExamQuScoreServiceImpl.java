@@ -1,25 +1,26 @@
-package com.skyeye.exam.examQuScore.service.impl;
+package com.skyeye.exam.examquscore.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.common.util.question.CheckType;
-import com.skyeye.common.util.question.QuType;
-import com.skyeye.eve.question.entity.Question;
-import com.skyeye.eve.question.service.QuestionService;
-import com.skyeye.exam.examQuRadio.entity.ExamQuRadio;
-import com.skyeye.exam.examQuScore.dao.ExamQuScoreDao;
-import com.skyeye.exam.examQuScore.entity.ExamQuScore;
-import com.skyeye.exam.examQuScore.service.ExamQuScoreService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examquscore.dao.ExamQuScoreDao;
+import com.skyeye.exam.examquscore.entity.ExamQuScore;
+import com.skyeye.exam.examquscore.service.ExamQuScoreService;
+import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamQuScoreServiceImpl
@@ -33,29 +34,14 @@ import java.util.List;
 @SkyeyeService(name = "评分题行选项管理", groupName = "评分题行选项管理")
 public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScoreDao, ExamQuScore> implements ExamQuScoreService {
 
-    @Autowired
-    private QuestionService questionService;
-
-//    @Override
-//    protected void createPrepose(ExamQuScore entity) {
-//        String userId = InputObject.getLogParamsStatic().get("id").toString();
-//        entity.setQuType(QuType.SCORE.getIndex());
-//        Question question = JSONUtil.toBean(JSONUtil.toJsonPrettyStr(entity), Question.class);
-//        String quId = questionService.saveQuestion(question, StrUtil.EMPTY, userId);
-//        System.out.println(quId);
-//        entity.setQuId(quId);
-//        List<ExamQuScore> score = entity.getScoreTd();
-//        saveList(score, quId, userId);
-//    }
-//
-//    @Override
-//    protected void updatePrepose(ExamQuScore entity) {
-//        String userId = InputObject.getLogParamsStatic().get("id").toString();
-//        Question question = JSONUtil.toBean(JSONUtil.toJsonPrettyStr(entity), Question.class);
-//        String quId = questionService.saveQuestion(question, entity.getQuId(), userId);
-//        List<ExamQuScore> score = entity.getScoreTd();
-//        saveList(score, quId, userId);
-//    }
+    @Override
+    protected QueryWrapper<ExamQuScore> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ExamQuScore> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), commonPageInfo.getHolderId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public void saveList(List<ExamQuScore> score, String quId, String userId) {
@@ -86,4 +72,23 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         }
         quScore.addAll(editquScore);
     }
+
+    @Override
+    protected void deletePreExecution(ExamQuScore entity) {
+        Integer visibility = entity.getVisibility();
+        if (visibility == 1){
+            throw new CustomException("该选项已显示，请先隐藏再删除");
+        }
+    }
+
+    @Override
+    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getId),id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ZERO);
+        update(updateWrapper);
+    }
+
 }

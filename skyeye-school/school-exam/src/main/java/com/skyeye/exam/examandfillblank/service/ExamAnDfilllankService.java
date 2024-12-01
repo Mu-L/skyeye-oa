@@ -1,6 +1,8 @@
 package com.skyeye.exam.examandfillblank.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 
 /**
@@ -12,4 +14,5 @@ import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamAnDfilllankService extends SkyeyeBusinessService<ExamAnDfillblank> {
+    void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject);
 }

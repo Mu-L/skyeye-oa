@@ -1,15 +1,10 @@
-package com.skyeye.exam.examSurveyClass.service.impl;
+package com.skyeye.exam.examsurveyclass.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examSurveyAnswer.dao.ExamSurveyAnswerDao;
-import com.skyeye.exam.examSurveyAnswer.entity.ExamSurveyAnswer;
-import com.skyeye.exam.examSurveyAnswer.service.ExamSurveyAnswerService;
-import com.skyeye.exam.examSurveyClass.dao.ExamSurveyClassDao;
-import com.skyeye.exam.examSurveyClass.entity.ExamSurveyClass;
-import com.skyeye.exam.examSurveyClass.service.ExamSurveyClassService;
+import com.skyeye.exam.examsurveyclass.dao.ExamSurveyClassDao;
+import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
+import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,5 +19,10 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "试卷与班级关系表管理", groupName = "试卷与班级关系表管理")
 public class ExamSurveyClassServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyClassDao, ExamSurveyClass> implements ExamSurveyClassService {
 
-
+    @Override
+    public void createExamSurveyClass(String id,String classId, String userId) {
+        ExamSurveyClass examSurveyClass = new ExamSurveyClass();
+        examSurveyClass.setExamSurveyId(id);
+        examSurveyClass.setClassId(classId);
+    }
 }

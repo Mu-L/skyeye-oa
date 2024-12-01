@@ -20,6 +20,8 @@ import java.util.List;
 public interface QuestionService extends SkyeyeBusinessService<Question> {
     List<Question> QueryQuestionByBelongId(String belongId);
 
+    void copyQuestionListMation(Question question);
+
 //    String saveQuestion(Question question, String id, String userId);
 
 }

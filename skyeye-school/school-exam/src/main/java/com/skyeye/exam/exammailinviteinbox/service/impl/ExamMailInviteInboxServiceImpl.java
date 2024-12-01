@@ -19,12 +19,6 @@ import java.util.Map;
 public class ExamMailInviteInboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamMailInviteInboxDao, ExamMailInviteInbox> implements ExamMailInviteInboxService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        return beans;
-    }
-
-    @Override
     public void queryExamMailInviteInboxListById(InputObject inputObject, OutputObject outputObject) {
         String examMailInviteInboxId = inputObject.getParams().get("id").toString();
         QueryWrapper<ExamMailInviteInbox> queryWrapper = new QueryWrapper<>();

@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
@@ -173,5 +174,9 @@ public class Question extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
     private List<ExamQuOrderby> orderbyTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
+    private List<ExamQuestionLogic> questionLogic;
 
 }

@@ -10,5 +10,9 @@ import java.util.List;
 public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheckbox> {
     void saveList(List<ExamQuCheckbox> list, String quId, String userId);
 
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    void removeByQuId(String quId);
+
 //    void queryExamQuCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

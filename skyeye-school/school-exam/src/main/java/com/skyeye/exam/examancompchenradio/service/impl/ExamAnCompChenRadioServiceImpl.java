@@ -1,12 +1,20 @@
 package com.skyeye.exam.examancompchenradio.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 import com.skyeye.exam.examancompchenradio.dao.ExamAnCompChenRadioDao;
 import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnCompChenRadioServiceImpl
@@ -23,4 +31,15 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private ExamAnCompChenRadioService examAnCompChenRadioService;
+
+    @Override
+    public void queryExamAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        List<ExamAnCompChenRadio> examAnCompChenRadioList = list(queryWrapper);
+        outputObject.setBean(examAnCompChenRadioList);
+        outputObject.settotal(examAnCompChenRadioList.size());
+    }
 }
