@@ -52,6 +52,14 @@ public class OrderComment extends OperatorUserInfo {
     @Property(value = "商品信息")
     private Map<String, Object> materialMation;
 
+    @TableField(value = "store_id")
+    @ApiModelProperty(value = "店铺id")
+    private String storeId;
+
+    @TableField(exist = false)
+    @Property(value = "门店信息")
+    private Map<String, Object> storeMation;
+
     @TableField(value = "order_id")
     @ApiModelProperty(value = "订单id", required = "required")
     private String orderId;
@@ -67,6 +75,10 @@ public class OrderComment extends OperatorUserInfo {
     @TableField(value = "start")
     @ApiModelProperty(value = "星级(1-5)",required = "required")
     private Integer start;
+
+    @TableField(value = "is_comment")
+    @ApiModelProperty(value = "是否评价,1:是,0:否,参考#WhetherEnum")
+    private Integer isComment;
 
     @TableField(value = "context")
     @ApiModelProperty(value = "评价内容", required = "required")
