@@ -16,6 +16,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderCommentDao;
 import com.skyeye.order.entity.OrderComment;
@@ -54,6 +55,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Autowired
     private OrderItemService orderItemService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     public void validatorEntity(OrderComment orderComment) {
@@ -99,6 +103,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
         iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
         iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
+        iAuthUserService.setMationForMap(mapList, "createId", "createMation");
         return mapList;
     }
 

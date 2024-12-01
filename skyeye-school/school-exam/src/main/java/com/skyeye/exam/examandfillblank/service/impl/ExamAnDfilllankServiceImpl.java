@@ -3,7 +3,7 @@ package com.skyeye.exam.examandfillblank.service.impl;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.exam.examandfillblank.dao.ExamAnDfilllankDao;
-import com.skyeye.exam.examandfillblank.entity.ExamAnDfilllank;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @SkyeyeService(name = "答卷 多行填空题保存表", groupName = "答卷 多行填空题保存表")
-public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfilllank> implements ExamAnDfilllankService{
+public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfillblank> implements ExamAnDfilllankService{
 
     @Autowired
     private ExamAnDfilllankService examAnDfilllankService;

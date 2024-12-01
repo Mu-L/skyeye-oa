@@ -1,7 +1,7 @@
 package com.skyeye.exam.examandfillblank.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.exam.examandfillblank.entity.ExamAnDfilllank;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 
 /**
  * @ClassName: ExamAnDfilllankDao
@@ -12,5 +12,5 @@ import com.skyeye.exam.examandfillblank.entity.ExamAnDfilllank;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 
-public interface ExamAnDfilllankDao extends SkyeyeBaseMapper<ExamAnDfilllank> {
+public interface ExamAnDfilllankDao extends SkyeyeBaseMapper<ExamAnDfillblank> {
 }

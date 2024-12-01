@@ -1,6 +1,5 @@
 package com.skyeye.exam.examanquestion.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -26,15 +25,15 @@ public class ExamAnQuestion extends CommonInfo {
     @ApiModelProperty(value = "答卷id。为空时新增，不为空时编辑",required = "required")
     private String answerId;
 
-    @TableField("qu_id")
+    @TableId("qu_id")
     @ApiModelProperty(value = "问题id。为空时新增，不为空时编辑",required = "required")
     private String quId;
 
-    @TableField("user_id")
+    @TableId("user_id")
     @ApiModelProperty(value = "学生id。为空时新增，不为空时编辑",required = "required")
     private String userId;
 
-    @TableField("en_file_url")
+    @TableId("en_file_url")
     @ApiModelProperty(value = "学生上传的图片")
     private String enFileUrl;
 }

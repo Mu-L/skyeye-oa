@@ -1,6 +1,5 @@
 package com.skyeye.exam.examanchenscore.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -27,31 +26,31 @@ public class ExamAnChenScore extends CommonInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("belong_answer_id")
+    @TableId("belong_answer_id")
     @ApiModelProperty(value = "所属矩阵多选题答案id")
     private String belongAnswerId;
 
-    @TableField("belong_id")
+    @TableId("belong_id")
     @ApiModelProperty(value = "所属矩阵多选题答案id")
     private String belongId;
 
-    @TableField("qu_id")
+    @TableId("qu_id")
     @ApiModelProperty(value = "所属矩阵多选题")
     private String quId;
 
-    @TableField("qu_col_id")
+    @TableId("qu_col_id")
     @ApiModelProperty(value = "所属矩阵多选题列id")
     private String quColId;
 
-    @TableField("answser_score")
+    @TableId("answser_score")
     @ApiModelProperty(value = "答案分数")
     private String answserScore;
 
-    @TableField("qu_row_id")
+    @TableId("qu_row_id")
     @ApiModelProperty(value = "所属矩阵多选题行id")
     private String iquRowIdd;
 
-    @TableField("visibility")
+    @TableId("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 }
