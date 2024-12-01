@@ -38,7 +38,7 @@ public class SubjectController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySubjectList", value = "获取科目列表--管理端使用", method = "POST", allUse = "1")
+    @ApiOperation(id = "querySubjectList", value = "获取科目列表--管理端使用", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SubjectController/querySubjectList")
     public void querySubjectList(InputObject inputObject, OutputObject outputObject) {
@@ -51,11 +51,11 @@ public class SubjectController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeSubject", value = "新增/编辑科目信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeSubject", value = "新增/编辑科目信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Subject.class)
     @RequestMapping("/post/SubjectController/writeSubject")
     public void writeSubject(InputObject inputObject, OutputObject outputObject) {
-         subjectService.saveOrUpdateEntity(inputObject, outputObject);
+        subjectService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**
@@ -64,7 +64,7 @@ public class SubjectController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteSubjectById", value = "根据ID删除科目信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteSubjectById", value = "根据ID删除科目信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SubjectController/deleteSubjectById")
