@@ -337,9 +337,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             case "5":// 处理中
                 stateList = Arrays.asList(new Integer[]{
                     ShopOrderState.REFUNDING.getKey(),  // 退款中
-
                     ShopOrderState.SALESRETURNING.getKey(),//退货中
-
                     ShopOrderState.EXCHANGEING.getKey()});//换货中
                 break;
             case "6": // 申请记录
@@ -385,6 +383,18 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getAdjustPrice), adjustPrice);
         update(updateWrapper);
         refreshCache(params.get("id").toString());
+    }
+
+    @Override
+    public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
+        String orderId = inputObject.getParams().get("id").toString();
+        if (StrUtil.isEmpty(orderId)) {
+            return;
+        }
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, orderId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
+        refreshCache(orderId);
     }
 
     @Override
@@ -465,8 +475,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, "", channelExtras, payProperties.getOrderNotifyUrl()).getBean();
         Map<String, Object> payChannel = JSONUtil.toBean(payRresult.get("payChannel").toString(), null);
         Map<String, Object> payOrderRespDTO = JSONUtil.toBean(payRresult.get("payOrderRespDTO").toString(), null);
-
-
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
@@ -477,7 +485,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             one.getPayPrice(), payChannel.get("feeRate").toString()));
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionId), payOrderRespDTO.get("id").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
-
         update(updateWrapper);
         refreshCache(id);
     }

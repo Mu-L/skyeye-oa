@@ -33,4 +33,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject);
 
     void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject);
+
+    void updateOrderToPayState(InputObject inputObject, OutputObject outputObject);
 }
