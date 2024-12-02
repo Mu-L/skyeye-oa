@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -31,7 +32,7 @@ public class PayApp extends BaseGeneralInfo {
     private String appKey;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required")
+    @ApiModelProperty(value = "状态", required = "required", enumClass = EnableEnum.class)
     private Integer enabled;
 
     @TableField("order_notify_url")
