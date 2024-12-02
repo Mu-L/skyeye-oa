@@ -11,6 +11,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.order.enums.OrderCommentType;
 import lombok.Data;
 
 import java.util.Map;
@@ -69,7 +71,7 @@ public class OrderComment extends OperatorUserInfo {
     private String orderItemId;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "类型,参考#OrderCommentType")
+    @ApiModelProperty(value = "类型",enumClass = OrderCommentType.class)
     private Integer type;
 
     @TableField(value = "start")
@@ -77,7 +79,7 @@ public class OrderComment extends OperatorUserInfo {
     private Integer start;
 
     @TableField(value = "is_comment")
-    @ApiModelProperty(value = "是否评价,1:是,0:否,参考#WhetherEnum")
+    @ApiModelProperty(value = "是否评价",enumClass = WhetherEnum.class)
     private Integer isComment;
 
     @TableField(value = "context")

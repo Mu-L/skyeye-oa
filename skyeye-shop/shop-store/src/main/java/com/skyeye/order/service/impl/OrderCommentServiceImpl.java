@@ -32,6 +32,8 @@ import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
+import com.skyeye.service.MemberService;
+import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,7 +65,10 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     private OrderItemService orderItemService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private MemberService memberService;
+
+    @Autowired
+    private ShopStoreService shopStoreService;
 
     @Override
     public void validatorEntity(OrderComment orderComment) {
@@ -90,7 +95,8 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
             entity.setIsComment(WhetherEnum.DISABLE_USING.getKey());
         }
-        //TODO storeId
+        OrderItem orderItem = orderItemService.selectById(entity.getOrderItemId());
+        entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" :orderItem.getStoreId());// 设置门店id
     }
 
     @Override
@@ -117,14 +123,17 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         }
         iMaterialService.setDataMation(orderComment, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(orderComment, OrderComment::getNormsId);
+        memberService.setDataMation(orderComment, OrderComment::getCreateId);
+        shopStoreService.setDataMation(orderComment, OrderComment::getStoreId);
         return orderComment;
     }
 
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
         iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
-        iMaterialNormsService.setMationForMap(mapList, "normsId", "no1rmsMation");
-        iAuthUserService.setMationForMap(mapList, "createId", "createMation");
+        iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
+        memberService.setMationForMap(mapList, "createId", "createMation");
+        shopStoreService.setMationForMap(mapList, "storeId","storeMation");
         return mapList;
     }
 
@@ -148,12 +157,15 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         String typeId = commonPageInfo.getTypeId();
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)
-            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)// 创建人id
+            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
+            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
+            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);   // 订单id
         List<OrderComment> list = list(queryWrapper);
         iMaterialService.setDataMation(list, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
-        iAuthUserService.setDataMation(list, OrderComment::getCreateId);
+        memberService.setDataMation(list, OrderComment::getCreateId);
+        shopStoreService.setDataMation(list, OrderComment::getStoreId);
         List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         outputObject.setBeans(mapList);
         outputObject.settotal(pages.getTotal());
