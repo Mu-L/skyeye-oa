@@ -21,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderCommentDao;
 import com.skyeye.order.entity.OrderComment;
@@ -59,6 +60,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Autowired
     private OrderItemService orderItemService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     public void validatorEntity(OrderComment orderComment) {
@@ -118,6 +122,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
         iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
         iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
+        iAuthUserService.setMationForMap(mapList, "createId", "createMation");
         return mapList;
     }
 
@@ -125,9 +130,13 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     public QueryWrapper<OrderComment> getQueryWrapper(CommonPageInfo commonPageInfo) {
         String typeId = commonPageInfo.getTypeId();
         QueryWrapper<OrderComment> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), typeId);
+        queryWrapper.and(wrap -> {
+                wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
+            });
+        if (StrUtil.isNotEmpty(typeId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), typeId);
+        }
         return queryWrapper;
     }
 

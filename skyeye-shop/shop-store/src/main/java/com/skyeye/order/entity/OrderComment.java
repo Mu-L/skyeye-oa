@@ -73,7 +73,7 @@ public class OrderComment extends OperatorUserInfo {
     private Integer type;
 
     @TableField(value = "start")
-    @ApiModelProperty(value = "星级(1-5)",required = "required")
+    @ApiModelProperty(value = "星级(1-5)")
     private Integer start;
 
     @TableField(value = "is_comment")
