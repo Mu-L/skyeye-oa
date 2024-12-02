@@ -22,7 +22,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderCommentDao;
 import com.skyeye.order.entity.OrderComment;
@@ -83,9 +82,11 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
                 throw new CustomException("客户的评价无需父级id");
             }
         }
-        int start = Integer.parseInt(orderComment.getStart().toString());
-        if (start < 0 || start > 5) {
-            throw new CustomException("评价星级为1-5");
+        Integer start = orderComment.getStart();
+        if (ObjectUtil.isNotEmpty(start)) {
+            if (start < 0 || start > 5) {
+                throw new CustomException("评价星级为1-5");
+            }
         }
     }
 
@@ -96,7 +97,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             entity.setIsComment(WhetherEnum.DISABLE_USING.getKey());
         }
         OrderItem orderItem = orderItemService.selectById(entity.getOrderItemId());
-        entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" :orderItem.getStoreId());// 设置门店id
+        entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" : orderItem.getStoreId());// 设置门店id
     }
 
     @Override
@@ -133,7 +134,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
         iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
         memberService.setMationForMap(mapList, "createId", "createMation");
-        shopStoreService.setMationForMap(mapList, "storeId","storeMation");
+        shopStoreService.setMationForMap(mapList, "storeId", "storeMation");
         return mapList;
     }
 
