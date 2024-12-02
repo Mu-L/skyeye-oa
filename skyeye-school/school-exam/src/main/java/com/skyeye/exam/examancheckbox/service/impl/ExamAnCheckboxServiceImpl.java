@@ -1,13 +1,21 @@
 package com.skyeye.exam.examancheckbox.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examancheckbox.dao.ExamAnCheckboxDao;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnCheckboxServiceImpl
@@ -22,6 +30,14 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "答卷 多选题保存表", groupName = "答卷 多选题保存表")
 public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCheckboxDao, ExamAnCheckbox> implements ExamAnCheckboxService{
 
-
-
+    @Override
+    public void queryExamAnCheckboxListById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        List<ExamAnCheckbox> examAnCheckboxList = list(queryWrapper);
+        outputObject.setBean(examAnCheckboxList);
+        outputObject.settotal(examAnCheckboxList.size());
+    }
 }

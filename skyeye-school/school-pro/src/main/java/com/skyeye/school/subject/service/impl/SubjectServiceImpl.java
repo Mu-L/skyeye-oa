@@ -107,11 +107,9 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             }
             subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
         }
-
         if (CollectionUtil.isEmpty(subjectClassesList)) {
             throw new CustomException("当前用户没有创建或加入任何科目");
         }
-
         List<Semester> semesterList = new ArrayList<>();
         List<String> semesterIdList = new ArrayList<>();
         subjectClassesList.forEach(subjectClasses -> {

@@ -196,7 +196,7 @@ public class OrderController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/updateOrderToPayState")
-    public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject){
+    public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
         orderService.updateOrderToPayState(inputObject, outputObject);
     }
 }

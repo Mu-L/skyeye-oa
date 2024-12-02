@@ -1,6 +1,8 @@
 package com.skyeye.exam.examanquestion.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanquestion.entity.ExamAnQuestion;
 
 /**
@@ -12,4 +14,5 @@ import com.skyeye.exam.examanquestion.entity.ExamAnQuestion;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamAnQuestionService extends SkyeyeBusinessService<ExamAnQuestion> {
+    void queryExamAnQuestionById(InputObject inputObject, OutputObject outputObject);
 }

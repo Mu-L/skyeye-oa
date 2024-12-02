@@ -1381,7 +1381,6 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 
-
     /**
      * 是否可以参加考试
      *

@@ -20,5 +20,45 @@ public class ExamQuOrderbyController {
     @Autowired
     private ExamQuOrderbyService examQuOrderbyService;
 
+    /**
+     * 分页获取排序题行选项表信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryExamQuOrderbyList", value = "分页获取排序题行选项表信息", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamQuOrderbyController/queryExamQuOrderbyList")
+    public void queryExamQuOrderbyList(InputObject inputObject, OutputObject outputObject) {
+        examQuOrderbyService.queryPageList(inputObject, outputObject);
+    }
+
+    /**
+     * 根据ID物理删除排序题行选项表信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "deleteExamQuOrderbyById", value = "根据ID物理删除排序题行选项表信息", method = "DELETE", allUse = "1")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/ExamQuOrderbyController/deleteExamQuOrderbyById")
+    public void deleteExamQuOrderbyById(InputObject inputObject, OutputObject outputObject) {
+        examQuOrderbyService.deleteById(inputObject, outputObject);
+    }
+
+    /**
+     * 逻辑删除排序题行选项表信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "changeVisibility", value = "逻辑删除排序题行选项表信息", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/ExamQuOrderbyController/changeVisibility")
+    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
+        examQuOrderbyService.changeVisibility(inputObject, outputObject);
+    }
 
 }

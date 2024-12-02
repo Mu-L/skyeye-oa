@@ -1,6 +1,8 @@
 package com.skyeye.exam.examancheckbox.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 
 
@@ -14,4 +16,5 @@ import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
  */
 
 public interface ExamAnCheckboxService extends SkyeyeBusinessService<ExamAnCheckbox> {
+    void queryExamAnCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

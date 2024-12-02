@@ -1,20 +1,39 @@
 package com.skyeye.exam.examqumultfillblank.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examqumultfillblank.dao.ExamQuMultiFillblankDao;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examqumultfillblank.service.ExamQuMultiFillblankService;
+import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @SkyeyeService(name = "多行填空题管理", groupName = "多行填空题管理")
 public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImpl<ExamQuMultiFillblankDao, ExamQuMultiFillblank> implements ExamQuMultiFillblankService {
+
+    @Override
+    protected QueryWrapper<ExamQuMultiFillblank> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ExamQuMultiFillblank> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getQuId), commonPageInfo.getHolderId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public void saveList(List<ExamQuMultiFillblank> list, String quId, String userId) {
@@ -44,5 +63,30 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
         if (!editquMultiFillblank.isEmpty()) {
             updateEntity(editquMultiFillblank, userId);
         }
+    }
+
+    @Override
+    protected void deletePreExecution(ExamQuMultiFillblank entity) {
+        Integer visibility = entity.getVisibility();
+        if (visibility == 1){
+            throw new CustomException("该选项已显示，请先隐藏再删除");
+        }
+    }
+
+    @Override
+    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        UpdateWrapper<ExamQuMultiFillblank> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getId),id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getVisibility), CommonNumConstants.NUM_ZERO);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void removeByQuId(String quId) {
+        UpdateWrapper<ExamQuMultiFillblank> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getQuId),quId);
+        remove(updateWrapper);
     }
 }

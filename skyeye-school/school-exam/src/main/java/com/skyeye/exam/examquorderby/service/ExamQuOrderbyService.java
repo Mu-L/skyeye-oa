@@ -10,4 +10,8 @@ import java.util.List;
 public interface ExamQuOrderbyService extends SkyeyeBusinessService<ExamQuOrderby> {
 
     void saveList(List<ExamQuOrderby> score, String quId, String userId);
+
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    void removeByQuId(String quId);
 }

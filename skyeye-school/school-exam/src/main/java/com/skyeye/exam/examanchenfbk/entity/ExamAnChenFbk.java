@@ -18,8 +18,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:fbk")
-@TableName(value = "exam_an_chen_fbk")
 @ApiModel("答卷 矩阵填空题")
 public class ExamAnChenFbk extends CommonInfo {
 
@@ -54,6 +52,5 @@ public class ExamAnChenFbk extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
-
 
 }

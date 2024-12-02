@@ -59,9 +59,6 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     private CouponService couponService;
 
     @Autowired
-    private CouponUseService couponUseService;
-
-    @Autowired
     private CouponUseMaterialService couponUseMaterialService;
 
     @Autowired

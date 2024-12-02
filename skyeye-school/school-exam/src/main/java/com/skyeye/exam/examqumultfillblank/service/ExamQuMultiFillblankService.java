@@ -10,4 +10,8 @@ import java.util.List;
 public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQuMultiFillblank> {
 
     void saveList(List<ExamQuMultiFillblank> list, String quId, String userId);
+
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    void removeByQuId(String quId);
 }

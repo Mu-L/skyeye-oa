@@ -2,6 +2,8 @@ package com.skyeye.exam.examanchenscore.service;
 
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 
 /**
@@ -13,4 +15,5 @@ import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamAnChenScoreService extends SkyeyeBusinessService<ExamAnChenScore> {
+    void queryExamAnChenScoreListById(InputObject inputObject, OutputObject outputObject);
 }

@@ -82,6 +82,19 @@ public class OrderCommentController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderCommentController/queryOrderCommentPageList")
     public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
-        orderCommentService.queryPageList(inputObject, outputObject);
+        orderCommentService.queryOrderCommentPageList(inputObject, outputObject);
+    }
+
+    /**
+     * 分页查询商品订单评价信息PC
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryOrderCommentPageListPC", value = "分页查询商品订单评价信息PC", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/OrderCommentController/queryOrderCommentPageListPC")
+    public void queryOrderCommentPageListPC(InputObject inputObject, OutputObject outputObject) {
+        orderCommentService.queryPageList(inputObject,outputObject);
     }
 }

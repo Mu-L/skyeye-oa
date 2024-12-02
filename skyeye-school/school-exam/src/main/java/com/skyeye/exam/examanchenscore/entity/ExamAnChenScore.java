@@ -18,7 +18,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:score")
 @TableName(value = "exam_an_chen_score")
 @ApiModel("答卷 矩阵多选题")
 public class ExamAnChenScore extends CommonInfo {

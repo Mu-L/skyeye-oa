@@ -56,7 +56,6 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), stuNumber);
         List<GroupsStudent> list = list(queryWrapper);
-
         outputObject.setBean(list);
         outputObject.settotal(list.size());
     }
@@ -80,7 +79,6 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
         groupsStudent.setGroupId(groupsStudent.getGroupId());
         createEntity(groupsStudent,StrUtil.EMPTY);
-//        groupsInformationService.editGroupsInformationStuNum(groupsStudent.getGroupId(),true);
     }
     @Override
     public void deleteGroupsStudent(String GroupsId){

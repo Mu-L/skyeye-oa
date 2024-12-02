@@ -19,7 +19,6 @@ import lombok.Data;
  */
 
 @Data
-@RedisCacheField(name = "Exam:radio")
 @TableName(value = "exam_an_comp_chen_radio")
 @ApiModel("答卷 复合矩阵单选题实体类")
 public class ExamAnCompChenRadio extends CommonInfo {

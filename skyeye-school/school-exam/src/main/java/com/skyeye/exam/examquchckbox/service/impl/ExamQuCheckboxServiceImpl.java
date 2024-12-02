@@ -1,21 +1,45 @@
 package com.skyeye.exam.examquchckbox.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
 import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
+import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
+import com.skyeye.exception.CustomException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @SkyeyeService(name = "多选题选项表管理", groupName = "多选题选项表管理")
 public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCheckboxDao, ExamQuCheckbox> implements ExamQuCheckboxService {
+
+    @Autowired
+    private ExamQuestionLogicService examQuestionLogicService;
+
+    @Override
+    protected QueryWrapper<ExamQuCheckbox> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ExamQuCheckbox> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), commonPageInfo.getHolderId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public void saveList(List<ExamQuCheckbox> list, String quId, String userId) {
@@ -53,5 +77,30 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
         if (!editquCheck.isEmpty()) {
             updateEntity(editquCheck, userId);
         }
+    }
+
+    @Override
+    protected void deletePreExecution(ExamQuCheckbox entity) {
+        Integer visibility = entity.getVisibility();
+        if (visibility == 1){
+            throw new CustomException("该选项已显示，请先隐藏再删除");
+        }
+    }
+
+    @Override
+    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        UpdateWrapper<ExamQuCheckbox> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getId),id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility), CommonNumConstants.NUM_ZERO);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void removeByQuId(String quId) {
+        UpdateWrapper<ExamQuCheckbox> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId),quId);
+        remove(updateWrapper);
     }
 }

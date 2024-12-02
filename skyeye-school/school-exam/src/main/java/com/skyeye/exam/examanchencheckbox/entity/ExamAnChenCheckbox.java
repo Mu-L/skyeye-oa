@@ -19,7 +19,6 @@ import lombok.Data;
  */
 
 @Data
-@RedisCacheField(name = "Exam:checkbox")
 @TableName(value = "exam_an_chen_checkbox")
 @ApiModel("答卷 矩阵多选题实体类")
 public class ExamAnChenCheckbox extends CommonInfo {
