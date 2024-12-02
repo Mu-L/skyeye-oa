@@ -7,6 +7,7 @@ package com.skyeye.order.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -66,13 +67,13 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Override
     public void validatorEntity(OrderComment orderComment) {
-        if (orderComment.getType() == OrderCommentType.MERCHANT.getKey()) {
+        if (orderComment.getType() == OrderCommentType.MERCHANT.getKey() ||
+            orderComment.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
             if (StrUtil.isEmpty(orderComment.getParentId())) {
-                throw new CustomException("商家回复评价，父级评价id不能为空.");
+                throw new CustomException("商家回复评价和客户追评，父级评价id不能为空.");
             }
         }
-        if (orderComment.getType() == OrderCommentType.CUSTOMERFiRST.getKey() ||
-            orderComment.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
+        if (orderComment.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {
             if (StrUtil.isNotEmpty(orderComment.getParentId())) {
                 throw new CustomException("客户的评价无需父级id");
             }
@@ -89,6 +90,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
             entity.setIsComment(WhetherEnum.DISABLE_USING.getKey());
         }
+        //TODO storeId
     }
 
     @Override
@@ -121,7 +123,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
         iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
-        iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
+        iMaterialNormsService.setMationForMap(mapList, "normsId", "no1rmsMation");
         iAuthUserService.setMationForMap(mapList, "createId", "createMation");
         return mapList;
     }
@@ -131,9 +133,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         String typeId = commonPageInfo.getTypeId();
         QueryWrapper<OrderComment> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.and(wrap -> {
-                wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
-            });
+            wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
+                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
+        });
         if (StrUtil.isNotEmpty(typeId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), typeId);
         }
@@ -148,9 +150,11 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)
             .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId);
-        List<Map<String, Object>> mapList = listMaps(queryWrapper);
-        iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
-        iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
+        List<OrderComment> list = list(queryWrapper);
+        iMaterialService.setDataMation(list, OrderComment::getMaterialId);
+        iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
+        iAuthUserService.setDataMation(list, OrderComment::getCreateId);
+        List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         outputObject.setBeans(mapList);
         outputObject.settotal(pages.getTotal());
     }
