@@ -13,6 +13,7 @@
 		FROM
 			t_area a
 		<where>
+			3 > a.level
 			<if test="sqlExtract != '' and sqlExtract != null">
 				${sqlExtract}
 			</if>
