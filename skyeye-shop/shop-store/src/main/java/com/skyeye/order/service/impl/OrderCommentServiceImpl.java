@@ -89,7 +89,6 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
                 throw new CustomException("客户的评价无需父级id");
             }
         }
-
     }
 
     @Override
@@ -116,14 +115,16 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             if (entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 追评
                 QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), entity.getOrderItemId())
+                    .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), InputObject.getLogParamsStatic().get("id").toString())
                     .and(wrap -> {
-                        wrap.isNull(MybatisPlusUtil.toColumns(OrderComment::getParentId))
-                            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getParentId), StrUtil.EMPTY);
-                    }).eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+                        String parentId = MybatisPlusUtil.toColumns(OrderComment::getParentId);
+                        wrap.isNotNull(parentId).ne(parentId, StrUtil.EMPTY);
+                    });
                 OrderComment one = getOne(queryWrapper);
                 if (ObjectUtil.isNotEmpty(one)) {// 客户已追评
                     throw new CustomException("追评只能追评一次");
                 }
+                entity.setStart(null);
             }
         }
         entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" : orderItem.getStoreId());// 设置门店id
@@ -200,7 +201,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         if (CollectionUtil.isEmpty(list)) {
             return;
         }
-//        setAdditionalReviewAndMerchantReply(list);// 区分客户追评和商家回复
+        setAdditionalReviewAndMerchantReply(list);// 区分客户追评和商家回复
         iMaterialService.setDataMation(list, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
         memberService.setDataMation(list, OrderComment::getCreateId);
