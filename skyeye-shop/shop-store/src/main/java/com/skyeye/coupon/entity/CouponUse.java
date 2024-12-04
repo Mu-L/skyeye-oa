@@ -11,6 +11,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.coupon.enums.CouponTakeType;
+import com.skyeye.coupon.enums.CouponUseState;
+import com.skyeye.coupon.enums.PromotionDiscountType;
+import com.skyeye.coupon.enums.PromotionMaterialScope;
 import lombok.Data;
 
 import java.util.List;
@@ -42,11 +46,11 @@ public class CouponUse extends OperatorUserInfo {
     private Map<String, Object> couponMation;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#CouponUseState")
+    @Property(value = "状态", enumClass = CouponUseState.class)
     private Integer state;
 
     @TableField(value = "task_type")
-    @ApiModelProperty(value = "领取类型", required = "required")
+    @ApiModelProperty(value = "领取类型", required = "required", enumClass = CouponTakeType.class)
     private Integer taskType;
 
     @TableField(value = "use_price")
@@ -54,7 +58,7 @@ public class CouponUse extends OperatorUserInfo {
     private String usePrice;
 
     @TableField(value = "product_scope")
-    @Property(value = "商品范围")
+    @Property(value = "商品范围", enumClass = PromotionMaterialScope.class)
     private Integer productScope;
 
     @TableField(value = "valid_start_time")
@@ -66,7 +70,7 @@ public class CouponUse extends OperatorUserInfo {
     private String validEndTime;
 
     @TableField(value = "discount_type")
-    @Property(value = "折扣类型")
+    @Property(value = "折扣类型", enumClass = PromotionDiscountType.class)
     private Integer discountType;
 
     @TableField(value = "discount_percent")

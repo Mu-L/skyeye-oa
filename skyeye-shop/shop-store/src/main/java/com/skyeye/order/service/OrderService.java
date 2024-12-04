@@ -35,4 +35,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject);
 
     void updateOrderToPayState(InputObject inputObject, OutputObject outputObject);
+
+    void setOrderCancle(String orderId);
 }

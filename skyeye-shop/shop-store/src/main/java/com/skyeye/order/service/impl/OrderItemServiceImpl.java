@@ -7,8 +7,10 @@ package com.skyeye.order.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
@@ -111,5 +113,13 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             orderItem.setStoreId(materialStoreMap.containsKey(orderItem.getMaterialStoreId()) ? materialStoreMap.get(orderItem.getMaterialStoreId()) : "");
         }
         super.createEntity(order.getOrderItemList(), userId);
+    }
+
+    @Override
+    public void updateCommentStateById(String id){
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id)
+            .set(MybatisPlusUtil.toColumns(OrderItem::getCommentState), WhetherEnum.ENABLE_USING.getKey());
+        update(updateWrapper);
     }
 }

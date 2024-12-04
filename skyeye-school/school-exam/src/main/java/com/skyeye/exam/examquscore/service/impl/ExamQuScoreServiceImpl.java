@@ -76,7 +76,7 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     @Override
     protected void deletePreExecution(ExamQuScore entity) {
         Integer visibility = entity.getVisibility();
-        if (visibility == 1){
+        if (visibility == 1) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }
@@ -86,9 +86,17 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getId),id);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getId), id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
+    }
+
+    @Override
+    public List<ExamQuScore> selectQuScore(String copyFromId) {
+        QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ONE);
+        return list(queryWrapper);
     }
 
 }

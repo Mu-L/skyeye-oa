@@ -4,9 +4,11 @@
 
 package com.skyeye.eve.Examquestion.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
@@ -16,22 +18,18 @@ import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.Examquestion.dao.QuestionDao;
 import com.skyeye.eve.Examquestion.entity.Question;
 import com.skyeye.eve.Examquestion.service.QuestionService;
-import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
-import com.skyeye.exam.examquchencolumn.dao.ExamQuChenColumnDao;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
-import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
+import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
-import com.skyeye.exam.examqumultfillblank.dao.ExamQuMultiFillblankDao;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examqumultfillblank.service.ExamQuMultiFillblankService;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquorderby.service.ExamQuOrderbyService;
-import com.skyeye.exam.examquradio.dao.ExamQuRadioDao;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquradio.service.ExamQuRadioService;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
@@ -40,7 +38,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -74,7 +71,13 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     private ExamQuChenColumnService examQuChenColumnService;
 
     @Autowired
+    private ExamQuChenRowService examQuChenRowService;
+
+    @Autowired
     private ExamQuestionLogicService examQuestionLogicService;
+
+    @Autowired
+    private ExamQuScoreService examQuScoreService;
 
     @Override
     public void createPostpose(Question entity, String userId) {
@@ -90,7 +93,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
         if (!questionLogic.isEmpty()) {
             examQuestionLogicService.setLogics(quId, questionLogic, userId);
-        }else {
+        } else {
             throw new CustomException("请设置问题逻辑");
         }
         List<ExamQuRadio> radioTd = entity.getRadioTd();
@@ -177,9 +180,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         } else if (quType == QuType.ORDERQU.getIndex()) {
             examQuOrderbyService.removeByQuId(quId);
         } else if (quType == QuType.CHENRADIO.getIndex() ||
-            quType == QuType.CHENFBK.getIndex() ||
-            quType == QuType.CHENCHECKBOX.getIndex() ||
-            quType == QuType.COMPCHENRADIO.getIndex()) {
+                quType == QuType.CHENFBK.getIndex() ||
+                quType == QuType.CHENCHECKBOX.getIndex() ||
+                quType == QuType.COMPCHENRADIO.getIndex()) {
             examQuChenColumnService.removeByQuId(quId);
         }
     }
@@ -192,67 +195,90 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         return questionList;
     }
 
-    @Autowired
-    private ExamQuRadioDao examQuRadioDao;
-    @Autowired
-    private ExamQuCheckboxDao examQuCheckboxDao;
-    @Autowired
-    private ExamQuMultiFillblankDao examQuMultiFillblankDao;
-    @Autowired
-    private ExamQuChenRowDao examQuChenRowDao;
-    @Autowired
-    private ExamQuChenColumnDao examQuChenColumnDao;
     @Override
     public void copyQuestionListMation(Question question) {
         String quType = QuType.getActionName(Integer.parseInt(question.getQuType().toString()));
-        if (quType.equals(QuType.RADIO.getActionName()) ||quType.equals(QuType.COMPRADIO.getActionName())){
-            ExamQuRadio examQuRadio = examQuRadioService.selectById(question.getCopyFromId());
-            examQuRadio.setId(ToolUtil.getSurFaceId());
-            examQuRadio.setCreateTime(DateUtil.getTimeAndToString());
-            examQuRadio.setQuId(question.getId());
-            if (examQuRadio != null) {
-                examQuRadioDao.insert(examQuRadio);
+        if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {
+            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getCopyFromId());
+            for (ExamQuRadio examQuRadio : examQuRadioList) {
+                examQuRadio.setId(ToolUtil.getSurFaceId());
+                examQuRadio.setCreateTime(DateUtil.getTimeAndToString());
+                examQuRadio.setQuId(question.getId());
             }
-        }
-        else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())){
-            ExamQuCheckbox examQuCheckbox = examQuCheckboxDao.selectById(question.getCopyFromId());
-            examQuCheckbox.setId(ToolUtil.getSurFaceId());
-            examQuCheckbox.setCreateTime(DateUtil.getTimeAndToString());
-            examQuCheckbox.setQuId(question.getId());
-            if (examQuCheckbox != null) {
-                examQuCheckboxDao.insert(examQuCheckbox);
+            if (!examQuRadioList.isEmpty()) {
+                examQuRadioService.createEntity(examQuRadioList, StrUtil.EMPTY);
             }
-        }
-        else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())){
-            ExamQuMultiFillblank examQuMultiFillblank = examQuMultiFillblankDao.selectById(question.getCopyFromId());
-            examQuMultiFillblank.setId(ToolUtil.getSurFaceId());
-            examQuMultiFillblank.setCreateTime(DateUtil.getTimeAndToString());
-            examQuMultiFillblank.setQuId(question.getId());
-            if (examQuMultiFillblank != null) {
-                examQuMultiFillblankDao.insert(examQuMultiFillblank);
+        } else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
+            List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getCopyFromId());
+            for (ExamQuCheckbox examQuCheckbox : examQuCheckboxList) {
+                examQuCheckbox.setId(ToolUtil.getSurFaceId());
+                examQuCheckbox.setCreateTime(DateUtil.getTimeAndToString());
+                examQuCheckbox.setQuId(question.getId());
             }
-        }
-        else if (quType.equals(QuType.BIGQU.getActionName())){
-        }
-        else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-          || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())){
-            ExamQuChenRow examQuChenRow = examQuChenRowDao.selectById(question.getCopyFromId());
-            ExamQuChenColumn examQuChenColumn = examQuChenColumnDao.selectById(question.getCopyFromId());
-            examQuChenRow.setId(ToolUtil.getSurFaceId());
-            examQuChenRow.setCreateTime(DateUtil.getTimeAndToString());
-            examQuChenRow.setQuId(question.getId());
-            examQuChenColumn.setId(ToolUtil.getSurFaceId());
-            examQuChenColumn.setCreateTime(DateUtil.getTimeAndToString());
-            examQuChenColumn.setQuId(question.getId());
-            if (examQuChenRow != null) {
-                examQuChenRowDao.insert(examQuChenRow);
+            if (!examQuCheckboxList.isEmpty()) {
+                examQuCheckboxService.createEntity(examQuCheckboxList, StrUtil.EMPTY);
             }
-            if (examQuChenColumn != null) {
-                examQuChenColumnDao.insert(examQuChenColumn);
+        } else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
+            List<ExamQuMultiFillblank> multiFillblanksList = examQuMultiFillblankService.selectQuMultiFillblank(question.getCopyFromId());
+            for (ExamQuMultiFillblank examQuMultiFillblank : multiFillblanksList) {
+                examQuMultiFillblank.setId(ToolUtil.getSurFaceId());
+                examQuMultiFillblank.setCreateTime(DateUtil.getTimeAndToString());
+                examQuMultiFillblank.setQuId(question.getId());
             }
-
-
+            if (!multiFillblanksList.isEmpty()) {
+                examQuMultiFillblankService.createEntity(multiFillblanksList, StrUtil.EMPTY);
+            }
+        } else if (quType.equals(QuType.BIGQU.getActionName())) {
+        } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
+                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {
+            List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getCopyFromId());
+            List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getCopyFromId());
+            for (ExamQuChenRow examQuChenRow : examQuChenRowList) {
+                examQuChenRow.setId(ToolUtil.getSurFaceId());
+                examQuChenRow.setCreateTime(DateUtil.getTimeAndToString());
+                examQuChenRow.setQuId(question.getId());
+            }
+            if (!examQuChenRowList.isEmpty()) {
+                examQuChenRowService.createEntity(examQuChenRowList, StrUtil.EMPTY);
+            }
+            for (ExamQuChenColumn examQuChenColumn : examQuChenColumnList) {
+                examQuChenColumn.setId(ToolUtil.getSurFaceId());
+                examQuChenColumn.setCreateTime(DateUtil.getTimeAndToString());
+                examQuChenColumn.setQuId(question.getId());
+            }
+            if (!examQuChenColumnList.isEmpty()) {
+                examQuChenColumnService.createEntity(examQuChenColumnList, StrUtil.EMPTY);
+            }
+        } else if (quType.equals(QuType.SCORE.getActionName())) {
+            List<ExamQuScore> examQuScoreList = examQuScoreService.selectQuScore(question.getCopyFromId());
+            for (ExamQuScore examQuScore : examQuScoreList) {
+                examQuScore.setId(ToolUtil.getSurFaceId());
+                examQuScore.setCreateTime(DateUtil.getTimeAndToString());
+                examQuScore.setQuId(question.getId());
+            }
+            if (!examQuScoreList.isEmpty()) {
+                examQuScoreService.createEntity(examQuScoreList, StrUtil.EMPTY);
+            }
+        } else if (quType.equals(QuType.ORDERQU.getActionName())) {
+            List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getCopyFromId());
+            for (ExamQuOrderby examQuOrderby : examQuOrderbyList) {
+                examQuOrderby.setId(ToolUtil.getSurFaceId());
+                examQuOrderby.setCreateTime(DateUtil.getTimeAndToString());
+                examQuOrderby.setQuId(question.getId());
+            }
+            if (!examQuOrderbyList.isEmpty()) {
+                examQuOrderbyService.createEntity(examQuOrderbyList, StrUtil.EMPTY);
+            }
         }
     }
 
+    @Override
+    public List<Question> queryQuestionMationCopyById(String surveyCopyId) {
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE);
+        return list(queryWrapper);
+    }
 }

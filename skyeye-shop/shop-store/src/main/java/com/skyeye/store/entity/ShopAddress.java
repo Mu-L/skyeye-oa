@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.AreaInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -52,6 +53,6 @@ public class ShopAddress extends AreaInfo {
     private Map<String, Object> labelMation;
 
     @TableField("is_default")
-    @ApiModelProperty(value = "是否是默认地址，参考#WhetherEnum", required = "required,num")
+    @ApiModelProperty(value = "是否是默认地址", required = "required,num", enumClass = WhetherEnum.class)
     private Integer isDefault;
 }

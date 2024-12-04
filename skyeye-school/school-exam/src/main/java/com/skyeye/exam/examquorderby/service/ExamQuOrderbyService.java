@@ -14,4 +14,6 @@ public interface ExamQuOrderbyService extends SkyeyeBusinessService<ExamQuOrderb
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
 
     void removeByQuId(String quId);
+
+    List<ExamQuOrderby> selectQuOrderby(String copyFromId);
 }

@@ -22,6 +22,8 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     void copyQuestionListMation(Question question);
 
+    List<Question> queryQuestionMationCopyById(String surveyCopyId);
+
 //    String saveQuestion(Question question, String id, String userId);
 
 }

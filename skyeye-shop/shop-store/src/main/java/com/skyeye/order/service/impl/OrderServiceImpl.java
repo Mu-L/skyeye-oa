@@ -17,6 +17,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -31,12 +32,15 @@ import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
+import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IAreaService;
+import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.config.PayProperties;
 import com.skyeye.order.dao.OrderDao;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
+import com.skyeye.order.enums.ShopOrderCancelType;
 import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
@@ -49,6 +53,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -91,6 +97,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Autowired
     private CouponUseMaterialService couponUseMaterialService;
 
+    @Autowired
+    private IQuartzService iQuartzService;
+
     @Override
     public void createPrepose(Order order) {
         // 订单编号
@@ -131,7 +140,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         // 设置商品信息、商品规格信息和优惠券信息
         iMaterialNormsService.setDataMation(orderItemList, OrderItem::getNormsId);
         iMaterialService.setDataMation(orderItemList, OrderItem::getMaterialId);
-//        couponUseService.setDataMation(orderItemList, OrderItem::getCouponUseId);
         for (OrderItem orderItem : orderItemList) {
             // 获取子单单价  元 -> 分
             String salePrice = CalculationUtil.multiply(orderItem.getNormsMation().get("salePrice").toString(), "100");
@@ -140,8 +148,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             if (StrUtil.isEmpty(orderItem.getCouponUseId())) {// 没有优惠券
                 orderItem.setPayPrice(orderItem.getPrice());
                 orderItem.setDiscountPrice("0");
-                setLastValue(order, orderItem);
-                return;
+                setLastValue(order, orderItem);// 总单商品数量、子单状态、总单原价、总单应付金额
+                continue;
             }
             // 获取优惠券使用条件，即满多少金额可使用。
             String usePrice = orderItem.getCouponUseMation().get("usePrice").toString();
@@ -179,14 +187,14 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     orderItem.setCouponPrice(discountLimitPrice);
                 }
             }
-            setLastValue(order, orderItem);
+            setLastValue(order, orderItem);// 总单商品数量、子单状态、总单原价、总单应付金额
         }
     }
 
     public void setLastValue(Order order, OrderItem orderItem) {
         order.setCount(order.getCount() + orderItem.getCount());
         orderItem.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());
-        order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
+        order.setTotalPrice(CalculationUtil.add(order.getTotalPrice(), orderItem.getPrice(), CommonNumConstants.NUM_SIX));
         order.setPayPrice(CalculationUtil.add(order.getPayPrice(), orderItem.getPayPrice(), CommonNumConstants.NUM_SIX));
     }
 
@@ -205,20 +213,33 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     private void checkCouponUseMaterial(Order order) {
-        String couponUseId = order.getCouponUseId();
-        if (StrUtil.isEmpty(couponUseId)) {
+        String couponUseId = order.getCouponUseId();//优惠券id
+        double totalPrice = Integer.parseInt(order.getTotalPrice());//总单原价
+        if (StrUtil.isEmpty(couponUseId)) {//没有使用优惠券
             return;
         }
-        List<OrderItem> orderItemList = order.getOrderItemList();
-        CouponUse couponUse = couponUseService.selectById(couponUseId);
-        OrderItem orderItem = null;
+        List<OrderItem> orderItemList = order.getOrderItemList();//子单列表
+
+        CouponUse couponUse = couponUseService.selectById(couponUseId);//优惠券信息
+        OrderItem orderItem = null;//优惠券使用商品
         if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.ALL.getKey())) {// 全部商品
             if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
                 orderItem = orderItemList.stream().max(Comparator.comparing(OrderItem::getPrice)).orElse(null);// 获取优惠券使用商品列表中，价格最高的商品
             } else {// 满减   将优惠券使用到第一个商品
-                orderItemList.get(0).setCouponUseId(couponUseId);
-                orderItemList.get(0).setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
-                return;
+                //卢雨佳
+                double usePrice = Integer.parseInt(couponUse.getUsePrice());//优惠券使用金额
+                if (totalPrice>= usePrice) {//商品价格大于等于优惠券使用金额
+                    Optional<OrderItem> maxPriceItem = orderItemList.stream()
+                            .max(Comparator.comparing(OrderItem::getPrice));//获取优惠券使用商品列表中，价格最高的商品
+                    int index = maxPriceItem
+                            .map(item -> orderItemList.indexOf(item))
+                            .orElse(-1);//获取最高价格商品在子单列表中的索引
+                    orderItemList.get(index).setCouponUseId(couponUseId);
+                    orderItemList.get(index).setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
+                    return;
+                }else {
+                    throw new CustomException("商品价格不足以使用优惠券");
+                }
             }
         } else if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.SPU.getKey())) {// 指定商品
             List<String> couponUseMaterialIds = couponUseMaterialService.queryListByCouponIds(Collections.singletonList(couponUseId))
@@ -246,6 +267,22 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     public void createPostpose(Order order, String userId) {
         orderItemService.setValueAndCreateEntity(order, userId);
         couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
+//        startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
+    }
+
+    private void startUpTaskQuartz(String name, String title, String delayedTime) {
+        /// 处理日期  此处delayedTime为当前日期
+        Date stringToDate = DateUtil.getPointTime(delayedTime, DateUtil.YYYY_MM_DD_HH_MM_SS);
+        Date afterOneDay = DateUtil.getAfDate(stringToDate, 1, "d");
+        DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
+        String lastTime = df.format(afterOneDay);
+        // 正式准备启动定时任务
+        SysQuartzMation sysQuartzMation = new SysQuartzMation();
+        sysQuartzMation.setName(name);
+        sysQuartzMation.setTitle(title);
+        sysQuartzMation.setDelayedTime(lastTime);
+        sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.SHOP_ORDER_CREATE.getTaskType());
+        iQuartzService.startUpTaskQuartz(sysQuartzMation);
     }
 
     @Override
@@ -299,6 +336,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
         for (Order order : list) {
             order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
+            pennyToYuan(order);// 分 -> 元
         }
         iAreaService.setDataMation(list, Order::getProvinceId);
         iAreaService.setDataMation(list, Order::getCityId);
@@ -361,6 +399,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
         for (Order order : list) {
             order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
+            pennyToYuan(order);// 分 -> 元
         }
         iAreaService.setDataMation(list, Order::getProvinceId);
         iAreaService.setDataMation(list, Order::getCityId);
@@ -412,7 +451,32 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getAreaId);
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
+        pennyToYuan(order);// 分 -> 元
         return order;
+    }
+
+    private void pennyToYuan(Order order) {// 分 -> 元
+        if (ObjectUtil.isEmpty(order)) {
+            return;
+        }
+        order.setTotalPrice(StrUtil.isEmpty(order.getTotalPrice()) ? "0" : CalculationUtil.divide(order.getTotalPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setDiscountPrice(StrUtil.isEmpty(order.getDiscountPrice()) ? "0" : CalculationUtil.divide(order.getDiscountPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setDeliveryPrice(StrUtil.isEmpty(order.getDeliveryPrice()) ? "0" : CalculationUtil.divide(order.getDeliveryPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : CalculationUtil.divide(order.getAdjustPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setPayPrice(StrUtil.isEmpty(order.getPayPrice()) ? "0" : CalculationUtil.divide(order.getPayPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setCouponPrice(StrUtil.isEmpty(order.getCouponPrice()) ? "0" : CalculationUtil.divide(order.getCouponPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setPointPrice(StrUtil.isEmpty(order.getPointPrice()) ? "0" : CalculationUtil.divide(order.getPointPrice(), "100", CommonNumConstants.NUM_SIX));
+        order.setVipPrice(StrUtil.isEmpty(order.getVipPrice()) ? "0" : CalculationUtil.divide(order.getVipPrice(), "100", CommonNumConstants.NUM_SIX));
+        for (OrderItem orderItem : order.getOrderItemList()) {
+            orderItem.setPrice(StrUtil.isEmpty(orderItem.getPrice()) ? "0" : CalculationUtil.divide(orderItem.getPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setDiscountPrice(StrUtil.isEmpty(orderItem.getDiscountPrice()) ? "0" : CalculationUtil.divide(orderItem.getDiscountPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setDeliveryPrice(StrUtil.isEmpty(orderItem.getDeliveryPrice()) ? "0" : CalculationUtil.divide(orderItem.getDeliveryPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setAdjustPrice(StrUtil.isEmpty(orderItem.getAdjustPrice()) ? "0" : CalculationUtil.divide(orderItem.getAdjustPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setPayPrice(StrUtil.isEmpty(orderItem.getPayPrice()) ? "0" : CalculationUtil.divide(orderItem.getPayPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setCouponPrice(StrUtil.isEmpty(orderItem.getCouponPrice()) ? "0" : CalculationUtil.divide(orderItem.getCouponPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setPointPrice(StrUtil.isEmpty(orderItem.getPointPrice()) ? "0" : CalculationUtil.divide(orderItem.getPointPrice(), "100", CommonNumConstants.NUM_SIX));
+            orderItem.setVipPrice(StrUtil.isEmpty(orderItem.getVipPrice()) ? "0" : CalculationUtil.divide(order.getVipPrice(), "100", CommonNumConstants.NUM_SIX));
+        }
     }
 
     @Override
@@ -488,6 +552,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
         update(updateWrapper);
         refreshCache(id);
+        iQuartzService.stopAndDeleteTaskQuartz(id);// 删除定时任务
     }
 
     @Override
@@ -532,5 +597,16 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, Object> qrCodeResult = iPayService.generatePayRrCode(BeanUtil.beanToMap(one), channelCode, IpUtil.getLocalAddress().toString(), payProperties.getOrderNotifyUrl());
         outputObject.setBean(qrCodeResult);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void setOrderCancle(String orderId) {
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, orderId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.CANCELED.getKey())
+            .set(MybatisPlusUtil.toColumns(Order::getCancelType), ShopOrderCancelType.PAY_TIMEOUT.getKey())
+            .set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
+        update(updateWrapper);
+        refreshCache(orderId);
     }
 }

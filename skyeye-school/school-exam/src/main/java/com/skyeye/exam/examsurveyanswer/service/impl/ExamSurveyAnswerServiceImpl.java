@@ -9,7 +9,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,5 +43,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), id);
         ExamSurveyAnswer answer = getOne(queryWrapper);
         return answer;
+    }
+
+    @Override
+    public List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getId), answerId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+        return list(queryWrapper);
     }
 }

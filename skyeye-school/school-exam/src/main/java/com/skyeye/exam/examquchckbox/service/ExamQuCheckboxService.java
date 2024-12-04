@@ -14,5 +14,7 @@ public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheck
 
     void removeByQuId(String quId);
 
+    List<ExamQuCheckbox> selectQuChenbox(String copyFromId);
+
 //    void queryExamQuCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

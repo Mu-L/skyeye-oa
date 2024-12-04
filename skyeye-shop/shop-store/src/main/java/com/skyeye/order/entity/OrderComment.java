@@ -15,6 +15,7 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.order.enums.OrderCommentType;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -85,4 +86,12 @@ public class OrderComment extends OperatorUserInfo {
     @TableField(value = "context")
     @ApiModelProperty(value = "评价内容", required = "required")
     private String context;
+
+    @TableField(exist = false)
+    @Property(value = "客户追评")
+    private Map<String,Object> additionalReview;
+
+    @TableField(exist = false)
+    @Property(value = "商家回复")
+    private List<Map<String, Object>> merchantReply;
 }

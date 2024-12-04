@@ -7,7 +7,9 @@
 			a.code_id id,
 			IFNULL(a.parent_code_id, '0') pId,
 			a.`name`,
-			false lay_is_open
+			false lay_is_open,
+			a.level,
+			a.code_id codeId
 		FROM
 			t_area a
 		<where>

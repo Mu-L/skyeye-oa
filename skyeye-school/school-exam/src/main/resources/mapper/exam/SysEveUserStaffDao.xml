@@ -1182,37 +1182,37 @@
 	
 	<select id="queryQuestionMationCopyById" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
-			a.id,
-			a.answer_input_row answerInputRow,
-			a.answer_input_width answerInputWidth,
-			a.belong_id belongId,
-			a.cell_count cellCount,
-			a.check_type checkType,
-			a.contacts_attr contactsAttr,
-			a.contacts_field contactsField,
-			a.copy_from_id copyFromId,
-			a.hv,
-			a.order_by_id orderById,
-			a.param_int01 paramInt01,
-			a.param_int02 paramInt02,
-			a.parent_qu_id parentQuId,
-			a.qu_title quTitle,
-			a.qu_tag quTag,
-			a.qu_type quType,
-			a.rand_order randOrder,
-			a.tag,
-			a.visibility,
-			a.yesno_option yesnoOption,
-			a.fraction
+		a.id,
+		a.answer_input_row answerInputRow,
+		a.answer_input_width answerInputWidth,
+		a.belong_id belongId,
+		a.cell_count cellCount,
+		a.check_type checkType,
+		a.contacts_attr contactsAttr,
+		a.contacts_field contactsField,
+		a.copy_from_id copyFromId,
+		a.hv,
+		a.order_by_id orderById,
+		a.param_int01 paramInt01,
+		a.param_int02 paramInt02,
+		a.parent_qu_id parentQuId,
+		a.qu_title quTitle,
+		a.qu_tag quTag,
+		a.qu_type quType,
+		a.rand_order randOrder,
+		a.tag,
+		a.visibility,
+		a.yesno_option yesnoOption,
+		a.fraction
 		FROM
-			exam_question a
+		exam_question a
 		WHERE
-			a.belong_id = #{surveyCopyId}<!-- 所属试卷 -->
+		a.belong_id = #{surveyCopyId}<!-- 所属试卷 -->
 		AND a.tag = '2'<!-- 试卷的题 -->
 		AND a.qu_tag != '2'<!-- 不是大题 -->
 		AND a.visibility = '1'
 		ORDER BY
-			a.order_by_id ASC
+		a.order_by_id ASC
 	</select>
 	
 	<insert id="addQuestionMationCopyByExamId" parameterType="java.util.Map">

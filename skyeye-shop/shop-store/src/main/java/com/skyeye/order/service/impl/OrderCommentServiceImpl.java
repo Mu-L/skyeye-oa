@@ -15,6 +15,7 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -36,8 +37,10 @@ import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: OrderCommentServiceImpl
@@ -71,33 +74,66 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Override
     public void validatorEntity(OrderComment orderComment) {
-        if (orderComment.getType() == OrderCommentType.MERCHANT.getKey() ||
-            orderComment.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
+        Integer commentType = orderComment.getType();
+        if (commentType != OrderCommentType.MERCHANT.getKey()
+            && commentType != OrderCommentType.CUSTOMERLATER.getKey()
+            && commentType != OrderCommentType.CUSTOMERFiRST.getKey()) {
+            throw new CustomException("type值非法");
+        }
+        if (commentType == OrderCommentType.MERCHANT.getKey() ||
+            commentType == OrderCommentType.CUSTOMERLATER.getKey()) {
             if (StrUtil.isEmpty(orderComment.getParentId())) {
                 throw new CustomException("商家回复评价和客户追评，父级评价id不能为空.");
             }
         }
-        if (orderComment.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {
+        if (commentType == OrderCommentType.CUSTOMERFiRST.getKey()) {
             if (StrUtil.isNotEmpty(orderComment.getParentId())) {
                 throw new CustomException("客户的评价无需父级id");
-            }
-        }
-        Integer start = orderComment.getStart();
-        if (ObjectUtil.isNotEmpty(start)) {
-            if (start < 0 || start > 5) {
-                throw new CustomException("评价星级为1-5");
             }
         }
     }
 
     @Override
     public void createPrepose(OrderComment entity) {
+        OrderItem orderItem = orderItemService.selectById(entity.getOrderItemId());
+        // 客户评价判断
+        if (orderItem.getCommentState() == WhetherEnum.DISABLE_USING.getKey()) {// 子订单未评价
+            if (entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
+                throw new CustomException("客户追评，需先进行首评。");
+            }
+            if (entity.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {// 客户首评
+                Integer start = entity.getStart();
+                if (ObjectUtil.isEmpty(entity.getStart())) {
+                    throw new CustomException("首评的星级不能为空");
+                }
+                if (start < 0 || start > 5) {
+                    throw new CustomException("评价星级为1-5");
+                }
+            }
+        } else if (orderItem.getCommentState() == WhetherEnum.ENABLE_USING.getKey()) {// 子订单已评价
+            if (entity.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {// 再次进行首评
+                throw new CustomException("首评只能评价一次。");
+            }
+            if (entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 追评
+                QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), entity.getOrderItemId())
+                    .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), InputObject.getLogParamsStatic().get("id").toString())
+                    .and(wrap -> {
+                        String parentId = MybatisPlusUtil.toColumns(OrderComment::getParentId);
+                        wrap.isNotNull(parentId).ne(parentId, StrUtil.EMPTY);
+                    });
+                OrderComment one = getOne(queryWrapper);
+                if (ObjectUtil.isNotEmpty(one)) {// 客户已追评
+                    throw new CustomException("追评只能追评一次");
+                }
+                entity.setStart(null);
+            }
+        }
+        entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" : orderItem.getStoreId());// 设置门店id
         if (entity.getType() == OrderCommentType.CUSTOMERFiRST.getKey() ||
-            entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {
+            entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 顾客新增的评价，商家均未回复
             entity.setIsComment(WhetherEnum.DISABLE_USING.getKey());
         }
-        OrderItem orderItem = orderItemService.selectById(entity.getOrderItemId());
-        entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" : orderItem.getStoreId());// 设置门店id
     }
 
     @Override
@@ -108,6 +144,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         } else {
             orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.FINISHED.getKey());
         }
+        orderItemService.updateCommentStateById(orderComment.getOrderItemId());
         if (orderComment.getType() == OrderCommentType.MERCHANT.getKey()) {// 商家回复时，修改客户评价状态为已评价
             UpdateWrapper<OrderComment> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, orderComment.getParentId());
@@ -152,23 +189,53 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         return queryWrapper;
     }
 
-    @Override
-    public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String typeId = commonPageInfo.getTypeId();
-        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+    private List<OrderComment> getOrderCommentListByType(String typeId, Integer type) {
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)// 创建人id
-            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
-            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
-            .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);   // 订单id
+        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getType), type)
+            .and(wrap -> {
+                wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)// 创建人id
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
+            });
         List<OrderComment> list = list(queryWrapper);
         iMaterialService.setDataMation(list, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
         memberService.setDataMation(list, OrderComment::getCreateId);
         shopStoreService.setDataMation(list, OrderComment::getStoreId);
-        List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        return list;
+    }
+
+    @Override
+    public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String typeId = commonPageInfo.getTypeId();
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<OrderComment> customerFirst = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERFiRST.getKey());
+        List<OrderComment> customerLater = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERLATER.getKey());
+        List<OrderComment> merchantReply = getOrderCommentListByType(typeId, OrderCommentType.MERCHANT.getKey());
+        if (CollectionUtil.isEmpty(customerFirst)) {
+            return;
+        }
+        List<OrderComment> beans = setAdditionalReviewAndMerchantReply(customerFirst, customerLater, merchantReply);// 区分客户追评和商家回复
+        List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
         outputObject.setBeans(mapList);
         outputObject.settotal(pages.getTotal());
+    }
+
+    private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
+        Map<String, OrderComment> customerTowMap = customerLater.stream()
+            .filter(ObjectUtil::isEmpty).collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
+        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream()
+            .filter(ObjectUtil::isEmpty).collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
+        for (OrderComment item : customerFirst) {
+            if (customerTowMap.containsKey(item.getId())) {
+                item.setAdditionalReview(JSONUtil.toBean(JSONUtil.toJsonStr(customerTowMap.get(item.getId())), null));
+            }
+            if (merchantReplyMapList.containsKey(item.getId())) {
+                item.setMerchantReply(JSONUtil.toBean(JSONUtil.toJsonStr(merchantReplyMapList.get(item.getId())), null));
+            }
+        }
+        return customerFirst;
     }
 }

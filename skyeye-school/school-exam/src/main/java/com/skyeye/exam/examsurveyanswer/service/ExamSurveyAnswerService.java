@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamSurveyAnswerService
  * @Description: 试卷回答信息表管理服务接口层
@@ -17,4 +19,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject);
 
     ExamSurveyAnswer queryWhetherExamIngByStuId(String userId, String id);
+
+    List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
 }

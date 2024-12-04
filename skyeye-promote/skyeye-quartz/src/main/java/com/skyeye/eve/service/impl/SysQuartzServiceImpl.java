@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.QuartzConstants;
@@ -62,7 +63,11 @@ public class SysQuartzServiceImpl implements SysQuartzService {
     private XxlJobInfo getXxlJobInfo(String objectId, String groupId, String delayedTime, String jobDesc, String taskType, String userId) {
         XxlJobInfo xxlJobInfo = new XxlJobInfo();
         Map<String, Object> user = iAuthUserService.queryDataMationById(userId);
-        xxlJobInfo.setAuthor(user.get("name").toString());
+        String author = "商城用户";
+        if (CollectionUtil.isNotEmpty(user)) {
+            author = user.get("name").toString();
+        }
+        xxlJobInfo.setAuthor(author);
         xxlJobInfo.setJobGroup(Integer.parseInt(groupId));
         xxlJobInfo.setJobDesc(QuartzConstants.QuartzMateMationJobType.getRemarkPrefixByTaskType(taskType, jobDesc));
         xxlJobInfo.setScheduleType("CRON");

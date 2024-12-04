@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamSurveyDirectoryService
  * @Description: 试卷管理服务接口层
@@ -22,4 +24,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     ExamSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject);
 
     void copyExamDirectory(InputObject inputObject, OutputObject outputObject);
+
+    void updateExamMationEndById(InputObject inputObject, OutputObject outputObject);
 }

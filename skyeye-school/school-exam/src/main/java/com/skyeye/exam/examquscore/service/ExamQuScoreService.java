@@ -19,5 +19,7 @@ public interface ExamQuScoreService extends SkyeyeBusinessService<ExamQuScore> {
     void saveList(List<ExamQuScore> list, String quId, String userId);
 
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamQuScore> selectQuScore(String copyFromId);
 }
 

@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.dsform.entity.DsFormPage;
+import com.skyeye.operate.classenum.MenuPageType;
 import lombok.Data;
 
 import java.util.Map;
@@ -43,7 +44,7 @@ public class OperateOpenPage extends OperatorUserInfo {
     private String name;
 
     @TableField("`type`")
-    @ApiModelProperty(value = "页面类型，参考#MenuPageType", required = "required")
+    @ApiModelProperty(value = "页面类型", required = "required", enumClass = MenuPageType.class)
     private Integer type;
 
     @TableField("page_url")
