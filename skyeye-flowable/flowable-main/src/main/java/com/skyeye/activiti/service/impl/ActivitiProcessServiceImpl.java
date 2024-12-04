@@ -376,8 +376,25 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
                 list.add(userMation);
             }
         }
-
-        return list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id"))))), ArrayList::new));
+        // 使用 Stream API 进行过滤、排序并最终收集到 ArrayList 中
+        List<Map<String, Object>> resultList = list.stream()
+            .filter(Objects::nonNull)  // 确保 item 不是 null
+            .map(item -> item.entrySet().stream()
+                .filter(entry -> entry != null && entry.getKey() != null &&
+                    entry.getValue() != null && !"".equals(entry.getValue()))
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (existing, replacement) -> existing,  // 解决重复键的问题
+                    LinkedHashMap::new))  // 保持插入顺序
+            )
+            .filter(Objects::nonNull)  // 确保转换后的 map 不是 null
+            .sorted(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))
+            .collect(Collectors.collectingAndThen(
+                Collectors.toCollection(ArrayList::new),
+                ArrayList::new
+            ));
+        return resultList;
     }
 
     /**
