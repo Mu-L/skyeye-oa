@@ -121,4 +121,19 @@ public class ExamSurveyDirectoryController {
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.takeExam(inputObject, outputObject);
     }
+
+    /**
+     * 手动结束试卷
+     *
+     * @param inputObject 入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "updateExamMationEndById", value = "手动结束试卷", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id",required = "required")})
+    @RequestMapping("/post/ExamSurveyDirectoryController/updateExamMationEndById")
+    public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.updateExamMationEndById(inputObject, outputObject);
+    }
+
 }

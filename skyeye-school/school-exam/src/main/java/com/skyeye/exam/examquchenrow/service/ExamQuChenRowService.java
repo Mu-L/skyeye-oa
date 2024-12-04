@@ -19,4 +19,6 @@ public interface ExamQuChenRowService extends SkyeyeBusinessService<ExamQuChenRo
     void changeVisibility(String quId, String createId);
 
     void removeByQuId(String quId);
+
+    List<ExamQuChenRow> selectQuChenRow(String copyFromId);
 }

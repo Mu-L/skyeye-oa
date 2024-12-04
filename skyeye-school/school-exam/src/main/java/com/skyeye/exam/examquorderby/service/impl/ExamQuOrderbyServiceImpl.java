@@ -68,7 +68,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
     @Override
     protected void deletePreExecution(ExamQuOrderby entity) {
         Integer visibility = entity.getVisibility();
-        if (visibility == 1){
+        if (visibility == 1) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }
@@ -78,7 +78,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<ExamQuOrderby> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getId),id);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getId), id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuOrderby::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -86,7 +86,15 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<ExamQuOrderby> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), quId);
         remove(updateWrapper);
+    }
+
+    @Override
+    public List<ExamQuOrderby> selectQuOrderby(String copyFromId) {
+        QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getVisibility), CommonNumConstants.NUM_ONE);
+        return list(queryWrapper);
     }
 }

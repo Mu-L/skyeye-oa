@@ -14,4 +14,6 @@ public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQ
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
 
     void removeByQuId(String quId);
+
+    List<ExamQuMultiFillblank> selectQuMultiFillblank(String copyFromId);
 }

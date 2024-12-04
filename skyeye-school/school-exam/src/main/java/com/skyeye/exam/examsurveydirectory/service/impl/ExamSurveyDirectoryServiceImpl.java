@@ -1,6 +1,7 @@
 package com.skyeye.exam.examsurveydirectory.service.impl;
 
-import cn.hutool.core.io.unit.DataUnit;
+import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -12,6 +13,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.Examquestion.dao.QuestionDao;
 import com.skyeye.eve.Examquestion.entity.Question;
 import com.skyeye.eve.Examquestion.service.QuestionService;
@@ -27,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -141,7 +142,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory();
         Map<String, Object> map = inputObject.getParams();
-        String quId = map.get("id").toString();//试卷id
+        String examDirectoryId = map.get("id").toString();//试卷id
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String surveyId = ToolUtil.getSurFaceId();
         examSurveyDirectories.setId(surveyId);
@@ -149,17 +150,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSurveyModel(1);
         examSurveyDirectories.setCreateId(userId);
         examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString());
-        List<Question> questionList = Collections.singletonList(questionDao.selectById(quId));
+        List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId);
         for (Question question : questionList) {
-            question.setCopyFromId(quId);
+            question.setCopyFromId(question.getId());
             question.setId(ToolUtil.getSurFaceId());
             question.setCreateTime(DateUtil.getTimeAndToString());
             question.setBelongId(surveyId);
             questionService.copyQuestionListMation(question);
         }
-//        questionService.createEntity(questions, userId);
-
-
+        questionService.createEntity(questionList, StrUtil.EMPTY);
     }
 
     @Override
@@ -190,4 +189,26 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         update(updateWrapper);
     }
 
+    @Override
+    public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String examSurveyDirectoryId = map.get("id").toString();
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+        ExamSurveyDirectory examSurveyDirectory = getOne(queryWrapper);
+        if (examSurveyDirectory != null && ObjUtil.isNotEmpty(examSurveyDirectory)) {
+            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+                String realEndTime = DateUtil.getTimeAndToString();
+                UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+                updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getRealEndTime), realEndTime);
+                updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO);
+                updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getEndType), CommonNumConstants.NUM_ONE);
+                update(updateWrapper);
+            }
+        }
+        else {
+            throw new CustomException("该试卷信息不存在!");
+        }
+    }
 }

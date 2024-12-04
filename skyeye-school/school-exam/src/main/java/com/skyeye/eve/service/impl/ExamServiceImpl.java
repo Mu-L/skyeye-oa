@@ -46,7 +46,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取所有试卷列表
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -63,7 +63,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取我的试卷列表
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -130,10 +130,11 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 */
+
     /**
      * 获取试卷题目信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -194,7 +195,7 @@ public class ExamServiceImpl implements ExamService {
             }
             question.put("option", childQuestions);
         } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-            || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
+                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
             List<Map<String, Object>> questionChenRow = examDao.queryQuestionChenRowListByQuestionId(question);//获取行选项
             List<Map<String, Object>> questionChenColumn = examDao.queryQuestionChenColumnListByQuestionId(question);//获取列选项
             for (Map<String, Object> bean : questionChenRow) {
@@ -285,7 +286,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加填空题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -312,7 +313,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加评分题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -364,7 +365,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加排序题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -416,7 +417,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加分页标记
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -435,7 +436,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加单选题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -495,7 +496,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加多选题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -555,7 +556,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加多选填空题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -608,7 +609,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加段落
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -627,7 +628,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 添加矩阵单选题,矩阵多选题,矩阵评分题,矩阵填空题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -718,7 +719,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除问题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -752,7 +753,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除矩阵单选题,矩阵多选题,矩阵评分题,矩阵填空题列选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -774,7 +775,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除矩阵单选题,矩阵多选题,矩阵评分题,矩阵填空题行选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -796,7 +797,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除单选题选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -818,7 +819,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除多选题选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -840,7 +841,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除评分题选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -862,7 +863,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除排序选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -884,7 +885,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除多项填空题选项
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -904,7 +905,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 发布试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -955,7 +956,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取试卷题目信息用来生成html页面
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -988,7 +989,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 删除试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -1002,7 +1003,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 分析报告试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -1018,7 +1019,6 @@ public class ExamServiceImpl implements ExamService {
                 getQuestionOptionListMation(question);
                 getQuestionOptionReportListMation(question);
             }
-
             outputObject.setBean(surveyMation);
             outputObject.setBeans(questions);
             outputObject.settotal(1);
@@ -1217,7 +1217,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 复制试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -1284,7 +1284,7 @@ public class ExamServiceImpl implements ExamService {
             }
         } else if (quType.equals(QuType.BIGQU.getActionName())) {
         } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-            || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
+                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
             List<Map<String, Object>> questionChenRows = examDao.queryQuestionChenRowListByCopyId(question);//获取行选项
             List<Map<String, Object>> questionChenColumns = examDao.queryQuestionChenColumnListByCopyId(question);//获取列选项
             for (Map<String, Object> questionChenRow : questionChenRows) {
@@ -1337,7 +1337,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 判断此试卷当前的状态
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -1353,7 +1353,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 用户回答试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2238,7 +2238,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 手动结束试卷
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2341,7 +2341,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取答卷详情信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2385,7 +2385,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 批阅试卷时获取答卷信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2421,7 +2421,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 批阅试卷提交答卷结果
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2465,7 +2465,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取试卷详情信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2484,7 +2484,7 @@ public class ExamServiceImpl implements ExamService {
                 }
             }
             for (Map<String, Object> question : questions) {
-                question.put("pageNo", pageNo);
+                question.put("F", pageNo);
                 getQuestionOptionListMation(question);
                 // 知识点数量回显
                 String knowledgeIds = question.containsKey("knowledgeIds") ? question.get("knowledgeIds").toString() : ",";
@@ -2509,7 +2509,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取试卷答题情况信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2524,7 +2524,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 获取试卷详情信息以及阅卷人信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -2546,7 +2546,7 @@ public class ExamServiceImpl implements ExamService {
     /**
      * 修改阅卷人信息
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override

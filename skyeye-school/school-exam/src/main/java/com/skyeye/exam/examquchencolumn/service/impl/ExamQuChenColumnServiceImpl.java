@@ -104,7 +104,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         String quId = entity.getQuId();
         int queryvisibility = examQuChenRowService.QueryvisibilityInRow(quId, createId);
         Integer visibility = entity.getVisibility();
-        if (visibility == 1 && queryvisibility == 1){
+        if (visibility == 1 && queryvisibility == 1) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }
@@ -115,9 +115,9 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         String id = map.get("id").toString();
         String quId = map.get("quId").toString();
         String createId = map.get("createId").toString();
-        examQuChenRowService.changeVisibility(quId,createId);
+        examQuChenRowService.changeVisibility(quId, createId);
         UpdateWrapper<ExamQuChenColumn> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getId),id);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getId), id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -126,7 +126,15 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
     public void removeByQuId(String quId) {
         examQuChenRowService.removeByQuId(quId);
         UpdateWrapper<ExamQuChenColumn> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), quId);
         update(updateWrapper);
+    }
+
+    @Override
+    public List<ExamQuChenColumn> selectQuChenColumn(String copyFromId) {
+        QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ONE);
+        return list(queryWrapper);
     }
 }

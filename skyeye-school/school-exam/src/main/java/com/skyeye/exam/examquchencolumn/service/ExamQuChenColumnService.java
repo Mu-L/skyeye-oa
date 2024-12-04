@@ -15,4 +15,6 @@ public interface ExamQuChenColumnService extends SkyeyeBusinessService<ExamQuChe
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
 
     void removeByQuId(String quId);
+
+    List<ExamQuChenColumn> selectQuChenColumn(String copyFromId);
 }

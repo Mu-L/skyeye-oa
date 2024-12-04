@@ -9,7 +9,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
-import org.apache.ibatis.annotations.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +20,7 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
 
     @Autowired
     private ExamQuChenRowService examQuChenRowService;
+
     @Override
     public void saveRowEntity(List<ExamQuChenRow> quRow, String userId) {
         createEntity(quRow, userId);
@@ -32,17 +32,17 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
     }
 
     @Override
-    public QueryWrapper<ExamQuChenRow> QueryExamQuChenRowList(String quId){
+    public QueryWrapper<ExamQuChenRow> QueryExamQuChenRowList(String quId) {
         QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId),quId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
         return queryWrapper;
     }
 
     @Override
     public int QueryvisibilityInRow(String quId, String createId) {
         QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId),quId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId),createId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId), createId);
         ExamQuChenRow one = examQuChenRowService.getOne(queryWrapper);
         Integer visibility = one.getVisibility();
         return visibility;
@@ -51,8 +51,8 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
     @Override
     public void changeVisibility(String quId, String createId) {
         UpdateWrapper<ExamQuChenRow> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId),quId);
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId),createId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId), createId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuChenRow::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -60,7 +60,15 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<ExamQuChenRow> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
         remove(updateWrapper);
+    }
+
+    @Override
+    public List<ExamQuChenRow> selectQuChenRow(String copyFromId) {
+        QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getVisibility), CommonNumConstants.NUM_ONE);
+        return list(queryWrapper);
     }
 }

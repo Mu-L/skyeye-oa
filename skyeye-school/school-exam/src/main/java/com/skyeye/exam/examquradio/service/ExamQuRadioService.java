@@ -21,4 +21,6 @@ public interface ExamQuRadioService extends SkyeyeBusinessService<ExamQuRadio> {
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
 
     void removeByQuId(String quId);
+
+    List<ExamQuRadio> selectQuRadio(String copyFromId);
 }
