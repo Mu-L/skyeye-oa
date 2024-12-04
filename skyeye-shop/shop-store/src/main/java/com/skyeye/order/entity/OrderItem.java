@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -73,7 +74,7 @@ public class OrderItem extends OperatorUserInfo {
     private Integer count;
 
     @TableField("comment_state")
-    @Property(value = "是否评价")
+    @Property(value = "是否评价",enumClass = WhetherEnum.class)
     private Integer commentState;
 
     @TableField("price")

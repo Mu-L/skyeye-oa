@@ -12,6 +12,11 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.coupon.enums.CouponTakeType;
+import com.skyeye.coupon.enums.CouponValidityType;
+import com.skyeye.coupon.enums.PromotionDiscountType;
+import com.skyeye.coupon.enums.PromotionMaterialScope;
 import lombok.Data;
 
 import java.util.List;
@@ -39,7 +44,7 @@ public class Coupon extends BaseGeneralInfo {
     private String templateId;
 
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "状态", required = "required,num", enumClass = EnableEnum.class)
     private Integer enabled;
 
     @TableField(value = "total_count")
@@ -51,7 +56,7 @@ public class Coupon extends BaseGeneralInfo {
     private Integer takeLimitCount;
 
     @TableField(value = "take_type")
-    @ApiModelProperty(value = "领取方式，参考#CouponTakeType", required = "required,num")
+    @ApiModelProperty(value = "领取方式", required = "required,num",enumClass = CouponTakeType.class)
     private Integer takeType;
 
     @TableField(value = "use_price")
@@ -59,11 +64,11 @@ public class Coupon extends BaseGeneralInfo {
     private String usePrice;
 
     @TableField(value = "product_scope")
-    @ApiModelProperty(value = "商品范围，参考#PromotionMaterialScope", required = "required,num")
+    @ApiModelProperty(value = "商品范围", required = "required,num", enumClass = PromotionMaterialScope.class)
     private Integer productScope;
 
     @TableField(value = "validity_type")
-    @ApiModelProperty(value = "生效日期类型，参考#CouponValidityType", required = "required,num")
+    @ApiModelProperty(value = "生效日期类型", required = "required,num",enumClass = CouponValidityType.class)
     private Integer validityType;
 
     @TableField(value = "valid_start_time")
@@ -83,7 +88,7 @@ public class Coupon extends BaseGeneralInfo {
     private Integer fixedEndTerm;
 
     @TableField(value = "discount_type")
-    @ApiModelProperty(value = "折扣类型，参考#PromotionDiscountType", required = "required,num")
+    @ApiModelProperty(value = "折扣类型", required = "required,num",enumClass = PromotionDiscountType.class)
     private Integer discountType;
 
     @TableField(value = "discount_percent")

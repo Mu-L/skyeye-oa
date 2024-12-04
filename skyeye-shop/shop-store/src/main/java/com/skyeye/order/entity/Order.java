@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.AreaInfo;
+import com.skyeye.order.enums.*;
 import lombok.Data;
 
 import java.util.List;
@@ -40,11 +41,11 @@ public class Order extends AreaInfo {
     private String oddNumber;
 
     @TableField("type")
-    @ApiModelProperty(value = "订单类型,参考#ShopOrderType", required = "required")
+    @ApiModelProperty(value = "订单类型", required = "required",enumClass = ShopOrderType.class)
     private Integer type;
 
     @TableField("terminal")
-    @ApiModelProperty(value = "订单来源,参考#ShopOrderTerminal", required = "required")
+    @ApiModelProperty(value = "订单来源", required = "required", enumClass = ShopOrderTerminal.class)
     private Integer terminal;
 
     @TableField("user_ip")
@@ -52,7 +53,7 @@ public class Order extends AreaInfo {
     private String userIp;
 
     @TableField("state")
-    @Property(value = "状态, 参考#ShopOrderState")
+    @Property(value = "状态",enumClass = ShopOrderState.class)
     private Integer state;
 
     @TableField("count")
@@ -68,11 +69,11 @@ public class Order extends AreaInfo {
     private String cancelTime;
 
     @TableField("cancel_type")
-    @Property(value = "取消类型,参考#ShopOrderCancelType")
+    @Property(value = "取消类型",enumClass = ShopOrderCancelType.class)
     private Integer cancelType;
 
     @TableField("comment_state")
-    @Property(value = "是否评价,参考#ShopOrderCommentState")
+    @Property(value = "是否评价", enumClass = ShopOrderCommentState.class)
     private Integer commentState;
 
     @TableField("brokerage_user_id")

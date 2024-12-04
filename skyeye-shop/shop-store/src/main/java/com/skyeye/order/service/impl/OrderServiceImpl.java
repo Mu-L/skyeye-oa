@@ -438,11 +438,11 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getAreaId);
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
-        pennyToYuan(order);
+        pennyToYuan(order);// 分 -> 元
         return order;
     }
 
-    private void pennyToYuan(Order order) {
+    private void pennyToYuan(Order order) {// 分 -> 元
         if (ObjectUtil.isEmpty(order)) {
             return;
         }

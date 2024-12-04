@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -64,6 +65,6 @@ public class ShopTradeCart extends OperatorUserInfo {
     private Integer count;
 
     @TableField("selected")
-    @ApiModelProperty(value = "是否选中，参考#WhetherEnum", required = "required,num")
+    @ApiModelProperty(value = "是否选中", required = "required,num",enumClass = WhetherEnum.class)
     private Integer selected;
 }

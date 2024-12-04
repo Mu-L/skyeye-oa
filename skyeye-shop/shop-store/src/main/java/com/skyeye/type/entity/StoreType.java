@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -36,7 +37,7 @@ public class StoreType extends BaseGeneralInfo {
     private Integer orderBy;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "启用状态1是0否，参考#WhetherEnum", required = "required")
+    @ApiModelProperty(value = "启用状态1是0否", required = "required", enumClass = WhetherEnum.class)
     private Integer enabled;
 
     @TableField(value = "store_id")
