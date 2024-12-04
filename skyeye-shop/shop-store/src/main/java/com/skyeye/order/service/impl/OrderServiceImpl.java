@@ -213,20 +213,33 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     private void checkCouponUseMaterial(Order order) {
-        String couponUseId = order.getCouponUseId();
-        if (StrUtil.isEmpty(couponUseId)) {
+        String couponUseId = order.getCouponUseId();//优惠券id
+        double totalPrice = Integer.parseInt(order.getTotalPrice());//总单原价
+        if (StrUtil.isEmpty(couponUseId)) {//没有使用优惠券
             return;
         }
-        List<OrderItem> orderItemList = order.getOrderItemList();
-        CouponUse couponUse = couponUseService.selectById(couponUseId);
-        OrderItem orderItem = null;
+        List<OrderItem> orderItemList = order.getOrderItemList();//子单列表
+
+        CouponUse couponUse = couponUseService.selectById(couponUseId);//优惠券信息
+        OrderItem orderItem = null;//优惠券使用商品
         if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.ALL.getKey())) {// 全部商品
             if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
                 orderItem = orderItemList.stream().max(Comparator.comparing(OrderItem::getPrice)).orElse(null);// 获取优惠券使用商品列表中，价格最高的商品
             } else {// 满减   将优惠券使用到第一个商品
-                orderItemList.get(0).setCouponUseId(couponUseId);
-                orderItemList.get(0).setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
-                return;
+                //卢雨佳
+                double usePrice = Integer.parseInt(couponUse.getUsePrice());//优惠券使用金额
+                if (totalPrice>= usePrice) {//商品价格大于等于优惠券使用金额
+                    Optional<OrderItem> maxPriceItem = orderItemList.stream()
+                            .max(Comparator.comparing(OrderItem::getPrice));//获取优惠券使用商品列表中，价格最高的商品
+                    int index = maxPriceItem
+                            .map(item -> orderItemList.indexOf(item))
+                            .orElse(-1);//获取最高价格商品在子单列表中的索引
+                    orderItemList.get(index).setCouponUseId(couponUseId);
+                    orderItemList.get(index).setCouponUseMation(JSONUtil.toBean(JSONUtil.toJsonStr(couponUse), null));// 设置mation方便后续计算价格
+                    return;
+                }else {
+                    throw new CustomException("商品价格不足以使用优惠券");
+                }
             }
         } else if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.SPU.getKey())) {// 指定商品
             List<String> couponUseMaterialIds = couponUseMaterialService.queryListByCouponIds(Collections.singletonList(couponUseId))
