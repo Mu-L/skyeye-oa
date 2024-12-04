@@ -36,6 +36,14 @@ public class Routes extends OperatorUserInfo {
     @ApiModelProperty(value = "终点地点id",required = "required")
     private String endId;
 
+    @TableField("start_name")
+    @ApiModelProperty(value = "起始地点名称")
+    private String startName;
+
+    @TableField("end_name")
+    @ApiModelProperty(value = "终点地点名称")
+    private String endName;
+
     @TableField("route_length")
     @ApiModelProperty(value = "路线长度",required = "required")
     private int routeLength;

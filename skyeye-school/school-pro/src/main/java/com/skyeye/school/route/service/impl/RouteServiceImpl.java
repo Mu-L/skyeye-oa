@@ -7,6 +7,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.wall.user.service.IUserService;
+import com.skyeye.school.building.entity.TeachBuilding;
+import com.skyeye.school.building.service.TeachBuildingService;
+import com.skyeye.school.building.service.impl.TeachBuildingServiceImpl;
 import com.skyeye.school.route.dao.RoutesDao;
 import com.skyeye.school.route.entity.RouteStop;
 import com.skyeye.school.route.entity.Routes;
@@ -29,7 +32,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "路线服务", groupName = "路线服务")
+@SkyeyeService(name = "路线管理", groupName = "路线管理")
 public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Routes> implements RoutesService {
 
     @Autowired
@@ -37,6 +40,9 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private TeachBuildingService teachBuildingService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -77,11 +83,23 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
 
     @Override
     public void createPostpose(Routes entity, String userId) {
+        String startName= teachBuildingService.selectById(entity.getStartId()).getName();
+        String endName= teachBuildingService.selectById(entity.getEndId()).getName();
+        entity.setStartName(startName);
+        entity.setEndName(endName);
         List<RouteStop> routeStopList = entity.getRouteStopList();
         for (RouteStop routeStop : routeStopList) {
             routeStop.setRouteId(entity.getId());
         }
         routeStopService.createEntity(routeStopList, userId);
+    }
+
+    @Override
+    protected void updatePrepose(Routes entity) {
+        String startName= teachBuildingService.selectById(entity.getStartId()).getName();
+        String endName= teachBuildingService.selectById(entity.getEndId()).getName();
+        entity.setStartName(startName);
+        entity.setEndName(endName);
     }
 
     @Override
