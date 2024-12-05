@@ -196,7 +196,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
                     .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
                     .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
                     .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
-            });
+            }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
         List<OrderComment> list = list(queryWrapper);
         iMaterialService.setDataMation(list, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
