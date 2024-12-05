@@ -124,4 +124,8 @@ public class OrderItem extends OperatorUserInfo {
     @TableField("vip_price")
     @ApiModelProperty(value = "VIP 减免金额，单位：分")
     private String vipPrice;
+
+    @TableField("order_item_state")
+    @ApiModelProperty(value = "订单子单状态")
+    private Integer orderItemState;
 }

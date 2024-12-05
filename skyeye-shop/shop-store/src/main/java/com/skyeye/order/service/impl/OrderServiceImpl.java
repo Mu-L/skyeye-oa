@@ -590,4 +590,29 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         update(updateWrapper);
         refreshCache(orderId);
     }
+
+    @Override
+    public void updateOrderItemState(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String orderId = map.get("id").toString();
+        String orderItemId = map.get("orderItemId").toString();
+        orderItemService.UpdateOrderItemState(orderItemId);
+        List<OrderItem> orderItemList = orderItemService.queryOrderItemByParentId(orderId);
+        boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
+                .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
+        if (allTwo) {
+            Integer numThree = CommonNumConstants.NUM_THREE;
+            updateOrderState(orderId, numThree);
+        } else {
+            Integer numTwo = CommonNumConstants.NUM_TWO;
+            updateOrderState(orderId, numTwo);
+        }
+    }
+
+    private void updateOrderState(String orderId, Integer orderState) {
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, orderId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getOrderState), orderState);
+        update(updateWrapper);
+    }
 }
