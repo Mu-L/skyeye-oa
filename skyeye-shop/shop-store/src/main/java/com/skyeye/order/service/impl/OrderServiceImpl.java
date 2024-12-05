@@ -248,7 +248,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     public void createPostpose(Order order, String userId) {
         orderItemService.setValueAndCreateEntity(order, userId);
         couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
-//        startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
+        startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
     }
 
     private void startUpTaskQuartz(String name, String title, String delayedTime) {
