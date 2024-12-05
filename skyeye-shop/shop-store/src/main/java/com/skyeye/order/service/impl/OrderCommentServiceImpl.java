@@ -224,10 +224,8 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     }
 
     private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
-        Map<String, OrderComment> customerTowMap = customerLater.stream()
-            .filter(ObjectUtil::isEmpty).collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
-        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream()
-            .filter(ObjectUtil::isEmpty).collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
+        Map<String, OrderComment> customerTowMap = customerLater.stream().collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
+        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream().collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
         for (OrderComment item : customerFirst) {
             if (customerTowMap.containsKey(item.getId())) {
                 item.setAdditionalReview(JSONUtil.toBean(JSONUtil.toJsonStr(customerTowMap.get(item.getId())), null));
