@@ -15,7 +15,6 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -37,7 +36,6 @@ import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -138,18 +136,19 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Override
     public void createPostpose(OrderComment orderComment, String userId) {
-        List<OrderItem> orderItemList = orderItemService.queryListByStateAndOrderId(orderComment.getOrderId(), WhetherEnum.DISABLE_USING.getKey());
-        if (CollectionUtil.isNotEmpty(orderItemList)) {// 总订单的评价状态修改
-            orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.PORTION.getKey());
-        } else {
-            orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.FINISHED.getKey());
-        }
-        orderItemService.updateCommentStateById(orderComment.getOrderItemId());
         if (orderComment.getType() == OrderCommentType.MERCHANT.getKey()) {// 商家回复时，修改客户评价状态为已评价
             UpdateWrapper<OrderComment> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, orderComment.getParentId());
             updateWrapper.set(MybatisPlusUtil.toColumns(OrderComment::getIsComment), WhetherEnum.ENABLE_USING.getKey());
             update(updateWrapper);
+        } else if (orderComment.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {// 客户首评
+            orderItemService.updateCommentStateById(orderComment.getOrderItemId());// 修改此子订单的评价状态为已评价
+            List<OrderItem> orderItemList = orderItemService.queryListByStateAndOrderId(orderComment.getOrderId(), WhetherEnum.DISABLE_USING.getKey());
+            if (CollectionUtil.isNotEmpty(orderItemList)) {// 总订单的评价状态修改
+                orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.PORTION.getKey());
+            } else {
+                orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.FINISHED.getKey());
+            }
         }
     }
 

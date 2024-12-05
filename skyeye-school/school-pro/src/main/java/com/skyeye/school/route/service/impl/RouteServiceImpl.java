@@ -1,11 +1,15 @@
 package com.skyeye.school.route.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.building.entity.TeachBuilding;
 import com.skyeye.school.building.service.TeachBuildingService;
@@ -39,17 +43,10 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     private RouteStopService routeStopService;
 
     @Autowired
-    private IUserService userService;
-
-    @Autowired
     private TeachBuildingService teachBuildingService;
 
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        userService.setMationForMap(beans, "createId", "createMation");
-        return beans;
-    }
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     @Transactional
@@ -65,9 +62,11 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Map params = inputObject.getParams();
         String startId = (String) params.get("startId");
         String endId = (String) params.get("endId");
+        String schoolId = (String) params.get("schoolId");
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getStartId), startId)
                 .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
+                .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId),schoolId)
                 .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
         List<Routes> bean = list(queryWrapper);
         for (Routes routes : bean) {
@@ -79,6 +78,20 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         }
         outputObject.setBeans(bean);
         outputObject.settotal(bean.size());
+    }
+
+    @Override
+    public void queryPageListBySchoolId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String schoolId = commonPageInfo.getHolderId();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId);
+        List<Routes> bean = list(queryWrapper);
+        iAuthUserService.setName(bean,"createId","createName");
+        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
+        outputObject.setBeans(bean);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
