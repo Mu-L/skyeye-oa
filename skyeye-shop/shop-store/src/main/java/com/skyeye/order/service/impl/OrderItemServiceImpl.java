@@ -11,10 +11,12 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderItemDao;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
@@ -120,6 +122,25 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id)
             .set(MybatisPlusUtil.toColumns(OrderItem::getCommentState), WhetherEnum.ENABLE_USING.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public List<OrderItem> queryOrderItemByParentId(String orderId) {
+        QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), orderId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void UpdateOrderItemState(String orderItemId) {
+        OrderItem orderItem = selectById(orderItemId);
+        if (orderItem.getOrderItemState().equals(CommonNumConstants.NUM_TWO)){
+            throw new CustomException("该订单已收货");
+        }
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, orderItemId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), CommonNumConstants.NUM_TWO);
         update(updateWrapper);
     }
 }
