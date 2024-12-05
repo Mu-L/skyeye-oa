@@ -17,4 +17,5 @@ public interface RoutesService extends SkyeyeBusinessService<Routes> {
 
     void queryRoutesByStartAndEnd(InputObject inputObject, OutputObject outputObject);
 
+    void queryPageListBySchoolId(InputObject inputObject, OutputObject outputObject);
 }

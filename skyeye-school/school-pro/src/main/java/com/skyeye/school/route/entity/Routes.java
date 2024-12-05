@@ -28,6 +28,10 @@ public class Routes extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("school_id")
+    @ApiModelProperty(value = "学校id",required = "required")
+    private String schoolId;
+
     @TableField("start_id")
     @ApiModelProperty(value = "起始地点id",required = "required")
     private String startId;
