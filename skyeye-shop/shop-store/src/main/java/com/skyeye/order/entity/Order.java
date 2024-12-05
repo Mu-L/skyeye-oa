@@ -220,7 +220,4 @@ public class Order extends AreaInfo {
     @Property(value = "支付成功的外部订单号")
     private String extensionNo;
 
-    @TableField("order_state")
-    @ApiModelProperty(value = "订单状态")
-    private Integer orderState;
 }
