@@ -89,7 +89,7 @@ public class Order extends AreaInfo {
     private String payType;
 
     @TableField("total_price")
-    @ApiModelProperty(value = "商品总价，单位：分",required = "required")
+    @Property(value = "商品总价，单位：分")
     private String totalPrice;
 
     @TableField("discount_price")
@@ -219,4 +219,8 @@ public class Order extends AreaInfo {
     @TableField("extension_no")
     @Property(value = "支付成功的外部订单号")
     private String extensionNo;
+
+    @TableField("order_state")
+    @ApiModelProperty(value = "订单状态")
+    private Integer orderState;
 }

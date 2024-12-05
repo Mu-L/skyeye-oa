@@ -30,4 +30,8 @@ public interface OrderItemService extends SkyeyeBusinessService<OrderItem> {
     void setValueAndCreateEntity(Order order, String userId);
 
     void updateCommentStateById(String id);
+
+    List<OrderItem> queryOrderItemByParentId(String orderId);
+
+    void UpdateOrderItemState(String orderItemId);
 }
