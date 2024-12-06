@@ -74,7 +74,7 @@ public class OrderItem extends OperatorUserInfo {
     private Integer count;
 
     @TableField("comment_state")
-    @Property(value = "是否评价",enumClass = WhetherEnum.class)
+    @Property(value = "是否评价", enumClass = WhetherEnum.class)
     private Integer commentState;
 
     @TableField("price")
