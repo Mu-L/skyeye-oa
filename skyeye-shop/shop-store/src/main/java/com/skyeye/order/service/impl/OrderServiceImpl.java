@@ -49,6 +49,7 @@ import com.skyeye.order.service.OrderService;
 import com.skyeye.rest.pay.service.IPayService;
 import com.skyeye.store.entity.ShopAddress;
 import com.skyeye.store.service.ShopAddressService;
+import com.skyeye.store.service.ShopTradeCartService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,6 +101,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Autowired
     private IQuartzService iQuartzService;
+
+    @Autowired
+    private ShopTradeCartService shopTradeCartService;
 
     @Override
     public void createPrepose(Order order) {
@@ -249,6 +253,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         orderItemService.setValueAndCreateEntity(order, userId);
         couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
         startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
+        shopTradeCartService.deleteMySelect(userId);
     }
 
     private void startUpTaskQuartz(String name, String title, String delayedTime) {

@@ -188,7 +188,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         return queryWrapper;
     }
 
-    private List<OrderComment> getOrderCommentListByType(String typeId, Integer type) {
+    private List<OrderComment> getOrderCommentListByType(String typeId, Integer type,String objectId) {
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getType), type)
             .and(wrap -> {
@@ -197,6 +197,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
                     .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
                     .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
             }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+        if (StrUtil.isNotEmpty(objectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getNormsId), objectId);
+        }
         List<OrderComment> list = list(queryWrapper);
         iMaterialService.setDataMation(list, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
@@ -209,10 +212,11 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String typeId = commonPageInfo.getTypeId();
+        String objectId = commonPageInfo.getObjectId();
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<OrderComment> customerFirst = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERFiRST.getKey());
-        List<OrderComment> customerLater = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERLATER.getKey());
-        List<OrderComment> merchantReply = getOrderCommentListByType(typeId, OrderCommentType.MERCHANT.getKey());
+        List<OrderComment> customerFirst = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERFiRST.getKey(),objectId);
+        List<OrderComment> customerLater = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERLATER.getKey(),objectId);
+        List<OrderComment> merchantReply = getOrderCommentListByType(typeId, OrderCommentType.MERCHANT.getKey(),objectId);
         if (CollectionUtil.isEmpty(customerFirst)) {
             return;
         }
