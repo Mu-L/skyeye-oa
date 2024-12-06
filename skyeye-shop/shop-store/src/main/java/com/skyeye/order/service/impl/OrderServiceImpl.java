@@ -223,13 +223,13 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     // 折扣上限的折后价
                     String limitPrice = CalculationUtil.subtract(targetOrderItem.getPrice(), discountLimitPrice, CommonNumConstants.NUM_SIX);
                     // 是否超过折扣上限
-                    boolean priceCompare = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX).equals(percentDiscountPrice);
+                    String highPrice = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX);
                     // 设置应支付价格和优惠价格
-                    if (priceCompare) { // 未超过优惠价
+                    if (Double.parseDouble(highPrice) == Double.parseDouble(discountLimitPrice)) { // 未超过优惠价
                         item.setPayPrice(percentPrice);
                         item.setCouponPrice(percentDiscountPrice);
                         // 修改总单总价
-                        order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), discountPercentInt, CommonNumConstants.NUM_SIX));
+                        order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), percentDiscountPrice, CommonNumConstants.NUM_SIX));
                         order.setCouponPrice(percentDiscountPrice);
                     } else {// 超过优惠价
                         item.setPayPrice(limitPrice);
