@@ -159,6 +159,14 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
     }
 
     @Override
+    public void deleteMySelect(String userId) {
+        QueryWrapper<ShopTradeCart> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getSelected), WhetherEnum.ENABLE_USING.getKey())
+            .eq(MybatisPlusUtil.toColumns(ShopTradeCart::getCreateId), userId);
+        remove(queryWrapper);
+    }
+
+    @Override
     public void changeCount(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();

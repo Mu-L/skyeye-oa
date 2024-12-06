@@ -13,8 +13,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.QuartzConstants;
@@ -31,8 +33,6 @@ import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
 import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
-import com.skyeye.erp.service.IMaterialNormsService;
-import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IAreaService;
 import com.skyeye.eve.service.IQuartzService;
@@ -47,8 +47,10 @@ import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
 import com.skyeye.rest.pay.service.IPayService;
+import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import com.skyeye.store.entity.ShopAddress;
 import com.skyeye.store.service.ShopAddressService;
+import com.skyeye.store.service.ShopTradeCartService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,10 +80,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     private IAreaService iAreaService;
 
     @Autowired
-    private IMaterialService iMaterialService;
-
-    @Autowired
-    private IMaterialNormsService iMaterialNormsService;
+    private IShopMaterialNormsService iShopMaterialNormsService;
 
     @Autowired
     private CouponUseService couponUseService;
@@ -100,6 +99,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Autowired
     private IQuartzService iQuartzService;
+
+    @Autowired
+    private ShopTradeCartService shopTradeCartService;
 
     @Override
     public void createPrepose(Order order) {
@@ -130,17 +132,21 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         checkAndSetVariable(order);
         // 活动信息及积分操作方法
         checkAndSetActive(order);
-        refreshCache(order.getId());
     }
 
     private void checkAndSetItemCouponUse(Order order) {// 子单的优惠券操作
         List<OrderItem> orderItemList = order.getOrderItemList();
         // 设置商品信息、商品规格信息和优惠券信息
-        iMaterialNormsService.setDataMation(orderItemList, OrderItem::getNormsId);
-        iMaterialService.setDataMation(orderItemList, OrderItem::getMaterialId);
+        List<String> normsIdList = orderItemList.stream().map(OrderItem::getNormsId).collect(Collectors.toList());
+        List<Map<String, Object>> normsListMap = iShopMaterialNormsService.queryShopMaterialByNormsIdList(Joiner.on(CommonCharConstants.COMMA_MARK).join(normsIdList));
+        Map<String, String> normsPriceMap = normsListMap.stream()
+            .collect(Collectors.toMap(map -> map.get("normsId").toString(), map -> map.get("salePrice").toString()));
         for (OrderItem orderItem : orderItemList) {// 计算每一个子单的总价
+            if (!normsPriceMap.containsKey(orderItem.getNormsId())) {
+                throw new CustomException("商城不存在normsId: " + orderItem.getNormsId());
+            }
             // 获取子单单价  元 -> 分
-            String salePrice = CalculationUtil.multiply(orderItem.getNormsMation().get("salePrice").toString(), "100");
+            String salePrice = CalculationUtil.multiply(normsPriceMap.get(orderItem.getNormsId()), "100");
             // 设置子单总价
             String price = CalculationUtil.multiply(String.valueOf(orderItem.getCount()), salePrice, CommonNumConstants.NUM_SIX);
             orderItem.setPrice(price);
@@ -249,6 +255,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         orderItemService.setValueAndCreateEntity(order, userId);
         couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
         startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
+        shopTradeCartService.deleteMySelect(userId);
     }
 
     private void startUpTaskQuartz(String name, String title, String delayedTime) {
@@ -285,9 +292,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     ShopOrderState.SIGN.getKey(),       // 已签收
                     ShopOrderState.COMPLETED.getKey(),  // 已完成
                     ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                    ShopOrderState.EVALUATED.getKey(),// 已评价
-                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
-                    ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
+                    ShopOrderState.EVALUATED.getKey()});// 已评价
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
@@ -350,9 +355,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     ShopOrderState.SIGN.getKey(),       // 已签收
                     ShopOrderState.COMPLETED.getKey(),  // 已完成
                     ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                    ShopOrderState.EVALUATED.getKey(),// 已评价
-                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
-                    ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
+                    ShopOrderState.EVALUATED.getKey()});// 已评价
+                ShopOrderState.PARTIALLYDONE.getKey();//部分完成
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
@@ -375,7 +379,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         wrapper.eq(MybatisPlusUtil.toColumns(Order::getCreateId), userId);// 查询自己的订单
-        wrapper.eq(MybatisPlusUtil.toColumns(Order::getType),commonPageInfo.getType());
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(Order::getCreateTime));
         List<Order> list = list(wrapper);
         if (CollectionUtil.isEmpty(list)) {
@@ -394,7 +397,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         shopAddressService.setDataMation(list, Order::getAddressId);
         outputObject.setBeans(JSONUtil.toList(JSONUtil.toJsonStr(list), null));
         outputObject.settotal(pages.getTotal());
-        refreshCache(idList);
     }
 
     @Override
@@ -439,7 +441,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
         pennyToYuan(order);// 分 -> 元
-        refreshCache(id);
         return order;
     }
 
@@ -606,7 +607,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         orderItemService.UpdateOrderItemState(orderItemId);
         List<OrderItem> orderItemList = orderItemService.queryOrderItemByParentId(orderId);
         boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
-                .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
+            .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
         if (allTwo) {
             Integer partiallydoneKey = ShopOrderState.COMPLETED.getKey();
             updateOrderState(orderId, partiallydoneKey);
@@ -616,9 +617,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
     }
 
-
-    @Override
-    public void updateOrderState(String orderId, Integer partiallydoneKey) {
+    private void updateOrderState(String orderId, Integer partiallydoneKey) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), partiallydoneKey);

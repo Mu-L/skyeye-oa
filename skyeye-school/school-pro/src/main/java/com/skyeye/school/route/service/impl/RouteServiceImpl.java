@@ -5,6 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -55,6 +56,17 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id);
         routeStopService.remove(queryWrapper);
+    }
+
+    @Override
+    public void selectById(InputObject inputObject, OutputObject outputObject) {
+        Map params = inputObject.getParams();
+        String id = (String) params.get("id");
+        Routes routes = selectById(id);
+        iAuthUserService.setName(routes,"createId","createName");
+        iAuthUserService.setName(routes,"lastUpdateId","lastUpdateName");
+        outputObject.setBean(routes);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override

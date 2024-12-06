@@ -118,7 +118,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
-    public void updateCommentStateById(String id){
+    public void updateCommentStateById(String id) {
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id)
             .set(MybatisPlusUtil.toColumns(OrderItem::getCommentState), WhetherEnum.ENABLE_USING.getKey());
@@ -135,7 +135,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     @Override
     public void UpdateOrderItemState(String orderItemId) {
         OrderItem orderItem = selectById(orderItemId);
-        if (orderItem.getOrderItemState().equals(CommonNumConstants.NUM_TWO)){
+        if (orderItem.getOrderItemState().equals(CommonNumConstants.NUM_TWO)) {
             throw new CustomException("该订单已收货");
         }
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
