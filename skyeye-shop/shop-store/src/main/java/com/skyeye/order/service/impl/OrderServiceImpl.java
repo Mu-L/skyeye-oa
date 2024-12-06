@@ -285,7 +285,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     ShopOrderState.SIGN.getKey(),       // 已签收
                     ShopOrderState.COMPLETED.getKey(),  // 已完成
                     ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                    ShopOrderState.EVALUATED.getKey()});// 已评价
+                    ShopOrderState.EVALUATED.getKey(),// 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
+                    ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
@@ -348,8 +350,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     ShopOrderState.SIGN.getKey(),       // 已签收
                     ShopOrderState.COMPLETED.getKey(),  // 已完成
                     ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                    ShopOrderState.EVALUATED.getKey()});// 已评价
-                    ShopOrderState.PARTIALLYDONE.getKey();//部分完成
+                    ShopOrderState.EVALUATED.getKey(),// 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
+                    ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
@@ -372,6 +375,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         wrapper.eq(MybatisPlusUtil.toColumns(Order::getCreateId), userId);// 查询自己的订单
+        wrapper.eq(MybatisPlusUtil.toColumns(Order::getType),commonPageInfo.getType());
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(Order::getCreateTime));
         List<Order> list = list(wrapper);
         if (CollectionUtil.isEmpty(list)) {
@@ -390,6 +394,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         shopAddressService.setDataMation(list, Order::getAddressId);
         outputObject.setBeans(JSONUtil.toList(JSONUtil.toJsonStr(list), null));
         outputObject.settotal(pages.getTotal());
+        refreshCache(idList);
     }
 
     @Override
@@ -434,6 +439,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
         pennyToYuan(order);// 分 -> 元
+        refreshCache(id);
         return order;
     }
 
@@ -610,7 +616,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
     }
 
-    private void updateOrderState(String orderId, Integer partiallydoneKey) {
+
+    @Override
+    public void updateOrderState(String orderId, Integer partiallydoneKey) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), partiallydoneKey);

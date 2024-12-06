@@ -39,4 +39,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void setOrderCancle(String orderId);
 
     void updateOrderItemState(InputObject inputObject, OutputObject outputObject);
+
+    void updateOrderState(String orderId, Integer partiallydoneKey);
 }

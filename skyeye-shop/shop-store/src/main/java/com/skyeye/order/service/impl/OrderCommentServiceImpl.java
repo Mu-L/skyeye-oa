@@ -28,6 +28,7 @@ import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.OrderCommentType;
 import com.skyeye.order.enums.ShopOrderCommentState;
+import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
@@ -144,10 +145,14 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         } else if (orderComment.getType() == OrderCommentType.CUSTOMERFiRST.getKey()) {// 客户首评
             orderItemService.updateCommentStateById(orderComment.getOrderItemId());// 修改此子订单的评价状态为已评价
             List<OrderItem> orderItemList = orderItemService.queryListByStateAndOrderId(orderComment.getOrderId(), WhetherEnum.DISABLE_USING.getKey());
-            if (CollectionUtil.isNotEmpty(orderItemList)) {// 总订单的评价状态修改
-                orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.PORTION.getKey());
-            } else {
+            boolean allMatch = orderItemList.stream()
+                    .allMatch(Orderitem -> Orderitem.getCommentState() == WhetherEnum.ENABLE_USING.getKey());
+            if (allMatch){
                 orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.FINISHED.getKey());
+                orderService.updateOrderState(orderComment.getOrderId(), ShopOrderState.EVALUATED.getKey());
+            }else {
+                orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.PORTION.getKey());
+                orderService.updateOrderState(orderComment.getOrderId(), ShopOrderState.PARTIALEVALUATION.getKey());
             }
         }
     }
