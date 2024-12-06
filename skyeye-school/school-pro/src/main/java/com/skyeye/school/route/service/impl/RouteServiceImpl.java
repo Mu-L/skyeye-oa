@@ -106,6 +106,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         outputObject.settotal(page.getTotal());
     }
 
+    @Transactional
     @Override
     public void createPostpose(Routes entity, String userId) {
         String startName= teachBuildingService.selectById(entity.getStartId()).getName();
@@ -116,6 +117,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         for (RouteStop routeStop : routeStopList) {
             routeStop.setRouteId(entity.getId());
         }
+        updateEntity(entity,userId);
         routeStopService.createEntity(routeStopList, userId);
     }
 
