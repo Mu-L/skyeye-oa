@@ -441,6 +441,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
         pennyToYuan(order);// 分 -> 元
+        refreshCache(id);
         return order;
     }
 
@@ -617,7 +618,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
     }
 
-    private void updateOrderState(String orderId, Integer partiallydoneKey) {
+    @Override
+    public void updateOrderState(String orderId, Integer partiallydoneKey) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), partiallydoneKey);
