@@ -340,38 +340,40 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Integer> stateList = new ArrayList<>();
-        switch (commonPageInfo.getType()) {
+        switch (StrUtil.isEmpty(commonPageInfo.getType()) ? "0" : commonPageInfo.getType()) {
+            // todo 未提交、已提交和支付失败三个枚举未现
             case "1": // 未支付
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.UNPAID.getKey()});
                 break;
             case "2": // 待收货
                 stateList = Arrays.asList(new Integer[]{
-                    ShopOrderState.UNDELIVERED.getKey(),// 待发货
-                    ShopOrderState.DELIVERED.getKey(), //  已发货
-                    ShopOrderState.TRANSPORTING.getKey()});//运输中
+                    ShopOrderState.UNDELIVERED.getKey(),    // 待发货
+                    ShopOrderState.DELIVERED.getKey(),      // 已发货
+                    ShopOrderState.TRANSPORTING.getKey()}); // 运输中
                 break;
             case "3":// 已完成
                 stateList = Arrays.asList(new Integer[]{
-                    ShopOrderState.SIGN.getKey(),       // 已签收
-                    ShopOrderState.COMPLETED.getKey(),  // 已完成
-                    ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                    ShopOrderState.EVALUATED.getKey()});// 已评价
-                ShopOrderState.PARTIALLYDONE.getKey();//部分完成
+                    ShopOrderState.SIGN.getKey(),            // 已签收
+                    ShopOrderState.COMPLETED.getKey(),       // 已完成
+                    ShopOrderState.UNEVALUATE.getKey(),      // 待评价
+                    ShopOrderState.EVALUATED.getKey(),       // 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey(),  // 部分完成
+                    ShopOrderState.PARTIALEVALUATION.getKey()});// 部分评价
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
                 break;
             case "5":// 处理中
                 stateList = Arrays.asList(new Integer[]{
-                    ShopOrderState.REFUNDING.getKey(),  // 退款中
-                    ShopOrderState.SALESRETURNING.getKey(),//退货中
-                    ShopOrderState.EXCHANGEING.getKey()});//换货中
+                    ShopOrderState.REFUNDING.getKey(),      // 退款中
+                    ShopOrderState.SALESRETURNING.getKey(), // 退货中
+                    ShopOrderState.EXCHANGEING.getKey()});  // 换货中
                 break;
             case "6": // 申请记录
                 stateList = Arrays.asList(new Integer[]{
-                    ShopOrderState.REFUND.getKey(),     // 已退款
-                    ShopOrderState.SALESRETURNED.getKey(),//已退货
-                    ShopOrderState.EXCHANGED.getKey()});//已换货
+                    ShopOrderState.REFUND.getKey(),         // 已退款
+                    ShopOrderState.SALESRETURNED.getKey(),  // 已退货
+                    ShopOrderState.EXCHANGED.getKey()});    // 已换货
         }
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
         if (CollectionUtil.isNotEmpty(stateList)) { // 状态列表为空时，则查询全部订单
