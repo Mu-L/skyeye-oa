@@ -51,6 +51,15 @@ public class RouteController {
         routeService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryRouteById", value = "根据id查询路线信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")
+    })
+    @RequestMapping("/post/RouteController/queryRouteById")
+    public void queryRouteById(InputObject inputObject, OutputObject outputObject) {
+        routeService.selectById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryRoutesByStartAndEnd", value = "根据起点id--终点id 根据路线长度升序排序", method = "GET", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "startId", name = "startId", value = "起点id", required = "required"),
