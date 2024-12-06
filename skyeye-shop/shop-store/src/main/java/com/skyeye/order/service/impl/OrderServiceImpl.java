@@ -302,9 +302,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             case "5":// 处理中
                 stateList = Arrays.asList(new Integer[]{
                     ShopOrderState.REFUNDING.getKey(),  // 退款中
-
                     ShopOrderState.SALESRETURNING.getKey(),//退货中
-
                     ShopOrderState.EXCHANGEING.getKey()});//换货中
                 break;
             case "6": // 申请记录
