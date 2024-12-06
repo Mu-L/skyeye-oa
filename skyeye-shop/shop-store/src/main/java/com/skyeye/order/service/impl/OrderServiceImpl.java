@@ -349,6 +349,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     ShopOrderState.COMPLETED.getKey(),  // 已完成
                     ShopOrderState.UNEVALUATE.getKey(), // 待评价
                     ShopOrderState.EVALUATED.getKey()});// 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey();//部分完成
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
@@ -601,18 +602,18 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
                 .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
         if (allTwo) {
-            Integer numThree = CommonNumConstants.NUM_THREE;
-            updateOrderState(orderId, numThree);
+            Integer partiallydoneKey = ShopOrderState.COMPLETED.getKey();
+            updateOrderState(orderId, partiallydoneKey);
         } else {
-            Integer numTwo = CommonNumConstants.NUM_TWO;
-            updateOrderState(orderId, numTwo);
+            Integer partiallydoneKey = ShopOrderState.PARTIALLYDONE.getKey();
+            updateOrderState(orderId, partiallydoneKey);
         }
     }
 
-    private void updateOrderState(String orderId, Integer orderState) {
+    private void updateOrderState(String orderId, Integer partiallydoneKey) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getOrderState), orderState);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), partiallydoneKey);
         update(updateWrapper);
     }
 }
