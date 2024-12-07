@@ -118,7 +118,7 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
         QueryWrapper<ShopTradeCart> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getMaterialId), shopTradeCart.getMaterialId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getNormsId), shopTradeCart.getNormsId());
-        queryWrapper.eq(CommonConstants.ID,userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getCreateId),userId);
         ShopTradeCart one = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(one)) {
             shopTradeCart.setId(one.getId());

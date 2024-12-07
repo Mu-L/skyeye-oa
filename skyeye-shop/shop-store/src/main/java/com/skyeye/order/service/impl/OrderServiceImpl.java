@@ -210,7 +210,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     private void setOrderAndOrderItem(CouponUse couponUse, Order order, OrderItem targetOrderItem) {
         if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
             for (OrderItem item : order.getOrderItemList()) {// 找到目标子单
-                if (item.getId().equals(targetOrderItem.getId())) {
+                if (item.getNormsId().equals(targetOrderItem.getNormsId())) {
                     item.setCouponUseId(order.getCouponUseId());
                     // 操作优惠券
                     String discountPercentInt = CalculationUtil.divide(couponUse.getDiscountPercent().toString(), "100", CommonNumConstants.NUM_SIX);
@@ -223,13 +223,13 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                     // 折扣上限的折后价
                     String limitPrice = CalculationUtil.subtract(targetOrderItem.getPrice(), discountLimitPrice, CommonNumConstants.NUM_SIX);
                     // 是否超过折扣上限
-                    boolean priceCompare = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX).equals(percentDiscountPrice);
+                    String highPrice = CalculationUtil.getMax(percentDiscountPrice, discountLimitPrice, CommonNumConstants.NUM_SIX);
                     // 设置应支付价格和优惠价格
-                    if (priceCompare) { // 未超过优惠价
+                    if (Double.parseDouble(highPrice) == Double.parseDouble(discountLimitPrice)) { // 未超过优惠价
                         item.setPayPrice(percentPrice);
                         item.setCouponPrice(percentDiscountPrice);
                         // 修改总单总价
-                        order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), discountPercentInt, CommonNumConstants.NUM_SIX));
+                        order.setPayPrice(CalculationUtil.subtract(order.getPayPrice(), percentDiscountPrice, CommonNumConstants.NUM_SIX));
                         order.setCouponPrice(percentDiscountPrice);
                     } else {// 超过优惠价
                         item.setPayPrice(limitPrice);
@@ -302,9 +302,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             case "5":// 处理中
                 stateList = Arrays.asList(new Integer[]{
                     ShopOrderState.REFUNDING.getKey(),  // 退款中
-
                     ShopOrderState.SALESRETURNING.getKey(),//退货中
-
                     ShopOrderState.EXCHANGEING.getKey()});//换货中
                 break;
             case "6": // 申请记录
