@@ -47,6 +47,6 @@ public class LocationRange extends OperatorUserInfo {
 
 
     @TableField(exist = false)
-    @Property(value = "顶点表信息")
+    @ApiModelProperty(value = "顶点表信息")
     private List<RangeVertex> rangeVertexMation;
 }

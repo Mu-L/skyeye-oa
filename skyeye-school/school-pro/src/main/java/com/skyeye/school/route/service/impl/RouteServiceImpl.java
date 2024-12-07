@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -136,7 +137,6 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         for (RouteStop routeStop : routeStopList) {
             routeStop.setRouteId(entity.getId());
         }
-        updateEntity(entity,userId);
         routeStopService.createEntity(routeStopList, userId);
     }
 

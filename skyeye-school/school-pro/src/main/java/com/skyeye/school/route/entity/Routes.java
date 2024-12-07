@@ -60,7 +60,7 @@ public class Routes extends OperatorUserInfo {
     private String description;
 
     @TableField(exist = false)
-    @Property(value = "停靠点列表")
+    @ApiModelProperty(value = "停靠点列表")
     private List<RouteStop> routeStopList;
 
     @TableField(exist = false)
