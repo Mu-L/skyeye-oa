@@ -69,7 +69,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Routes routes = super.selectById(id);
         School schoolMation = schoolService.selectById(routes.getSchoolId());
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id)
+                    .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
         List<RouteStop> routeStops = routeStopService.list(queryWrapper);
         routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
         routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
@@ -90,6 +91,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getStartId), startId)
                 .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
                 .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
+                .eq(MybatisPlusUtil.toColumns(Routes::getEnabled),CommonNumConstants.NUM_ONE)
                 .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
         List<Routes> bean = setBaseMation(queryWrapper);
         outputObject.setBeans(bean);
@@ -130,9 +132,12 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     @Transactional
     @Override
     public void createPostpose(Routes entity, String userId) {
+        Integer stopOrder = CommonNumConstants.NUM_ONE;
         List<RouteStop> routeStopList = entity.getRouteStopList();
         for (RouteStop routeStop : routeStopList) {
             routeStop.setRouteId(entity.getId());
+            routeStop.setStopOrder(stopOrder);
+            stopOrder++;
         }
         routeStopService.createEntity(routeStopList, userId);
     }
