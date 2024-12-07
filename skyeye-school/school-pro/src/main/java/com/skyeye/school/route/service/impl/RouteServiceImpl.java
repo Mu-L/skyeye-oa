@@ -76,8 +76,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         routes.setSchoolMation(schoolMation);
         routes.setRouteStopList(routeStops);
-        iAuthUserService.setDataMation(routes,Routes::getCreateId);
-        iAuthUserService.setDataMation(routes,Routes::getLastUpdateId);
+        iAuthUserService.setName(routes,"createId","createName");
+        iAuthUserService.setName(routes,"lastUpdateId","lastUpdateName");
         outputObject.setBean(routes);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -109,8 +109,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
             routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         }
-        iAuthUserService.setDataMation(bean,Routes::getCreateId);
-        iAuthUserService.setDataMation(bean,Routes::getLastUpdateId);
+        iAuthUserService.setName(bean,"createId","createName");
+        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
         return bean;
     }
 
