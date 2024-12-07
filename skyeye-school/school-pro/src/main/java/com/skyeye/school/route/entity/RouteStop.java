@@ -31,11 +31,11 @@ public class RouteStop extends OperatorUserInfo {
     private String routeId;
 
     @TableField("latitude")
-    @ApiModelProperty(value = "纬度",required = "required")
+    @ApiModelProperty(value = "纬度", required = "required")
     private String latitude;
 
     @TableField("longitude")
-    @ApiModelProperty(value = "经度",required = "required")
+    @ApiModelProperty(value = "经度", required = "required")
     private String longitude;
 
     @TableField("stop_order")

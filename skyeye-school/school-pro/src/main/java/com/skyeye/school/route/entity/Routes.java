@@ -32,19 +32,19 @@ public class Routes extends OperatorUserInfo {
     private String id;
 
     @TableField("school_id")
-    @ApiModelProperty(value = "学校id",required = "required")
+    @ApiModelProperty(value = "学校id", required = "required")
     private String schoolId;
 
     @TableField("start_id")
-    @ApiModelProperty(value = "起始地点id",required = "required")
+    @ApiModelProperty(value = "起始地点id", required = "required")
     private String startId;
 
     @TableField("end_id")
-    @ApiModelProperty(value = "终点地点id",required = "required")
+    @ApiModelProperty(value = "终点地点id", required = "required")
     private String endId;
 
     @TableField("route_length")
-    @ApiModelProperty(value = "路线长度",required = "required")
+    @ApiModelProperty(value = "路线长度", required = "required")
     private Float routeLength;
 
     @TableField("route_type")

@@ -65,10 +65,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     }
 
     @Override
-    public void selectById(InputObject inputObject, OutputObject outputObject) {
-        Map params = inputObject.getParams();
-        String id = (String) params.get("id");
-        Routes routes = selectById(id);
+    public Routes selectById(String id) {
+        Routes routes = super.selectById(id);
         School schoolMation = schoolService.selectById(routes.getSchoolId());
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id);
@@ -77,10 +75,9 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         routes.setSchoolMation(schoolMation);
         routes.setRouteStopList(routeStops);
-        iAuthUserService.setName(routes,"createId","createName");
-        iAuthUserService.setName(routes,"lastUpdateId","lastUpdateName");
-        outputObject.setBean(routes);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        iAuthUserService.setName(routes, "createId", "createName");
+        iAuthUserService.setName(routes, "lastUpdateId", "lastUpdateName");
+        return routes;
     }
 
     @Override
@@ -92,7 +89,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getStartId), startId)
                 .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId),schoolId)
+                .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
                 .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
         List<Routes> bean = setBaseMation(queryWrapper);
         outputObject.setBeans(bean);
@@ -110,8 +107,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
             routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         }
-        iAuthUserService.setName(bean,"createId","createName");
-        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(bean, "createId", "createName");
+        iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
         return bean;
     }
 
@@ -123,7 +120,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId);
         List<Routes> routes = setBaseMation(queryWrapper);
-        for (Routes route: routes){
+        for (Routes route : routes) {
             route.setSchoolMation(schoolService.selectById(route.getSchoolId()));
         }
         outputObject.setBeans(routes);

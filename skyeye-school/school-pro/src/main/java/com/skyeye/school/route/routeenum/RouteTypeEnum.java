@@ -19,10 +19,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum RouteTypeEnum implements SkyeyeEnumClass {
 
-    ROUTE_TYPE_WALK(1,"步行",true,true),
-    ROUTE_TYPE_CAR(2,"驾车",true,false),
-    ROUTE_TYPE_EV(3,"电动车",true,false),
-    ROUTE_TYPE_RIDE(4,"骑行",true,false);
+    ROUTE_TYPE_WALK(1, "步行", true, true),
+    ROUTE_TYPE_CAR(2, "驾车", true, false),
+    ROUTE_TYPE_EV(3, "电动车", true, false),
+    ROUTE_TYPE_RIDE(4, "骑行", true, false);
 
     private Integer key;
 
