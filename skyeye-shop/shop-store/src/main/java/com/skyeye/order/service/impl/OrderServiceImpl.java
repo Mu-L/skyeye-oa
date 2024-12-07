@@ -210,7 +210,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     private void setOrderAndOrderItem(CouponUse couponUse, Order order, OrderItem targetOrderItem) {
         if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
             for (OrderItem item : order.getOrderItemList()) {// 找到目标子单
-                if (item.getId().equals(targetOrderItem.getId())) {
+                if (item.getNormsId().equals(targetOrderItem.getNormsId())) {
                     item.setCouponUseId(order.getCouponUseId());
                     // 操作优惠券
                     String discountPercentInt = CalculationUtil.divide(couponUse.getDiscountPercent().toString(), "100", CommonNumConstants.NUM_SIX);
@@ -253,7 +253,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public void createPostpose(Order order, String userId) {
         orderItemService.setValueAndCreateEntity(order, userId);
-        couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
+//        couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
         startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
         shopTradeCartService.deleteMySelect(userId);
     }
