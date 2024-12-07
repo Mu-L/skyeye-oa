@@ -10,7 +10,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.building.entity.TeachBuilding;
 import com.skyeye.school.building.service.TeachBuildingService;
@@ -49,6 +51,9 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private SchoolService schoolService;
+
     @Override
     @Transactional
     public void deleteById(String id) {
@@ -63,8 +68,16 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Map params = inputObject.getParams();
         String id = (String) params.get("id");
         Routes routes = selectById(id);
-        iAuthUserService.setName(routes,"createId","createName");
-        iAuthUserService.setName(routes,"lastUpdateId","lastUpdateName");
+        School schoolMation = schoolService.selectById(routes.getSchoolId());
+        QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id);
+        List<RouteStop> routeStops = routeStopService.list(queryWrapper);
+        routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
+        routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
+        routes.setSchoolMation(schoolMation);
+        routes.setRouteStopList(routeStops);
+        iAuthUserService.setDataMation(routes,Routes::getCreateId);
+        iAuthUserService.setDataMation(routes,Routes::getLastUpdateId);
         outputObject.setBean(routes);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -80,6 +93,12 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
                 .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
                 .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId),schoolId)
                 .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
+        List<Routes> bean = setBaseMation(queryWrapper);
+        outputObject.setBeans(bean);
+        outputObject.settotal(bean.size());
+    }
+
+    private List<Routes> setBaseMation(QueryWrapper<Routes> queryWrapper) {
         List<Routes> bean = list(queryWrapper);
         for (Routes routes : bean) {
             QueryWrapper<RouteStop> routeStopQueryWrapper = new QueryWrapper<>();
@@ -87,9 +106,12 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
                     .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
             List<RouteStop> routeStopList = routeStopService.list(routeStopQueryWrapper);
             routes.setRouteStopList(routeStopList);
+            routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
+            routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         }
-        outputObject.setBeans(bean);
-        outputObject.settotal(bean.size());
+        iAuthUserService.setDataMation(bean,Routes::getCreateId);
+        iAuthUserService.setDataMation(bean,Routes::getLastUpdateId);
+        return bean;
     }
 
     @Override
@@ -99,20 +121,17 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId);
-        List<Routes> bean = list(queryWrapper);
-        iAuthUserService.setName(bean,"createId","createName");
-        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
-        outputObject.setBeans(bean);
+        List<Routes> routes = setBaseMation(queryWrapper);
+        for (Routes route: routes){
+            route.setSchoolMation(schoolService.selectById(route.getSchoolId()));
+        }
+        outputObject.setBeans(routes);
         outputObject.settotal(page.getTotal());
     }
 
     @Transactional
     @Override
     public void createPostpose(Routes entity, String userId) {
-        String startName= teachBuildingService.selectById(entity.getStartId()).getName();
-        String endName= teachBuildingService.selectById(entity.getEndId()).getName();
-        entity.setStartName(startName);
-        entity.setEndName(endName);
         List<RouteStop> routeStopList = entity.getRouteStopList();
         for (RouteStop routeStop : routeStopList) {
             routeStop.setRouteId(entity.getId());
@@ -122,29 +141,15 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     }
 
     @Override
-    protected void updatePrepose(Routes entity) {
-        String startName= teachBuildingService.selectById(entity.getStartId()).getName();
-        String endName= teachBuildingService.selectById(entity.getEndId()).getName();
-        entity.setStartName(startName);
-        entity.setEndName(endName);
-    }
-
-    @Override
     public void updatePostpose(Routes entity, String userId) {
         String routeId = entity.getId();
         List<RouteStop> routeStops = entity.getRouteStopList();
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), routeId);
-        List<RouteStop> list = routeStopService.list(queryWrapper);
-        for (RouteStop routeStop : list) {
-            for (RouteStop middleRouteStop : routeStops) {
-                if (routeStop.getStopOrder() == middleRouteStop.getStopOrder()) {
-                    routeStop.setLatitude(middleRouteStop.getLatitude());
-                    routeStop.setLongitude(middleRouteStop.getLongitude());
-                    routeStopService.updateEntity(routeStop, userId);
-                    break;
-                }
-            }
+        routeStopService.remove(queryWrapper);
+        for (RouteStop routeStop : routeStops) {
+            routeStop.setRouteId(routeId);
         }
+        routeStopService.createEntity(routeStops, userId);
     }
 }

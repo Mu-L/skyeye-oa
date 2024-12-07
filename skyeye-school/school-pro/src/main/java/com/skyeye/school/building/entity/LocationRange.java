@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -46,6 +47,6 @@ public class LocationRange extends OperatorUserInfo {
 
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "顶点表信息" , required = "json")
+    @Property(value = "顶点表信息")
     private List<RangeVertex> rangeVertexMation;
 }

@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.entity.School;
+import com.skyeye.school.building.entity.TeachBuilding;
 import lombok.Data;
 
 import java.util.List;
@@ -40,17 +43,9 @@ public class Routes extends OperatorUserInfo {
     @ApiModelProperty(value = "终点地点id",required = "required")
     private String endId;
 
-    @TableField("start_name")
-    @ApiModelProperty(value = "起始地点名称")
-    private String startName;
-
-    @TableField("end_name")
-    @ApiModelProperty(value = "终点地点名称")
-    private String endName;
-
     @TableField("route_length")
     @ApiModelProperty(value = "路线长度",required = "required")
-    private int routeLength;
+    private Float routeLength;
 
     @TableField("route_type")
     @ApiModelProperty(value = "路线类型")
@@ -65,6 +60,18 @@ public class Routes extends OperatorUserInfo {
     private String description;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "停靠点列表")
+    @Property(value = "停靠点列表")
     private List<RouteStop> routeStopList;
+
+    @TableField(exist = false)
+    @Property(value = "学校信息")
+    private School schoolMation;
+
+    @TableField(exist = false)
+    @Property(value = "起始地点信息")
+    private TeachBuilding startMation;
+
+    @TableField(exist = false)
+    @Property(value = "终点地点信息")
+    private TeachBuilding endMation;
 }
