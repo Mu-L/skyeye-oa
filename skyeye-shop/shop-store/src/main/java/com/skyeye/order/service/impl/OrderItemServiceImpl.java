@@ -5,7 +5,6 @@
 package com.skyeye.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -23,7 +22,6 @@ import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.OrderCommentType;
-import com.skyeye.order.enums.ShopOrderCommentState;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
@@ -92,9 +90,9 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             return new HashMap<>();
         }
         List<String> orderItemIds = mapList.stream().map(OrderItem::getId).collect(Collectors.toList());
-        List<OrderComment> orderCommentList =orderCommentService.queryListByOrderItemIdAndType(orderItemIds, OrderCommentType.CUSTOMERLATER.getKey());
+        List<OrderComment> orderCommentList = orderCommentService.queryListByOrderItemIdAndType(orderItemIds, OrderCommentType.CUSTOMERLATER.getKey());
         List<String> commentIdList = orderCommentList.stream().map(OrderComment::getOrderItemId).collect(Collectors.toList());
-        for (OrderItem map : mapList){
+        for (OrderItem map : mapList) {
             if (commentIdList.contains(map.getId())) {
                 map.setIsAdditionalReview(true);
             }
