@@ -8,6 +8,9 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.order.entity.OrderComment;
+import com.skyeye.order.entity.OrderItem;
+
+import java.util.List;
 
 /**
  * @ClassName: OrderCommentService
@@ -19,4 +22,6 @@ import com.skyeye.order.entity.OrderComment;
  */
 public interface OrderCommentService extends SkyeyeBusinessService<OrderComment> {
     void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject);
+
+    List<OrderComment> queryListByOrderItemIdAndType(List<String> orderItemIds, Integer key);
 }

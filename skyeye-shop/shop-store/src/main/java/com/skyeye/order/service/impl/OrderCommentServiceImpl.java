@@ -37,6 +37,7 @@ import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -233,6 +234,15 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
         outputObject.setBeans(mapList);
         outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public List<OrderComment> queryListByOrderItemIdAndType(List<String> orderItemIds, Integer type) {
+        QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), orderItemIds)
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), type);
+        List<OrderComment> list = list(queryWrapper);
+        return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
 
     private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {

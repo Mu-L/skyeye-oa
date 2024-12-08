@@ -128,4 +128,8 @@ public class OrderItem extends OperatorUserInfo {
     @TableField("order_item_state")
     @ApiModelProperty(value = "订单子单状态")
     private Integer orderItemState;
+
+    @TableField(exist = false)
+    @Property(value = "是否已经追评")
+    private Boolean isAdditionalReview;
 }
