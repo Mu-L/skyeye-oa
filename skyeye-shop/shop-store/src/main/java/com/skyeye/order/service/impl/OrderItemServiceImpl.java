@@ -95,10 +95,12 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         for (OrderItem map : mapList) {
             if (commentIdList.contains(map.getId())) {
                 map.setIsAdditionalReview(true);
+            }else {
+                map.setIsAdditionalReview(false);
             }
         }
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
-        iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
+//        iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
         List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material
         Map<String, Map<String, Object>> materialStoreMap = materialByIds.stream()
