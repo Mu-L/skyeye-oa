@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquestionlogic.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.DateUtil;
@@ -35,11 +36,11 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
             bean.setTitle(logic.getTitle());
             bean.setLogicType(logic.getLogicType());
             bean.setScoreNum(logic.getScoreNum());
-            if (!logic.getCgQuItemId().toString().isEmpty() && logic.getCgQuItemId()!=null ) {
+            if (StrUtil.isNotEmpty(logic.getCgQuItemId()) ) {
                 bean.setCgQuItemId(logic.getCgQuItemId());
                 bean.setCkQuId(logic.getCkQuId());
             }
-            if (logic.getGeLe()!=null && !logic.getGeLe().isEmpty()) {
+            if (StrUtil.isNotEmpty(logic.getGeLe())) {
                 bean.setGeLe(logic.getGeLe());
             }
             if (ToolUtil.isBlank(logic.getId())) {

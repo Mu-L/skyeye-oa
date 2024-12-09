@@ -44,8 +44,7 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId), createId);
         ExamQuChenRow one = examQuChenRowService.getOne(queryWrapper);
-        Integer visibility = one.getVisibility();
-        return visibility;
+        return one.getVisibility();
     }
 
     @Override

@@ -13,8 +13,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
-import com.skyeye.eve.Examquestion.dao.QuestionDao;
 import com.skyeye.eve.Examquestion.entity.Question;
 import com.skyeye.eve.Examquestion.service.QuestionService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
@@ -59,9 +57,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private ExamSurveyAnswerService examSurveyAnswerService;
 
-    @Autowired
-    private QuestionDao questionDao;
-
     @Override
     public QueryWrapper<ExamSurveyDirectory> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -70,30 +65,35 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return queryWrapper;
     }
 
+    /**
+     * 设置考试目录的方法
+     * @param inputObject 输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     */
     @Override
     public void setUpExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString();
-        ExamSurveyDirectory examSurveyDirectory = selectById(id);
-        if (examSurveyDirectory != null) {
-            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
-                String belongId = examSurveyDirectory.getId();
-                List<Question> questions = questionService.QueryQuestionByBelongId(belongId);
-                if (!questions.isEmpty() && questions.size() > 0) {
-                    //总分数
+        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        String id = map.get("id").toString(); // 获取试卷ID
+        ExamSurveyDirectory examSurveyDirectory = selectById(id); // 根据ID查询试卷信息
+        if (ObjUtil.isNotEmpty(examSurveyDirectory)) { // 判断试卷信息是否存在
+            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断试卷是否未发布
+                String belongId = examSurveyDirectory.getId(); // 获取试卷ID
+                List<Question> questions = questionService.QueryQuestionByBelongId(belongId); // 根据试卷ID查询题目
+                if (!questions.isEmpty()) { // 判断是否有题目
+                    // 总分数
                     int fraction = 0;
-                    //题目总数
+                    // 题目总数
                     int questionNum = 0;
                     for (Question question : questions) {
-                        int questionType = Integer.parseInt(question.getQuType().toString());
+                        int questionType = question.getQuType();
                         if (questionType != 16 && questionType != 17) {
-                            fraction += Integer.parseInt(question.getFraction().toString());
+                            fraction += question.getFraction();
                             questionNum++;
                         }
                     }
-                    examSurveyDirectory.setSurveyState(CommonNumConstants.NUM_ONE);
-                    examSurveyDirectory.setFraction(fraction);
-                    examSurveyDirectory.setSurveyQuNum(questionNum);
+                    examSurveyDirectory.setSurveyState(CommonNumConstants.NUM_ONE); // 设置试卷状态为已发布
+                    examSurveyDirectory.setFraction(fraction); // 设置总分数
+                    examSurveyDirectory.setSurveyQuNum(questionNum); // 设置题目总数
                 } else {
                     throw new CustomException("该试卷没有调查项，无法发布试卷。");
                 }
@@ -105,19 +105,25 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    /**
+     * 参加考试的方法
+     * @param inputObject 输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     * @return 允许参加考试时返回考试目录信息
+     */
     @Override
     public ExamSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        //是否可以参加考试，true：可以；false：不可以
+        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        // 是否可以参加考试，true：可以；false：不可以
         boolean yesOrNo = false;
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String id = map.get("id").toString();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(id);
-        if (examSurveyDirectory != null) {//判断试卷是否存在
-            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {//判断试卷是否发布
-                if (!ToolUtil.isBlank(userId)) {//判断用户是否登录
-                    ExamSurveyAnswer examSurveyAnswer = examSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
-                    if (examSurveyAnswer != null) {//判断用户是否已经参加过该考试
+        String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
+        String id = map.get("id").toString(); // 获取试卷ID
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(id); // 根据ID查询试卷信息
+        if (ObjUtil.isNotEmpty(examSurveyDirectory)) { // 判断试卷是否存在
+            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) { // 判断试卷是否发布
+                if (!ToolUtil.isBlank(userId)) { // 判断用户是否登录
+                    ExamSurveyAnswer examSurveyAnswer = examSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该考试
+                    if (ObjUtil.isNotEmpty(examSurveyAnswer)) { // 用户已经参加过考试
                         throw new CustomException("您已参加过该考试");
                     } else {
                         yesOrNo = true;
@@ -138,48 +144,67 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    /**
+     * 复制考试目录的方法
+     * @param inputObject 输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     */
     @Override
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory();
-        Map<String, Object> map = inputObject.getParams();
-        String examDirectoryId = map.get("id").toString();//试卷id
+        ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
+        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        String examDirectoryId = map.get("id").toString(); // 获取试卷ID
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String surveyId = ToolUtil.getSurFaceId();
-        examSurveyDirectories.setId(surveyId);
-        examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12));
-        examSurveyDirectories.setSurveyModel(1);
-        examSurveyDirectories.setCreateId(userId);
-        examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString());
-        List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId);
-        for (Question question : questionList) {
-            question.setCopyFromId(question.getId());
-            question.setId(ToolUtil.getSurFaceId());
-            question.setCreateTime(DateUtil.getTimeAndToString());
-            question.setBelongId(surveyId);
-            questionService.copyQuestionListMation(question);
+        examSurveyDirectories.setId(surveyId); // 设置新调查ID
+        examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
+        examSurveyDirectories.setSurveyModel(1); // 设置调查模型
+        examSurveyDirectories.setCreateId(userId); // 设置创建者ID
+        examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
+        List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
+        for (Question question : questionList) { // 遍历题目
+            question.setCopyFromId(question.getId()); // 设置复制来源ID
+            question.setId(ToolUtil.getSurFaceId()); // 设置新题目ID
+            question.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
+            question.setBelongId(surveyId); // 设置所属调查ID
+            questionService.copyQuestionListMation(question); // 复制题目信息
         }
-        questionService.createEntity(questionList, StrUtil.EMPTY);
+        questionService.createEntity(questionList, StrUtil.EMPTY); // 创建复制后的题目
     }
 
+    /**
+     * 创建题目前的操作
+     * @param examSurveyDirectory 考试目录对象
+     */
     @Override
     public void createPrepose(ExamSurveyDirectory examSurveyDirectory) {
-        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
-        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
-        if (realStartTime != null && realEndTime != null) {
-            if (realStartTime.isAfter(realEndTime)) {
-                throw new CustomException("实际开始时间不能晚于实际结束时间");
+        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
+        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
+            if (realStartTime.isAfter(realEndTime)) { // 判断开始时间是否在结束时间之后
+                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
             }
         }
     }
 
+    /**
+     * 创建考试目录后的后置操作
+     * @param entity 考试目录对象
+     * @param userId 创建者ID
+     */
     @Override
     protected void createPostpose(ExamSurveyDirectory entity, String userId) {
-        String id = entity.getId();
-        String classId = entity.getClassId();
-        examSurveyClassService.createExamSurveyClass(id, classId, userId);
-        examSurveyMarkExamService.createExamSurveyMarkExam(id, userId);
+        String id = entity.getId(); // 获取考试目录ID
+        String classId = entity.getClassId(); // 获取班级ID
+        examSurveyClassService.createExamSurveyClass(id, classId, userId); // 创建考试班级
+        examSurveyMarkExamService.createExamSurveyMarkExam(id, userId); // 创建考试标记
     }
 
+    /**
+     * 切换是否删除考试目录的方法
+     * @param inputObject 输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     */
     @Override
     public void changeWhetherDeleteById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
@@ -189,6 +214,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         update(updateWrapper);
     }
 
+    /**
+     * 更新考试状态结束信息的方法
+     * @param inputObject 输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     */
     @Override
     public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -196,19 +226,26 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
         ExamSurveyDirectory examSurveyDirectory = getOne(queryWrapper);
-        if (examSurveyDirectory != null && ObjUtil.isNotEmpty(examSurveyDirectory)) {
+        // 判断考试目录对象是否存在
+        if (ObjUtil.isNotEmpty(examSurveyDirectory)) {
+            // 判断考试目录状态是否为进行中（NUM_ONE）
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+                // 获取当前时间作为实际结束时间
                 String realEndTime = DateUtil.getTimeAndToString();
                 UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                 updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+                // 设置实际结束时间为当前时间
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getRealEndTime), realEndTime);
+                // 设置考试目录状态为已结束（NUM_TWO）
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO);
+                // 设置结束类型为自动结束（NUM_ONE）
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getEndType), CommonNumConstants.NUM_ONE);
+                // 执行更新操作
                 update(updateWrapper);
             }
-        }
-        else {
+        } else {
             throw new CustomException("该试卷信息不存在!");
         }
     }
+
 }

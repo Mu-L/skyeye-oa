@@ -79,48 +79,65 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     @Autowired
     private ExamQuScoreService examQuScoreService;
 
+    /**
+     * 创建题目后的后置处理
+     * @param entity 题目实体对象
+     * @param userId 创建题目的用户ID
+     */
     @Override
     public void createPostpose(Question entity, String userId) {
+        // 设置题目的标签和可见性
         entity.setQuTag(1);
         entity.setVisibility(1);
+        // 设置文件类型，默认为0
         Integer fileType = entity.getFileType() != null ? entity.getFileType() : 0;
         entity.setFileType(fileType);
+        // 设置是否上传，默认为2
         Integer whetherUpload = entity.getWhetherUpload() != null ? entity.getWhetherUpload() : 2;
         entity.setWhetherUpload(whetherUpload);
+        // 设置创建时间
         entity.setCreateTime(DateUtil.getTimeAndToString());
+        // 获取题目ID
         String quId = entity.getId();
-        entity.setCreateTime(DateUtil.getTimeAndToString());
+        // 处理题目逻辑
         List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
         if (!questionLogic.isEmpty()) {
             examQuestionLogicService.setLogics(quId, questionLogic, userId);
         } else {
             throw new CustomException("请设置问题逻辑");
         }
+        // 根据不同的题目类型，保存对应的题目数据
+        // 处理单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         if (!radioTd.isEmpty()) {
             entity.setQuType(QuType.RADIO.getIndex());
             examQuRadioService.saveList(radioTd, quId, userId);
         }
+        // 处理得分题
         List<ExamQuScore> ScoreTd = entity.getScoreTd();
         if (!ScoreTd.isEmpty()) {
             entity.setQuType(QuType.SCORE.getIndex());
             quScoreService.saveList(ScoreTd, quId, userId);
         }
+        // 处理多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (!checkboxTd.isEmpty()) {
             entity.setQuType(QuType.CHECKBOX.getIndex());
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
+        // 处理多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (!multiFillblankTd.isEmpty()) {
             entity.setQuType(QuType.MULTIFILLBLANK.getIndex());
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
+        // 处理排序题
         List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
         if (!orderbyTd.isEmpty()) {
             entity.setQuType(QuType.ORDERQU.getIndex());
             examQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
+        // 处理陈列题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
         if (!columnTd.isEmpty() && !rowTd.isEmpty()) {
@@ -128,30 +145,42 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
     }
 
+    /**
+     * 更新题目前的前置处理
+     * @param entity 题目实体对象
+     */
     @Override
     public void updatePrepose(Question entity) {
+        // 获取当前登录用户ID
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        // 更新不同题目类型的数据
+        // 更新单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (!radioTd.isEmpty()) {
             examQuRadioService.saveList(radioTd, quId, userId);
         }
-        List<ExamQuScore> ScoreTd = entity.getScoreTd();
-        if (!ScoreTd.isEmpty()) {
-            quScoreService.saveList(ScoreTd, quId, userId);
+        // 更新得分题
+        List<ExamQuScore> scoreTd = entity.getScoreTd();
+        if (!scoreTd.isEmpty()) {
+            quScoreService.saveList(scoreTd, quId, userId);
         }
+        // 更新多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (!checkboxTd.isEmpty()) {
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
+        // 更新多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (!multiFillblankTd.isEmpty()) {
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
+        // 更新排序题
         List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
         if (!orderbyTd.isEmpty()) {
             examQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
+        // 更新陈列题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
         if (!columnTd.isEmpty() && !rowTd.isEmpty()) {
@@ -159,56 +188,79 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
     }
 
+    /**
+     * 构建查询题目的包装器
+     * @param commonPageInfo 分页信息
+     * @return 题目查询包装器
+     */
     @Override
     public QueryWrapper<Question> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Question> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 我创建的
+        // 只查询当前用户创建的题目
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         return queryWrapper;
     }
 
+    /**
+     * 删除题目前的执行操作
+     * @param entity 题目实体对象
+     */
     @Override
     public void deletePreExecution(Question entity) {
+        // 获取题目ID和类型
         String quId = entity.getId();
         Integer quType = entity.getQuType();
-        if (quType == QuType.RADIO.getIndex()) {
+        // 根据题目类型删除对应的题目数据
+        if (quType.equals(QuType.RADIO.getIndex())) {
             examQuRadioService.removeByQuId(quId);
-        } else if (quType == QuType.MULTIFILLBLANK.getIndex()) {
+        } else if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
             examQuMultiFillblankService.removeByQuId(quId);
-        } else if (quType == QuType.CHECKBOX.getIndex()) {
+        } else if (quType.equals(QuType.CHECKBOX.getIndex())) {
             examQuCheckboxService.removeByQuId(quId);
-        } else if (quType == QuType.ORDERQU.getIndex()) {
+        } else if (quType.equals(QuType.ORDERQU.getIndex())) {
             examQuOrderbyService.removeByQuId(quId);
-        } else if (quType == QuType.CHENRADIO.getIndex() ||
-                quType == QuType.CHENFBK.getIndex() ||
-                quType == QuType.CHENCHECKBOX.getIndex() ||
-                quType == QuType.COMPCHENRADIO.getIndex()) {
+        } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||
+                quType.equals(QuType.CHENFBK.getIndex()) ||
+                quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+                quType.equals(QuType.COMPCHENRADIO.getIndex())) {
             examQuChenColumnService.removeByQuId(quId);
         }
     }
 
+    /**
+     * 根据归属ID查询题目列表
+     * @param belongId 归属ID
+     * @return 题目列表
+     */
     @Override
     public List<Question> QueryQuestionByBelongId(String belongId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
-        List<Question> questionList = list(queryWrapper);
-        return questionList;
+        return list(queryWrapper);
     }
 
+    /**
+     * 复制题目信息的方法
+     * @param question 题目实体对象，包含要复制的题目信息以及复制后题目的ID
+     */
     @Override
     public void copyQuestionListMation(Question question) {
+        // 根据题目类型进行不同的复制操作
         String quType = QuType.getActionName(Integer.parseInt(question.getQuType().toString()));
+        // 复制单选题或复合单选题
         if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {
             List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getCopyFromId());
             for (ExamQuRadio examQuRadio : examQuRadioList) {
-                examQuRadio.setId(ToolUtil.getSurFaceId());
-                examQuRadio.setCreateTime(DateUtil.getTimeAndToString());
-                examQuRadio.setQuId(question.getId());
+                examQuRadio.setId(ToolUtil.getSurFaceId()); // 设置新的唯一ID
+                examQuRadio.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
+                examQuRadio.setQuId(question.getId()); // 设置所属题目ID
             }
             if (!examQuRadioList.isEmpty()) {
-                examQuRadioService.createEntity(examQuRadioList, StrUtil.EMPTY);
+                examQuRadioService.createEntity(examQuRadioList, StrUtil.EMPTY); // 创建实体
             }
-        } else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
+        }
+        // 复制多选题或复合多选题
+        else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
             List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getCopyFromId());
             for (ExamQuCheckbox examQuCheckbox : examQuCheckboxList) {
                 examQuCheckbox.setId(ToolUtil.getSurFaceId());
@@ -218,7 +270,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (!examQuCheckboxList.isEmpty()) {
                 examQuCheckboxService.createEntity(examQuCheckboxList, StrUtil.EMPTY);
             }
-        } else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
+        }
+        // 复制多空填空题
+        else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
             List<ExamQuMultiFillblank> multiFillblanksList = examQuMultiFillblankService.selectQuMultiFillblank(question.getCopyFromId());
             for (ExamQuMultiFillblank examQuMultiFillblank : multiFillblanksList) {
                 examQuMultiFillblank.setId(ToolUtil.getSurFaceId());
@@ -228,9 +282,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (!multiFillblanksList.isEmpty()) {
                 examQuMultiFillblankService.createEntity(multiFillblanksList, StrUtil.EMPTY);
             }
-        } else if (quType.equals(QuType.BIGQU.getActionName())) {
-        } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {
+        }
+        // 复制陈列题相关数据
+        else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) ||
+                quType.equals(QuType.CHENSCORE.getActionName()) || quType.equals(QuType.CHENFBK.getActionName()) ||
+                quType.equals(QuType.COMPCHENRADIO.getActionName())) {
             List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getCopyFromId());
             List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getCopyFromId());
             for (ExamQuChenRow examQuChenRow : examQuChenRowList) {
@@ -249,7 +305,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (!examQuChenColumnList.isEmpty()) {
                 examQuChenColumnService.createEntity(examQuChenColumnList, StrUtil.EMPTY);
             }
-        } else if (quType.equals(QuType.SCORE.getActionName())) {
+        }
+        // 复制得分题
+        else if (quType.equals(QuType.SCORE.getActionName())) {
             List<ExamQuScore> examQuScoreList = examQuScoreService.selectQuScore(question.getCopyFromId());
             for (ExamQuScore examQuScore : examQuScoreList) {
                 examQuScore.setId(ToolUtil.getSurFaceId());
@@ -259,7 +317,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (!examQuScoreList.isEmpty()) {
                 examQuScoreService.createEntity(examQuScoreList, StrUtil.EMPTY);
             }
-        } else if (quType.equals(QuType.ORDERQU.getActionName())) {
+        }
+        // 复制排序题
+        else if (quType.equals(QuType.ORDERQU.getActionName())) {
             List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getCopyFromId());
             for (ExamQuOrderby examQuOrderby : examQuOrderbyList) {
                 examQuOrderby.setId(ToolUtil.getSurFaceId());
@@ -272,13 +332,18 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
     }
 
+    /**
+     * 根据调查复制ID查询题目信息
+     * @param surveyCopyId 调查复制ID
+     * @return 题目信息列表
+     */
     @Override
     public List<Question> queryQuestionMationCopyById(String surveyCopyId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO);
-        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId); // 等于归属ID
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO); // 等于标签2
+        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO); // 不等于题目标签2
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE); // 等于可见性1
+        return list(queryWrapper); // 返回查询结果列表
     }
 }

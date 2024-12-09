@@ -33,7 +33,7 @@ public class ExamQuestionLogic extends OperatorUserInfo {
 
     @TableField("cg_qu_item_id")
     @ApiModelProperty(value = "回答选择题的选项ID  （0任意选项）")
-    private Long cgQuItemId;
+    private String cgQuItemId;
 
     @TableField("ck_qu_id")
     @ApiModelProperty(value = "回答选择的题ID", required = "required")

@@ -27,8 +27,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "答卷 评分题", groupName = "答卷 评分题")
 public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrderDao, ExamAnOrder> implements ExamAnOrderService {
-    @Autowired
-    private ExamAnOrderService examAnOrderService;
 
     @Override
     public void queryExamAnOrderById(InputObject inputObject, OutputObject outputObject) {

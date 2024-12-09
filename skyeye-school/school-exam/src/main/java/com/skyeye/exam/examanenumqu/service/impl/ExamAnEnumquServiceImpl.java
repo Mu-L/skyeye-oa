@@ -28,9 +28,6 @@ import java.util.Map;
 @SkyeyeService(name = "试卷管理", groupName = "试卷管理")
 public class ExamAnEnumquServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnEnumquDao, ExamAnEnumqu> implements ExamAnEnumquService {
 
-    @Autowired
-    private ExamAnEnumquService examAnEnumquService;
-
     @Override
     public void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

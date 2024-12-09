@@ -28,9 +28,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String createId = (String) map.get("createId");
+        String createId = map.get("createId").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("create_id", createId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
@@ -41,8 +41,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), id);
-        ExamSurveyAnswer answer = getOne(queryWrapper);
-        return answer;
+        return getOne(queryWrapper);
     }
 
     @Override

@@ -29,9 +29,6 @@ import java.util.Map;
 @SkyeyeService(name = "答卷 试题答案相关信息表", groupName = "答卷 试题答案相关信息表")
 public class ExamAnQuestionServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnQuestionDao, ExamAnQuestion> implements ExamAnQuestionService{
 
-    @Autowired
-    private ExamAnQuestionService examAnQuestionService;
-
     @Override
     public void queryExamAnQuestionById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

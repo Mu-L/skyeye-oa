@@ -28,9 +28,6 @@ import java.util.Map;
 @SkyeyeService(name = "答卷 多行填空题保存表", groupName = "答卷 多行填空题保存表")
 public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfillblank> implements ExamAnDfilllankService{
 
-    @Autowired
-    private ExamAnDfilllankService examAnDfilllankService;
-
     @Override
     public void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

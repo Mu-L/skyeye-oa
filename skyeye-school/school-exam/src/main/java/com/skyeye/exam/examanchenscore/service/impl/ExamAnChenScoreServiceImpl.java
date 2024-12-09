@@ -28,9 +28,6 @@ import java.util.Map;
 @SkyeyeService(name = "答卷 矩阵多选题", groupName = "答卷 矩阵多选题")
 public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenScoreDao, ExamAnChenScore> implements ExamAnChenScoreService {
 
-    @Autowired
-    private ExamAnChenScoreService examAnChenScoreService;
-
     @Override
     public void queryExamAnChenScoreListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

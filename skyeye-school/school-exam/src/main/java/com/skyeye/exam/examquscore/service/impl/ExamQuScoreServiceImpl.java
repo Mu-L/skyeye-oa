@@ -76,7 +76,7 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     @Override
     protected void deletePreExecution(ExamQuScore entity) {
         Integer visibility = entity.getVisibility();
-        if (visibility == 1) {
+        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }

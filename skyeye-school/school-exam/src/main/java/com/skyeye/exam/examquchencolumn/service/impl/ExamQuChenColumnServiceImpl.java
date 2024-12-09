@@ -102,9 +102,9 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
     protected void deletePreExecution(ExamQuChenColumn entity) {
         String createId = entity.getCreateId();
         String quId = entity.getQuId();
-        int queryvisibility = examQuChenRowService.QueryvisibilityInRow(quId, createId);
+        Integer queryvisibility = examQuChenRowService.QueryvisibilityInRow(quId, createId);
         Integer visibility = entity.getVisibility();
-        if (visibility == 1 && queryvisibility == 1) {
+        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }

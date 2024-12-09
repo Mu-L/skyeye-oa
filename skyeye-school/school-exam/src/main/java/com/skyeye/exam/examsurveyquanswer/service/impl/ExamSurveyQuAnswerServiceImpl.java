@@ -35,6 +35,5 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
         outputObject.setBean(examSurveyQuAnswerList);
         outputObject.settotal(examSurveyQuAnswerList.size());
-
     }
 }

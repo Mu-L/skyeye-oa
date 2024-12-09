@@ -27,8 +27,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "填空题保存表", groupName = "填空题保存表")
 public class ExamAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnFillblankDao, ExamAnFillblank> implements ExamAnFillblankService {
-    @Autowired
-    private ExamAnFillblankService examAnFillblankService;
 
     @Override
     public void queryExamAnFillblankListById(InputObject inputObject, OutputObject outputObject) {

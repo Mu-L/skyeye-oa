@@ -28,9 +28,6 @@ import java.util.Map;
 @SkyeyeService(name = "答卷 矩阵单选题", groupName = "答卷 矩阵单选题")
 public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenRadioDao, ExamAnChenRadio> implements ExamAnChenRadioService {
 
-    @Autowired
-    private ExamAnChenRadioService examAnChenRadioService;
-
     @Override
     public void queryExamAnChenRadioListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

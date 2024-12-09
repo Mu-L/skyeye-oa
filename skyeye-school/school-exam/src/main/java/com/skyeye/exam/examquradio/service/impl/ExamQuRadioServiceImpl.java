@@ -84,7 +84,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     @Override
     protected void deletePreExecution(ExamQuRadio entity) {
         Integer visibility = entity.getVisibility();
-        if (visibility == 1){
+        if (visibility.equals(CommonNumConstants.NUM_ONE)){
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }
@@ -111,8 +111,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId),copyFromId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getVisibility),CommonNumConstants.NUM_ONE);
-        List<ExamQuRadio> examQuRadioList = list(queryWrapper);
-        return examQuRadioList;
+        return list(queryWrapper);
     }
 
 

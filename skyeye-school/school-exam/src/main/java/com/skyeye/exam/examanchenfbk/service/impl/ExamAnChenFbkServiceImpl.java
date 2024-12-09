@@ -29,9 +29,6 @@ import java.util.Map;
 @SkyeyeService(name = "答卷 矩阵填空题", groupName = "答卷 矩阵填空题")
 public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenFbkDao, ExamAnChenFbk> implements ExamAnChenFbkService {
 
-    @Autowired
-    private ExamAnChenFbkService examAnChenFbkService;
-
     @Override
     public void queryExamAnChenFbkListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
