@@ -88,7 +88,7 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
         if (StringUtils.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
-        Material checkMaterial = getOne(queryWrapper);
+        Material checkMaterial = getOne(queryWrapper, false);
         if (ObjectUtil.isNotEmpty(checkMaterial)) {
             throw new CustomException("同种型号/名称的商品已经存在.");
         }
