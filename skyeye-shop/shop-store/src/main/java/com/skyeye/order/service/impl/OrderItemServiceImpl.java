@@ -100,9 +100,9 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             }
         }
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
-//        iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
+        iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
-        List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material
+        List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material 拿价钱logo
         Map<String, Map<String, Object>> materialStoreMap = materialByIds.stream()
             .distinct().collect(Collectors.toMap(map -> {
                 Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);

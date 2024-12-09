@@ -324,7 +324,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
         for (Order order : list) {
             order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
-            pennyToYuan(order);// 分 -> 元
         }
         iAreaService.setDataMation(list, Order::getProvinceId);
         iAreaService.setDataMation(list, Order::getCityId);
@@ -347,7 +346,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                 break;
             case "2": // 待收货
                 stateList = Arrays.asList(new Integer[]{
-
                     ShopOrderState.UNDELIVERED.getKey(),// 待发货
                     ShopOrderState.DELIVERED.getKey(), //  已发货
                     ShopOrderState.TRANSPORTING.getKey()});//运输中
@@ -391,7 +389,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Map<String, List<OrderItem>> mapByIds = orderItemService.queryListByParentId(idList);
         for (Order order : list) {
             order.setOrderItemList(mapByIds.containsKey(order.getId()) ? mapByIds.get(order.getId()) : new ArrayList<>());
-            pennyToYuan(order);// 分 -> 元
         }
         iAreaService.setDataMation(list, Order::getProvinceId);
         iAreaService.setDataMation(list, Order::getCityId);
@@ -443,33 +440,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         iAreaService.setDataMation(order, Order::getAreaId);
         iAreaService.setDataMation(order, Order::getTownshipId);
         shopAddressService.setDataMation(order, Order::getAddressId);
-        pennyToYuan(order);// 分 -> 元
         refreshCache(id);
         return order;
-    }
-
-    private void pennyToYuan(Order order) {// 分 -> 元
-        if (ObjectUtil.isEmpty(order)) {
-            return;
-        }
-        order.setTotalPrice(StrUtil.isEmpty(order.getTotalPrice()) ? "0" : CalculationUtil.divide(order.getTotalPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setDiscountPrice(StrUtil.isEmpty(order.getDiscountPrice()) ? "0" : CalculationUtil.divide(order.getDiscountPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setDeliveryPrice(StrUtil.isEmpty(order.getDeliveryPrice()) ? "0" : CalculationUtil.divide(order.getDeliveryPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setAdjustPrice(StrUtil.isEmpty(order.getAdjustPrice()) ? "0" : CalculationUtil.divide(order.getAdjustPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setPayPrice(StrUtil.isEmpty(order.getPayPrice()) ? "0" : CalculationUtil.divide(order.getPayPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setCouponPrice(StrUtil.isEmpty(order.getCouponPrice()) ? "0" : CalculationUtil.divide(order.getCouponPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setPointPrice(StrUtil.isEmpty(order.getPointPrice()) ? "0" : CalculationUtil.divide(order.getPointPrice(), "100", CommonNumConstants.NUM_SIX));
-        order.setVipPrice(StrUtil.isEmpty(order.getVipPrice()) ? "0" : CalculationUtil.divide(order.getVipPrice(), "100", CommonNumConstants.NUM_SIX));
-        for (OrderItem orderItem : order.getOrderItemList()) {
-            orderItem.setPrice(StrUtil.isEmpty(orderItem.getPrice()) ? "0" : CalculationUtil.divide(orderItem.getPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setDiscountPrice(StrUtil.isEmpty(orderItem.getDiscountPrice()) ? "0" : CalculationUtil.divide(orderItem.getDiscountPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setDeliveryPrice(StrUtil.isEmpty(orderItem.getDeliveryPrice()) ? "0" : CalculationUtil.divide(orderItem.getDeliveryPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setAdjustPrice(StrUtil.isEmpty(orderItem.getAdjustPrice()) ? "0" : CalculationUtil.divide(orderItem.getAdjustPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setPayPrice(StrUtil.isEmpty(orderItem.getPayPrice()) ? "0" : CalculationUtil.divide(orderItem.getPayPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setCouponPrice(StrUtil.isEmpty(orderItem.getCouponPrice()) ? "0" : CalculationUtil.divide(orderItem.getCouponPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setPointPrice(StrUtil.isEmpty(orderItem.getPointPrice()) ? "0" : CalculationUtil.divide(orderItem.getPointPrice(), "100", CommonNumConstants.NUM_SIX));
-            orderItem.setVipPrice(StrUtil.isEmpty(orderItem.getVipPrice()) ? "0" : CalculationUtil.divide(order.getVipPrice(), "100", CommonNumConstants.NUM_SIX));
-        }
     }
 
     @Override
@@ -504,14 +476,16 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("订单不存在");
         }
-        if (one.getState() < ShopOrderState.SIGN.getKey() && one.getState() > ShopOrderState.REFUNDING.getKey()) {
+        List<Integer> stateList = Arrays.asList(ShopOrderState.SIGN.getKey(), ShopOrderState.UNEVALUATE.getKey(), ShopOrderState.EVALUATED.getKey());
+        if (stateList.contains(one.getState())) {// 处于签收、待评价、已评价状态时，才可以完成订单
+            updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.COMPLETED.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(Order::getFinishTime), DateUtil.getTimeAndToString());
+            updateWrapper.set(MybatisPlusUtil.toColumns(Order::getReceiveTime), DateUtil.getTimeAndToString());
+            update(updateWrapper);
+            refreshCache(one.getId());
+        } else {
             throw new CustomException("不可完成订单。");
         }
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.COMPLETED.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getFinishTime), DateUtil.getTimeAndToString());
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getReceiveTime), DateUtil.getTimeAndToString());
-        update(updateWrapper);
-        refreshCache(one.getId());
     }
 
     @Override
@@ -613,11 +587,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
             .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
         if (allTwo) {
-            Integer partiallydoneKey = ShopOrderState.COMPLETED.getKey();
-            updateOrderState(orderId, partiallydoneKey);
+            updateOrderState(orderId, ShopOrderState.COMPLETED.getKey());
         } else {
-            Integer partiallydoneKey = ShopOrderState.PARTIALLYDONE.getKey();
-            updateOrderState(orderId, partiallydoneKey);
+            updateOrderState(orderId, ShopOrderState.PARTIALLYDONE.getKey());
         }
     }
 

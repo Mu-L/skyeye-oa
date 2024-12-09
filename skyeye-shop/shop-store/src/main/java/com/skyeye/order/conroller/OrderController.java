@@ -87,7 +87,7 @@ public class OrderController {
     }
 
     /**
-     * 批量删除商品订单信息
+     * 批量删除商品订单信息                       未知，可能没用到，预留
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象

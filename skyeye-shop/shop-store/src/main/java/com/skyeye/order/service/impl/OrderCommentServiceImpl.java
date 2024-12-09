@@ -96,7 +96,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     @Override
     public void createPrepose(OrderComment entity) {
         OrderItem orderItem = orderItemService.selectById(entity.getOrderItemId());
-        if (StrUtil.isEmpty(orderItem.getId())) {// ObjectUtil.isEmpty()无法判断orderItem，可能原因：orderItemService.selectById()方法返回的对象默认存在serviceClassName字段
+        if (StrUtil.isEmpty(orderItem.getId())) {
             throw new CustomException("所评价的子订单不存在");
         }
         // 客户评价判断
