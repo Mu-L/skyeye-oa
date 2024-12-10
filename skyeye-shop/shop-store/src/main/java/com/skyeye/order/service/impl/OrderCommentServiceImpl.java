@@ -4,6 +4,7 @@
 
 package com.skyeye.order.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -247,16 +249,46 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     }
 
     private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
-        Map<String, OrderComment> customerTowMap = customerLater.stream().collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
-        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream().collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
+        // 客户追评，如果存在重复的parentId，可以选择覆盖或者合并逻辑
+        Map<String, OrderComment> customerTowMap = customerLater.stream()
+                .collect(Collectors.toMap(OrderComment::getParentId, o -> o));
+        // 商家回复
+        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream()
+                .collect(Collectors.groupingBy(OrderComment::getParentId));
+
         for (OrderComment item : customerFirst) {
+            // 追评
             if (customerTowMap.containsKey(item.getId())) {
-                item.setAdditionalReview(JSONUtil.toBean(JSONUtil.toJsonStr(customerTowMap.get(item.getId())), null));
+                Map<String, Object> additionalReviewMap = BeanUtil.beanToMap(customerTowMap.get(item.getId()));
+                item.setAdditionalReview(additionalReviewMap);
+            } else {
+                item.setAdditionalReview(new HashMap<>()); // 如果没有追评，则设置为空Map
             }
+
+            // 商家回复
             if (merchantReplyMapList.containsKey(item.getId())) {
-                item.setMerchantReply(JSONUtil.toBean(JSONUtil.toJsonStr(merchantReplyMapList.get(item.getId())), null));
+                List<Map<String, Object>> merchantReplyList = merchantReplyMapList.get(item.getId()).stream()
+                        .map(comment -> BeanUtil.beanToMap(comment))
+                        .collect(Collectors.toList());
+                item.setMerchantReply(merchantReplyList);
+            } else {
+                item.setMerchantReply(new ArrayList<>()); // 如果没有商家回复，则设置为空List
             }
         }
+
         return customerFirst;
     }
+
+//    private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
+//        Map<String, OrderComment> customerTowMap = customerLater.stream().collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
+//        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream().collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
+//        for (OrderComment item : customerFirst) {
+//            if (customerTowMap.containsKey(item.getId())) {
+//                item.setAdditionalReview(JSONUtil.toBean(JSONUtil.toJsonStr(customerTowMap.get(item.getId())), null));
+//            }
+//            if (merchantReplyMapList.containsKey(item.getId())) {
+//                item.setMerchantReply(JSONUtil.toBean(JSONUtil.toJsonStr(merchantReplyMapList.get(item.getId())), null));
+//            }
+//        }
+//        return customerFirst;
 }

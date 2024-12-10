@@ -220,4 +220,7 @@ public class Order extends AreaInfo {
     @Property(value = "支付成功的外部订单号")
     private String extensionNo;
 
+    @TableField("create_name")
+    @ApiModelProperty(value = "创建人")
+    private String createName;
 }

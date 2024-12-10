@@ -5,6 +5,7 @@
 package com.skyeye.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -24,6 +25,7 @@ import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.OrderCommentType;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
+import com.skyeye.order.service.OrderService;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +62,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     private IMaterialNormsService iMaterialNormsService;
 
     @Autowired
-    private IMaterialService iMaterialService;
+    private OrderService orderService;
 
     @Override
     public void deleteByPerentIds(List<String> ids) {
@@ -95,10 +97,20 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         for (OrderItem map : mapList) {
             if (commentIdList.contains(map.getId())) {
                 map.setIsAdditionalReview(true);
-            }else {
+            } else {
                 map.setIsAdditionalReview(false);
             }
         }
+//        List<Order> orderList = orderService.listByIds(mapList.stream().map(OrderItem::getParentId).collect(Collectors.toList()));
+//        Map<String, Order> orderMap = orderList.stream().collect(Collectors.toMap(Order::getId, order -> order));
+//        mapList.forEach(map -> {
+//            Order order = orderMap.get(map.getParentId());
+//            if (ObjUtil.isNotEmpty(order) && order.getState() == 8) {
+//                map.setIsSignature(true);
+//            } else {
+//                map.setIsSignature(false);
+//            }
+//        });
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
         iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
