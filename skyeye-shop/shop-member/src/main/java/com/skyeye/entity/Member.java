@@ -4,6 +4,7 @@
 
 package com.skyeye.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -85,7 +86,7 @@ public class Member extends AreaInfo implements EnclosureFace {
     @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required,num")
     private Integer enabled;
 
-    @TableField(value = "store_id")
+    @TableField(value = "store_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "如果是门店工作人员录入，则为门店id")
     private String storeId;
 
