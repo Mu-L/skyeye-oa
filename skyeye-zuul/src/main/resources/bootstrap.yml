@@ -68,13 +68,7 @@ spring:
         - id: adm
           uri: lb://skyeye-adm-${spring.profiles.active}
           predicates:
-            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**
-          filters:
-            - StripPrefix=2
-        - id: schedule
-          uri: lb://skyeye-schedule-${spring.profiles.active}
-          predicates:
-            - Path=/${spring.profiles.active}/schedule/**
+            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**,/${spring.profiles.active}/schedule/**
           filters:
             - StripPrefix=2
         - id: wages
