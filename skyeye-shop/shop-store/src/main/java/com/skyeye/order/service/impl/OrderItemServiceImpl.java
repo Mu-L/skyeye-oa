@@ -101,16 +101,6 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
                 map.setIsAdditionalReview(false);
             }
         }
-//        List<Order> orderList = orderService.listByIds(mapList.stream().map(OrderItem::getParentId).collect(Collectors.toList()));
-//        Map<String, Order> orderMap = orderList.stream().collect(Collectors.toMap(Order::getId, order -> order));
-//        mapList.forEach(map -> {
-//            Order order = orderMap.get(map.getParentId());
-//            if (ObjUtil.isNotEmpty(order) && order.getState() == 8) {
-//                map.setIsSignature(true);
-//            } else {
-//                map.setIsSignature(false);
-//            }
-//        });
         shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
         iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
         List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());

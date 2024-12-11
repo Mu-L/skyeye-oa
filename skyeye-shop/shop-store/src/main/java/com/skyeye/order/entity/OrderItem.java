@@ -133,7 +133,4 @@ public class OrderItem extends OperatorUserInfo {
     @Property(value = "是否已经追评")
     private Boolean isAdditionalReview;
 
-    @TableField(exist = false)
-    @Property(value = "是否已经签收")
-    private Boolean isSignature;
 }

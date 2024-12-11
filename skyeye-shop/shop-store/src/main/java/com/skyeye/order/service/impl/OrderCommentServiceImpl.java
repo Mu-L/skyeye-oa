@@ -39,10 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @ClassName: OrderCommentServiceImpl
@@ -200,26 +200,25 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         return queryWrapper;
     }
 
-    private List<OrderComment> getOrderCommentListByType(String typeId, Integer type, String objectId) {
-        QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getType), type)
-            .and(wrap -> {
-                wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)// 创建人id
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
-            }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
-        if (StrUtil.isNotEmpty(objectId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getNormsId), objectId);
+        private List<OrderComment> getOrderCommentListByType(String typeId, String objectId) {
+            QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
+            queryWrapper.and(wrap -> {
+                        wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), typeId)// 创建人id
+                                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
+                                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
+                                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
+                    }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+            if (StrUtil.isNotEmpty(objectId)) {
+                queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getNormsId), objectId);
+            }
+            List<OrderComment> list = list(queryWrapper);
+            iMaterialService.setDataMation(list, OrderComment::getMaterialId);
+            iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
+            memberService.setDataMation(list, OrderComment::getCreateId);
+            shopStoreService.setDataMation(list, OrderComment::getStoreId);
+            orderItemService.setDataMation(list,OrderComment::getOrderItemId);
+            return list;
         }
-        List<OrderComment> list = list(queryWrapper);
-        iMaterialService.setDataMation(list, OrderComment::getMaterialId);
-        iMaterialNormsService.setDataMation(list, OrderComment::getNormsId);
-        memberService.setDataMation(list, OrderComment::getCreateId);
-        shopStoreService.setDataMation(list, OrderComment::getStoreId);
-        orderItemService.setDataMation(list,OrderComment::getOrderItemId);
-        return list;
-    }
 
     @Override
     public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
@@ -227,13 +226,17 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         String typeId = commonPageInfo.getTypeId();
         String objectId = commonPageInfo.getObjectId();
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<OrderComment> customerFirst = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERFiRST.getKey(), objectId);
-        List<OrderComment> customerLater = getOrderCommentListByType(typeId, OrderCommentType.CUSTOMERLATER.getKey(), objectId);
-        List<OrderComment> merchantReply = getOrderCommentListByType(typeId, OrderCommentType.MERCHANT.getKey(), objectId);
-        if (CollectionUtil.isEmpty(customerFirst)) {
+        List<OrderComment> orderCommentListByType = getOrderCommentListByType(typeId, objectId);
+        if (CollectionUtil.isEmpty(orderCommentListByType)) {
             return;
         }
-        List<OrderComment> beans = setAdditionalReviewAndMerchantReply(customerFirst, customerLater, merchantReply);// 区分客户追评和商家回复
+        List<OrderComment> orderCommentCustomer = orderCommentListByType.stream()
+                .filter(o -> o.getType() == OrderCommentType.CUSTOMERFiRST.getKey()).collect(Collectors.toList());
+        List<OrderComment> orderCommentLater = orderCommentListByType.stream()
+                .filter(o -> o.getType() == OrderCommentType.CUSTOMERLATER.getKey()).collect(Collectors.toList());
+        List<OrderComment> orderCommentMerchant = orderCommentListByType.stream()
+                .filter(o -> o.getType() == OrderCommentType.MERCHANT.getKey()).collect(Collectors.toList());
+        List<OrderComment> beans = setAdditionalReviewAndMerchantReply(orderCommentCustomer,orderCommentLater, orderCommentMerchant);// 区分客户追评和商家回复
         List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
         outputObject.setBeans(mapList);
         outputObject.settotal(pages.getTotal());
@@ -248,47 +251,32 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
 
-    private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
-        // 客户追评，如果存在重复的parentId，可以选择覆盖或者合并逻辑
-        Map<String, OrderComment> customerTowMap = customerLater.stream()
-                .collect(Collectors.toMap(OrderComment::getParentId, o -> o));
+    private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> orderCommentCustomer, List<OrderComment> orderCommentLater,List<OrderComment> orderCommentMerchant) {
+        //追评
+        Map<String, List<OrderComment>> laterMap = orderCommentLater.stream()
+                .collect(Collectors.groupingBy(OrderComment::getParentId));
         // 商家回复
-        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream()
+        Map<String, List<OrderComment>> merchantReplyMap = orderCommentMerchant.stream()
                 .collect(Collectors.groupingBy(OrderComment::getParentId));
 
-        for (OrderComment item : customerFirst) {
-            // 追评
-            if (customerTowMap.containsKey(item.getId())) {
-                Map<String, Object> additionalReviewMap = BeanUtil.beanToMap(customerTowMap.get(item.getId()));
-                item.setAdditionalReview(additionalReviewMap);
-            } else {
-                item.setAdditionalReview(new HashMap<>()); // 如果没有追评，则设置为空Map
-            }
-
+        // 遍历客户首次评论，添加追评和商家回复信息
+        for (OrderComment item : orderCommentCustomer) {
             // 商家回复
-            if (merchantReplyMapList.containsKey(item.getId())) {
-                List<Map<String, Object>> merchantReplyList = merchantReplyMapList.get(item.getId()).stream()
-                        .map(comment -> BeanUtil.beanToMap(comment))
-                        .collect(Collectors.toList());
+            if (merchantReplyMap.containsKey(item.getId())) {
+                List<Map<String, Object>> merchantReplyList = merchantReplyMap.get(item.getId()).stream()
+                        .map(BeanUtil::beanToMap).collect(Collectors.toList());
                 item.setMerchantReply(merchantReplyList);
-            } else {
-                item.setMerchantReply(new ArrayList<>()); // 如果没有商家回复，则设置为空List
             }
         }
 
-        return customerFirst;
+        for (OrderComment item : orderCommentCustomer) {
+            if (laterMap.containsKey(item.getId())) {
+                List<Map<String, Object>> laterList = laterMap.get(item.getId()).stream()
+                        .map(BeanUtil::beanToMap).collect(Collectors.toList());
+                item.setAdditionalReview(laterList);
+            }
+        }
+     return orderCommentCustomer;
     }
 
-//    private List<OrderComment> setAdditionalReviewAndMerchantReply(List<OrderComment> customerFirst, List<OrderComment> customerLater, List<OrderComment> merchantReply) {
-//        Map<String, OrderComment> customerTowMap = customerLater.stream().collect(Collectors.toMap(OrderComment::getParentId, o -> o));// 客户追评
-//        Map<String, List<OrderComment>> merchantReplyMapList = merchantReply.stream().collect(Collectors.groupingBy(OrderComment::getParentId));// 商家回复
-//        for (OrderComment item : customerFirst) {
-//            if (customerTowMap.containsKey(item.getId())) {
-//                item.setAdditionalReview(JSONUtil.toBean(JSONUtil.toJsonStr(customerTowMap.get(item.getId())), null));
-//            }
-//            if (merchantReplyMapList.containsKey(item.getId())) {
-//                item.setMerchantReply(JSONUtil.toBean(JSONUtil.toJsonStr(merchantReplyMapList.get(item.getId())), null));
-//            }
-//        }
-//        return customerFirst;
 }
