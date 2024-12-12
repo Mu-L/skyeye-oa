@@ -93,6 +93,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
                 throw new CustomException("折扣率类型优惠券，折扣率不能为空");
             }
         }
+
+        if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
+            throw new CustomException("优惠券总量不能为空");
+        }
     }
 
     @Override
