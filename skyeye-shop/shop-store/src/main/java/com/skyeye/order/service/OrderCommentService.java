@@ -24,4 +24,6 @@ public interface OrderCommentService extends SkyeyeBusinessService<OrderComment>
     void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject);
 
     List<OrderComment> queryListByOrderItemIdAndType(List<String> orderItemIds, Integer key);
+
+    void queryMyOrderCommentList(InputObject inputObject, OutputObject outputObject);
 }

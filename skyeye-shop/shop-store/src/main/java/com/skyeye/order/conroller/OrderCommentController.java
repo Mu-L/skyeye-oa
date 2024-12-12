@@ -97,4 +97,17 @@ public class OrderCommentController {
     public void queryOrderCommentPageListPC(InputObject inputObject, OutputObject outputObject) {
         orderCommentService.queryPageList(inputObject,outputObject);
     }
+
+    /**
+     * 分页查询自己的商品订单评价信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyOrderCommentList", value = "分页查询自己的商品订单评价信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/OrderCommentController/queryMyOrderCommentList")
+    public void queryMyOrderCommentList(InputObject inputObject, OutputObject outputObject) {
+        orderCommentService.queryMyOrderCommentList(inputObject, outputObject);
+    }
 }
