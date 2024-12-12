@@ -83,9 +83,9 @@ public class Coupon extends BaseGeneralInfo {
     @ApiModelProperty(value = "领取日期 - 领取几天后可以开始使用")
     private Integer fixedStartTime;
 
-    @TableField(value = "fixed_end_Time")
+    @TableField(value = "fixed_end_time")
     @ApiModelProperty(value = "领取日期 - 领取开始使用时几天后结束")
-    private Integer fixedEndTerm;
+    private Integer fixedEndTime;
 
     @TableField(value = "discount_type")
     @ApiModelProperty(value = "折扣类型", required = "required,num",enumClass = PromotionDiscountType.class)

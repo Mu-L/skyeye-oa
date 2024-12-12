@@ -79,7 +79,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
                 throw new CustomException("固定日期类型优惠券，有效期不能为空");
             }
         } else {
-            if (coupon.getFixedStartTime() == null || coupon.getFixedEndTerm() == null) {
+            if (coupon.getFixedStartTime() == null || coupon.getFixedEndTime() == null) {
                 throw new CustomException("固定周期类型优惠券，有效期不能为空");
             }
         }
