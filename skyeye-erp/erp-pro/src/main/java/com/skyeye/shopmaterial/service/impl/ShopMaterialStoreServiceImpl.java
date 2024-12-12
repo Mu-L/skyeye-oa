@@ -90,13 +90,27 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
 
     @Override
     public void saveList(String materialId, List<ShopMaterialStore> shopMaterialStoreList) {
-        deleteByMaterialId(materialId);
         if (CollectionUtil.isNotEmpty(shopMaterialStoreList)) {
-            for (ShopMaterialStore shopMaterialStore : shopMaterialStoreList) {
+            // 根据商品id查询已存在的门店商品数据
+            QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialId);
+            List<ShopMaterialStore> existShopMaterialStoreList = list(queryWrapper);
+            List<String> existStoreIdList = existShopMaterialStoreList.stream().map(ShopMaterialStore::getStoreId).collect(Collectors.toList());
+            // 构造新的门店商品数据进行保存
+            List<ShopMaterialStore> newList = shopMaterialStoreList.stream().filter(shopMaterialStore -> {
+                if (existStoreIdList.indexOf(shopMaterialStore.getStoreId()) > -1) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(newList)) {
+                return;
+            }
+            for (ShopMaterialStore shopMaterialStore : newList) {
                 shopMaterialStore.setMaterialId(materialId);
             }
             String userId = InputObject.getLogParamsStatic().get("id").toString();
-            createEntity(shopMaterialStoreList, userId);
+            createEntity(newList, userId);
         }
     }
 
@@ -122,6 +136,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         // 查询商品id
         QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId));
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId);
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId));
         List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
         if (CollectionUtil.isEmpty(shopMaterialStoreList)) {

@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableFeignClients
 @EnableConfigurationProperties(PayProperties.class)
 public class SkyShopApplication {
-
+    
     public static void main(String[] args) {
         System.setProperty("spring.devtools.restart.enabled", "false");
         SpringApplication.run(SkyShopApplication.class, args);

@@ -35,10 +35,9 @@ import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -69,8 +68,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     public void validatorEntity(Coupon coupon) {
         // 模板新增
         if (StrUtil.isEmpty(coupon.getId()) && StrUtil.isEmpty(coupon.getTemplateId()) && // 主键和模板id为空时，即为模板
-            coupon.getProductScope() != PromotionMaterialScope.ALL.getKey() && // 判断适用商品类型
-            CollectionUtil.isEmpty(coupon.getCouponMaterialList()))  // 不适用全部商品时，适用对象不能为空。
+                coupon.getProductScope() != PromotionMaterialScope.ALL.getKey() && // 判断适用商品类型
+                CollectionUtil.isEmpty(coupon.getCouponMaterialList()))  // 不适用全部商品时，适用对象不能为空。
         {
             throw new CustomException("需要指定优惠券适用的商品范围，适用全部商品时可为空");
         }
@@ -78,12 +77,26 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             if (StrUtil.isEmpty(coupon.getValidStartTime()) || StrUtil.isEmpty(coupon.getValidEndTime())) {
                 throw new CustomException("固定日期类型优惠券，有效期不能为空");
             }
-        } else {
-            if (coupon.getFixedStartTime() == null || coupon.getFixedEndTime() == null) {
-                throw new CustomException("固定周期类型优惠券，有效期不能为空");
+            try {
+                // 创建SimpleDateFormat对象，并设置日期格式
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                // 将字符串转换为Date对象
+                Date parse = sdf.parse(coupon.getValidEndTime());
+                // 获取当前时间
+                Date now = new Date();
+                // 判断ValidEndTime是否早于当前时间
+                if (parse.before(now)) {
+                    throw new CustomException("优惠券结束时间不能早于当前时间");
+                }
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
         }
-
+        if (Objects.equals(coupon.getValidityType(), CouponValidityType.TERM.getKey())) {
+            if (coupon.getFixedStartTime() == null || coupon.getFixedEndTime() == null || coupon.getFixedEndTime() == 0) {
+                throw new CustomException("领取之后类型优惠券，有效期不能为空或为零");
+            }
+        }
         if (Objects.equals(coupon.getDiscountType(), PromotionDiscountType.PRICE.getKey())) {
             if (coupon.getDiscountPrice() == null) {
                 throw new CustomException("价格折扣类型优惠券，折扣金额不能为空");
@@ -92,6 +105,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             if (coupon.getDiscountPercent() == null) {
                 throw new CustomException("折扣率类型优惠券，折扣率不能为空");
             }
+        }
+
+        if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
+            throw new CustomException("优惠券总量不能为空");
         }
     }
 
@@ -220,10 +237,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         String materialId = inputObject.getParams().get("materialId").toString();
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         MPJLambdaWrapper<Coupon> wrapper = new MPJLambdaWrapper<Coupon>()
-            .innerJoin(CouponMaterial.class, CouponMaterial::getCouponId, Coupon::getId)
-            .eq(CouponMaterial::getMaterialId, materialId)
-            .eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey())
-            .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+                .innerJoin(CouponMaterial.class, CouponMaterial::getCouponId, Coupon::getId)
+                .eq(CouponMaterial::getMaterialId, materialId)
+                .eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey())
+                .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
         List<Coupon> list = skyeyeBaseMapper.selectJoinList(Coupon.class, wrapper);
         setDrawState(list);// 设置是否可以领取状态
         outputObject.setBean(list);
