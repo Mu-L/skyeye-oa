@@ -219,21 +219,37 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String typeId = commonPageInfo.getTypeId();
         String objectId = commonPageInfo.getObjectId();
+        // 查首评论
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<OrderComment> orderCommentListByType = getOrderCommentListByType(typeId, objectId);
+        QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(wrap -> {
+            wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
+                    .eq(MybatisPlusUtil.toColumns(OrderComment::getParentId),"")
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
+                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
+        }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+        List<OrderComment> list = list(queryWrapper);
+        if (StrUtil.isNotEmpty(objectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getNormsId), objectId);
+        }
+
+        List<OrderComment> orderCommentListByType = getOrderCommentListByType(typeId, objectId); // 所有评论
         if (CollectionUtil.isEmpty(orderCommentListByType)) {
             return;
         }
-        List<OrderComment> orderCommentCustomer = orderCommentListByType.stream()
+        List<OrderComment> orderCommentCustomer = orderCommentListByType.stream() // 首评
             .filter(o -> o.getType() == OrderCommentType.CUSTOMERFiRST.getKey()).collect(Collectors.toList());
-        List<OrderComment> orderCommentLater = orderCommentListByType.stream()
+        List<OrderComment> orderCommentLater = orderCommentListByType.stream()  // 追评
             .filter(o -> o.getType() == OrderCommentType.CUSTOMERLATER.getKey()).collect(Collectors.toList());
-        List<OrderComment> orderCommentMerchant = orderCommentListByType.stream()
+        List<OrderComment> orderCommentMerchant = orderCommentListByType.stream()//商家回复
             .filter(o -> o.getType() == OrderCommentType.MERCHANT.getKey()).collect(Collectors.toList());
-        List<OrderComment> beans = setAdditionalReviewAndMerchantReply(orderCommentCustomer, orderCommentLater, orderCommentMerchant);// 区分客户追评和商家回复
+
+
+        List<OrderComment> beans = setAdditionalReviewAndMerchantReply(list, orderCommentLater, orderCommentMerchant);// 区分客户追评和商家回复
         List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
+
         outputObject.setBeans(mapList);
-        outputObject.settotal(pages.getTotal());
+        outputObject.settotal(orderCommentCustomer.size());
     }
 
     @Override

@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.order.entity.Order;
 
+import java.util.List;
+
 /**
  * @ClassName: OrderService
  * @Description: 商品订单管理
@@ -41,4 +43,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void updateOrderItemState(InputObject inputObject, OutputObject outputObject);
 
     void updateOrderState(String orderId, Integer partiallydoneKey);
+
+    List<Order> queryOrderList(String orderId);
 }

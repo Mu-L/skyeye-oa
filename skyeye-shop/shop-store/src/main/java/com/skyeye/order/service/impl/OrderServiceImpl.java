@@ -416,9 +416,18 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
         String orderId = inputObject.getParams().get("id").toString();
-        if (StrUtil.isEmpty(orderId)) {
-            return;
+        //        获取订单当前状态
+        Order order = selectById(orderId);
+        Integer state = order.getState();
+        if(ShopOrderState.UNSUBMIT.getKey()==state||
+                ShopOrderState.SUBMIT.getKey()==state||
+        ShopOrderState.UNPAID.getKey()==state||
+        ShopOrderState.FAIRPAID.getKey()==state||
+        ShopOrderState.CANCELED.getKey()==state
+        ){
+            throw new CustomException("不可修改");
         }
+
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
@@ -599,5 +608,12 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), partiallydoneKey);
         update(updateWrapper);
+    }
+
+    @Override
+    public List<Order> queryOrderList(String orderId) {
+        QueryWrapper<Order>  queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Order::getId),orderId);
+        return list(queryWrapper);
     }
 }
