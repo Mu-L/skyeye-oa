@@ -118,4 +118,6 @@ public class Coupon extends BaseGeneralInfo {
     @TableField(exist = false)
     @Property(value = "是否可领取")
     private Boolean canDraw;
+
+
 }

@@ -96,4 +96,13 @@ public class CouponUse extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "用户领取的优惠券适用对象列表")
     private List<CouponUseMaterial> couponUseMaterialList;
+
+    @TableField(value = "usage_count")
+    @ApiModelProperty(value = "总使用次数")
+    private Integer usageCount;
+
+    @TableField(value = "used_count")
+    @ApiModelProperty(value = "已经使用次数")
+    private Integer usedCount;
+
 }
