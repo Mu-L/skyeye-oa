@@ -13,7 +13,6 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -71,12 +70,17 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         if (Objects.equals(coupon.getEnabled(), WhetherEnum.DISABLE_USING.getKey())) {
             throw new CustomException("优惠券已过期");
         }
-        if (coupon.getTotalCount() != -1 && coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO) {
-            throw new CustomException("数量不足,领取失败.");
+        if (coupon.getTotalCount() != -1) {
+            // 优惠券数量限制, -1表示不限制, 其他正数表示数量限制
+            if (coupon.getTakeCount() >= coupon.getTotalCount()) {
+                throw new CustomException("优惠券已被领完.");
+            }
         }
+        // 领取限制, -1表示不限制
         if (coupon.getTakeLimitCount() == -1) {
             return;
         }
+        // 个人领取该优惠券的数量限制查询
         QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCouponId), coupon.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
