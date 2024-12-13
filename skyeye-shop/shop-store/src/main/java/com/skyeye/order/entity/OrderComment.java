@@ -93,7 +93,7 @@ public class OrderComment extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "客户追评")
-    private List<Map<String,Object>> additionalReview;
+    private Map<String,Object> additionalReview;
 
     @TableField(exist = false)
     @Property(value = "商家回复")
