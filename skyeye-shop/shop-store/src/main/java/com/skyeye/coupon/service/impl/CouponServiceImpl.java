@@ -68,8 +68,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     public void validatorEntity(Coupon coupon) {
         // 模板新增
         if (StrUtil.isEmpty(coupon.getId()) && StrUtil.isEmpty(coupon.getTemplateId()) && // 主键和模板id为空时，即为模板
-                coupon.getProductScope() != PromotionMaterialScope.ALL.getKey() && // 判断适用商品类型
-                CollectionUtil.isEmpty(coupon.getCouponMaterialList()))  // 不适用全部商品时，适用对象不能为空。
+            coupon.getProductScope() != PromotionMaterialScope.ALL.getKey() && // 判断适用商品类型
+            CollectionUtil.isEmpty(coupon.getCouponMaterialList()))  // 不适用全部商品时，适用对象不能为空。
         {
             throw new CustomException("需要指定优惠券适用的商品范围，适用全部商品时可为空");
         }
@@ -217,6 +217,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         updateWrapper.eq(CommonConstants.ID, couponId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getTakeCount), takeCount);
         update(updateWrapper);
+        refreshCache(couponId);
     }
 
     @Override
@@ -237,10 +238,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         String materialId = inputObject.getParams().get("materialId").toString();
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         MPJLambdaWrapper<Coupon> wrapper = new MPJLambdaWrapper<Coupon>()
-                .innerJoin(CouponMaterial.class, CouponMaterial::getCouponId, Coupon::getId)
-                .eq(CouponMaterial::getMaterialId, materialId)
-                .eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey())
-                .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            .innerJoin(CouponMaterial.class, CouponMaterial::getCouponId, Coupon::getId)
+            .eq(CouponMaterial::getMaterialId, materialId)
+            .eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey())
+            .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
         List<Coupon> list = skyeyeBaseMapper.selectJoinList(Coupon.class, wrapper);
         setDrawState(list);// 设置是否可以领取状态
         outputObject.setBean(list);

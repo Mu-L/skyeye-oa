@@ -18,7 +18,6 @@ import com.skyeye.coupon.enums.PromotionMaterialScope;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: CouponUse
@@ -43,7 +42,7 @@ public class CouponUse extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "优惠券信息")
-    private Map<String, Object> couponMation;
+    private Coupon couponMation;
 
     @TableField(value = "state")
     @Property(value = "状态", enumClass = CouponUseState.class)

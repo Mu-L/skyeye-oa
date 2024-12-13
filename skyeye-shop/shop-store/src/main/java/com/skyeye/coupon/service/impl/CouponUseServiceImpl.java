@@ -101,46 +101,44 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUseMaterial.setMaterialId(couponMaterial.getMaterialId());
             couponUseMaterialList.add(couponUseMaterial);
         }
-        if (StrUtil.isNotEmpty(couponUse.getCouponId())) {
-            // 状态
-            couponUse.setState(CouponUseState.UNUSED.getKey());
-            //满减
-            couponUse.setUsePrice(coupon.getUsePrice());
-            //使用范围
-            couponUse.setProductScope(coupon.getProductScope());
-            //生效时间
-            if (Objects.equals(CouponValidityType.DATE.getKey(), coupon.getValidityType())) {
-                couponUse.setValidStartTime(coupon.getValidStartTime());
-                couponUse.setValidEndTime(coupon.getValidEndTime());
-            } else {
-                couponUse.setValidStartTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d").toString());
-                couponUse.setValidEndTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d").toString());
-                // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
-                couponUse.setCouponMation(JSONUtil.toBean(JSONUtil.toJsonStr(coupon), null));
-            }
-            //折扣类型
-            couponUse.setDiscountType(coupon.getDiscountType());
-            //折扣值
-            if (Objects.equals(PromotionDiscountType.PERCENT.getKey(), coupon.getDiscountType())) {
-                couponUse.setDiscountPercent(coupon.getDiscountPercent());
-            } else {
-                couponUse.setDiscountPrice(coupon.getDiscountPrice());
-            }
-            //折扣上限
-            couponUse.setDiscountLimitPrice(coupon.getDiscountLimitPrice());
+        // 状态
+        couponUse.setState(CouponUseState.UNUSED.getKey());
+        //满减
+        couponUse.setUsePrice(coupon.getUsePrice());
+        //使用范围
+        couponUse.setProductScope(coupon.getProductScope());
+        //生效时间
+        if (Objects.equals(CouponValidityType.DATE.getKey(), coupon.getValidityType())) {
+            couponUse.setValidStartTime(coupon.getValidStartTime());
+            couponUse.setValidEndTime(coupon.getValidEndTime());
+        } else {
+            couponUse.setValidStartTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d").toString());
+            couponUse.setValidEndTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d").toString());
         }
+        // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
+        couponUse.setCouponMation(coupon);
+        //折扣类型
+        couponUse.setDiscountType(coupon.getDiscountType());
+        //折扣值
+        if (Objects.equals(PromotionDiscountType.PERCENT.getKey(), coupon.getDiscountType())) {
+            couponUse.setDiscountPercent(coupon.getDiscountPercent());
+        } else {
+            couponUse.setDiscountPrice(coupon.getDiscountPrice());
+        }
+        //折扣上限
+        couponUse.setDiscountLimitPrice(coupon.getDiscountLimitPrice());
     }
 
     @Override
     public void createPostpose(CouponUse couponUse, String userId) {
-        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getCouponId), couponUse.getCouponId());
-        couponService.updateTakeCount(couponUse.getCouponId(), (int) count(queryWrapper));
+        // 更新优惠券领取数量
+        couponService.updateTakeCount(couponUse.getCouponId(), couponUse.getCouponMation().getTakeCount() + 1);
+        // 新增优惠券可使用的商品信息
         couponUseMaterialService.createEntity(couponUse.getCouponUseMaterialList(), userId);
         // 定时任务
-        Map<String, Object> couponMation = couponUse.getCouponMation();
-        if (ObjectUtil.isNotEmpty(couponMation) && Objects.equals(couponMation.get("validityType"), CouponValidityType.TERM.getKey())) {
-            startUpTaskQuartz(couponUse.getId(), couponMation.get("name").toString(), couponUse.getValidEndTime());
+        Coupon couponMation = couponUse.getCouponMation();
+        if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
+            startUpTaskQuartz(couponUse.getId(), couponMation.getName(), couponUse.getValidEndTime());
         }
     }
 
