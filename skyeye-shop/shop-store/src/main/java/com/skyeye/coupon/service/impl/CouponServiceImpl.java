@@ -5,6 +5,7 @@
 package com.skyeye.coupon.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -107,6 +108,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
         if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
             throw new CustomException("优惠券总量不能为空");
+        }
+        if (coupon.getUseCount()<=0){
+            throw new CustomException("优惠券总使用次数不能为零");
         }
     }
 
@@ -244,6 +248,15 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         setDrawState(list);// 设置是否可以领取状态
         outputObject.setBean(list);
         outputObject.settotal(list.size());
+    }
+
+    @Override
+    public Integer getUseCount(String couponId) {
+        Coupon coupon = selectById(couponId);
+        if (ObjUtil.isEmpty(coupon)) {
+            throw new CustomException("优惠券不存在");
+        }
+        return coupon.getUseCount();
     }
 
     private void setDrawState(List<Coupon> list) {
