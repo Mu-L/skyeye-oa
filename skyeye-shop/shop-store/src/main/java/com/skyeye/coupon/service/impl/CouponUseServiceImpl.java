@@ -118,8 +118,6 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
             couponUse.setValidStartTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d")));
             couponUse.setValidEndTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d")));
-            // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
-            couponUse.setCouponMation(JSONUtil.toBean(JSONUtil.toJsonStr(coupon), null));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);
@@ -262,6 +260,5 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         } else {
             throw new CustomException("优惠券使用次数已达到上限");
         }
-
     }
 }

@@ -276,18 +276,5 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         updateWrapper.eq(CommonConstants.ID, surveyId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.DISABLE_USING.getKey());
         update(updateWrapper);
-//        UpdateWrapper<Coupon> updateWrapper = new UpdateWrapper<>();
-//        // 取优惠券
-//        String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
-//        updateWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
-//        // 固定日期类型的优惠券
-//        updateWrapper.lt(MybatisPlusUtil.toColumns(Coupon::getValidEndTime),
-//            DateUtil.getTimeAndToString());
-//        updateWrapper.or()
-//            // 非固定日期的优惠券
-//            .lt(MybatisPlusUtil.toColumns(Coupon::getFixedEndTerm),
-//                DateUtil.getTimeAndToString());
-//        updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey());
-//        update(updateWrapper);
     }
 }
