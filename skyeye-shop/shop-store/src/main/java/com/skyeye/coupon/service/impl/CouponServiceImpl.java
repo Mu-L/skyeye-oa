@@ -28,6 +28,7 @@ import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
 import com.skyeye.coupon.service.CouponMaterialService;
 import com.skyeye.coupon.service.CouponService;
+import com.skyeye.coupon.service.CouponStoreService;
 import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
@@ -64,6 +65,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Autowired
     private IQuartzService iQuartzService;
+
+    @Autowired
+    private CouponStoreService couponStoreService;
 
     @Override
     public void validatorEntity(Coupon coupon) {
@@ -121,6 +125,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Override
     public void createPostpose(Coupon entity, String userId) {
+        if (StrUtil.isNotEmpty(entity.getStoreId())) {// 优惠券关联门店
+            couponStoreService.createEntity(entity.getStoreId(), entity.getId());
+        }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
                 startUpTaskQuartz(entity.getId(), entity.getName(), entity.getValidEndTime());
