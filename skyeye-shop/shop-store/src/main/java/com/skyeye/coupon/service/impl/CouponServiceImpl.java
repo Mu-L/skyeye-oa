@@ -23,6 +23,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
+import com.skyeye.coupon.entity.CouponStore;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
@@ -125,9 +126,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Override
     public void createPostpose(Coupon entity, String userId) {
-        if (StrUtil.isNotEmpty(entity.getStoreId())) {// 优惠券关联门店
-            couponStoreService.createEntity(entity.getStoreId(), entity.getId());
-        }
+//        if (CollectionUtil.isNotEmpty(entity.getStoreIdList())) {// 优惠券关联门店
+//            couponStoreService.createEntity(entity.getId(),entity.getStoreIdList());
+//        }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
                 startUpTaskQuartz(entity.getId(), entity.getName(), entity.getValidEndTime());
