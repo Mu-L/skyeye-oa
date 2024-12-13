@@ -82,7 +82,6 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 // 将字符串转换为Date对象
                 Date parse = sdf.parse(coupon.getValidEndTime());
-                // 获取当前时间
                 Date now = new Date();
                 // 判断ValidEndTime是否早于当前时间
                 if (parse.before(now)) {
@@ -106,7 +105,6 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
                 throw new CustomException("折扣率类型优惠券，折扣率不能为空");
             }
         }
-
         if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
             throw new CustomException("优惠券总量不能为空");
         }

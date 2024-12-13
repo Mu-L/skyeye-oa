@@ -37,6 +37,8 @@ import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +115,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUse.setValidStartTime(coupon.getValidStartTime());
             couponUse.setValidEndTime(coupon.getValidEndTime());
         } else {
-            couponUse.setValidStartTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d").toString());
-            couponUse.setValidEndTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d").toString());
+            DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
+            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d")));
+            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d")));
+            // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
+            couponUse.setCouponMation(JSONUtil.toBean(JSONUtil.toJsonStr(coupon), null));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);

@@ -213,6 +213,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             for (OrderItem item : order.getOrderItemList()) {// 找到目标子单
                 if (item.getNormsId().equals(targetOrderItem.getNormsId())) {
                     item.setCouponUseId(order.getCouponUseId());
+
+
                     couponUseService.UpdateUsedCount(order.getCouponUseId());// 修改优惠券使用次数
                     // 操作优惠券
                     String discountPercentInt = CalculationUtil.divide(couponUse.getDiscountPercent().toString(), "100", CommonNumConstants.NUM_SIX);
