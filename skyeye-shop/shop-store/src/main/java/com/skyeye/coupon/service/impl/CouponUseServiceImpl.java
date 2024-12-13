@@ -10,10 +10,10 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -37,6 +37,8 @@ import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +115,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUse.setValidStartTime(coupon.getValidStartTime());
             couponUse.setValidEndTime(coupon.getValidEndTime());
         } else {
-            couponUse.setValidStartTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d").toString());
-            couponUse.setValidEndTime(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d").toString());
+            DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
+            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d")));
+            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d")));
+            // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
+            couponUse.setCouponMation(JSONUtil.toBean(JSONUtil.toJsonStr(coupon), null));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);
@@ -134,6 +139,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     public void createPostpose(CouponUse couponUse, String userId) {
         // 更新优惠券领取数量
         couponService.updateTakeCount(couponUse.getCouponId(), couponUse.getCouponMation().getTakeCount() + 1);
+        Integer useCount = couponService.getUseCount(couponUse.getCouponId());
+        couponUse.setUsageCount(useCount);
         // 新增优惠券可使用的商品信息
         couponUseMaterialService.createEntity(couponUse.getCouponUseMaterialList(), userId);
         // 定时任务
@@ -210,7 +217,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(CouponUse::getCouponId));
         List<Map<String, Object>> mapList = listMaps(queryWrapper);
         return CollectionUtil.isEmpty(mapList) ? new HashMap<>()
-            : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
+                : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
     }
 
     /**
@@ -247,13 +254,14 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     @Override
     public void UpdateUsedCount(String couponUseId) {
         CouponUse couponUse = selectById(couponUseId);
-        if (couponUse.getUsageCount()> CommonNumConstants.NUM_ZERO){
+        if (couponUse.getUsedCount() < couponUse.getUsageCount()) {
             UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, couponUseId);
-            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount()+1);
+            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount() + 1);
+            update(updateWrapper);
+        } else {
+            throw new CustomException("优惠券使用次数已达到上限");
         }
-        else {
-            throw new RuntimeException("优惠券使用次数已达到上限");
-        }
+
     }
 }

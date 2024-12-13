@@ -101,7 +101,7 @@ public class CouponUse extends OperatorUserInfo {
     private Integer usageCount;
 
     @TableField(value = "used_count")
-    @ApiModelProperty(value = "已经使用次数")
+    @ApiModelProperty(value = "已使用次数")
     private Integer usedCount;
 
 }
