@@ -16,6 +16,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -207,6 +208,10 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
 
     @Override
     public Map<String, Integer> queryIdTotalMapByCouponId(List<String> couponIdList) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isEmpty(userToken)) {
+            return new HashMap<>();
+        }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(MybatisPlusUtil.toColumns(CouponUse::getCouponId), "count(id) as total");
@@ -252,12 +257,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     @Override
     public void UpdateUsedCount(String couponUseId) {
         CouponUse couponUse = selectById(couponUseId);
-        if (couponUse.getUsageCount()> CommonNumConstants.NUM_ZERO){
+        if (couponUse.getUsageCount() > CommonNumConstants.NUM_ZERO) {
             UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, couponUseId);
-            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount()+1);
-        }
-        else {
+            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount() + 1);
+        } else {
             throw new RuntimeException("优惠券使用次数已达到上限");
         }
     }
