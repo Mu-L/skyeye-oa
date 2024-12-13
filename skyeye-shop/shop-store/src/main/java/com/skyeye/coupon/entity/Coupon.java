@@ -108,7 +108,7 @@ public class Coupon extends BaseGeneralInfo {
     private Integer takeCount;
 
     @TableField(value = "use_count")
-    @ApiModelProperty(value = "使用优惠券的次数")
+    @ApiModelProperty(value = "使用优惠券的总次数")
     private Integer useCount;
 
     @TableField(exist = false)

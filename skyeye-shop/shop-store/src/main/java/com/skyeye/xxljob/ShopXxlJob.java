@@ -44,9 +44,12 @@ public class ShopXxlJob {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String couponId = paramMap.get("objectId");// 优惠券id
-        couponService.setStateByCoupon(couponId);// 修改优惠券的状态
-        couponUseService.setCouponUseStateByDate(couponId);// 修改领取的优惠券的状态
-        iQuartzService.stopAndDeleteTaskQuartz(couponId);// 删除任务
+        try {
+            couponService.setStateByCoupon(couponId);// 修改优惠券的状态
+            couponUseService.setCouponUseStateByDate(couponId);// 修改领取的优惠券的状态
+        } finally {
+            iQuartzService.stopAndDeleteTaskQuartz(couponId);// 删除任务
+        }
     }
 
     @XxlJob("setShopCouponUseStateService")
@@ -55,8 +58,11 @@ public class ShopXxlJob {
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String userId = paramMap.get("userId");
         String couponUseId = paramMap.get("objectId");// 领取的优惠券id
-        couponUseService.setCouponUseStateByTerm(userId, couponUseId);// 修改领取的优惠券的状态
-        iQuartzService.stopAndDeleteTaskQuartz(couponUseId);// 删除任务
+        try {
+            couponUseService.setCouponUseStateByTerm(userId, couponUseId);// 修改领取的优惠券的状态}
+        } finally {
+            iQuartzService.stopAndDeleteTaskQuartz(couponUseId);// 删除任务
+        }
     }
 
     @XxlJob("createOrderNotPay")
@@ -64,7 +70,10 @@ public class ShopXxlJob {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String orderId = paramMap.get("objectId");// 订单的主键id
-        orderService.setOrderCancle(orderId);// 修改订单的状态为取消
-        iQuartzService.stopAndDeleteTaskQuartz(orderId);// 删除任务
+        try {
+            orderService.setOrderCancle(orderId);// 修改订单的状态为取消
+        } finally {
+            iQuartzService.stopAndDeleteTaskQuartz(orderId);// 删除任务
+        }
     }
 }

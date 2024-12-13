@@ -5,6 +5,7 @@
 package com.skyeye.coupon.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -107,6 +108,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
         if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
             throw new CustomException("优惠券总量不能为空");
+        }
+        if (coupon.getUseCount()<=0){
+            throw new CustomException("优惠券总使用次数不能为零");
         }
     }
 
@@ -246,6 +250,15 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         outputObject.settotal(list.size());
     }
 
+    @Override
+    public Integer getUseCount(String couponId) {
+        Coupon coupon = selectById(couponId);
+        if (ObjUtil.isEmpty(coupon)) {
+            throw new CustomException("优惠券不存在");
+        }
+        return coupon.getUseCount();
+    }
+
     private void setDrawState(List<Coupon> list) {
         if (CollectionUtil.isEmpty(list)) return;
         List<String> couponIdList = list.stream().map(Coupon::getId).collect(Collectors.toList());
@@ -263,18 +276,5 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         updateWrapper.eq(CommonConstants.ID, surveyId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.DISABLE_USING.getKey());
         update(updateWrapper);
-//        UpdateWrapper<Coupon> updateWrapper = new UpdateWrapper<>();
-//        // 取优惠券
-//        String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
-//        updateWrapper.isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
-//        // 固定日期类型的优惠券
-//        updateWrapper.lt(MybatisPlusUtil.toColumns(Coupon::getValidEndTime),
-//            DateUtil.getTimeAndToString());
-//        updateWrapper.or()
-//            // 非固定日期的优惠券
-//            .lt(MybatisPlusUtil.toColumns(Coupon::getFixedEndTerm),
-//                DateUtil.getTimeAndToString());
-//        updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey());
-//        update(updateWrapper);
     }
 }
