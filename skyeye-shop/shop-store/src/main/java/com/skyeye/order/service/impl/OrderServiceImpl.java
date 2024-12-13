@@ -43,6 +43,7 @@ import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.ShopOrderCancelType;
 import com.skyeye.order.enums.ShopOrderCommentState;
+import com.skyeye.order.enums.ShopOrderItemState;
 import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
@@ -212,6 +213,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             for (OrderItem item : order.getOrderItemList()) {// 找到目标子单
                 if (item.getNormsId().equals(targetOrderItem.getNormsId())) {
                     item.setCouponUseId(order.getCouponUseId());
+                    couponUseService.UpdateUsedCount(order.getCouponUseId());// 修改优惠券使用次数
                     // 操作优惠券
                     String discountPercentInt = CalculationUtil.divide(couponUse.getDiscountPercent().toString(), "100", CommonNumConstants.NUM_SIX);
                     // 百分比的折后价
@@ -594,7 +596,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         orderItemService.UpdateOrderItemState(orderItemId);
         List<OrderItem> orderItemList = orderItemService.queryOrderItemByParentId(orderId);
         boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
-            .allMatch(orderItemState -> orderItemState == CommonNumConstants.NUM_TWO);
+            .allMatch(orderItemState -> orderItemState == ShopOrderItemState.FINISHED.getKey());
         if (allTwo) {
             updateOrderState(orderId, ShopOrderState.COMPLETED.getKey());
         } else {

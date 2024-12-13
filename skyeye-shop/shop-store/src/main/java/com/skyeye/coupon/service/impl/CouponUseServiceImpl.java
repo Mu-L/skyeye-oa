@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -241,5 +242,18 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         updateWrapper.eq(CommonConstants.ID, couponUseId);
         updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.USED.getKey());
         update(updateWrapper);
+    }
+
+    @Override
+    public void UpdateUsedCount(String couponUseId) {
+        CouponUse couponUse = selectById(couponUseId);
+        if (couponUse.getUsageCount()> CommonNumConstants.NUM_ZERO){
+            UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, couponUseId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount()+1);
+        }
+        else {
+            throw new RuntimeException("优惠券使用次数已达到上限");
+        }
     }
 }
