@@ -274,15 +274,6 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         outputObject.settotal(list.size());
     }
 
-    @Override
-    public Integer getUseCount(String couponId) {
-        Coupon coupon = selectById(couponId);
-        if (ObjUtil.isEmpty(coupon)) {
-            throw new CustomException("优惠券不存在");
-        }
-        return coupon.getUseCount();
-    }
-
     private void setDrawState(List<Coupon> list) {
         if (CollectionUtil.isEmpty(list)) return;
         List<String> couponIdList = list.stream().map(Coupon::getId).collect(Collectors.toList());

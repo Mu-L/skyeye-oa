@@ -142,10 +142,10 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     public void createPostpose(CouponUse couponUse, String userId) {
         // 更新优惠券领取数量
         couponService.updateTakeCount(couponUse.getCouponId(), couponUse.getCouponMation().getTakeCount() + 1);
-        Integer useCount = couponService.getUseCount(couponUse.getCouponId());
-        couponUse.setUsageCount(useCount);
         // 新增优惠券可使用的商品信息
         couponUseMaterialService.createEntity(couponUse.getCouponUseMaterialList(), userId);
+        Coupon coupon = couponService.selectById(couponUse.getCouponId());
+        couponUse.setUsageCount(coupon.getUseCount());
         // 定时任务
         Coupon couponMation = couponUse.getCouponMation();
         if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
