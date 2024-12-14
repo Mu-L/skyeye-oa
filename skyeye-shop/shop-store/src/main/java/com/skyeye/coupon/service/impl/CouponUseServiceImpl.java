@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @ClassName: CouponUseServiceImpl
@@ -202,7 +203,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 查询时获取数据
         List<CouponUse> list = list(queryWrapper);
         couponService.setDataMation(list, CouponUse::getCouponId);
-        return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        List<CouponUse> collect = list.stream().map(item -> {
+            item.setUsageCount(item.getUsedCount());
+            return item;
+        }).collect(Collectors.toList());
+        return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
     }
 
     @Override
