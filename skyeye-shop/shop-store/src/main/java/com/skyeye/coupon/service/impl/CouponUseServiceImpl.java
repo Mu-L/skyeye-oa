@@ -14,6 +14,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.QuartzConstants;
+import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
@@ -148,7 +149,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 定时任务
         Coupon couponMation = couponUse.getCouponMation();
         if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
-            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() +"创建定时任务--开始");
+            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() + "创建定时任务--开始");
             startUpTaskQuartz(couponUse.getId(), couponMation.getName(), couponUse.getValidEndTime());
             log.info("领取优惠券的id(couponUseId)" + couponUse.getId() + "创建定时任务--结束");
         }
@@ -219,6 +220,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     public Map<String, Integer> queryIdTotalMapByCouponId(List<String> couponIdList) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         if (StrUtil.isEmpty(userToken)) {
+            return new HashMap<>();
+        }
+        String userTokenUserId = GetUserToken.getUserTokenUserId(InputObject.getRequest());
+        Boolean aBoolean = SysUserAuthConstants.exitUserLoginRedisCache(userTokenUserId);
+        if (!aBoolean) {
             return new HashMap<>();
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
