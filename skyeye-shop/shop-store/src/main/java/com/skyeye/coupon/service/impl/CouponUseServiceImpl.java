@@ -33,7 +33,9 @@ import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
-import org.joda.time.LocalDate;
+import com.skyeye.xxljob.ShopXxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @ClassName: CouponUseServiceImpl
@@ -66,6 +67,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
 
     @Autowired
     private IQuartzService iQuartzService;
+
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     private void check(Coupon coupon) {
         if (ObjectUtil.isEmpty(coupon)) {
@@ -117,8 +120,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUse.setValidEndTime(coupon.getValidEndTime());
         } else {
             DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
-            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d")));
-            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d")));
+            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d")));
+            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedEndTime(), "d")));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);
@@ -145,7 +148,9 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 定时任务
         Coupon couponMation = couponUse.getCouponMation();
         if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
+            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() +"创建定时任务--开始");
             startUpTaskQuartz(couponUse.getId(), couponMation.getName(), couponUse.getValidEndTime());
+            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() + "创建定时任务--结束");
         }
     }
 

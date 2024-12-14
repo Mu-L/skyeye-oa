@@ -34,6 +34,9 @@ import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
+import com.skyeye.xxljob.ShopXxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +71,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Autowired
     private CouponStoreService couponStoreService;
+
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     @Override
     public void validatorEntity(Coupon coupon) {
@@ -136,7 +141,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 //        }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
+                log.info("优惠券id" + entity.getId() + "创建定时任务-- 开始");
                 startUpTaskQuartz(entity.getId(), entity.getName(), entity.getValidEndTime());
+                log.info("优惠券id" + entity.getId() + "创建定时任务-- 结束");
             }
         }
     }
