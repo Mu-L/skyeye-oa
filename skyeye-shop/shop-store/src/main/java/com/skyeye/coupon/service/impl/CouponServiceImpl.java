@@ -213,12 +213,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         QueryWrapper<Coupon> queryWrapper = new QueryWrapper<>();
         String storeId = params.get("storeId").toString();
         String type = params.get("type").toString();
-        List<CouponStore> couponStoreList = couponStoreService.queryListByStoreId(storeId);
-        List<String> couponIdList = couponStoreList.stream().map(CouponStore::getCouponId).distinct().collect(Collectors.toList());
-        if(CollectionUtil.isEmpty(couponIdList)){
-            return;
-        }
-        queryWrapper.in(CommonConstants.ID, couponIdList);
+        // todo storeId未做
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         if (StrUtil.equals(type, CommonNumConstants.NUM_ZERO.toString())) {
             queryWrapper.and(wrapper -> {
