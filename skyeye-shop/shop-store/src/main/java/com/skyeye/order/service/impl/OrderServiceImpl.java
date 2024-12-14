@@ -191,9 +191,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             return;
         }
         CouponUse couponUse = couponUseService.selectById(couponUseId);//优惠券信息
-        if (couponUse == null) {
-            throw new CustomException("优惠券信息不存在");
-        }
         if (ObjectUtil.isEmpty(couponUse)) {
             throw new CustomException("优惠券不存在");
         } else if (couponUse.getState() != CouponUseState.UNUSED.getKey()) {
