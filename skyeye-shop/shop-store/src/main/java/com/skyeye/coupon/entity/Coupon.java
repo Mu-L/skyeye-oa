@@ -35,7 +35,7 @@ import java.util.List;
 @ApiModel(value = "优惠券/模版信息管理实体类")
 public class Coupon extends BaseGeneralInfo {
 
-    @TableField(value = "store_id_list")
+    @TableField(exist = false)
     @ApiModelProperty(value = "发布门店id列表", required = "json")
     private List<String> storeIdList;
 
