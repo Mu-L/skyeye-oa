@@ -6,6 +6,7 @@ package com.skyeye.order.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -111,6 +112,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Override
     public void createPrepose(Order order) {
+        if (order == null&& ObjUtil.isEmpty(order)) {
+            throw new CustomException("订单对象不能为空");
+        }
         // 订单编号
         Map<String, Object> business = BeanUtil.beanToMap(order);
         String oddNumber = iCodeRuleService.getNextCodeByClassName(getClass().getName(), business);
@@ -142,6 +146,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     private void checkAndSetItemCouponUse(Order order) {// 子单的优惠券操作
         List<OrderItem> orderItemList = order.getOrderItemList();
+        if (orderItemList == null || orderItemList.isEmpty()) {
+            throw new CustomException("订单子项列表不能为空");
+        }
         // 设置商品信息、商品规格信息和优惠券信息
         List<String> normsIdList = orderItemList.stream().map(OrderItem::getNormsId).collect(Collectors.toList());
         List<Map<String, Object>> normsListMap = iShopMaterialNormsService.queryShopMaterialByNormsIdList(Joiner.on(CommonCharConstants.COMMA_MARK).join(normsIdList));
@@ -214,6 +221,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     private void setOrderAndOrderItem(CouponUse couponUse, Order order, OrderItem targetOrderItem) {
+        if (targetOrderItem == null) {
+            throw new CustomException("目标订单子项不能为空");
+        }
         if (Objects.equals(couponUse.getDiscountType(), PromotionDiscountType.PERCENT.getKey())) {// 百分比折扣
             for (OrderItem item : order.getOrderItemList()) {// 找到目标子单
                 if (item.getNormsId().equals(targetOrderItem.getNormsId())) {
@@ -425,7 +435,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     @Override
     public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
         String orderId = inputObject.getParams().get("id").toString();
-        //        获取订单当前状态
+        //获取订单当前状态
         Order order = selectById(orderId);
         Integer state = order.getState();
         if(ShopOrderState.UNSUBMIT.getKey()==state||
