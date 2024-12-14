@@ -265,4 +265,12 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             throw new CustomException("优惠券使用次数已达到上限");
         }
     }
+
+    @Override
+    public void deleteByCouponIds(List<String> ids) {
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CouponUse::getCouponId), ids);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.UNUSED.getKey());
+        remove(queryWrapper);
+    }
 }

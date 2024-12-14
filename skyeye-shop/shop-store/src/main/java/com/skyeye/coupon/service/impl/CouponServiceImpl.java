@@ -232,7 +232,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Override
     public void deletePostpose(List<String> ids) {
-        couponMaterialService.deleteByCouponId(ids);
+        couponMaterialService.deleteByCouponId(ids);// 删除优惠券的适用对象
+        couponStoreService.deleteByCouponIds(ids);// 删除优惠券与门店关联的信息
+        couponUseService.deleteByCouponIds(ids);  // 删除已领取的但是未使用的优惠券
     }
 
     @Override
