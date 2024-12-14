@@ -11,6 +11,8 @@ import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.order.service.OrderService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,16 +41,24 @@ public class ShopXxlJob {
     @Autowired
     private IQuartzService iQuartzService;
 
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
+
     @XxlJob("setShopCouponStateService")
     public void setShopCouponStateService() {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String couponId = paramMap.get("objectId");// 优惠券id
         try {
+            log.info("优惠券id(couponId)" + couponId + "---修改优惠券的状态---开始");
             couponService.setStateByCoupon(couponId);// 修改优惠券的状态
+            log.info("优惠券id(couponId)" + couponId + "---修改优惠券的状态---结束");
+            log.info("优惠券id(couponId)" + couponId + "---修改领取的优惠券的状态---开始");
             couponUseService.setCouponUseStateByDate(couponId);// 修改领取的优惠券的状态
+            log.info("优惠券id(couponId)" + couponId + "---修改领取的优惠券的状态---结束");
         } finally {
+            log.info("优惠券id(couponId)" + couponId + "---删除任务---开始");
             iQuartzService.stopAndDeleteTaskQuartz(couponId);// 删除任务
+            log.info("优惠券id(couponId)" + couponId + "---删除任务---结束");
         }
     }
 
@@ -59,9 +69,13 @@ public class ShopXxlJob {
         String userId = paramMap.get("userId");
         String couponUseId = paramMap.get("objectId");// 领取的优惠券id
         try {
+            log.info("领取优惠券的id(couponUseId)" + couponUseId + "---修改领取的优惠券的状态---开始");
             couponUseService.setCouponUseStateByTerm(userId, couponUseId);// 修改领取的优惠券的状态}
+            log.info("领取优惠券的id(couponUseId)" + couponUseId + "---修改领取的优惠券的状态---结束");
         } finally {
+            log.info("领取优惠券的id(couponUseId)" + couponUseId + "---删除任务---开始");
             iQuartzService.stopAndDeleteTaskQuartz(couponUseId);// 删除任务
+            log.info("领取优惠券的id(couponUseId)" + couponUseId + "---删除任务---结束");
         }
     }
 
@@ -71,9 +85,13 @@ public class ShopXxlJob {
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String orderId = paramMap.get("objectId");// 订单的主键id
         try {
+            log.info("订单的主键id(orderId)" + orderId + "---修改订单的状态为取消---开始");
             orderService.setOrderCancle(orderId);// 修改订单的状态为取消
+            log.info("订单的主键id(orderId)" + orderId + "---修改订单的状态为取消---结束");
         } finally {
+            log.info("订单的主键id(orderId)" + orderId + "---删除任务---开始");
             iQuartzService.stopAndDeleteTaskQuartz(orderId);// 删除任务
+            log.info("订单的主键id(orderId)" + orderId + "---删除任务---结束");
         }
     }
 }

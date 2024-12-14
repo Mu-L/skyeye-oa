@@ -156,7 +156,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     @Override
     public void UpdateOrderItemState(String orderItemId) {
         OrderItem orderItem = selectById(orderItemId);
-        if (orderItem.getOrderItemState().equals(CommonNumConstants.NUM_TWO)) {
+        if (orderItem.getOrderItemState()==CommonNumConstants.NUM_TWO) {
             throw new CustomException("该订单已收货");
         }
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();

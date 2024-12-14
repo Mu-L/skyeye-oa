@@ -14,6 +14,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.QuartzConstants;
+import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
@@ -33,7 +34,9 @@ import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
-import org.joda.time.LocalDate;
+import com.skyeye.xxljob.ShopXxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +68,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
 
     @Autowired
     private IQuartzService iQuartzService;
+
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     private void check(Coupon coupon) {
         if (ObjectUtil.isEmpty(coupon)) {
@@ -116,8 +121,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUse.setValidEndTime(coupon.getValidEndTime());
         } else {
             DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
-            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedStartTime(), "d")));
-            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(LocalDate.now().toDate(), coupon.getFixedEndTime(), "d")));
+            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d")));
+            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedEndTime(), "d")));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);
@@ -144,7 +149,9 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 定时任务
         Coupon couponMation = couponUse.getCouponMation();
         if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
+            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() + "创建定时任务--开始");
             startUpTaskQuartz(couponUse.getId(), couponMation.getName(), couponUse.getValidEndTime());
+            log.info("领取优惠券的id(couponUseId)" + couponUse.getId() + "创建定时任务--结束");
         }
     }
 
@@ -202,13 +209,22 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         // 查询时获取数据
         List<CouponUse> list = list(queryWrapper);
         couponService.setDataMation(list, CouponUse::getCouponId);
-        return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        List<CouponUse> collect = list.stream().map(item -> {
+            item.setUsageCount(item.getCouponMation().getUseCount());
+            return item;
+        }).collect(Collectors.toList());
+        return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
     }
 
     @Override
     public Map<String, Integer> queryIdTotalMapByCouponId(List<String> couponIdList) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         if (StrUtil.isEmpty(userToken)) {
+            return new HashMap<>();
+        }
+        String userTokenUserId = GetUserToken.getUserTokenUserId(InputObject.getRequest());
+        Boolean aBoolean = SysUserAuthConstants.exitUserLoginRedisCache(userTokenUserId);
+        if (!aBoolean) {
             return new HashMap<>();
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
@@ -264,5 +280,13 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         } else {
             throw new CustomException("优惠券使用次数已达到上限");
         }
+    }
+
+    @Override
+    public void deleteByCouponIds(List<String> ids) {
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CouponUse::getCouponId), ids);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.UNUSED.getKey());
+        remove(queryWrapper);
     }
 }
