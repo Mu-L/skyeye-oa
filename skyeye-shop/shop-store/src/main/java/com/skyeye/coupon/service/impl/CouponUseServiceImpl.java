@@ -204,7 +204,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         List<CouponUse> list = list(queryWrapper);
         couponService.setDataMation(list, CouponUse::getCouponId);
         List<CouponUse> collect = list.stream().map(item -> {
-            item.setUsageCount(item.getUsedCount());
+            item.setUsageCount(item.getCouponMation().getUseCount());
             return item;
         }).collect(Collectors.toList());
         return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
