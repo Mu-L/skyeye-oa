@@ -52,7 +52,10 @@ import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import com.skyeye.store.entity.ShopAddress;
 import com.skyeye.store.service.ShopAddressService;
 import com.skyeye.store.service.ShopTradeCartService;
+import com.skyeye.xxljob.ShopXxlJob;
 import com.xxl.job.core.util.IpUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,6 +106,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
 
     @Autowired
     private ShopTradeCartService shopTradeCartService;
+
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     @Override
     public void createPrepose(Order order) {
@@ -256,7 +261,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     public void createPostpose(Order order, String userId) {
         orderItemService.setValueAndCreateEntity(order, userId);
         couponUseService.updateState(order.getCouponUseId());// 更新用户领取的优惠券状态
+        log.info("订单id:"+order.getId()+"创建定时任务-- 开始");
         startUpTaskQuartz(order.getId(), order.getOddNumber(), DateUtil.getTimeAndToString());
+        log.info("订单id:"+order.getId()+"创建定时任务-- 结束");
         shopTradeCartService.deleteMySelect(userId);
     }
 
@@ -473,6 +480,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelType), params.get("cancelType"));
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
             update(updateWrapper);
+            log.info("订单id" + one.getId() + "取消订单--取消定时任务-- 开始");
+            iQuartzService.stopAndDeleteTaskQuartz(one.getId());// 删除任务
+            log.info("订单id" + one.getId() + "取消订单--取消定时任务-- 结束");
             refreshCache(params.get("id").toString());
         } else {
             throw new CustomException("订单不可取消");
@@ -530,7 +540,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
         update(updateWrapper);
         refreshCache(id);
+        log.info("订单id" + one.getId() + "支付成功--删除定时任务-- 开始");
         iQuartzService.stopAndDeleteTaskQuartz(id);// 删除定时任务
+        log.info("订单id" + one.getId() + "支付成功--删除定时任务-- 结束");
     }
 
     @Override

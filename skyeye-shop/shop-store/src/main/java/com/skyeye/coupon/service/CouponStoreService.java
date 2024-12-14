@@ -9,4 +9,6 @@ public interface CouponStoreService extends SkyeyeBusinessService<CouponStore> {
     void createEntity(String couponId, List<String> storeIdList);
 
     List<CouponStore> queryListByStoreId(String storeId);
+
+    void deleteByCouponIds(List<String> ids);
 }

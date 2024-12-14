@@ -23,7 +23,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
-import com.skyeye.coupon.entity.CouponStore;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
@@ -35,6 +34,9 @@ import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
+import com.skyeye.xxljob.ShopXxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +71,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Autowired
     private CouponStoreService couponStoreService;
+
+    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     @Override
     public void validatorEntity(Coupon coupon) {
@@ -106,6 +110,12 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             if (coupon.getDiscountPrice() == null) {
                 throw new CustomException("价格折扣类型优惠券，折扣金额不能为空");
             }
+            if (Integer.parseInt(coupon.getDiscountPrice()) > Integer.parseInt(coupon.getDiscountLimitPrice())) {
+                throw new CustomException("价格折扣类型优惠券，折扣金额不能大于等于优惠上限金额");
+            }
+            if (Integer.parseInt(coupon.getDiscountPrice()) > Integer.parseInt(coupon.getUsePrice())) {
+                throw new CustomException("价格折扣类型优惠券，折扣金额不能大于等于使用金额");
+            }
         } else {
             if (coupon.getDiscountPercent() == null) {
                 throw new CustomException("折扣率类型优惠券，折扣率不能为空");
@@ -114,7 +124,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         if (coupon.getTotalCount() <= CommonNumConstants.NUM_ZERO && coupon.getTotalCount() != -1) {
             throw new CustomException("优惠券总量不能为空");
         }
-        if (coupon.getUseCount()<=0){
+        if (coupon.getUseCount() <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("优惠券总使用次数不能为零");
         }
     }
@@ -131,7 +141,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 //        }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
+                log.info("优惠券id" + entity.getId() + "创建定时任务-- 开始");
                 startUpTaskQuartz(entity.getId(), entity.getName(), entity.getValidEndTime());
+                log.info("优惠券id" + entity.getId() + "创建定时任务-- 结束");
             }
         }
     }
@@ -232,7 +244,9 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Override
     public void deletePostpose(List<String> ids) {
-        couponMaterialService.deleteByCouponId(ids);
+        couponMaterialService.deleteByCouponId(ids);// 删除优惠券的适用对象
+        couponStoreService.deleteByCouponIds(ids);// 删除优惠券与门店关联的信息
+        couponUseService.deleteByCouponIds(ids);  // 删除已领取的但是未使用的优惠券
     }
 
     @Override
