@@ -23,7 +23,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
-import com.skyeye.coupon.entity.CouponStore;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
@@ -138,7 +137,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     @Override
     public void createPostpose(Coupon entity, String userId) {
         if (CollectionUtil.isNotEmpty(entity.getStoreIdList())) {// 优惠券关联门店
-            couponStoreService.createEntity(entity.getId(),entity.getStoreIdList());
+            couponStoreService.createEntity(entity.getId(), entity.getStoreIdList());
         }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
@@ -213,7 +212,11 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         QueryWrapper<Coupon> queryWrapper = new QueryWrapper<>();
         String storeId = params.get("storeId").toString();
         String type = params.get("type").toString();
-        // todo storeId未做
+        /*
+         * todo 优惠券是由厂商发布的，门店无法发放优惠券
+         *  需要线判断type，再考虑storeId
+         *  模板通用、查模板时不需要storeId，先判断type
+         */
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         if (StrUtil.equals(type, CommonNumConstants.NUM_ZERO.toString())) {
             queryWrapper.and(wrapper -> {
