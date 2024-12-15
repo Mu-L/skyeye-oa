@@ -39,18 +39,18 @@ public class Video extends OperatorUserInfo {
 
     @TableField("collection_num")
     @ApiModelProperty(value = "收藏数量，默认0")
-    private int collectionNum;
+    private String collectionNum;
 
     @TableField("visit_num")
     @ApiModelProperty(value = "收藏数量，默认0")
-    private int visitNum;
+    private String visitNum;
 
     @TableField("tasn_num")
     @ApiModelProperty(value = "收藏数量，默认0")
-    private int tasnNum;
+    private String tasnNum;
 
     @TableField("remark_num")
     @ApiModelProperty(value = "收藏数量，默认0")
-    private int remarkNum;
+    private String remarkNum;
 
 }

@@ -76,7 +76,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String videoId = map.get("videoId").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = selectById(videoId);
-        int supportNum = video.getTasnNum();
+        int supportNum = Integer.parseInt(video.getTasnNum());
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
@@ -87,13 +87,13 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         if (CollectionUtil.isNotEmpty(videoRecordList)) {
             //  不为空证明已经点赞了——进行取消点赞——删除记录表 点赞数减1
             supportNum--;
-            video.setTasnNum(supportNum);
+            video.setTasnNum(String.valueOf(supportNum));
             updateById(video);
             videoRecordService.removeById(videoRecordList.get(0).getId());
         } else {
             // 点赞数加1
             supportNum++;
-            video.setTasnNum(supportNum);
+            video.setTasnNum(String.valueOf(supportNum));
             updateById(video);
             // 为空则进行点赞记录
             VideoRecord videoRecord = new VideoRecord();
@@ -112,7 +112,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String videoId = map.get("videoId").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = selectById(videoId);
-        int collectNum = video.getCollectionNum();
+        int collectNum = Integer.parseInt(video.getCollectionNum());
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
@@ -122,13 +122,13 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         if (CollectionUtil.isNotEmpty(videoRecordList)) {
             // 不为空——取消收藏——删除记录,收藏数-1
             collectNum--;
-            video.setCollectionNum(collectNum);
+            video.setCollectionNum(String.valueOf(collectNum));
             updateById(video);
             videoRecordService.removeById(videoRecordList.get(0).getId());
         } else {
             // 收藏数加1
             collectNum++;
-            video.setCollectionNum(collectNum);
+            video.setCollectionNum(String.valueOf(collectNum));
             updateById(video);
             // 为空则_进行收藏记录
             VideoRecord videoRecord = new VideoRecord();
@@ -183,9 +183,9 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);
-        int visitNum = video.getVisitNum();
+        int visitNum = Integer.parseInt(video.getVisitNum());
         visitNum++;
-        video.setVisitNum(visitNum);
+        video.setVisitNum(String.valueOf(visitNum));
         updateById(video);
     }
 
