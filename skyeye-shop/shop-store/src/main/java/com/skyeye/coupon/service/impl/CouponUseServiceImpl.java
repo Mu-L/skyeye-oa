@@ -5,6 +5,7 @@
 package com.skyeye.coupon.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -42,10 +43,7 @@ import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -122,8 +120,16 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUse.setValidEndTime(coupon.getValidEndTime());
         } else {
             DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
-            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d")));
-            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedEndTime(), "d")));
+            // 计算开始生效时间
+            Date validStartTime = DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d");
+            // 在开始生效时间基础上加上fixedEndTime天数，得到结束时间
+            Date validEndTime = DateUtil.getAfDate(validStartTime, coupon.getFixedEndTime(), "d");
+            // 设置优惠券的开始和结束时间
+            couponUse.setValidStartTime(df.format(validStartTime));
+            couponUse.setValidEndTime(df.format(validEndTime));
+//            DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
+//            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d")));
+//            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedEndTime(), "d")));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);
@@ -209,7 +215,9 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         List<CouponUse> list = list(queryWrapper);
         couponService.setDataMation(list, CouponUse::getCouponId);
         List<CouponUse> collect = list.stream().map(item -> {
-            item.setUsageCount(item.getCouponMation().getUseCount());
+            if (item.getCouponMation() != null) {
+                item.setUsageCount(item.getCouponMation().getUseCount());
+            }
             return item;
         }).collect(Collectors.toList());
         return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
@@ -234,7 +242,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(CouponUse::getCouponId));
         List<Map<String, Object>> mapList = listMaps(queryWrapper);
         return CollectionUtil.isEmpty(mapList) ? new HashMap<>()
-            : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
+                : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
     }
 
     /**
@@ -262,15 +270,24 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
 
     @Override
     public void updateState(String couponUseId) {
-        UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, couponUseId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.USED.getKey());
-        update(updateWrapper);
+        CouponUse couponUse = selectById(couponUseId);
+        if (ObjUtil.isEmpty(couponUse)) {
+            throw new CustomException("优惠券使用记录不存在");
+        }
+        if (couponUse.getUsedCount() == couponUse.getUsageCount()) {
+            UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, couponUseId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.USED.getKey());
+            update(updateWrapper);
+        }
     }
 
     @Override
     public void UpdateUsedCount(String couponUseId) {
         CouponUse couponUse = selectById(couponUseId);
+        if (ObjUtil.isEmpty(couponUse)) {
+            throw new CustomException("优惠券使用记录不存在");
+        }
         Integer usedCount = couponUse.getUsedCount();
         if (couponUse.getUsedCount() < couponUse.getUsageCount()) {
             UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
