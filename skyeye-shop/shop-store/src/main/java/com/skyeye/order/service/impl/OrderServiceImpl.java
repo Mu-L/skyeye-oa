@@ -259,6 +259,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                 }
             }
         } else {// 满减 直接在总单减去价格,子单不做处理
+            couponUseService.UpdateUsedCount(order.getCouponUseId());// 修改优惠券使用次数
             String discountPrice = couponUse.getDiscountPrice();
             // 折后价
             String afterPrice = CalculationUtil.subtract(order.getTotalPrice(), discountPrice, CommonNumConstants.NUM_SIX);
