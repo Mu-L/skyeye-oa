@@ -11,6 +11,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
@@ -40,6 +41,17 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Autowired
     private VideoRecordService videoRecordService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
+
+    @Override
+    public Video selectById(String id) {
+        Video video = super.selectById(id);
+        iAuthUserService.setDataMation(video,Video::getCreateId);
+        return video;
+    }
 
     @Override
     public void queryMyVideoList(InputObject inputObject, OutputObject outputObject) {
