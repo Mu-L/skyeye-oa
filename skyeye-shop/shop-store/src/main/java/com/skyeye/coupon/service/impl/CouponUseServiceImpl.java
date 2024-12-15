@@ -100,6 +100,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     @Override
     public void createPrepose(CouponUse couponUse) {
         Coupon coupon = couponService.selectById(couponUse.getCouponId());
+        couponUse.setUsageCount(coupon.getUseCount());
         check(coupon);
         // 设置适用对象
         List<CouponUseMaterial> couponUseMaterialList = couponUse.getCouponUseMaterialList();
@@ -144,8 +145,6 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         couponService.updateTakeCount(couponUse.getCouponId(), couponUse.getCouponMation().getTakeCount() + 1);
         // 新增优惠券可使用的商品信息
         couponUseMaterialService.createEntity(couponUse.getCouponUseMaterialList(), userId);
-        Coupon coupon = couponService.selectById(couponUse.getCouponId());
-        couponUse.setUsageCount(coupon.getUseCount());
         // 定时任务
         Coupon couponMation = couponUse.getCouponMation();
         if (Objects.equals(couponMation.getValidityType(), CouponValidityType.TERM.getKey())) {
@@ -272,10 +271,11 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     @Override
     public void UpdateUsedCount(String couponUseId) {
         CouponUse couponUse = selectById(couponUseId);
+        Integer usedCount = couponUse.getUsedCount();
         if (couponUse.getUsedCount() < couponUse.getUsageCount()) {
             UpdateWrapper<CouponUse> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, couponUseId);
-            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), couponUse.getUsedCount() + 1);
+            updateWrapper.set(MybatisPlusUtil.toColumns(CouponUse::getUsedCount), usedCount + 1);
             update(updateWrapper);
         } else {
             throw new CustomException("优惠券使用次数已达到上限");

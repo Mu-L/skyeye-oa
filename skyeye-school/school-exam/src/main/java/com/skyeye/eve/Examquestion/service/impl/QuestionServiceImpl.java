@@ -79,13 +79,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     @Autowired
     private ExamQuScoreService examQuScoreService;
 
-    /**
-     * 创建题目后的后置处理
-     * @param entity 题目实体对象
-     * @param userId 创建题目的用户ID
-     */
     @Override
-    public void createPostpose(Question entity, String userId) {
+    protected void createPrepose(Question entity) {
         // 设置题目的标签和可见性
         entity.setQuTag(1);
         entity.setVisibility(1);
@@ -95,8 +90,15 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 设置是否上传，默认为2
         Integer whetherUpload = entity.getWhetherUpload() != null ? entity.getWhetherUpload() : 2;
         entity.setWhetherUpload(whetherUpload);
-        // 设置创建时间
-        entity.setCreateTime(DateUtil.getTimeAndToString());
+    }
+
+    /**
+     * 创建题目后的后置处理
+     * @param entity 题目实体对象
+     * @param userId 创建题目的用户ID
+     */
+    @Override
+    public void createPostpose(Question entity, String userId) {
         // 获取题目ID
         String quId = entity.getId();
         // 处理题目逻辑
