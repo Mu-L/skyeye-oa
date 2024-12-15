@@ -621,7 +621,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
             .allMatch(orderItemState -> orderItemState == ShopOrderItemState.FINISHED.getKey());
         if (allTwo) {
-            updateOrderState(orderId, ShopOrderState.SIGN.getKey());
+            updateOrderState(orderId, ShopOrderState.COMPLETED.getKey());
         } else {
             updateOrderState(orderId, ShopOrderState.PARTIALLYDONE.getKey());
         }
