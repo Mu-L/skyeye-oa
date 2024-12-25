@@ -9,10 +9,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.cache.redis.RedisCache;
-import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.constans.FileConstants;
-import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.constans.*;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -267,6 +265,9 @@ public class UploadServiceImpl implements UploadService {
             String fileExtName = fileName.substring(fileName.lastIndexOf(".") + 1);
             // 自定义的文件名称
             String newFileName = String.format(Locale.ROOT, "%s.%s", System.currentTimeMillis(), fileExtName);
+            bean.put("fileExtName", fileExtName);
+            bean.put("size", file.getSize());
+            bean.put("fileSizeType", "bytes");
             String path = basePath + "/" + newFileName;
 //            try {
 //                content = IoUtil.readBytes(file.getInputStream());
@@ -288,21 +289,35 @@ public class UploadServiceImpl implements UploadService {
             } else {
                 trueFileName.append(",").append(newFileName);
             }
+            saveFile(file, trueFileName.toString());
             break;
         }
         bean.put("picUrl", trueFileName.toString());
         bean.put("type", type);
         bean.put("fileName", fileName);
 
-//        com.skyeye.upload.entity.File file = new com.skyeye.upload.entity.File();
-//        file.setConfigId(client.getId());
-//        file.setName(fileName);
-//        file.setPath(trueFileName.toString());
-//        file.setUrl(trueFileName.toString());
-//        file.setType(FileUtil.getMineType(fileName));
-//        file.setSize(content.length);
-//        fileService.createEntity(file, StrUtil.EMPTY);
         outputObject.setBean(bean);
+    }
+
+    private void saveFile(MultipartFile multipartFile, String path) {
+        com.skyeye.upload.entity.File file = new com.skyeye.upload.entity.File();
+//        file.setConfigId(client.getId());
+        file.setName(multipartFile.getOriginalFilename());
+        file.setPath(path);
+        file.setUrl(path);
+        file.setType(FileUtil.getMineType(multipartFile.getOriginalFilename()));
+        file.setSize(multipartFile.getSize());
+
+        String userId = StrUtil.EMPTY;
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isNotEmpty(userToken)) {
+            String userTokenUserId = GetUserToken.getUserTokenUserId(InputObject.getRequest());
+            Boolean aBoolean = SysUserAuthConstants.exitUserLoginRedisCache(userTokenUserId);
+            if (aBoolean) {
+                userId = InputObject.getLogParamsStatic().get("id").toString();
+            }
+        }
+        fileService.createEntity(file, userId);
     }
 
     /**

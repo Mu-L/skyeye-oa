@@ -5,6 +5,8 @@
 package com.skyeye.upload.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.upload.entity.File;
 
 /**
@@ -19,4 +21,5 @@ public interface FileService extends SkyeyeBusinessService<File> {
 
     File queryByPath(String path);
 
+    void queryFileListByPath(InputObject inputObject, OutputObject outputObject);
 }
