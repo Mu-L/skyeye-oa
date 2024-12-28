@@ -32,27 +32,27 @@ public class DwAnEnumqu extends CommonInfo {
     private String id;
 
     @TableField("answer")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "answer" )
     private String answer;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "belongAnswerId" )
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "belongId" )
     private String belongId;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "quId" )
     private String quId;
 
     @TableField("enum_item")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "enumItem" )
     private String enumItem;
 
     @TableField("visibility")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "visibility" )
     private Integer visibility;
 
 

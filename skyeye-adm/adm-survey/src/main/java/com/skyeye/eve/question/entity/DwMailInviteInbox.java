@@ -33,11 +33,11 @@ public class DwMailInviteInbox extends CommonInfo {
     private String id;
 
     @TableField("email")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "email")
     private String email;
 
     @TableField("name")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "名称")
     private String name;
 
     @TableField("sendcloud_id")
@@ -49,11 +49,11 @@ public class DwMailInviteInbox extends CommonInfo {
     private Integer status;
 
     @TableField("survey_mail_invite_id")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "调查邀请邮件id")
     private String surveyMailInviteId;
 
     @TableField("us_contacts_id")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "联系人id")
     private String usContactsId;
 
     @TableField("create_id")

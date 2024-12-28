@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye-report Inc. All rights reserved.
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
-@Service
-@SkyeyeService(name = "答卷复合矩阵单选题", groupName = "答卷复合矩阵单选题", manageShow = false)
+//@Service
+//@SkyeyeService(name = "答卷复合矩阵单选题", groupName = "答卷复合矩阵单选题", manageShow = false)
 public class DwAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCompChenRadioDao, DwAnCompChenRadio> implements DwAnCompChenRadioService {
 }

@@ -32,23 +32,23 @@ public class DwAnCheckbox extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = " ")
+    @ApiModelProperty(value = "belongAnswerId")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "belongId" )
     private String belongId;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "quId" )
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "quItemId" )
     private String quItemId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = " " )
+    @ApiModelProperty(value = "visibility" )
     private Integer visibility;
 
 

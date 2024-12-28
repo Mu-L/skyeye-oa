@@ -44,7 +44,7 @@ public class DwAnOrder extends CommonInfo {
     private String belongId;
 
     @TableField("ordery_num")
-    @ApiModelProperty(value = "" )
+    @ApiModelProperty(value = "orderyNum" )
     private String orderyNum;
 
     @TableField("qu_id")
@@ -52,7 +52,7 @@ public class DwAnOrder extends CommonInfo {
     private String quId;
 
     @TableField("qu_row_id")
-    @ApiModelProperty(value = "" )
+    @ApiModelProperty(value = "quRowId" )
     private String quRowId;
 
     @TableField("visibility")
