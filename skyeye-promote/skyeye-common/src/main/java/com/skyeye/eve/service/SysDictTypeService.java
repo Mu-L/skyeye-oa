@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.dict.SysDictType;
 
+import java.util.List;
+
 /**
  * @ClassName: SysDictTypeService
  * @Description: 数据字典类型管理服务接口层
@@ -20,4 +22,13 @@ import com.skyeye.eve.entity.dict.SysDictType;
 public interface SysDictTypeService extends SkyeyeBusinessService<SysDictType> {
 
     void queryDictTypeListByEnabled(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 根据字典类型编码查询字典类型
+     *
+     * @param dictCodeList 字典类型编码列表
+     * @param enabled      启用状态
+     * @return
+     */
+    List<SysDictType> queryDictTypeIdByDictCode(List<String> dictCodeList, String enabled);
 }

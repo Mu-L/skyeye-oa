@@ -5,6 +5,7 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysDictTypeServiceImpl
@@ -77,6 +79,27 @@ public class SysDictTypeServiceImpl extends SkyeyeBusinessServiceImpl<SysDictTyp
         }
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
+    }
+
+    @Override
+    public List<SysDictType> queryDictTypeIdByDictCode(List<String> dictCodeList, String enabled) {
+        if (CollectionUtil.isEmpty(dictCodeList)) {
+            return new ArrayList<>();
+        }
+        dictCodeList = dictCodeList.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(dictCodeList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<SysDictType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(SysDictType::getDictCode), dictCodeList);
+        if (StringUtils.isNotEmpty(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictType::getEnabled), enabled);
+        }
+        List<SysDictType> dictTypeList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(dictTypeList)) {
+            return new ArrayList<>();
+        }
+        return dictTypeList;
     }
 
 }
