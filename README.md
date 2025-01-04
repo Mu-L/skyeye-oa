@@ -57,7 +57,7 @@
 | 框架 | 说明 | 版本 | 学习指南 |
 |---|---|---|---|
 | [Spring Cloud Alibaba](https://github.com/alibaba/spring-cloud-alibaba)    | 微服务框架  | 2.1.0.RELEASE  | [文档](https://github.com/YunaiV/SpringBoot-Labs) |
-| [Nacos](https://nacos.io/)   | 配置中心 & 注册中心  | 1.4.3  | [文档](https://nacos.io/docs/v1/what-is-nacos/)   |
+| [Nacos](https://nacos.io/)   | 配置中心 & 注册中心  | 2.3.0  | [文档](https://nacos.io/docs/v2.3/what-is-nacos/?spm=5238cd80.1c765b68.0.0.3f64e37eqGKvoq)   |
 | [RocketMQ](https://rocketmq.apache.org/zh/)  | 消息队列 | 4.0.0 | [文档](https://rocketmq.apache.org/zh/docs/4.x/)             |
 | [Sentinel](https://github.com/alibaba/sentinel)  | 服务保障| 2.1.0.RELEASE  | [文档](https://zhuanlan.zhihu.com/p/681044230)             |
 | [XXL Job](https://github.com/xuxueli/xxl-job) | 定时任务 | 2.3.0 | [文档](https://www.xuxueli.com/xxl-job/#google_vignette) |
