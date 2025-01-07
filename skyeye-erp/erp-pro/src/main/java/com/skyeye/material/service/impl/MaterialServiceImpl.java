@@ -277,6 +277,9 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
         Page pages = PageHelper.startPage(queryDo.getPage(), queryDo.getLimit());
         QueryWrapper<Material> queryWrapper = super.getQueryWrapper(queryDo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Material::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        if (StrUtil.isNotBlank(queryDo.getCategoryId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Material::getCategoryId), queryDo.getCategoryId());
+        }
         List<Material> beans = list(queryWrapper);
 
         // 获取规格单位信息
