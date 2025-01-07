@@ -50,6 +50,7 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
             ExamQuCheckbox bean = new ExamQuCheckbox();
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
+            bean.setOptionTitle(object.getOptionTitle());
             bean.setIsNote(object.getIsNote());
             bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
             if (!ToolUtil.isNumeric(object.getCheckType().toString())) {

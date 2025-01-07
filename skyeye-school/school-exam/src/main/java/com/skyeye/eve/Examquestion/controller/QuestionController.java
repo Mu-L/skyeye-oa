@@ -59,12 +59,25 @@ public class QuestionController {
     }
 
     /**
+     * 分页获取所有题库列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryPageQuestionList", value = "分页获取所有题库列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/QuestionController/queryPageQuestionList")
+    public void queryPageQuestionList(InputObject inputObject, OutputObject outputObject) {
+        questionService.queryPageQuestionList(inputObject, outputObject);
+    }
+
+    /**
      * 根据ID删除题目信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteQuestionById", value = "根据ID删除题目信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteQuestionById", value = "根据ID删除题目信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/QuestionController/deleteQuestionById")

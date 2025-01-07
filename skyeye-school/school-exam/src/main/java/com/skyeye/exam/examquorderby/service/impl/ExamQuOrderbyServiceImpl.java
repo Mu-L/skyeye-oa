@@ -44,6 +44,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
             ExamQuOrderby bean = new ExamQuOrderby();
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
+            bean.setOptionTitle(object.getOptionTitle());
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);

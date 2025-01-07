@@ -127,7 +127,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         examQuChenRowService.removeByQuId(quId);
         UpdateWrapper<ExamQuChenColumn> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), quId);
-        update(updateWrapper);
+        remove(updateWrapper);
     }
 
     @Override

@@ -5,6 +5,8 @@
 package com.skyeye.eve.Examquestion.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.Examquestion.entity.Question;
 
 import java.util.List;
@@ -23,6 +25,8 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
     void copyQuestionListMation(Question question);
 
     List<Question> queryQuestionMationCopyById(String surveyCopyId);
+
+    void queryPageQuestionList(InputObject inputObject, OutputObject outputObject);
 
 //    String saveQuestion(Question question, String id, String userId);
 

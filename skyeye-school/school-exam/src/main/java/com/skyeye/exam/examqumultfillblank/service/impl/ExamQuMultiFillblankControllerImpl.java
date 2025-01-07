@@ -44,6 +44,7 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
             ExamQuMultiFillblank bean = new ExamQuMultiFillblank();
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
+            bean.setOptionTitle(object.getOptionTitle());
             bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);

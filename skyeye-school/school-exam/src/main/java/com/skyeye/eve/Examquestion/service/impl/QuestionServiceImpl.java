@@ -6,11 +6,14 @@ package com.skyeye.eve.Examquestion.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -83,7 +86,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     protected void createPrepose(Question entity) {
         // 设置题目的标签和可见性
         entity.setQuTag(1);
-        entity.setVisibility(1);
         // 设置文件类型，默认为0
         Integer fileType = entity.getFileType() != null ? entity.getFileType() : 0;
         entity.setFileType(fileType);
@@ -94,6 +96,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 创建题目后的后置处理
+     *
      * @param entity 题目实体对象
      * @param userId 创建题目的用户ID
      */
@@ -112,34 +115,29 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 处理单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         if (!radioTd.isEmpty()) {
-            entity.setQuType(QuType.RADIO.getIndex());
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 处理得分题
         List<ExamQuScore> ScoreTd = entity.getScoreTd();
         if (!ScoreTd.isEmpty()) {
-            entity.setQuType(QuType.SCORE.getIndex());
             quScoreService.saveList(ScoreTd, quId, userId);
         }
         // 处理多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (!checkboxTd.isEmpty()) {
-            entity.setQuType(QuType.CHECKBOX.getIndex());
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 处理多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (!multiFillblankTd.isEmpty()) {
-            entity.setQuType(QuType.MULTIFILLBLANK.getIndex());
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 处理排序题
         List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
         if (!orderbyTd.isEmpty()) {
-            entity.setQuType(QuType.ORDERQU.getIndex());
             examQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
-        // 处理陈列题
+        // 处理矩阵题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
         if (!columnTd.isEmpty() && !rowTd.isEmpty()) {
@@ -149,6 +147,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 更新题目前的前置处理
+     *
      * @param entity 题目实体对象
      */
     @Override
@@ -192,6 +191,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 构建查询题目的包装器
+     *
      * @param commonPageInfo 分页信息
      * @return 题目查询包装器
      */
@@ -205,6 +205,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 删除题目前的执行操作
+     *
      * @param entity 题目实体对象
      */
     @Override
@@ -224,13 +225,16 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||
                 quType.equals(QuType.CHENFBK.getIndex()) ||
                 quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                quType.equals(QuType.COMPCHENRADIO.getIndex())) {
+                quType.equals(QuType.COMPCHENRADIO.getIndex()) ||
+                quType.equals(QuType.CHENSCORE.getIndex())
+        ) {
             examQuChenColumnService.removeByQuId(quId);
         }
     }
 
     /**
      * 根据归属ID查询题目列表
+     *
      * @param belongId 归属ID
      * @return 题目列表
      */
@@ -243,6 +247,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 复制题目信息的方法
+     *
      * @param question 题目实体对象，包含要复制的题目信息以及复制后题目的ID
      */
     @Override
@@ -336,6 +341,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     /**
      * 根据调查复制ID查询题目信息
+     *
      * @param surveyCopyId 调查复制ID
      * @return 题目信息列表
      */
@@ -348,4 +354,20 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE); // 等于可见性1
         return list(queryWrapper); // 返回查询结果列表
     }
+
+    @Override
+    public void queryPageQuestionList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = null;
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        if (commonPageInfo.getIsPaging() == null || commonPageInfo.getIsPaging()) {
+            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        }
+        QueryWrapper<Question> queryWrapper = getQueryWrapper(commonPageInfo);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));// 按创建时间降序
+        List<Question> questionList = list(queryWrapper);
+        outputObject.setBeans(questionList);
+        outputObject.settotal(pages.getTotal());
+    }
+
 }

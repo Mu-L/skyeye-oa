@@ -22,7 +22,7 @@ import org.yaml.snakeyaml.events.Event;
 public interface IUserRest {
 
     /**
-     * 根据id批量获取用户信息
+     * F根据id批量获取用户信息
      *
      * @param ids 主键id
      */

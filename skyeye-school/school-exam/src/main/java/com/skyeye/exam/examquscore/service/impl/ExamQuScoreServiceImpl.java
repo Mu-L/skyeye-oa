@@ -52,6 +52,7 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
             ExamQuScore bean = new ExamQuScore();
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
+            bean.setOptionTitle(object.getOptionTitle());
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
