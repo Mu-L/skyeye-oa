@@ -21,5 +21,7 @@ public interface SubjectService extends SkyeyeBusinessService<Subject> {
 
     void querySubjectListByUserId(InputObject inputObject, OutputObject outputObject);
 
+    void querySubjectListByMajorId(InputObject inputObject, OutputObject outputObject);
+
 //    void queryTeacherMessage(InputObject inputObject, OutputObject outputObject);
 }
