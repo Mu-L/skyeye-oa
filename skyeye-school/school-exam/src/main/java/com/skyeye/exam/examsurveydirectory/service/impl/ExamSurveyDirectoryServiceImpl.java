@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -91,9 +92,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                             questionNum++;
                         }
                     }
-                    examSurveyDirectory.setSurveyState(CommonNumConstants.NUM_ONE); // 设置试卷状态为已发布
-                    examSurveyDirectory.setFraction(fraction); // 设置总分数
-                    examSurveyDirectory.setSurveyQuNum(questionNum); // 设置题目总数
+                    UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+                    updateWrapper.eq(CommonConstants.ID, id);
+                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
+                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
+                    update(updateWrapper);
                 } else {
                     throw new CustomException("该试卷没有调查项，无法发布试卷。");
                 }
@@ -154,6 +157,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
         String examDirectoryId = map.get("id").toString(); // 获取试卷ID
+        ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String surveyId = ToolUtil.getSurFaceId();
         examSurveyDirectories.setId(surveyId); // 设置新调查ID
@@ -161,6 +165,24 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
         examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
+        examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
+        examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
+        examSurveyDirectories.setSurveyQuNum(examSurveyDirectory.getSurveyQuNum()); // 设置题目数量
+        examSurveyDirectories.setRealStartTime(examSurveyDirectory.getRealStartTime());
+        examSurveyDirectories.setRealEndTime(examSurveyDirectory.getRealEndTime());
+        examSurveyDirectories.setSurveyModel(examSurveyDirectory.getSurveyModel()); // 设置调查模型
+        examSurveyDirectories.setEndType(examSurveyDirectory.getEndType()); // 设置结束方式
+        examSurveyDirectories.setViewAnswer(examSurveyDirectory.getViewAnswer()); // 设置是否公开结果
+        examSurveyDirectories.setSchoolId(examSurveyDirectory.getSchoolId()); // 设置所属学校
+        examSurveyDirectories.setGradeId(examSurveyDirectory.getGradeId()); // 设置所属年级
+        examSurveyDirectories.setSemesterId(examSurveyDirectory.getSemesterId()); // 设置所属学期
+        examSurveyDirectories.setSubjectId(examSurveyDirectory.getSubjectId()); // 设置所属科目
+        examSurveyDirectories.setSessionYear(examSurveyDirectory.getSessionYear());
+        examSurveyDirectories.setFraction(examSurveyDirectory.getFraction());
+        examSurveyDirectories.setSurveyState(0); // 设置调查状态
+        examSurveyDirectories.setWhetherDelete(0); // 设置是否删除
+        examSurveyDirectories.setClassId(examSurveyDirectory.getClassId()); // 设置班级ID
+        createEntity(examSurveyDirectories, StrUtil.EMPTY); // 创建新的考试目录
         List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
         for (Question question : questionList) { // 遍历题目
             question.setCopyFromId(question.getId()); // 设置复制来源ID
@@ -196,7 +218,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     protected void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试目录ID
         String classId = entity.getClassId(); // 获取班级ID
-        examSurveyClassService.createExamSurveyClass(id, classId, userId); // 创建考试班级
+        examSurveyClassService.createExamSurveyClass(id, classId,userId); // 创建考试班级
         examSurveyMarkExamService.createExamSurveyMarkExam(id, userId); // 创建考试标记
     }
 

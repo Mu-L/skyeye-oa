@@ -38,7 +38,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private String surveyNote;
 
     @TableField("survey_qu_num")
-    @ApiModelProperty(value = "试卷下面有多少题目数 ", required = "required")
+    @ApiModelProperty(value = "试卷下面有多少题目数")
     private Integer surveyQuNum;
 
     @TableField("survey_state")

@@ -23,5 +23,6 @@ public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         ExamSurveyMarkExam examSurveyMarkExam = new ExamSurveyMarkExam();
         examSurveyMarkExam.setSurveyId(id);
         examSurveyMarkExam.setUserId(userId);
+        createEntity(examSurveyMarkExam,userId);
     }
 }

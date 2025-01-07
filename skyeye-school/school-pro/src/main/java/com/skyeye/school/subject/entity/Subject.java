@@ -44,6 +44,18 @@ public class Subject extends BaseGeneralInfo {
     @Property("拥有者id")
     private String ownerId;
 
+    @TableField(value = "school_id")
+    @ApiModelProperty("学校id")
+    private String schoolId;
+
+    @TableField(value = "faculty_id")
+    @ApiModelProperty("院系id")
+    private String facultyId;
+
+    @TableField(value = "major_id")
+    @ApiModelProperty("专业id")
+    private String majorId;
+
     @TableField(exist = false)
     @Property(value = "拥有者信息")
     private Map<String, Object> ownerMation;
