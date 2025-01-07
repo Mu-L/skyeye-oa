@@ -12,6 +12,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.user.service.UserService;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
@@ -43,13 +44,13 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     private VideoRecordService videoRecordService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private UserService userService;
 
 
     @Override
     public Video selectById(String id) {
         Video video = super.selectById(id);
-        iAuthUserService.setDataMation(video,Video::getCreateId);
+        userService.setDataMation(video,Video::getCreateId);
         return video;
     }
 
@@ -198,6 +199,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum));
         List<Video> bean = list(queryWrapper);
+        userService.setDataMation(bean,Video::getCreateId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }

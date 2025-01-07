@@ -38,19 +38,19 @@ public class Video extends OperatorUserInfo {
     private String videoSrc;
 
     @TableField("collection_num")
-    @ApiModelProperty(value = "收藏数量，默认0")
+    @ApiModelProperty(value = "收藏数量，默认0",defaultValue = "0")
     private String collectionNum;
 
     @TableField("visit_num")
-    @ApiModelProperty(value = "收藏数量，默认0")
+    @ApiModelProperty(value = "收藏数量，默认0",defaultValue = "0")
     private String visitNum;
 
     @TableField("tasn_num")
-    @ApiModelProperty(value = "收藏数量，默认0")
+    @ApiModelProperty(value = "收藏数量，默认0", defaultValue = "0")
     private String tasnNum;
 
     @TableField("remark_num")
-    @ApiModelProperty(value = "收藏数量，默认0")
+    @ApiModelProperty(value = "收藏数量，默认0", defaultValue = "0")
     private String remarkNum;
 
 }

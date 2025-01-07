@@ -30,16 +30,16 @@ public class VideoController {
     private VideoService videoService;
 
     /**
-     * 新增视频
+     * 新增/编辑视频
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeVideo", value = "新增视频", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeVideo", value = "新增/编辑视频", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Video.class)
     @RequestMapping("/post/VideoController/writeVideo")
     public void writeVideo(InputObject inputObject, OutputObject outputObject) {
-        videoService.createEntity(inputObject, outputObject);
+        videoService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**
