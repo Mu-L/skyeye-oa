@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 @Service
-@SkyeyeService(name = "答卷问答题保存", groupName = "答卷问答题保存", manageShow = false)
+//@SkyeyeService(name = "答卷问答题保存", groupName = "答卷问答题保存", manageShow = false)
 public class DwAnAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenCheckboxDao, DwAnChenCheckbox> implements DwAnChenCheckboxService {
 
 }

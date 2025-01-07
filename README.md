@@ -12,6 +12,8 @@
 
 **4. 我们的功能多达500个功能点，包含PC和移动端。本着`姜太公钓鱼愿者上钩`的心态来开放星球用户。`Skyeye云的功能是全网最全，价格最低的一款软件，没有之一`。如果你买了之后觉得不划算，那么进入星球后1个月内你可以找一套具备相同功能的软件源码提供给作者，并给作者提供一年的免费更新和维护，作者会原价退还给您。**
 
+**5. [体验地址](http://123.232.103.196:10380/) 账号密码请`star`后，进群联系作者获取。**
+
 **为什么推荐使用本项目？**
 
 ① 无论你是学生、个人与企业，进入星球后皆可 100% 免费使用，不用保留类作者、Copyright 信息。
@@ -44,31 +46,6 @@
 | nacos | 2.3.0 | 9000 |
 | MySQL | 5.7或更高版本 | 3308 |
 
-### 微服务项目
-
-> 介绍整体微服务的目录结构以及端口的占用情况。
-
-| 工程 | 端口 | 介绍 | jar包名称 |
-|:---------------------:|:---------------------:|:---------------------:|:---------------------:|
-| - | - | 后台微服务公共配置项 |
-|skyeye-web |8080 | **前端工程**  |web.jar |
-|skyeye-promote |8081 | **基础工程** (包含用户、组织、权限、API、消息队列、Skyeye系列的服务注册等基础服务)， **优先启动该工程** 。 |skyeye-web.jar |
-|skyeye-shop |8082 |商城 |shop-web.jar |
-|skyeye-flowable |8083 |工作流 |flowable-web.jar |
-|skyeye-report |8085 |报表设计器 |report-web.jar |
-|xxl-job-2.3.0 |8200 |定时任务 |xxl-job-admin-2.3.0.jar |
-|skyeye-school |8084 |学校模块 |school-web.jar |
-|skyeye-wages |8101 |薪资模块 |wages-web.jar |
-|skyeye-deploy |8010 |部署模块 |deploy-web.war |
-|skyeye-adm |8103 |行政模块 |adm-web.jar |
-|skyeye-boss |8104 |招聘模块 |boss-web.jar |
-|skyeye-checkwork |8105 |考勤模块 |checkwork-web.jar |
-|skyeye-crm |8102 |客户管理模块 |crm-web.jar |
-|skyeye-ifs |8107 |财务模块 |ifs-web.jar |
-|skyeye-project |8109 |PM项目管理模块 |project-web.jar |
-|skyeye-erp |8106 |ERP+生产模块 |erp-web.jar |
-|skyeye-seal-service |8108 |售后服务模块 |seal-service-web.jar |
-
 ##  :tw-1f31e:  架构介绍
 
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/image11.png)
@@ -80,7 +57,7 @@
 | 框架 | 说明 | 版本 | 学习指南 |
 |---|---|---|---|
 | [Spring Cloud Alibaba](https://github.com/alibaba/spring-cloud-alibaba)    | 微服务框架  | 2.1.0.RELEASE  | [文档](https://github.com/YunaiV/SpringBoot-Labs) |
-| [Nacos](https://nacos.io/)   | 配置中心 & 注册中心  | 1.4.3  | [文档](https://nacos.io/docs/v1/what-is-nacos/)   |
+| [Nacos](https://nacos.io/)   | 配置中心 & 注册中心  | 2.3.0  | [文档](https://nacos.io/docs/v2.3/what-is-nacos/?spm=5238cd80.1c765b68.0.0.3f64e37eqGKvoq)   |
 | [RocketMQ](https://rocketmq.apache.org/zh/)  | 消息队列 | 4.0.0 | [文档](https://rocketmq.apache.org/zh/docs/4.x/)             |
 | [Sentinel](https://github.com/alibaba/sentinel)  | 服务保障| 2.1.0.RELEASE  | [文档](https://zhuanlan.zhihu.com/p/681044230)             |
 | [XXL Job](https://github.com/xuxueli/xxl-job) | 定时任务 | 2.3.0 | [文档](https://www.xuxueli.com/xxl-job/#google_vignette) |
@@ -99,8 +76,8 @@
 
 | 框架 | 技术 | 版本 | 学习指南 |
 |---|---|---|---|
-|[layui](https://layui.uimaker.com/)|模块化前端UI| 2.6.7 | [文档](https://layui.uimaker.com/doc/index.html) |
-|winui|win10风格UI|自研|-|
+|[layui](https://layui.uimaker.com/)|模块化前端UI，已经开发完成。**（持续更新中）**| 2.6.7 | [文档](https://layui.uimaker.com/doc/index.html) |
+|Vue 3 + JavaScript + Vite 5.0.0 + Ant Design Vue 4.2.6| **开发中，开发完成后，凡是采购了`管理端移动端`的VIP用户皆可免费获取该版本。** | - | - |
 |[uni-app](https://uniapp.dcloud.net.cn/)|一个使用Vue.js开发所有前端应用的框架，开发者编写一套代码，可发布到iOS、Android、Web（响应式）、以及各种小程序、快应用等多个平台。| VUE3 |[文档](https://uniapp.dcloud.net.cn/component/)|
 
 ##  :tw-1f30f:  PC端效果图

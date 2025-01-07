@@ -10,6 +10,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.product.service.AutoProductService;
 import com.skyeye.project.dao.AutoProjectDao;
 import com.skyeye.project.entity.AutoProject;
 import com.skyeye.project.entity.AutoProjectQueryDo;
@@ -38,6 +39,9 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
     @Autowired
     private ITeamBusinessService iTeamBusinessService;
 
+    @Autowired
+    private AutoProductService autoProductService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         AutoProjectQueryDo projectQueryDo = inputObject.getParams(AutoProjectQueryDo.class);
@@ -64,6 +68,13 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
     @Override
     public void deletePostpose(String id) {
         iTeamBusinessService.deleteTeamBusiness(id, getServiceClassName());
+    }
+
+    @Override
+    public AutoProject selectById(String id) {
+        AutoProject autoProject = super.selectById(id);
+        autoProductService.setDataMation(autoProject, AutoProject::getProductId);
+        return autoProject;
     }
 
     @Override

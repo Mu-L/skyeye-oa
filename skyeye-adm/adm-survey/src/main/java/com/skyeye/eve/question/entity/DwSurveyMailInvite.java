@@ -44,15 +44,15 @@ public class DwSurveyMailInvite extends CommonInfo {
     private Integer audit;
 
     @TableField("sendcloud_msg_id")
-    @ApiModelProperty(value = " ")
-    private String sendcloud_msg_id;
+    @ApiModelProperty(value = "sendcloudMsgId")
+    private String sendcloudMsgId;
 
     @TableField("status")
     @ApiModelProperty(value = "状态 0未发送 1正在发送 2发送完成 3发送失败  4发送异常", required = "required")
     private Integer status;
 
     @TableField("subject")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "标题")
     private String subject;
 
     @TableField("inbox_num")

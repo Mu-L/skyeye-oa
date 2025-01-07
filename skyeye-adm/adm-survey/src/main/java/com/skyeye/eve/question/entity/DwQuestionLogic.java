@@ -52,7 +52,7 @@ public class DwQuestionLogic extends CommonInfo {
     private Integer logicType;
 
     @TableField("score_num")
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "分数")
     private Integer scoreNum;
 
     @TableField("sk_qu_id")

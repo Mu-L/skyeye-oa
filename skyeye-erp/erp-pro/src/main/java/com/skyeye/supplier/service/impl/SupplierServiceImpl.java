@@ -73,23 +73,6 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
     }
 
     @Override
-    public Supplier selectById(String id) {
-        Supplier supplier = super.selectById(id);
-        supplier.setServiceClassName(getServiceClassName());
-        return supplier;
-    }
-
-    @Override
-    public List<Supplier> selectByIds(String... ids) {
-        List<Supplier> suppliers = super.selectByIds(ids);
-        String serviceClassName = getServiceClassName();
-        suppliers.forEach(supplier -> {
-            supplier.setServiceClassName(serviceClassName);
-        });
-        return suppliers;
-    }
-
-    @Override
     public void deletePostpose(String id) {
         iTeamBusinessService.deleteTeamBusiness(id, getServiceClassName());
     }

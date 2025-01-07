@@ -5,13 +5,17 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
@@ -23,6 +27,7 @@ import com.skyeye.eve.dao.SysDictTypeDao;
 import com.skyeye.eve.entity.dict.SysDictData;
 import com.skyeye.eve.entity.dict.SysDictType;
 import com.skyeye.eve.service.SysDictDataService;
+import com.skyeye.eve.service.SysDictTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +48,9 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
 
     @Autowired
     private SysDictTypeDao sysDictTypeDao;
+
+    @Autowired
+    private SysDictTypeService sysDictTypeService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -194,6 +202,49 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
         wrapper.set(MybatisPlusUtil.toColumns(SysDictData::getParentId), parentId);
         update(null, wrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void queryDictDataListByDictTypeCodeList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String dictTypeCodeListStr = params.get("dictTypeCodeList").toString();
+        String enabled = params.get("enabled").toString();
+        if (StrUtil.isEmpty(dictTypeCodeListStr)) {
+            return;
+        }
+        List<String> dictTypeCodeList = JSONUtil.toList(dictTypeCodeListStr, String.class)
+            .stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(dictTypeCodeList)) {
+            return;
+        }
+        // 根据字典类型编码获取字典类型ID
+        List<SysDictType> dictTypeList = sysDictTypeService.queryDictTypeIdByDictCode(dictTypeCodeList, enabled);
+        if (CollectionUtil.isEmpty(dictTypeList)) {
+            return;
+        }
+        List<String> dictTypeIds = dictTypeList.stream().map(SysDictType::getId).collect(Collectors.toList());
+        // 根据字典类型ID获取字典数据列表
+        QueryWrapper<SysDictData> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(SysDictData::getDictTypeId), dictTypeIds);
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getEnabled), enabled);
+        }
+        List<SysDictData> dictDataList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return;
+        }
+        // 组装成map
+        Map<String, String> typeId2Code = dictTypeList.stream().collect(Collectors.toMap(SysDictType::getId, SysDictType::getDictCode));
+        // 按字典类型ID分组
+        Map<String, List<SysDictData>> collect = dictDataList.stream().collect(Collectors.groupingBy(SysDictData::getDictTypeId));
+        // 构造返回结果
+        Map<String, List<SysDictData>> resultMap = new HashMap<>();
+        // 遍历typeId2Code
+        for (Map.Entry<String, String> entry : typeId2Code.entrySet()) {
+            resultMap.put(entry.getValue(), collect.get(entry.getKey()));
+        }
+        outputObject.setBean(resultMap);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }

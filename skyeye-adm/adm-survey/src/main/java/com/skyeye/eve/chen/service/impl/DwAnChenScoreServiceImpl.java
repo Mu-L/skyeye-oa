@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 
-@Service
-@SkyeyeService(name = "答卷矩阵评分题", groupName = "答卷矩阵评分题", manageShow = false)
+//@Service
+//@SkyeyeService(name = "答卷矩阵评分题", groupName = "答卷矩阵评分题", manageShow = false)
 public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenScoreDao, DwAnChenScore> implements DwAnChenScoreService {
 
 }

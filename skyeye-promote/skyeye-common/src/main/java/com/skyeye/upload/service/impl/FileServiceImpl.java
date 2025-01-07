@@ -4,14 +4,23 @@
 
 package com.skyeye.upload.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.upload.dao.FileDao;
 import com.skyeye.upload.entity.File;
 import com.skyeye.upload.service.FileService;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: FileServiceImpl
@@ -31,6 +40,24 @@ public class FileServiceImpl extends SkyeyeBusinessServiceImpl<FileDao, File> im
         wrapper.eq(MybatisPlusUtil.toColumns(File::getPath), path);
         File file = getOne(wrapper, false);
         return file;
+    }
+
+    @Override
+    public void queryFileListByPath(InputObject inputObject, OutputObject outputObject) {
+        String path = inputObject.getParams().get("path").toString();
+        if (StrUtil.isEmpty(path)) {
+            return;
+        }
+        List<String> pathList = Arrays.asList(path.split(CommonCharConstants.COMMA_MARK)).stream()
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(pathList)) {
+            return;
+        }
+        QueryWrapper<File> wrapper = new QueryWrapper<>();
+        wrapper.in(MybatisPlusUtil.toColumns(File::getPath), path);
+        List<File> fileList = list(wrapper);
+        outputObject.setBeans(fileList);
+        outputObject.settotal(fileList.size());
     }
 
 }

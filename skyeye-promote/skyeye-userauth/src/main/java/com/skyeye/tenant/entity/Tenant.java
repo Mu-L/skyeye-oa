@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
@@ -27,7 +28,7 @@ import java.util.List;
  */
 @Data
 @UniqueField
-@RedisCacheField(name = "tenant:detail", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
+@RedisCacheField(name = CacheConstants.BASE_TENANT, cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "tenant")
 @ApiModel("租户实体类")
 public class Tenant extends BaseGeneralInfo {

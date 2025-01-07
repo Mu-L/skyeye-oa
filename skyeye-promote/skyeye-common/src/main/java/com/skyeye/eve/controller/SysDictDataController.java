@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.dict.SysDictData;
@@ -113,6 +114,21 @@ public class SysDictDataController {
     @RequestMapping("/post/SysDictDataController/queryDictDataListByDictTypeCode")
     public void queryDictDataListByDictTypeCode(InputObject inputObject, OutputObject outputObject) {
         sysDictDataService.queryDictDataListByDictTypeCode(inputObject, outputObject);
+    }
+
+    /**
+     * 根据所属类型Code批量获取数据字典列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryDictDataListByDictTypeCodeList", value = "根据所属类型Code批量获取数据字典列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "dictTypeCodeList", name = "dictTypeCodeList", value = "所属类型Code，集合", required = "required,json"),
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "是否启用", enumClass = EnableEnum.class)})
+    @RequestMapping("/post/SysDictDataController/queryDictDataListByDictTypeCodeList")
+    public void queryDictDataListByDictTypeCodeList(InputObject inputObject, OutputObject outputObject) {
+        sysDictDataService.queryDictDataListByDictTypeCodeList(inputObject, outputObject);
     }
 
     /**

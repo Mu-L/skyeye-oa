@@ -42,6 +42,6 @@ public class File extends BaseGeneralInfo {
 
     @TableField(value = "size")
     @ApiModelProperty(value = "文件大小")
-    private Integer size;
+    private long size;
 
 }

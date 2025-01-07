@@ -24,4 +24,6 @@ public interface SysDictDataService extends SkyeyeBusinessService<SysDictData> {
     void queryDictDataListByDictTypeCodeAndNotId(InputObject inputObject, OutputObject outputObject);
 
     void setDictDataParent(InputObject inputObject, OutputObject outputObject);
+
+    void queryDictDataListByDictTypeCodeList(InputObject inputObject, OutputObject outputObject);
 }
