@@ -1,5 +1,6 @@
 package com.skyeye.videocomment.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -21,4 +22,5 @@ public interface VideoCommentService extends SkyeyeBusinessService<VideoComment>
 
     void queryVideoCommentList(InputObject inputObject, OutputObject outputObject);
 
+    void deleteById(String id, String userId);
 }
