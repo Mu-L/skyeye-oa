@@ -2,12 +2,12 @@
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
 
-package com.skyeye.eve.Examquestion.service;
+package com.skyeye.eve.examquestion.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.Examquestion.entity.Question;
+import com.skyeye.eve.examquestion.entity.Question;
 
 import java.util.List;
 

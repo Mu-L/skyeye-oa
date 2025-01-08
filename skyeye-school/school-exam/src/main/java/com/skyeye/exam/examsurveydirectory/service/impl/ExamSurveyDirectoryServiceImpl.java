@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -14,8 +15,25 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.Examquestion.entity.Question;
-import com.skyeye.eve.Examquestion.service.QuestionService;
+import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.eve.examquestion.service.QuestionService;
+import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
+import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
+import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
+import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
+import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
+import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
+import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
+import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
+import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
+import com.skyeye.exam.examqumultfillblank.service.ExamQuMultiFillblankService;
+import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
+import com.skyeye.exam.examquorderby.service.ExamQuOrderbyService;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
+import com.skyeye.exam.examquradio.service.ExamQuRadioService;
+import com.skyeye.exam.examquscore.entity.ExamQuScore;
+import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
@@ -54,6 +72,33 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private QuestionService questionService;
+
+    @Autowired
+    private ExamQuRadioService examQuRadioService;
+
+    @Autowired
+    private ExamQuScoreService examquScoreService;
+
+    @Autowired
+    private ExamQuCheckboxService examQuCheckboxService;
+
+    @Autowired
+    private ExamQuMultiFillblankService examQuMultiFillblankService;
+
+    @Autowired
+    private ExamQuOrderbyService examQuOrderbyService;
+
+    @Autowired
+    private ExamQuChenColumnService examQuChenColumnService;
+
+    @Autowired
+    private ExamQuChenRowService examQuChenRowService;
+
+    @Autowired
+    private ExamQuScoreService examQuScoreService;
+
+    @Autowired
+    private ExamQuestionLogicService examQuestionLogicService;
 
     @Autowired
     private ExamSurveyAnswerService examSurveyAnswerService;
@@ -159,8 +204,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String examDirectoryId = map.get("id").toString(); // 获取试卷ID
         ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String surveyId = ToolUtil.getSurFaceId();
-        examSurveyDirectories.setId(surveyId); // 设置新调查ID
+
         examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
@@ -179,19 +223,38 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSubjectId(examSurveyDirectory.getSubjectId()); // 设置所属科目
         examSurveyDirectories.setSessionYear(examSurveyDirectory.getSessionYear());
         examSurveyDirectories.setFraction(examSurveyDirectory.getFraction());
-        examSurveyDirectories.setSurveyState(0); // 设置调查状态
+        examSurveyDirectories.setSurveyState(examSurveyDirectory.getSurveyState()); // 设置调查状态
         examSurveyDirectories.setWhetherDelete(0); // 设置是否删除
         examSurveyDirectories.setClassId(examSurveyDirectory.getClassId()); // 设置班级ID
-        createEntity(examSurveyDirectories, StrUtil.EMPTY); // 创建新的考试目录
+        createEntity(examSurveyDirectories, userId); // 创建新的试卷
         List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
+        if (ObjUtil.isEmpty(questionList)){
+            throw new CustomException("没有找到题目");
+        }
         for (Question question : questionList) { // 遍历题目
             question.setCopyFromId(question.getId()); // 设置复制来源ID
-            question.setId(ToolUtil.getSurFaceId()); // 设置新题目ID
-            question.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
-            question.setBelongId(surveyId); // 设置所属调查ID
-            questionService.copyQuestionListMation(question); // 复制题目信息
+            List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(question.getId());
+            question.setQuestionLogic(examQuestionLogics);
+            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getId());
+            question.setRadioTd(examQuRadioList);
+            List<ExamQuScore> examQuScoreList = examquScoreService.selectQuScore(question.getId());
+            question.setScoreTd(examQuScoreList);
+            List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getId());
+            question.setCheckboxTd(examQuCheckboxList);
+            List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(question.getId());
+            question.setMultifillblankTd(multiFillblanks);
+            List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
+            question.setOrderbyTd(examQuOrderbyList);
+            List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
+            question.setColumnTd(examQuChenColumnList);
+            List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(question.getId());
+            question.setRowTd(examQuChenRows);
+            List<ExamQuScore> examQuScoreList1 = examQuScoreService.selectQuScore(question.getId());
+            question.setScoreTd(examQuScoreList1);
+            question.setBelongId(examSurveyDirectories.getId()); // 设置所属试卷ID
+            questionService.createEntity(question, userId); // 创建新的题目
+            questionService.copyQuestionListMation(question); // 复制题目选项信息
         }
-        questionService.createEntity(questionList, StrUtil.EMPTY); // 创建复制后的题目
     }
 
     /**

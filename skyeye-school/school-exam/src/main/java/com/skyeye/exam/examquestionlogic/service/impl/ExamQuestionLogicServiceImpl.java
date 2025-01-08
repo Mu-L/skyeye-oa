@@ -1,10 +1,12 @@
 package com.skyeye.exam.examquestionlogic.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examquestionlogic.dao.ExamQuestionLogicDao;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
@@ -63,5 +65,14 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
         }
         insertList.addAll(editList);
         return insertList;
+    }
+
+    @Override
+    public List<ExamQuestionLogic> selectByQuestionId(String ckQuId) {
+        QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), ckQuId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
+        List<ExamQuestionLogic> list = list(queryWrapper);
+        return list;
     }
 }

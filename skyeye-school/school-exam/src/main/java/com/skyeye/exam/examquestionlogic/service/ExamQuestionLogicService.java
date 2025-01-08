@@ -15,4 +15,6 @@ import java.util.List;
  */
 public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQuestionLogic> {
     List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId);
+
+    List<ExamQuestionLogic> selectByQuestionId(String ckQuId);
 }
