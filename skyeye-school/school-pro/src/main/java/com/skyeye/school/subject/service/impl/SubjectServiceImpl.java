@@ -59,14 +59,6 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     private IAuthUserService iAuthUserService;
 
     @Override
-    public QueryWrapper<Subject> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<Subject> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 我创建的
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        return queryWrapper;
-    }
-
-    @Override
     public void createPrepose(Subject entity) {
         entity.setOwnerId(InputObject.getLogParamsStatic().get("id").toString());
     }
