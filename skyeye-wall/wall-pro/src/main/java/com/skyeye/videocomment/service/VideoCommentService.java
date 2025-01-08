@@ -1,7 +1,12 @@
 package com.skyeye.videocomment.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.comment.entity.Comment;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.videocomment.entity.VideoComment;
+
+import java.util.List;
 
 /**
  * @ClassName: VideoCommentService
@@ -12,4 +17,10 @@ import com.skyeye.videocomment.entity.VideoComment;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface VideoCommentService extends SkyeyeBusinessService<VideoComment> {
+
+    //    用户所创建的所有评论记录
+    List<VideoComment> queryVideoCommentList(String userId);
+
+    void queryVideoCommentList(InputObject inputObject, OutputObject outputObject);
+
 }

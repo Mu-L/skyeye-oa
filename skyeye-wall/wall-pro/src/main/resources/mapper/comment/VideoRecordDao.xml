@@ -4,21 +4,21 @@
 
     <select id="queryCommentList" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT
-            a.id,
-            a.content content,
-            a.ip ip,
-            a.anonymity anonymity,
-            a.upvote_num upvoteNum,
-            a.comment_id commentId,
-            a.parent_id parentId,
-            a.post_id postId,
-            a.user_id userId,
-            a.create_id createId,
-            CONVERT(a.create_time, char) createTime,
-            a.last_update_id lastUpdateId,
-            CONVERT(a.last_update_time, char) lastUpdateTime
+        a.id,
+        a.content content,
+        a.ip ip,
+        a.anonymity anonymity,
+        a.upvote_num upvoteNum,
+        a.comment_id commentId,
+        a.parent_id parentId,
+        a.post_id postId,
+        a.user_id userId,
+        a.create_id createId,
+        CONVERT(a.create_time, char) createTime,
+        a.last_update_id lastUpdateId,
+        CONVERT(a.last_update_time, char) lastUpdateTime
         FROM
-            wall_comment a
+        wall_comment a
         <where>
             a.post_id = #{objectId}
             AND (a.parent_id is NULL OR LENGTH(a.parent_id) = 0)

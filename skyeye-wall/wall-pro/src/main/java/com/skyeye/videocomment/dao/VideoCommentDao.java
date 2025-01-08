@@ -1,7 +1,12 @@
 package com.skyeye.videocomment.dao;
 
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.videocomment.entity.VideoComment;
+//import com.skyeye.videocomment.entity.VideoComment;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: VideoCommentDao
@@ -12,4 +17,5 @@ import com.skyeye.videocomment.entity.VideoComment;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface VideoCommentDao extends SkyeyeBaseMapper<VideoComment> {
+    List<Map<String, Object>> queryVideoCommentList(CommonPageInfo commonPageInfo);
 }
