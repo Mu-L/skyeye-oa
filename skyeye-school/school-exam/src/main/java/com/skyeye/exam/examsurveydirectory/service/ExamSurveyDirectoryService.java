@@ -26,4 +26,8 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     void copyExamDirectory(InputObject inputObject, OutputObject outputObject);
 
     void updateExamMationEndById(InputObject inputObject, OutputObject outputObject);
+
+    void queryMyExamList(InputObject inputObject, OutputObject outputObject);
+
+    void queryFilterExamLists(InputObject inputObject, OutputObject outputObject);
 }

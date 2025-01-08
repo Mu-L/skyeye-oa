@@ -73,6 +73,14 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "所属学校", required = "required")
     private String schoolId;
 
+    @TableField("faculty_id")
+    @ApiModelProperty(value = "所属学院")
+    private String facultyId;
+
+    @TableField("major_id")
+    @ApiModelProperty(value = "所属专业")
+    private String majorId;
+
     @TableField("grade_id")
     @ApiModelProperty(value = "所属年级")
     private String gradeId;
@@ -88,10 +96,6 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @TableField("subject_id")
     @ApiModelProperty(value = "考试科目", required = "required")
     private String subjectId;
-
-    @TableField("session_year")
-    @ApiModelProperty(value = "哪一届的学生，比如：2023")
-    private String sessionYear;
 
     @TableField("fraction")
     @ApiModelProperty(value = "总分数")

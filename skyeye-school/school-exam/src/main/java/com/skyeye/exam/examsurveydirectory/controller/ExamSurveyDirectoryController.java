@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
@@ -69,15 +70,28 @@ public class ExamSurveyDirectoryController {
     }
 
     /**
-     * 分页获取我的试卷列表
+     * 获取所有试卷列表
      *
      * @param inputObject 入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queFryAllExamList", value = "获取所有试卷列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllExamList", value = "获取所有试卷列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryAllExamList")
     public void queryAllExamList(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryPageList(inputObject, outputObject);
+    }
+
+    /**
+     * 获取我的试卷列表
+     *
+     * @param inputObject 入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyExamList", value = "获取我的试卷列表", method = "POST", allUse = "2")
+    @RequestMapping("/post/ExamSurveyDirectoryController/queryMyExamList")
+    public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.queryMyExamList(inputObject, outputObject);
     }
 
     /**
@@ -134,6 +148,19 @@ public class ExamSurveyDirectoryController {
     @RequestMapping("/post/ExamSurveyDirectoryController/updateExamMationEndById")
     public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.updateExamMationEndById(inputObject, outputObject);
+    }
+
+    /**
+     * 分页筛选试卷
+     *
+     * @param inputObject 入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryFilterExamLists", value = "筛选试卷", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/queryFilterExamLists")
+    public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.queryFilterExamLists(inputObject, outputObject);
     }
 
 }

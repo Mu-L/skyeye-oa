@@ -1,7 +1,11 @@
 package com.skyeye.exam.examsurveydirectory.dao;
 
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
+
+import java.util.List;
+
 /**
  * @ClassName: ExamSurveyDirectoryDao
  * @Description: 试卷管理数据接口层
@@ -11,4 +15,5 @@ import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamSurveyDirectoryDao extends SkyeyeBaseMapper<ExamSurveyDirectory> {
+    List<ExamSurveyDirectory> queryExamLists(CommonPageInfo commonPageInfo);
 }

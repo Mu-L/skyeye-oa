@@ -4,6 +4,8 @@ import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -18,6 +20,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -103,14 +106,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private ExamSurveyAnswerService examSurveyAnswerService;
 
-    @Override
-    public QueryWrapper<ExamSurveyDirectory> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 我创建的
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        return queryWrapper;
-    }
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private ExamSurveyDirectoryDao examSurveyDirectoryDao;
+
+    /*@Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iAuthUserService.setMationForMap(beans,"createId","createMation");
+        return beans;
+    }
+*/
     /**
      * 设置考试目录的方法
      * @param inputObject 输入对象，包含请求参数
@@ -221,7 +229,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setGradeId(examSurveyDirectory.getGradeId()); // 设置所属年级
         examSurveyDirectories.setSemesterId(examSurveyDirectory.getSemesterId()); // 设置所属学期
         examSurveyDirectories.setSubjectId(examSurveyDirectory.getSubjectId()); // 设置所属科目
-        examSurveyDirectories.setSessionYear(examSurveyDirectory.getSessionYear());
+        examSurveyDirectories.setFacultyId(examSurveyDirectory.getFacultyId()); // 设置所属院系
+        examSurveyDirectories.setMajorId(examSurveyDirectory.getMajorId()); // 设置所属专业
         examSurveyDirectories.setFraction(examSurveyDirectory.getFraction());
         examSurveyDirectories.setSurveyState(examSurveyDirectory.getSurveyState()); // 设置调查状态
         examSurveyDirectories.setWhetherDelete(0); // 设置是否删除
@@ -331,6 +340,27 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         } else {
             throw new CustomException("该试卷信息不存在!");
         }
+    }
+
+    @Override
+    public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
+        List<ExamSurveyDirectory> bean = list(queryWrapper);
+        iAuthUserService.setDataMation(bean,ExamSurveyDirectory::getCreateId);
+        outputObject.setBeans(bean);
+        outputObject.settotal(bean.size());
+    }
+
+    @Override
+    public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<ExamSurveyDirectory> beans = examSurveyDirectoryDao.queryExamLists(commonPageInfo);
+        iAuthUserService.setDataMation(beans,ExamSurveyDirectory::getCreateId);
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 
 }
