@@ -31,5 +31,5 @@
  *		:: springboot 2.x
  *      :: Skyeye系列框架，作者：卫志强
  *      :: 作者独家专属，未购买禁止私自使用
- *      nohup java -jar -Dspring.cloud.nacos.discovery.server-addr=175.27.188.37:8848 -Dspring.cloud.nacos.config.server-addr=175.27.188.37:8848 deploy-web.war &
+ *      nohup java -Xms800m -Xmx800m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar -Dspring.cloud.nacos.discovery.server-addr=175.27.188.37:8848 -Dspring.cloud.nacos.config.server-addr=175.27.188.37:8848 deploy-web.war &
 */
