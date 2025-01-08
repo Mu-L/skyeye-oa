@@ -147,6 +147,18 @@ public class Question extends OperatorUserInfo {
     @ApiModelProperty(value = "0表示问题已经删除，1.表示未删除，默认为1")
     private Integer isDelete;
 
+    @TableField(value = "school_id")
+    @ApiModelProperty(value = "学校id",required = "required")
+    private String schoolId;
+
+    @TableField(value = "major_id")
+    @ApiModelProperty(value = "专业id",required = "required")
+    private String majorId;
+
+    @TableField(value = "subject_id")
+    @ApiModelProperty(value = "科目id",required = "required")
+    private String subjectId;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "单选题选项信息", required = "json")
     private List<ExamQuRadio> radioTd;

@@ -85,4 +85,18 @@ public class QuestionController {
         questionService.deleteById(inputObject, outputObject);
     }
 
+    /**
+     * 根据科目ID查询题目信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "selectQuestionBySubjecId", value = "根据科目ID查询题目信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/QuestionController/selectQuestionBySubjecId")
+    public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
+        questionService.selectQuestionBySubjecId(inputObject, outputObject);
+    }
+
+
 }
