@@ -374,16 +374,12 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Override
     public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page pages = null;
-        setCommonPageInfoOtherInfo(commonPageInfo);
-        if (commonPageInfo.getIsPaging() == null || commonPageInfo.getIsPaging()) {
-            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        }
+        String subjectId = inputObject.getParams().get("subjectId").toString();
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), commonPageInfo.getHolderId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
         List<Question> questionList = list(queryWrapper);
+        iAuthUserService.setDataMation(questionList,Question::getCreateId);
         outputObject.setBeans(questionList);
-        outputObject.settotal(pages.getTotal());
+        outputObject.settotal(questionList.size());
     }
 }

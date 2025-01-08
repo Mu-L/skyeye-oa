@@ -85,13 +85,15 @@ public class SubjectController {
     }
 
     /**
-     * 根据专业id分页查询所有科目
+     * 根据专业id所有科目
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySubjectListByMajorId", value = "根据专业id分页查询所有科目传holderId（专业id）", method = "GET", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiOperation(id = "querySubjectListByMajorId", value = "根据专业id查询所有科目", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+          @ApiImplicitParam(id = "majorId", name = "majorId", value = "专业id", required = "required")
+    })
     @RequestMapping("/post/SubjectController/querySubjectListByMajorId")
     public void querySubjectListByMajorId(InputObject inputObject, OutputObject outputObject) {
         subjectService.querySubjectListByMajorId(inputObject, outputObject);
