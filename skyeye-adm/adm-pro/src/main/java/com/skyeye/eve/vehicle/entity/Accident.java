@@ -64,7 +64,7 @@ public class Accident extends BaseGeneralInfo {
 
     @TableField("manufacturer")
     @ApiModelProperty(value = "维修厂家")
-    private Integer manufacturer;
+    private String manufacturer;
 
     @TableField("repair_start_time")
     @ApiModelProperty(value = "送修开始时间")
