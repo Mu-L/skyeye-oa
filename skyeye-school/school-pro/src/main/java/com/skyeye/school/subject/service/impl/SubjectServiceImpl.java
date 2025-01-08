@@ -7,6 +7,8 @@ package com.skyeye.school.subject.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.SchoolConstants;
@@ -130,6 +132,19 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         }
         outputObject.setBeans(semesterList);
         outputObject.settotal(semesterList.size());
+    }
+
+    @Override
+    public void querySubjectListByMajorId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String majorId = commonPageInfo.getHolderId();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getMajorId), majorId);
+        List<Subject> list = list(queryWrapper);
+        iAuthUserService.setDataMation(list,Subject::getCreateId);
+        outputObject.setBeans(list);
+        outputObject.settotal(page.getTotal());
     }
 
     private List<Subject> querySubjectListByUserId(String userId) {

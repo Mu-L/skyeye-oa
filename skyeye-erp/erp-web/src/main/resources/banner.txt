@@ -31,6 +31,6 @@
  *		:: springboot 2.x
  *      :: Skyeye系列框架，作者：卫志强
  *      :: 作者独家专属，未购买禁止私自使用
- *      启动：nohup java -jar -Dspring.cloud.nacos.discovery.server-addr=localhost:9000 -Dspring.cloud.nacos.config.server-addr=localhost:9000  -Dspring.profiles.active=dev erp-web.jar >> /opt/service/project/nohup-erp.out 2>&1 &
+ *      启动：nohup java -Xms800m -Xmx800m -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m -jar -Dspring.cloud.nacos.discovery.server-addr=localhost:9000 -Dspring.cloud.nacos.config.server-addr=localhost:9000  -Dspring.profiles.active=dev erp-web.jar >> /opt/service/project/nohup-erp.out 2>&1 &
  *      清空日志：cat /dev/null > xxx-web.out
 */
