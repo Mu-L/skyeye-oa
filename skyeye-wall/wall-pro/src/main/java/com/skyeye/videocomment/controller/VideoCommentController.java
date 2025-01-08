@@ -4,7 +4,6 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.comment.entity.Comment;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -29,7 +28,7 @@ public class VideoCommentController {
     @Autowired
     private VideoCommentService videoCommentService;
 
-        /**
+    /**
      * 新增视频评论信息   评论总数量+1
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -42,7 +41,6 @@ public class VideoCommentController {
         videoCommentService.createEntity(inputObject, outputObject);
     }
 
-
     /**
      * 获取视频所有评论信息列表
      *
@@ -53,9 +51,8 @@ public class VideoCommentController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoCommentController/queryVideoCommentList")
     public void queryVideoCommentList(InputObject inputObject, OutputObject outputObject) {
-        videoCommentService.queryVideoCommentList(inputObject, outputObject);
+        videoCommentService.queryPageList(inputObject, outputObject);
     }
-
 
     /**
      * 根据ID删除视频评论

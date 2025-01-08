@@ -30,7 +30,7 @@ public class VideoComment extends OperatorUserInfo {
     private String content;
 
     @TableField("ip")
-    @ApiModelProperty(value = "IP属地",required = "required")
+    @ApiModelProperty(value = "IP属地", required = "required")
     private String ip;
 
     @TableField("upvote_num")
@@ -46,7 +46,7 @@ public class VideoComment extends OperatorUserInfo {
     private String userId;
 
     @TableField("video_id")
-    @ApiModelProperty(value = "视频id",required = "required")
+    @ApiModelProperty(value = "视频id", required = "required")
     private String videoId;
 
 }

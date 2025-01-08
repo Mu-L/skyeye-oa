@@ -1,13 +1,10 @@
 package com.skyeye.videocomment.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.service.VideoService;
@@ -20,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: VideoCommentServiceImpl
@@ -42,54 +38,22 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
 
     // validatorEntity 前置执行
     @Override
-        public void validatorEntity(VideoComment entity) {
-        super.validatorEntity(entity);
+    public void validatorEntity(VideoComment entity) {
         // 获取实体类中的parentId属性值
         String parentId = entity.getParentId();
         // 判断传入的parentId是否为空
-            //1.查找这条评论的 parentId
+        //1.查找这条评论的 parentId
         VideoComment videoComment = videoCommentService.selectById(parentId);
-        if (StrUtil.isNotEmpty(videoComment.getParentId())){
+        if (StrUtil.isNotEmpty(videoComment.getParentId())) {
             throw new CustomException("不可评论");
         }
-    }
-
-    //    重写queryPageDataList方法
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryVideoCommentList(commonPageInfo);
-        List<String> ids = beans.stream()
-                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
-        videoCommentService.setMationForMap(beans, "createId", "createMation");
-        videoCommentService.setMationForMap(beans, "userId", "userMation");
-        return beans;
-    }
-
-
-    //    用户所创建的所有评论记录
-    @Override
-    public List<VideoComment> queryVideoCommentList(String userId) {
-        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getCreateId), userId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
-        return list(queryWrapper);
-    }
-
-
-    @Override
-    public void queryVideoCommentList(InputObject inputObject, OutputObject outputObject) {
-        List<VideoComment> videoCommentList = queryAllData();
-        outputObject.setBean(videoCommentList);
-        outputObject.settotal(videoCommentList.size());
-
     }
 
     // 新增评论  评论+1
     @Transactional  //事务
     @Override
     // createPostpose后置执行  entity(新插入的数据)   userId(用户id)
-    protected void createPostpose(VideoComment entity, String userId) {
+    public void createPostpose(VideoComment entity, String userId) {
         // 获取 新插入数据的 视频id
         String videoId = entity.getVideoId();
         // 获取 videoService视频表相应的id
@@ -126,17 +90,13 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoService.updateEntity(video, userId);
     }
 
+    @Override
+    public List<VideoComment> queryVideoCommentList(String userId) {
+        return null;
+    }
 
-//    //重写新增的方法
-//    @Override
-//    protected void validatorEntity(T entity) {
-//        String id = (String) ReflectUtil.getFieldValue(entity, "id");
-//        QueryWrapper<T> wrapper = this.queryWrapper(entity, id);
-//        if (wrapper != null) {
-//            T result = (CommonInfo)this.getOne(wrapper);
-//            if (ObjectUtil.isNotEmpty(result)) {
-//                throw new RuntimeException("The same data exists.");
-//            }
-//        }
+    @Override
+    public void queryVideoCommentList(InputObject inputObject, OutputObject outputObject) {
 
+    }
 }
