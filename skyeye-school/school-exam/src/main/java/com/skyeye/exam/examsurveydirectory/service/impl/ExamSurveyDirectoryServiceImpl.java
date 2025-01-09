@@ -352,7 +352,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 // 获取当前时间作为实际结束时间
                 String realEndTime = DateUtil.getTimeAndToString();
                 UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+                updateWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
                 // 设置实际结束时间为当前时间
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getRealEndTime), realEndTime);
                 // 设置考试目录状态为已结束（NUM_TWO）

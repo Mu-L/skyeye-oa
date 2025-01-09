@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
@@ -48,7 +49,7 @@ public class Question extends OperatorUserInfo {
     private Integer quTag;
 
     @TableField("qu_type")
-    @ApiModelProperty(value = "题目类型", required = "required")
+    @ApiModelProperty(value = "题目类型", required = "required",enumClass = QuType.class)
     private Integer quType;
 
     @TableField("answer_input_row")
