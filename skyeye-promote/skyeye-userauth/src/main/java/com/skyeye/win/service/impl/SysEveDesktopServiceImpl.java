@@ -62,7 +62,7 @@ public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDe
         }
         SysDesktop checkSysEveDesktop = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(checkSysEveDesktop)) {
-            throw new CustomException("该桌面名称已存在，请更换.");
+            throw new CustomException("该名称/编码已存在，请更换.");
         }
     }
 
