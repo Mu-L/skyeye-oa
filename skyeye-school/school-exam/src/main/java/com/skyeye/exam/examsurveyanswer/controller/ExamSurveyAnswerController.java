@@ -37,7 +37,7 @@ public class ExamSurveyAnswerController {
     @ApiImplicitParams(classBean = ExamSurveyAnswer.class)
     @RequestMapping("/post/ExamSurveyAnswerController/writeExamSurveyAnswer")
     public void writeExamSurveyAnswer(InputObject inputObject, OutputObject outputObject) {
-        examSurveyAnswerService.createEntity(inputObject, outputObject);
+        examSurveyAnswerService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
 

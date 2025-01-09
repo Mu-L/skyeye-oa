@@ -7,11 +7,10 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examancheckbox.dao.ExamAnCheckboxDao;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,5 +38,12 @@ public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnC
         List<ExamAnCheckbox> examAnCheckboxList = list(queryWrapper);
         outputObject.setBean(examAnCheckboxList);
         outputObject.settotal(examAnCheckboxList.size());
+    }
+
+    @Override
+    public List<ExamAnCheckbox> slectBySurveyId(String surveyId) {
+        QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getBelongId), surveyId);
+        return list(queryWrapper);
     }
 }

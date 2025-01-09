@@ -3,12 +3,28 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.eve.examquestion.service.QuestionService;
+import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
+import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
+import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
+import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
+import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examanradio.entity.ExamAnRadio;
+import com.skyeye.exam.examanradio.service.ExamAnRadioService;
+import com.skyeye.exam.examanscore.entity.ExamAnScore;
+import com.skyeye.exam.examanscore.service.ExamAnScoreService;
+import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
+import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exception.CustomException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +33,7 @@ import java.util.Map;
 /**
  * @ClassName: ExamSurveyAnswerServiceImpl
  * @Description: 试卷回答信息表管理服务层
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--lyj
  * @date: 2024/7/19 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -25,6 +41,48 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "试卷回答信息表管理", groupName = "试卷回答信息表管理")
 public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService {
+
+    @Autowired
+    private ExamAnRadioService examAnRadioService;
+
+    @Autowired
+    private ExamAnScoreService examAnScoreService;
+
+    @Autowired
+    private ExamAnYesnoService examAnYesnoService;
+
+    @Autowired
+    private ExamAnAnswerService examAnAnswerService;
+
+    @Autowired
+    private ExamAnCheckboxService examAnCheckboxService;
+
+    @Autowired
+    private ExamAnChenCheckboxService examAnChenCheckboxService;
+    @Override
+    protected void createPrepose(ExamSurveyAnswer entity) {
+        if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
+            throw new CustomException("开始时间不能大于结束时间");
+        }
+        if (entity.getMarkStartTime().isAfter(entity.getMarkEndTime())){
+            throw new CustomException("阅卷开始时间不能大于结束时间");
+        }
+    }
+
+    @Override
+    protected void createPostpose(ExamSurveyAnswer entity, String userId) {
+        String surveyId = entity.getSurveyId();
+        List<ExamAnRadio> examAnRadioList = examAnRadioService.selectRadioBySurveyId(surveyId);
+        List<ExamAnScore> examAnScoreList = examAnScoreService.selectBySurveyId(surveyId);
+        List<ExamAnYesno> examAnYesnoList = examAnYesnoService.selectBySurveyId(surveyId);
+        List<ExamAnAnswer> examAnAnswerList = examAnAnswerService.selectBySurveyId(surveyId);
+        List<ExamAnCheckbox> examAnCheckboxList = examAnCheckboxService.slectBySurveyId(surveyId);
+        examAnChenCheckboxService.s
+
+
+
+    }
+
     @Override
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

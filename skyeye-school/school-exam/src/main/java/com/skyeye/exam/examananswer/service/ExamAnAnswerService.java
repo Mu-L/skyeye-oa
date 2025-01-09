@@ -6,6 +6,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnAnswerService
  * @Description: 答卷/问答题保存表管理服务接口层
@@ -16,4 +18,6 @@ import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
  */
 public interface ExamAnAnswerService extends SkyeyeBusinessService<ExamAnAnswer> {
     void queryExamAnAnswerListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnAnswer> selectBySurveyId(String surveyId);
 }
