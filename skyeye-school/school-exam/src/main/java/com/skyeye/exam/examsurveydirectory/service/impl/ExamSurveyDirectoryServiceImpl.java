@@ -343,7 +343,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, Object> map = inputObject.getParams();
         String examSurveyDirectoryId = map.get("id").toString();
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+        queryWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
         ExamSurveyDirectory examSurveyDirectory = getOne(queryWrapper);
         // 判断考试目录对象是否存在
         if (ObjUtil.isNotEmpty(examSurveyDirectory)) {

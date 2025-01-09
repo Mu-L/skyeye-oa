@@ -108,7 +108,7 @@ public class Question extends OperatorUserInfo {
     private Integer randOrder;
 
     @TableField("tag")
-    @ApiModelProperty(value = "标记     1题库中的题   2试卷中的题")
+    @ApiModelProperty(value = "标记 1题库中的题   2试卷中的题")
     private Integer tag;
 
     @TableField("visibility")
