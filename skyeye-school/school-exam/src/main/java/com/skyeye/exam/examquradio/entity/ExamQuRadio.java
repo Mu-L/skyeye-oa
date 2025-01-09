@@ -38,7 +38,7 @@ public class ExamQuRadio extends OperatorUserInfo {
     private String optionId;
 
     @TableField("option_title")
-    @ApiModelProperty(value = "选项标题",required = "required")
+    @ApiModelProperty(value = "选项标题")
     private String optionTitle;
 
     @TableField("check_type")

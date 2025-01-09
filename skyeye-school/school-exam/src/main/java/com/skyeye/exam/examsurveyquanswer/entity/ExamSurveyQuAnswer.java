@@ -20,7 +20,7 @@ import lombok.Data;
 @RedisCacheField(name = "Exam:quanswer")
 @TableName(value = "exam_survey_qu_answer")
 @ApiModel("答卷 题目和所得分数的关联表实体类")
-public class ExamSurveyQuAnswer extends CommonInfo {
+public class                                                                                                                          ExamSurveyQuAnswer extends CommonInfo {
 
     @TableField("qu_id")
     @ApiModelProperty(value = "问题id", required = "required")

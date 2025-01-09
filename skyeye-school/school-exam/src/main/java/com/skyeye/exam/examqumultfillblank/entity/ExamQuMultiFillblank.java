@@ -11,7 +11,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:multifillblank")
+//@RedisCacheField(name = "Exam:multifillblank")
 @TableName(value = "exam_qu_multi_fillblank")
 @ApiModel("多行填空题实体类")
 public class ExamQuMultiFillblank extends OperatorUserInfo {
