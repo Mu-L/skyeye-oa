@@ -4,7 +4,8 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnChenFbkService
@@ -19,4 +20,6 @@ public interface ExamAnChenFbkService extends SkyeyeBusinessService<ExamAnChenFb
 
 
     void queryExamAnChenFbkListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnChenFbk> selectBySurveyId(String surveyId);
 }

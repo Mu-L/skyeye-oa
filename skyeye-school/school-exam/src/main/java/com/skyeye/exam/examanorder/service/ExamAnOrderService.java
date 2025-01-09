@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnOrderService
  * @Description: 答卷 评分题接口层
@@ -15,4 +17,6 @@ import com.skyeye.exam.examanorder.entity.ExamAnOrder;
  */
 public interface ExamAnOrderService extends SkyeyeBusinessService<ExamAnOrder> {
     void queryExamAnOrderById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnOrder> selectBySurveyId(String surveyId);
 }

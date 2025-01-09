@@ -3,8 +3,9 @@ package com.skyeye.exam.examanenumqu.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examanenumqu.dao.ExamAnEnumquDao;
 import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnEnumquService
@@ -16,4 +17,6 @@ import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
  */
 public interface ExamAnEnumquService extends SkyeyeBusinessService<ExamAnEnumqu> {
     void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnEnumqu> selectBySurveyId(String surveyId);
 }

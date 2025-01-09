@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnDfilllankService
  * @Description: 答卷 多行填空题保存表服务接口层
@@ -15,4 +17,6 @@ import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
  */
 public interface ExamAnDfilllankService extends SkyeyeBusinessService<ExamAnDfillblank> {
     void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnDfillblank> selectBySurveyId(String surveyId);
 }

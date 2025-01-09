@@ -36,7 +36,7 @@ public class ExamAnEnumqu extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属枚举题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("enum_item")

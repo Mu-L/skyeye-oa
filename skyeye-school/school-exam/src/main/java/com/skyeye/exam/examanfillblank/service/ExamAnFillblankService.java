@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnFillblankService
  * @Description: 答卷 填空题保存表服务接口层
@@ -15,4 +17,6 @@ import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
  */
 public interface ExamAnFillblankService extends SkyeyeBusinessService<ExamAnFillblank> {
     void queryExamAnFillblankListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnFillblank> selectBySurveyId(String surveyId);
 }

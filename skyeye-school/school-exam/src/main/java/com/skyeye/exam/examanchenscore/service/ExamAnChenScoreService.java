@@ -6,6 +6,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnChenScoreService
  * @Description: 答卷 矩阵多选题服务接口层
@@ -16,4 +18,6 @@ import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
  */
 public interface ExamAnChenScoreService extends SkyeyeBusinessService<ExamAnChenScore> {
     void queryExamAnChenScoreListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnChenScore> selectBySurveyId(String surveyId);
 }

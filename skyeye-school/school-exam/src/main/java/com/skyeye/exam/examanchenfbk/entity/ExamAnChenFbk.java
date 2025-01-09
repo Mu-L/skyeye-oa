@@ -34,7 +34,7 @@ public class ExamAnChenFbk extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属矩阵填空题列id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("qu_col_id")

@@ -6,11 +6,10 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examandfillblank.dao.ExamAnDfilllankDao;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,5 +36,12 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         List<ExamAnDfillblank> examAnDfillblankList = list(queryWrapper);
         outputObject.setBean(examAnDfillblankList);
         outputObject.settotal(examAnDfillblankList.size());
+    }
+
+    @Override
+    public List<ExamAnDfillblank> selectBySurveyId(String surveyId) {
+        QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), surveyId);
+        return list(queryWrapper);
     }
 }

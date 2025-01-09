@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnCompChenRadioService
  * @Description: 答卷 复合矩阵单选题服务接口层
@@ -16,4 +18,6 @@ import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 
 public interface ExamAnCompChenRadioService extends SkyeyeBusinessService<ExamAnCompChenRadio> {
     void queryExamAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnCompChenRadio> selectBySurveyId(String surveyId);
 }

@@ -13,7 +13,24 @@ import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
+import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
+import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
+import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
+import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
+import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
+import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
+import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
+import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
+import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
+import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
+import com.skyeye.exam.examanenumqu.service.ExamAnEnumquService;
+import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
+import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
+import com.skyeye.exam.examanorder.entity.ExamAnOrder;
+import com.skyeye.exam.examanorder.service.ExamAnOrderService;
 import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
 import com.skyeye.exam.examanscore.entity.ExamAnScore;
@@ -59,6 +76,31 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Autowired
     private ExamAnChenCheckboxService examAnChenCheckboxService;
+
+    @Autowired
+    private ExamAnChenFbkService examAnChenFbkService;
+
+    @Autowired
+    private ExamAnChenRadioService examAnChenRadioService;
+
+    @Autowired
+    private ExamAnChenScoreService examAnChenScoreService;
+
+    @Autowired
+    private ExamAnCompChenRadioService examAnCompChenRadioService;
+
+    @Autowired
+    private ExamAnDfilllankService examAnDfilllankService;
+
+    @Autowired
+    private ExamAnEnumquService examAnEnumquService;
+
+    @Autowired
+    private ExamAnFillblankService examAnFillblankService;
+
+    @Autowired
+    private ExamAnOrderService examAnOrderService;
+
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
         if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
@@ -72,15 +114,22 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     protected void createPostpose(ExamSurveyAnswer entity, String userId) {
         String surveyId = entity.getSurveyId();
-        List<ExamAnRadio> examAnRadioList = examAnRadioService.selectRadioBySurveyId(surveyId);
-        List<ExamAnScore> examAnScoreList = examAnScoreService.selectBySurveyId(surveyId);
-        List<ExamAnYesno> examAnYesnoList = examAnYesnoService.selectBySurveyId(surveyId);
-        List<ExamAnAnswer> examAnAnswerList = examAnAnswerService.selectBySurveyId(surveyId);
-        List<ExamAnCheckbox> examAnCheckboxList = examAnCheckboxService.slectBySurveyId(surveyId);
-        examAnChenCheckboxService.s
-
-
-
+        int size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
+        int size1 = examAnScoreService.selectBySurveyId(surveyId).size();
+        int size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
+        int size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
+        int size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
+        int size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
+        int size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
+        int size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
+        int size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
+        int size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
+        int size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
+        int size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
+        int size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
+        int size13 = examAnOrderService.selectBySurveyId(surveyId).size();
+        Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
+        entity.setCompleteNum(total);
     }
 
     @Override

@@ -37,7 +37,7 @@ public class ExamAnDfillblank extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属多行填空题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("qu_id")

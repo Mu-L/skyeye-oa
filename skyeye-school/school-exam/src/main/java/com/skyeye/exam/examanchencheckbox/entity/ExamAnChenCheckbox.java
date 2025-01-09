@@ -31,7 +31,7 @@ public class ExamAnChenCheckbox extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属矩阵多选题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("qu_id")

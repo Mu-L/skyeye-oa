@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnChenCheckboxService
  * @Description: 服务接口层
@@ -16,4 +18,6 @@ import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 
 public interface ExamAnChenCheckboxService extends SkyeyeBusinessService<ExamAnChenCheckbox> {
     void queryExamAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject);
+
+    List<ExamAnChenCheckbox> selectBySurveyId(String surveyId);
 }

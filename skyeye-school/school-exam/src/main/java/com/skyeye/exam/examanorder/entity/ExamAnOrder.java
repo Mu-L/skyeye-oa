@@ -32,7 +32,7 @@ public class ExamAnOrder extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属评分题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("ordery_num")
