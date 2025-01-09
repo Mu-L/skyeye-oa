@@ -79,7 +79,7 @@ public class ExamSurveyDirectoryController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryAllExamList")
     public void queryAllExamList(InputObject inputObject, OutputObject outputObject) {
-        examSurveyDirectoryService.queryPageList(inputObject, outputObject);
+        examSurveyDirectoryService.queryAllExamList(inputObject, outputObject);
     }
 
     /**
@@ -89,6 +89,7 @@ public class ExamSurveyDirectoryController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryMyExamList", value = "获取我的试卷列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMyExamList")
     public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryMyExamList(inputObject, outputObject);

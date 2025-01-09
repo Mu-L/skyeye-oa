@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -368,13 +369,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = inputObject.getLogParams().get("id").toString();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(),commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
-        List<ExamSurveyDirectory> bean = list(queryWrapper);
-        iAuthUserService.setDataMation(bean,ExamSurveyDirectory::getCreateId);
-        outputObject.setBeans(bean);
-        outputObject.settotal(bean.size());
+        outputResult(outputObject, page, queryWrapper);
     }
 
     @Override
@@ -406,6 +406,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if(StrUtil.isNotEmpty(commonPageInfo.getState())){
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), commonPageInfo.getState());
         }
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    @Override
+    public void queryAllExamList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(),commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
             item.setClassesMation(classesService.selectById(item.getClassId()));
@@ -417,4 +430,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.settotal(page.getTotal());
     }
 
+    @Override
+    public ExamSurveyDirectory selectById(String id) {
+        ExamSurveyDirectory bean = super.selectById(id);
+        bean.setClassesMation(classesService.selectById(bean.getClassId()));
+        bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
+        return bean;
+    }
 }
