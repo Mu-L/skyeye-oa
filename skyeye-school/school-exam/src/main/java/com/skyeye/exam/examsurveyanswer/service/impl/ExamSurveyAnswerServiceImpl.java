@@ -114,20 +114,20 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     protected void createPostpose(ExamSurveyAnswer entity, String userId) {
         String surveyId = entity.getSurveyId();
-        int size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
-        int size1 = examAnScoreService.selectBySurveyId(surveyId).size();
-        int size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
-        int size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
-        int size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
-        int size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
-        int size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
-        int size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
-        int size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
-        int size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
-        int size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
-        int size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
-        int size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
-        int size13 = examAnOrderService.selectBySurveyId(surveyId).size();
+        Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
+        Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
+        Integer size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
+        Integer size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
+        Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
+        Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
+        Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
+        Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
+        Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
+        Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
+        Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
+        Integer size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
+        Integer size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
+        Integer size13 = examAnOrderService.selectBySurveyId(surveyId).size();
         Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
         entity.setCompleteNum(total);
     }
