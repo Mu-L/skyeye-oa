@@ -17,10 +17,5 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface VideoCommentService extends SkyeyeBusinessService<VideoComment> {
-    //    用户所创建的所有评论记录
-    List<VideoComment> queryVideoCommentList(String userId);
 
-    void queryVideoCommentList(InputObject inputObject, OutputObject outputObject);
-
-    void deleteById(String id, String userId);
 }

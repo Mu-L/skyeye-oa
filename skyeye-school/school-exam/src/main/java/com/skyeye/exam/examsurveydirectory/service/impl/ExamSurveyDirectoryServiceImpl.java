@@ -328,6 +328,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_TWO);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_TWO);
         update(updateWrapper);
     }
 
