@@ -60,7 +60,7 @@ public class Question extends OperatorUserInfo {
     private Integer answerInputWidth;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属问卷或题库", required = "required")
+    @ApiModelProperty(value = "所属问卷或题库")
     private String belongId;
 
     @TableField("cell_count")
