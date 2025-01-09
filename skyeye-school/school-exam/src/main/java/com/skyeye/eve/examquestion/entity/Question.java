@@ -88,7 +88,7 @@ public class Question extends OperatorUserInfo {
     private Integer hv;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID")
+    @ApiModelProperty(value = "排序ID" ,defaultValue = "1")
     private Integer orderById;
 
     @TableField("param_int01")
