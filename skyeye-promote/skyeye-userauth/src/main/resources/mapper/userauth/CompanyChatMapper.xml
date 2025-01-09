@@ -50,6 +50,7 @@
 	<select id="queryDepartmentUserByDepartId" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
 			a.user_name username,
+			a.id staffId,
 			b.id,
 			'offline' status,
 			a.user_photo avatar,
