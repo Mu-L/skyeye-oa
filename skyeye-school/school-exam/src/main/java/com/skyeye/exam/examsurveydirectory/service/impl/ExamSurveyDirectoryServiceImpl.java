@@ -203,7 +203,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String examDirectoryId = map.get("id").toString(); // 获取试卷ID
         ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-
         examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID

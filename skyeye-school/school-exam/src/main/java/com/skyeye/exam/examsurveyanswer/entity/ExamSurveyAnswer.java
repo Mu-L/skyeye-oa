@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:answer")
+//@RedisCacheField(name = "Exam:answer")
 @TableName(value = "exam_survey_answer")
 @ApiModel("试卷回答信息表实体类")
 public class ExamSurveyAnswer extends CommonInfo {

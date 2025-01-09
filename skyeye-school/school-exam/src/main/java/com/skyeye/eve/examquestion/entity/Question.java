@@ -44,7 +44,7 @@ public class Question extends OperatorUserInfo {
     private String quTitle;
 
     @TableField("qu_tag")
-    @ApiModelProperty(value = "是否是大小题    1默认题  2大题  3大题下面的小题", required = "required")
+    @ApiModelProperty(value = "是否是大小题    1默认题  2大题  3大题下面的小题")
     private Integer quTag;
 
     @TableField("qu_type")
