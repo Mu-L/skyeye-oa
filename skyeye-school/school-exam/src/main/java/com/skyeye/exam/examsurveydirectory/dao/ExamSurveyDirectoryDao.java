@@ -15,5 +15,4 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamSurveyDirectoryDao extends SkyeyeBaseMapper<ExamSurveyDirectory> {
-    List<ExamSurveyDirectory> queryExamLists(CommonPageInfo commonPageInfo);
 }

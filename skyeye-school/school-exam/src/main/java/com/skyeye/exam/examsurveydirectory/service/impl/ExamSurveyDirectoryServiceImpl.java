@@ -112,13 +112,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private ExamSurveyDirectoryDao examSurveyDirectoryDao;
 
-    /*@Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        iAuthUserService.setMationForMap(beans,"createId","createMation");
-        return beans;
-    }
-*/
     /**
      * 设置考试目录的方法
      * @param inputObject 输入对象，包含请求参数
@@ -357,7 +350,32 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<ExamSurveyDirectory> beans = examSurveyDirectoryDao.queryExamLists(commonPageInfo);
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        // 学校
+        if(StrUtil.isNotEmpty(commonPageInfo.getHolderKey())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSchoolId), commonPageInfo.getHolderKey());
+        }
+        // 院校
+        if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFacultyId), commonPageInfo.getHolderId());
+        }
+        // 专业
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectKey())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getMajorId), commonPageInfo.getObjectKey());
+        }
+        // 科目
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), commonPageInfo.getObjectId());
+        }
+        // 试卷名称
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
+        }
+        // 状态
+        if(StrUtil.isNotEmpty(commonPageInfo.getState())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), commonPageInfo.getState());
+        }
+        List<ExamSurveyDirectory> beans = list(queryWrapper);
         iAuthUserService.setDataMation(beans,ExamSurveyDirectory::getCreateId);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());

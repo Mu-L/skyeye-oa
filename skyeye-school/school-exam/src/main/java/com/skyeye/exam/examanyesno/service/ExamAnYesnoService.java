@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamAnYesnoService extends SkyeyeBusinessService<ExamAnYesno> {
 
