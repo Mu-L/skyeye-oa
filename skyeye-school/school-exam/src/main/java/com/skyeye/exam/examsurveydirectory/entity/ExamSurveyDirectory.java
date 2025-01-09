@@ -9,6 +9,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @ClassName: ExamSurveyDirectory
@@ -103,4 +104,8 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @TableField("whether_delete")
     @ApiModelProperty(value = "是否删除  1.未删除  2.删除", required = "required")
     private Integer whetherDelete;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value="阅卷人列表",required = "required")
+    private String readerList;
 }

@@ -12,5 +12,5 @@ import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamSurveyMarkExamService extends SkyeyeBusinessService<ExamSurveyMarkExam> {
-    void createExamSurveyMarkExam(String id, String userId);
+    void createExamSurveyMarkExam(String id,String readerId,String userId);
 }

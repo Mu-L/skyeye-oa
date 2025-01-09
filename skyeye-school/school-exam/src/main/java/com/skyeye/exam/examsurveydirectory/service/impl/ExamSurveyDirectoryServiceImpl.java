@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.google.protobuf.ServiceException;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -17,7 +16,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -39,14 +37,17 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
 import com.skyeye.exam.examsurveydirectory.dao.ExamSurveyDirectoryDao;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
+import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -108,9 +109,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private IAuthUserService iAuthUserService;
-
-    @Autowired
-    private ExamSurveyDirectoryDao examSurveyDirectoryDao;
 
     /**
      * 设置考试目录的方法
@@ -260,11 +258,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     /**
-     * 创建题目前的操作
+     * 创建/更新题目前的操作
      * @param examSurveyDirectory 考试目录对象
      */
     @Override
-    public void createPrepose(ExamSurveyDirectory examSurveyDirectory) {
+    public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
         LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
         LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
         if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
@@ -282,9 +280,30 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     protected void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试目录ID
+        String reader = entity.getReaderList(); // 阅卷人
+        String[] readerList = reader.split(","); // 将阅卷人转换为列表
         String classId = entity.getClassId(); // 获取班级ID
-        examSurveyClassService.createExamSurveyClass(id, classId,userId); // 创建考试班级
-        examSurveyMarkExamService.createExamSurveyMarkExam(id, userId); // 创建考试标记
+        String[] classIdList = classId.split(","); // 将班级ID转换为列表
+        for (String classIdItem : classIdList){
+            examSurveyClassService.createExamSurveyClass(id, classIdItem,userId); // 创建考试班级
+        }
+        for (String readerItem : readerList){
+            examSurveyMarkExamService.createExamSurveyMarkExam(id,readerItem,userId); // 创建阅卷考试
+        }
+    }
+
+    @Transactional
+    @Override
+    public void updatePostpose(ExamSurveyDirectory entity,String userId) {
+        String id = entity.getId(); // 获取考试id
+        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId),id);
+        examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
+        String reader = entity.getReaderList(); // 阅卷人
+        String[] readerList = reader.split(","); // 将阅卷人转换为列表
+        for (String readerItem : readerList){
+            examSurveyMarkExamService.createExamSurveyMarkExam(id,readerItem,userId); // 创建阅卷考试
+        }
     }
 
     /**
@@ -369,7 +388,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         // 试卷名称
         if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
+            queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
         }
         // 状态
         if(StrUtil.isNotEmpty(commonPageInfo.getState())){

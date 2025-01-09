@@ -18,11 +18,12 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "试卷与阅卷人关系表管理", groupName = "试卷与阅卷人关系表管理")
 public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyMarkExamDao, ExamSurveyMarkExam> implements ExamSurveyMarkExamService {
+
     @Override
-    public void createExamSurveyMarkExam(String id, String userId) {
+    public void createExamSurveyMarkExam(String id,String readerId,String userId) {
         ExamSurveyMarkExam examSurveyMarkExam = new ExamSurveyMarkExam();
         examSurveyMarkExam.setSurveyId(id);
-        examSurveyMarkExam.setUserId(userId);
+        examSurveyMarkExam.setUserId(readerId);
         createEntity(examSurveyMarkExam,userId);
     }
 }
