@@ -19,6 +19,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -45,6 +46,10 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamSurveyDirectoryServiceImpl
@@ -109,6 +115,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private IAuthUserService iAuthUserService;
+
+    @Autowired
+    private SubjectService subjectService;
+
+    @Autowired
+    private ClassesService classesService;
 
     /**
      * 设置考试目录的方法
@@ -394,8 +406,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if(StrUtil.isNotEmpty(commonPageInfo.getState())){
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), commonPageInfo.getState());
         }
-        List<ExamSurveyDirectory> beans = list(queryWrapper);
-        iAuthUserService.setDataMation(beans,ExamSurveyDirectory::getCreateId);
+        List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
+            item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+            item.setClassesMation(classesService.selectById(item.getClassId()));
+            return item;
+        }).collect(Collectors.toList());
+        iAuthUserService.setName(beans,"createId","createName");
+        iAuthUserService.setName(beans,"lastUpdateId","lastUpdateName");
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

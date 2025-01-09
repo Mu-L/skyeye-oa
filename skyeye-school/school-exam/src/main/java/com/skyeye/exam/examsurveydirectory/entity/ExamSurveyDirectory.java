@@ -5,7 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.entity.School;
+import com.skyeye.school.faculty.entity.Faculty;
+import com.skyeye.school.grade.entity.Classes;
+import com.skyeye.school.major.entity.Major;
+import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -108,4 +114,12 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value="阅卷人列表",required = "required")
     private String readerList;
+
+    @TableField(exist = false)
+    @Property(value = "科目信息")
+    private Subject subjectMation;
+
+    @TableField(exist = false)
+    @Property(value = "班级信息")
+    private Classes classesMation;
 }
