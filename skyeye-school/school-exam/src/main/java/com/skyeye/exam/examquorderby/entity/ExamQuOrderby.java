@@ -40,11 +40,11 @@ public class ExamQuOrderby extends OperatorUserInfo {
     private String optionTitle;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序号", required = "required")
+    @ApiModelProperty(value = "排序号")
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
 }

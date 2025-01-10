@@ -42,7 +42,7 @@ public class ExamQuRadio extends OperatorUserInfo {
     private String optionId;
 
     @TableField("option_title")
-    @ApiModelProperty(value = "选项标题", required = "required")
+    @ApiModelProperty(value = "选项标题")
     private String optionTitle;
 
     @TableField("check_type")
@@ -58,11 +58,11 @@ public class ExamQuRadio extends OperatorUserInfo {
     private Integer isRequiredFill;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID", required = "required")
+    @ApiModelProperty(value = "排序ID")
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
     @TableField("is_default_answer")

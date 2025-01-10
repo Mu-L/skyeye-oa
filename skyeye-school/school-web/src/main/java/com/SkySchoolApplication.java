@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement//启注解事务管理，等同于xml配置方式的 <tx:annotation-driven />
 @ComponentScan(basePackages = {"com.skyeye"})
 @EnableDiscoveryClient // 开启服务发现
-@EnableFeignClients
+@EnableFeignClients // 开启Feign客户端,实现负载均衡
 public class SkySchoolApplication {
 
     public static void main(String[] args) {

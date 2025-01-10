@@ -352,7 +352,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, Object> map = inputObject.getParams();
         String examSurveyDirectoryId = map.get("id").toString();
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+        queryWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
         ExamSurveyDirectory examSurveyDirectory = getOne(queryWrapper);
         // 判断考试目录对象是否存在
         if (ObjUtil.isNotEmpty(examSurveyDirectory)) {
@@ -361,7 +361,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 // 获取当前时间作为实际结束时间
                 String realEndTime = DateUtil.getTimeAndToString();
                 UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), examSurveyDirectoryId);
+                updateWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
                 // 设置实际结束时间为当前时间
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getRealEndTime), realEndTime);
                 // 设置考试目录状态为已结束（NUM_TWO）

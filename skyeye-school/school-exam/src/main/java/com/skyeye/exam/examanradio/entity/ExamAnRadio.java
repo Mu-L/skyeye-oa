@@ -11,7 +11,7 @@ import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:radio")
+//@RedisCacheField(name = "Exam:radio")
 @TableName(value = "exam_an_radio")
 @ApiModel("单选题保存表实体类")
 public class ExamAnRadio extends CommonInfo {

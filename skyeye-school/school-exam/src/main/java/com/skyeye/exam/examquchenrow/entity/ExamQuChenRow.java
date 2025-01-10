@@ -32,11 +32,11 @@ public class ExamQuChenRow extends OperatorUserInfo {
     private String optionName;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID", required = "required")
+    @ApiModelProperty(value = "排序ID")
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
     @TableField(exist = false)

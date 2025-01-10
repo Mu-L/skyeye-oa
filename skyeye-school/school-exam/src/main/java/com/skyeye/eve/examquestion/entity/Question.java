@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
@@ -48,7 +49,7 @@ public class Question extends OperatorUserInfo {
     private Integer quTag;
 
     @TableField("qu_type")
-    @ApiModelProperty(value = "题目类型", required = "required")
+    @ApiModelProperty(value = "题目类型", required = "required",enumClass = QuType.class)
     private Integer quType;
 
     @TableField("answer_input_row")
@@ -60,7 +61,7 @@ public class Question extends OperatorUserInfo {
     private Integer answerInputWidth;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属问卷或题库", required = "required")
+    @ApiModelProperty(value = "所属问卷或题库")
     private String belongId;
 
     @TableField("cell_count")
@@ -88,7 +89,7 @@ public class Question extends OperatorUserInfo {
     private Integer hv;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID")
+    @ApiModelProperty(value = "排序ID" ,defaultValue = "1")
     private Integer orderById;
 
     @TableField("param_int01")
@@ -108,11 +109,11 @@ public class Question extends OperatorUserInfo {
     private Integer randOrder;
 
     @TableField("tag")
-    @ApiModelProperty(value = "标记     1题库中的题   2试卷中的题")
+    @ApiModelProperty(value = "标记 1题库中的题   2试卷中的题")
     private Integer tag;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示 0不显示   1显示 ", required = "required")
+    @ApiModelProperty(value = "是否显示 0不显示 1显示 ")
     private Integer visibility;
 
     @TableField("yesno_option")
