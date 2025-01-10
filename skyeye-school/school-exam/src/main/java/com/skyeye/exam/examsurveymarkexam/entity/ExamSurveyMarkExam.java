@@ -17,7 +17,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:markexam")
+//@RedisCacheField(name = "Exam:markexam")
 @TableName(value = "exam_survey_mark_exam")
 @ApiModel("试卷与阅卷人关系表实体类")
 public class ExamSurveyMarkExam extends CommonInfo {
