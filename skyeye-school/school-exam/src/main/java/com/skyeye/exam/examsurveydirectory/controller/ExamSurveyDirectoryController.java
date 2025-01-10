@@ -42,6 +42,19 @@ public class ExamSurveyDirectoryController {
     }
 
     /**
+     * 批量新增试卷
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "createExamDirectory", value = "批量新增试卷", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ExamSurveyDirectory.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/createExamDirectory")
+    public void createExamDirectory(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.createExamDirectory(inputObject, outputObject);
+    }
+
+    /**
      * 发布试卷
      *
      * @param inputObject  入参以及用户信息等获取对象

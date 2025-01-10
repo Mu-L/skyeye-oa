@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -325,7 +326,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             examSurveyClassService.createExamSurveyClass(id, classIdItem, userId); // 创建考试班级
         }
         for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷考试
+            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
         }
     }
 
@@ -339,7 +340,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String reader = entity.getReaderList(); // 阅卷人
         String[] readerList = reader.split(","); // 将阅卷人转换为列表
         for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷考试
+            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
         }
     }
 
@@ -456,6 +457,53 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId),InputObject.getLogParamsStatic().get("id").toString());
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
+    }
+
+    @Override
+    public void validatorEntity(List<ExamSurveyDirectory> entity) {
+        ExamSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
+        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
+        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
+            if (realStartTime.isAfter(realEndTime)) { // 判断开始时间是否在结束时间之后
+                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
+            }
+        }
+    }
+
+    /**
+     * 批量新增
+     *
+     * @param inputObject  输入对象，包含请求参数
+     * @param outputObject 输出对象，用于返回响应数据
+     */
+    @Override
+    public void createExamDirectory(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        ExamSurveyDirectory examSurveyDirectory = inputObject.getParams(ExamSurveyDirectory.class);
+        String classIds = examSurveyDirectory.getClassId();
+        String[] classIdArray = classIds.split(",");
+        List<ExamSurveyDirectory> examSurveyDirectoryList = new ArrayList<>();
+        for (String classId : classIdArray) {
+            ExamSurveyDirectory exam = inputObject.getParams(ExamSurveyDirectory.class);
+            exam.setClassId(classId);
+            examSurveyDirectoryList.add(exam);
+        }
+        createEntity(examSurveyDirectoryList, userId);
+    }
+
+    @Override
+    public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
+        for (ExamSurveyDirectory entity : examSurveyDirectory) {
+            String id = entity.getId(); // 获取考试目录ID
+            String reader = entity.getReaderList(); // 阅卷人
+            String[] readerList = reader.split(","); // 将阅卷人转换为列表
+            examSurveyClassService.createExamSurveyClass(id, entity.getClassId(), userId); // 创建考试班级
+            for (String readerItem : readerList) {
+                examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
+            }
+        }
+
     }
 
     private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
