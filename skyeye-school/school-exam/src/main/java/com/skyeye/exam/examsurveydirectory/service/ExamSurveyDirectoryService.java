@@ -34,4 +34,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     void queryAllExamList(InputObject inputObject, OutputObject outputObject);
 
     void queryMySurvey(InputObject inputObject, OutputObject outputObject);
+
+    void createExamDirectory(InputObject inputObject, OutputObject outputObject);
 }
