@@ -106,12 +106,14 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public void createPostpose(Question entity, String userId) {
         // 获取题目ID
         String quId = entity.getId();
-        // 处理题目逻辑
-        List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
-        if (CollectionUtils.isEmpty(questionLogic)) {
-            throw new CustomException("请设置问题逻辑");
-        } else {
-            examQuestionLogicService.setLogics(quId, questionLogic, userId);
+        if(entity.getTag().equals(CommonNumConstants.NUM_TWO)){
+            // 处理题目逻辑
+            List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
+            if (CollectionUtils.isEmpty(questionLogic)) {
+                throw new CustomException("请设置问题逻辑");
+            } else {
+                examQuestionLogicService.setLogics(quId, questionLogic, userId);
+            }
         }
         // 根据不同的题目类型，保存对应的题目数据
         // 处理单选题
