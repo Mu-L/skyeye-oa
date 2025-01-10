@@ -215,14 +215,23 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
      */
-
+    @Transactional
     @Override
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
         String examDirectoryId = map.get("id").toString(); // 获取试卷ID
-        ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
+        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), examDirectoryId);
+        List<ExamSurveyMarkExam> list = examSurveyMarkExamService.list(queryWrapper);
+        StringBuilder readerList = new StringBuilder();
+        for(ExamSurveyMarkExam examSurveyMarkExam : list){
+            String readerId = examSurveyMarkExam.getUserId();
+            readerList.append(readerId).append(",");
+        }
+        String readerIds = readerList.substring(0, readerList.length() - 1);
         examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
@@ -245,6 +254,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSurveyState(examSurveyDirectory.getSurveyState()); // 设置调查状态
         examSurveyDirectories.setWhetherDelete(0); // 设置是否删除
         examSurveyDirectories.setClassId(examSurveyDirectory.getClassId()); // 设置班级ID
+        examSurveyDirectories.setReaderList(readerIds); // 设置阅读人列表
         createEntity(examSurveyDirectories, userId); // 创建新的试卷
         List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
         if (ObjUtil.isEmpty(questionList)) {
