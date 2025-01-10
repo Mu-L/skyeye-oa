@@ -215,6 +215,26 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         return queryWrapper;
     }
 
+    @Override
+    public Question selectById(String id) {
+        Question question = super.selectById(id);
+        List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(id);
+        question.setRadioTd(examQuRadioList);
+        List<ExamQuScore> examQuScoreList = examquScoreService.selectQuScore(id);
+        question.setScoreTd(examQuScoreList);
+        List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(id);
+        question.setCheckboxTd(examQuCheckboxList);
+        List<ExamQuMultiFillblank> examQuMultiFillblankList = examQuMultiFillblankService.selectQuMultiFillblank(id);
+        question.setMultifillblankTd(examQuMultiFillblankList);
+        List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(id);
+        question.setOrderbyTd(examQuOrderbyList);
+        List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(id);
+        question.setColumnTd(examQuChenColumnList);
+        List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(id);
+        question.setRowTd(examQuChenRowList);
+        return question;
+    }
+
     /**
      * 删除题目前的执行操作
      *
@@ -359,9 +379,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public List<Question> queryQuestionMationCopyById(String surveyCopyId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId); // 等于归属ID
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO); // 等于标签2
-        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO); // 不等于题目标签2
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE); // 等于可见性1
+//        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO); // 等于标签2
+//        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO); // 不等于题目标签2
+//        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE); // 等于可见性1
         return list(queryWrapper); // 返回查询结果列表
     }
 
@@ -429,7 +449,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     break;
             }
         }
-        outputObject.setBean(questionList);
+        outputObject.setBeans(questionList);
         outputObject.settotal(questionList.size());
     }
 }

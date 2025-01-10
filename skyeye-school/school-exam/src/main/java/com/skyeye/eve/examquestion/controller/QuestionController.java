@@ -72,6 +72,20 @@ public class QuestionController {
     }
 
     /**
+     * 根据Id查询问题
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "selectQuestionById", value = "根据Id查询问题", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/QuestionController/selectQuestionById")
+    public void selectQuestionById(InputObject inputObject, OutputObject outputObject) {
+        questionService.selectById(inputObject, outputObject);
+    }
+
+    /**
      * 根据ID删除题目信息
      *
      * @param inputObject  入参以及用户信息等获取对象
