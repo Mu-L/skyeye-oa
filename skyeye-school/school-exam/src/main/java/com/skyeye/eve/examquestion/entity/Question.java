@@ -49,7 +49,7 @@ public class Question extends OperatorUserInfo {
     private Integer quTag;
 
     @TableField("qu_type")
-    @ApiModelProperty(value = "题目类型", required = "required",enumClass = QuType.class)
+    @ApiModelProperty(value = "题目类型", required = "required", enumClass = QuType.class)
     private Integer quType;
 
     @TableField("answer_input_row")
@@ -89,7 +89,7 @@ public class Question extends OperatorUserInfo {
     private Integer hv;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID" ,defaultValue = "1")
+    @ApiModelProperty(value = "排序ID", defaultValue = "1")
     private Integer orderById;
 
     @TableField("param_int01")
@@ -149,19 +149,19 @@ public class Question extends OperatorUserInfo {
     private Integer isDelete;
 
     @TableField(value = "school_id")
-    @ApiModelProperty(value = "学校id",required = "required")
+    @ApiModelProperty(value = "学校id", required = "required")
     private String schoolId;
 
     @TableField(value = "faculty_id")
-    @ApiModelProperty(value = "院系id",required = "required")
+    @ApiModelProperty(value = "院系id", required = "required")
     private String facultyId;
 
     @TableField(value = "major_id")
-    @ApiModelProperty(value = "专业id",required = "required")
+    @ApiModelProperty(value = "专业id", required = "required")
     private String majorId;
 
     @TableField(value = "subject_id")
-    @ApiModelProperty(value = "科目id",required = "required")
+    @ApiModelProperty(value = "科目id", required = "required")
     private String subjectId;
 
     @TableField(exist = false)
@@ -195,5 +195,4 @@ public class Question extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
     private List<ExamQuestionLogic> questionLogic;
-
 }

@@ -273,9 +273,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 examQuRadio.setQuId(question.getId()); // 设置所属题目ID
                 examQuRadioService.createEntity(examQuRadio,StrUtil.EMPTY);
             }
-//            if (!examQuRadioList.isEmpty()) {
-//                examQuRadioService.createEntity(examQuRadioList, StrUtil.EMPTY); // 创建实体
-//            }
         }
         // 复制多选题或复合多选题
         else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
@@ -289,9 +286,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 examQuCheckbox.setQuId(question.getId());
                 examQuCheckboxService.createEntity(examQuCheckbox,StrUtil.EMPTY);
             }
-//            if (!examQuCheckboxList.isEmpty()) {
-//                examQuCheckboxService.createEntity(examQuCheckboxList, StrUtil.EMPTY);
-//            }
         }
         // 复制多空填空题
         else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
