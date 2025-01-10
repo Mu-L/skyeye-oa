@@ -257,7 +257,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setReaderList(readerIds); // 设置阅读人列表
         createEntity(examSurveyDirectories, userId); // 创建新的试卷
         List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
-        if (ObjUtil.isEmpty(questionList)) {
+        if (CollectionUtil.isEmpty(questionList)) {
             throw new CustomException("没有找到题目");
         }
         for (Question question : questionList) { // 遍历题目
@@ -448,7 +448,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId),InputObject.getLogParamsStatic().get("Id").toString());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId),InputObject.getLogParamsStatic().get("id").toString());
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }

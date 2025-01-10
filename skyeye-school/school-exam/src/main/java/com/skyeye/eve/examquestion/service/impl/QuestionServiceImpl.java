@@ -269,7 +269,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 复制单选题或复合单选题
         if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {
             List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getCopyFromId());
-            if (ObjUtil.isEmpty(examQuRadioList)){
+            if (CollectionUtils.isEmpty(examQuRadioList)){
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuRadio examQuRadio : examQuRadioList) {
