@@ -17,7 +17,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@TableName(value = "exam_qu_radio")
+//@TableName(value = "exam_qu_radio")
 @ApiModel("单选题选项表实体类")
 public class ExamQuRadio extends OperatorUserInfo {
 

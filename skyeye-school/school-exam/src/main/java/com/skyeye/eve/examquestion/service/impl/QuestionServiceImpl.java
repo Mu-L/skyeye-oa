@@ -40,10 +40,12 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: QuestionServiceImpl
@@ -380,16 +382,13 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Override
     public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page pages = null;
-        setCommonPageInfoOtherInfo(commonPageInfo);
-        if (commonPageInfo.getIsPaging() == null || commonPageInfo.getIsPaging()) {
-            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        }
+        Map<String, Object> map = inputObject.getParams();
+        String subjectId = map.get("subjectId").toString();
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), commonPageInfo.getHolderId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
         List<Question> questionList = list(queryWrapper);
+
         outputObject.setBeans(questionList);
-        outputObject.settotal(pages.getTotal());
+        outputObject.settotal(questionList.size());
     }
 }

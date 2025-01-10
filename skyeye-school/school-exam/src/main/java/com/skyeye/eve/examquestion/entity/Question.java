@@ -152,6 +152,10 @@ public class Question extends OperatorUserInfo {
     @ApiModelProperty(value = "学校id",required = "required")
     private String schoolId;
 
+    @TableField(value = "faculty_id")
+    @ApiModelProperty(value = "院系id",required = "required")
+    private String facultyId;
+
     @TableField(value = "major_id")
     @ApiModelProperty(value = "专业id",required = "required")
     private String majorId;
