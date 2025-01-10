@@ -13,6 +13,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.CheckType;
 import com.skyeye.exam.examquradio.dao.ExamQuRadioDao;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquradio.service.ExamQuRadioService;
@@ -57,10 +58,12 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
             bean.setIsNote(object.getIsNote());
             bean.setOptionTitle(object.getOptionTitle());
             bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
-            if (!ToolUtil.isBlank(object.getCheckType().toString())) {
-                bean.setCheckType(object.getCheckType());
-            } else {
-                bean.setCheckType(object.getCheckType());
+            if (object.getCheckType() != null) {
+                if (!ToolUtil.isNumeric(object.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(object.getCheckType().toString()).getIndex());
+                } else {
+                    bean.setCheckType(object.getCheckType());
+                }
             }
             bean.setIsRequiredFill(object.getIsRequiredFill());
             if (ToolUtil.isBlank(object.getOptionId())) {
@@ -86,7 +89,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     @Override
     protected void deletePreExecution(ExamQuRadio entity) {
         Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)){
+        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
             throw new CustomException("该选项已显示，请先隐藏再删除");
         }
     }
@@ -96,7 +99,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<ExamQuRadio> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getId),id);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getId), id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuRadio::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -104,14 +107,14 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<ExamQuRadio> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), quId);
         remove(updateWrapper);
     }
 
     @Override
     public List<ExamQuRadio> selectQuRadio(String copyFromId) {
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId),copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), copyFromId);
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
@@ -119,17 +122,17 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getBelongId), id);
         List<ExamQuRadio> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;
