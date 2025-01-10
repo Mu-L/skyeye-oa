@@ -392,6 +392,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         // 学校
+        extracted(commonPageInfo, queryWrapper);
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSchoolId), commonPageInfo.getHolderKey());
         }
@@ -415,7 +420,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), commonPageInfo.getState());
         }
-        outputResult(outputObject, page, queryWrapper);
     }
 
     @Override
@@ -423,6 +427,17 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    @Override
+    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId),InputObject.getLogParamsStatic().get("Id").toString());
+        // 学校
+        extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }
 

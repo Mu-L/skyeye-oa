@@ -163,4 +163,17 @@ public class ExamSurveyDirectoryController {
     public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryFilterExamLists(inputObject, outputObject);
     }
+
+    /**
+     * 筛选我的试卷列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMySurvey", value = "筛选我的试卷列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/queryMySurvey")
+    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.queryMySurvey(inputObject, outputObject);
+    }
 }
