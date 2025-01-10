@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveydirectory.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -214,6 +215,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
      */
+
     @Override
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
@@ -296,8 +298,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param entity 考试目录对象
      * @param userId 创建者ID
      */
+    @Transactional
     @Override
-    protected void createPostpose(ExamSurveyDirectory entity, String userId) {
+    public void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试目录ID
         String reader = entity.getReaderList(); // 阅卷人
         String[] readerList = reader.split(","); // 将阅卷人转换为列表
@@ -442,7 +445,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public ExamSurveyDirectory selectById(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
+        bean.setClassesMation(classesService.selectById(bean.getClassId()));
+        bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
+        if(CollectionUtil.isEmpty(questionList)){
+            return bean;
+        }
         List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
         Map<String, List<Map<String, Object>>> examQuRadioMapList = examQuRadioService.selectByBelongId(id);
@@ -485,8 +493,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
             }
         });
-        bean.setClassesMation(classesService.selectById(bean.getClassId()));
-        bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setQuestionList(questionList);
         return bean;
     }
