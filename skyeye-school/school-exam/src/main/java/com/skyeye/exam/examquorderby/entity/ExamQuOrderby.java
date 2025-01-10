@@ -6,12 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:orderby")
+//@RedisCacheField(name = "Exam:orderby")
 @TableName(value = "exam_qu_orderby")
 @ApiModel("排序题行选项实体类")
 public class ExamQuOrderby extends OperatorUserInfo {
@@ -19,6 +18,10 @@ public class ExamQuOrderby extends OperatorUserInfo {
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
+
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题库或试卷")
+    private String belongId;
 
     @TableField("qu_id")
     @ApiModelProperty(value = "所属题")

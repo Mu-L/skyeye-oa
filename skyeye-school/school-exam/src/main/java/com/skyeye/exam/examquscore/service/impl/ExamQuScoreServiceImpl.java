@@ -1,6 +1,7 @@
 package com.skyeye.exam.examquscore.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -19,6 +20,7 @@ import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +100,25 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), copyFromId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getBelongId),id);
+        List<ExamQuScore> list = list(queryWrapper);
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        list.forEach(item->{
+            String quId = item.getQuId();
+            if(result.containsKey(quId)){
+                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+            }else {
+                List<Map<String, Object>> tmp = new ArrayList<>();
+                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+                result.put(quId,tmp);
+            }
+        });
+        return result;
     }
 
 }

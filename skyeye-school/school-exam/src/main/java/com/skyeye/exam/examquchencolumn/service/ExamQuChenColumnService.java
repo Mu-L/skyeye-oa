@@ -7,6 +7,7 @@ import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamQuChenColumnService extends SkyeyeBusinessService<ExamQuChenColumn> {
 
@@ -17,4 +18,6 @@ public interface ExamQuChenColumnService extends SkyeyeBusinessService<ExamQuChe
     void removeByQuId(String quId);
 
     List<ExamQuChenColumn> selectQuChenColumn(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

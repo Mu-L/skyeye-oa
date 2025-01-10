@@ -1,6 +1,7 @@
 package com.skyeye.exam.examquchencolumn.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -12,6 +13,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchencolumn.dao.ExamQuChenColumnDao;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -136,5 +139,24 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), copyFromId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getBelongId), id);
+        List<ExamQuChenColumn> list = list(queryWrapper);
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        list.forEach(item->{
+            String quId = item.getQuId();
+            if(result.containsKey(quId)){
+                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+            }else {
+                List<Map<String, Object>> tmp = new ArrayList<>();
+                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+                result.put(quId,tmp);
+            }
+        });
+        return result;
     }
 }

@@ -5,6 +5,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamQuChenRowService extends SkyeyeBusinessService<ExamQuChenRow> {
 
@@ -21,4 +22,6 @@ public interface ExamQuChenRowService extends SkyeyeBusinessService<ExamQuChenRo
     void removeByQuId(String quId);
 
     List<ExamQuChenRow> selectQuChenRow(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

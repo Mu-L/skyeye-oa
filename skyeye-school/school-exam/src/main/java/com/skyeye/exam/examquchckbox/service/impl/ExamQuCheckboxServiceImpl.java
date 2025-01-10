@@ -1,6 +1,7 @@
 package com.skyeye.exam.examquchckbox.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -22,8 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "多选题选项表管理", groupName = "多选题选项表管理")
@@ -111,5 +114,24 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId),copyFromId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getBelongId),id);
+        List<ExamQuCheckbox> list = list(queryWrapper);
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        list.forEach(item->{
+            String quId = item.getQuId();
+            if(result.containsKey(quId)){
+                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+            }else {
+                List<Map<String, Object>> tmp = new ArrayList<>();
+                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+                result.put(quId,tmp);
+            }
+        });
+        return result;
     }
 }

@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQuMultiFillblank> {
 
@@ -16,4 +17,6 @@ public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQ
     void removeByQuId(String quId);
 
     List<ExamQuMultiFillblank> selectQuMultiFillblank(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheckbox> {
     void saveList(List<ExamQuCheckbox> list, String quId, String userId);
@@ -15,6 +16,8 @@ public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheck
     void removeByQuId(String quId);
 
     List<ExamQuCheckbox> selectQuChenbox(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 
 //    void queryExamQuCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

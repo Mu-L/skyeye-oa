@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamQuScoreService
@@ -21,5 +22,7 @@ public interface ExamQuScoreService extends SkyeyeBusinessService<ExamQuScore> {
     void changeVisibility(InputObject inputObject, OutputObject outputObject);
 
     List<ExamQuScore> selectQuScore(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }
 

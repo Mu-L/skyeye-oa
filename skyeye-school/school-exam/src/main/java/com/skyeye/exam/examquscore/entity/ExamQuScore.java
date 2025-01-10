@@ -20,7 +20,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:score")
+//@RedisCacheField(name = "Exam:score")
 @TableName(value = "exam_qu_score")
 @ApiModel("评分题行选项实体类")
 public class ExamQuScore extends OperatorUserInfo {
@@ -28,6 +28,10 @@ public class ExamQuScore extends OperatorUserInfo {
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
+
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题库或试卷")
+    private String belongId;
 
     @TableField("qu_id")
     @ApiModelProperty(value = "所属题")

@@ -4,6 +4,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamQuestionLogicService
@@ -17,4 +18,6 @@ public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQues
     List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId);
 
     List<ExamQuestionLogic> selectByQuestionId(String ckQuId);
+
+    Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds);
 }

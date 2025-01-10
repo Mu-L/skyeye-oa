@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamQuOrderbyService extends SkyeyeBusinessService<ExamQuOrderby> {
 
@@ -16,4 +17,6 @@ public interface ExamQuOrderbyService extends SkyeyeBusinessService<ExamQuOrderb
     void removeByQuId(String quId);
 
     List<ExamQuOrderby> selectQuOrderby(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

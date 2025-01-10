@@ -20,6 +20,10 @@ public class ExamQuCheckbox extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题库或试卷")
+    private String belongId;
+
     @TableField("qu_id")
     @ApiModelProperty(value = "所属题")
     private String quId;

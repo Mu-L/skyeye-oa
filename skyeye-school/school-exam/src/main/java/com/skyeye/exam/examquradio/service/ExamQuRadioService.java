@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamQuRadioService
@@ -23,4 +24,6 @@ public interface ExamQuRadioService extends SkyeyeBusinessService<ExamQuRadio> {
     void removeByQuId(String quId);
 
     List<ExamQuRadio> selectQuRadio(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

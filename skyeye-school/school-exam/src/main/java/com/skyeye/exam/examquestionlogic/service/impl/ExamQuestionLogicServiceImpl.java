@@ -1,6 +1,7 @@
 package com.skyeye.exam.examquestionlogic.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -13,7 +14,9 @@ import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamQuestionLogicServiceImpl
@@ -74,5 +77,25 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
         List<ExamQuestionLogic> list = list(queryWrapper);
         return list;
+    }
+
+    @Override
+    public Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds) {
+        QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), questionIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
+        List<ExamQuestionLogic> list = list(queryWrapper);
+        Map<String, List<Map<String, Object>>> result = new HashMap<>();
+        list.forEach(item->{
+            String ckQuId = item.getCkQuId();
+            if(result.containsKey(ckQuId)){
+                result.get(ckQuId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+            }else {
+                List<Map<String, Object>> tmp = new ArrayList<>();
+                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
+                result.put(ckQuId,tmp);
+            }
+        });
+        return result;
     }
 }
