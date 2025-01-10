@@ -40,10 +40,11 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -384,11 +385,52 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
+        if (StrUtil.isEmpty(subjectId)) {
+            throw new IllegalArgumentException("subjectId不能为空");
+        }
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
         List<Question> questionList = list(queryWrapper);
-
-        outputObject.setBeans(questionList);
+        for (Question question : questionList) {
+            String quId = question.getId();
+            int quType = question.getQuType();
+            // 根据quType的值，去不同的表查询信息
+            switch (quType) {
+                case 1:
+                    // 去ExamQuRadio表查询
+                    List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(quId);
+                    question.setRadioTd(radioList);
+                    break;
+                case 8:
+                    // 去ExamQuScore表查询
+                    List<ExamQuScore> scoreList = examQuScoreService.selectQuScore(quId);
+                    question.setScoreTd(scoreList);
+                    break;
+                case 9:
+                    // 去ExamQuOrderby表查询
+                    List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(quId);
+                    question.setOrderbyTd(orderbyList);
+                    break;
+                case 2:
+                    // 去ExamQuCheckBox表查询
+                    List<ExamQuCheckbox> examQuCheckboxeList = examQuCheckboxService.selectQuChenbox(quId);
+                    question.setCheckboxTd(examQuCheckboxeList);
+                    break;
+                case 11:
+                case 12:
+                case 13:
+                case 18:
+                    // 去ExamQuChenColumn和ExamQuChenRow表查询
+                    List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(quId);
+                    List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(quId);
+                    question.setColumnTd(examQuChenColumnList);
+                    question.setRowTd(examQuChenRowList);
+                    break;
+                default:
+                    break;
+            }
+        }
+        outputObject.setBean(questionList);
         outputObject.settotal(questionList.size());
     }
 }
