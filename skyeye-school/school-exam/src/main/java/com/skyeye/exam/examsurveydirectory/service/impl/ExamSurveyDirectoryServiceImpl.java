@@ -391,12 +391,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        // 学校
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }
 
     private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
+        // 学校
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSchoolId), commonPageInfo.getHolderKey());
         }
@@ -436,7 +436,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId),InputObject.getLogParamsStatic().get("Id").toString());
-        // 学校
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }
