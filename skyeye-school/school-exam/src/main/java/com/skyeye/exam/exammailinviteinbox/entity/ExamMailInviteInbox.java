@@ -7,13 +7,14 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:mailinviteinbox")
+//@RedisCacheField(name = "Exam:mailinviteinbox")
 @TableName(value = "exam_mail_invite_inbox")
 @ApiModel("是非题结果保存表实体类")
-public class ExamMailInviteInbox extends CommonInfo {
+public class ExamMailInviteInbox extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -43,19 +44,4 @@ public class ExamMailInviteInbox extends CommonInfo {
     @ApiModelProperty(value = "联系人id", required = "required")
     private String usContactsId;
 
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private Data createTime;
-
-    @TableField("last_update_id")
-    @ApiModelProperty(value = "最后更新人", required = "required")
-    private String lastUpdateId;
-
-    @TableField("last_update_time")
-    @ApiModelProperty(value = "最后更新时间", required = "required")
-    private Data lastUpdateTime;
 }

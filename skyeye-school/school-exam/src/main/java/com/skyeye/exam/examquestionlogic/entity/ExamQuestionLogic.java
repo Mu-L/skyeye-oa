@@ -52,11 +52,11 @@ public class ExamQuestionLogic extends OperatorUserInfo {
     private Integer scoreNum;
 
     @TableField("sk_qu_id")
-    @ApiModelProperty(value = "要跳转的题  (end1提前结束-计入结果  end2提前结束-不计结果)", required = "required")
+    @ApiModelProperty(value = "要跳转的题  (end1提前结束-计入结果  end2提前结束-不计结果)")
     private String skQuId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  1显示 0不显示", required = "required")
+    @ApiModelProperty(value = "是否显示  1显示 0不显示")
     private Integer visibility;
 
 }

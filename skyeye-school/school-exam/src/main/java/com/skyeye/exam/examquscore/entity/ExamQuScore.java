@@ -54,7 +54,7 @@ public class ExamQuScore extends OperatorUserInfo {
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
     @TableField(exist = false)
