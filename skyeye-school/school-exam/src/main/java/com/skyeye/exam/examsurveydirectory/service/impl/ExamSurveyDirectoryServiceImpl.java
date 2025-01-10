@@ -215,7 +215,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
      */
-    @Transactional
     @Override
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
