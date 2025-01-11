@@ -231,7 +231,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             String readerId = examSurveyMarkExam.getUserId();
             readerList.append(readerId).append(",");
         }
-        String readerIds = readerList.substring(0, readerList.length() - 1);
+        String readerIds;
+        if (readerList.length() > 1) {
+            readerIds = readerList.substring(0, readerList.length() - 1);
+        } else {
+            readerIds = "";
+        }
         examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
@@ -260,6 +265,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isEmpty(questionList)) {
             throw new CustomException("没有找到题目");
         }
+
         for (Question question : questionList) { // 遍历题目
             question.setCopyFromId(question.getId()); // 设置复制来源ID
             List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(question.getId());
