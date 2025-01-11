@@ -476,6 +476,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    @Override
+    protected void deletePostpose(String id) {
+        examSurveyClassService.deleteSurveyClassBySurveyId(id);
+        examSurveyMarkExamService.deleteSurveyMarkExamBySurveyId(id);
+    }
+
     /**
      * 批量新增
      *
