@@ -113,5 +113,18 @@ public class QuestionController {
         questionService.selectQuestionBySubjecId(inputObject, outputObject);
     }
 
+    /**
+     * 筛选题目信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryFilterQuestionList", value = "筛选题目信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/QuestionController/queryFilterQuestionList")
+    public void queryFilterQuestionList(InputObject inputObject, OutputObject outputObject) {
+        questionService.queryFilterQuestionList(inputObject, outputObject);
+    }
+
 
 }

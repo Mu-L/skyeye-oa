@@ -490,4 +490,53 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         outputObject.setBeans(questionList);
         outputObject.settotal(page.getTotal());
     }
+
+    @Override
+    public void queryFilterQuestionList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
+        // 学校
+        if(StrUtil.isNotEmpty(commonPageInfo.getHolderKey())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getSchoolId),commonPageInfo.getHolderKey());
+        }
+        // 院系
+        if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getFacultyId),commonPageInfo.getHolderId());
+        }
+        // 专业
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectKey())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getMajorId),commonPageInfo.getObjectKey());
+        }
+        // 科目
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getSubjectId),commonPageInfo.getObjectId());
+        }
+        // 类型
+        if(StrUtil.isNotEmpty(commonPageInfo.getType())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuType),commonPageInfo.getType());
+        }
+        // 题型
+        if(StrUtil.isNotEmpty(commonPageInfo.getTypeId())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getTag),commonPageInfo.getTypeId());
+        }
+        // 题目名称
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle),commonPageInfo.getKeyword());
+        }
+        List<Question> beans = list(queryWrapper)
+                .stream().map(item->{
+                    item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+                    item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+                    item.setMajorMation(majorService.selectById(item.getMajorId()));
+                    item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+                    return item;
+                }).collect(Collectors.toList());
+        iAuthUserService.setName(beans,"createId","createName");
+        iAuthUserService.setName(beans,"lastUpdateId","lastUpdateName");
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
+    }
 }
