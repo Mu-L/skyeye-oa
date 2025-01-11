@@ -96,7 +96,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         LocalDateTime bgAnDate = entity.getBgAnDate();
         //进行空指针判断
         if (bgAnDate == null) {
-            throw new CustomException("开始时间或结束时间不能为空");
+            throw new CustomException("开始时间不能为空");
         }
         if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
             throw new CustomException("开始时间不能大于结束时间");
@@ -104,7 +104,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    protected void updatePostpose(ExamSurveyAnswer entity, String userId) {
+    protected void updatePrepose(ExamSurveyAnswer entity) {
         LocalDateTime bgAnDate = entity.getBgAnDate();
         LocalDateTime endAnDate = entity.getEndAnDate();
         LocalDateTime markStartTime = entity.getMarkStartTime();
@@ -149,7 +149,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             Integer fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId());
             entity.setMarkFraction(fraction);
         }
-
     }
 
     @Override

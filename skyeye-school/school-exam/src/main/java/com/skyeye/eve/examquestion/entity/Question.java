@@ -147,7 +147,7 @@ public class Question extends OperatorUserInfo {
     private Integer whetherUpload;
 
     @TableField("is_default_answer")
-    @ApiModelProperty(value = "填空题默认答案")
+    @ApiModelProperty(value = "是否是默认答案")
     private Integer isDefaultAnswer;
 
     @TableField("is_delete")
