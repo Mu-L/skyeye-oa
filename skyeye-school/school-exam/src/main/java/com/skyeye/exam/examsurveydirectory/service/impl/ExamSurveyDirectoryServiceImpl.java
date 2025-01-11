@@ -22,6 +22,7 @@ import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -49,6 +50,7 @@ import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -125,7 +127,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     private ClassesService classesService;
 
     @Autowired
-    private ExamQuChenOptionService examQuChenOptionService;
+    private SchoolService schoolService;
+
+    @Autowired
+    private SemesterService semesterService;
 
     /**
      * 设置考试目录的方法
@@ -524,6 +529,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory bean = super.selectById(id);
         bean.setClassesMation(classesService.selectById(bean.getClassId()));
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
+        bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
+        bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
+        List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.selectBySurveyId(bean.getId());
+        if (CollectionUtil.isNotEmpty(examSurveyMarkExamList)){
+            List<String> markIds = examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList());
+            String[] string = markIds.toString().substring(1, markIds.toString().length() - 1).split(" ");
+            StringBuffer sb  =new StringBuffer();
+            for (String s : string) {
+                sb.append(s);
+            }
+            List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
+            bean.setReaderMationList(userMationList);
+        }
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if(CollectionUtil.isEmpty(questionList)){
             return bean;

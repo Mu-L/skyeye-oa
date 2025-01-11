@@ -13,14 +13,15 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
-import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
-import com.skyeye.exam.examquradio.entity.ExamQuRadio;
-import com.skyeye.exam.examquscore.entity.ExamQuScore;
+import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
+import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
+import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.subject.entity.Subject;
@@ -54,7 +55,7 @@ public class Question extends OperatorUserInfo {
     private Integer quTag;
 
     @TableField("qu_type")
-    @ApiModelProperty(value = "题目类型", required = "required",enumClass = QuType.class)
+    @ApiModelProperty(value = "题目类型", required = "required", enumClass = QuType.class)
     private Integer quType;
 
     @TableField("answer_input_row")
@@ -74,7 +75,7 @@ public class Question extends OperatorUserInfo {
     private Integer cellCount;
 
     @TableField("check_type")
-    @ApiModelProperty(value = "说明的验证方式")
+    @ApiModelProperty(value = "说明的验证方式", enumClass = CheckTypes.class)
     private Integer checkType;
 
     @TableField("contacts_attr")
@@ -94,7 +95,7 @@ public class Question extends OperatorUserInfo {
     private Integer hv;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序ID" ,defaultValue = "1")
+    @ApiModelProperty(value = "排序ID", defaultValue = "1")
     private Integer orderById;
 
     @TableField("param_int01")
@@ -114,7 +115,7 @@ public class Question extends OperatorUserInfo {
     private Integer randOrder;
 
     @TableField("tag")
-    @ApiModelProperty(value = "标记 1题库中的题   2试卷中的题",required = "required")
+    @ApiModelProperty(value = "标记 1题库中的题   2试卷中的题", required = "required")
     private Integer tag;
 
     @TableField("visibility")
@@ -182,7 +183,7 @@ public class Question extends OperatorUserInfo {
     private Major majorMation;
 
     @TableField(exist = false)
-    @Property(value="科目信息")
+    @Property(value = "科目信息")
     private Subject subjectMation;
 
     @TableField(exist = false)

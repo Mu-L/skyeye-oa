@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import lombok.Data;
 
 @Data
@@ -37,7 +38,7 @@ public class ExamQuMultiFillblank extends OperatorUserInfo {
     private String optionTitle;
 
     @TableField("check_type")
-    @ApiModelProperty(value = "说明的验证方式")
+    @ApiModelProperty(value = "说明的验证方式", enumClass = CheckTypes.class)
     private Integer checkType;
 
     @TableField("order_by_id")

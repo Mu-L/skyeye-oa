@@ -3,6 +3,8 @@ package com.skyeye.exam.examsurveymarkexam.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamSurveyMarkExamService
  * @Description: 试卷与阅卷人关系表管理服务接口层
@@ -13,4 +15,6 @@ import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
  */
 public interface ExamSurveyMarkExamService extends SkyeyeBusinessService<ExamSurveyMarkExam> {
     void createExamSurveyMarkExam(String id,String readerId,String userId);
+
+    List<ExamSurveyMarkExam> selectBySurveyId(String id);
 }
