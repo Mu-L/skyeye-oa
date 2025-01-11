@@ -58,6 +58,10 @@ public class Question extends OperatorUserInfo {
     @ApiModelProperty(value = "题目类型", required = "required", enumClass = QuType.class)
     private Integer quType;
 
+    @TableField("is_public")
+    @ApiModelProperty(value = "是否公开  0公开  1私有",defaultValue = "0")
+    private Integer isPublic;
+
     @TableField("answer_input_row")
     @ApiModelProperty(value = "填空的input行")
     private Integer answerInputRow;

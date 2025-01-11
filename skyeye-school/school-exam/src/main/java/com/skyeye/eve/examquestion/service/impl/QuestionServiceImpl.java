@@ -535,6 +535,10 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
             queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle),commonPageInfo.getKeyword());
         }
+        // 是否公开
+        if(StrUtil.isNotEmpty(commonPageInfo.getEnabled().toString())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsPublic),commonPageInfo.getEnabled());
+        }
         List<Question> beans = getBaseInfo(queryWrapper);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());

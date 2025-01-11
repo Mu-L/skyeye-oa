@@ -54,7 +54,7 @@ public class ExamQuScore extends OperatorUserInfo {
     private String optionTitle;
 
     @TableField("order_by_id")
-    @ApiModelProperty(value = "排序号", required = "required")
+    @ApiModelProperty(value = "排序号")
     private Integer orderById;
 
     @TableField("visibility")
