@@ -525,18 +525,14 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
         // 类型
         if(StrUtil.isNotEmpty(commonPageInfo.getType())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType),commonPageInfo.getType());
-        }
-        // 题型
-        if(StrUtil.isNotEmpty(commonPageInfo.getTypeId())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag),commonPageInfo.getTypeId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType),Integer.parseInt(commonPageInfo.getType()));
         }
         // 题目名称
         if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
             queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle),commonPageInfo.getKeyword());
         }
         // 是否公开
-        if(StrUtil.isNotEmpty(commonPageInfo.getEnabled().toString())){
+        if(commonPageInfo.getEnabled()!=null){
             queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsPublic),commonPageInfo.getEnabled());
         }
         List<Question> beans = getBaseInfo(queryWrapper);
