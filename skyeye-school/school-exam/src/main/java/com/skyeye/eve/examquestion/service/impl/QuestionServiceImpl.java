@@ -427,7 +427,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
-        List<Question> questionList = list(queryWrapper);
+        List<Question> questionList = getBaseInfo(queryWrapper);
         for (Question question : questionList) {
             String quId = question.getId();
             int quType = question.getQuType();
@@ -471,12 +471,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         outputObject.settotal(questionList.size());
     }
 
-    @Override
-    public void queryQuestionLists(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+    private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {
         List<Question> questionList = list(queryWrapper)
                 .stream().map(item->{
                     item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
@@ -487,6 +482,16 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 }).collect(Collectors.toList());
         iAuthUserService.setName(questionList,"createId","createName");
         iAuthUserService.setName(questionList,"lastUpdateId","lastUpdateName");
+        return questionList;
+    }
+
+    @Override
+    public void queryQuestionLists(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+        List<Question> questionList = getBaseInfo(queryWrapper);
         outputObject.setBeans(questionList);
         outputObject.settotal(page.getTotal());
     }
@@ -526,16 +531,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
             queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle),commonPageInfo.getKeyword());
         }
-        List<Question> beans = list(queryWrapper)
-                .stream().map(item->{
-                    item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-                    item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
-                    item.setMajorMation(majorService.selectById(item.getMajorId()));
-                    item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-                    return item;
-                }).collect(Collectors.toList());
-        iAuthUserService.setName(beans,"createId","createName");
-        iAuthUserService.setName(beans,"lastUpdateId","lastUpdateName");
+        List<Question> beans = getBaseInfo(queryWrapper);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
