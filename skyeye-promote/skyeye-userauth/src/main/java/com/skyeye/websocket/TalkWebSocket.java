@@ -74,7 +74,7 @@ public class TalkWebSocket {
         Map<String, Object> map1 = new HashMap<>();
         map1.put("messageType", SocketConstants.MessageType.First.getType());
         map1.put("userId", userId);
-        sendMessageAll(JSONUtil.toJsonStr(map1), userId);
+        sendMessageAll(JSONUtil.toJsonStr(map1));
 
         // 把自己的信息加入到map当中去
         clients.put(userId, this);
@@ -102,7 +102,7 @@ public class TalkWebSocket {
             map1.put("messageType", 2);
             map1.put("onlineUsers", clients.keySet());
             map1.put("userId", userId);
-            sendMessageAll(JSONUtil.toJsonStr(map1), userId);
+            sendMessageAll(JSONUtil.toJsonStr(map1));
             LOGGER.info("有连接关闭！ 当前在线人数" + onlineNumber);
         }
     }
@@ -130,16 +130,16 @@ public class TalkWebSocket {
 
             } else if (SocketConstants.MessageType.Sixth.getType() == type) {//全体消息
                 map1 = SocketConstants.sendAllPeopleMsg(jsonObject);
-                sendMessageAll(JSONUtil.toJsonStr(map1), jsonObject.getStr("userId"));
+                sendMessageAll(JSONUtil.toJsonStr(map1));
             } else if (SocketConstants.MessageType.Seventh.getType() == type) {//群组邀请消息
                 map1.put("toId", jsonObject.getStr("to"));//收件人id
                 sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
             } else if (SocketConstants.MessageType.Eighth.getType() == type) {//隐身消息
                 map1.put("userId", jsonObject.getStr("userId"));
-                sendMessageAll(JSONUtil.toJsonStr(map1), jsonObject.getStr("userId"));
+                sendMessageAll(JSONUtil.toJsonStr(map1));
             } else if (SocketConstants.MessageType.Ninth.getType() == type) {//隐身上线消息
                 map1.put("userId", jsonObject.getStr("userId"));
-                sendMessageAll(JSONUtil.toJsonStr(map1), jsonObject.getStr("userId"));
+                sendMessageAll(JSONUtil.toJsonStr(map1));
             } else if (SocketConstants.MessageType.Tenth.getType() == type) {//搜索账号入群审核同意后通知用户加载群信息
                 map1 = SocketConstants.sendAgreeJoinGroupMsg(jsonObject);
                 sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
@@ -208,9 +208,8 @@ public class TalkWebSocket {
      * 发送给全部用户消息
      *
      * @param message
-     * @param FromUserName
      */
-    public void sendMessageAll(String message, String FromUserName) {
+    public void sendMessageAll(String message) {
         for (TalkWebSocket item : clients.values()) {
             item.session.getAsyncRemote().sendText(message);
         }
