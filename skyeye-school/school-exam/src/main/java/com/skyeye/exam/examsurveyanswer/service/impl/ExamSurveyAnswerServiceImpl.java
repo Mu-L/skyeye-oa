@@ -3,6 +3,7 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -23,10 +24,13 @@ import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -84,18 +88,41 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Autowired
     private ExamAnOrderService examAnOrderService;
 
+    @Autowired
+    private ExamSurveyQuAnswerService examSurveyQuAnswerService;
+
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
+        LocalDateTime bgAnDate = entity.getBgAnDate();
+        //进行空指针判断
+        if (bgAnDate == null) {
+            throw new CustomException("开始时间或结束时间不能为空");
+        }
         if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
             throw new CustomException("开始时间不能大于结束时间");
-        }
-        if (entity.getMarkStartTime().isAfter(entity.getMarkEndTime())){
-            throw new CustomException("阅卷开始时间不能大于结束时间");
         }
     }
 
     @Override
-    protected void createPostpose(ExamSurveyAnswer entity, String userId) {
+    protected void updatePostpose(ExamSurveyAnswer entity, String userId) {
+        LocalDateTime bgAnDate = entity.getBgAnDate();
+        LocalDateTime endAnDate = entity.getEndAnDate();
+        LocalDateTime markStartTime = entity.getMarkStartTime();
+        LocalDateTime markEndTime = entity.getMarkEndTime();
+        //进行空指针判断
+        if (endAnDate == null) {
+            throw new CustomException("结束时间不能为空");
+        }
+        if (markStartTime == null || markEndTime == null) {
+            throw new CustomException("批阅开始时间或结束时间不能为空");
+        }
+        Duration duration = Duration.between(bgAnDate, endAnDate); // 计算时间差
+        if (duration.isNegative()) {
+            throw new CustomException("开始时间不能大于结束时间");
+        }
+        // 将时间差转换为总小时数（浮点数）
+        float totalHours = (float) duration.toHours() + (float) duration.toMinutes() / 60.0f + (float) duration.toMillis() / 3600000.0f;
+        entity.setTotalTime(totalHours); // 设置时间差到totalTime属性
         String surveyId = entity.getSurveyId();
         Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
         Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
@@ -113,6 +140,16 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Integer size13 = examAnOrderService.selectBySurveyId(surveyId).size();
         Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
         entity.setCompleteNum(total);
+        if (total.equals(entity.getQuNum())) {
+            entity.setIsComplete(CommonNumConstants.NUM_ONE);
+        } else if (total < entity.getQuNum()) {
+            throw new CustomException("未完成所有题目");
+        }
+        if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
+            Integer fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+            entity.setMarkFraction(fraction);
+        }
+
     }
 
     @Override

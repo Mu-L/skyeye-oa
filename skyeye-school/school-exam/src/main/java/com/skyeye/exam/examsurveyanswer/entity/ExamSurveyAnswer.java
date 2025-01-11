@@ -34,11 +34,11 @@ public class ExamSurveyAnswer extends CommonInfo {
     private String surveyId;
 
     @TableField("bg_an_date")
-    @ApiModelProperty(value = "回答开始时间", required = "required")
+    @ApiModelProperty(value = "回答开始时间")
     private LocalDateTime bgAnDate;
 
     @TableField("end_an_date")
-    @ApiModelProperty(value = "回答结束时间", required = "required")
+    @ApiModelProperty(value = "回答结束时间")
     private LocalDateTime endAnDate;
 
     @TableField("complete_num")
@@ -54,7 +54,7 @@ public class ExamSurveyAnswer extends CommonInfo {
     private Integer dataSource;
 
     @TableField("handle_state")
-    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过", required = "required")
+    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过",defaultValue = "0")
     private Integer handleState;
 
     @TableField("ip_addr")
@@ -70,11 +70,11 @@ public class ExamSurveyAnswer extends CommonInfo {
     private String city;
 
     @TableField("is_complete")
-    @ApiModelProperty(value = "是否完成  1完成 0未完成", required = "required")
+    @ApiModelProperty(value = "是否完成  1完成 0未完成")
     private Integer isComplete;
 
     @TableField("is_effective")
-    @ApiModelProperty(value = "是否是有效数据  1有效  0无效", required = "required")
+    @ApiModelProperty(value = "是否是有效数据  1有效  0无效")
     private Integer isEffective;
 
     @TableField("qu_num")
@@ -82,7 +82,7 @@ public class ExamSurveyAnswer extends CommonInfo {
     private Integer quNum;
 
     @TableField("total_time")
-    @ApiModelProperty(value = "用时", required = "required")
+    @ApiModelProperty(value = "用时")
     private Float totalTime;
 
     @TableField("create_id")
@@ -90,7 +90,7 @@ public class ExamSurveyAnswer extends CommonInfo {
     private String createId;
 
     @TableField("state")
-    @ApiModelProperty(value = "教师是否阅卷  1.否  2.是", required = "required")
+    @ApiModelProperty(value = "教师是否阅卷  1.否  2.是")
     private Integer state;
 
     @TableField("mark_fraction")
