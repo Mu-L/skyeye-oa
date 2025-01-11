@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -127,10 +128,17 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     public void queryPageListBySchoolId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String schoolId = commonPageInfo.getHolderId();
+        String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId);
         List<Routes> routes = setBaseMation(queryWrapper);
+        if(StrUtil.isNotEmpty(keyword)){
+            routes = routes.stream()
+                    .filter(route -> route.getStartMation().getName().contains(keyword) ||
+                            route.getEndMation().getName().contains(keyword))
+                    .collect(Collectors.toList());
+        }
         for (Routes route : routes) {
             route.setSchoolMation(schoolService.selectById(route.getSchoolId()));
         }
