@@ -4,12 +4,15 @@
 
 package com.skyeye.ueditor.service;
 
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 public interface EditUploadService {
 
-    Map<String, Object> uploadContentPic(HttpServletRequest req);
+    void uploadContentPic(InputObject inputObject, OutputObject outputObject);
 
     Map<String, Object> downloadContentPic(HttpServletRequest req, String userId);
 
