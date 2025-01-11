@@ -9,8 +9,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.entity.School;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
@@ -19,6 +21,9 @@ import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
+import com.skyeye.school.faculty.entity.Faculty;
+import com.skyeye.school.major.entity.Major;
+import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
 
 import java.util.List;
@@ -163,6 +168,22 @@ public class Question extends OperatorUserInfo {
     @TableField(value = "subject_id")
     @ApiModelProperty(value = "科目id")
     private String subjectId;
+
+    @TableField(exist = false)
+    @Property(value = "所属学校信息")
+    private School schoolMation;
+
+    @TableField(exist = false)
+    @Property(value = "所属院系信息")
+    private Faculty facultyMation;
+
+    @TableField(exist = false)
+    @Property(value = "专业信息")
+    private Major majorMation;
+
+    @TableField(exist = false)
+    @Property(value="科目信息")
+    private Subject subjectMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "单选题选项信息", required = "json")

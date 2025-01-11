@@ -22,6 +22,7 @@ import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.dao.QuestionDao;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -39,6 +40,10 @@ import com.skyeye.exam.examquradio.service.ExamQuRadioService;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.subject.entity.Subject;
+import com.skyeye.school.subject.service.SubjectService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: QuestionServiceImpl
@@ -86,6 +92,18 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Autowired
     private ExamQuScoreService examQuScoreService;
+
+    @Autowired
+    private SchoolService schoolService;
+
+    @Autowired
+    private FacultyService facultyService;
+
+    @Autowired
+    private MajorService majorService;
+
+    @Autowired
+    private SubjectService subjectService;
 
     @Override
     protected void createPrepose(Question entity) {
@@ -431,5 +449,25 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
         outputObject.setBean(questionList);
         outputObject.settotal(questionList.size());
+    }
+
+    @Override
+    public void queryQuestionLists(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+        List<Question> questionList = list(queryWrapper)
+                .stream().map(item->{
+                    item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+                    item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+                    item.setMajorMation(majorService.selectById(item.getMajorId()));
+                    item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+                    return item;
+                }).collect(Collectors.toList());
+        iAuthUserService.setName(questionList,"createId","createName");
+        iAuthUserService.setName(questionList,"lastUpdateId","lastUpdateName");
+        outputObject.setBeans(questionList);
+        outputObject.settotal(page.getTotal());
     }
 }
