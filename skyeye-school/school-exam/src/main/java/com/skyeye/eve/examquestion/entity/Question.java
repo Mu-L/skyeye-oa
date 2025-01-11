@@ -152,7 +152,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField("is_default_answer")
     @ApiModelProperty(value = "是否是默认答案")
-    private Integer isDefaultAnswer;
+    private String isDefaultAnswer;
 
     @TableField("is_delete")
     @ApiModelProperty(value = "0表示问题已经删除，1.表示未删除，默认为1")

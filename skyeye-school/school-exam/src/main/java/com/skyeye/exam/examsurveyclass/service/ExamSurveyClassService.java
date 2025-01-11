@@ -14,4 +14,6 @@ import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 public interface ExamSurveyClassService extends SkyeyeBusinessService<ExamSurveyClass> {
 
     void createExamSurveyClass(String id,String classId, String userId);
+
+    void deleteSurveyClassBySurveyId(String id);
 }

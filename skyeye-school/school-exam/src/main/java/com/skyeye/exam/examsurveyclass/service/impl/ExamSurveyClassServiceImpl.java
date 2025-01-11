@@ -1,7 +1,9 @@
 package com.skyeye.exam.examsurveyclass.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examsurveyclass.dao.ExamSurveyClassDao;
 import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
@@ -25,5 +27,12 @@ public class ExamSurveyClassServiceImpl extends SkyeyeBusinessServiceImpl<ExamSu
         examSurveyClass.setExamSurveyId(id);
         examSurveyClass.setClassId(classId);
         createEntity(examSurveyClass, userId);
+    }
+
+    @Override
+    public void deleteSurveyClassBySurveyId(String id) {
+        UpdateWrapper<ExamSurveyClass> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyClass::getExamSurveyId), id);
+        remove(updateWrapper);
     }
 }

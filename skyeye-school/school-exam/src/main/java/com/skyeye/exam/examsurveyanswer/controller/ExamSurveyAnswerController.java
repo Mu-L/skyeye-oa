@@ -40,7 +40,6 @@ public class ExamSurveyAnswerController {
         examSurveyAnswerService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-
     /**
      * 根据ID删除试卷回答信息
      *
@@ -61,12 +60,12 @@ public class ExamSurveyAnswerController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySurveyAnswerById", value = "根据ID获取试卷回答信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "querySurveyAnswerById", value = "根据ID获取试卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/querySurveyAnswerById")
     public void querySurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
-        examSurveyAnswerService.selectById(inputObject, outputObject);
+        examSurveyAnswerService.selectById(inputObject, outputObject);//仅用了方法
     }
 
     /**
@@ -76,8 +75,6 @@ public class ExamSurveyAnswerController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryMySurveyAnswerList", value = "根据createId获取my试卷回答信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "createId", name = "createId", value = "回答人的id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/queryMySurveyAnswerList")
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryMySurveyAnswerList(inputObject, outputObject);
@@ -91,7 +88,7 @@ public class ExamSurveyAnswerController {
      */
     @ApiOperation(id = "queryNoOrYesSurveyAnswerList", value = "获取已/待批阅试卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "state", name = "state", value = "待批阅状态1", required = "required")})
+            @ApiImplicitParam(id = "state", name = "state", value = "批阅状态", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/queryNoOrYesSurveyAnswerList")
     public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryNoOrYesSurveyAnswerList(inputObject, outputObject);

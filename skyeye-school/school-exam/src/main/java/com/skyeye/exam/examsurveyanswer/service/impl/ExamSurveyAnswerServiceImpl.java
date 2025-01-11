@@ -153,8 +153,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Override
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String createId = map.get("createId").toString();
+        String createId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
         List<ExamSurveyAnswer> list = list(queryWrapper);
