@@ -30,6 +30,10 @@ public class                                                                    
     @ApiModelProperty(value = "答案id", required = "required")
     private String answerId;
 
+    @TableField("survey_id")
+    @ApiModelProperty(value = "试卷id", required = "required")
+    private String surveyId;
+
     @TableField("fraction")
     @ApiModelProperty(value = "所得分数", required = "required")
     private Integer fraction;

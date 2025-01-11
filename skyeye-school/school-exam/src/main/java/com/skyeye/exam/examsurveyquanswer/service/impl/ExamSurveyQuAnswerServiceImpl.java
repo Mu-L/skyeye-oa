@@ -6,7 +6,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examsurveyquanswer.dao.ExamSurveyQuAnswerDao;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
@@ -35,5 +35,14 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
         outputObject.setBean(examSurveyQuAnswerList);
         outputObject.settotal(examSurveyQuAnswerList.size());
+    }
+
+    @Override
+    public Integer selectFractionBySurveyId(String surveyId) {
+        QueryWrapper<ExamSurveyQuAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getSurveyId), surveyId);
+        List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
+        Integer sum = examSurveyQuAnswerList.stream().mapToInt(ExamSurveyQuAnswer::getFraction).sum();
+        return sum;
     }
 }
