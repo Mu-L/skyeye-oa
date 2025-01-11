@@ -19,6 +19,7 @@ import com.skyeye.eve.rest.mq.JobMateUpdateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.html.util.HtmlToPdfUtil;
+import com.skyeye.luckysheet.util.LuckySheetToPdfUtil;
 import com.youbenzi.md2.export.FileFactory;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -200,12 +201,11 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
                 FileFactory.produce(content, outputPath, webRootfileBath, sysWaterMark);
                 break;
             case 3:
-                // word笔记
-
+                // word笔记-- TODO 暂时没有word的功能
                 break;
             case 4:
                 // ecxel笔记
-
+                LuckySheetToPdfUtil.convertToPdf(content, outputPath);
                 break;
             default:
                 break;
