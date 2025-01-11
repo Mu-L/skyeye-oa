@@ -83,5 +83,18 @@ public class ExamSurveyAnswerController {
         examSurveyAnswerService.queryMySurveyAnswerList(inputObject, outputObject);
     }
 
+    /**
+     * 获取已/待批阅试卷信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryNoOrYesSurveyAnswerList", value = "获取已/待批阅试卷信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "state", name = "state", value = "待批阅状态1", required = "required")})
+    @RequestMapping("/post/ExamSurveyAnswerController/queryNoOrYesSurveyAnswerList")
+    public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.queryNoOrYesSurveyAnswerList(inputObject, outputObject);
+    }
 
 }

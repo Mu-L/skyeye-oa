@@ -3,39 +3,22 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.examquestion.entity.Question;
-import com.skyeye.eve.examquestion.service.QuestionService;
-import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
-import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
-import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
-import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
-import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
-import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
-import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
-import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
-import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
 import com.skyeye.exam.examanenumqu.service.ExamAnEnumquService;
-import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
 import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
-import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
-import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
-import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
-import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
@@ -157,6 +140,15 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getId), answerId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String state = map.get("state").toString();
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
         return list(queryWrapper);
     }
 }
