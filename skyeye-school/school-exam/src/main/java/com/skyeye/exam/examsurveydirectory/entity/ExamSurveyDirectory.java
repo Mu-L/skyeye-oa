@@ -12,11 +12,13 @@ import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.major.entity.Major;
+import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamSurveyDirectory
@@ -80,6 +82,10 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "所属学校", required = "required")
     private String schoolId;
 
+    @TableField(exist = false)
+    @Property(value = "学校信息")
+    private School schoolMation;
+
     @TableField("faculty_id")
     @ApiModelProperty(value = "所属学院")
     private String facultyId;
@@ -100,6 +106,10 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "学期", required = "required")
     private String semesterId;
 
+    @TableField(exist = false)
+    @Property(value = "学期信息")
+    private Semester semesterMation;
+
     @TableField("subject_id")
     @ApiModelProperty(value = "考试科目", required = "required")
     private String subjectId;
@@ -115,6 +125,10 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value="阅卷人列表",required = "required")
     private String readerList;
+
+    @TableField(exist = false)
+    @Property(value = "阅卷人信息列表")
+    private List<Map<String, Object>> readerMationList;
 
     @TableField(exist = false)
     @Property(value = "科目信息")
