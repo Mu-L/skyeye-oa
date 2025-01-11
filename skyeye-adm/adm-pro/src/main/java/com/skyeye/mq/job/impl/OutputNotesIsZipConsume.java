@@ -18,6 +18,7 @@ import com.skyeye.eve.note.service.NoteService;
 import com.skyeye.eve.rest.mq.JobMateUpdateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.html.util.HtmlToPdfUtil;
 import com.youbenzi.md2.export.FileFactory;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -67,10 +68,10 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
     private String sysWaterMark;
 
     /**
-     * 系统地址
+     * 图片访问基础路径
      */
-    @Value("${webroot.ndc}")
-    private String webRootNdc;
+    @Value("${webroot.fileBath}")
+    private String webRootfileBath;
 
     @Autowired
     private NoteDao noteDao;
@@ -131,12 +132,13 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
         List<Map<String, Object>> folderList = folderService.queryFolderAndChildList(Arrays.asList(parentId));
         // 2.获取所有目录下的所有文件
         List<Map<String, Object>> files = noteDao.queryFileList(folderList, DeleteFlagEnum.NOT_DELETE.getKey());
+        String uuid = ToolUtil.getSurFaceId();
         // 文件存储基础路径
-        String basePath = String.format("%s%s/%s/", tPath, FileConstants.FileUploadPath.getSavePath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId);
+        String basePath = String.format("%s%s/%s/%s/", tPath, FileConstants.FileUploadPath.getSavePath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, uuid);
         FileUtil.createDirs(basePath);
         for (Map<String, Object> bean : files) {
             String content = bean.containsKey("content") ? bean.get("content").toString() : "";
-            bean.put("fileAddress", outPutFileContent(basePath, content, Integer.parseInt(bean.get("type").toString()), userId));
+            bean.put("fileAddress", outPutFileContent(basePath, content, Integer.parseInt(bean.get("type").toString()), userId, uuid));
             bean.put("content", "");
             bean.put("fileName", bean.get("name").toString() + ".pdf");
             String[] str = bean.get("parentId").toString().split(",");
@@ -169,7 +171,7 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
             }
             FileUtil.close(out);
         }
-        return String.format("%s/%s/%s", FileConstants.FileUploadPath.getVisitPath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, fileName + ".zip");
+        return String.format("%s/%s/%s/%s", FileConstants.FileUploadPath.getVisitPath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, uuid, fileName + ".zip");
     }
 
     /**
@@ -179,21 +181,23 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
      * @param content  内容
      * @param type     类型
      * @param userId   用户id
+     * @param uuid     唯一标识
      * @return
      */
-    private String outPutFileContent(String basePath, String content, int type, String userId) {
+    private String outPutFileContent(String basePath, String content, int type, String userId, String uuid) {
         String fileName = String.valueOf(System.currentTimeMillis());
         if (ToolUtil.isBlank(content)) {
             content = "暂无内容";
         }
+        String outputPath = basePath + "/" + fileName + ".pdf";
         switch (type) {
             case 1:
                 // 富文本编辑器
-
+                HtmlToPdfUtil.convertHtmlToPdfWithWatermark(content, sysWaterMark, outputPath, webRootfileBath);
                 break;
             case 2:
                 // markdown笔记
-                FileFactory.produce(content, basePath + "/" + fileName + ".pdf", webRootNdc, sysWaterMark);
+                FileFactory.produce(content, outputPath, webRootfileBath, sysWaterMark);
                 break;
             case 3:
                 // word笔记
@@ -206,7 +210,7 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
             default:
                 break;
         }
-        return String.format("%s/%s/%s", FileConstants.FileUploadPath.getVisitPath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, fileName + ".pdf");
+        return String.format("%s/%s/%s/%s", FileConstants.FileUploadPath.getVisitPath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, uuid, fileName + ".pdf");
     }
 
     /**
@@ -218,10 +222,11 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
      */
     private String outPutFileContent(String fileId, String userId) {
         Note note = noteService.selectById(fileId);
+        String uuid = ToolUtil.getSurFaceId();
         // 文件存储基础路径
-        String basePath = String.format("%s%s/%s/", tPath, FileConstants.FileUploadPath.getSavePath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId);
+        String basePath = String.format("%s%s/%s/%s/", tPath, FileConstants.FileUploadPath.getSavePath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, uuid);
         FileUtil.createDirs(basePath);
-        return outPutFileContent(basePath, note.getContent(), note.getType(), userId);
+        return outPutFileContent(basePath, note.getContent(), note.getType(), userId, uuid);
     }
 
 }
