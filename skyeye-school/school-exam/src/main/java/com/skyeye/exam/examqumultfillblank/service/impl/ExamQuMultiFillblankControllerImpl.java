@@ -13,6 +13,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import com.skyeye.exam.examqumultfillblank.dao.ExamQuMultiFillblankDao;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examqumultfillblank.service.ExamQuMultiFillblankService;

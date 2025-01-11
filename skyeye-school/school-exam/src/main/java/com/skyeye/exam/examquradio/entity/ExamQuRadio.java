@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import lombok.Data;
 
 /**
@@ -46,7 +47,7 @@ public class ExamQuRadio extends OperatorUserInfo {
     private String optionTitle;
 
     @TableField("check_type")
-    @ApiModelProperty(value = "说明的验证方式")
+    @ApiModelProperty(value = "说明的验证方式", enumClass = CheckTypes.class)
     private Integer checkType;
 
     @TableField("is_note")
