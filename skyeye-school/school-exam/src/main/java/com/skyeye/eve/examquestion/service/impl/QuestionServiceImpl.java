@@ -48,10 +48,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -251,6 +248,25 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(id);
         question.setRowTd(examQuChenRowList);
         return question;
+    }
+
+    @Override
+    public List<Question> selectByIds(String... ids) {
+        List<Question> questionList = new ArrayList<>();
+        for (String id : ids) {
+            Question question = super.selectById(id);
+            questionList.add(question);
+        }
+        iAuthUserService.setName(questionList,"createId","createName");
+        iAuthUserService.setName(questionList,"lastUpdateId","lastUpdateName");
+        questionList = questionList.stream().map(item->{
+            item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+            item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+            item.setMajorMation(majorService.selectById(item.getMajorId()));
+            item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+            return item;
+        }).collect(Collectors.toList());
+        return questionList;
     }
 
     /**

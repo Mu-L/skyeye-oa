@@ -77,12 +77,12 @@ public class QuestionController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "selectQuestionById", value = "根据Id查询问题", method = "POST", allUse = "2")
+    @ApiOperation(id = "selectQuestionById", value = "根据Ids批量查询问题", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")})
     @RequestMapping("/post/QuestionController/selectQuestionById")
     public void selectQuestionById(InputObject inputObject, OutputObject outputObject) {
-        questionService.selectById(inputObject, outputObject);
+        questionService.selectByIds(inputObject, outputObject);
     }
 
     /**
