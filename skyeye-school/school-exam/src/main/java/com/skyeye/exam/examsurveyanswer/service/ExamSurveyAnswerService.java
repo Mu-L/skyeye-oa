@@ -21,4 +21,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     ExamSurveyAnswer queryWhetherExamIngByStuId(String userId, String id);
 
     List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
+
+    List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
 }
