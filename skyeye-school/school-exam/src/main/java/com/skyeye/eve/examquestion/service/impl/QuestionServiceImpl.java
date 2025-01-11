@@ -474,9 +474,13 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {
         List<Question> questionList = list(queryWrapper)
                 .stream().map(item->{
+                    //设置学校信息
                     item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+                    //设置学院信息
                     item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+                    //设置专业信息
                     item.setMajorMation(majorService.selectById(item.getMajorId()));
+                    //设置科目信息
                     item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
                     return item;
                 }).collect(Collectors.toList());
@@ -505,27 +509,27 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
         // 学校
         if(StrUtil.isNotEmpty(commonPageInfo.getHolderKey())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getSchoolId),commonPageInfo.getHolderKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSchoolId),commonPageInfo.getHolderKey());
         }
         // 院系
         if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getFacultyId),commonPageInfo.getHolderId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getFacultyId),commonPageInfo.getHolderId());
         }
         // 专业
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectKey())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getMajorId),commonPageInfo.getObjectKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getMajorId),commonPageInfo.getObjectKey());
         }
         // 科目
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getSubjectId),commonPageInfo.getObjectId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId),commonPageInfo.getObjectId());
         }
         // 类型
         if(StrUtil.isNotEmpty(commonPageInfo.getType())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuType),commonPageInfo.getType());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType),commonPageInfo.getType());
         }
         // 题型
         if(StrUtil.isNotEmpty(commonPageInfo.getTypeId())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getTag),commonPageInfo.getTypeId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag),commonPageInfo.getTypeId());
         }
         // 题目名称
         if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
