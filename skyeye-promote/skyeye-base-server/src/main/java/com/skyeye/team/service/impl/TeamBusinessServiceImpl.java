@@ -196,7 +196,8 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         MPJLambdaWrapper<TeamBusiness> wrapper = new MPJLambdaWrapper<TeamBusiness>()
             .innerJoin(TeamRoleUser.class, TeamRoleUser::getTeamId, TeamBusiness::getId)
             .eq(TeamBusiness::getObjectKey, commonPageInfo.getObjectKey())
-            .and(itemWwrapper -> itemWwrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId));
+            .and(itemWwrapper -> itemWwrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId))
+            .groupBy(TeamBusiness::getId);
         List<TeamBusiness> teamBusinessList = skyeyeBaseMapper.selectJoinList(TeamBusiness.class, wrapper);
         outputObject.setBeans(teamBusinessList);
         if (commonPageInfo.getIsPaging()) {
