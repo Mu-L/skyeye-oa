@@ -19,6 +19,7 @@ import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.ResultEntity;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.IContractService;
 import com.skyeye.crm.service.ICustomerService;
@@ -73,22 +74,36 @@ public class ProProjectServiceImpl extends SkyeyeFlowableServiceImpl<ProProjectD
     private ISupplierContractService iSupplierContractService;
 
     @Override
+    public void queryProProjectList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
+            // 我负责的
+            ResultEntity resultEnt = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName(), true);
+            if (CollectionUtil.isEmpty(resultEnt.getRows())) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
+            }
+            List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
+            QueryWrapper<Project> queryWrapper = getQueryWrapper(commonPageInfo);
+            queryWrapper.in(CommonConstants.ID, ids);
+            List<Project> projectList = list(queryWrapper);
+            iAuthUserService.setName(projectList, "createId", "createName");
+            iAuthUserService.setName(projectList, "lastUpdateId", "lastUpdateName");
+            outputObject.setBeans(projectList);
+            outputObject.settotal(resultEnt.getTotal());
+        } else {
+            // 我创建的 / 全部
+            queryPageList(inputObject, outputObject);
+        }
+    }
+
+    @Override
     public QueryWrapper<Project> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Project> queryWrapper = super.getQueryWrapper(commonPageInfo);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        if (StrUtil.equals("myCharge", commonPageInfo.getType())) {
-            // 我负责的
-            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
-                commonPageInfo.getLimit(), getServiceClassName());
-            if (CollectionUtil.isEmpty(ids)) {
-                throw new CustomException("您还不在任何团队中，请联系管理员");
-            }
-            queryWrapper.in(CommonConstants.ID, ids);
-        } else if (StrUtil.equals("myCreate", commonPageInfo.getType())) {
+        if (StrUtil.equals("myCreate", commonPageInfo.getType())) {
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(Project::getCreateId), userId);
-        } else if (StrUtil.equals("All", commonPageInfo.getType())) {
-            // 所有的
         }
         return queryWrapper;
     }

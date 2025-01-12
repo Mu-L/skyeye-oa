@@ -19,4 +19,6 @@ import com.skyeye.project.entity.AutoProject;
  */
 public interface AutoProjectService extends SkyeyeBusinessService<AutoProject> {
     void queryAllAutoProjectList(InputObject inputObject, OutputObject outputObject);
+
+    void queryAutoProjectList(InputObject inputObject, OutputObject outputObject);
 }

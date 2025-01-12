@@ -43,7 +43,7 @@ public class CustomerController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CustomerController/queryCustomerList")
     public void queryCustomerList(InputObject inputObject, OutputObject outputObject) {
-        customerService.queryPageList(inputObject, outputObject);
+        customerService.queryCustomerList(inputObject, outputObject);
     }
 
     /**

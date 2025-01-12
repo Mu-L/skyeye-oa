@@ -8,10 +8,10 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.project.entity.AutoProject;
-import com.skyeye.project.entity.AutoProjectQueryDo;
 import com.skyeye.project.service.AutoProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,10 +39,10 @@ public class AutoProjectController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryAutoProjectList", value = "获取项目管理列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = AutoProjectQueryDo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AutoProjectController/queryAutoProjectList")
     public void queryAutoProjectList(InputObject inputObject, OutputObject outputObject) {
-        autoProjectService.queryPageList(inputObject, outputObject);
+        autoProjectService.queryAutoProjectList(inputObject, outputObject);
     }
 
     /**

@@ -10,7 +10,6 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @ClassName: CustomerQueryDo
@@ -26,11 +25,6 @@ public class CustomerQueryDo extends CommonPageInfo implements Serializable {
 
     @ApiModelProperty(value = "根据不同的参数查询不同类型的客户。例如：我创建的，我负责的等")
     private String type;
-
-    /**
-     * 团队模板id
-     */
-    private List<String> teamTemplateIds;
 
     /**
      * 未跟单天数

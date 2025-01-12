@@ -12,6 +12,8 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.ResultEntity;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.entity.SupplierContract;
 import com.skyeye.contract.service.SupplierContractService;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SupplierServiceImpl
@@ -45,19 +48,35 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
     private SupplierContractService supplierContractService;
 
     @Override
+    public void querySupplierList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
+            // 我负责的
+            ResultEntity resultEnt = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName(), true);
+            if (CollectionUtil.isEmpty(resultEnt.getRows())) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
+            }
+            List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
+            QueryWrapper<Supplier> queryWrapper = getQueryWrapper(commonPageInfo);
+            queryWrapper.in(CommonConstants.ID, ids);
+            List<Supplier> supplierList = list(queryWrapper);
+            iAuthUserService.setName(supplierList, "createId", "createName");
+            iAuthUserService.setName(supplierList, "lastUpdateId", "lastUpdateName");
+            outputObject.setBeans(supplierList);
+            outputObject.settotal(resultEnt.getTotal());
+        } else {
+            // 我创建的 / 全部
+            queryPageList(inputObject, outputObject);
+        }
+    }
+
+    @Override
     public QueryWrapper<Supplier> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Supplier> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.equals(commonPageInfo.getType(), "myCreate")) {
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        } else if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
-            // 我负责的
-            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
-                commonPageInfo.getLimit(), getServiceClassName());
-            if (CollectionUtil.isEmpty(ids)) {
-                throw new CustomException("您还不在任何团队中，请联系管理员");
-            }
-            queryWrapper.in(CommonConstants.ID, ids);
         }
         return queryWrapper;
     }

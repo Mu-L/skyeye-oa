@@ -8,13 +8,14 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.ResultEntity;
 import com.skyeye.exception.CustomException;
 import com.skyeye.product.service.AutoProductService;
 import com.skyeye.project.dao.AutoProjectDao;
 import com.skyeye.project.entity.AutoProject;
-import com.skyeye.project.entity.AutoProjectQueryDo;
 import com.skyeye.project.service.AutoProjectService;
 import com.skyeye.sdk.catalog.service.CatalogSdkService;
 import com.skyeye.team.service.ITeamBusinessService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: AutoProjectServiceImpl
@@ -43,20 +45,34 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
     private AutoProductService autoProductService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        AutoProjectQueryDo projectQueryDo = inputObject.getParams(AutoProjectQueryDo.class);
-        if (StrUtil.equals("myCharge", projectQueryDo.getType())) {
+    public void queryAutoProjectList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
             // 我负责的
-            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(projectQueryDo.getPage(),
-                projectQueryDo.getLimit(), getServiceClassName());
-            if (CollectionUtil.isEmpty(ids)) {
+            ResultEntity resultEnt = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName(), true);
+            if (CollectionUtil.isEmpty(resultEnt.getRows())) {
                 throw new CustomException("您还不在任何团队中，请联系管理员");
             }
-            projectQueryDo.setIds(ids);
+            List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
+            commonPageInfo.setIds(ids);
+            List<Map<String, Object>> customerMationList = skyeyeBaseMapper.queryAutoProjectList(commonPageInfo);
+            iAuthUserService.setNameForMap(customerMationList, "createId", "createName");
+            iAuthUserService.setNameForMap(customerMationList, "lastUpdateId", "lastUpdateName");
+            outputObject.setBeans(customerMationList);
+            outputObject.settotal(resultEnt.getTotal());
+        } else {
+            // 全部
+            queryPageList(inputObject, outputObject);
         }
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = inputObject.getLogParams().get("id").toString();
-        projectQueryDo.setCreateId(userId);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(projectQueryDo);
+        pageInfo.setCreateId(userId);
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(pageInfo);
         return beans;
     }
 
@@ -81,19 +97,21 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
     @Override
     public void queryAllAutoProjectList(InputObject inputObject, OutputObject outputObject) {
         String type = inputObject.getParams().get("type").toString();
-        AutoProjectQueryDo projectQueryDo = new AutoProjectQueryDo();
-        projectQueryDo.setType(type);
+        CommonPageInfo pageInfo = new CommonPageInfo();
+        pageInfo.setType(type);
         String userId = inputObject.getLogParams().get("id").toString();
-        projectQueryDo.setCreateId(userId);
-        if (StrUtil.equals("myCharge", projectQueryDo.getType())) {
-            List<String> teamTemplateIds = iTeamBusinessService.getMyTeamIds();
-            if (CollectionUtil.isEmpty(teamTemplateIds)) {
-                // 查询是我负责的并且我没有在任何团队的时候，直接返回
-                return;
+        pageInfo.setCreateId(userId);
+        if (StrUtil.equals("myCharge", pageInfo.getType())) {
+            // 我负责的
+            ResultEntity resultEnt = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(null,
+                null, getServiceClassName(), false);
+            if (CollectionUtil.isEmpty(resultEnt.getRows())) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
             }
-            projectQueryDo.setTeamTemplateIds(teamTemplateIds);
+            List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
+            pageInfo.setIds(ids);
         }
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(projectQueryDo);
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(pageInfo);
         String serviceClassName = getServiceClassName();
         beans.forEach(bean -> {
             bean.put("serviceClassName", serviceClassName);

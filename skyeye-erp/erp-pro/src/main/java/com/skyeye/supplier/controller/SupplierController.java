@@ -8,10 +8,10 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.supplier.entity.Supplier;
-import com.skyeye.supplier.entity.SupplierQueryDo;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,10 +39,10 @@ public class SupplierController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "supplier001", value = "获取供应商列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = SupplierQueryDo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SupplierController/querySupplierList")
     public void querySupplierList(InputObject inputObject, OutputObject outputObject) {
-        supplierService.queryPageList(inputObject, outputObject);
+        supplierService.querySupplierList(inputObject, outputObject);
     }
 
     /**

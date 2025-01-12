@@ -5,6 +5,8 @@
 package com.skyeye.supplier.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.supplier.entity.Supplier;
 
 /**
@@ -17,5 +19,6 @@ import com.skyeye.supplier.entity.Supplier;
  */
 public interface SupplierService extends SkyeyeBusinessService<Supplier> {
 
+    void querySupplierList(InputObject inputObject, OutputObject outputObject);
 
 }

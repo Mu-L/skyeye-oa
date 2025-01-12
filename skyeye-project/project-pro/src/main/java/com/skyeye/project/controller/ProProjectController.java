@@ -42,7 +42,7 @@ public class ProProjectController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ProProjectController/queryProProjectList")
     public void queryProProjectList(InputObject inputObject, OutputObject outputObject) {
-        proProjectService.queryPageList(inputObject, outputObject);
+        proProjectService.queryProProjectList(inputObject, outputObject);
     }
 
     /**

@@ -23,4 +23,5 @@ public interface ProProjectService extends SkyeyeFlowableService<Project> {
 
     void perfectProjectById(InputObject inputObject, OutputObject outputObject);
 
+    void queryProProjectList(InputObject inputObject, OutputObject outputObject);
 }

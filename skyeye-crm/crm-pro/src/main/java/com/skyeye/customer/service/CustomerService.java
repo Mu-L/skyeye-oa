@@ -9,8 +9,17 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.customer.entity.CustomerMation;
 
+/**
+ * @ClassName: CustomerService
+ * @Description: 客户信息服务接口层
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/1/12 12:42
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 public interface CustomerService extends SkyeyeBusinessService<CustomerMation> {
 
     void queryInternationalCustomerList(InputObject inputObject, OutputObject outputObject);
 
+    void queryCustomerList(InputObject inputObject, OutputObject outputObject);
 }

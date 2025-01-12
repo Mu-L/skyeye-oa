@@ -188,7 +188,10 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             throw new CustomException("objectKey不能为空.");
         }
         String userId = inputObject.getLogParams().get(CommonConstants.ID).toString();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Page page = null;
+        if (commonPageInfo.getIsPaging()) {
+            page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        }
         // 查询TeamRoleUser::getUserId是当前登录用户的团队id 和 TeamBusiness::chargeUser是当前登录用户的团队经理的id
         MPJLambdaWrapper<TeamBusiness> wrapper = new MPJLambdaWrapper<TeamBusiness>()
             .innerJoin(TeamRoleUser.class, TeamRoleUser::getTeamId, TeamBusiness::getId)
@@ -196,7 +199,11 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             .and(itemWwrapper -> itemWwrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId));
         List<TeamBusiness> teamBusinessList = skyeyeBaseMapper.selectJoinList(TeamBusiness.class, wrapper);
         outputObject.setBeans(teamBusinessList);
-        outputObject.settotal(page.getTotal());
+        if (commonPageInfo.getIsPaging()) {
+            outputObject.settotal(page.getTotal());
+        } else {
+            outputObject.settotal(teamBusinessList.size());
+        }
     }
 }
 

@@ -4,9 +4,9 @@
 
 package com.skyeye.project.dao;
 
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.project.entity.AutoProject;
-import com.skyeye.project.entity.AutoProjectQueryDo;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,6 @@ import java.util.Map;
  */
 public interface AutoProjectDao extends SkyeyeBaseMapper<AutoProject> {
 
-    List<Map<String, Object>> queryAutoProjectList(AutoProjectQueryDo projectQueryDo);
+    List<Map<String, Object>> queryAutoProjectList(CommonPageInfo projectQueryDo);
 
 }
