@@ -12,6 +12,7 @@ import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,5 +35,12 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
         QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongId),surveyId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnScore> selectAnScoreByQuId(String id) {
+       QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
+       queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id);
+       return list(queryWrapper);
     }
 }

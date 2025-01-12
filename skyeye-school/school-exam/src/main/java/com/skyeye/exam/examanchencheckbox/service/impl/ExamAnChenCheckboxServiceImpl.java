@@ -12,6 +12,7 @@ import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,13 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     public List<ExamAnChenCheckbox> selectBySurveyId(String surveyId) {
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), surveyId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnChenCheckbox> selectAnChenCheckboxByQuId(String id) {
+        QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), id);
         return list(queryWrapper);
     }
 }

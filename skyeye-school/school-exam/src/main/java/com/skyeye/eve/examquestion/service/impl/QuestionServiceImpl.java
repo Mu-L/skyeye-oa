@@ -23,6 +23,18 @@ import com.skyeye.eve.examquestion.dao.QuestionDao;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
+import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
+import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
+import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
+import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
+import com.skyeye.exam.examanorder.entity.ExamAnOrder;
+import com.skyeye.exam.examanorder.service.ExamAnOrderService;
+import com.skyeye.exam.examanradio.entity.ExamAnRadio;
+import com.skyeye.exam.examanradio.service.ExamAnRadioService;
+import com.skyeye.exam.examanscore.entity.ExamAnScore;
+import com.skyeye.exam.examanscore.service.ExamAnScoreService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -101,6 +113,24 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Autowired
     private SubjectService subjectService;
+
+    @Autowired
+    private ExamAnRadioService examAnRadioService;
+
+    @Autowired
+    private ExamAnCheckboxService examAnCheckboxService;
+
+    @Autowired
+    private ExamAnScoreService examAnScoreService;
+
+    @Autowired
+    private ExamAnOrderService examAnOrderService;
+
+    @Autowired
+    private ExamAnChenRadioService examAnChenRadioService;
+
+    @Autowired
+    private ExamAnChenCheckboxService examAnChenCheckboxService;
 
     @Override
     protected void createPrepose(Question entity) {
@@ -267,6 +297,56 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
             return item;
         }).collect(Collectors.toList());
+
+        for (Question question : questionList) {
+            // 1 单选题
+            if(question.getQuType() == QuType.RADIO.getIndex()){
+                List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(question.getId());
+                ExamAnRadio examAnRadio = examAnRadioService.selectById(question.getId());
+                question.setRadioTd(radioList);
+                question.setRadioAn(examAnRadio);
+                continue;
+            }
+            // 2 多选题
+            if(question.getQuType() == QuType.CHECKBOX.getIndex()){
+                List<ExamQuCheckbox> examQuCheckboxeList = examQuCheckboxService.selectQuChenbox(question.getId());
+                List<ExamAnCheckbox> examAnCheckboxes = examAnCheckboxService.selectAnCheckBoxByQuId(question.getId());
+                question.setCheckboxTd(examQuCheckboxeList);
+                question.setCheckboxAn(examAnCheckboxes);
+                continue;
+            }
+            // 8 评分题
+            if(question.getQuType() == QuType.SCORE.getIndex()){
+                List<ExamQuScore> scoreList = examQuScoreService.selectQuScore(question.getId());
+                List<ExamAnScore> examAnScoreList = examAnScoreService.selectAnScoreByQuId(question.getId());
+                question.setScoreTd(scoreList);
+                question.setScoreAn(examAnScoreList);
+                continue;
+            }
+            // 9 排序题
+            if(question.getQuType() == QuType.ORDERQU.getIndex()){
+                List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
+                List<ExamAnOrder> examAnOrderbyList = examAnOrderService.selectAnOrderByQuId(question.getId());
+                question.setOrderbyTd(orderbyList);
+                question.setOrderbyAn(examAnOrderbyList);
+                continue;
+            }
+            // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE
+            if(question.getQuType() == QuType.CHENRADIO.getIndex() ||
+               question.getQuType() == QuType.CHENFBK.getIndex() ||
+               question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
+               question.getQuType() == QuType.CHENSCORE.getIndex()){
+                List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
+                List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getId());
+                ExamAnChenRadio examAnChenRadio = examAnChenRadioService.selectById(question.getId());
+                List<ExamAnChenCheckbox> examAnCheckboxList = examAnChenCheckboxService.selectAnChenCheckboxByQuId(question.getId());
+                question.setColumnTd(examQuChenColumnList);
+                question.setChenAn(examAnChenRadio);
+                question.setRowTd(examQuChenRowList);
+                question.setChenRowAn(examAnCheckboxList);
+
+            }
+        }
         return questionList;
     }
 
