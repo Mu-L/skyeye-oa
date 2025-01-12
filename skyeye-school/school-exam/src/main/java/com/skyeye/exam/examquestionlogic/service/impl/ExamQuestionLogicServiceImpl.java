@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquestionlogic.dao.ExamQuestionLogicDao;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;

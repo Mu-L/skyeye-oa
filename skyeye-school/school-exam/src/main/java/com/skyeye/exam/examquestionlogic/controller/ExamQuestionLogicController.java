@@ -27,16 +27,16 @@ public class ExamQuestionLogicController {
     @Autowired
     private ExamQuestionLogicService examQuestionLogicService;
 
-    /**
-     * 新增/编辑题目逻辑设置管理
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "writeExamQuestionLogic", value = "新增/编辑题目逻辑设置管理", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = ExamQuestionLogic.class)
-    @RequestMapping("/post/ExamAnChenCheckboxController/writeExamQuestionLogic")
-    public void writeExamQuestionLogic(InputObject inputObject, OutputObject outputObject) {
-        examQuestionLogicService.saveOrUpdateEntity(inputObject, outputObject);
-    }
+//    /**
+//     * 新增/编辑题目逻辑设置管理
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+//    @ApiOperation(id = "writeExamQuestionLogic", value = "新增/编辑题目逻辑设置管理", method = "POST", allUse = "1")
+//    @ApiImplicitParams(classBean = ExamQuestionLogic.class)
+//    @RequestMapping("/post/ExamAnChenCheckboxController/writeExamQuestionLogic")
+//    public void writeExamQuestionLogic(InputObject inputObject, OutputObject outputObject) {
+//        examQuestionLogicService.saveOrUpdateEntity(inputObject, outputObject);
+//    }
 }

@@ -42,13 +42,13 @@ import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.service.MajorService;
-import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.service.SubjectService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -125,17 +125,18 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 获取题目ID
         String quId = entity.getId();
         Integer tag = entity.getTag();
-        if (tag== null){
+        if (tag == null) {
             throw new CustomException("请设置题目标记");
-        }else {
-            if(tag.equals(CommonNumConstants.NUM_TWO)){
-                // 处理题目逻辑
+        } else {
+            if (tag.equals(CommonNumConstants.NUM_ONE)) {}
+            else if (tag.equals(CommonNumConstants.NUM_TWO)) {
                 List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
-                if (CollectionUtils.isEmpty(questionLogic)) {
-                    throw new CustomException("请设置问题逻辑");
-                } else {
+                if (CollectionUtils.isEmpty(questionLogic)) {}
+                else {
                     examQuestionLogicService.setLogics(quId, questionLogic, userId);
                 }
+            } else {
+                throw new CustomException("题目标记值不正确");
             }
         }
         // 根据不同的题目类型，保存对应的题目数据
@@ -185,7 +186,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 更新单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
-        if (ObjUtil.isNotEmpty(radioTd)){
+        if (ObjUtil.isNotEmpty(radioTd)) {
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 更新得分题
@@ -257,9 +258,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             Question question = super.selectById(id);
             questionList.add(question);
         }
-        iAuthUserService.setName(questionList,"createId","createName");
-        iAuthUserService.setName(questionList,"lastUpdateId","lastUpdateName");
-        questionList = questionList.stream().map(item->{
+        iAuthUserService.setName(questionList, "createId", "createName");
+        iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
+        questionList = questionList.stream().map(item -> {
             item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
             item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
             item.setMajorMation(majorService.selectById(item.getMajorId()));
@@ -323,40 +324,40 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 复制单选题或复合单选题
         if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {
             List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getCopyFromId());
-            if (CollectionUtils.isEmpty(examQuRadioList)){
+            if (CollectionUtils.isEmpty(examQuRadioList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuRadio examQuRadio : examQuRadioList) {
                 examQuRadio.setId(ToolUtil.getSurFaceId()); // 设置新的唯一ID
                 examQuRadio.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
                 examQuRadio.setQuId(question.getId()); // 设置所属题目ID
-                examQuRadioService.createEntity(examQuRadio,StrUtil.EMPTY);
+                examQuRadioService.createEntity(examQuRadio, StrUtil.EMPTY);
             }
         }
         // 复制多选题或复合多选题
         else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
             List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getCopyFromId());
-            if (ObjUtil.isEmpty(examQuCheckboxList)){
+            if (ObjUtil.isEmpty(examQuCheckboxList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuCheckbox examQuCheckbox : examQuCheckboxList) {
                 examQuCheckbox.setId(ToolUtil.getSurFaceId());
                 examQuCheckbox.setCreateTime(DateUtil.getTimeAndToString());
                 examQuCheckbox.setQuId(question.getId());
-                examQuCheckboxService.createEntity(examQuCheckbox,StrUtil.EMPTY);
+                examQuCheckboxService.createEntity(examQuCheckbox, StrUtil.EMPTY);
             }
         }
         // 复制多空填空题
         else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
             List<ExamQuMultiFillblank> multiFillblanksList = examQuMultiFillblankService.selectQuMultiFillblank(question.getCopyFromId());
-            if (ObjUtil.isEmpty(multiFillblanksList)){
+            if (ObjUtil.isEmpty(multiFillblanksList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuMultiFillblank examQuMultiFillblank : multiFillblanksList) {
                 examQuMultiFillblank.setId(ToolUtil.getSurFaceId());
                 examQuMultiFillblank.setCreateTime(DateUtil.getTimeAndToString());
                 examQuMultiFillblank.setQuId(question.getId());
-                examQuMultiFillblankService.createEntity(examQuMultiFillblank,StrUtil.EMPTY);
+                examQuMultiFillblankService.createEntity(examQuMultiFillblank, StrUtil.EMPTY);
             }
         }
         // 复制陈列题相关数据
@@ -365,7 +366,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 quType.equals(QuType.COMPCHENRADIO.getActionName())) {
             List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getCopyFromId());
             List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getCopyFromId());
-            if (ObjUtil.isEmpty(examQuChenRowList) || ObjUtil.isEmpty(examQuChenColumnList)){
+            if (ObjUtil.isEmpty(examQuChenRowList) || ObjUtil.isEmpty(examQuChenColumnList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuChenRow examQuChenRow : examQuChenRowList) {
@@ -490,7 +491,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {
         List<Question> questionList = list(queryWrapper)
-                .stream().map(item->{
+                .stream().map(item -> {
                     //设置学校信息
                     item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
                     //设置学院信息
@@ -501,8 +502,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
                     return item;
                 }).collect(Collectors.toList());
-        iAuthUserService.setName(questionList,"createId","createName");
-        iAuthUserService.setName(questionList,"lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(questionList, "createId", "createName");
+        iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         return questionList;
     }
 
@@ -511,7 +512,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete), CommonNumConstants.NUM_ONE);
         List<Question> questionList = getBaseInfo(queryWrapper);
         outputObject.setBeans(questionList);
         outputObject.settotal(page.getTotal());
@@ -522,35 +523,35 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
         // 学校
-        if(StrUtil.isNotEmpty(commonPageInfo.getHolderKey())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSchoolId),commonPageInfo.getHolderKey());
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSchoolId), commonPageInfo.getHolderKey());
         }
         // 院系
-        if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getFacultyId),commonPageInfo.getHolderId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getFacultyId), commonPageInfo.getHolderId());
         }
         // 专业
-        if(StrUtil.isNotEmpty(commonPageInfo.getObjectKey())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getMajorId),commonPageInfo.getObjectKey());
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getMajorId), commonPageInfo.getObjectKey());
         }
         // 科目
-        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId),commonPageInfo.getObjectId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), commonPageInfo.getObjectId());
         }
         // 类型
-        if(StrUtil.isNotEmpty(commonPageInfo.getType())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType),Integer.parseInt(commonPageInfo.getType()));
+        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType), Integer.parseInt(commonPageInfo.getType()));
         }
         // 题目名称
-        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle),commonPageInfo.getKeyword());
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(Question::getQuTitle), commonPageInfo.getKeyword());
         }
         // 是否公开
-        if(commonPageInfo.getEnabled()!=null){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsPublic),commonPageInfo.getEnabled());
+        if (commonPageInfo.getEnabled() != null) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsPublic), commonPageInfo.getEnabled());
         }
         List<Question> beans = getBaseInfo(queryWrapper);
         outputObject.setBeans(beans);
