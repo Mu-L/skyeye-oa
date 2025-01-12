@@ -118,6 +118,9 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getBelongId),id);
         List<ExamQuCheckbox> list = list(queryWrapper);

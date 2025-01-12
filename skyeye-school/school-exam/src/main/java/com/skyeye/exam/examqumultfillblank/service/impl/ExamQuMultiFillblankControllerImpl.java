@@ -104,6 +104,9 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuMultiFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getBelongId),id);
         List<ExamQuMultiFillblank> list = list(queryWrapper);
