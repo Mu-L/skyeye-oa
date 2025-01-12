@@ -6,6 +6,8 @@ package com.skyeye.websocket;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.chat.enums.TalkChatType;
+import com.skyeye.chat.service.TalkChatHistoryService;
 import com.skyeye.common.constans.SocketConstants;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
@@ -121,10 +123,14 @@ public class TalkWebSocket {
             int type = jsonObject.getInt("type");
             Map<String, Object> map1 = new HashMap<>();
             map1.put("messageType", type);
-            if (SocketConstants.MessageType.Fourth.getType() == type) {//普通消息
+            if (SocketConstants.MessageType.Fourth.getType() == type) {
+                // 普通消息
+                // 插入消息记录
+                TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
+                String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey());
+                // 给接收者发送消息
                 map1 = SocketConstants.sendOrdinaryMsg(jsonObject);
-                CompanyTalkGroupDao companyTalkGroupDao = SpringUtils.getBean(CompanyTalkGroupDao.class);
-                companyTalkGroupDao.insertPersonToPersonMessage(map1);
+                map1.put("dataId", id);
                 sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
             } else if (SocketConstants.MessageType.Fifth.getType() == type) {//系统消息
 
@@ -149,9 +155,10 @@ public class TalkWebSocket {
                 Map<String, Object> groupState = companyTalkGroupDao.queryGroupStateById(map1);
                 if ("1".equals(groupState.get("state").toString())) {//正常
                     //插入消息记录
+                    TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
+                    String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.GROUP_CHAT.getKey());
                     map1.put("createTime", DateUtil.getTimeAndToString());
-                    map1.put("dataId", ToolUtil.getSurFaceId());
-                    companyTalkGroupDao.insertPersonToGroupMessage(map1);
+                    map1.put("dataId", id);
                     sendMessageToThisGroupMember(map1);
                 } else {
                     map1.clear();

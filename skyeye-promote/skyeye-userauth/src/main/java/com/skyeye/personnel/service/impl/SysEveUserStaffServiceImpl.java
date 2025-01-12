@@ -377,8 +377,15 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         Map<String, Object> params = inputObject.getParams();
         String userIds = params.get("userIds").toString();
         String staffIds = params.get("staffIds").toString();
-        List<Map<String, Object>> beans = new ArrayList<>();
         // 用户id和员工id只要有一个不为空就进行查询
+        List<Map<String, Object>> beans = queryUserMationList(userIds, staffIds);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public List<Map<String, Object>> queryUserMationList(String userIds, String staffIds) {
+        List<Map<String, Object>> beans = new ArrayList<>();
         if (!ToolUtil.isBlank(userIds) || !ToolUtil.isBlank(staffIds)) {
             beans = sysEveUserStaffDao.queryUserMationList(userIds, staffIds);
             // 设置组织信息
@@ -387,8 +394,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
             companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
         }
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        return beans;
     }
 
     /**
@@ -502,6 +508,19 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), phone);
         long count = count(queryWrapper);
         return count == 0 ? false : true;
+    }
+
+    @Override
+    public void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getParams().get("userId").toString();
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), userId);
+        SysEveUserStaff sysEveUserStaff = getOne(queryWrapper, false);
+        if (sysEveUserStaff != null) {
+            sysEveUserStaff = selectById(sysEveUserStaff.getId());
+            outputObject.setBean(sysEveUserStaff);
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+        }
     }
 
 }

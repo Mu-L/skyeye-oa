@@ -171,20 +171,6 @@
 		AND c.user_id != #{userId}
 	</select>
 	
-	<insert id="insertPersonToPersonMessage" parameterType="java.util.Map">
-	     INSERT into sys_talk_chat_history 
-	     (id, send_id, receive_id, content, chat_type, create_time)
-	     VALUES
-	     (#{dataId}, #{fromId}, #{toId}, #{textMessage}, '1', #{createTime})
-	</insert>
-	
-	<insert id="insertPersonToGroupMessage" parameterType="java.util.Map">
-	     INSERT into sys_talk_chat_history 
-	     (id, send_id, receive_id, content, chat_type, create_time)
-	     VALUES
-	     (#{dataId}, #{userId}, #{id}, #{textMessage}, '2', #{createTime})
-	</insert>
-	
 	<select id="queryChatLogByPerToPer" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
 			a.id,

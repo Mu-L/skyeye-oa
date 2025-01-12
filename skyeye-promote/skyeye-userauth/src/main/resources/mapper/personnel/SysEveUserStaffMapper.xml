@@ -5,6 +5,7 @@
 	<select id="queryUserMationList" resultType="java.util.Map">
 		SELECT
 			a.user_id id,
+			a.user_id userId,
 			a.id staffId,
 			CONCAT_WS('_', a.job_number, a.user_name) `name`,
 			a.job_number jobNumber,
