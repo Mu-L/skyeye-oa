@@ -2,7 +2,6 @@ package com.skyeye.common.constans;
 
 import cn.hutool.json.JSONObject;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.ToolUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -83,7 +82,6 @@ public class SocketConstants {
         map.put("toId", jsonObject.getStr("to"));//收件人id
         map.put("messageType", jsonObject.getInt("type"));//消息类型
         map.put("createTime", DateUtil.getTimeAndToString());
-        map.put("dataId", ToolUtil.getSurFaceId());
         return map;
     }
 

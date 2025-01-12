@@ -32,12 +32,6 @@ public class SysEveUserStaffController {
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
-    /**
-     * 获取员工列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysUserStaffList", value = "查看所有员工列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SysEveUserStaffQuery.class)
     @RequestMapping("/post/SysEveUserStaffController/querySysUserStaffList")
@@ -45,12 +39,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSysUserStaff", value = "新增/编辑员工信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SysEveUserStaff.class)
     @RequestMapping("/post/SysEveUserStaffController/writeSysUserStaff")
@@ -58,12 +46,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysUserStaffById", value = "根据id查询员工信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "员工id", required = "required")})
@@ -72,12 +54,14 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 员工离职
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "querySysUserStaffByUserId", value = "根据用户id查询员工信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "userId", name = "userId", value = "用户id", required = "required")})
+    @RequestMapping("/post/SysEveUserStaffController/querySysUserStaffByUserId")
+    public void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserStaffService.querySysUserStaffByUserId(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "staff006", value = "员工离职", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "员工id", required = "required"),
@@ -88,12 +72,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.editSysUserStaffState(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登录员工的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "staff010", value = "获取当前登录员工的信息", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveUserStaffController/querySysUserStaffLogin")
     public void querySysUserStaffLogin(InputObject inputObject, OutputObject outputObject) {

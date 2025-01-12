@@ -47,10 +47,6 @@ public interface CompanyTalkGroupDao {
 
     List<Map<String, Object>> queryGroupMemberByGroupIdAndNotThisUser(Map<String, Object> map);
 
-    int insertPersonToPersonMessage(Map<String, Object> map);
-
-    int insertPersonToGroupMessage(Map<String, Object> map);
-
     List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map);
 
     List<Map<String, Object>> queryChatLogByPerToGroup(Map<String, Object> map);
