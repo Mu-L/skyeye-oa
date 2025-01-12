@@ -20,4 +20,6 @@ public interface ExamAnChenCheckboxService extends SkyeyeBusinessService<ExamAnC
     void queryExamAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnChenCheckbox> selectBySurveyId(String surveyId);
+
+    List<ExamAnChenCheckbox> selectAnChenCheckboxByQuId(String id);
 }

@@ -19,4 +19,6 @@ public interface ExamAnOrderService extends SkyeyeBusinessService<ExamAnOrder> {
     void queryExamAnOrderById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnOrder> selectBySurveyId(String surveyId);
+
+    List<ExamAnOrder> selectAnOrderByQuId(String id);
 }
