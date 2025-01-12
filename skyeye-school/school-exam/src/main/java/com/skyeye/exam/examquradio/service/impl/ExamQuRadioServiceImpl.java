@@ -121,6 +121,9 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getBelongId), id);
         List<ExamQuRadio> list = list(queryWrapper);

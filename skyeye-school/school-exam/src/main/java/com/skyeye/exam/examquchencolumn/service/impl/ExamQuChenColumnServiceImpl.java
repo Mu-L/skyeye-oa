@@ -143,6 +143,9 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getBelongId), id);
         List<ExamQuChenColumn> list = list(queryWrapper);

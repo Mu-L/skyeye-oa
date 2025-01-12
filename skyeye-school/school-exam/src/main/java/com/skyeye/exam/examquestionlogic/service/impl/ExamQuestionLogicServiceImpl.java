@@ -82,6 +82,9 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds) {
+        if (questionIds.isEmpty()) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), questionIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);

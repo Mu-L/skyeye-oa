@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquchenrow.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -77,6 +78,9 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getBelongId),id);
         List<ExamQuChenRow> list = list(queryWrapper);

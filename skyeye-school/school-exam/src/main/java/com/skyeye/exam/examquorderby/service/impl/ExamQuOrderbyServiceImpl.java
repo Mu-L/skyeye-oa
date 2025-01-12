@@ -103,6 +103,9 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if (StrUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getBelongId),id);
         List<ExamQuOrderby> list = list(queryWrapper);
