@@ -530,8 +530,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.settotal(page.getTotal());
     }
 
+//    @Override
+//    public ExamSurveyDirectory selectById(String id) {
+//
+//    }
+
     @Override
-    public ExamSurveyDirectory selectById(String id) {
+    public void selectById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
         ExamSurveyDirectory bean = super.selectById(id);
         bean.setClassesMation(classesService.selectById(bean.getClassId()));
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
@@ -550,7 +556,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if(CollectionUtil.isEmpty(questionList)){
-            return bean;
+            outputObject.setBean(bean);
         }
         List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
@@ -562,9 +568,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = examQuMultiFillblankService.selectByBelongId(id);
         Map<String, List<Map<String, Object>>> examQuOrderbyMapList = examQuOrderbyService.selectByBelongId(id);
         List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-            examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
+                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
         Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
         questionList.forEach(item -> {
             String quId = item.getId();
             if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
@@ -594,7 +600,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
             }
         });
-        bean.setQuestionList(questionList);
-        return bean;
+        outputObject.setBean(bean);
+        outputObject.setBeans(questionList);
     }
 }
