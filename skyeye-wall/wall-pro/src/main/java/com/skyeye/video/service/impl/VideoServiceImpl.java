@@ -64,7 +64,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
         List<Video> list = this.list(queryWrapper);
         outputObject.setBeans(list);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     /**
@@ -157,7 +157,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             supportList.add(selectById(videoRecord.getVideoId()));
         }
         outputObject.setBeans(supportList);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -176,7 +176,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             collectList.add(selectById(videoRecord.getVideoId()));
         }
         outputObject.setBeans(collectList);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override

@@ -78,11 +78,12 @@ public class ProProjectServiceImpl extends SkyeyeFlowableServiceImpl<ProProjectD
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         if (StrUtil.equals("myCharge", commonPageInfo.getType())) {
             // 我负责的
-            List<String> teamTemplateIds = iTeamBusinessService.getMyTeamIds();
-            if (CollectionUtil.isEmpty(teamTemplateIds)) {
+            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName());
+            if (CollectionUtil.isEmpty(ids)) {
                 throw new CustomException("您还不在任何团队中，请联系管理员");
             }
-            queryWrapper.in(MybatisPlusUtil.toColumns(Project::getTeamTemplateId), teamTemplateIds);
+            queryWrapper.in(CommonConstants.ID, ids);
         } else if (StrUtil.equals("myCreate", commonPageInfo.getType())) {
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(Project::getCreateId), userId);

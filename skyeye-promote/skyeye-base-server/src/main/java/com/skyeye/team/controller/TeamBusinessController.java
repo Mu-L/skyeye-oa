@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.team.entity.TeamBusiness;
@@ -31,12 +32,6 @@ public class TeamBusinessController {
     @Autowired
     private TeamBusinessService teamBusinessService;
 
-    /**
-     * 根据团队模板生成团队信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "createTeamBusiness", value = "根据团队模板生成团队信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "teamTemplateId", name = "teamTemplateId", value = "团队模板id", required = "required"),
@@ -47,12 +42,6 @@ public class TeamBusinessController {
         teamBusinessService.createTeamBusiness(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务对象id获取团队信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTeamBusiness", value = "根据业务对象id获取团队信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象id", required = "required")})
@@ -61,12 +50,6 @@ public class TeamBusinessController {
         teamBusinessService.queryTeamBusiness(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务对象id删除团队信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTeamBusiness", value = "根据业务对象id删除团队信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象id", required = "required")})
@@ -75,12 +58,6 @@ public class TeamBusinessController {
         teamBusinessService.deleteTeamBusiness(inputObject, outputObject);
     }
 
-    /**
-     * 编辑团队信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateTeamBusiness", value = "编辑团队信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TeamBusiness.class)
     @RequestMapping("/post/TeamBusinessController/updateTeamBusiness")
@@ -88,12 +65,6 @@ public class TeamBusinessController {
         teamBusinessService.updateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 校验团队权限信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkTeamBusinessAuthPermission", value = "校验团队权限信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象id", required = "required"),
@@ -104,16 +75,17 @@ public class TeamBusinessController {
         teamBusinessService.checkTeamBusinessAuthPermission(inputObject, outputObject);
     }
 
-    /**
-     * 获取我所在的团队对应的团队模板id
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getMyTeamIds", value = "获取我所在的团队对应的团队模板id", method = "GET", allUse = "2")
     @RequestMapping("/post/TeamBusinessController/getMyTeamIds")
     public void getMyTeamIds(InputObject inputObject, OutputObject outputObject) {
         teamBusinessService.getMyTeamIds(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryMyBusinessTeamList", value = "分页获取我所在的业务团队信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/TeamBusinessController/queryMyBusinessTeamList")
+    public void queryMyBusinessTeamList(InputObject inputObject, OutputObject outputObject) {
+        teamBusinessService.queryMyBusinessTeamList(inputObject, outputObject);
     }
 
 }

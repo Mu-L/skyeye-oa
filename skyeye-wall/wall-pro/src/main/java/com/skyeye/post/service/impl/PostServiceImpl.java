@@ -249,7 +249,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Post> list = commentAndUpvoteOperationPost(userId, map);
         outputObject.setBeans(list);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -269,7 +269,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Post> list = commentAndUpvoteOperationPost(userId, map);
         outputObject.setBeans(list);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     public List<Post> commentAndUpvoteOperationPost(String userId, Map<Integer, String> map) {

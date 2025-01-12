@@ -8,16 +8,21 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.clazz.service.SkyeyeClassEnumService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.team.dao.TeamBusinessDao;
 import com.skyeye.team.entity.TeamBusiness;
+import com.skyeye.team.entity.TeamRoleUser;
 import com.skyeye.team.entity.TeamTemplate;
 import com.skyeye.team.service.ITeamBusinessService;
 import com.skyeye.team.service.TeamBusinessService;
@@ -77,6 +82,8 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         createEntity(teamBusiness, userId);
         // 设置该模板为启用中
         teamTemplateService.setUsed(teamTemplateId);
+        outputObject.setBean(teamBusiness);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     /**
@@ -172,6 +179,24 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         result.put("teamTemplateIds", teamTemplateIds);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryMyBusinessTeamList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectKey())) {
+            throw new CustomException("objectKey不能为空.");
+        }
+        String userId = inputObject.getLogParams().get(CommonConstants.ID).toString();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 查询TeamRoleUser::getUserId是当前登录用户的团队id 和 TeamBusiness::chargeUser是当前登录用户的团队经理的id
+        MPJLambdaWrapper<TeamBusiness> wrapper = new MPJLambdaWrapper<TeamBusiness>()
+            .innerJoin(TeamRoleUser.class, TeamRoleUser::getTeamId, TeamBusiness::getId)
+            .eq(TeamBusiness::getObjectKey, commonPageInfo.getObjectKey())
+            .and(itemWwrapper -> itemWwrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId));
+        List<TeamBusiness> teamBusinessList = skyeyeBaseMapper.selectJoinList(TeamBusiness.class, wrapper);
+        outputObject.setBeans(teamBusinessList);
+        outputObject.settotal(page.getTotal());
     }
 }
 

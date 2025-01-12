@@ -51,7 +51,7 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
         queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCreateId), userId);
         List<CircleView> circleViewList = list(queryWrapper);
         outputObject.setBeans(circleViewList);
-        outputObject.settotal(page.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override

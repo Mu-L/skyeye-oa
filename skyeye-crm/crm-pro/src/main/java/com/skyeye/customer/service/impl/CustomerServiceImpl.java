@@ -11,6 +11,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
@@ -66,8 +67,12 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
             queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         } else if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
             // 我负责的
-            List<String> teamTemplateIds = iTeamBusinessService.getMyTeamIds();
-            queryWrapper.in(MybatisPlusUtil.toColumns(CustomerMation::getTeamTemplateId), teamTemplateIds);
+            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName());
+            if (CollectionUtil.isEmpty(ids)) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
+            }
+            queryWrapper.in(CommonConstants.ID, ids);
         }
         return queryWrapper;
     }

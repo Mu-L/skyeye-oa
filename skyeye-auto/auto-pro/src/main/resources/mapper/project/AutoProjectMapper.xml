@@ -24,9 +24,9 @@
             </if>
             <!-- 我负责的 -->
             <if test="type != null and type != '' and type == 'myCharge'">
-                <if test="teamTemplateIds != null and teamTemplateIds.size() &gt; 0">
-                    <foreach collection="teamTemplateIds" item="teamTemplateId" separator="," open=" AND a.team_template_id in(" close=")">
-                        #{teamTemplateId}
+                <if test="ids != null and ids.size() &gt; 0">
+                    <foreach collection="ids" item="id" separator="," open=" AND a.id in(" close=")">
+                        #{id}
                     </foreach>
                 </if>
             </if>

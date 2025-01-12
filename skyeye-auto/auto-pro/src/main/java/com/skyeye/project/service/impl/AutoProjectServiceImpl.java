@@ -10,6 +10,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.exception.CustomException;
 import com.skyeye.product.service.AutoProductService;
 import com.skyeye.project.dao.AutoProjectDao;
 import com.skyeye.project.entity.AutoProject;
@@ -20,7 +21,6 @@ import com.skyeye.team.service.ITeamBusinessService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,12 +46,13 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         AutoProjectQueryDo projectQueryDo = inputObject.getParams(AutoProjectQueryDo.class);
         if (StrUtil.equals("myCharge", projectQueryDo.getType())) {
-            List<String> teamTemplateIds = iTeamBusinessService.getMyTeamIds();
-            if (CollectionUtil.isEmpty(teamTemplateIds)) {
-                // 查询是我负责的并且我没有在任何团队的时候，直接返回
-                return new ArrayList<>();
+            // 我负责的
+            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(projectQueryDo.getPage(),
+                projectQueryDo.getLimit(), getServiceClassName());
+            if (CollectionUtil.isEmpty(ids)) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
             }
-            projectQueryDo.setTeamTemplateIds(teamTemplateIds);
+            projectQueryDo.setIds(ids);
         }
         String userId = inputObject.getLogParams().get("id").toString();
         projectQueryDo.setCreateId(userId);

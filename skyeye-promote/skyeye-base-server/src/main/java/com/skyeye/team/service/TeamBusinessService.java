@@ -27,4 +27,6 @@ public interface TeamBusinessService extends AbstractTeamService<TeamBusiness> {
     void checkTeamBusinessAuthPermission(InputObject inputObject, OutputObject outputObject);
 
     void getMyTeamIds(InputObject inputObject, OutputObject outputObject);
+
+    void queryMyBusinessTeamList(InputObject inputObject, OutputObject outputObject);
 }

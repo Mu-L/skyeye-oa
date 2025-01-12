@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -51,8 +52,12 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
             queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         } else if (StrUtil.equals(commonPageInfo.getType(), "myCharge")) {
             // 我负责的
-            List<String> teamTemplateIds = iTeamBusinessService.getMyTeamIds();
-            queryWrapper.in(MybatisPlusUtil.toColumns(Supplier::getTeamTemplateId), teamTemplateIds);
+            List<String> ids = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
+                commonPageInfo.getLimit(), getServiceClassName());
+            if (CollectionUtil.isEmpty(ids)) {
+                throw new CustomException("您还不在任何团队中，请联系管理员");
+            }
+            queryWrapper.in(CommonConstants.ID, ids);
         }
         return queryWrapper;
     }
