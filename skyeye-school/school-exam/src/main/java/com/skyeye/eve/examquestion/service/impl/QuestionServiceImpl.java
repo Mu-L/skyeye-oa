@@ -435,12 +435,13 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     }
 
     @Override
-    public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String subjectId = map.get("subjectId").toString();
+    public void selectQuestionBySubjectId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String subjectId = commonPageInfo.getHolderId();
         if (StrUtil.isEmpty(subjectId)) {
             throw new IllegalArgumentException("subjectId不能为空");
         }
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
         List<Question> questionList = getBaseInfo(queryWrapper);
@@ -484,7 +485,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             }
         }
         outputObject.setBeans(questionList);
-        outputObject.settotal(questionList.size());
+        outputObject.settotal(pages.getTotal());
     }
 
     private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {

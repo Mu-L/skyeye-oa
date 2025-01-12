@@ -105,12 +105,11 @@ public class QuestionController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "selectQuestionBySubjecId", value = "根据科目ID查询题目信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(
-            @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"))
-    @RequestMapping("/post/QuestionController/selectQuestionBySubjecId")
-    public void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject) {
-        questionService.selectQuestionBySubjecId(inputObject, outputObject);
+    @ApiOperation(id = "selectQuestionBySubjectId", value = "根据科目ID查询题目信息传holderId=subjectId", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/QuestionController/selectQuestionBySubjectId")
+    public void selectQuestionBySubjectId(InputObject inputObject, OutputObject outputObject) {
+        questionService.selectQuestionBySubjectId(inputObject, outputObject);
     }
 
     /**

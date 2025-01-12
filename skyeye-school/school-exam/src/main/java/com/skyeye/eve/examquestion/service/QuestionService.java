@@ -29,7 +29,7 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     void queryPageQuestionList(InputObject inputObject, OutputObject outputObject);
 
-    void selectQuestionBySubjecId(InputObject inputObject, OutputObject outputObject);
+    void selectQuestionBySubjectId(InputObject inputObject, OutputObject outputObject);
 
     void queryQuestionLists(InputObject inputObject, OutputObject outputObject);
 

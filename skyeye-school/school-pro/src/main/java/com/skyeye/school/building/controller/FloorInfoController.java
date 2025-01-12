@@ -5,6 +5,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.building.entity.FloorInfo;
@@ -46,11 +47,8 @@ public class FloorInfoController {
     }
 
 
-    @ApiOperation(id = "queryFloorInfosByLocationId", value = "根据地点id获取楼层所有信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id= "locationId",name = "locationId", value = "地点id"),
-        @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字查询")
-    })
+    @ApiOperation(id = "queryFloorInfosByLocationId", value = "根据地点id(holderId)获取楼层所有信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FloorInfoController/queryFloorInfosByLocationId")
     public void queryFloorInfosByLocationId(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.queryFloorInfosByLocationId(inputObject, outputObject);
