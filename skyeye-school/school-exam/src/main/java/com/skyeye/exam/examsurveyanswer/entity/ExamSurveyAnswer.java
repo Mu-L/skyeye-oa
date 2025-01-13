@@ -5,11 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.eve.entity.School;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * @ClassName: ExamSurveyAnswer
@@ -108,4 +111,21 @@ public class ExamSurveyAnswer extends CommonInfo {
     @TableField("mark_end_time")
     @ApiModelProperty(value = "结束阅卷时间")
     private LocalDateTime markEndTime;
+
+    @TableField("no")
+    @ApiModelProperty(value = "学号")
+    private String no;
+
+    @TableField("school_id")
+    @ApiModelProperty(value = "学校ID")
+    private String schoolId;
+
+    @TableField(exist = false)
+    @Property(value = "学校信息")
+    private School schoolMation;
+
+    @TableField(exist = false)
+    @Property(value = "学生信息")
+    private Map<String, Object> stuMation;
+
 }

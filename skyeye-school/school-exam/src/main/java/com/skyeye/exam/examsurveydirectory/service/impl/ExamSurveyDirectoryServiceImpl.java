@@ -227,6 +227,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
         String examDirectoryId = map.get("id").toString(); // 获取试卷ID
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String surveyName = map.get("surveyName").toString(); // 获取试卷名称
         ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), examDirectoryId);
@@ -247,6 +248,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
         examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
         examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
+        if(StrUtil.isNotEmpty(surveyName)){
+            examSurveyDirectories.setSurveyName(surveyName); // 设置试卷名称
+        }
         examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
         examSurveyDirectories.setSurveyQuNum(examSurveyDirectory.getSurveyQuNum()); // 设置题目数量
         examSurveyDirectories.setRealStartTime(examSurveyDirectory.getRealStartTime());
@@ -518,6 +522,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
@@ -529,11 +534,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
-
-//    @Override
-//    public ExamSurveyDirectory selectById(String id) {
-//
-//    }
 
     @Override
     public void selectById(InputObject inputObject, OutputObject outputObject) {
