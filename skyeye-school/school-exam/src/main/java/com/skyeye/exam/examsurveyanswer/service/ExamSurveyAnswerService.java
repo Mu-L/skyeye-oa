@@ -25,4 +25,8 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
+
+    void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
+
+    void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject);
 }

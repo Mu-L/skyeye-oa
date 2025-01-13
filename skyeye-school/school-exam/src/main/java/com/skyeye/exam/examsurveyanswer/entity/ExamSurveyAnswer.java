@@ -120,6 +120,14 @@ public class ExamSurveyAnswer extends CommonInfo {
     @ApiModelProperty(value = "学校ID")
     private String schoolId;
 
+    @TableField("faculty_id")
+    @ApiModelProperty(value = "所属学院")
+    private String facultyId;
+
+    @TableField("major_id")
+    @ApiModelProperty(value = "所属专业")
+    private String majorId;
+
     @TableField(exist = false)
     @Property(value = "学校信息")
     private School schoolMation;

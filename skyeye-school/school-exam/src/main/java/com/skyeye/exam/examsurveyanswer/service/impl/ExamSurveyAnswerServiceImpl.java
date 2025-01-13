@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveyanswer.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -31,6 +32,7 @@ import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
@@ -226,4 +228,45 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
+
+    @Override
+    public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_TWO);
+        extracted(commonPageInfo, queryWrapper);
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+
+        }
+    }
+
+    @Override
+    public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_ONE);
+        extracted(commonPageInfo, queryWrapper);
+        List<ExamSurveyAnswer> beans = list(queryWrapper);
+        // 学生名字
+        // 学号
+        // 试卷名
+    }
+
+    private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<ExamSurveyAnswer> queryWrapper) {
+        // 学校
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSchoolId), commonPageInfo.getHolderKey());
+        }
+        // 院校
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getFacultyId), commonPageInfo.getHolderId());
+        }
+        // 专业
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getMajorId), commonPageInfo.getObjectKey());
+        }
+    }
+
 }
