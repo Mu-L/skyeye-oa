@@ -146,7 +146,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断试卷是否未发布
                 String belongId = examSurveyDirectory.getId(); // 获取试卷ID
                 List<Question> questions = questionService.QueryQuestionByBelongId(belongId); // 根据试卷ID查询题目
-                if (!questions.isEmpty()) { // 判断是否有题目
+                if (CollectionUtil.isNotEmpty(questions)) { // 判断是否有题目
                     // 总分数
                     int fraction = 0;
                     // 题目总数
