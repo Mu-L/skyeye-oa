@@ -199,44 +199,48 @@ public class Question extends OperatorUserInfo {
     private Subject subjectMation;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "单选题选项信息", required = "json")
-    private List<ExamQuRadio> radioTd;
-
-    @TableField(exist = false)
     @Property(value = "单选题答案信息")
     private ExamAnRadio radioAn;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "评分题选项信息", required = "json")
-    private List<ExamQuScore> scoreTd;
 
     @TableField(exist = false)
     @Property(value = "评分题答案信息")
     private List<ExamAnScore> scoreAn;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "多选题选项信息", required = "json")
-    private List<ExamQuCheckbox> checkboxTd;
-
-    @TableField(exist = false)
     @Property(value = "多选题答案信息")
     private List<ExamAnCheckbox> checkboxAn;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "矩阵题-列选项信息", required = "json")
-    private List<ExamQuChenColumn> columnTd;
 
     @TableField(exist = false)
     @Property(value = "矩阵题-列选项信息答案")
     private ExamAnChenRadio chenAn;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "矩阵题-行选项信息", required = "json")
-    private List<ExamQuChenRow> rowTd;
-
-    @TableField(exist = false)
     @Property(value = "矩阵题-行选项信息答案")
     private List<ExamAnChenCheckbox> chenRowAn;
+
+    @TableField(exist = false)
+    @Property(value = "排序题答案信息")
+    private List<ExamAnOrder> orderbyAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "单选题选项信息", required = "json")
+    private List<ExamQuRadio> radioTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "评分题选项信息", required = "json")
+    private List<ExamQuScore> scoreTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "多选题选项信息", required = "json")
+    private List<ExamQuCheckbox> checkboxTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-列选项信息", required = "json")
+    private List<ExamQuChenColumn> columnTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-行选项信息", required = "json")
+    private List<ExamQuChenRow> rowTd;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "多行填空题选项信息", required = "json")
@@ -245,10 +249,6 @@ public class Question extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
     private List<ExamQuOrderby> orderbyTd;
-
-    @TableField(exist = false)
-    @Property(value = "排序题答案信息")
-    private List<ExamAnOrder> orderbyAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
