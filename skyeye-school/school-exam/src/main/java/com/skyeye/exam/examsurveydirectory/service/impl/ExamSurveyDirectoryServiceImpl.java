@@ -162,6 +162,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     updateWrapper.eq(CommonConstants.ID, id);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
+                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     update(updateWrapper);
                 } else {
                     throw new CustomException("该试卷没有调查项，无法发布试卷。");

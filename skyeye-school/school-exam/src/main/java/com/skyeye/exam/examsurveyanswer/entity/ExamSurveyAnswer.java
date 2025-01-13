@@ -112,9 +112,9 @@ public class ExamSurveyAnswer extends CommonInfo {
     @ApiModelProperty(value = "结束阅卷时间")
     private LocalDateTime markEndTime;
 
-    @TableField("no")
-    @ApiModelProperty(value = "学号")
-    private String no;
+    @TableField("student_number")
+    @ApiModelProperty(value = "学号",required = "required")
+    private String studentNumber;
 
     @TableField("school_id")
     @ApiModelProperty(value = "学校ID")

@@ -212,14 +212,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         List<ExamSurveyAnswer> list = list(queryWrapper);
-        List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getNo).distinct().collect(Collectors.toList());
+        List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         //根据学号分别设置到对应的试卷回答信息中
         for (ExamSurveyAnswer examSurveyAnswer : list) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
             for (Map<String, Object> user : userList) {
-                if (examSurveyAnswer.getNo().equals(user.get("studentNumber"))) {
+                if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
                     examSurveyAnswer.setStuMation(user);
                 }
             }
