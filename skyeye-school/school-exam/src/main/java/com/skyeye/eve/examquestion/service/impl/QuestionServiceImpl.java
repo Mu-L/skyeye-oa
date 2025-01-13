@@ -247,18 +247,17 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
     }
 
-    /**
-     * 构建查询题目的包装器
-     *
-     * @param commonPageInfo 分页信息
-     * @return 题目查询包装器
-     */
     @Override
-    public QueryWrapper<Question> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<Question> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 只查询当前用户创建的题目
+    public void queryMyQuestionList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        return queryWrapper;
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
+        List<Question> questionList = getBaseInfo(queryWrapper);
+        outputObject.setBeans(questionList);
+        outputObject.settotal(page.getTotal());
+
     }
 
     @Override
@@ -638,4 +637,5 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
+
 }

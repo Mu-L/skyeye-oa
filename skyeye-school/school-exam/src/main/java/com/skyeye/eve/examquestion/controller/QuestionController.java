@@ -68,7 +68,7 @@ public class QuestionController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/queryMyQuestionList")
     public void queryMyQuestionList(InputObject inputObject, OutputObject outputObject) {
-        questionService.queryPageList(inputObject, outputObject);
+        questionService.queryMyQuestionList(inputObject, outputObject);
     }
 
     /**

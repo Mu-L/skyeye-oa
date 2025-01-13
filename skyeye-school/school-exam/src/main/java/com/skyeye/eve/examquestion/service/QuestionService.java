@@ -35,6 +35,8 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     void queryFilterQuestionList(InputObject inputObject, OutputObject outputObject);
 
+    void queryMyQuestionList(InputObject inputObject, OutputObject outputObject);
+
 //    String saveQuestion(Question question, String id, String userId);
 
 }
