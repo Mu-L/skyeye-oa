@@ -59,6 +59,19 @@ public class QuestionController {
     }
 
     /**
+     * 分页获取我的题目信息列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyQuestionList", value = "分页获取我的题目信息列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/QuestionController/queryMyQuestionList")
+    public void queryMyQuestionList(InputObject inputObject, OutputObject outputObject) {
+        questionService.queryPageList(inputObject, outputObject);
+    }
+
+    /**
      * 分页获取所有题库列表
      *
      * @param inputObject  入参以及用户信息等获取对象
