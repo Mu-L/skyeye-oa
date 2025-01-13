@@ -10,6 +10,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
+import com.skyeye.school.faculty.entity.Faculty;
+import com.skyeye.school.major.entity.Major;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -128,6 +130,14 @@ public class ExamSurveyAnswer extends CommonInfo {
     @TableField("major_id")
     @ApiModelProperty(value = "所属专业")
     private String majorId;
+
+    @TableField(exist = false)
+    @Property(value = "所属专业")
+    private Major majorMation;
+
+    @TableField(exist = false)
+    @Property(value = "所属学院")
+    private Faculty facultyMation;
 
     @TableField(exist = false)
     @Property(value = "学校信息")

@@ -37,6 +37,8 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -112,6 +114,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Autowired
     private ExamSurveyDirectoryService examSurveyDirectoryService;
+
+    @Autowired
+    private MajorService majorService;
+
+    @Autowired
+    private FacultyService facultyService;
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
@@ -224,6 +232,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         for (ExamSurveyAnswer examSurveyAnswer : list) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
             examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
+            examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
+            examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
             for (Map<String, Object> user : userList) {
                 if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
                     examSurveyAnswer.setStuMation(user);
@@ -264,6 +274,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         for (ExamSurveyAnswer examSurveyAnswer : beans) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
             examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
+            examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
+            examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
             for (Map<String, Object> user : userList) {
                 if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
                     examSurveyAnswer.setStuMation(user);
@@ -281,6 +293,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         // 专业
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
             beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getMajorId().equals(commonPageInfo.getObjectKey())).collect(Collectors.toList());
+        }
+        // 学号
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            beans = beans.stream().filter(examSurveyAnswer -> {
+                Map<String, Object> stuMation = examSurveyAnswer.getStuMation();
+                return  StrUtil.contains((String) stuMation.get("studentNumber"), commonPageInfo.getObjectId());
+            }).collect(Collectors.toList());
         }
         // 是否包含模糊搜索学生名字
         if(StrUtil.isNotEmpty(commonPageInfo.getType())){
