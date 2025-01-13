@@ -33,6 +33,7 @@ import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
+import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -107,6 +109,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Autowired
     private SchoolService schoolService;
+
+    @Autowired
+    private ExamSurveyDirectoryService examSurveyDirectoryService;
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
@@ -218,6 +223,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         //根据学号分别设置到对应的试卷回答信息中
         for (ExamSurveyAnswer examSurveyAnswer : list) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
+            examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
             for (Map<String, Object> user : userList) {
                 if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
                     examSurveyAnswer.setStuMation(user);
@@ -232,41 +238,75 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Integer page = commonPageInfo.getPage();
+        Integer limit = commonPageInfo.getLimit();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_TWO);
-        extracted(commonPageInfo, queryWrapper);
-        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
-
-        }
+        extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
     @Override
     public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Integer page = commonPageInfo.getPage();
+        Integer limit = commonPageInfo.getLimit();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_ONE);
-        extracted(commonPageInfo, queryWrapper);
-        List<ExamSurveyAnswer> beans = list(queryWrapper);
-        // 学生名字
-        // 学号
-        // 试卷名
+        extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
-    private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<ExamSurveyAnswer> queryWrapper) {
+    private void extracted(OutputObject outputObject, QueryWrapper<ExamSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {
+        List<ExamSurveyAnswer> beans = list(queryWrapper); // 获取所有的已批阅信息
+        // 设置信息：
+        List<String> stuNoList = beans.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
+        List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        for (ExamSurveyAnswer examSurveyAnswer : beans) {
+            examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
+            examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
+            for (Map<String, Object> user : userList) {
+                if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
+                    examSurveyAnswer.setStuMation(user);
+                }
+            }
+        }
         // 学校
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSchoolId), commonPageInfo.getHolderKey());
+            beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getSchoolId().equals(commonPageInfo.getHolderKey())).collect(Collectors.toList());
         }
         // 院校
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getFacultyId), commonPageInfo.getHolderId());
+            beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getFacultyId().equals(commonPageInfo.getHolderId())).collect(Collectors.toList());
         }
         // 专业
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getMajorId), commonPageInfo.getObjectKey());
+            beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getMajorId().equals(commonPageInfo.getObjectKey())).collect(Collectors.toList());
         }
+        // 是否包含模糊搜索学生名字
+        if(StrUtil.isNotEmpty(commonPageInfo.getType())){
+            beans = beans.stream().filter(examSurveyAnswer -> {
+                Map<String, Object> stuMation = examSurveyAnswer.getStuMation();
+                return  StrUtil.contains((String) stuMation.get("realName"), commonPageInfo.getType());
+            }).collect(Collectors.toList());
+        }
+        // 试卷名
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            beans = beans.stream().filter(examSurveyAnswer ->{
+                ExamSurveyDirectory surveyMation = examSurveyAnswer.getSurveyMation();
+                return StrUtil.contains(surveyMation.getSurveyName(), commonPageInfo.getKeyword());
+            }).collect(Collectors.toList());
+        }
+        // 将筛选后端beans按分页参数返回
+        int fromIndex = (page - 1) * limit;
+        if (fromIndex >= beans.size()) {
+            outputObject.setBeans(new ArrayList<>());
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+        }
+        int toIndex = Math.min(fromIndex + limit, beans.size());
+        outputObject.setBeans(beans.subList(fromIndex, toIndex));
+        outputObject.settotal(beans.size());
     }
+
+
 
 }

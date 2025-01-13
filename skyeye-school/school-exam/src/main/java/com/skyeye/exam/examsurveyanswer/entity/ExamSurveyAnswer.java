@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -131,6 +132,10 @@ public class ExamSurveyAnswer extends CommonInfo {
     @TableField(exist = false)
     @Property(value = "学校信息")
     private School schoolMation;
+
+    @TableField(exist = false)
+    @Property(value = "试卷信息")
+    private ExamSurveyDirectory surveyMation;
 
     @TableField(exist = false)
     @Property(value = "学生信息")
