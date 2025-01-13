@@ -9,9 +9,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
-import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.grade.entity.Classes;
-import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
@@ -123,7 +121,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Integer whetherDelete;
 
     @TableField(exist = false)
-    @ApiModelProperty(value="阅卷人列表",required = "required")
+    @ApiModelProperty(value = "阅卷人列表", required = "required")
     private String readerList;
 
     @TableField(exist = false)

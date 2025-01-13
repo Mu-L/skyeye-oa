@@ -43,8 +43,4 @@ public class ExamAnRadio extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
-
-    @TableField("qu_type")
-    @Property(value = "问题类型，参考#QuType")
-    private Integer quType;
 }

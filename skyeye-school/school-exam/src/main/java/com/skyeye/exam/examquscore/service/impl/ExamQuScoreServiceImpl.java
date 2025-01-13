@@ -104,6 +104,9 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
+        if(StrUtil.isEmpty(id)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getBelongId),id);
         List<ExamQuScore> list = list(queryWrapper);

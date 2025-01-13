@@ -1,7 +1,7 @@
 package com.skyeye.videocomment.service.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
@@ -72,15 +72,16 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         VideoComment videoComment = selectById(id);
         //查询子数据并删除
-        UpdateWrapper<VideoComment> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId),id);
-        remove(updateWrapper);
+        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId),id);
+        List<VideoComment> videoComments = list(queryWrapper);
+        remove(queryWrapper);
         super.deleteById(id);
         String videoId = videoComment.getVideoId();
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
         Integer videoRemarkNum = Integer.parseInt(video.getRemarkNum());
-        videoRemarkNum--;
+        videoRemarkNum = videoRemarkNum-videoComments.size()-1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
     }
