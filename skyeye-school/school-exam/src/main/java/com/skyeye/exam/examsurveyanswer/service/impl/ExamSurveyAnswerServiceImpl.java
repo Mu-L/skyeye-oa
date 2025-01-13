@@ -1,12 +1,17 @@
 package com.skyeye.exam.examsurveyanswer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
@@ -29,6 +34,7 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.activation.CommandInfo;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -173,17 +179,17 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getId), answerId);
+        queryWrapper.eq(CommonConstants.ID, answerId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         return list(queryWrapper);
     }
 
     @Override
-    public List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
+    public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String state = map.get("state").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
-        return list(queryWrapper);
+        outputObject.setBeans(list(queryWrapper));
     }
 }
