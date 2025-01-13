@@ -76,7 +76,8 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "copyExamDirectory", value = "复制试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
+        @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "试卷名称")})
     @RequestMapping("/post/ExamSurveyDirectoryController/copyExamDirectory")
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.copyExamDirectory(inputObject, outputObject);

@@ -1,12 +1,19 @@
 package com.skyeye.exam.examsurveyanswer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
@@ -26,6 +33,7 @@ import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +41,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamSurveyAnswerServiceImpl
@@ -90,6 +99,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Autowired
     private ExamSurveyQuAnswerService examSurveyQuAnswerService;
+
+    @Autowired
+    private ICertificationRest iCertificationRest;
+
+    @Autowired
+    private SchoolService schoolService;
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
@@ -185,5 +200,30 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String surveyId = commonPageInfo.getHolderId();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
+        List<ExamSurveyAnswer> list = list(queryWrapper);
+        List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getNo).distinct().collect(Collectors.toList());
+        List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        //根据学号分别设置到对应的试卷回答信息中
+        for (ExamSurveyAnswer examSurveyAnswer : list) {
+            examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
+            for (Map<String, Object> user : userList) {
+                if (examSurveyAnswer.getNo().equals(user.get("studentNumber"))) {
+                    examSurveyAnswer.setStuMation(user);
+                }
+            }
+        }
+        iAuthUserService.setName(list,"createId","createName");
+        outputObject.setBeans(list);
+        outputObject.settotal(page.getTotal());
     }
 }

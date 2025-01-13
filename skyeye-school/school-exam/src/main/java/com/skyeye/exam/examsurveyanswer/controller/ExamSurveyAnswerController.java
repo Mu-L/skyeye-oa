@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
@@ -92,6 +93,19 @@ public class ExamSurveyAnswerController {
     @RequestMapping("/post/ExamSurveyAnswerController/queryNoOrYesSurveyAnswerList")
     public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryNoOrYesSurveyAnswerList(inputObject, outputObject);
+    }
+
+    /**
+     * 根据SurveyId获取试卷回答信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySurveyAnswerBySurveyId", value = "根据试卷surveyId(holderId)获取试卷回答信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyAnswerController/querySurveyAnswerBySurveyId")
+    public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.querySurveyAnswerBySurveyId(inputObject, outputObject);
     }
 
 }
