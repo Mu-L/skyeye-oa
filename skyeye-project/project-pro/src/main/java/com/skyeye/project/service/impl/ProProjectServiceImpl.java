@@ -89,6 +89,10 @@ public class ProProjectServiceImpl extends SkyeyeFlowableServiceImpl<ProProjectD
             List<Project> projectList = list(queryWrapper);
             iAuthUserService.setName(projectList, "createId", "createName");
             iAuthUserService.setName(projectList, "lastUpdateId", "lastUpdateName");
+            String serviceClassName = getServiceClassName();
+            projectList.forEach(project -> {
+                project.setServiceClassName(serviceClassName);
+            });
             outputObject.setBeans(projectList);
             outputObject.settotal(resultEnt.getTotal());
         } else {

@@ -56,10 +56,14 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
             }
             List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
             commonPageInfo.setIds(ids);
-            List<Map<String, Object>> customerMationList = skyeyeBaseMapper.queryAutoProjectList(commonPageInfo);
-            iAuthUserService.setNameForMap(customerMationList, "createId", "createName");
-            iAuthUserService.setNameForMap(customerMationList, "lastUpdateId", "lastUpdateName");
-            outputObject.setBeans(customerMationList);
+            List<Map<String, Object>> autoProjectList = skyeyeBaseMapper.queryAutoProjectList(commonPageInfo);
+            iAuthUserService.setNameForMap(autoProjectList, "createId", "createName");
+            iAuthUserService.setNameForMap(autoProjectList, "lastUpdateId", "lastUpdateName");
+            String serviceClassName = getServiceClassName();
+            autoProjectList.forEach(autoProject -> {
+                autoProject.put("serviceClassName", serviceClassName);
+            });
+            outputObject.setBeans(autoProjectList);
             outputObject.settotal(resultEnt.getTotal());
         } else {
             // 全部

@@ -77,6 +77,10 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
             List<CustomerMation> customerMationList = list(queryWrapper);
             iAuthUserService.setName(customerMationList, "createId", "createName");
             iAuthUserService.setName(customerMationList, "lastUpdateId", "lastUpdateName");
+            String serviceClassName = getServiceClassName();
+            customerMationList.forEach(customerMation -> {
+                customerMation.setServiceClassName(serviceClassName);
+            });
             outputObject.setBeans(customerMationList);
             outputObject.settotal(resultEnt.getTotal());
         } else {

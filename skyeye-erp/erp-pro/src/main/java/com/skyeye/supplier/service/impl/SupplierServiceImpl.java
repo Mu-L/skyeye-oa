@@ -63,6 +63,10 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
             List<Supplier> supplierList = list(queryWrapper);
             iAuthUserService.setName(supplierList, "createId", "createName");
             iAuthUserService.setName(supplierList, "lastUpdateId", "lastUpdateName");
+            String serviceClassName = getServiceClassName();
+            supplierList.forEach(supplier -> {
+                supplier.setServiceClassName(serviceClassName);
+            });
             outputObject.setBeans(supplierList);
             outputObject.settotal(resultEnt.getTotal());
         } else {
