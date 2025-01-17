@@ -67,6 +67,9 @@ public class CatalogServiceImpl extends SkyeyeBusinessServiceImpl<CatalogDao, Ca
         Boolean addOrUser = Boolean.valueOf(params.get("addOrUser").toString());
         String userId = inputObject.getLogParams().get("id").toString();
         List<Catalog> result = getCatalogs(objectId, objectKey, addOrUser, userId);
+        if (CollectionUtil.isEmpty(result)) {
+            return;
+        }
         // 转为树
         List<Tree<String>> treeNodes = TreeUtil.build(result, String.valueOf(CommonNumConstants.NUM_ZERO), new TreeNodeConfig(),
             (treeNode, tree) -> {
