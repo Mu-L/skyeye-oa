@@ -42,12 +42,12 @@
                     </when>
                     <!-- 我接收的 -->
                     <when test="type == 'myReceive'">
-                        INSTR(a.receive_department_id, #{departmentId})
+                        AND INSTR(a.receive_department_id, #{departmentId})
                         AND a.state = #{state}
                     </when>
                     <!-- 抄送我的 -->
                     <when test="type == 'myCc'">
-                        INSTR(a.cc_department_id, #{departmentId})
+                        AND INSTR(a.cc_department_id, #{departmentId})
                         AND a.state = #{state}
                     </when>
                 </choose>
