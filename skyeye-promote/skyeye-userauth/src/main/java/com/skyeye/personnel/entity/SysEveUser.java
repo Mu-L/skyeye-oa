@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.personnel.classenum.UserLockState;
 import lombok.Data;
 
 /**
@@ -51,7 +52,7 @@ public class SysEveUser extends OperatorUserInfo {
     private String roleId;
 
     @TableField("user_lock")
-    @Property(value = "用户账号是否锁定，参考#UserLockState")
+    @Property(value = "用户账号是否锁定", enumClass = UserLockState.class)
     private Integer userLock;
 
     @TableField("is_term_of_validity")
