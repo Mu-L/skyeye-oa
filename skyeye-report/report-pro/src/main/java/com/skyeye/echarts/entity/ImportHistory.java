@@ -30,7 +30,7 @@ public class ImportHistory extends OperatorUserInfo {
     private String id;
 
     @TableField("`name`")
-    @Property(value = "名称")
+    @Property(value = "名称", fuzzyLike = true)
     private String name;
 
     @TableField("model_code")
