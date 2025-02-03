@@ -22,6 +22,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.authority.service.SysAuthorityService;
 import com.skyeye.eve.entity.userauth.user.UserTreeQueryDo;
 import com.skyeye.exception.CustomException;
+import com.skyeye.menu.service.RoleMenuService;
 import com.skyeye.organization.service.CompanyDepartmentService;
 import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
@@ -85,6 +86,9 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
 
     @Autowired
     private SysEveUserInstallService sysEveUserInstallService;
+
+    @Autowired
+    private RoleMenuService roleMenuService;
 
     /**
      * 获取管理员用户列表
@@ -438,8 +442,12 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      */
     @Override
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
-        List<Map<String, Object>> deskTops = inputObject.getLogAllMenuParams();
-        outputObject.setBeans(deskTops);
+        String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        // 获取角色id(逗号隔开的字符串)
+        String roleIds = jedisClientService.get(ObjectConstant.getAllMenuCacheKey(
+            userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+        List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
+        outputObject.setBeans(menuList);
     }
 
     /**

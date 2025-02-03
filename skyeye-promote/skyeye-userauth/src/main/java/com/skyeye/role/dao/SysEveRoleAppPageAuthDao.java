@@ -5,16 +5,16 @@
 package com.skyeye.role.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.role.entity.Role;
+import com.skyeye.role.entity.SysEveRoleAppPageAuth;
 
 /**
- * @ClassName: SysEveRoleDao
- * @Description: 角色管理数据层
+ * @ClassName: SysEveRoleAppPageAuthDao
+ * @Description: 角角色与权限点(移动端)关联数据层
  * @author: skyeye云系列--卫志强
- * @date: 2021/8/7 11:38
- * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * @date: 2025/2/3 11:17
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public interface SysEveRoleDao extends SkyeyeBaseMapper<Role> {
+public interface SysEveRoleAppPageAuthDao extends SkyeyeBaseMapper<SysEveRoleAppPageAuth> {
 
 }

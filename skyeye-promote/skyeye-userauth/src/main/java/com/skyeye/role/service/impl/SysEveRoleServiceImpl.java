@@ -4,29 +4,34 @@
 
 package com.skyeye.role.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.menu.dao.AppWorkPageDao;
 import com.skyeye.menu.dao.SysEveMenuDao;
+import com.skyeye.menu.entity.AuthPoint;
+import com.skyeye.menu.service.AuthPointService;
 import com.skyeye.role.dao.SysEveRoleDao;
 import com.skyeye.role.entity.Role;
+import com.skyeye.role.service.SysEveRoleAppPageAuthService;
+import com.skyeye.role.service.SysEveRoleAppPageService;
+import com.skyeye.role.service.SysEveRoleMenuService;
 import com.skyeye.role.service.SysEveRoleService;
 import com.skyeye.win.service.SysEveDesktopService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveRoleServiceImpl
@@ -37,13 +42,8 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "角色管理", groupName = "系统设置")
+@SkyeyeService(name = "角色管理", groupName = "角色管理")
 public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleDao, Role> implements SysEveRoleService {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(SysEveRoleServiceImpl.class);
-
-    @Autowired
-    private SysEveRoleDao sysEveRoleDao;
 
     @Autowired
     private SysEveMenuDao sysEveMenuDao;
@@ -54,32 +54,115 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
     @Autowired
     private SysEveDesktopService sysEveDesktopService;
 
+    @Autowired
+    private SysEveRoleMenuService sysEveRoleMenuService;
+
+    @Autowired
+    private SysEveRoleAppPageService sysEveRoleAppPageService;
+
+    @Autowired
+    private SysEveRoleAppPageAuthService sysEveRoleAppPageAuthService;
+
+    @Autowired
+    private AuthPointService authPointService;
+
     @Override
     public Role getDataFromDb(String id) {
         Role role = super.getDataFromDb(id);
-        List<String> menuIds = sysEveRoleDao.querySysRoleMenuIdByRoleId(id);
-        List<String> appMenuIds = sysEveRoleDao.querySysRoleAppMenuIdByRoleId(id);
-        role.setMenuIds(menuIds);
+        // 获取桌面信息
+        List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
+        // 1. 获取PC端菜单权限
+        List<String> menuAuthPointIds = sysEveRoleMenuService.querySysRoleMenuIdByRoleId(id);
+        role.setMenuIds(menuAuthPointIds);
+        // 根据menuIds从desktopList获取桌面信息的id集合
+        List<String> pcDesktopIds = desktopList.stream().filter(desktop -> menuAuthPointIds.contains(desktop.get("id").toString()))
+            .map(desktop -> desktop.get("id").toString()).collect(Collectors.toList());
+        role.setPcDesktopId(pcDesktopIds);
+        // 获取权限点信息
+        List<AuthPoint> authPoints = authPointService.selectByIds(menuAuthPointIds.toArray(new String[]{}));
+        if (CollectionUtil.isNotEmpty(authPoints)) {
+            List<String> ids = authPoints.stream().map(AuthPoint::getId).collect(Collectors.toList());
+            role.setPcAuthId(ids);
+            role.setPcAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(authPoints), null));
+        }
+
+        // 2. 获取APP端菜单权限
+        List<String> appMenuIds = new ArrayList<>();
+        List<String> appMenuIdList = sysEveRoleAppPageService.querySysRoleAppPageIdByRoleId(id);
+        role.setAppMenuId(appMenuIdList);
+        // 根据appMenuIdList从desktopList获取APP端菜单信息的id集合
+        List<String> appDesktopIds = desktopList.stream().filter(desktop -> appMenuIdList.contains(desktop.get("id").toString()))
+            .map(desktop -> desktop.get("id").toString()).collect(Collectors.toList());
+        role.setAppDesktopId(appDesktopIds);
+        List<String> appAuthIdList = sysEveRoleAppPageAuthService.queryRoleAppPageAuthByRoleId(id);
+        role.setAppAuthId(appAuthIdList);
+        if (CollectionUtil.isNotEmpty(appMenuIdList)) {
+            appMenuIds.addAll(appMenuIdList);
+        }
+        if (CollectionUtil.isNotEmpty(appAuthIdList)) {
+            appMenuIds.addAll(appAuthIdList);
+        }
         role.setAppMenuIds(appMenuIds);
+        // 获取权限点信息
+        List<AuthPoint> appAauthPoints = authPointService.selectByIds(appAuthIdList.toArray(new String[]{}));
+        if (CollectionUtil.isNotEmpty(appAauthPoints)) {
+            role.setAppAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(appAauthPoints), null));
+        }
         return role;
     }
 
     @Override
     public List<Role> getDataFromDb(List<String> idList) {
         List<Role> roles = super.getDataFromDb(idList);
+        // 获取桌面信息
+        List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
+        // 获取PC端菜单权限
+        Map<String, List<String>> pcListMap = sysEveRoleMenuService.querySysRoleMenuIdByRoleIds(idList);
+        // 获取APP端菜单权限
+        Map<String, List<String>> appListMap = sysEveRoleAppPageService.querySysRoleAppPageIdByRoleIds(idList);
+        // 获取APP端权限点
+        Map<String, List<String>> pointListMap = sysEveRoleAppPageAuthService.queryRoleAppPageAuthByRoleIds(idList);
+
         for (Role role : roles) {
-            List<String> menuIds = sysEveRoleDao.querySysRoleMenuIdByRoleId(role.getId());
-            List<String> appMenuIds = sysEveRoleDao.querySysRoleAppMenuIdByRoleId(role.getId());
-            role.setMenuIds(menuIds);
+            // 1. 设置PC端菜单权限
+            if (CollectionUtil.isNotEmpty(pcListMap.get(role.getId()))) {
+                role.setMenuIds(pcListMap.get(role.getId()));
+                // 根据menuIds从desktopList获取桌面信息的id集合
+                List<String> pcDesktopIds = desktopList.stream().filter(desktop -> pcListMap.get(role.getId()).contains(desktop.get("id").toString()))
+                    .map(desktop -> desktop.get("id").toString()).collect(Collectors.toList());
+                role.setPcDesktopId(pcDesktopIds);
+
+                // 获取权限点信息
+                List<AuthPoint> authPoints = authPointService.selectByIds(pcListMap.get(role.getId()).toArray(new String[]{}));
+                if (CollectionUtil.isNotEmpty(authPoints)) {
+                    List<String> ids = authPoints.stream().map(AuthPoint::getId).collect(Collectors.toList());
+                    role.setPcAuthId(ids);
+                    role.setPcAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(authPoints), null));
+                }
+            }
+            // 2. 设置APP端菜单权限
+            // 合并APP端菜单权限和权限点
+            List<String> appMenuIds = new ArrayList<>();
+            if (CollectionUtil.isNotEmpty(appListMap.get(role.getId()))) {
+                role.setAppMenuId(appListMap.get(role.getId()));
+                appMenuIds.addAll(appListMap.get(role.getId()));
+                // 根据appMenuIdList从desktopList获取APP端菜单信息的id集合
+                List<String> appDesktopIds = desktopList.stream().filter(desktop -> appListMap.get(role.getId()).contains(desktop.get("id").toString()))
+                    .map(desktop -> desktop.get("id").toString()).collect(Collectors.toList());
+                role.setAppDesktopId(appDesktopIds);
+            }
+            if (CollectionUtil.isNotEmpty(pointListMap.get(role.getId()))) {
+                role.setAppAuthId(pointListMap.get(role.getId()));
+                appMenuIds.addAll(pointListMap.get(role.getId()));
+                // 获取权限点信息
+                List<AuthPoint> appAauthPoints = authPointService.selectByIds(pointListMap.get(role.getId()).toArray(new String[]{}));
+                if (CollectionUtil.isNotEmpty(appAauthPoints)) {
+                    role.setAppAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(appAauthPoints), null));
+                }
+            }
             role.setAppMenuIds(appMenuIds);
         }
         return roles;
-    }
-
-    @Override
-    public void updatePostpose(Role entity, String userId) {
-        // 删除缓存
-        deleteRoleCache(entity.getId(), "delete");
     }
 
     /**
@@ -115,46 +198,20 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
         String roleId = map.get("id").toString();
-        saveRoleMenuMation(map, roleId, user.get("id").toString(), DateUtil.getTimeAndToString());
-        // 删除缓存
-        deleteRoleCache(roleId, "delete");
+        // 保存角色菜单关联表信息
+        sysEveRoleMenuService.createRoleMenu(roleId, (List<String>) map.get("menuIds"),
+            user.get("id").toString(), DateUtil.getTimeAndToString());
         refreshCache(roleId);
-    }
-
-    private void saveRoleMenuMation(Map<String, Object> map, String roleId, String createId, String createTime) {
-        List<String> menuIds = (List<String>) map.get("menuIds");
-        // 删除角色菜单关联表信息
-        sysEveRoleDao.deleteRoleMenuByRoleId(roleId);
-        if (menuIds.size() > 0) {
-            List<Map<String, Object>> beans = new ArrayList<>();
-            menuIds.stream().forEach(str -> {
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", ToolUtil.getSurFaceId());
-                item.put("roleId", roleId);
-                item.put("menuId", str);
-                item.put("createId", createId);
-                item.put("createTime", createTime);
-                beans.add(item);
-            });
-            sysEveRoleDao.insertSysRoleMenuMation(beans);
-        }
-    }
-
-    @Override
-    public void deletePreExecution(String id) {
-        // 判断当前是否有用户在使用该角色
-        Integer useNum = sysEveRoleDao.queryUserRoleByRoleId(id);
-        if (useNum > 0) {
-            throw new CustomException("该角色下有用户正在使用，只能对角色进行维护.");
-        }
     }
 
     @Override
     public void deletePostpose(String id) {
         // 删除角色菜单关联表信息
-        sysEveRoleDao.deleteRoleMenuByRoleId(id);
-        // 删除缓存
-        deleteRoleCache(id, "delete");
+        sysEveRoleMenuService.deleteByRoleId(id);
+        // 删除角色APP菜单关联表信息
+        sysEveRoleAppPageService.deleteByRoleId(id);
+        // 删除角色权限点关联表信息
+        sysEveRoleAppPageAuthService.deleteByRoleId(id);
     }
 
     /**
@@ -182,58 +239,18 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysRoleAppMenuById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String roleId = map.get("id").toString();
+        // 保存角色APP菜单关联表信息
         String[] menuIds = map.get("menuIds").toString().split(",");
-        if (menuIds.length > 0) {
-            String roleId = map.get("id").toString();
-            // 桌面模块信息以及菜单页面信息
-            List<Map<String, Object>> menuList = new ArrayList<>();
-            for (String str : menuIds) {
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", ToolUtil.getSurFaceId());
-                item.put("roleId", roleId);
-                item.put("menuId", str);
-                menuList.add(item);
-            }
-            sysEveRoleDao.deleteRoleAppMenuByRoleId(map);
-            sysEveRoleDao.insertSysRoleAppMenuMation(menuList);
-
-            // 权限点信息以及数据权限信息
-            List<Map<String, Object>> authPointList = new ArrayList<>();
-            String[] pointIds = map.get("pointIds").toString().split(",");
-            if (pointIds.length > 0) {
-                for (String str : pointIds) {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("id", ToolUtil.getSurFaceId());
-                    item.put("roleId", roleId);
-                    item.put("pointId", str);
-                    authPointList.add(item);
-                }
-            }
-            sysEveRoleDao.deleteRoleAppPointByRoleId(map);
-            if (!authPointList.isEmpty()) {
-                sysEveRoleDao.insertSysRoleAppPointMation(authPointList);
-            }
-            // 删除角色关联的APP菜单信息
-            deleteAPPRoleCache(roleId);
-            refreshCache(roleId);
-        } else {
-            outputObject.setreturnMessage("请选择该角色即将拥有的权限！");
+        if (menuIds.length == 0) {
+            throw new CustomException("请选择该角色即将拥有的权限！");
         }
-    }
+        sysEveRoleAppPageService.createRoleAppPage(roleId, Arrays.asList(menuIds));
 
-    private void deleteRoleCache(String roleId, String type) {
-        LOGGER.info("delete Role Cache, roleId is {}", roleId);
-        jedisClientService.del(String.format("roleHasMenu:%s", roleId));
-        jedisClientService.del(String.format("roleHasMenuPoint:%s", roleId));
-        if ("delete".equals(type)) {
-            deleteAPPRoleCache(roleId);
-        }
-    }
+        // 保存角色权限点关联表信息
+        sysEveRoleAppPageAuthService.createRoleAppPageAuth(roleId, Arrays.asList(map.get("pointIds").toString().split(",")));
 
-    private void deleteAPPRoleCache(String roleId) {
-        LOGGER.info("delete Role app Cache");
-        jedisClientService.del(String.format("roleHasAppMenu:%s", roleId));
-        jedisClientService.del(String.format("roleHasAppMenuPoint:%s", roleId));
+        refreshCache(roleId);
     }
 
 }

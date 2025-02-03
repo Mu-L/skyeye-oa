@@ -11,11 +11,12 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: Role
@@ -27,7 +28,7 @@ import java.util.List;
  */
 @Data
 @UniqueField
-@RedisCacheField(name = "sys:role", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
+@RedisCacheField(name = CacheConstants.SYS_ROLE_CACHE_KEY)
 @TableName(value = "sys_eve_role")
 @ApiModel("角色管理实体类")
 public class Role extends BaseGeneralInfo {
@@ -37,11 +38,43 @@ public class Role extends BaseGeneralInfo {
     private String parentId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "PC端菜单权限")
+    @ApiModelProperty(value = "PC端所有菜单/权限点")
     private List<String> menuIds;
 
     @TableField(exist = false)
-    @Property(value = "手机端菜单权限")
+    @Property(value = "PC端所有桌面")
+    private List<String> pcDesktopId;
+
+    @TableField(exist = false)
+    @Property(value = "PC端所有菜单")
+    private List<String> pcMenuId;
+
+    @TableField(exist = false)
+    @Property(value = "PC端所有权限点")
+    private List<String> pcAuthId;
+
+    @TableField(exist = false)
+    @Property(value = "PC端所有权限点信息")
+    private List<Map<String, Object>> pcAuthNum;
+
+    @TableField(exist = false)
+    @Property(value = "手机端所有菜单/权限点")
     private List<String> appMenuIds;
+
+    @TableField(exist = false)
+    @Property(value = "APP端所有桌面")
+    private List<String> appDesktopId;
+
+    @TableField(exist = false)
+    @Property(value = "APP端所有菜单")
+    private List<String> appMenuId;
+
+    @TableField(exist = false)
+    @Property(value = "APP端所有权限点")
+    private List<String> appAuthId;
+
+    @TableField(exist = false)
+    @Property(value = "APP端所有权限点信息")
+    private List<Map<String, Object>> appAuthNum;
 
 }
