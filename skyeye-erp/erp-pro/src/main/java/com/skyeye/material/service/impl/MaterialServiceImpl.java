@@ -274,23 +274,9 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
     @Override
     public void queryMaterialListToTable(InputObject inputObject, OutputObject outputObject) {
         MaterialChooseQueryDo queryDo = inputObject.getParams(MaterialChooseQueryDo.class);
-        Page pages = PageHelper.startPage(queryDo.getPage(), queryDo.getLimit());
         QueryWrapper<Material> queryWrapper = super.getQueryWrapper(queryDo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Material::getEnabled), EnableEnum.ENABLE_USING.getKey());
-        if (StrUtil.isNotBlank(queryDo.getCategoryId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Material::getCategoryId), queryDo.getCategoryId());
-        }
-        List<Material> beans = list(queryWrapper);
-
-        // 获取规格单位信息
-        List<String> materialIdList = beans.stream().map(Material::getId).collect(Collectors.toList());
-        Map<String, List<MaterialNorms>> materialNormsMap = materialNormsService.queryMaterialNormsList(queryDo.getDepotId(),
-            materialIdList.toArray(new String[]{}));
-        for (Material bean : beans) {
-            bean.setMaterialNorms(materialNormsMap.get(bean.getId()));
-        }
-        outputObject.setBeans(beans);
-        outputObject.settotal(pages.getTotal());
+        queryMaterialList(outputObject, queryWrapper, queryDo);
     }
 
     /**
@@ -320,8 +306,15 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
     @Override
     public void queryMaterialReserveList(InputObject inputObject, OutputObject outputObject) {
         MaterialChooseQueryDo queryDo = inputObject.getParams(MaterialChooseQueryDo.class);
-        Page pages = PageHelper.startPage(queryDo.getPage(), queryDo.getLimit());
         QueryWrapper<Material> queryWrapper = super.getQueryWrapper(queryDo);
+        queryMaterialList(outputObject, queryWrapper, queryDo);
+    }
+
+    private void queryMaterialList(OutputObject outputObject, QueryWrapper<Material> queryWrapper, MaterialChooseQueryDo queryDo) {
+        Page pages = PageHelper.startPage(queryDo.getPage(), queryDo.getLimit());
+        if (StrUtil.isNotBlank(queryDo.getCategoryId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Material::getCategoryId), queryDo.getCategoryId());
+        }
         List<Material> beans = list(queryWrapper);
 
         // 获取规格单位信息
