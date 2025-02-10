@@ -32,24 +32,18 @@ public class UserMessageController {
     @Autowired
     private UserMessageService userMessageService;
 
-    /**
-     * 获取当前用户前8条未读的消息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getTopEightMessageList", value = "获取当前用户前8条未读的消息列表", method = "POST", allUse = "2")
     @RequestMapping("/post/UserMessageController/getTopEightMessageList")
     public void getTopEightMessageList(InputObject inputObject, OutputObject outputObject) {
         userMessageService.getTopEightMessageList(inputObject, outputObject);
     }
 
-    /**
-     * 分页查询当前用户的消息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "queryUnReadMessageCount", value = "获取当前用户未读消息数量", method = "GET", allUse = "2")
+    @RequestMapping("/post/UserMessageController/queryUnReadMessageCount")
+    public void queryUnReadMessageCount(InputObject inputObject, OutputObject outputObject) {
+        userMessageService.queryUnReadMessageCount(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryUserMessageList", value = "分页查询当前用户的消息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/UserMessageController/queryUserMessageList")
@@ -57,12 +51,6 @@ public class UserMessageController {
         userMessageService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 用户阅读消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editMessageById", value = "用户阅读消息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -71,12 +59,6 @@ public class UserMessageController {
         userMessageService.editMessageById(inputObject, outputObject);
     }
 
-    /**
-     * 删除消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMessageById", value = "删除消息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -85,24 +67,12 @@ public class UserMessageController {
         userMessageService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 用户删除全部消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAllMessage", value = "用户删除全部消息", method = "DELETE", allUse = "2")
     @RequestMapping("/post/UserMessageController/deleteAllMessage")
     public void deleteAllMessage(InputObject inputObject, OutputObject outputObject) {
         userMessageService.deleteAllMessage(inputObject, outputObject);
     }
 
-    /**
-     * 新增用户消息数据---给其他微服务调用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertUserMessage", value = "新增用户消息数据---给其他微服务调用", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = UserMessageBox.class)
     @RequestMapping("/post/UserMessageController/insertUserMessage")
