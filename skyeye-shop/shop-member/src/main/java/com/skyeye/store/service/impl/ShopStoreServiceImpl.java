@@ -97,6 +97,17 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
     }
 
     @Override
+    public void updatePrepose(ShopStore entity) {
+        ShopStore oldShopStore = selectById(entity.getId());
+        entity.setStartTime(oldShopStore.getStartTime());
+        entity.setEndTime(oldShopStore.getEndTime());
+        entity.setOnlineBookAppoint(oldShopStore.getOnlineBookAppoint());
+        entity.setOnlineBookRadix(oldShopStore.getOnlineBookRadix());
+        entity.setOnlineBookType(oldShopStore.getOnlineBookType());
+        entity.setOnlineBookJson(oldShopStore.getOnlineBookJson());
+    }
+
+    @Override
     public ShopStore selectById(String id) {
         ShopStore shopStore = super.selectById(id);
         shopAreaService.setDataMation(shopStore, ShopStore::getShopAreaId);
