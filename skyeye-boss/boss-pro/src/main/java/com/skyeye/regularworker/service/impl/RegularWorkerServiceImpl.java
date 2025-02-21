@@ -116,6 +116,8 @@ public class RegularWorkerServiceImpl extends SkyeyeFlowableServiceImpl<RegularW
                 // 为空，说明还没有提交转正申请
                 canApply = true;
             }
+        } else {
+            throw new CustomException("您不是试用期员工，无法提交转正申请。");
         }
         return canApply;
     }
