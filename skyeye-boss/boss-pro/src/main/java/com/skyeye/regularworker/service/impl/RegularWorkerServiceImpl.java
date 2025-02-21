@@ -67,9 +67,9 @@ public class RegularWorkerServiceImpl extends SkyeyeFlowableServiceImpl<RegularW
             throw new CustomException("您已提交过转正申请，请等待审批。");
         }
         // 获取用户的信息
-        Map<String, Map<String, Object>> staffMap = iAuthUserService
-            .queryUserMationListByStaffIds(Arrays.asList(userId));
         String staffId = user.get("staffId").toString();
+        Map<String, Map<String, Object>> staffMap = iAuthUserService
+            .queryUserMationListByStaffIds(Arrays.asList(staffId));
         Map<String, Object> staff = staffMap.get(staffId);
         entity.setDepartmentId(staff.get("departmentId").toString());
         entity.setJobId(staff.get("jobId").toString());
