@@ -8,13 +8,18 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.rest.shop.service.IShopStoreService;
@@ -50,22 +55,29 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
     private IShopStoreService iShopStoreService;
 
     @Override
-    public QueryWrapper<ShopStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<ShopStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
+    public void queryShopStockList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 商品名称，型号，门店，品牌
+        MPJLambdaWrapper<ShopStock> wrapper = new MPJLambdaWrapper<ShopStock>()
+            .innerJoin(Material.class, Material::getId, ShopStock::getMaterialId);
         if (StrUtil.equals(commonPageInfo.getType(), "store")) {
             // 门店id
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getStoreId), commonPageInfo.getHolderId());
+            wrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getStoreId), commonPageInfo.getHolderId());
         }
-        return queryWrapper;
-    }
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            wrapper.and(wra -> {
+                wra.or().like(Material::getName, commonPageInfo.getKeyword());
+                wra.or().like(Material::getModel, commonPageInfo.getKeyword());
+            });
+        }
+        List<ShopStock> shopStockList = skyeyeBaseMapper.selectJoinList(ShopStock.class, wrapper);
+        materialService.setDataMation(shopStockList, ShopStock::getMaterialId);
+        materialNormsService.setDataMation(shopStockList, ShopStock::getNormsId);
+        iShopStoreService.setDataMation(shopStockList, ShopStock::getStoreId);
 
-    @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        materialService.setMationForMap(beans, "materialId", "materialMation");
-        materialNormsService.setMationForMap(beans, "normsId", "normsMation");
-        iShopStoreService.setMationForMap(beans, "storeId", "storeMation");
-        return beans;
+        outputObject.setBeans(shopStockList);
+        outputObject.settotal(pages.getTotal());
     }
 
     @Override

@@ -40,7 +40,7 @@ public class ShopStockController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ShopStockController/queryShopStockList")
     public void queryShopStockList(InputObject inputObject, OutputObject outputObject) {
-        shopStockService.queryPageList(inputObject, outputObject);
+        shopStockService.queryShopStockList(inputObject, outputObject);
     }
 
 }

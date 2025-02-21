@@ -5,6 +5,8 @@
 package com.skyeye.shop.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.shop.entity.ShopStock;
 
 import java.util.List;
@@ -35,4 +37,5 @@ public interface ShopStockService extends SkyeyeBusinessService<ShopStock> {
 
     Map<String, Integer> queryNormsShopStock(String storeId, List<String> normsIds);
 
+    void queryShopStockList(InputObject inputObject, OutputObject outputObject);
 }
