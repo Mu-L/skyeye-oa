@@ -92,7 +92,7 @@
 	<!-- 自定义菜单开始 -->
 	<url id="sysevewindragdrop001" path="/post/SysEveWinDragDropController/insertWinCustomMenuBox" val="用户自定义创建菜单盒子" allUse="2" groupName="自定义菜单">
 		<property id="menuBoxName" name="menuBoxName" ref="required" var="菜单盒子名称"/>
-		<property id="deskTopId" name="deskTopId" ref="required" var="所属桌面id"/>
+		<property id="desktopId" name="desktopId" ref="required" var="所属桌面id"/>
 	</url>
 	<url id="sysevewindragdrop002" path="/post/SysEveWinDragDropController/insertWinCustomMenu" val="用户自定义创建菜单" allUse="2" groupName="自定义菜单">
 		<property id="menuName" name="menuName" ref="required" var="菜单盒子名称"/>
@@ -103,7 +103,7 @@
 		<property id="menuUrl" name="menuUrl" ref="required" var="菜单链接"/>
 		<property id="menuIconBg" name="menuIconBg" ref="" var="菜单图标背景颜色"/>
 		<property id="menuIconColor" name="menuIconColor" ref="" var="菜单图标颜色"/>
-		<property id="deskTopId" name="deskTopId" ref="required" var="所属桌面id"/>
+		<property id="desktopId" name="desktopId" ref="required" var="所属桌面id"/>
 		<property id="lightAppId" name="lightAppId" ref="" var="轻应用id"/>
 	</url>
 	<url id="sysevewindragdrop003" path="/post/SysEveWinDragDropController/deleteWinMenuOrBoxById" val="用户删除自定义菜单或文件夹" allUse="2" groupName="自定义菜单">

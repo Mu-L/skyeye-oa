@@ -29,8 +29,7 @@ public class DocumentOnlineUserController {
      */
     @ApiOperation(id = "userJoin", value = "用户加入文档", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required"),
-        @ApiImplicitParam(id = "userId", name = "userId", value = "用户ID", required = "required")
+        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required")
     })
     @RequestMapping("/post/DocumentOnlineUserController/userJoin")
     public void userJoin(InputObject inputObject, OutputObject outputObject) {
@@ -42,8 +41,7 @@ public class DocumentOnlineUserController {
      */
     @ApiOperation(id = "userLeave", value = "用户离开文档", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required"),
-        @ApiImplicitParam(id = "userId", name = "userId", value = "用户ID", required = "required")
+        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required")
     })
     @RequestMapping("/post/DocumentOnlineUserController/userLeave")
     public void userLeave(InputObject inputObject, OutputObject outputObject) {
@@ -55,8 +53,7 @@ public class DocumentOnlineUserController {
      */
     @ApiOperation(id = "updateActiveTime", value = "更新用户活跃时间", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required"),
-        @ApiImplicitParam(id = "userId", name = "userId", value = "用户ID", required = "required")
+        @ApiImplicitParam(id = "documentId", name = "documentId", value = "文档ID", required = "required")
     })
     @RequestMapping("/post/DocumentOnlineUserController/updateActiveTime")
     public void updateActiveTime(InputObject inputObject, OutputObject outputObject) {

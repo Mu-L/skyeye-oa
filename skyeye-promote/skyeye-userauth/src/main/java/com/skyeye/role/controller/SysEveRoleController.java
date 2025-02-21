@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @RestController
-@Api(value = "角色管理", tags = "角色管理", modelName = "基础模块")
+@Api(value = "角色管理", tags = "角色管理", modelName = "角色管理")
 public class SysEveRoleController {
 
     @Autowired
@@ -64,7 +64,7 @@ public class SysEveRoleController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySysRoleById", value = "根据id查询角色信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "querySysRoleById", value = "根据id查询角色信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "角色ID", required = "required")})
     @RequestMapping("/post/SysEveRoleController/querySysRoleById")

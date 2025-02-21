@@ -55,7 +55,7 @@ public class Insurance extends BaseGeneralInfo {
     private String validityEndTime;
 
     @TableField("insurance_all_price")
-    @ApiModelProperty(value = "投保总费用", required = "required,double")
+    @Property(value = "投保总费用")
     private String insuranceAllPrice;
 
     @TableField(exist = false)

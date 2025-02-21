@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.win.entity.SysDesktop;
 import lombok.Data;
@@ -24,6 +25,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
+@RedisCacheField(name = "sys:appMenu")
 @TableName(value = "app_workbench_page")
 @ApiModel("APP菜单实体类")
 public class AppWorkPage extends OperatorUserInfo {

@@ -7,6 +7,7 @@
 			a.id,
 			a.`name`,
 			a.remark,
+			a.content,
 			a.state,
 			CONVERT(a.create_time, char) createTime
 		FROM

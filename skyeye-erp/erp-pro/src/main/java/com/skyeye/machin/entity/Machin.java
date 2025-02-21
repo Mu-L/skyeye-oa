@@ -14,6 +14,7 @@ import com.skyeye.bom.entity.BomChild;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.machin.classenum.MachinPickStateEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public class Machin extends SkyeyeFlowable {
     private Map<String, Object> departmentMation;
 
     @TableField("pick_state")
-    @Property(value = "领料状态，参考#MachinPickStateEnum")
+    @Property(value = "领料状态", enumClass = MachinPickStateEnum.class)
     private String pickState;
 
     @TableField("remark")

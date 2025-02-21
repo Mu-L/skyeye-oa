@@ -43,7 +43,7 @@
 	     INSERT into sys_eve_user_custom_menubox 
 	     (id, menu_box_name, order_num, desktop_id, create_id, create_time)
 	     VALUES
-	     (#{id}, #{menuBoxName}, #{order}, #{deskTopId}, #{createId}, #{createTime})
+	     (#{id}, #{menuBoxName}, #{order}, #{desktopId}, #{createId}, #{createTime})
 	</insert>
 	
 	<select id="queryMenuNameInByName" parameterType="java.util.Map" resultType="java.util.Map">
@@ -78,7 +78,7 @@
 	      light_app_id, desktop_id, create_id, create_time)
 	     VALUES
 	     (#{id}, #{menuName}, #{menuNameEn}, #{menuUrl}, #{menuIconType}, #{menuIconPic}, #{menuIcon}, #{menuIconColor}, #{menuIconBg}, #{menuType}, #{menuParentId}, #{openType},
-	      #{lightAppId}, #{deskTopId}, #{createId}, #{createTime})
+	      #{lightAppId}, #{desktopId}, #{createId}, #{createTime})
 	</insert>
 	
 	<select id="queryMenuMationFromSysById" parameterType="java.util.Map" resultType="java.util.Map">
@@ -302,7 +302,7 @@
 		SELECT
 			c.id,
 			c.`name`,
-			c.page_url pageURL,
+			c.page_url pageUrl,
 			c.path,
 			c.open_type openType,
 			'-1' maxOpen,
@@ -315,7 +315,7 @@
 			c.icon_pic menuIconPic,
 			c.icon_type menuIconType,
 			c.icon,
-			IFNULL(c.desktop_id, '') deskTopId
+			IFNULL(c.desktop_id, '') desktopId
 		FROM
 			sys_eve_menu c
 			LEFT JOIN sys_eve_user_custom_parent e ON e.menu_id = c.id AND e.create_id = #{userId}

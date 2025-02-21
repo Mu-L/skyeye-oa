@@ -105,7 +105,7 @@ public class LightAppServiceImpl extends SkyeyeBusinessServiceImpl<LightAppDao, 
             map.put("menuIconType", 2);
             map.put("menuIconPic", lightApp.getLogo());
             map.put("menuUrl", lightApp.getName());
-            map.put("deskTopId", "winfixedpage00000000");
+            map.put("desktopId", "winfixedpage00000000");
             map.put("lightAppId", id);
             DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
             ExecuteFeignClient.get(() -> sysEveWinDragDropService.insertWinCustomMenu(map));

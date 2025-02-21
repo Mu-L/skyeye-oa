@@ -97,7 +97,7 @@
 				c.`name`,
 				c.icon,
 				c.page_type pageType,
-				c.page_url pageURL,
+				c.page_url pageUrl,
 				c.path,
 				c.open_type openType,
 				c.type menuType,
@@ -110,7 +110,7 @@
 				c.icon_bg iconBg,
 				c.icon_pic iconPic,
 				c.icon_type iconType,
-				IFNULL(c.desktop_id, '') deskTopId,
+				IFNULL(c.desktop_id, '') desktopId,
 			    IFNULL(g.sys_url, '') sysWinUrl # 分布式开发时，其他前台服务的域名地址
 			FROM
 				sys_eve_user a,
@@ -131,7 +131,7 @@
 				a.menu_name `name`,
 				a.menu_icon icon,
 				'1' pageType,
-				a.menu_url pageURL,
+				a.menu_url pageUrl,
 				'' path,
 				a.open_type openType,
 				a.menu_type menuType,
@@ -144,7 +144,7 @@
 				a.menu_icon_bg iconBg,
 				a.menu_icon_pic iconPic,
 				a.menu_icon_type iconType,
-				IFNULL(a.desktop_id, '') deskTopId,
+				IFNULL(a.desktop_id, '') desktopId,
 			    '' sysWinUrl
 			FROM
 				sys_eve_user_custom_menu a
@@ -156,7 +156,7 @@
 				a.menu_box_name `name`,
 				'' icon,
 				'1' pageType,
-				'--' pageURL,
+				'--' pageUrl,
 				'' path,
 				2 openType,
 				'' menuType,
@@ -169,7 +169,7 @@
 				'' iconBg,
 				'' iconPic,
 				'' iconType,
-				IFNULL(a.desktop_id, '') deskTopId,
+				IFNULL(a.desktop_id, '') desktopId,
 			    '' sysWinUrl
 			FROM
 				sys_eve_user_custom_menubox a

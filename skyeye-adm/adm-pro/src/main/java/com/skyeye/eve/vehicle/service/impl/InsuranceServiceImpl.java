@@ -8,11 +8,12 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.eve.vehicle.dao.InsuranceDao;
 import com.skyeye.eve.vehicle.entity.Insurance;
 import com.skyeye.eve.vehicle.entity.InsuranceCoverage;
-import com.skyeye.eve.vehicle.service.InsuranceService;
 import com.skyeye.eve.vehicle.service.InsuranceCoverageService;
+import com.skyeye.eve.vehicle.service.InsuranceService;
 import com.skyeye.eve.vehicle.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,16 @@ public class InsuranceServiceImpl extends SkyeyeBusinessServiceImpl<InsuranceDao
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryInsuranceList(pageInfo);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         return beans;
+    }
+
+    @Override
+    public void validatorEntity(Insurance entity) {
+        super.validatorEntity(entity);
+        String totalPrice = "0";
+        for (InsuranceCoverage insuranceCoverage : entity.getVehicleInsuranceCoverages()) {
+            totalPrice = CalculationUtil.add(totalPrice, insuranceCoverage.getPremium());
+        }
+        entity.setInsuranceAllPrice(totalPrice);
     }
 
     @Override

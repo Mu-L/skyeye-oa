@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.licence.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -19,6 +20,8 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.licence.dao.LicenceDao;
 import com.skyeye.eve.licence.entity.Licence;
 import com.skyeye.eve.licence.service.LicenceService;
+import com.skyeye.exception.CustomException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +38,21 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "证照管理", groupName = "证照模块")
 public class LicenceServiceImpl extends SkyeyeBusinessServiceImpl<LicenceDao, Licence> implements LicenceService {
+
+    @Override
+    public void validatorEntity(Licence entity) {
+        super.validatorEntity(entity);
+        QueryWrapper<Licence> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(wrapper ->
+            wrapper.eq(MybatisPlusUtil.toColumns(Licence::getLicenceNum), entity.getLicenceNum()));
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        Licence checkLicenceMation = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(checkLicenceMation)) {
+            throw new CustomException("证照编号已存在");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

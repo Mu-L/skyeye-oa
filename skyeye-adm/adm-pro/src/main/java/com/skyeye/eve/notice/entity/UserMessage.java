@@ -10,9 +10,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
-
-import java.io.Serializable;
 
 /**
  * @ClassName: UserNotice
@@ -32,7 +31,7 @@ public class UserMessage extends BaseGeneralInfo {
     private String content;
 
     @TableField("state")
-    @Property("是否已读，参考#WhetherEnum")
+    @Property(value = "是否已读", enumClass = WhetherEnum.class)
     private Integer state;
 
     @TableField("read_time")

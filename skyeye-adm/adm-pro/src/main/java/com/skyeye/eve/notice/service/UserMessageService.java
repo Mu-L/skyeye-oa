@@ -26,4 +26,6 @@ public interface UserMessageService extends SkyeyeBusinessService<UserMessage> {
     void deleteAllMessage(InputObject inputObject, OutputObject outputObject);
 
     void insertUserMessage(InputObject inputObject, OutputObject outputObject);
+
+    void queryUnReadMessageCount(InputObject inputObject, OutputObject outputObject);
 }

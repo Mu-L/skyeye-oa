@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.conference.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
@@ -31,6 +32,22 @@ public class ConferenceRoomReserveServiceImpl extends SkyeyeFlowableServiceImpl<
 
     @Autowired
     private ConferenceRoomService conferenceRoomService;
+
+    @Override
+    public void validatorEntity(ConferenceRoomReserve entity) {
+        super.validatorEntity(entity);
+        // 校验同一个会议室的使用时间是否冲突
+        QueryWrapper<ConferenceRoomReserve> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getConferenceRoomId), entity.getConferenceRoomId());
+        queryWrapper.ge(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getStartTime), entity.getStartTime());
+        queryWrapper.le(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getEndTime), entity.getEndTime());
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getId), entity.getId());
+        }
+        if (this.count(queryWrapper) > 0) {
+            throw new IllegalArgumentException("会议室预定时间冲突");
+        }
+    }
 
     @Override
     public QueryWrapper<ConferenceRoomReserve> getQueryWrapper(CommonPageInfo commonPageInfo) {
