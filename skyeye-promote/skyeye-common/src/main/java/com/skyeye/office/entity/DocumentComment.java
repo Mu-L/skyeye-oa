@@ -25,12 +25,15 @@ public class DocumentComment extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("document_id")
     @ApiModelProperty(value = "文档ID", required = "required")
     private String documentId;
 
+    @TableField("content")
     @ApiModelProperty(value = "评论内容", required = "required")
     private String content;
 
+    @TableField("parent_id")
     @ApiModelProperty(value = "父评论ID")
     private String parentId;
 

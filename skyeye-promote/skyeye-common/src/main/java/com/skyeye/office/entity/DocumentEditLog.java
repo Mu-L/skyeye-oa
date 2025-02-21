@@ -1,5 +1,6 @@
 package com.skyeye.office.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -26,15 +27,19 @@ public class DocumentEditLog extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("document_id")
     @ApiModelProperty(value = "文档ID", required = "required")
     private String documentId;
 
+    @TableField("version")
     @ApiModelProperty(value = "版本号", required = "required")
     private Integer version;
 
+    @TableField("operation_type")
     @ApiModelProperty(value = "操作类型", required = "required")
     private String operationType;
 
+    @TableField("operation_content")
     @ApiModelProperty(value = "操作内容")
     private String operationContent;
 } 

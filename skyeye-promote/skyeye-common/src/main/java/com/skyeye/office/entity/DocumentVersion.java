@@ -1,5 +1,6 @@
 package com.skyeye.office.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -26,18 +27,23 @@ public class DocumentVersion extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("document_id")
     @ApiModelProperty(value = "文档ID", required = "required")
     private String documentId;
 
+    @TableField("version")
     @ApiModelProperty(value = "版本号", required = "required")
     private Integer version;
 
+    @TableField("file_url")
     @ApiModelProperty(value = "版本文件URL", required = "required")
     private String fileUrl;
 
+    @TableField("file_size")
     @ApiModelProperty(value = "文件大小")
     private Long fileSize;
 
+    @TableField("version_desc")
     @ApiModelProperty(value = "版本说明")
     private String versionDesc;
 } 
