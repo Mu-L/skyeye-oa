@@ -5,6 +5,8 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.office.dao.DocumentOnlineUserDao;
 import com.skyeye.office.entity.DocumentOnlineUser;
 import com.skyeye.office.service.DocumentOnlineUserService;
 import org.springframework.stereotype.Service;
@@ -20,19 +22,21 @@ import java.util.List;
  * @date: 2024/1/10
  */
 @Service
-public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<DocumentOnlineUser> implements DocumentOnlineUserService {
+public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<DocumentOnlineUserDao, DocumentOnlineUser> implements DocumentOnlineUserService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void userJoin(InputObject inputObject, OutputObject outputObject) {
-        String documentId = inputObject.getParams().getString("documentId");
-        String userId = inputObject.getParams().getString("userId");
+        String documentId = inputObject.getParams().get("documentId").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
         Date now = new Date();
 
         // 检查用户是否已在线
-        DocumentOnlineUser existUser = super.selectOne(ToolUtil.getWrapper(DocumentOnlineUser.class)
-            .eq("document_id", documentId)
-            .eq("user_id", userId));
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser existUser = getOne(queryWrapper);
+
 
         if (existUser != null) {
             // 更新最后活跃时间
@@ -46,7 +50,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
             onlineUser.setUserId(userId);
             onlineUser.setLoginTime(now);
             onlineUser.setLastActiveTime(now);
-            super.createEntity(onlineUser);
+            super.createEntity(onlineUser,userId);
             outputObject.setBean(onlineUser);
         }
     }
@@ -54,24 +58,25 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void userLeave(InputObject inputObject, OutputObject outputObject) {
-        String documentId = inputObject.getParams().getString("documentId");
-        String userId = inputObject.getParams().getString("userId");
-
-        super.deleteByWrapper(ToolUtil.getWrapper(DocumentOnlineUser.class)
-            .eq("document_id", documentId)
-            .eq("user_id", userId));
+        String documentId = inputObject.getParams().get("documentId").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        remove(queryWrapper);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateActiveTime(InputObject inputObject, OutputObject outputObject) {
-        String documentId = inputObject.getParams().getString("documentId");
-        String userId = inputObject.getParams().getString("userId");
+        String documentId = inputObject.getParams().get("documentId").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
         Date now = new Date();
 
-        DocumentOnlineUser onlineUser = super.selectOne(ToolUtil.getWrapper(DocumentOnlineUser.class)
-            .eq("document_id", documentId)
-            .eq("user_id", userId));
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser onlineUser =  getOne(queryWrapper);
 
         if (onlineUser != null) {
             onlineUser.setLastActiveTime(now);
@@ -82,12 +87,57 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
 
     @Override
     public void getOnlineUsers(InputObject inputObject, OutputObject outputObject) {
-        String documentId = inputObject.getParams().getString("documentId");
-
-        List<DocumentOnlineUser> onlineUsers = super.selectList(ToolUtil.getWrapper(DocumentOnlineUser.class)
-            .eq("document_id", documentId)
-            .orderByDesc("last_active_time"));
-
+        String documentId = inputObject.getParams().get("documentId").toString();
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .orderByDesc(MybatisPlusUtil.toColumns(DocumentOnlineUser::getLastActiveTime));
+        List<DocumentOnlineUser> onlineUsers = list(queryWrapper);
         outputObject.setBean(onlineUsers);
+    }
+
+    @Override
+    public void userJoin(String documentId, String userId) {
+        Date now = new Date();
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser existUser = getOne(queryWrapper);
+
+        if (existUser != null) {
+            // 更新最后活跃时间
+            existUser.setLastActiveTime(now);
+            super.updateById(existUser);
+        } else {
+            // 创建新的在线记录
+            DocumentOnlineUser onlineUser = new DocumentOnlineUser();
+            onlineUser.setDocumentId(documentId);
+            onlineUser.setUserId(userId);
+            onlineUser.setLoginTime(now);
+            onlineUser.setLastActiveTime(now);
+            super.createEntity(onlineUser,userId);
+        }
+    }
+
+    @Override
+    public void userLeave(String documentId, String userId) {
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateActiveTime(String documentId, String userId) {
+        Date now = new Date();
+
+        QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
+                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser onlineUser =  getOne(queryWrapper);
+
+        if (onlineUser != null) {
+            onlineUser.setLastActiveTime(now);
+            super.updateById(onlineUser);
+        }
     }
 } 
