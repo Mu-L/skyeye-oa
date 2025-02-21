@@ -1,5 +1,6 @@
 package com.skyeye.office.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -16,4 +17,6 @@ public interface DocumentEditLogService extends SkyeyeBusinessService<DocumentEd
     void addEditLog(InputObject inputObject, OutputObject outputObject);
 
     void getEditLogs(InputObject inputObject, OutputObject outputObject);
+
+    void addEditLog(String documentId, String userId, JSONObject editData);
 } 
