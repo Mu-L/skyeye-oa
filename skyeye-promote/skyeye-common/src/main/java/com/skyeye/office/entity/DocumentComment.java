@@ -1,6 +1,7 @@
 package com.skyeye.office.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
@@ -19,6 +20,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 @ApiModel("文档评论实体类")
 public class DocumentComment extends OperatorUserInfo {
+
+    @TableId("id")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
+    private String id;
 
     @ApiModelProperty(value = "文档ID", required = "required")
     private String documentId;
