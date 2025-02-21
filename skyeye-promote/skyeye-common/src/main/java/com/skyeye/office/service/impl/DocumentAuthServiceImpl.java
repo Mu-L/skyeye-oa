@@ -2,18 +2,15 @@ package com.skyeye.office.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.office.dao.DocumentAuthDao;
 import com.skyeye.office.entity.DocumentAuth;
 import com.skyeye.office.service.DocumentAuthService;
-import com.sun.javafx.geom.Quat4f;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +24,7 @@ import java.util.List;
  */
 @Service
 @SkyeyeService(name = "文档权限管理服务管理", groupName = "文档权限管理服务管理")
-public class DocumentAuthServiceImpl extends SkyeyeBusinessServiceImpl<DocumentAuthDao,DocumentAuth> implements DocumentAuthService {
+public class DocumentAuthServiceImpl extends SkyeyeBusinessServiceImpl<DocumentAuthDao, DocumentAuth> implements DocumentAuthService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -45,7 +42,7 @@ public class DocumentAuthServiceImpl extends SkyeyeBusinessServiceImpl<DocumentA
         if (ObjectUtil.isNotEmpty(existAuth)) {
             // 更新权限类型
             existAuth.setAuthType(authType);
-            super.updateEntity(existAuth,currentUserId);
+            super.updateEntity(existAuth, currentUserId);
             outputObject.setBean(existAuth);
         } else {
             // 创建新的权限记录

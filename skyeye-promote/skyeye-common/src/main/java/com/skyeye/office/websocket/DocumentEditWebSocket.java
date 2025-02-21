@@ -76,10 +76,10 @@ public class DocumentEditWebSocket extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         String documentId = getDocumentId(session);
         String userId = getUserId(session);
-        
+
         JSONObject msgData = JSON.parseObject(message.getPayload());
         String type = msgData.getString("type");
-        
+
         // 使用枚举替代字符串
         try {
             switch (MessageType.valueOf(type.toUpperCase())) {
@@ -164,16 +164,17 @@ public class DocumentEditWebSocket extends TextWebSocketHandler {
 
     /**
      * 广播消息给同一文档的其他用户
+     *
      * @param documentId 文档ID
      * @param fromUserId 发送消息的用户ID
-     * @param message 消息内容
+     * @param message    消息内容
      */
     private void broadcastToOthers(String documentId, String fromUserId, JSONObject message) {
         try {
             message.put("userId", fromUserId);
             message.put("timestamp", System.currentTimeMillis());
             TextMessage textMessage = new TextMessage(message.toJSONString());
-            
+
             Map<String, WebSocketSession> docSessions = sessionManager.getDocumentSessions(documentId);
             docSessions.forEach((userId, session) -> {
                 if (!userId.equals(fromUserId) && session.isOpen()) {

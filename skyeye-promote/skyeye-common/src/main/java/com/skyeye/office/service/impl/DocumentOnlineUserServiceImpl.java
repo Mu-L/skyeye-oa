@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.office.dao.DocumentOnlineUserDao;
 import com.skyeye.office.entity.DocumentOnlineUser;
@@ -14,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName: DocumentOnlineUserServiceImpl
@@ -34,7 +34,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
         // 检查用户是否已在线
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
         DocumentOnlineUser existUser = getOne(queryWrapper);
 
 
@@ -50,7 +50,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
             onlineUser.setUserId(userId);
             onlineUser.setLoginTime(now);
             onlineUser.setLastActiveTime(now);
-            super.createEntity(onlineUser,userId);
+            super.createEntity(onlineUser, userId);
             outputObject.setBean(onlineUser);
         }
     }
@@ -62,7 +62,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
         String userId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
         remove(queryWrapper);
     }
 
@@ -75,8 +75,8 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
 
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
-        DocumentOnlineUser onlineUser =  getOne(queryWrapper);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser onlineUser = getOne(queryWrapper);
 
         if (onlineUser != null) {
             onlineUser.setLastActiveTime(now);
@@ -90,7 +90,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
         String documentId = inputObject.getParams().get("documentId").toString();
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .orderByDesc(MybatisPlusUtil.toColumns(DocumentOnlineUser::getLastActiveTime));
+            .orderByDesc(MybatisPlusUtil.toColumns(DocumentOnlineUser::getLastActiveTime));
         List<DocumentOnlineUser> onlineUsers = list(queryWrapper);
         outputObject.setBean(onlineUsers);
     }
@@ -100,7 +100,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
         Date now = new Date();
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
         DocumentOnlineUser existUser = getOne(queryWrapper);
 
         if (existUser != null) {
@@ -114,7 +114,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
             onlineUser.setUserId(userId);
             onlineUser.setLoginTime(now);
             onlineUser.setLastActiveTime(now);
-            super.createEntity(onlineUser,userId);
+            super.createEntity(onlineUser, userId);
         }
     }
 
@@ -122,7 +122,7 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
     public void userLeave(String documentId, String userId) {
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
         remove(queryWrapper);
     }
 
@@ -132,12 +132,25 @@ public class DocumentOnlineUserServiceImpl extends SkyeyeBusinessServiceImpl<Doc
 
         QueryWrapper<DocumentOnlineUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getDocumentId), documentId)
-                .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
-        DocumentOnlineUser onlineUser =  getOne(queryWrapper);
+            .eq(MybatisPlusUtil.toColumns(DocumentOnlineUser::getUserId), userId);
+        DocumentOnlineUser onlineUser = getOne(queryWrapper);
 
         if (onlineUser != null) {
             onlineUser.setLastActiveTime(now);
             super.updateById(onlineUser);
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteOverTimeUser() {
+        // 获取10分钟前的时间点
+        Date inactiveTime = new Date(System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10));
+        // 删除超过10分钟未活跃的用户
+        QueryWrapper<DocumentOnlineUser> wrapper = new QueryWrapper<>();
+        wrapper.lt(MybatisPlusUtil.toColumns(DocumentOnlineUser::getLastActiveTime), inactiveTime);
+        long count = count(wrapper);
+        remove(wrapper);
+        return (int) count;
     }
 } 

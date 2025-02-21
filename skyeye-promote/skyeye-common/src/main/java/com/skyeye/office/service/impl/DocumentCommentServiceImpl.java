@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.office.dao.DocumentCommentDao;
 import com.skyeye.office.entity.DocumentComment;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
  * @date: 2024/1/10
  */
 @Service
-public class DocumentCommentServiceImpl extends SkyeyeBusinessServiceImpl<DocumentCommentDao,DocumentComment> implements DocumentCommentService {
+public class DocumentCommentServiceImpl extends SkyeyeBusinessServiceImpl<DocumentCommentDao, DocumentComment> implements DocumentCommentService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -48,8 +47,8 @@ public class DocumentCommentServiceImpl extends SkyeyeBusinessServiceImpl<Docume
         QueryWrapper<DocumentComment> queryWrapper = new QueryWrapper<>();
         // 删除评论及其所有回复
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentComment::getDocumentId), id)
-                .or()
-                .eq(MybatisPlusUtil.toColumns(DocumentComment::getParentId), id);
+            .or()
+            .eq(MybatisPlusUtil.toColumns(DocumentComment::getParentId), id);
         remove(queryWrapper);
     }
 
@@ -59,27 +58,27 @@ public class DocumentCommentServiceImpl extends SkyeyeBusinessServiceImpl<Docume
         QueryWrapper<DocumentComment> queryWrapper = new QueryWrapper<>();
         // 查询主评论（没有父评论的评论）
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentComment::getDocumentId), documentId)
-                .isNull(MybatisPlusUtil.toColumns(DocumentComment::getParentId))
-                .orderByDesc(MybatisPlusUtil.toColumns(DocumentComment::getCreateTime));
+            .isNull(MybatisPlusUtil.toColumns(DocumentComment::getParentId))
+            .orderByDesc(MybatisPlusUtil.toColumns(DocumentComment::getCreateTime));
         List<DocumentComment> comments = list(queryWrapper);
         // 获取每个评论的回复数量
         if (!comments.isEmpty()) {
             List<String> commentIds = comments.stream()
-                    .map(DocumentComment::getDocumentId)
-                    .collect(Collectors.toList());
+                .map(DocumentComment::getDocumentId)
+                .collect(Collectors.toList());
             QueryWrapper<DocumentComment> replyWrapper = new QueryWrapper<>();
             replyWrapper.select(MybatisPlusUtil.toColumns(DocumentComment::getParentId),
-                            "count(1) as reply_count")
-                    .in(MybatisPlusUtil.toColumns(DocumentComment::getParentId), commentIds)
-                    .groupBy(MybatisPlusUtil.toColumns(DocumentComment::getParentId));
+                    "count(1) as reply_count")
+                .in(MybatisPlusUtil.toColumns(DocumentComment::getParentId), commentIds)
+                .groupBy(MybatisPlusUtil.toColumns(DocumentComment::getParentId));
             List<Map<String, Object>> replyCounts = super.baseMapper.selectMaps(replyWrapper);
             Map<String, Integer> replyCountMap = replyCounts.stream()
-                    .collect(Collectors.toMap(
-                            map -> map.get("parent_id").toString(),
-                            map -> Integer.valueOf(map.get("reply_count").toString())
-                    ));
+                .collect(Collectors.toMap(
+                    map -> map.get("parent_id").toString(),
+                    map -> Integer.valueOf(map.get("reply_count").toString())
+                ));
             comments.forEach(comment ->
-                    comment.setReplyCount(replyCountMap.getOrDefault(comment.getDocumentId(), 0)));
+                comment.setReplyCount(replyCountMap.getOrDefault(comment.getDocumentId(), 0)));
         }
         outputObject.setBean(comments);
     }
@@ -90,7 +89,7 @@ public class DocumentCommentServiceImpl extends SkyeyeBusinessServiceImpl<Docume
         // 查询指定评论的所有回复
         QueryWrapper<DocumentComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocumentComment::getParentId), parentId)
-                .orderByAsc(MybatisPlusUtil.toColumns(DocumentComment::getCreateTime));
+            .orderByAsc(MybatisPlusUtil.toColumns(DocumentComment::getCreateTime));
         List<DocumentComment> replies = list(queryWrapper);
         outputObject.setBean(replies);
     }
