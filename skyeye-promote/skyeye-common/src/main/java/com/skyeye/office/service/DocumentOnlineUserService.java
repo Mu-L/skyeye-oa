@@ -1,5 +1,6 @@
 package com.skyeye.office.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -61,4 +62,4 @@ public interface DocumentOnlineUserService extends SkyeyeBusinessService<Documen
      * @param userId 用户ID
      */
     void updateActiveTime(String documentId, String userId);
-} 
+}

@@ -1,5 +1,6 @@
 package com.skyeye.office.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
@@ -21,12 +22,15 @@ import lombok.EqualsAndHashCode;
 @ApiModel("文档权限实体类")
 public class DocumentAuth extends OperatorUserInfo {
 
+    @TableField(value = "document_id")
     @ApiModelProperty(value = "文档ID", required = "required")
     private String documentId;
 
+    @TableField(value = "user_id")
     @ApiModelProperty(value = "用户ID", required = "required")
     private String userId;
 
+    @TableField(value = "auth_type")
     @ApiModelProperty(value = "权限类型(owner/edit/view)", required = "required")
     private String authType;
 } 

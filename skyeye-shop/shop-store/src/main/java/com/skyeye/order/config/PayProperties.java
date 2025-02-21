@@ -22,7 +22,7 @@ import javax.validation.constraints.NotEmpty;
 @ConfigurationProperties(prefix = "skyeye.pay")
 @Validated
 @Data
-public class PayProperties {
+public class  PayProperties {
 
     private static final String ORDER_NO_PREFIX = "P";
     private static final String REFUND_NO_PREFIX = "R";
