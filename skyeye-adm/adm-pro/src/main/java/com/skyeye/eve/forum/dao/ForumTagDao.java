@@ -4,10 +4,14 @@
 
 package com.skyeye.eve.forum.dao;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.eve.forum.entity.ForumTag;
+
 import java.util.List;
 import java.util.Map;
 
-public interface ForumTagDao {
+public interface ForumTagDao extends SkyeyeBaseMapper<ForumTag> {
 
     List<Map<String, Object>> queryForumTagList(Map<String, Object> map);
 

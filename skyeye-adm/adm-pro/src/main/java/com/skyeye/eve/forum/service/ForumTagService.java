@@ -4,24 +4,16 @@
 
 package com.skyeye.eve.forum.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.forum.entity.ForumTag;
 
-public interface ForumTagService {
+public interface ForumTagService extends SkyeyeBusinessService<ForumTag> {
 
     void queryForumTagList(InputObject inputObject, OutputObject outputObject);
 
-    void insertForumTagMation(InputObject inputObject, OutputObject outputObject);
-
     void deleteForumTagById(InputObject inputObject, OutputObject outputObject);
-
-    void updateUpForumTagById(InputObject inputObject, OutputObject outputObject);
-
-    void updateDownForumTagById(InputObject inputObject, OutputObject outputObject);
-
-    void selectForumTagById(InputObject inputObject, OutputObject outputObject);
-
-    void editForumTagMationById(InputObject inputObject, OutputObject outputObject);
 
     void editForumTagMationOrderNumUpById(InputObject inputObject, OutputObject outputObject);
 
@@ -29,4 +21,5 @@ public interface ForumTagService {
 
     void queryForumTagUpStateList(InputObject inputObject, OutputObject outputObject);
 
+    void updateUpOrDownForumTagById(InputObject inputObject, OutputObject outputObject);
 }

@@ -4,24 +4,27 @@
 
 package com.skyeye.eve.forum.service.impl;
 
-import cn.hutool.json.JSONUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DataCommonUtil;
-import com.skyeye.common.util.ToolUtil;
-import com.skyeye.constans.ForumConstants;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumTagDao;
+import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumTagService;
-import com.skyeye.jedis.JedisClientService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ForumTagServiceImpl
@@ -32,13 +35,9 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-public class ForumTagServiceImpl implements ForumTagService {
+@SkyeyeService(name = "论坛标签管理", groupName = "论坛标签管理")
+public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, ForumTag> implements ForumTagService {
 
-    @Autowired
-    private ForumTagDao forumTagDao;
-
-    @Autowired
-    private JedisClientService jedisClient;
 
     /**
      * 查出所有论坛标签列表
@@ -48,36 +47,48 @@ public class ForumTagServiceImpl implements ForumTagService {
      */
     @Override
     public void queryForumTagList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-        List<Map<String, Object>> beans = forumTagDao.queryForumTagList(map);
-        outputObject.setBeans(beans);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String keyword = commonPageInfo.getKeyword();
+        String userId = inputObject.getLogParams().get("id").toString();
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(keyword)) {
+            // 根据标签名模糊搜索
+            queryWrapper.like(MybatisPlusUtil.toColumns(ForumTag::getTagName), keyword);
+        }
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
+                .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
+                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+        List<ForumTag> list = list(queryWrapper);
+        outputObject.setBeans(list);
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 新增论坛标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void insertForumTagMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.queryForumTagMationByName(map);
-        if (!CollectionUtils.isEmpty(bean)) {
-            outputObject.setreturnMessage("该论坛标签名称已存在，请更换");
-        } else {
-            Map<String, Object> itemCount = forumTagDao.queryForumTagBySimpleLevel(map);
-            int thisOrderBy = Integer.parseInt(itemCount.get("simpleNum").toString()) + 1;
-            map.put("orderBy", thisOrderBy);
-            // 默认新建
-            map.put("state", "1");
-            DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
-            forumTagDao.insertForumTagMation(map);
+    public void validatorEntity(ForumTag entity) {
+        String tagName = entity.getTagName();
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getTagName), tagName);
+        // tagName不能重复
+        if (count(queryWrapper) > 0 && StrUtil.isEmpty(entity.getId())) {
+            throw new CustomException("标签名已存在");
+        }
+        // 编辑时的校验
+        ForumTag forumTag = selectById(entity.getId());
+        if (count(queryWrapper) > 0 && !forumTag.getTagName().equals(tagName)) {
+            // 如果编辑时修改了tagName，并且数据库中已经存在该tagName，则抛出异常
+            throw new CustomException("标签名已存在");
         }
     }
+
+    @Override
+    public void createPrepose(ForumTag entity) {
+        entity.setState(ForumStateEnum.NEW_Built.getKey());
+        QueryWrapper<ForumTag> wrapper = new QueryWrapper<>();
+        int count = (int) count(wrapper);
+        entity.setOrderBy(count + CommonNumConstants.NUM_ONE);
+    }
+
 
     /**
      * 删除论坛标签
@@ -88,94 +99,40 @@ public class ForumTagServiceImpl implements ForumTagService {
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void deleteForumTagById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.queryForumTagStateById(map);
-        if ("1".equals(bean.get("state").toString()) || "3".equals(bean.get("state").toString())) {
-            // 新建或者下线可以删除
-            forumTagDao.deleteForumTagById(map);
+        String userId = inputObject.getLogParams().get("id").toString();
+        String id = inputObject.getParams().get("id").toString();
+        ForumTag forumTag = selectById(id);
+        int state = forumTag.getState();
+        if (state == ForumStateEnum.NEW_Built.getKey() || state == ForumStateEnum.DOWN_LINE.getKey()) {
+            // 新建或者下线可以删除----逻辑删除
+            forumTag.setState(ForumStateEnum.IS_DELETE.getKey());
+            updateEntity(forumTag, userId);
         } else {
             outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
         }
     }
 
     /**
-     * 上线论坛标签
+     * 论坛标签上线或下线
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateUpForumTagById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.queryForumTagStateById(map);
-        if ("1".equals(bean.get("state").toString()) || "3".equals(bean.get("state").toString())) {
-            // 新建或者下线可以上线
-            forumTagDao.updateUpForumTagById(map);
-            // 删除上线论坛标签的redis
-            jedisClient.del(ForumConstants.FORUM_TAG_UP_STATE_LIST);
+    public void updateUpOrDownForumTagById(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        String id = inputObject.getParams().get("id").toString();
+        ForumTag forumTag = selectById(id);
+        int state = forumTag.getState();
+        // 新建或者下线可以上线
+        if (state == ForumStateEnum.NEW_Built.getKey() || state == ForumStateEnum.DOWN_LINE.getKey()) {
+            forumTag.setState(ForumStateEnum.UP_LINE.getKey());
         } else {
-            outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
+            // 上线可以下线
+            forumTag.setState(ForumStateEnum.DOWN_LINE.getKey());
         }
-    }
-
-    /**
-     * 下线论坛标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateDownForumTagById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.queryForumTagStateById(map);
-        if ("2".equals(bean.get("state").toString())) {
-            // 上线状态可以下线
-            forumTagDao.updateDownForumTagById(map);
-            // 删除上线论坛标签的redis
-            jedisClient.del(ForumConstants.FORUM_TAG_UP_STATE_LIST);
-        } else {
-            outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
-        }
-    }
-
-    /**
-     * 通过id查找对应的论坛标签信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void selectForumTagById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.selectForumTagById(map);
-        outputObject.setBean(bean);
-        outputObject.settotal(1);
-    }
-
-    /**
-     * 通过id编辑对应的论坛标签信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editForumTagMationById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumTagDao.queryForumTagStateById(map);
-        if ("1".equals(bean.get("state").toString()) || "3".equals(bean.get("state").toString())) {
-            // 新建或者下线可以编辑
-            Map<String, Object> b = forumTagDao.queryForumTagMationByName(map);
-            if (b != null && !b.isEmpty()) {
-                outputObject.setreturnMessage("该论坛标签名称已存在，请更换");
-            } else {
-                forumTagDao.editForumTagMationById(map);
-            }
-        } else {
-            outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
-        }
+        updateEntity(forumTag, userId);
     }
 
     /**
@@ -187,19 +144,26 @@ public class ForumTagServiceImpl implements ForumTagService {
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void editForumTagMationOrderNumUpById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
+        String id = inputObject.getParams().get("id").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
         // 获取当前数据的同级分类下的上一条数据
-        Map<String, Object> bean = forumTagDao.queryForumTagUpMationById(map);
+        ForumTag forumTag = selectById(id);
+        int orderBy = forumTag.getOrderBy();
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
+                .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+        List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
-            outputObject.setreturnMessage("当前标签已经是首位，无须进行上移。");
+            throw new CustomException("该数据已经是第一条数据，无法上移");
         } else {
-            // 进行位置交换
-            map.put("upOrderBy", bean.get("prevOrderBy"));
-            bean.put("upOrderBy", bean.get("thisOrderBy"));
-            forumTagDao.editForumTagMationOrderNumUpById(map);
-            forumTagDao.editForumTagMationOrderNumUpById(bean);
-            // 删除上线论坛标签的redis
-            jedisClient.del(ForumConstants.FORUM_TAG_UP_STATE_LIST);
+            ForumTag upForumTag = bean.get(0);
+            // 修改当前数据的排序
+            forumTag.setOrderBy(upForumTag.getOrderBy());
+            upForumTag.setOrderBy(orderBy);
+
+            updateEntity(forumTag, userId);
+            updateEntity(upForumTag, userId);
         }
     }
 
@@ -212,19 +176,26 @@ public class ForumTagServiceImpl implements ForumTagService {
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void editForumTagMationOrderNumDownById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
+        String id = inputObject.getParams().get("id").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
         // 获取当前数据的同级分类下的下一条数据
-        Map<String, Object> bean = forumTagDao.queryForumTagDownMationById(map);
+        ForumTag forumTag = selectById(id);
+        int orderBy = forumTag.getOrderBy();
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
+                .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+        List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
-            outputObject.setreturnMessage("当前标签已经是末位，无须进行下移。");
+            throw new CustomException("已经是最后一条数据了,无法下移");
         } else {
-            // 进行位置交换
-            map.put("upOrderBy", bean.get("prevOrderBy"));
-            bean.put("upOrderBy", bean.get("thisOrderBy"));
-            forumTagDao.editForumTagMationOrderNumUpById(map);
-            forumTagDao.editForumTagMationOrderNumUpById(bean);
-            // 删除上线论坛标签的redis
-            jedisClient.del(ForumConstants.FORUM_TAG_UP_STATE_LIST);
+            ForumTag downForumTag = bean.get(0);
+            // 修改当前数据的排序
+            forumTag.setOrderBy(downForumTag.getOrderBy());
+            downForumTag.setOrderBy(orderBy);
+
+            updateEntity(forumTag, userId);
+            updateEntity(downForumTag, userId);
         }
     }
 
@@ -234,6 +205,18 @@ public class ForumTagServiceImpl implements ForumTagService {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @Override
+    public void queryForumTagUpStateList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.UP_LINE.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+        List<ForumTag> beans = list(queryWrapper);
+        outputObject.setBean(beans);
+        outputObject.settotal(page.getTotal());
+    }
+/*
     @Override
     public void queryForumTagUpStateList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -248,6 +231,6 @@ public class ForumTagServiceImpl implements ForumTagService {
             outputObject.setBeans(beans);
             outputObject.settotal(beans.size());
         }
-    }
+    }*/
 
 }
