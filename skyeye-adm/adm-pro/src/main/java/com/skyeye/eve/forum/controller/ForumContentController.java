@@ -4,14 +4,20 @@
 
 package com.skyeye.eve.forum.controller;
 
+import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.folder.entity.Folder;
+import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.service.ForumContentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Api(value = "论坛话题管理", tags = "论坛话题管理", modelName = "论坛话题管理")
 public class ForumContentController {
 
     @Autowired
@@ -30,13 +36,15 @@ public class ForumContentController {
 
     /**
      * 新增我的帖子
-     *
+     * ------------------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @RequestMapping("/post/ForumContentController/insertForumContentMation")
-    public void insertForumContentMation(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.insertForumContentMation(inputObject, outputObject);
+    @ApiOperation(id = "insertForumContent", value = "新增我的帖子", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ForumContent.class)
+    @RequestMapping("/post/FolderController/insertForumContentMation")
+    public void insertForumContent(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.createEntity(inputObject, outputObject);
     }
 
     /**

@@ -4,6 +4,9 @@
 
 package com.skyeye.eve.forum.dao;
 
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.eve.forum.entity.ForumContent;
+
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +18,7 @@ import java.util.Map;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public interface ForumContentDao {
+public interface ForumContentDao extends SkyeyeBaseMapper<ForumContent> {
 
     List<Map<String, Object>> queryMyForumContentList(Map<String, Object> map);
 

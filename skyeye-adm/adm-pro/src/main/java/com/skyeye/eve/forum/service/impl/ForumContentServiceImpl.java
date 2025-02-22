@@ -4,18 +4,28 @@
 
 package com.skyeye.eve.forum.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.*;
 import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
+import com.skyeye.eve.forum.entity.ForumContent;
+import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 import com.skyeye.eve.forum.service.ForumContentService;
+import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import com.skyeye.eve.forum.solr.Forum;
+import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -40,13 +50,20 @@ import java.util.*;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-public class ForumContentServiceImpl implements ForumContentService {
+@SkyeyeService(name = "论坛话题管理", groupName = "论坛话题管理")
+public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumContentDao, ForumContent> implements ForumContentService {
 
     @Autowired
     private ForumContentDao forumContentDao;
 
     @Autowired
+    private ForumContentService forumContentService;
+
+    @Autowired
     private ForumSensitiveWordsDao forumSensitiveWordsDao;
+
+    @Autowired
+    private ForumSensitiveWordsService forumSensitiveWordsService;
 
     @Autowired
     public JedisClientService jedisClient;
@@ -89,47 +106,95 @@ public class ForumContentServiceImpl implements ForumContentService {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void insertForumContentMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String str = querySensitiveWordsByMap(map);
-        if (str.length() > 0) {
-            outputObject.setreturnMessage("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
-        } else {
-            map.put("state", 1);
-            map.put("reportState", 1);
-            DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
-            // 贴子纯文本内容
-            String content = map.get("textConent").toString();
-            // 简介
-            map.put("desc", content.length() > 400 ? content.substring(0, 400) : content);
-            // 贴子对应的solr对象
-            Forum forum = new Forum();
-            forum.setId(map.get("id").toString());
-            forum.setForumTitle(map.get("title").toString());
-            // 纯文本内容
-            forum.setForumContent(content);
-            forum.setForumDesc(map.get("desc").toString());
-            forum.setType(map.get("forumType").toString());
-            forum.setCreateId(map.get("createId").toString());
-            try {
-                UpdateResponse response = solrClient.addBean(forum, 1000);
-                int status = response.getStatus();
-                if (status != 0) {
+    public void createEntity(InputObject inputObject, OutputObject outputObject){
+        ForumContent forumContent = inputObject.getParams(clazz);
+        String id = super.createEntity(forumContent, inputObject.getLogParams().get("id").toString());
+        // 贴子对应的solr对象
+        Forum forum = new Forum();
+        forum.setId(forumContent.getId());
+        forum.setForumTitle(forumContent.getForumTitle());
+        // 纯文本内容
+        forum.setForumContent(forumContent.getForumContent());
+        forum.setForumDesc(forumContent.getForumDesc());
+        forum.setType(forumContent.getType().toString());
+        forum.setCreateId(forumContent.getCreateId());
+        try {
+            UpdateResponse response = solrClient.addBean(forum, 1000);
+            int status = response.getStatus();
+            if (status != 0) {
+                solrClient.rollback();
+                throw new CustomException("发布失败！");
+            } else {
+                if (StrUtil.isNotEmpty(id)) {
                     solrClient.rollback();
-                    outputObject.setreturnMessage("发布失败！");
-                } else {
-                    int insert = forumContentDao.insertForumContentMation(map);
-                    if (insert != 1) {
-                        solrClient.rollback();
-                        outputObject.setreturnMessage("发布失败！");
-                    }
+                    throw new CustomException("发布失败！");
                 }
-            } catch (Exception e) {
-                outputObject.setreturnMessage("发布失败！");
             }
+        } catch (Exception e) {
+            throw new CustomException("发布失败！");
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("id", id);
+        outputObject.setBean(result);
+    }
+
+    @Override
+    public void createPrepose(ForumContent entity) {
+        // 新增之前&&校验之后的前置执行事件
+        String str = querySensitiveWordsByMap(entity);
+        if(StrUtil.isNotEmpty(str)){
+            throw new CustomException("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
+        }else {
+            entity.setState(CommonNumConstants.NUM_ONE);
+            entity.setReportState(CommonNumConstants.NUM_ONE);
+            // 贴子纯文本内容
+            String forumContent = entity.getForumContent();
+            // 简介
+            entity.setForumDesc(forumContent.length() > 400 ? forumContent.substring(0, 400) : forumContent);
         }
     }
+//    @Override
+//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+//    public void insertForumContentMation(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        String str = querySensitiveWordsByMap(map);
+//        if (str.length() > 0) {
+//            outputObject.setreturnMessage("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
+//        } else {
+//            map.put("state", 1);
+//            map.put("reportState", 1);
+//            DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
+//            // 贴子纯文本内容
+//            String content = map.get("textConent").toString();
+//            // 简介
+//            map.put("desc", content.length() > 400 ? content.substring(0, 400) : content);
+//            // 贴子对应的solr对象
+//            Forum forum = new Forum();
+//            forum.setId(map.get("id").toString());
+//            forum.setForumTitle(map.get("title").toString());
+//            // 纯文本内容
+//            forum.setForumContent(content);
+//            forum.setForumDesc(map.get("desc").toString());
+//            forum.setType(map.get("forumType").toString());
+//            forum.setCreateId(map.get("createId").toString());
+//            try {
+//                UpdateResponse response = solrClient.addBean(forum, 1000);
+//                int status = response.getStatus();
+//                if (status != 0) {
+//                    solrClient.rollback();
+//                    outputObject.setreturnMessage("发布失败！");
+//                } else {
+//                    int insert = forumContentDao.insertForumContentMation(map);
+//                    if (insert != 1) {
+//                        solrClient.rollback();
+//                        outputObject.setreturnMessage("发布失败！");
+//                    }
+//                }
+//            } catch (Exception e) {
+//                outputObject.setreturnMessage("发布失败！");
+//            }
+//        }
+//    }
 
     /**
      * 删除我的帖子
@@ -184,7 +249,8 @@ public class ForumContentServiceImpl implements ForumContentService {
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void editForumContentMationById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String str = querySensitiveWordsByMap(map);
+//        String str = querySensitiveWordsByMap(map);
+        String str = "";
         if (str.length() > 0) {
             outputObject.setreturnMessage("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
         } else {
@@ -808,14 +874,14 @@ public class ForumContentServiceImpl implements ForumContentService {
     /**
      * 查找内容中的包含的敏感词
      *
-     * @param map
+     * @param forumContent
      * @return
      */
-    public String querySensitiveWordsByMap(Map<String, Object> map) {
-        String content = map.get("title").toString() + "," + map.get("textConent").toString();
+    public String querySensitiveWordsByMap(ForumContent forumContent) {
+        String content = forumContent.getForumTitle()+ "," + forumContent.getForumContent();
         List<Map<String, Object>> sensitiveWords;
         if (ToolUtil.isBlank(jedisClient.get(ForumConstants.forumSensitiveWordsAll()))) {
-            sensitiveWords = forumSensitiveWordsDao.queryForumSensitiveWordsListAll();
+            sensitiveWords = forumSensitiveWordsService.queryAllDataForMap();
             jedisClient.set(ForumConstants.forumSensitiveWordsAll(), JSONUtil.toJsonStr(sensitiveWords));
         } else {
             sensitiveWords = JSONUtil.toList(jedisClient.get(ForumConstants.forumSensitiveWordsAll()), null);

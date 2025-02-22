@@ -40,20 +40,20 @@
     <!-- 论坛标签管理结束 -->
 	
     <!-- 论坛敏感词管理开始 -->
-    <url id="sensitiveword001" path="/post/ForumSensitiveWordsController/queryForumSensitiveWordsList" val="获取论坛敏感词列表" allUse="1">
-        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-        <property id="sensitiveWord" name="sensitiveWord" ref="" var="论坛敏感词名称"/>
-    </url>
-    <url id="sensitiveword002" path="/post/ForumSensitiveWordsController/insertForumSensitiveWordsMation" val="新增论坛敏感词" allUse="1">
-        <property id="sensitiveWord" name="sensitiveWord" ref="required" var="论坛敏感词名称"/>
-    </url>
-    <url id="sensitiveword003" path="/post/ForumSensitiveWordsController/deleteForumSensitiveWordsById" val="删除论坛敏感词" allUse="1">
-        <property id="rowId" name="id" ref="required" var="论坛敏感词名称id"/>
-    </url>
-    <url id="sensitiveword004" path="/post/ForumSensitiveWordsController/selectForumSensitiveWordsById" val="获取选中的论坛敏感词信息" allUse="2">
-        <property id="rowId" name="id" ref="required" var="论坛敏感词名称id"/>
-    </url>
+<!--    <url id="sensitiveword001" path="/post/ForumSensitiveWordsController/queryForumSensitiveWordsList" val="获取论坛敏感词列表" allUse="1">-->
+<!--        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />-->
+<!--        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>-->
+<!--        <property id="sensitiveWord" name="sensitiveWord" ref="" var="论坛敏感词名称"/>-->
+<!--    </url>-->
+<!--    <url id="sensitiveword002" path="/post/ForumSensitiveWordsController/insertForumSensitiveWordsMation" val="新增论坛敏感词" allUse="1">-->
+<!--        <property id="sensitiveWord" name="sensitiveWord" ref="required" var="论坛敏感词名称"/>-->
+<!--    </url>-->
+<!--    <url id="sensitiveword003" path="/post/ForumSensitiveWordsController/deleteForumSensitiveWordsById" val="删除论坛敏感词" allUse="1">-->
+<!--        <property id="rowId" name="id" ref="required" var="论坛敏感词名称id"/>-->
+<!--    </url>-->
+<!--    <url id="sensitiveword004" path="/post/ForumSensitiveWordsController/selectForumSensitiveWordsById" val="获取选中的论坛敏感词信息" allUse="2">-->
+<!--        <property id="rowId" name="id" ref="required" var="论坛敏感词名称id"/>-->
+<!--    </url>-->
     <url id="sensitiveword005" path="/post/ForumSensitiveWordsController/editForumSensitiveWordsMationById" val="编辑论坛敏感词信息" allUse="1">
         <property id="rowId" name="id" ref="required" var="论坛敏感词名称id"/>
         <property id="sensitiveWord" name="sensitiveWord" ref="required" var="论坛敏感词名称"/>
@@ -65,14 +65,14 @@
         <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
         <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
     </url>
-    <url id="forumcontent002" path="/post/ForumContentController/insertForumContentMation" val="新增我的帖子" allUse="2">
-        <property id="title" name="title" ref="required" var="标题"/>
-        <property id="forumType" name="forumType" ref="required" var="类型"/>
-        <property id="tagId" name="tagId" ref="required" var="标签"/>
-        <property id="anonymous" name="anonymous" ref="required" var="是否匿名"/>
-        <property id="content" name="content" ref="required" var="内容"/>
-        <property id="textConent" name="textConent" ref="required" var="纯文本内容"/>
-    </url>
+<!--    <url id="forumcontent002" path="/post/ForumContentController/insertForumContentMation" val="新增我的帖子" allUse="2">-->
+<!--        <property id="title" name="title" ref="required" var="标题"/>-->
+<!--        <property id="forumType" name="forumType" ref="required" var="类型"/>-->
+<!--        <property id="tagId" name="tagId" ref="required" var="标签"/>-->
+<!--        <property id="anonymous" name="anonymous" ref="required" var="是否匿名"/>-->
+<!--        <property id="content" name="content" ref="required" var="内容"/>-->
+<!--        <property id="textConent" name="textConent" ref="required" var="纯文本内容"/>-->
+<!--    </url>-->
     <url id="forumcontent003" path="/post/ForumContentController/deleteForumContentById" val="删除帖子" allUse="2">
         <property id="rowId" name="id" ref="required" var="帖子id"/>
     </url>

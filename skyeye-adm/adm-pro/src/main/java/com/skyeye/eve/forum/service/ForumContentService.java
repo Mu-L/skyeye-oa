@@ -4,14 +4,16 @@
 
 package com.skyeye.eve.forum.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.forum.entity.ForumContent;
 
-public interface ForumContentService {
+public interface ForumContentService extends SkyeyeBusinessService<ForumContent> {
 
     void queryMyForumContentList(InputObject inputObject, OutputObject outputObject);
 
-    void insertForumContentMation(InputObject inputObject, OutputObject outputObject);
+//    void insertForumContentMation(InputObject inputObject, OutputObject outputObject);
 
     void deleteForumContentById(InputObject inputObject, OutputObject outputObject);
 

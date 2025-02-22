@@ -4,14 +4,21 @@
 
 package com.skyeye.eve.forum.controller;
 
+import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Api(value = "论坛敏感词管理", tags = "论坛敏感词管理", modelName = "论坛敏感词管理")
 public class ForumSensitiveWordsController {
 
     @Autowired
@@ -23,9 +30,11 @@ public class ForumSensitiveWordsController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryForumSensitiveWordsList", value = "获取论坛敏感词列表", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumSensitiveWordsController/queryForumSensitiveWordsList")
     public void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.queryForumSensitiveWordsList(inputObject, outputObject);
+        forumSensitiveWordsService.queryPageList(inputObject, outputObject);
     }
 
 
@@ -35,9 +44,11 @@ public class ForumSensitiveWordsController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "insertForumSensitiveWordsMation", value = "添加论坛敏感词", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = ForumSensitiveWords.class)
     @RequestMapping("/post/ForumSensitiveWordsController/insertForumSensitiveWordsMation")
     public void insertForumSensitiveWordsMation(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.insertForumSensitiveWordsMation(inputObject, outputObject);
+        forumSensitiveWordsService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**
@@ -46,9 +57,12 @@ public class ForumSensitiveWordsController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "deleteForumSensitiveWordsById", value = "根据id删除论坛敏感词", method = "POST", allUse = "1")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ForumSensitiveWordsController/deleteForumSensitiveWordsById")
     public void deleteForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.deleteForumSensitiveWordsById(inputObject, outputObject);
+        forumSensitiveWordsService.deleteById(inputObject, outputObject);
     }
 
     /**
@@ -57,20 +71,11 @@ public class ForumSensitiveWordsController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "selectForumSensitiveWordsById", value = "通过id查找对应的论坛敏感词信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ForumSensitiveWordsController/selectForumSensitiveWordsById")
     public void selectForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.selectForumSensitiveWordsById(inputObject, outputObject);
+        forumSensitiveWordsService.selectById(inputObject, outputObject);
     }
-
-    /**
-     * 通过id编辑对应的论坛敏感词信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ForumSensitiveWordsController/editForumSensitiveWordsMationById")
-    public void editForumSensitiveWordsMationById(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.editForumSensitiveWordsMationById(inputObject, outputObject);
-    }
-
 }

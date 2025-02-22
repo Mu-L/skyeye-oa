@@ -4,18 +4,20 @@
 
 package com.skyeye.eve.forum.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 
-public interface ForumSensitiveWordsService {
+public interface ForumSensitiveWordsService extends SkyeyeBusinessService<ForumSensitiveWords> {
 
-    void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject);
+//    void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject);
 
-    void insertForumSensitiveWordsMation(InputObject inputObject, OutputObject outputObject);
+//    void insertForumSensitiveWordsMation(InputObject inputObject, OutputObject outputObject);
 
-    void deleteForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
+//    void deleteForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
 
-    void selectForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
+//    void selectForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
 
-    void editForumSensitiveWordsMationById(InputObject inputObject, OutputObject outputObject);
+//    void editForumSensitiveWordsMationById(InputObject inputObject, OutputObject outputObject);
 }

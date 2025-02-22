@@ -4,12 +4,15 @@
 
 package com.skyeye.eve.forum.dao;
 
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.eve.forum.entity.ForumSensitiveWords;
+
 import java.util.List;
 import java.util.Map;
 
-public interface ForumSensitiveWordsDao {
+public interface ForumSensitiveWordsDao extends SkyeyeBaseMapper<ForumSensitiveWords> {
 
-    List<Map<String, Object>> queryForumSensitiveWordsList(Map<String, Object> map);
+//    List<Map<String, Object>> queryForumSensitiveWordsList(Map<String, Object> map);
 
     Map<String, Object> queryForumSensitiveWordsMationByName(Map<String, Object> map);
 
