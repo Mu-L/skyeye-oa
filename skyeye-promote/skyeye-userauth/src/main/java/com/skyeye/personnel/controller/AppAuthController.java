@@ -34,7 +34,7 @@ public class AppAuthController {
     @Autowired
     private AppAuthService appAuthService;
 
-    @ApiOperation(id = "login001", value = "登录", method = "POST", allUse = "0")
+    @ApiOperation(id = "login001", value = "PC端用户登录", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userCode", name = "userCode", value = "账号", required = "required"),
         @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required")})
@@ -84,6 +84,12 @@ public class AppAuthController {
     @RequestMapping("/post/AppAuthController/smsLogin")
     public void smsLogin(InputObject inputObject, OutputObject outputObject) {
         appAuthService.smsLogin(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAuthPointByUserId", value = "获取当前登录用户的所有的权限点(PC+APP)", method = "GET", allUse = "2")
+    @RequestMapping("/post/AppAuthController/queryAuthPointByUserId")
+    public void queryAuthPointByUserId(InputObject inputObject, OutputObject outputObject) {
+        appAuthService.queryAuthPointByUserId(inputObject, outputObject);
     }
 
 }

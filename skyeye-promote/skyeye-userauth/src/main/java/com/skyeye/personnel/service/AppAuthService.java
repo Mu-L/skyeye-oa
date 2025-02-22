@@ -20,4 +20,7 @@ public interface AppAuthService {
     void sendSmsCode(InputObject inputObject, OutputObject outputObject);
 
     void smsLogin(InputObject inputObject, OutputObject outputObject);
+
+    void queryAuthPointByUserId(InputObject inputObject, OutputObject outputObject);
+
 }

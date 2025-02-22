@@ -72,6 +72,13 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             // 手机端
             menuResult = this.getRoleHasAPPMenuListByRoleId(roleIdList);
         }
+        for (Map<String, Object> authPoint : menuResult) {
+            authPoint.remove("createId");
+            authPoint.remove("createTime");
+            authPoint.remove("lastUpdateId");
+            authPoint.remove("lastUpdateTime");
+            authPoint.remove("serviceClassName");
+        }
         // 去重
         menuResult = menuResult.stream().collect(
             Collectors.collectingAndThen(Collectors.toCollection(
@@ -155,7 +162,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             menuMapResult.put("type", "page");
             return menuMapResult;
         }).collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(menuList)) {
+        if (CollectionUtil.isNotEmpty(menuList)) {
             result.addAll(menuList);
         }
         // 获取桌面
@@ -169,7 +176,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             desktopMapResult.put("type", "desktop");
             return desktopMapResult;
         }).collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(desktopList)) {
+        if (CollectionUtil.isNotEmpty(desktopList)) {
             result.addAll(desktopList);
         }
         return result;

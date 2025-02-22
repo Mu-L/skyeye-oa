@@ -5,10 +5,12 @@
 package com.skyeye.personnel.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.SmsSceneEnum;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.*;
+import com.skyeye.eve.authority.service.SysAuthorityService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.jedis.JedisClientService;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.AppAuthService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
@@ -18,6 +20,7 @@ import com.skyeye.sms.service.SmsCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +39,12 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Autowired
     private SmsCodeService smsCodeService;
+
+    @Autowired
+    private SysAuthorityService sysAuthorityService;
+
+    @Autowired
+    protected JedisClientService jedisClientService;
 
     @Override
     public void sendSmsCode(InputObject inputObject, OutputObject outputObject) {
@@ -83,5 +92,16 @@ public class AppAuthServiceImpl implements AppAuthService {
         smsCodeValidateReq.setSmsCode(smsCode);
         smsCodeValidateReq.setScene(SmsSceneEnum.LOGIN.getKey());
         smsCodeService.validateSmsCode(smsCodeValidateReq);
+    }
+
+    @Override
+    public void queryAuthPointByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        // 获取角色id(逗号隔开的字符串)
+        String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
+            userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+        List<Map<String, Object>> authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userIdAndType);
+        outputObject.setBeans(authPoints);
+        outputObject.settotal(authPoints.size());
     }
 }
