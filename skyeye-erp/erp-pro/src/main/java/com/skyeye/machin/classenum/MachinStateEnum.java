@@ -26,6 +26,7 @@ import java.util.List;
 @AllArgsConstructor
 public enum MachinStateEnum implements SkyeyeEnumClass {
 
+    PARTIALLY_COMPLETED("partiallyCompleted", "部分完成", true, false),
     COMPLETED("completed", "已完成", true, false);
 
     private String key;

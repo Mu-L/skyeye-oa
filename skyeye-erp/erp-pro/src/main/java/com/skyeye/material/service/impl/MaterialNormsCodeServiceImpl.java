@@ -336,6 +336,9 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         List<String> ids = Arrays.asList(params.get("ids").toString()
                 .split(CommonCharConstants.COMMA_MARK))
             .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
         String storeUseState = params.get("storeUseState").toString();
         UpdateWrapper<MaterialNormsCode> updateWrapper = new UpdateWrapper<>();
         updateWrapper.in(CommonConstants.ID, ids);
