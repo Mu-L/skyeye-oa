@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.assets.classenum.AssetReportState;
 import com.skyeye.eve.assets.entity.AssetReportQueryDo;
 import com.skyeye.eve.assets.service.AssetReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +32,6 @@ public class AssetReportController {
     @Autowired
     private AssetReportService assetReportService;
 
-    /**
-     * 获取资产明细一物一码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssetReportList", value = "获取资产明细一物一码信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AssetReportQueryDo.class)
     @RequestMapping("/post/AssetReportController/queryAssetReportList")
@@ -44,12 +39,6 @@ public class AssetReportController {
         assetReportService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 生成条形码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertAssetReport", value = "生成条形码", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "list", name = "list", value = "商品信息，必须包含assetId,operNumber", required = "required,json")})
@@ -58,13 +47,7 @@ public class AssetReportController {
         assetReportService.insertAssetReport(inputObject, outputObject);
     }
 
-    /**
-     * 删除商品条形码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "deleteAssetReportById", value = "删除商品条形码", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteAssetReportById", value = "删除资产明细信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/AssetReportController/deleteAssetReportById")
@@ -72,12 +55,19 @@ public class AssetReportController {
         assetReportService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据条件获取条形码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "updateAssetReportById", value = "编辑资产明细信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "fromId", name = "fromId", value = "资产来源id", required = "required"),
+        @ApiImplicitParam(id = "storageArea", name = "storageArea", value = "存放区域"),
+        @ApiImplicitParam(id = "assetAdmin", name = "assetAdmin", value = "管理人"),
+        @ApiImplicitParam(id = "describe", name = "describe", value = "附加描述"),
+        @ApiImplicitParam(id = "state", name = "state", value = "状态", enumClass = AssetReportState.class)})
+    @RequestMapping("/post/AssetReportController/updateAssetReportById")
+    public void updateAssetReportById(InputObject inputObject, OutputObject outputObject) {
+        assetReportService.updateAssetReportById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryAssetReportCodeList", value = "根据条件获取条形码信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AssetReportQueryDo.class)
     @RequestMapping("/post/AssetReportController/queryAssetReportCodeList")

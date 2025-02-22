@@ -216,4 +216,18 @@ public class AssetReportServiceImpl extends SkyeyeBusinessServiceImpl<AssetRepor
         outputObject.settotal(codeNumList.size());
     }
 
+    @Override
+    public void updateAssetReportById(InputObject inputObject, OutputObject outputObject) {
+        AssetReport assetReport = inputObject.getParams(AssetReport.class);
+        UpdateWrapper<AssetReport> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, assetReport.getId());
+        updateWrapper.set(MybatisPlusUtil.toColumns(AssetReport::getFromId), assetReport.getFromId());
+        updateWrapper.set(MybatisPlusUtil.toColumns(AssetReport::getStorageArea), assetReport.getStorageArea());
+        updateWrapper.set(MybatisPlusUtil.toColumns(AssetReport::getAssetAdmin), assetReport.getAssetAdmin());
+        updateWrapper.set(MybatisPlusUtil.toColumns(AssetReport::getDescribe), assetReport.getDescribe());
+        updateWrapper.set(MybatisPlusUtil.toColumns(AssetReport::getState), assetReport.getState());
+        update(updateWrapper);
+        refreshCache(assetReport.getId());
+    }
+
 }

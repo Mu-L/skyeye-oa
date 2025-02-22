@@ -60,4 +60,6 @@ public interface AssetReportService extends SkyeyeBusinessService<AssetReport> {
     void insertAssetReport(InputObject inputObject, OutputObject outputObject);
 
     void queryAssetReportCodeList(InputObject inputObject, OutputObject outputObject);
+
+    void updateAssetReportById(InputObject inputObject, OutputObject outputObject);
 }
