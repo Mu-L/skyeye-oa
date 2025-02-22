@@ -19,7 +19,6 @@ import com.skyeye.common.object.*;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.authority.service.SysAuthorityService;
 import com.skyeye.eve.entity.userauth.user.UserTreeQueryDo;
 import com.skyeye.exception.CustomException;
 import com.skyeye.menu.service.RoleMenuService;
@@ -68,9 +67,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
 
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
-
-    @Autowired
-    private SysAuthorityService sysAuthorityService;
 
     @Autowired
     private CompanyMationService companyMationService;
@@ -219,12 +215,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         update(updateWrapper);
     }
 
-    /**
-     * 登录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryUserToLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -232,37 +222,37 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         Map<String, Object> userMation = sysEveUserDao.queryMationByUserCode(userCode);
         if (userMation == null) {
             outputObject.setreturnMessage("请确保用户名输入无误！");
-        } else {
-            int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
-            String password = map.get("password").toString();
-            for (int i = 0; i < pwdNum; i++) {
-                password = ToolUtil.MD5(password);
-            }
-            String userDBPassword = userMation.get("password").toString();
-            if (password.equals(userDBPassword)) {
-                int userLock = Integer.parseInt(userMation.get("userLock").toString());
-                if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
-                    outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
-                } else {
-                    // 校验用户有效期
-                    chectUserEffectiveDate(userMation);
-
-                    String userId = userMation.get("id").toString();
-                    setUserOtherMation(userMation);
-                    List<Map<String, Object>> authPoints = getMenuAndAuthToRedis(userMation, userId);
-                    judgeAndGetSchoolMation(userMation, userId);
-                    LOGGER.info("set userMation to redis cache start.");
-                    setUserLoginRedisMation(userId, userMation);
-                    LOGGER.info("set userMation to redis cache end.");
-                    String userToken = GetUserToken.createNewToken(userId, userDBPassword);
-                    userMation.put("userToken", userToken);
-                    outputObject.setBean(userMation);
-                    outputObject.setBeans(authPoints);
-                }
-            } else {
-                outputObject.setreturnMessage("密码输入错误！");
-            }
+            return;
         }
+        int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
+        String password = map.get("password").toString();
+        for (int i = 0; i < pwdNum; i++) {
+            password = ToolUtil.MD5(password);
+        }
+        String userDBPassword = userMation.get("password").toString();
+        if (!password.equals(userDBPassword)) {
+            outputObject.setreturnMessage("密码输入错误！");
+            return;
+        }
+
+        int userLock = Integer.parseInt(userMation.get("userLock").toString());
+        if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
+            outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
+            return;
+        }
+        // 校验用户有效期
+        chectUserEffectiveDate(userMation);
+
+        String userId = userMation.get("id").toString();
+        setUserOtherMation(userMation);
+        setMenuToRedis(userMation, userId);
+        judgeAndGetSchoolMation(userMation, userId);
+        LOGGER.info("set userMation to redis cache start.");
+        setUserLoginRedisMation(userId, userMation);
+        LOGGER.info("set userMation to redis cache end.");
+        String userToken = GetUserToken.createNewToken(userId, userDBPassword);
+        userMation.put("userToken", userToken);
+        outputObject.setBean(userMation);
     }
 
     private void chectUserEffectiveDate(Map<String, Object> userMation) {
@@ -292,27 +282,23 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     /**
-     * 获取用户菜单权限信息并存入redis缓存
+     * 获取用户菜单信息并存入redis缓存
      *
      * @param userMation
      * @param userId
-     * @return
      */
-    private List<Map<String, Object>> getMenuAndAuthToRedis(Map<String, Object> userMation, String userId) {
-        LOGGER.info("get menu and auth mation.");
+    private void setMenuToRedis(Map<String, Object> userMation, String userId) {
+        LOGGER.info("get menu mation.");
         String roleIds = userMation.get("roleId").toString();
         // 桌面菜单列表
         List<Map<String, Object>> deskTops = sysEveUserDao.queryDeskTopsMenuByUserId(userId);
         deskTops = ToolUtil.listToTree(deskTops, "id", "parentId", "childs");
-        List<Map<String, Object>> authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userId);
 
-        LOGGER.info("set menu and auth mation to redis cache start.");
+        LOGGER.info("set menu mation to redis cache start.");
         jedisClientService.set(ObjectConstant.getDeskTopsCacheKey(userId), JSONUtil.toJsonStr(deskTops));
-        jedisClientService.set(ObjectConstant.getAllMenuCacheKey(userId), roleIds);
-        jedisClientService.set("authPointsMation:" + userId, roleIds);
-        LOGGER.info("set menu and auth mation to redis cache end.");
+        jedisClientService.set(ObjectConstant.getUserHasRoleIds(userId), roleIds);
+        LOGGER.info("set menu mation to redis cache end.");
         userMation.remove("roleId");
-        return authPoints;
     }
 
     /**
@@ -377,8 +363,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     public void removeLogin(String userId) {
         SysUserAuthConstants.delUserLoginRedisCache(userId);
         jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userId));
-        jedisClientService.del(ObjectConstant.getAllMenuCacheKey(userId));
-        jedisClientService.del("authPointsMation:" + userId);
+        jedisClientService.del(ObjectConstant.getUserHasRoleIds(userId));
         if (userId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端用户登录信息
         } else {
@@ -444,7 +429,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
         String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
         // 获取角色id(逗号隔开的字符串)
-        String roleIds = jedisClientService.get(ObjectConstant.getAllMenuCacheKey(
+        String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
             userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
         List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
         outputObject.setBeans(menuList);
@@ -729,40 +714,37 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         Map<String, Object> userMation = sysEveUserDao.queryMationByUserCode(userCode);
         if (userMation == null) {
             outputObject.setreturnMessage("请确保用户名输入无误！");
-        } else {
-            int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
-            String password = map.get("password").toString();
-            for (int i = 0; i < pwdNum; i++) {
-                password = ToolUtil.MD5(password);
-            }
-            if (password.equals(userMation.get("password").toString())) {
-                int userLock = Integer.parseInt(userMation.get("userLock").toString());
-                if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
-                    outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
-                } else {
-                    String userId = userMation.get("id").toString();
-                    String roleIds = userMation.get("roleId").toString();
-                    userMation.remove("roleId");
-
-                    // 获取动态token
-                    String userToken = GetUserToken.createNewToken(userId, password);
-                    userMation.put("userToken", userToken);
-
-                    String appUserId = userId + SysUserAuthConstants.APP_IDENTIFYING;
-                    companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
-                    companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
-                    SysUserAuthConstants.setUserLoginRedisCache(appUserId, userMation);
-                    jedisClientService.set(ObjectConstant.getAllMenuCacheKey(userId), roleIds);
-                    jedisClientService.set("authPointsMation:" + appUserId, roleIds);
-                    // 获取用户权限点返回给前台
-                    List<Map<String, Object>> authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, appUserId);
-                    outputObject.setBean(userMation);
-                    outputObject.setBeans(authPoints);
-                }
-            } else {
-                outputObject.setreturnMessage("密码输入错误！");
-            }
+            return;
         }
+        int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
+        String password = map.get("password").toString();
+        for (int i = 0; i < pwdNum; i++) {
+            password = ToolUtil.MD5(password);
+        }
+        if (!password.equals(userMation.get("password").toString())) {
+            outputObject.setreturnMessage("密码输入错误！");
+            return;
+        }
+        // 判断用户是否被锁定
+        int userLock = Integer.parseInt(userMation.get("userLock").toString());
+        if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
+            outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
+            return;
+        }
+        String userId = userMation.get("id").toString();
+        String roleIds = userMation.get("roleId").toString();
+        userMation.remove("roleId");
+
+        // 获取动态token
+        String userToken = GetUserToken.createNewToken(userId, password);
+        userMation.put("userToken", userToken);
+
+        String appUserId = userId + SysUserAuthConstants.APP_IDENTIFYING;
+        companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
+        SysUserAuthConstants.setUserLoginRedisCache(appUserId, userMation);
+        jedisClientService.set(ObjectConstant.getUserHasRoleIds(userId), roleIds);
+        outputObject.setBean(userMation);
     }
 
     /**
@@ -793,8 +775,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                     companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
                     // 2.将账号的信息存入redis
                     SysUserAuthConstants.setUserLoginRedisCache(bean.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation);
-                    //3.将权限的信息存入redis
-                    jedisClientService.set("authPointsMation:" + bean.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, "");
                 }
             } else {
                 //不存在
@@ -814,8 +794,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                 companyMationService.setNameMationForMap(userMation, "companyId", "companyName", StrUtil.EMPTY);
                 //2.将账号的信息存入redis
                 SysUserAuthConstants.setUserLoginRedisCache(map.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation);
-                //3.将权限的信息存入redis
-                jedisClientService.set("authPointsMation:" + map.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, "");
             } else {
                 outputObject.setreturnMessage("您还未绑定用户，请前往绑定.", "-9000");
             }
@@ -885,8 +863,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                                 jedisClientService.set(key, JSONUtil.toJsonStr(map));
                                 //2.将账号的信息存入redis
                                 SysUserAuthConstants.setUserLoginRedisCache(userId + SysUserAuthConstants.APP_IDENTIFYING, userMation);
-                                //3.将权限的信息存入redis
-                                jedisClientService.set("authPointsMation:" + userId + SysUserAuthConstants.APP_IDENTIFYING, "");
                                 outputObject.setBean(map);
                             }
                         }

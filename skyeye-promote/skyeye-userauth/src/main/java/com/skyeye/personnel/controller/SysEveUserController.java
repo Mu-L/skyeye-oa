@@ -152,24 +152,12 @@ public class SysEveUserController {
         sysEveUserService.queryDeskTopMenuBySession(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登录用户的所有菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "login005", value = "获取当前登录用户的所有菜单列表", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveUserController/queryAllMenuBySession")
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.queryAllMenuBySession(inputObject, outputObject);
     }
 
-    /**
-     * 锁屏密码解锁
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "login008", value = "锁屏密码解锁", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required")})
@@ -178,12 +166,6 @@ public class SysEveUserController {
         sysEveUserService.queryUserLockByLockPwd(inputObject, outputObject);
     }
 
-    /**
-     * 修改个人信息时获取数据回显
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys032", value = "修改个人信息时获取数据回显", method = "POST", allUse = "2")
     @RequestMapping("/post/SysEveUserController/queryUserDetailsMationByUserId")
     public void queryUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject) {
