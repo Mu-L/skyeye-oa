@@ -16,6 +16,7 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.assets.classenum.AssetReportState;
 import lombok.Data;
 
 import java.util.Map;
@@ -127,7 +128,7 @@ public class AssetReport extends OperatorUserInfo implements EnclosureFace {
     private Enclosure enclosureInfo;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#AssetReportState")
+    @Property(value = "状态", enumClass = AssetReportState.class)
     private Integer state;
 
 }
