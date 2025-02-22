@@ -126,28 +126,4 @@ public class VehicleController {
         vehicleService.queryAllNormalVehicleList(inputObject, outputObject);
     }
 
-    /**
-     * 查询空闲的司机
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "vehicle012", value = "查询空闲的司机", method = "GET", allUse = "2")
-    @RequestMapping("/post/VehicleController/queryAvailableDrivers")
-    public void queryAvailableDrivers(InputObject inputObject, OutputObject outputObject) {
-        vehicleService.queryAvailableDrivers(inputObject, outputObject);
-    }
-
-    /**
-     * 查询所有司机
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAllAvailableDrivers", value = "查询所有司机", method = "GET", allUse = "2")
-    @RequestMapping("/post/VehicleController/queryAllAvailableDrivers")
-    public void queryAllAvailableDrivers(InputObject inputObject, OutputObject outputObject) {
-        vehicleService.queryAllAvailableDrivers(inputObject, outputObject);
-    }
-
 }

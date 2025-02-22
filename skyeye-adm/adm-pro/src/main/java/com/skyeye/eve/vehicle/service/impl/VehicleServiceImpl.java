@@ -10,7 +10,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
-import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -124,29 +123,6 @@ public class VehicleServiceImpl extends SkyeyeBusinessServiceImpl<VehicleDao, Ve
         List<Vehicle> vehicleList = list(queryWrapper);
         outputObject.setBeans(vehicleList);
         outputObject.settotal(vehicleList.size());
-    }
-
-    /**
-     * 查询空闲的司机
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryAvailableDrivers(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("state", UserStaffState.ON_THE_JOB.getKey());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAvailableDrivers(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
-    }
-
-    @Override
-    public void queryAllAvailableDrivers(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAvailableDrivers(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
     }
 
 }

@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -39,8 +38,7 @@ public class SealWorkerServiceImpl extends SkyeyeBusinessServiceImpl<SealWorkerD
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealWorkerList(commonPageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "userId", "userMation");
         return beans;
     }
@@ -69,12 +67,6 @@ public class SealWorkerServiceImpl extends SkyeyeBusinessServiceImpl<SealWorkerD
         return sealWorker;
     }
 
-    /**
-     * 获取所有工人信息供展示选择
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAllSealWorkerList(InputObject inputObject, OutputObject outputObject) {
         List<SealWorker> sealWorkerList = list();

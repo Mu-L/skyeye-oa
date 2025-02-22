@@ -4,7 +4,6 @@
 
 package com.skyeye.eve.vehicle.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -16,10 +15,8 @@ import com.skyeye.eve.vehicle.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: VehicleApplyUseServiceImpl
@@ -43,13 +40,7 @@ public class VehicleApplyUseServiceImpl extends SkyeyeFlowableServiceImpl<Vehicl
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryVehicleUseList(pageInfo);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         // 设置驾驶员信息
-        List<String> staffIds = beans.stream().map(bean -> bean.get("driverId").toString())
-            .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        beans.forEach(bean -> {
-            String driverId = bean.get("driverId").toString();
-            bean.put("driverMation", staffMap.get(driverId));
-        });
+        iAuthUserService.setMationForMap(beans, "driverId", "driverMation");
         return beans;
     }
 
@@ -59,10 +50,7 @@ public class VehicleApplyUseServiceImpl extends SkyeyeFlowableServiceImpl<Vehicl
         // 车辆信息
         vehicleService.setDataMation(vehicleUse, VehicleUse::getVehicleId);
         // 驾驶员信息
-        Map<String, Map<String, Object>> staffMap = iAuthUserService
-            .queryUserMationListByStaffIds(Arrays.asList(vehicleUse.getDriverId()));
-        Map<String, Object> staff = staffMap.get(vehicleUse.getDriverId());
-        vehicleUse.setDriverMation(staff);
+        iAuthUserService.setDataMation(vehicleUse, VehicleUse::getDriverId);
         return vehicleUse;
     }
 

@@ -4,7 +4,6 @@
 
 package com.skyeye.eve.vehicle.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -16,10 +15,8 @@ import com.skyeye.eve.vehicle.service.VehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: AccidentServiceImpl
@@ -42,13 +39,7 @@ public class AccidentServiceImpl extends SkyeyeBusinessServiceImpl<AccidentDao, 
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAccidentList(pageInfo);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         // 设置驾驶员信息
-        List<String> staffIds = beans.stream().map(bean -> bean.get("driverId").toString())
-            .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        beans.forEach(bean -> {
-            String driverId = bean.get("driverId").toString();
-            bean.put("driverMation", staffMap.get(driverId));
-        });
+        iAuthUserService.setMationForMap(beans, "driverId", "driverMation");
         return beans;
     }
 
@@ -58,10 +49,7 @@ public class AccidentServiceImpl extends SkyeyeBusinessServiceImpl<AccidentDao, 
         // 车辆信息
         vehicleService.setDataMation(vehicleAccident, Accident::getVehicleId);
         // 驾驶员信息
-        Map<String, Map<String, Object>> staffMap = iAuthUserService
-            .queryUserMationListByStaffIds(Arrays.asList(vehicleAccident.getDriverId()));
-        Map<String, Object> staff = staffMap.get(vehicleAccident.getDriverId());
-        vehicleAccident.setDriverMation(staff);
+        iAuthUserService.setDataMation(vehicleAccident, Accident::getDriverId);
         return vehicleAccident;
     }
 

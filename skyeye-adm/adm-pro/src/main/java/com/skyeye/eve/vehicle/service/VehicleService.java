@@ -26,8 +26,4 @@ public interface VehicleService extends SkyeyeBusinessService<Vehicle> {
     void scrapVehicleById(InputObject inputObject, OutputObject outputObject);
 
     void queryAllNormalVehicleList(InputObject inputObject, OutputObject outputObject);
-
-    void queryAvailableDrivers(InputObject inputObject, OutputObject outputObject);
-
-    void queryAllAvailableDrivers(InputObject inputObject, OutputObject outputObject);
 }
