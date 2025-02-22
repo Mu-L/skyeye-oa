@@ -321,7 +321,7 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
 
         QueryWrapper<MaterialNormsCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getStoreId), storeId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), normsCodeList);
+        queryWrapper.in(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), normsCodeList);
         if (StrUtil.isNotEmpty(storeUseState)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getStoreUseState), storeUseState);
         }
