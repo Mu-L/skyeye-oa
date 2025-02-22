@@ -128,7 +128,7 @@ public class AssetReport extends OperatorUserInfo implements EnclosureFace {
     private Enclosure enclosureInfo;
 
     @TableField(value = "state")
-    @Property(value = "状态", enumClass = AssetReportState.class)
+    @ApiModelProperty(value = "状态", enumClass = AssetReportState.class)
     private Integer state;
 
 }
