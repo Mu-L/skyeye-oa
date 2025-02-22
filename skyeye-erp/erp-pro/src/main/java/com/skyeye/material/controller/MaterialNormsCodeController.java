@@ -31,12 +31,6 @@ public class MaterialNormsCodeController {
     @Autowired
     private MaterialNormsCodeService materialNormsCodeService;
 
-    /**
-     * 获取商品规格一物一码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMaterialNormsCodeList", value = "获取商品规格一物一码信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MaterialNormsCodeQueryDo.class)
     @RequestMapping("/post/MaterialNormsCodeController/queryMaterialNormsCodeList")
@@ -44,14 +38,7 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 生成条形码
-     * 自动过滤不需要生成条形码的商品
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "insertMaterialNormsCode", value = "生成条形码", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertMaterialNormsCode", value = "生成条形码，自动过滤不需要生成条形码的商品", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "list", name = "list", value = "商品信息，必须包含materialId,normsId,operNumber", required = "required,json")})
     @RequestMapping("/post/MaterialNormsCodeController/insertMaterialNormsCode")
@@ -59,12 +46,6 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.insertMaterialNormsCode(inputObject, outputObject);
     }
 
-    /**
-     * 删除商品条形码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMaterialNormsCodeById", value = "删除商品条形码", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +54,6 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据条件获取条形码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNormsBarCodeList", value = "根据条件获取条形码信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MaterialNormsCodeQueryDo.class)
     @RequestMapping("/post/MaterialNormsCodeController/queryNormsBarCodeList")
@@ -86,12 +61,6 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryNormsBarCodeList(inputObject, outputObject);
     }
 
-    /**
-     * 获取物料库存明细信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNormsStockDetailList", value = "获取物料库存明细信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MaterialNormsCodeQueryDo.class)
     @RequestMapping("/post/MaterialNormsCodeController/queryNormsStockDetailList")
@@ -99,12 +68,6 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryNormsStockDetailList(inputObject, outputObject);
     }
 
-    /**
-     * 获取门店物料库存明细信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStoreNormsStockDetailList", value = "获取门店物料库存明细信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MaterialNormsCodeQueryDo.class)
     @RequestMapping("/post/MaterialNormsCodeController/queryStoreNormsStockDetailList")
@@ -112,12 +75,6 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryStoreNormsStockDetailList(inputObject, outputObject);
     }
 
-    /**
-     * 根据编码等信息查询门店规格条形码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMaterialNormsCode", value = "根据编码等信息查询门店规格条形码信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required"),
@@ -128,15 +85,9 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryMaterialNormsCode(inputObject, outputObject);
     }
 
-    /**
-     * 根据编码等信息修改门店规格条形码使用状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editStoreMaterialNormsCodeUseState", value = "根据编码等信息修改门店规格条形码使用状态", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "ids", name = "ids", value = "规格条形码信息id，多个逗号隔开", required = "required,json"),
+        @ApiImplicitParam(id = "ids", name = "ids", value = "规格条形码信息id，多个逗号隔开", required = "required"),
         @ApiImplicitParam(id = "storeUseState", name = "storeUseState", value = "门店使用状态", required = "required")})
     @RequestMapping("/post/MaterialNormsCodeController/editStoreMaterialNormsCodeUseState")
     public void editStoreMaterialNormsCodeUseState(InputObject inputObject, OutputObject outputObject) {

@@ -14,6 +14,9 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
+import com.skyeye.material.classenum.MaterialNormsCodeType;
+import com.skyeye.shop.classenum.StoreNormsCodeUseState;
 import lombok.Data;
 
 import java.util.Map;
@@ -96,15 +99,15 @@ public class MaterialNormsCode extends CommonInfo {
     private Map<String, Object> storeMation;
 
     @TableField("store_use_state")
-    @Property(value = "门店使用状态，参考#StoreNormsCodeUseState")
+    @Property(value = "门店使用状态", enumClass = StoreNormsCodeUseState.class)
     private Integer storeUseState;
 
     @TableField(value = "in_depot")
-    @Property(value = "库存状态，参考#MaterialNormsCodeInDepot")
+    @Property(value = "库存状态", enumClass = MaterialNormsCodeInDepot.class)
     private Integer inDepot;
 
     @TableField(value = "type")
-    @Property(value = "类型，参考#MaterialNormsCodeType")
+    @Property(value = "类型", enumClass = MaterialNormsCodeType.class)
     private Integer type;
 
     @TableField(value = "from_object_id")

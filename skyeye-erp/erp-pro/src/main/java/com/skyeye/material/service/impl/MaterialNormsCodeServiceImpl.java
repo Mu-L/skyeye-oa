@@ -321,7 +321,7 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
 
         QueryWrapper<MaterialNormsCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getStoreId), storeId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), normsCodeList);
+        queryWrapper.in(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), normsCodeList);
         if (StrUtil.isNotEmpty(storeUseState)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getStoreUseState), storeUseState);
         }
@@ -336,6 +336,9 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         List<String> ids = Arrays.asList(params.get("ids").toString()
                 .split(CommonCharConstants.COMMA_MARK))
             .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
         String storeUseState = params.get("storeUseState").toString();
         UpdateWrapper<MaterialNormsCode> updateWrapper = new UpdateWrapper<>();
         updateWrapper.in(CommonConstants.ID, ids);

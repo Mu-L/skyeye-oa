@@ -58,6 +58,7 @@ public class AssetReportController {
     @ApiOperation(id = "updateAssetReportById", value = "编辑资产明细信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "unitPrice", name = "unitPrice", value = "资产单价", required = "required,double"),
         @ApiImplicitParam(id = "fromId", name = "fromId", value = "资产来源id", required = "required"),
         @ApiImplicitParam(id = "storageArea", name = "storageArea", value = "存放区域"),
         @ApiImplicitParam(id = "assetAdmin", name = "assetAdmin", value = "管理人"),

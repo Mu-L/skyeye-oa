@@ -14,6 +14,7 @@ import com.skyeye.bom.entity.BomChild;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.machin.classenum.MachinFromType;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
 import lombok.Data;
 
@@ -39,7 +40,7 @@ public class Machin extends SkyeyeFlowable {
     private String name;
 
     @TableField("from_type_id")
-    @ApiModelProperty(value = "来源单据类型，参考#MachinFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = MachinFromType.class)
     private Integer fromTypeId;
 
     @TableField("from_id")
