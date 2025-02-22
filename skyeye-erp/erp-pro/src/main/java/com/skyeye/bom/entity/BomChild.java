@@ -87,6 +87,10 @@ public class BomChild extends CommonInfo {
     @ApiModelProperty(value = "工艺id")
     private String wayProcedureId;
 
+    @TableField(value = "order_by")
+    @ApiModelProperty(value = "排序", required = "required,num")
+    private Integer orderBy;
+
     @TableField(exist = false)
     @Property(value = "工艺信息")
     private WayProcedure wayProcedureMation;

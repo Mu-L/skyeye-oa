@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.machin.entity.MachinChild;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: MachinChildService
@@ -24,6 +25,8 @@ public interface MachinChildService extends SkyeyeBusinessService<MachinChild> {
     List<MachinChild> selectByParentId(String parentId);
 
     List<MachinChild> selectByParentId(List<String> parentIds);
+
+    Map<String, List<MachinChild>> selectMapByParentId(List<String> parentIds);
 
     void saveList(String parentId, List<MachinChild> machinChildList);
 

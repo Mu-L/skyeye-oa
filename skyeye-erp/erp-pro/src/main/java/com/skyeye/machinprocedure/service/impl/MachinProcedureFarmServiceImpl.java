@@ -95,6 +95,24 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         machinService.setMachinMationByFromId(beans, "machinId", "machinMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         machinProcedureService.setMationForMap(beans, "machinProcedureId", "machinProcedureMation");
+        // 判断是否是最后一条工序
+        beans.forEach(bean -> {
+            String machinId = MapUtil.getStr(bean, "machinId");
+            Map<String, Object> machinProcedureMation = (Map<String, Object>) bean.get("machinProcedureMation");
+            if (MapUtil.isNotEmpty(machinProcedureMation)) {
+                String childId = MapUtil.getStr(machinProcedureMation, "childId");
+                String bomChildId = MapUtil.getStr(machinProcedureMation, "bomChildId");
+                String wayProcedureId = MapUtil.getStr(machinProcedureMation, "wayProcedureId");
+                String materialId = MapUtil.getStr(machinProcedureMation, "materialId");
+                String normsId = MapUtil.getStr(machinProcedureMation, "normsId");
+                String procedureId = MapUtil.getStr(machinProcedureMation, "procedureId");
+                Boolean isLastProcedure = machinService.checkIsLastProcedure(machinId, childId, bomChildId, wayProcedureId,
+                    materialId, normsId, procedureId);
+                bean.put("isLastProcedure", isLastProcedure);
+            } else {
+                bean.put("isLastProcedure", false);
+            }
+        });
         return beans;
     }
 

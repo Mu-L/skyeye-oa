@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.machinprocedure.classenum.MachinProcedureState;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.procedure.entity.WorkProcedure;
@@ -81,7 +82,7 @@ public class MachinProcedure extends CommonInfo {
     private Integer orderBy;
 
     @TableField("state")
-    @Property("状态，参考#MachinProcedureState")
+    @Property(value = "状态", enumClass = MachinProcedureState.class)
     private Integer state;
 
     @TableField("remark")

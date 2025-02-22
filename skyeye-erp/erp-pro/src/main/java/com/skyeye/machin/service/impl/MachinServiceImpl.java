@@ -156,6 +156,17 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
     }
 
     @Override
+    public List<Machin> getDataFromDb(List<String> idList) {
+        List<Machin> machinList = super.getDataFromDb(idList);
+        List<String> machinIdList = machinList.stream().map(Machin::getId).collect(Collectors.toList());
+        Map<String, List<MachinChild>> listMap = machinChildService.selectMapByParentId(machinIdList);
+        machinList.forEach(machin -> {
+            machin.setMachinChildList(listMap.get(machin.getId()));
+        });
+        return machinList;
+    }
+
+    @Override
     public Machin selectById(String id) {
         Machin machin = super.selectById(id);
         // 部门信息
@@ -719,4 +730,62 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
         }
     }
 
+    @Override
+    public boolean checkIsLastProcedure(String machinId, String childId, String bomChildId, String wayProcedureId, String materialId, String normsId, String procedureId) {
+        if (StrUtil.isEmpty(machinId) || StrUtil.isEmpty(childId)
+            || StrUtil.isEmpty(materialId) || StrUtil.isEmpty(normsId) || StrUtil.isEmpty(procedureId)) {
+            return false;
+        }
+        Machin machin = selectById(machinId);
+        if (ObjectUtil.isEmpty(machin)) {
+            return false;
+        }
+        // 获取子单据信息
+        MachinChild machinChild = machin.getMachinChildList().stream().filter(m -> m.getId().equals(childId)).findFirst().orElse(null);
+        if (ObjectUtil.isEmpty(machinChild)) {
+            return false;
+        }
+        if (ObjectUtil.isNotEmpty(machinChild.getWayProcedureMation())) {
+            // 判断是否为最后一道工序
+            if (StrUtil.isNotEmpty(bomChildId)) {
+                // 如果bom子件清单的id不为空 && 加工单子单据有绑定工艺，那么就一定不是最后一道工序
+                return false;
+            }
+            int lastIndex = machinChild.getWayProcedureMation().getWorkProcedureList().size() - 1;
+            WayProcedureChild wayProcedureChild = machinChild.getWayProcedureMation().getWorkProcedureList().get(lastIndex);
+            if (StrUtil.equals(machinChild.getMaterialId(), materialId) && StrUtil.equals(machinChild.getNormsId(), normsId)
+                && StrUtil.equals(machinChild.getWayProcedureId(), wayProcedureId) && StrUtil.equals(wayProcedureChild.getProcedureId(), procedureId)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        if (StrUtil.isNotEmpty(machinChild.getBomId())) {
+            Bom bom = machinChild.getBomMation();
+            // 获取bom子件清单中绑定了工艺的id
+            List<BomChild> bomChildList = bom.getBomChildList().stream().filter(bc -> StrUtil.isNotEmpty(bc.getWayProcedureId())).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(bomChildList)) {
+                // 如果没有绑定工艺，那么就一定是最后一道工序
+                return true;
+            }
+            int lastIndex = bomChildList.size() - 1;
+            BomChild bomChild = bomChildList.get(lastIndex);
+            if (StrUtil.equals(machinChild.getMaterialId(), materialId) && StrUtil.equals(machinChild.getNormsId(), normsId)
+                && StrUtil.equals(machinChild.getWayProcedureId(), wayProcedureId) && StrUtil.equals(bomChild.getId(), bomChildId)) {
+                // 判断是否为最后一道工序
+                int lastProcedureIndex = machinChild.getWayProcedureMation().getWorkProcedureList().size() - 1;
+                WayProcedureChild wayProcedureChild = machinChild.getWayProcedureMation().getWorkProcedureList().get(lastProcedureIndex);
+                if (StrUtil.equals(wayProcedureChild.getProcedureId(), procedureId)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    }
 }

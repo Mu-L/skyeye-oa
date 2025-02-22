@@ -118,6 +118,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
     public List<BomChild> queryBomChildByBomId(String bomId) {
         QueryWrapper<BomChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(BomChild::getBomId), bomId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
         return bomChildren;
     }
@@ -126,6 +127,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
     public Map<String, List<BomChild>> queryBomChildByBomId(List<String> bomIds) {
         QueryWrapper<BomChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(BomChild::getBomId), bomIds);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
         Map<String, List<BomChild>> listMap = bomChildren.stream().collect(Collectors.groupingBy(BomChild::getBomId));
         return listMap;

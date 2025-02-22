@@ -5,6 +5,7 @@
 package com.skyeye.machin.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: MachinChildServiceImpl
@@ -69,6 +72,15 @@ public class MachinChildServiceImpl extends SkyeyeBusinessServiceImpl<MachinChil
         queryWrapper.in(MybatisPlusUtil.toColumns(MachinChild::getParentId), parentIds);
         List<MachinChild> machinChildList = list(queryWrapper);
         return machinChildList;
+    }
+
+    @Override
+    public Map<String, List<MachinChild>> selectMapByParentId(List<String> parentIds) {
+        if (CollectionUtil.isEmpty(parentIds)) {
+            return MapUtil.newHashMap();
+        }
+        List<MachinChild> machinChildList = selectByParentId(parentIds);
+        return machinChildList.stream().collect(Collectors.groupingBy(MachinChild::getParentId));
     }
 
     @Override

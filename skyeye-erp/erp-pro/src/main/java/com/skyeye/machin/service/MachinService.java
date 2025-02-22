@@ -41,4 +41,19 @@ public interface MachinService extends SkyeyeFlowableService<Machin> {
     void queryMachinTransReturnById(InputObject inputObject, OutputObject outputObject);
 
     void insertMachinToPickReturn(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 判断指定工序是否是指定加工单子单据的最后一条工序
+     *
+     * @param machinId       加工单id
+     * @param childId        加工单子单据id
+     * @param bomChildId     bom子件清单的id
+     * @param wayProcedureId 工艺路线id
+     * @param materialId     物料id
+     * @param normsId        规格id
+     * @param procedureId    工序id
+     * @return true：是最后一条子单据，false：不是最后一条子单据
+     */
+    boolean checkIsLastProcedure(String machinId, String childId, String bomChildId, String wayProcedureId, String materialId,
+                                 String normsId, String procedureId);
 }
