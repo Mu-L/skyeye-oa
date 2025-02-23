@@ -44,11 +44,11 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertForumContent", value = "新增/编辑我的帖子", method = "POST", allUse = "2")
+    @ApiOperation(id = "saveOrUpdateEntity", value = "新增/编辑我的帖子", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ForumContent.class)
-    @RequestMapping("/post/FolderController/insertForumContentMation")
+    @RequestMapping("/post/ForumContentController/saveOrUpdateEntity")
     public void insertForumContent(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.createEntity(inputObject, outputObject);
+        forumContentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**
@@ -57,7 +57,7 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "checkForumReport", value = "举报信息审核", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteForumContentById", value = "举报信息审核", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ForumContentController/deleteForumContentById")

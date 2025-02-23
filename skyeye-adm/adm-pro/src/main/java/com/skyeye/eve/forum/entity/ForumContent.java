@@ -57,4 +57,8 @@ public class ForumContent extends OperatorUserInfo {
     @TableField(value = "anonymous")
     @ApiModelProperty(value = "是否匿名发帖  1.不是匿名发帖  2.匿名发帖", required = "required", enumClass = WhetherEnum.class)
     private Integer anonymous;
+
+    @TableField(value = "browse_num")
+    @ApiModelProperty(value = "浏览量(默认0)",defaultValue = "0")
+    private String browseNum;
 }

@@ -21,7 +21,7 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
 //    void editForumContentMationById(InputObject inputObject, OutputObject outputObject);
 
-    void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject);
+//    void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject);
 
     void queryNewForumContentList(InputObject inputObject, OutputObject outputObject);
 

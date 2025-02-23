@@ -15,7 +15,6 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -32,9 +31,9 @@ import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import com.skyeye.eve.forum.service.ForumTagService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -78,9 +77,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Autowired
     public JedisClientService jedisClient;
 
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
     private SolrClient solrClient;
 
     /**
@@ -97,26 +93,26 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
-        List<Map<String, Object>> beans = listMaps(queryWrapper);
-        for (Map<String, Object> bean : beans) {
-            String createTime = ToolUtil.timeFormat(bean.get("createTime").toString());
-            bean.put("createTime", createTime);
-            String key = ForumConstants.forumBrowseNumsByForumId(bean.get("id").toString());
-            if (ToolUtil.isBlank(jedisClient.get(key))) {
-                // 浏览量
-                bean.put("browseNum", 0);
-            } else {
-                String browseNum = jedisClient.get(key);
-                bean.put("browseNum", browseNum);
-            }
-        }
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> beans = list(queryWrapper);
+//        for (Map<String, Object> bean : beans) {
+//            String createTime = ToolUtil.timeFormat(bean.get("createTime").toString());
+//            bean.put("createTime", createTime);
+//            String key = ForumConstants.forumBrowseNumsByForumId(bean.get("id").toString());
+//            if (ToolUtil.isBlank(jedisClient.get(key))) {
+//                // 浏览量
+//                bean.put("browseNum", 0);
+//            } else {
+//                String browseNum = jedisClient.get(key);
+//                bean.put("browseNum", browseNum);
+//            }
+//        }
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    //    /**
+//    /**
 //     * 新增我的帖子
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象
@@ -288,78 +284,78 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         return forumContent;
     }
 
-    @Override
-    public void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumContentDao.queryForumContentMationToDetails(map);
-        outputObject.setBean(bean);
-        outputObject.settotal(1);
-        String userId = inputObject.getLogParams().get("id").toString();
-        String forumId = map.get("id").toString();
-        // 获取、设置浏览量
-        String key = ForumConstants.forumBrowseNumsByForumId(forumId);
-        if (ToolUtil.isBlank(jedisClient.get(key))) {
-            jedisClient.set(key, "1");
-        } else {
-            String oldnum = jedisClient.get(key);
-            jedisClient.set(key, String.valueOf(Integer.parseInt(oldnum) + 1));
-        }
-        // 设置今日被浏览的帖子
-        String browseKey = ForumConstants.forumEverydayBrowseIdsByTime(DateUtil.getYmdTimeAndToString());
-        if (ToolUtil.isBlank(jedisClient.get(browseKey))) {
-            jedisClient.set(browseKey, forumId);
-            jedisClient.set(browseKey, forumId);
-        } else {
-            String str = jedisClient.get(browseKey);
-            if (str.indexOf(forumId) == -1) {
-                jedisClient.set(browseKey, str + "," + forumId);
-            }
-        }
-        //新增浏览信息
-        String keys = ForumConstants.forumBrowseMationByUserid(userId);
-        List<Map<String, Object>> beans = new ArrayList<>();
-        if (ToolUtil.isBlank(jedisClient.get(keys))) {
-            // 用户之前是否浏览过帖子
-            Map<String, Object> m = new HashMap<>();
-            m.put("forumId", forumId);
-            m.put("tagName", bean.get("tagName"));
-            m.put("title", bean.get("title"));
-            m.put("desc", bean.get("desc"));
-            m.put("userPhoto", bean.get("userPhoto"));
-            m.put("userId", bean.get("userId"));
-            m.put("browseTime", DateUtil.getTimeAndToString());
-            beans.add(m);
-            jedisClient.set(keys, JSONUtil.toJsonStr(beans));
-        } else {
-            beans = JSONUtil.toList(jedisClient.get(keys), null);
-            // 用户之前是否浏览过当前帖子，浏览过则更改浏览时间为当前时间
-            boolean ifexist = false;
-            for (Map<String, Object> m : beans) {
-                if (m.get("forumId").toString().equals(forumId)) {
-                    m.put("tagName", bean.get("tagName"));
-                    m.put("title", bean.get("title"));
-                    m.put("desc", bean.get("desc"));
-                    m.put("userPhoto", bean.get("userPhoto"));
-                    m.put("userId", bean.get("userId"));
-                    m.put("browseTime", DateUtil.getTimeAndToString());
-                    ifexist = true;
-                }
-            }
-            if (!ifexist) {
-                // 没有浏览过则新增
-                Map<String, Object> m = new HashMap<>();
-                m.put("forumId", forumId);
-                m.put("tagName", bean.get("tagName") == null ? "" : bean.get("tagName"));
-                m.put("title", bean.get("title"));
-                m.put("desc", bean.get("desc"));
-                m.put("userPhoto", bean.get("userPhoto"));
-                m.put("userId", bean.get("userId"));
-                m.put("browseTime", DateUtil.getTimeAndToString());
-                beans.add(m);
-            }
-            jedisClient.set(keys, JSONUtil.toJsonStr(beans));
-        }
-    }
+//    @Override
+//    public void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        Map<String, Object> bean = forumContentDao.queryForumContentMationToDetails(map);
+//        outputObject.setBean(bean);
+//        outputObject.settotal(1);
+//        String userId = inputObject.getLogParams().get("id").toString();
+//        String forumId = map.get("id").toString();
+//        // 获取、设置浏览量
+//        String key = ForumConstants.forumBrowseNumsByForumId(forumId);
+//        if (ToolUtil.isBlank(jedisClient.get(key))) {
+//            jedisClient.set(key, "1");
+//        } else {
+//            String oldnum = jedisClient.get(key);
+//            jedisClient.set(key, String.valueOf(Integer.parseInt(oldnum) + 1));
+//        }
+//        // 设置今日被浏览的帖子
+//        String browseKey = ForumConstants.forumEverydayBrowseIdsByTime(DateUtil.getYmdTimeAndToString());
+//        if (ToolUtil.isBlank(jedisClient.get(browseKey))) {
+//            jedisClient.set(browseKey, forumId);
+//            jedisClient.set(browseKey, forumId);
+//        } else {
+//            String str = jedisClient.get(browseKey);
+//            if (str.indexOf(forumId) == -1) {
+//                jedisClient.set(browseKey, str + "," + forumId);
+//            }
+//        }
+//        //新增浏览信息
+//        String keys = ForumConstants.forumBrowseMationByUserid(userId);
+//        List<Map<String, Object>> beans = new ArrayList<>();
+//        if (ToolUtil.isBlank(jedisClient.get(keys))) {
+//            // 用户之前是否浏览过帖子
+//            Map<String, Object> m = new HashMap<>();
+//            m.put("forumId", forumId);
+//            m.put("tagName", bean.get("tagName"));
+//            m.put("title", bean.get("title"));
+//            m.put("desc", bean.get("desc"));
+//            m.put("userPhoto", bean.get("userPhoto"));
+//            m.put("userId", bean.get("userId"));
+//            m.put("browseTime", DateUtil.getTimeAndToString());
+//            beans.add(m);
+//            jedisClient.set(keys, JSONUtil.toJsonStr(beans));
+//        } else {
+//            beans = JSONUtil.toList(jedisClient.get(keys), null);
+//            // 用户之前是否浏览过当前帖子，浏览过则更改浏览时间为当前时间
+//            boolean ifexist = false;
+//            for (Map<String, Object> m : beans) {
+//                if (m.get("forumId").toString().equals(forumId)) {
+//                    m.put("tagName", bean.get("tagName"));
+//                    m.put("title", bean.get("title"));
+//                    m.put("desc", bean.get("desc"));
+//                    m.put("userPhoto", bean.get("userPhoto"));
+//                    m.put("userId", bean.get("userId"));
+//                    m.put("browseTime", DateUtil.getTimeAndToString());
+//                    ifexist = true;
+//                }
+//            }
+//            if (!ifexist) {
+//                // 没有浏览过则新增
+//                Map<String, Object> m = new HashMap<>();
+//                m.put("forumId", forumId);
+//                m.put("tagName", bean.get("tagName") == null ? "" : bean.get("tagName"));
+//                m.put("title", bean.get("title"));
+//                m.put("desc", bean.get("desc"));
+//                m.put("userPhoto", bean.get("userPhoto"));
+//                m.put("userId", bean.get("userId"));
+//                m.put("browseTime", DateUtil.getTimeAndToString());
+//                beans.add(m);
+//            }
+//            jedisClient.set(keys, JSONUtil.toJsonStr(beans));
+//        }
+//    }
 
     /**
      * 获取最新帖子
@@ -367,38 +363,11 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    /*@Override
+    @Override
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         map.put("userId", inputObject.getLogParams().get("id"));
         List<Map<String, Object>> beans = forumContentDao.queryNewForumContentList(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
-    }*/
-    @Override
-    public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
-                .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                        .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
-        List<ForumContent> bean = list(queryWrapper);
-        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
-        List<ForumContent> beans = bean.stream().map(item -> {
-            //如果时匿名的
-            if (item.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
-                Map<String, Object> createMation = item.getCreateMation();
-                createMation.put("picture", "/images/upload/wallPost/1726212288676.jpg");
-            }
-            return item;
-        }).collect(Collectors.toList());
-        // 取前20条
-        if (beans.size() > 20) {
-            beans = beans.subList(0, 20);
-        }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
