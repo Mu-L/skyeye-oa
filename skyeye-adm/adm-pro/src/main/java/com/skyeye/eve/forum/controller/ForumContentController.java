@@ -117,7 +117,6 @@ public class ForumContentController {
         forumContentService.queryNewForumContentList(inputObject, outputObject);
     }*/
     @ApiOperation(id = "queryNewForumContentList", value = "获取最新帖子", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryNewForumContentList")
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewForumContentList(inputObject, outputObject);
