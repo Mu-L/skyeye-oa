@@ -8,6 +8,15 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+/**
+ * @ClassName: ForumTag
+ * @Description: 论坛标签实体类
+ * @author: skyeye云系列--卫志强
+ * @date: 2022/8/9 9:22
+ * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+
 @Data
 @ApiModel(value = "论坛标签实体类")
 @TableName("forum_tag")
@@ -22,7 +31,7 @@ public class ForumTag extends OperatorUserInfo {
     private String tagName;
 
     @TableField(value = "order_by")
-    @ApiModelProperty(value = "排序，值越大越往后", defaultValue = "1")
+    @ApiModelProperty(value = "排序，值越大越往后")
     private Integer orderBy;
 
     @TableField(value = "state")

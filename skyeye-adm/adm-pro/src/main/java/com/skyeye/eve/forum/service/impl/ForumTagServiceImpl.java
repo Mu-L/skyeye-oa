@@ -19,7 +19,9 @@ import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumTagDao;
 import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumTagService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -38,6 +40,8 @@ import java.util.List;
 @SkyeyeService(name = "论坛标签管理", groupName = "论坛标签管理")
 public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, ForumTag> implements ForumTagService {
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     /**
      * 查出所有论坛标签列表
@@ -60,8 +64,18 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
                 .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
                 .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> list = list(queryWrapper);
+        iAuthUserService.setName(list, "createId","createName");
+        iAuthUserService.setName(list, "lastUpdateId","lastUpdateName");
         outputObject.setBeans(list);
         outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public ForumTag selectById(String id) {
+        ForumTag forumTag = super.selectById(id);
+        iAuthUserService.setName(forumTag, "createId","createName");
+        iAuthUserService.setName(forumTag, "lastUpdateId","lastUpdateName");
+        return forumTag;
     }
 
     @Override
@@ -88,7 +102,6 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         int count = (int) count(wrapper);
         entity.setOrderBy(count + CommonNumConstants.NUM_ONE);
     }
-
 
     /**
      * 删除论坛标签
@@ -213,6 +226,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.UP_LINE.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> beans = list(queryWrapper);
+        iAuthUserService.setName(beans, "createId","createName");
+        iAuthUserService.setName(beans, "lastUpdateId","lastUpdateName");
         outputObject.setBean(beans);
         outputObject.settotal(page.getTotal());
     }
