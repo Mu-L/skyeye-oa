@@ -12,9 +12,11 @@
                  shop_meal_order a,
                  shop_store b
              WHERE a.store_id = b.id
-             AND a.state IN (2, 3)
+            <foreach collection="mealStateList" item="state" separator="," open=" AND a.state in(" close=")">
+                #{state}
+            </foreach>
             <if test="areaId != '' and areaId != null">
-                AND b.area_id = #{areaId}
+                AND b.shop_area_id = #{areaId}
             </if>
             <if test="storeId != '' and storeId != null">
                 AND a.store_id = #{storeId}
@@ -36,9 +38,11 @@
             shop_meal_order a,
             shop_store b
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
+        <foreach collection="mealStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -61,11 +65,13 @@
             shop_meal_order_child f,
             shop_meal_order g
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
+        <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         AND f.order_id = g.id
         AND f.id = a.meal_order_child_id
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -88,11 +94,13 @@
             shop_meal_order_child f,
             shop_meal_order g
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
+        <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         AND f.order_id = g.id
         AND f.id = a.meal_order_child_id
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -124,9 +132,11 @@
                     shop_meal_order a,
                     shop_store b
                 WHERE a.store_id = b.id
-                AND a.state IN (2, 3)
+                <foreach collection="mealStateList" item="state" separator="," open=" AND a.state in(" close=")">
+                    #{state}
+                </foreach>
                 <if test="areaId != '' and areaId != null">
-                    AND b.area_id = #{areaId}
+                    AND b.shop_area_id = #{areaId}
                 </if>
                 <if test="natureId != '' and natureId != null">
                     AND a.nature_id = #{natureId}
@@ -145,9 +155,11 @@
             shop_meal_order a,
             shop_store b
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
+        <foreach collection="mealStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -172,11 +184,13 @@
             shop_meal_order_child f,
             shop_meal_order g
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
         AND f.order_id = g.id
         AND f.id = a.meal_order_child_id
+        <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -199,9 +213,11 @@
             shop_meal_order a,
             shop_store b
         WHERE a.store_id = b.id
-        AND a.state IN (2, 3)
+        <foreach collection="mealStateList" item="state" separator="," open=" AND a.state in(" close=")">
+            #{state}
+        </foreach>
         <if test="areaId != '' and areaId != null">
-            AND b.area_id = #{areaId}
+            AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
@@ -236,11 +252,13 @@
                 shop_meal_order_child f,
                 shop_meal_order g
             WHERE a.store_id = b.id
-            AND a.state IN (2, 3)
             AND f.order_id = g.id
             AND f.id = a.meal_order_child_id
+            <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
+                #{state}
+            </foreach>
             <if test="areaId != '' and areaId != null">
-                AND b.area_id = #{areaId}
+                AND b.shop_area_id = #{areaId}
             </if>
             <if test="natureId != '' and natureId != null">
                 AND g.nature_id = #{natureId}

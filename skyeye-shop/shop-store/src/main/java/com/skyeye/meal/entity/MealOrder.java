@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.meal.classenum.ShopMealOrderState;
 import com.skyeye.store.entity.ShopStore;
 import lombok.Data;
 
@@ -67,7 +68,7 @@ public class MealOrder extends OperatorUserInfo {
     private String payTime;
 
     @TableField("state")
-    @Property(value = "单据状态，参考#ShopMealOrderState")
+    @Property(value = "单据状态", enumClass = ShopMealOrderState.class)
     private Integer state;
 
     @TableField("type")
