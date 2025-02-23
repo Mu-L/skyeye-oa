@@ -112,6 +112,12 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    /*@RequestMapping("/post/ForumContentController/queryNewForumContentList")
+    public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.queryNewForumContentList(inputObject, outputObject);
+    }*/
+    @ApiOperation(id = "queryNewForumContentList", value = "获取最新帖子", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryNewForumContentList")
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewForumContentList(inputObject, outputObject);

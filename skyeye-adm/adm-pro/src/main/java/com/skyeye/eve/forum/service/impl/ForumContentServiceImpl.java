@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -31,6 +32,7 @@ import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import com.skyeye.eve.forum.service.ForumTagService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
 import org.apache.solr.client.solrj.SolrClient;
@@ -76,6 +78,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Autowired
     public JedisClientService jedisClient;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     private SolrClient solrClient;
 
     /**
@@ -92,8 +97,8 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId)
-            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<Map<String, Object>> beans = listMaps(queryWrapper);
         for (Map<String, Object> bean : beans) {
             String createTime = ToolUtil.timeFormat(bean.get("createTime").toString());
@@ -362,11 +367,38 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @Override
+    /*@Override
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         map.put("userId", inputObject.getLogParams().get("id"));
         List<Map<String, Object>> beans = forumContentDao.queryNewForumContentList(map);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }*/
+    @Override
+    public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
+                .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                        .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> bean = list(queryWrapper);
+        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
+        List<ForumContent> beans = bean.stream().map(item -> {
+            //如果时匿名的
+            if (item.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
+                Map<String, Object> createMation = item.getCreateMation();
+                createMation.put("picture", "/images/upload/wallPost/1726212288676.jpg");
+            }
+            return item;
+        }).collect(Collectors.toList());
+        // 取前20条
+        if (beans.size() > 20) {
+            beans = beans.subList(0, 20);
+        }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
