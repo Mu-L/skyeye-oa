@@ -16,7 +16,7 @@
 			a.report_type_id reportTypeId,
 			a.examine_state examineState,
 			a.report_other_content reportContent,
-			a.report_desc reportDesc,
+			a.report_desc reportDesc,forum_appeal
 			b.user_name reportUser,
 			CONVERT(a.report_time, char) reportTime
 		FROM

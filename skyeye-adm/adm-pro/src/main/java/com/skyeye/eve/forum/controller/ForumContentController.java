@@ -121,10 +121,10 @@ public class ForumContentController {
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewForumContentList(inputObject, outputObject);
     }
-
+//---------------------------------------------------------------------------------------------------
     /**
      * 新增帖子评论
-     *
+     *---------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -146,7 +146,7 @@ public class ForumContentController {
 
     /**
      * 新增帖子评论回复
-     *
+     *----------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -172,6 +172,8 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryForumMyBrowerList", value = "获取我的浏览信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryForumMyBrowerList")
     public void queryForumMyBrowerList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryForumMyBrowerList(inputObject, outputObject);
