@@ -140,6 +140,4 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
         });
         return result;
     }
-
-
 }

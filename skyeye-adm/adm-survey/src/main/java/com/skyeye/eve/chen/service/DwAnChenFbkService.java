@@ -6,7 +6,11 @@ package com.skyeye.eve.chen.service;
 
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenFbk;
+
+import java.util.List;
 
 /**
  * @ClassName: DwAnChenFbkService
@@ -18,7 +22,9 @@ import com.skyeye.eve.chen.entity.DwAnChenFbk;
  */
 public interface DwAnChenFbkService extends SkyeyeBusinessService<DwAnChenFbk> {
 
+    void queryDwAnChenFbkListById(InputObject inputObject, OutputObject outputObject);
 
+    List<DwAnChenFbk> selectBySurveyId(String surveyId);
 }
 
 

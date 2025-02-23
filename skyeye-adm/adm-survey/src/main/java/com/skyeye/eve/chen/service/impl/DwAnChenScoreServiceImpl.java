@@ -1,11 +1,19 @@
 package com.skyeye.eve.chen.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwAnChenScoreDao;
 import com.skyeye.eve.chen.entity.DwAnChenScore;
 import com.skyeye.eve.chen.service.DwAnChenScoreService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnChenScoreServiceImpl
@@ -16,9 +24,27 @@ import org.springframework.stereotype.Service;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 
-//@Service
-//@SkyeyeService(name = "答卷矩阵评分题", groupName = "答卷矩阵评分题", manageShow = false)
+@Service
+@SkyeyeService(name = "答卷矩阵评分题", groupName = "答卷矩阵评分题", manageShow = false)
 public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenScoreDao, DwAnChenScore> implements DwAnChenScoreService {
+
+    @Override
+    public void queryDwAnChenScoreListById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        List<DwAnChenScore> dwAnChenScoreList = list(queryWrapper);
+        outputObject.setBean(dwAnChenScoreList);
+        outputObject.settotal(dwAnChenScoreList.size());
+    }
+
+    @Override
+    public List<DwAnChenScore> selectBySurveyId(String surveyId) {
+        QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongId), surveyId);
+        return list(queryWrapper);
+    }
 
 }
 

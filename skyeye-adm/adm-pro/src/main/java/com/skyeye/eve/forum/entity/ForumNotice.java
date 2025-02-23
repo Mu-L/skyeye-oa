@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.forum.classenum.NotificationTypeEnum;
 import lombok.Data;
@@ -41,4 +42,8 @@ public class ForumNotice extends OperatorUserInfo {
     @TableField(value = "state")
     @ApiModelProperty(value = "通知状态  1.未读  2.已读", required = "required")
     private Integer state;
+
+    @TableField(exist = false)
+    @Property(value = "forumContent")
+    private ForumContent forumContentMation;
 }

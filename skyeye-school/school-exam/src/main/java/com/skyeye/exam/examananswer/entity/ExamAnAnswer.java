@@ -21,6 +21,7 @@ import lombok.Data;
 @TableName(value = "exam_an_answer")
 @ApiModel("答卷/问答题保存表实体类")
 public class ExamAnAnswer extends CommonInfo {
+
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;

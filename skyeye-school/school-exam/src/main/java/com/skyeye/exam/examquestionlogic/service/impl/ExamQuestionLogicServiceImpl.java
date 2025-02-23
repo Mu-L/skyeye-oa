@@ -32,11 +32,11 @@ import java.util.Map;
 public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuestionLogicDao, ExamQuestionLogic> implements ExamQuestionLogicService {
 
     @Override
-    public List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId) {
+    public List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> questionLogic, String userId) {
         List<ExamQuestionLogic> insertList = new ArrayList<>();
         List<ExamQuestionLogic> editList = new ArrayList<>();
-        for (int i = 0; i < logicStr.size(); i++) {
-            ExamQuestionLogic logic = logicStr.get(i);
+        for (int i = 0; i < questionLogic.size(); i++) {
+            ExamQuestionLogic logic = questionLogic.get(i);
             ExamQuestionLogic bean = new ExamQuestionLogic();
             bean.setCkQuId(logic.getCkQuId());
             bean.setTitle(logic.getTitle());
@@ -62,10 +62,10 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
             }
         }
         if (!insertList.isEmpty()) {
-            createEntity(logicStr, userId);
+            createEntity(questionLogic, userId);
         }
         if (!editList.isEmpty()) {
-            updateEntity(logicStr, userId);
+            updateEntity(questionLogic, userId);
         }
         insertList.addAll(editList);
         return insertList;
@@ -75,7 +75,6 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
     public List<ExamQuestionLogic> selectByQuestionId(String ckQuId) {
         QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), ckQuId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
         List<ExamQuestionLogic> list = list(queryWrapper);
         return list;
     }

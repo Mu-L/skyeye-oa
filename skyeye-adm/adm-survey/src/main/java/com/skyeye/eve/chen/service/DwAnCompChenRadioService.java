@@ -6,7 +6,11 @@ package com.skyeye.eve.chen.service;
 
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnCompChenRadio;
+
+import java.util.List;
 
 /**
  * @ClassName: DwAnCompChenRadioService
@@ -17,4 +21,7 @@ import com.skyeye.eve.chen.entity.DwAnCompChenRadio;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 public interface DwAnCompChenRadioService extends SkyeyeBusinessService<DwAnCompChenRadio> {
+    void queryDwAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject);
+
+    List<DwAnCompChenRadio> selectBySurveyId(String surveyId);
 }

@@ -5,8 +5,12 @@
 package com.skyeye.eve.chen.service;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwQuChenRowService
@@ -17,4 +21,19 @@ import com.skyeye.eve.chen.entity.DwQuChenRow;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 public interface DwQuChenRowService  extends SkyeyeBusinessService<DwQuChenRow>{
+    QueryWrapper<DwQuChenRow> QueryExamQuChenRowList(String holderId);
+
+    void saveRowEntity(List<DwQuChenRow> quRow, String userId);
+
+    void updateRowEntity(List<DwQuChenRow> editquRow, String userId);
+
+    Integer QueryvisibilityInRow(String quId, String createId);
+
+    void changeVisibility(String quId, String createId);
+
+    void removeByQuId(String quId);
+
+    List<DwQuChenRow> selectQuChenRow(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

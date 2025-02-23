@@ -24,7 +24,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "试卷管理", groupName = "试卷管理")
+@SkyeyeService(name = "枚举题答案管理", groupName = "枚举题答案管理")
 public class ExamAnEnumquServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnEnumquDao, ExamAnEnumqu> implements ExamAnEnumquService {
 
     @Override

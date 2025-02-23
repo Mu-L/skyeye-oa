@@ -9,9 +9,25 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
+import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
+import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
+import com.skyeye.eve.chen.entity.DwAnChenRadio;
+import com.skyeye.eve.chen.entity.DwQuChenColumn;
+import com.skyeye.eve.chen.entity.DwQuChenRow;
+import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
+import com.skyeye.eve.order.entity.DwAnOrder;
+import com.skyeye.eve.orderby.entity.DwQuOrderby;
+import com.skyeye.eve.radio.entity.DwAnRadio;
+import com.skyeye.eve.radio.entity.DwQuRadio;
+import com.skyeye.eve.score.entity.DwAnScore;
+import com.skyeye.eve.score.entity.DwQuScore;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: DwQuestion
@@ -25,7 +41,7 @@ import lombok.Data;
 @UniqueField
 @TableName(value = "dw_question")
 @ApiModel(value = "问题表实体类")
-public class DwQuestion extends CommonInfo {
+public class DwQuestion extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -35,12 +51,16 @@ public class DwQuestion extends CommonInfo {
     @ApiModelProperty(value = "填空的input行")
     private Integer answerInputRow;
 
+    @TableField("fraction")
+    @ApiModelProperty(value = "每道题的分数，不能小于1")
+    private Integer fraction;
+
     @TableField("answer_input_width")
     @ApiModelProperty(value = "填空的input宽度")
     private Integer answerInputWidth;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属问卷或题库", required = "required")
+    @ApiModelProperty(value = "所属问卷或题库")
     private String belongId;
 
     @TableField("cell_count")
@@ -54,7 +74,6 @@ public class DwQuestion extends CommonInfo {
     @TableField("contacts_attr")
     @ApiModelProperty(value = "1关联到联系人属性  0不关联到联系人属性")
     private Integer contactsAttr;
-
 
     @TableField("contacts_field")
     @ApiModelProperty(value = "关联的联系人字段")
@@ -117,7 +136,7 @@ public class DwQuestion extends CommonInfo {
     private Integer randOrder;
 
     @TableField("tag")
-    @ApiModelProperty(value = "标记     1题库中的题   2问卷中的题")
+    @ApiModelProperty(value = "标记  1题库中的题   2问卷中的题")
     private Integer tag;
 
     @TableField("visibility")
@@ -128,9 +147,75 @@ public class DwQuestion extends CommonInfo {
     @ApiModelProperty(value = "是非题的选项 ")
     private Integer yesno_option;
 
-    @TableField("datetime")
-    @ApiModelProperty(value = "创建时间")
-    private String datetime;
+    @TableField("is_public")
+    @ApiModelProperty(value = "是否公开  0公开  1私有", defaultValue = "0")
+    private Integer isPublic;
 
+    @TableField("is_delete")
+    @ApiModelProperty(value = "0表示问题已经删除，1.表示未删除，默认为1")
+    private Integer isDelete;
 
+    @TableField("file_type")
+    @ApiModelProperty(value = "试题类型，0.默认没有，1.视频，2.音频，3.图片", required = "required")
+    private Integer fileType;
+
+    @TableField("whether_upload")
+    @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否", required = "required")
+    private Integer whetherUpload;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "单选题选项信息", required = "json")
+    private List<DwQuRadio> radioTd;
+
+    @TableField(exist = false)
+    @Property(value = "单选题答案信息")
+    private DwAnRadio radioAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "评分题选项信息", required = "json")
+    private List<DwQuScore> scoreTd;
+
+    @TableField(exist = false)
+    @Property(value = "评分题答案信息")
+    private List<DwAnScore> scoreAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "多选题选项信息", required = "json")
+    private List<DwQuCheckbox> checkboxTd;
+
+    @TableField(exist = false)
+    @Property(value = "多选题答案信息")
+    private List<DwAnCheckbox> checkboxAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-列选项信息", required = "json")
+    private List<DwQuChenColumn> columnTd;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-列选项信息答案")
+    private DwAnChenRadio chenAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-行选项信息", required = "json")
+    private List<DwQuChenRow> rowTd;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-行选项信息答案")
+    private List<DwAnChenCheckbox> chenRowAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "多行填空题选项信息", required = "json")
+    private List<DwQuMultiFillblank> multifillblankTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "排序题选项信息", required = "json")
+    private List<DwQuOrderby> orderbyTd;
+
+    @TableField(exist = false)
+    @Property(value = "排序题答案信息")
+    private List<DwAnOrder> orderbyAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
+    private List<DwQuestionLogic> questionLogic;
 }

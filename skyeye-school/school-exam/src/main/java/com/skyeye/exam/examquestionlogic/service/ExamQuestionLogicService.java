@@ -15,7 +15,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQuestionLogic> {
-    List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> logicStr, String userId);
+    List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> questionLogic, String userId);
 
     List<ExamQuestionLogic> selectByQuestionId(String ckQuId);
 

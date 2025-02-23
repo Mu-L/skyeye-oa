@@ -31,6 +31,10 @@ public class DwAnChenCheckbox extends CommonInfo {
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("qu_id")
+    @ApiModelProperty(value = "belongId" )
+    private String quId;
+
     @TableField("belong_answer_id")
     @ApiModelProperty(value = "belongAnswerId" )
     private String belongAnswerId;

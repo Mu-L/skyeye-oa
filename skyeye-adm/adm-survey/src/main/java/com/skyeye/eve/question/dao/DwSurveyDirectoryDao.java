@@ -12,8 +12,19 @@ package com.skyeye.eve.question.dao;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye-report Inc. All rights reserved.
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
-//public interface DwSurveyDirectoryDao extends SkyeyeBaseMapper<DwSurveyDirectory> {
-//
-//}
+
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.eve.question.entity.DwSurveyDirectory;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
+
+public interface DwSurveyDirectoryDao extends SkyeyeBaseMapper<DwSurveyDirectory> {
+
+    Map<String, Object> querySurveyMationById(@Param("id") String id);
+
+    int editSurveyStateToEndNumZdById(Map<String, Object> map);
+
+}
 
 

@@ -36,6 +36,10 @@ public class DwQuScore extends CommonInfo {
     @ApiModelProperty(value = "所属题", required = "required")
     private String quId;
 
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题", required = "required")
+    private String belongId;
+
     @TableField("option_name")
     @ApiModelProperty(value = "选项内容")
     private String optionName;
@@ -60,6 +64,9 @@ public class DwQuScore extends CommonInfo {
     @ApiModelProperty(value = "创建时间", required = "required")
     private String createTime;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "选项id")
+    private String optionId;
 
 }
 

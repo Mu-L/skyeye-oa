@@ -9,6 +9,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @ClassName: ShopMealOrderType
  * @Description: 套餐订单来源枚举类
@@ -32,5 +36,9 @@ public enum ShopMealOrderState implements SkyeyeEnumClass {
     private Boolean show;
 
     private Boolean isDefault;
+
+    public static List<Integer> getAllKey() {
+        return Arrays.stream(ShopMealOrderState.values()).map(ShopMealOrderState::getKey).collect(Collectors.toList());
+    }
 
 }

@@ -3,14 +3,14 @@
  ******************************************************************************/
 package com.skyeye.eve.radio.entity;
 
-    import com.baomidou.mybatisplus.annotation.TableField;
-    import com.baomidou.mybatisplus.annotation.TableId;
-    import com.baomidou.mybatisplus.annotation.TableName;
-    import com.skyeye.annotation.api.ApiModel;
-    import com.skyeye.annotation.api.ApiModelProperty;
-    import com.skyeye.annotation.unique.UniqueField;
-    import com.skyeye.common.entity.CommonInfo;
-    import lombok.Data;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.annotation.api.ApiModel;
+import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.entity.features.OperatorUserInfo;
+import lombok.Data;
 
 /**
  * @ClassName: DwQuRadio
@@ -25,7 +25,7 @@ package com.skyeye.eve.radio.entity;
 @UniqueField
 @TableName(value = "dw_qu_radio")
 @ApiModel(value = "单选题选项实体类")
-public class DwQuRadio extends CommonInfo {
+public class DwQuRadio extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -34,6 +34,10 @@ public class DwQuRadio extends CommonInfo {
     @TableField("qu_id")
     @ApiModelProperty(value = "所属题", required = "required")
     private String quId;
+
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属问卷id")
+    private String belongId;
 
     @TableField("option_name")
     @ApiModelProperty(value = "选项内容", required = "required")
@@ -63,12 +67,12 @@ public class DwQuRadio extends CommonInfo {
     @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
     private Integer visibility;
 
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
+    @TableField("is_default_answer")
+    @ApiModelProperty(value = "是否是默认答案  1.是  2.否")
+    private Integer isDefaultAnswer;
 
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private String createTime;
+    @TableField(exist = false)
+    @ApiModelProperty(value = "选项id")
+    private String optionId;
 
 }
