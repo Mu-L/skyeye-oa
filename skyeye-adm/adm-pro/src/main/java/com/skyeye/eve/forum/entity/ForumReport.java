@@ -6,14 +6,17 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.forum.classenum.ExamineStateEnum;
 import lombok.Data;
+
+import java.time.Period;
+import java.util.Map;
 
 @Data
 @TableName("forum_report")
 @ApiModel(value = "论坛举报实体类")
-public class ForumReport extends CommonInfo {
+public class ForumReport extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -22,6 +25,10 @@ public class ForumReport extends CommonInfo {
     @TableField(value = "forum_id")
     @ApiModelProperty(value = "所属话题id", required = "required")
     private String forumId;
+
+    @TableField(exist = false)
+    @Property(value = "所属话题信息")
+    private Map<String, Object> forumMation;
 
     @TableField(value = "report_type_id")
     @ApiModelProperty(value = "举报类型id", required = "required")
@@ -47,6 +54,10 @@ public class ForumReport extends CommonInfo {
     @Property(value = "审核人id")
     private String examineId;
 
+    @TableField(exist = false)
+    @Property(value = "审核人信息")
+    private Map<String, Object> examineMation;
+
     @TableField(value = "examine_time")
     @Property(value = "审核时间")
     private String examineTime;
@@ -55,11 +66,11 @@ public class ForumReport extends CommonInfo {
     @Property(value = "举报人id")
     private String reportId;
 
+    @TableField(exist = false)
+    @Property(value = "举报人信息")
+    private Map<String, Object> reportMation;
+
     @TableField(value = "report_time")
     @Property(value = "举报时间")
     private String reportTime;
-
-    @TableField(value = "tenant_id")
-    @ApiModelProperty(value = "租户id")
-    private String tenantId;
 }

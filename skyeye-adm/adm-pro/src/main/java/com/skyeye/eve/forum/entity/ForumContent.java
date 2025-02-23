@@ -5,15 +5,18 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.eve.forum.classenum.ContentStateEnum;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
 @ApiModel("论坛话题实体类")
 @TableName("forum_content")
-public class ForumContent extends CommonInfo {
+public class ForumContent extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -32,20 +35,16 @@ public class ForumContent extends CommonInfo {
     private Integer state;
 
     @TableField(value = "report_state")
-    @ApiModelProperty(value = "举报状态  1.正常  2.已举报", required = "required")
+    @ApiModelProperty(value = "举报状态  1.正常  2.已举报", required = "required", enumClass = ContentStateEnum.class)
     private Integer reportState;
 
     @TableField(value = "tag_id")
-    @ApiModelProperty(value = "所属标签，最多三个标签",required = "required")
+    @ApiModelProperty(value = "所属标签，最多三个标签", required = "required")
     private String tagId;
 
-    @TableField(value = "create_id")
-    @Property(value = "创建人id")
-    private String createId;
-
-    @TableField(value = "create_time")
-    @Property(value = "创建时间")
-    private String createTime;
+    @TableField(exist = false)
+    @ApiModelProperty(value = "标签列表")
+    private List<Map<String, Object>> tagList;
 
     @TableField(value = "forum_title")
     @ApiModelProperty(value = "标题", required = "required")
@@ -56,10 +55,6 @@ public class ForumContent extends CommonInfo {
     private String forumDesc;
 
     @TableField(value = "anonymous")
-    @ApiModelProperty(value = "是否匿名发帖  1.不是匿名发帖  2.匿名发帖", required = "required",enumClass = WhetherEnum.class)
+    @ApiModelProperty(value = "是否匿名发帖  1.不是匿名发帖  2.匿名发帖", required = "required", enumClass = WhetherEnum.class)
     private Integer anonymous;
-
-    @TableField(value = "tenant_id")
-    @ApiModelProperty(value = "租户id")
-    private String tenantId;
 }

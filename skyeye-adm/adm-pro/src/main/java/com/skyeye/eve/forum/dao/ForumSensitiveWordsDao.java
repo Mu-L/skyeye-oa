@@ -12,7 +12,7 @@ import java.util.Map;
 
 public interface ForumSensitiveWordsDao extends SkyeyeBaseMapper<ForumSensitiveWords> {
 
-//    List<Map<String, Object>> queryForumSensitiveWordsList(Map<String, Object> map);
+    List<Map<String, Object>> queryForumSensitiveWordsList(Map<String, Object> map);
 
     Map<String, Object> queryForumSensitiveWordsMationByName(Map<String, Object> map);
 

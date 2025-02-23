@@ -6,40 +6,45 @@ package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.*;
+import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.SensitiveWordInit;
+import com.skyeye.common.util.SensitivewordEngine;
+import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constans.ForumConstants;
+import com.skyeye.eve.forum.classenum.ContentStateEnum;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumContent;
-import com.skyeye.eve.forum.entity.ForumSensitiveWords;
+import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
-import com.skyeye.eve.forum.solr.Forum;
+import com.skyeye.eve.forum.service.ForumTagService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.beans.DocumentObjectBinder;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ForumContentServiceImpl
@@ -63,12 +68,14 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     private ForumSensitiveWordsDao forumSensitiveWordsDao;
 
     @Autowired
+    private ForumTagService forumTagService;
+
+    @Autowired
     private ForumSensitiveWordsService forumSensitiveWordsService;
 
     @Autowired
     public JedisClientService jedisClient;
 
-    @Autowired
     private SolrClient solrClient;
 
     /**
@@ -79,10 +86,15 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryMyForumContentList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("userId", inputObject.getLogParams().get("id"));
-        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-        List<Map<String, Object>> beans = forumContentDao.queryMyForumContentList(map);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId)
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<Map<String, Object>> beans = listMaps(queryWrapper);
         for (Map<String, Object> bean : beans) {
             String createTime = ToolUtil.timeFormat(bean.get("createTime").toString());
             bean.put("createTime", createTime);
@@ -99,60 +111,27 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 新增我的帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    //    /**
+//     * 新增我的帖子
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
     @Override
-    public void createEntity(InputObject inputObject, OutputObject outputObject){
-        ForumContent forumContent = inputObject.getParams(clazz);
-        String id = super.createEntity(forumContent, inputObject.getLogParams().get("id").toString());
-        // 贴子对应的solr对象
-        Forum forum = new Forum();
-        forum.setId(forumContent.getId());
-        forum.setForumTitle(forumContent.getForumTitle());
-        // 纯文本内容
-        forum.setForumContent(forumContent.getForumContent());
-        forum.setForumDesc(forumContent.getForumDesc());
-        forum.setType(forumContent.getType().toString());
-        forum.setCreateId(forumContent.getCreateId());
-        try {
-            UpdateResponse response = solrClient.addBean(forum, 1000);
-            int status = response.getStatus();
-            if (status != 0) {
-                solrClient.rollback();
-                throw new CustomException("发布失败！");
-            } else {
-                if (StrUtil.isNotEmpty(id)) {
-                    solrClient.rollback();
-                    throw new CustomException("发布失败！");
-                }
-            }
-        } catch (Exception e) {
-            throw new CustomException("发布失败！");
+    public void validatorEntity(ForumContent forumContent) {
+        String str = querySensitiveWordsByMap(forumContent);
+        if (StrUtil.isNotEmpty(str)) {
+            throw new CustomException("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
+        } else {
+            forumContent.setState(CommonNumConstants.NUM_ONE);
+            forumContent.setReportState(CommonNumConstants.NUM_ONE);
+            // 贴子纯文本内容
+            String content = forumContent.getForumContent();
+            // 简介
+            forumContent.setForumDesc(content.length() > 400 ? content.substring(0, 400) : content);
         }
-        Map<String, Object> result = new HashMap<>();
-        result.put("id", id);
-        outputObject.setBean(result);
     }
 
-    @Override
-    public void createPrepose(ForumContent entity) {
-        // 新增之前&&校验之后的前置执行事件
-        String str = querySensitiveWordsByMap(entity);
-        if(StrUtil.isNotEmpty(str)){
-            throw new CustomException("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
-        }else {
-            entity.setState(CommonNumConstants.NUM_ONE);
-            entity.setReportState(CommonNumConstants.NUM_ONE);
-            // 贴子纯文本内容
-            String forumContent = entity.getForumContent();
-            // 简介
-            entity.setForumDesc(forumContent.length() > 400 ? forumContent.substring(0, 400) : forumContent);
-        }
-    }
 //    @Override
 //    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
 //    public void insertForumContentMation(InputObject inputObject, OutputObject outputObject) {
@@ -168,31 +147,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
 //            String content = map.get("textConent").toString();
 //            // 简介
 //            map.put("desc", content.length() > 400 ? content.substring(0, 400) : content);
-//            // 贴子对应的solr对象
-//            Forum forum = new Forum();
-//            forum.setId(map.get("id").toString());
-//            forum.setForumTitle(map.get("title").toString());
-//            // 纯文本内容
-//            forum.setForumContent(content);
-//            forum.setForumDesc(map.get("desc").toString());
-//            forum.setType(map.get("forumType").toString());
-//            forum.setCreateId(map.get("createId").toString());
-//            try {
-//                UpdateResponse response = solrClient.addBean(forum, 1000);
-//                int status = response.getStatus();
-//                if (status != 0) {
-//                    solrClient.rollback();
-//                    outputObject.setreturnMessage("发布失败！");
-//                } else {
-//                    int insert = forumContentDao.insertForumContentMation(map);
-//                    if (insert != 1) {
-//                        solrClient.rollback();
-//                        outputObject.setreturnMessage("发布失败！");
-//                    }
-//                }
-//            } catch (Exception e) {
-//                outputObject.setreturnMessage("发布失败！");
-//            }
 //        }
 //    }
 
@@ -202,26 +156,45 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
     public void deleteForumContentById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        try {
-            UpdateResponse response = solrClient.deleteById(map.get("id").toString(), 1000);
-            int status = response.getStatus();
-            if (status != 0) {
-                solrClient.rollback();
-            } else {
-                int delete = forumContentDao.deleteForumContentById(map);
-                if (delete != 1) {
-                    solrClient.rollback();
-                    outputObject.setreturnMessage("删除失败！");
-                }
-            }
-        } catch (Exception e) {
-            outputObject.setreturnMessage("删除失败！");
+        String contentId = inputObject.getParams().get("id").toString();
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        UpdateWrapper<ForumContent> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, contentId);
+        ForumContent one = getOne(updateWrapper);
+        if (one.getState() == ContentStateEnum.DELETE.getKey()) {
+            outputObject.setreturnMessage("该帖子已删除！");
+            return;
         }
+        if (!one.getCreateId().equals(currentUserId)) {
+            outputObject.setreturnMessage("该帖子不是你的！");
+            return;
+        }
+        updateWrapper.set(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.DELETE.getKey());
+        update(updateWrapper);
     }
+
+//    @Override
+//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+//    public void deleteForumContentById(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        try {
+//            UpdateResponse response = solrClient.deleteById(map.get("id").toString(), 1000);
+//            int status = response.getStatus();
+//            if (status != 0) {
+//                solrClient.rollback();
+//            } else {
+//                int delete = forumContentDao.deleteForumContentById(map);
+//                if (delete != 1) {
+//                    solrClient.rollback();
+//                    outputObject.setreturnMessage("删除失败！");
+//                }
+//            }
+//        } catch (Exception e) {
+//            outputObject.setreturnMessage("删除失败！");
+//        }
+//    }
 
     /**
      * 查询帖子信息用以编辑
@@ -239,65 +212,77 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(1);
     }
 
-    /**
-     * 编辑帖子信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+//    /**
+//     * 编辑帖子信息
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+//    @Override
+//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+//    public void editForumContentMationById(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+////        String str = querySensitiveWordsByMap(map);
+//        String str = "";
+//        if (str.length() > 0) {
+//            outputObject.setreturnMessage("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
+//        } else {
+//            // 贴子纯文本内容
+//            String content = map.get("textConent").toString();
+//            // 简介
+//            map.put("desc", content.length() > 400 ? content.substring(0, 400) : content);
+//            Map<String, Object> bean = forumContentDao.queryForumContentMationById(map);
+//            Forum forum = new Forum();
+//            forum.setId(map.get("id").toString());
+//            forum.setForumTitle(map.get("title").toString());
+//            // 纯文本内容
+//            forum.setForumContent(content);
+//            forum.setForumDesc(map.get("desc").toString());
+//            forum.setType(map.get("forumType").toString());
+//            forum.setCreateId(bean.get("createId").toString());
+//            try {
+//                UpdateResponse response = solrClient.deleteById(map.get("id").toString(), 1000);
+//                int delstatus = response.getStatus();
+//                if (delstatus != 0) {
+//                    solrClient.rollback();
+//                } else {
+//                    response = solrClient.addBean(forum, 1000);
+//                    int addstatus = response.getStatus();
+//                    if (addstatus != 0) {
+//                        solrClient.rollback();
+//                        outputObject.setreturnMessage("发布失败！");
+//                    } else {
+//                        int edit = forumContentDao.editForumContentMationById(map);
+//                        if (edit != 1) {
+//                            solrClient.rollback();
+//                            outputObject.setreturnMessage("发布失败！");
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                outputObject.setreturnMessage("发布失败！");
+//            }
+//        }
+//    }
+
+//    /**
+//     * 帖子详情
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editForumContentMationById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-//        String str = querySensitiveWordsByMap(map);
-        String str = "";
-        if (str.length() > 0) {
-            outputObject.setreturnMessage("该帖子包含以下敏感词：" + str.substring(0, str.length() - 1) + "！");
-        } else {
-            // 贴子纯文本内容
-            String content = map.get("textConent").toString();
-            // 简介
-            map.put("desc", content.length() > 400 ? content.substring(0, 400) : content);
-            Map<String, Object> bean = forumContentDao.queryForumContentMationById(map);
-            Forum forum = new Forum();
-            forum.setId(map.get("id").toString());
-            forum.setForumTitle(map.get("title").toString());
-            // 纯文本内容
-            forum.setForumContent(content);
-            forum.setForumDesc(map.get("desc").toString());
-            forum.setType(map.get("forumType").toString());
-            forum.setCreateId(bean.get("createId").toString());
-            try {
-                UpdateResponse response = solrClient.deleteById(map.get("id").toString(), 1000);
-                int delstatus = response.getStatus();
-                if (delstatus != 0) {
-                    solrClient.rollback();
-                } else {
-                    response = solrClient.addBean(forum, 1000);
-                    int addstatus = response.getStatus();
-                    if (addstatus != 0) {
-                        solrClient.rollback();
-                        outputObject.setreturnMessage("发布失败！");
-                    } else {
-                        int edit = forumContentDao.editForumContentMationById(map);
-                        if (edit != 1) {
-                            solrClient.rollback();
-                            outputObject.setreturnMessage("发布失败！");
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                outputObject.setreturnMessage("发布失败！");
-            }
-        }
+    public ForumContent selectById(String id) {
+        ForumContent forumContent = super.selectById(id);
+        List<ForumTag> forumTagList = forumTagService.selectByIds(forumContent.getTagId());
+        List<Map<String, Object>> tagList = forumTagList.stream().map(item -> {
+            return JSONUtil.<Map<String, Object>>toBean(JSONUtil.toJsonStr(item), null);
+        }).collect(Collectors.toList());
+        forumContent.setTagList(tagList);
+        return forumContent;
     }
 
-    /**
-     * 帖子详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -764,47 +749,47 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(1);
     }
 
-    /**
-     * solr同步数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void updateSolrSynchronousData(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans = forumContentDao.queryAllForumList(map);
-        DocumentObjectBinder binder = new DocumentObjectBinder();
-        try {
-            for (Map<String, Object> t : beans) {
-                Forum forum = new Forum();
-                forum.setId(t.get("id").toString());
-                forum.setForumTitle(t.get("title").toString());
-                forum.setForumContent(t.get("content").toString());
-                forum.setForumDesc(t.get("desc").toString());
-                forum.setType(t.get("forumType").toString());
-                forum.setCreateId(t.get("createId").toString());
-                SolrInputDocument doc = binder.toSolrInputDocument(forum);
-                solrClient.add(doc);
-            }
-            solrClient.commit();
-            String keys = ForumConstants.forumSolrSynchronoustime();
-            String nowTime = DateUtil.getTimeAndToString();
-            if (!ToolUtil.isBlank(jedisClient.get(keys))) {
-                jedisClient.del(keys);
-                jedisClient.set(keys, nowTime);
-            } else {
-                jedisClient.set(keys, nowTime);
-            }
-            map.put("synchronousTime", nowTime);
-        } catch (SolrServerException e) {
-            outputObject.setreturnMessage("同步失败！");
-        } catch (Exception e) {
-            outputObject.setreturnMessage("同步失败！");
-        }
-        outputObject.setBean(map);
-        outputObject.settotal(1);
-    }
+//    /**
+//     * solr同步数据
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+//    @Override
+//    public void updateSolrSynchronousData(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        List<Map<String, Object>> beans = forumContentDao.queryAllForumList(map);
+//        DocumentObjectBinder binder = new DocumentObjectBinder();
+//        try {
+//            for (Map<String, Object> t : beans) {
+//                Forum forum = new Forum();
+//                forum.setId(t.get("id").toString());
+//                forum.setForumTitle(t.get("title").toString());
+//                forum.setForumContent(t.get("content").toString());
+//                forum.setForumDesc(t.get("desc").toString());
+//                forum.setType(t.get("forumType").toString());
+//                forum.setCreateId(t.get("createId").toString());
+//                SolrInputDocument doc = binder.toSolrInputDocument(forum);
+//                solrClient.add(doc);
+//            }
+//            solrClient.commit();
+//            String keys = ForumConstants.forumSolrSynchronoustime();
+//            String nowTime = DateUtil.getTimeAndToString();
+//            if (!ToolUtil.isBlank(jedisClient.get(keys))) {
+//                jedisClient.del(keys);
+//                jedisClient.set(keys, nowTime);
+//            } else {
+//                jedisClient.set(keys, nowTime);
+//            }
+//            map.put("synchronousTime", nowTime);
+//        } catch (SolrServerException e) {
+//            outputObject.setreturnMessage("同步失败！");
+//        } catch (Exception e) {
+//            outputObject.setreturnMessage("同步失败！");
+//        }
+//        outputObject.setBean(map);
+//        outputObject.settotal(1);
+//    }
 
     /**
      * 获取我的帖子列表
@@ -878,7 +863,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * @return
      */
     public String querySensitiveWordsByMap(ForumContent forumContent) {
-        String content = forumContent.getForumTitle()+ "," + forumContent.getForumContent();
+        String content = forumContent.getForumTitle() + "," + forumContent.getForumContent();
         List<Map<String, Object>> sensitiveWords;
         if (ToolUtil.isBlank(jedisClient.get(ForumConstants.forumSensitiveWordsAll()))) {
             sensitiveWords = forumSensitiveWordsService.queryAllDataForMap();

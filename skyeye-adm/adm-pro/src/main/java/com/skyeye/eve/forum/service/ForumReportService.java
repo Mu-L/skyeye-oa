@@ -4,19 +4,22 @@
 
 package com.skyeye.eve.forum.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.forum.entity.ForumReport;
 
-public interface ForumReportService {
+public interface ForumReportService extends SkyeyeBusinessService<ForumReport> {
 
-    void insertForumReportMation(InputObject inputObject, OutputObject outputObject);
+//    void insertForumReportMation(InputObject inputObject, OutputObject outputObject);
 
-    void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject);
+//    void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject);
 
-    void editReportCheckMationById(InputObject inputObject, OutputObject outputObject);
+//    void editReportCheckMationById(InputObject inputObject, OutputObject outputObject);
 
-    void queryReportCheckedList(InputObject inputObject, OutputObject outputObject);
+//    void queryReportCheckedList(InputObject inputObject, OutputObject outputObject);
 
     void queryForumReportMationToDetails(InputObject inputObject, OutputObject outputObject);
 
+    void checkForumReport(InputObject inputObject, OutputObject outputObject);
 }

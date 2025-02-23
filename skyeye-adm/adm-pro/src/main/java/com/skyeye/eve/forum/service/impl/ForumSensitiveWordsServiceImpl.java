@@ -6,24 +6,19 @@ package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-
-import java.util.Map;
 
 /**
  * @ClassName: ForumSensitiveWordsServiceImpl
@@ -43,7 +38,11 @@ public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<Fo
     @Autowired
     private JedisClientService jedisClient;
 
-//    /**
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
+
+    //    /**
 //     * 查出所有论坛敏感词列表
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象
@@ -54,6 +53,9 @@ public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<Fo
 //        Map<String, Object> map = inputObject.getParams();
 //        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
 //        List<Map<String, Object>> beans = forumSensitiveWordsDao.queryForumSensitiveWordsList(map);
+//
+//        iAuthUserService.setDataMation();
+//
 //        outputObject.setBeans(beans);
 //        outputObject.settotal(pages.getTotal());
 //    }

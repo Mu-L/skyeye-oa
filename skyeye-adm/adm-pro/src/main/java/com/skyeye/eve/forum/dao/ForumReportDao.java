@@ -4,10 +4,13 @@
 
 package com.skyeye.eve.forum.dao;
 
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.eve.forum.entity.ForumReport;
+
 import java.util.List;
 import java.util.Map;
 
-public interface ForumReportDao {
+public interface ForumReportDao extends SkyeyeBaseMapper<ForumReport> {
 
     int insertForumReportMation(Map<String, Object> map);
 

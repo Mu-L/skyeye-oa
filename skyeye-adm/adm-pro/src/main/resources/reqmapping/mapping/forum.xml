@@ -149,39 +149,39 @@
     </url>
     <!-- 论坛帖子管理开始 -->
     
-    <!-- 论坛帖子举报管理开始 -->
-    <url id="forumreport001" path="/post/ForumReportController/insertForumReportMation" val="新增论坛举报信息" allUse="2">
-        <property id="forumId" name="forumId" ref="required" var="帖子id" />
-        <property id="reportType" name="reportType" ref="required" var="举报类型" />
-        <property id="reportContent" name="reportContent" ref="" var="举报内容" />
-        <property id="reportDesc" name="reportDesc" ref="" var="备注" />
-    </url>
-    <url id="forumreport002" path="/post/ForumReportController/queryReportNoCheckList" val="获取论坛举报未审核列表" allUse="1">
-        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-        <property id="reportTypeId" name="reportTypeId" ref="" var="举报类型" />
-        <property id="title" name="title" ref="" var="帖子标题" />
-        <property id="reportstartTime" name="reportstartTime" ref="" var="举报开始时间" />
-        <property id="reportendTime" name="reportendTime" ref="" var="举报结束时间" />
-    </url>
-    <url id="forumreport003" path="/post/ForumReportController/editReportCheckMationById" val="举报信息审核" allUse="1">
-        <property id="rowId" name="id" ref="required" var="举报id" />
-        <property id="examineState" name="examineState" ref="required" var="审核结果" />
-        <property id="examineNopassReason" name="examineNopassReason" ref="" var="审核不通过原因" />
-    </url>
-    <url id="forumreport004" path="/post/ForumReportController/queryReportCheckedList" val="获取论坛举报已审核列表" allUse="1">
-        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-        <property id="reportTypeId" name="reportTypeId" ref="" var="举报类型" />
-        <property id="title" name="title" ref="" var="帖子标题" />
-        <property id="reportstartTime" name="reportstartTime" ref="" var="举报开始时间" />
-        <property id="reportendTime" name="reportendTime" ref="" var="举报结束时间" />
-        <property id="examinestartTime" name="examinestartTime" ref="" var="审核开始时间" />
-        <property id="examineendTime" name="examineendTime" ref="" var="审核结束时间" />
-    </url>
-    <url id="forumreport005" path="/post/ForumReportController/queryForumReportMationToDetails" val="举报详情" allUse="2">
-        <property id="rowId" name="id" ref="required" var="举报id" />
-    </url>
+<!--    &lt;!&ndash; 论坛帖子举报管理开始 &ndash;&gt;-->
+<!--    <url id="forumreport001" path="/post/ForumReportController/insertForumReportMation" val="新增论坛举报信息" allUse="2">-->
+<!--        <property id="forumId" name="forumId" ref="required" var="帖子id" />-->
+<!--        <property id="reportType" name="reportType" ref="required" var="举报类型" />-->
+<!--        <property id="reportContent" name="reportContent" ref="" var="举报内容" />-->
+<!--        <property id="reportDesc" name="reportDesc" ref="" var="备注" />-->
+<!--    </url>-->
+<!--    <url id="forumreport002" path="/post/ForumReportController/queryReportNoCheckList" val="获取论坛举报未审核列表" allUse="1">-->
+<!--        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />-->
+<!--        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>-->
+<!--        <property id="reportTypeId" name="reportTypeId" ref="" var="举报类型" />-->
+<!--        <property id="title" name="title" ref="" var="帖子标题" />-->
+<!--        <property id="reportstartTime" name="reportstartTime" ref="" var="举报开始时间" />-->
+<!--        <property id="reportendTime" name="reportendTime" ref="" var="举报结束时间" />-->
+<!--    </url>-->
+<!--    <url id="forumreport003" path="/post/ForumReportController/editReportCheckMationById" val="举报信息审核" allUse="1">-->
+<!--        <property id="rowId" name="id" ref="required" var="举报id" />-->
+<!--        <property id="examineState" name="examineState" ref="required" var="审核结果" />-->
+<!--        <property id="examineNopassReason" name="examineNopassReason" ref="" var="审核不通过原因" />-->
+<!--    </url>-->
+<!--    <url id="forumreport004" path="/post/ForumReportController/queryReportCheckedList" val="获取论坛举报已审核列表" allUse="1">-->
+<!--        <property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />-->
+<!--        <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>-->
+<!--        <property id="reportTypeId" name="reportTypeId" ref="" var="举报类型" />-->
+<!--        <property id="title" name="title" ref="" var="帖子标题" />-->
+<!--        <property id="reportstartTime" name="reportstartTime" ref="" var="举报开始时间" />-->
+<!--        <property id="reportendTime" name="reportendTime" ref="" var="举报结束时间" />-->
+<!--        <property id="examinestartTime" name="examinestartTime" ref="" var="审核开始时间" />-->
+<!--        <property id="examineendTime" name="examineendTime" ref="" var="审核结束时间" />-->
+<!--    </url>-->
+<!--    <url id="forumreport005" path="/post/ForumReportController/queryForumReportMationToDetails" val="举报详情" allUse="2">-->
+<!--        <property id="rowId" name="id" ref="required" var="举报id" />-->
+<!--    </url>-->
     <!-- 论坛帖子举报管理开始 -->
 	
 </controller>

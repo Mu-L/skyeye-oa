@@ -19,7 +19,7 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
     void queryForumContentMationById(InputObject inputObject, OutputObject outputObject);
 
-    void editForumContentMationById(InputObject inputObject, OutputObject outputObject);
+//    void editForumContentMationById(InputObject inputObject, OutputObject outputObject);
 
     void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject);
 
@@ -49,7 +49,7 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
     void querySolrSynchronousTime(InputObject inputObject, OutputObject outputObject);
 
-    void updateSolrSynchronousData(InputObject inputObject, OutputObject outputObject);
+//    void updateSolrSynchronousData(InputObject inputObject, OutputObject outputObject);
 
     void queryMyCommentList(InputObject inputObject, OutputObject outputObject);
 
