@@ -19,4 +19,6 @@ public interface ExamSurveyMarkExamService extends SkyeyeBusinessService<ExamSur
     List<ExamSurveyMarkExam> selectBySurveyId(String id);
 
     void deleteSurveyMarkExamBySurveyId(String id);
+
+    List<ExamSurveyMarkExam> getExamSurveyMarkExamList(String examDirectoryId);
 }

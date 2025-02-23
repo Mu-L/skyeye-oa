@@ -5,7 +5,11 @@
 package com.skyeye.eve.checkbox.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
+
+import java.util.List;
 
 /**
  * @ClassName: DwAnCheckboxService
@@ -17,7 +21,11 @@ import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
  */
 public interface DwAnCheckboxService extends SkyeyeBusinessService<DwAnCheckbox> {
 
+    List<DwAnCheckbox> selectAnCheckBoxByQuId(String id);
 
+    void queryDwAnCheckboxListById(InputObject inputObject, OutputObject outputObject);
+
+    List<DwAnCheckbox> slectBySurveyId(String surveyId);
 }
 
 

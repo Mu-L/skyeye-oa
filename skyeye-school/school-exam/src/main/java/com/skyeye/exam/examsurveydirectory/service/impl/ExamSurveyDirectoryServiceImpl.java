@@ -229,11 +229,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String surveyName = map.get("surveyName").toString(); // 获取试卷名称
         ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
-        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), examDirectoryId);
-        List<ExamSurveyMarkExam> list = examSurveyMarkExamService.list(queryWrapper);
+        List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.getExamSurveyMarkExamList(examDirectoryId);
         StringBuilder readerList = new StringBuilder();
-        for (ExamSurveyMarkExam examSurveyMarkExam : list) {
+        for (ExamSurveyMarkExam examSurveyMarkExam : examSurveyMarkExamList) {
             String readerId = examSurveyMarkExam.getUserId();
             readerList.append(readerId).append(",");
         }

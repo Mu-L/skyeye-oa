@@ -158,11 +158,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         if (tag == null) {
             throw new CustomException("请设置题目标记");
         } else {
-            if (tag.equals(CommonNumConstants.NUM_ONE)) {}
-            else if (tag.equals(CommonNumConstants.NUM_TWO)) {
+            if (tag.equals(CommonNumConstants.NUM_ONE)) {
+            } else if (tag.equals(CommonNumConstants.NUM_TWO)) {
                 List<ExamQuestionLogic> questionLogic = entity.getQuestionLogic();
-                if (CollectionUtils.isEmpty(questionLogic)) {}
-                else {
+                if (CollectionUtils.isEmpty(questionLogic)) {
+                } else {
                     examQuestionLogicService.setLogics(quId, questionLogic, userId);
                 }
             } else {
@@ -299,7 +299,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
         for (Question question : questionList) {
             // 1 单选题
-            if(question.getQuType() == QuType.RADIO.getIndex()){
+            if (question.getQuType() == QuType.RADIO.getIndex()) {
                 List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(question.getId());
                 ExamAnRadio examAnRadio = examAnRadioService.selectById(question.getId());
                 question.setRadioTd(radioList);
@@ -307,7 +307,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 continue;
             }
             // 2 多选题
-            if(question.getQuType() == QuType.CHECKBOX.getIndex()){
+            if (question.getQuType() == QuType.CHECKBOX.getIndex()) {
                 List<ExamQuCheckbox> examQuCheckboxeList = examQuCheckboxService.selectQuChenbox(question.getId());
                 List<ExamAnCheckbox> examAnCheckboxes = examAnCheckboxService.selectAnCheckBoxByQuId(question.getId());
                 question.setCheckboxTd(examQuCheckboxeList);
@@ -315,7 +315,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 continue;
             }
             // 8 评分题
-            if(question.getQuType() == QuType.SCORE.getIndex()){
+            if (question.getQuType() == QuType.SCORE.getIndex()) {
                 List<ExamQuScore> scoreList = examQuScoreService.selectQuScore(question.getId());
                 List<ExamAnScore> examAnScoreList = examAnScoreService.selectAnScoreByQuId(question.getId());
                 question.setScoreTd(scoreList);
@@ -323,7 +323,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 continue;
             }
             // 9 排序题
-            if(question.getQuType() == QuType.ORDERQU.getIndex()){
+            if (question.getQuType() == QuType.ORDERQU.getIndex()) {
                 List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
                 List<ExamAnOrder> examAnOrderbyList = examAnOrderService.selectAnOrderByQuId(question.getId());
                 question.setOrderbyTd(orderbyList);
@@ -331,10 +331,10 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 continue;
             }
             // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE
-            if(question.getQuType() == QuType.CHENRADIO.getIndex() ||
-               question.getQuType() == QuType.CHENFBK.getIndex() ||
-               question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
-               question.getQuType() == QuType.CHENSCORE.getIndex()){
+            if (question.getQuType() == QuType.CHENRADIO.getIndex() ||
+                    question.getQuType() == QuType.CHENFBK.getIndex() ||
+                    question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
+                    question.getQuType() == QuType.CHENSCORE.getIndex()) {
                 List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
                 List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getId());
                 ExamAnChenRadio examAnChenRadio = examAnChenRadioService.selectById(question.getId());
@@ -416,7 +416,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 复制多选题或复合多选题
         else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
             List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getCopyFromId());
-            if (ObjUtil.isEmpty(examQuCheckboxList)) {
+            if (CollectionUtils.isEmpty(examQuCheckboxList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuCheckbox examQuCheckbox : examQuCheckboxList) {
@@ -429,7 +429,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 复制多空填空题
         else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
             List<ExamQuMultiFillblank> multiFillblanksList = examQuMultiFillblankService.selectQuMultiFillblank(question.getCopyFromId());
-            if (ObjUtil.isEmpty(multiFillblanksList)) {
+            if (CollectionUtils.isEmpty(multiFillblanksList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuMultiFillblank examQuMultiFillblank : multiFillblanksList) {
@@ -445,7 +445,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 quType.equals(QuType.COMPCHENRADIO.getActionName())) {
             List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getCopyFromId());
             List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getCopyFromId());
-            if (ObjUtil.isEmpty(examQuChenRowList) || ObjUtil.isEmpty(examQuChenColumnList)) {
+            if (CollectionUtils.isEmpty(examQuChenRowList) || CollectionUtils.isEmpty(examQuChenColumnList)) {
                 throw new CustomException("没有找到题目选项信息");
             }
             for (ExamQuChenRow examQuChenRow : examQuChenRowList) {

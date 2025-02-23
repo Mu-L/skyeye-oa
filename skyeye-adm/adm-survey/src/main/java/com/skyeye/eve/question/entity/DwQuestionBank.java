@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -23,9 +23,9 @@ import lombok.Data;
  */
 @Data
 @UniqueField
-@TableName(value = "dw_question")
+@TableName(value = "dw_question_bank")
 @ApiModel(value = "题库实体类")
-public class DwQuestionBank extends CommonInfo {
+public class DwQuestionBank extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -44,7 +44,7 @@ public class DwQuestionBank extends CommonInfo {
     private Integer bankState;
 
     @TableField("bank_tag")
-    @ApiModelProperty(value = "共享题库 0 官方库   1用户共享  2用户自己的库", required = "required")
+    @ApiModelProperty(value = "共享题库 0 官方库  1用户共享  2用户自己的库", required = "required")
     private Integer bankTag;
 
     @TableField("dir_type")
@@ -74,14 +74,6 @@ public class DwQuestionBank extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
     private Integer visibility;
-
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private String createTime;
 
 }
 

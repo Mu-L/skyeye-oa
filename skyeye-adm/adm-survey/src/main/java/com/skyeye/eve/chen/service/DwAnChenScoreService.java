@@ -6,7 +6,11 @@ package com.skyeye.eve.chen.service;
 
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenScore;
+
+import java.util.List;
 
 /**
  * @ClassName: DwAnChenScoreService
@@ -18,4 +22,7 @@ import com.skyeye.eve.chen.entity.DwAnChenScore;
  */
 public interface DwAnChenScoreService extends SkyeyeBusinessService<DwAnChenScore> {
 
+    void queryDwAnChenScoreListById(InputObject inputObject, OutputObject outputObject);
+
+    List<DwAnChenScore> selectBySurveyId(String surveyId);
 }

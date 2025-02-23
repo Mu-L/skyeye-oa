@@ -6,7 +6,11 @@ package com.skyeye.eve.chen.service;
 
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenRadio;
+
+import java.util.List;
 
 /**
  * @ClassName: DwAnChenRadioService
@@ -18,6 +22,8 @@ import com.skyeye.eve.chen.entity.DwAnChenRadio;
  */
 public interface DwAnChenRadioService extends SkyeyeBusinessService<DwAnChenRadio> {
 
+    void queryDwAnChenRadioListById(InputObject inputObject, OutputObject outputObject);
 
+    List<DwAnChenRadio> selectBySurveyId(String surveyId);
 }
 

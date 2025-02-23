@@ -1,7 +1,12 @@
 package com.skyeye.eve.radio.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.radio.entity.DwQuRadio;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwQuRadioService
@@ -12,4 +17,13 @@ import com.skyeye.eve.radio.entity.DwQuRadio;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 public interface DwQuRadioService extends SkyeyeBusinessService<DwQuRadio> {
+    void saveList(List<DwQuRadio> list, String quId, String userId);
+
+    void changeVisibility(InputObject inputObject, OutputObject outputObject);
+
+    void removeByQuId(String quId);
+
+    List<DwQuRadio> selectQuRadio(String copyFromId);
+
+    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 }

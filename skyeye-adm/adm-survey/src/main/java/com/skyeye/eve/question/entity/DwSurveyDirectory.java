@@ -39,6 +39,10 @@ public class DwSurveyDirectory extends CommonInfo {
     @ApiModelProperty(value = "问卷说明")
     private String surveyNote;
 
+    @TableField("fraction")
+    @ApiModelProperty(value = "总分数")
+    private Integer fraction;
+
     @TableField("survey_qu_num")
     @ApiModelProperty(value = "问卷下面有多少题目数", required = "required")
     private Integer surveyQuNum;
@@ -46,6 +50,10 @@ public class DwSurveyDirectory extends CommonInfo {
     @TableField("survey_state")
     @ApiModelProperty(value = "问卷状态  0默认设计状态  1执行中 2结束 ", required = "required")
     private Integer surveyState;
+
+    @TableField("whether_delete")
+    @ApiModelProperty(value = "是否删除  1.未删除  2.删除", required = "required")
+    private Integer whetherDelete;
 
     @TableField("real_start_time")
     @ApiModelProperty(value = "回答的题项目数 ---- 表示有些题下面会有多重回答")

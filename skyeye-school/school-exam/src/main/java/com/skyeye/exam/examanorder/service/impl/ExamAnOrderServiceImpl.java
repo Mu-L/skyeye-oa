@@ -10,9 +10,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examanorder.dao.ExamAnOrderDao;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
+import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,6 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
         outputObject.setBean(examAnOrderList);
         outputObject.settotal(examAnOrderList.size());
     }
-
     @Override
     public List<ExamAnOrder> selectBySurveyId(String surveyId) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
@@ -49,7 +48,7 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
     @Override
     public List<ExamAnOrder> selectAnOrderByQuId(String id) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId),id);
         return list(queryWrapper);
     }
 }

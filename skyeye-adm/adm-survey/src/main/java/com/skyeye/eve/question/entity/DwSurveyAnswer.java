@@ -9,9 +9,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * @ClassName: DwSurveyAnswer
@@ -37,11 +40,23 @@ public class DwSurveyAnswer extends CommonInfo {
 
     @TableField("bg_an_date")
     @ApiModelProperty(value = "回答开始时间", required = "required")
-    private String bgAnDate;
+    private LocalDateTime bgAnDate;
 
     @TableField("end_an_date")
     @ApiModelProperty(value = "回答结束时间", required = "required")
-    private String endAnDate;
+    private LocalDateTime endAnDate;
+
+    @TableField("mark_start_time")
+    @ApiModelProperty(value = "开始阅卷时间")
+    private LocalDateTime markStartTime;
+
+    @TableField("mark_end_time")
+    @ApiModelProperty(value = "结束阅卷时间")
+    private LocalDateTime markEndTime;
+
+    @TableField("state")
+    @ApiModelProperty(value = "教师是否阅卷  1.否  2.是")
+    private Integer state;
 
     @TableField("complete_num")
     @ApiModelProperty(value = "回答的题数")
@@ -59,6 +74,10 @@ public class DwSurveyAnswer extends CommonInfo {
     @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过", required = "required")
     private Integer handleState;
 
+    @TableField(exist = false)
+    @Property(value = "试卷信息")
+    private DwSurveyDirectory surveyMation;
+
     @TableField("ip_addr")
     @ApiModelProperty(value = "回答者IP")
     private String ipAddr;
@@ -70,6 +89,10 @@ public class DwSurveyAnswer extends CommonInfo {
     @TableField("city")
     @ApiModelProperty(value = "回答者城市 ")
     private String city;
+
+    @TableField("student_number")
+    @ApiModelProperty(value = "学号",required = "required")
+    private String studentNumber;
 
     @TableField("is_complete")
     @ApiModelProperty(value = "是否完成  1完成 0未完成", required = "required")
@@ -89,7 +112,7 @@ public class DwSurveyAnswer extends CommonInfo {
 
     @TableField("total_time")
     @ApiModelProperty(value = "用时", required = "required")
-    private Integer totalTime;
+    private Float totalTime;
 
     @TableField("create_id")
     @ApiModelProperty(value = "回答者ID")
