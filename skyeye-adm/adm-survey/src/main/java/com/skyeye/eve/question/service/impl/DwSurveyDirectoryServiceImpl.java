@@ -99,7 +99,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     private DwQuestionLogicService dwQuestionLogicService;
 
     /**
-     * 设置考试目录的方法
+     * 设置问卷目录的方法
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
@@ -143,16 +143,16 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     /**
-     * 参加考试的方法
+     * 参加问卷的方法
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
-     * @return 允许参加考试时返回考试目录信息
+     * @return 允许参加问卷时返回问卷目录信息
      */
     @Override
     public DwSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
-        // 是否可以参加考试，true：可以；false：不可以
+        // 是否可以参加问卷，true：可以；false：不可以
         boolean yesOrNo = false;
         String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
         String id = map.get("id").toString(); // 获取问卷ID
@@ -160,14 +160,14 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) { // 判断问卷是否存在
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) { // 判断问卷是否发布
                 if (!ToolUtil.isBlank(userId)) { // 判断用户是否登录
-                    DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该考试
-                    if (ObjUtil.isNotEmpty(examSurveyAnswer)) { // 用户已经参加过考试
-                        throw new CustomException("您已参加过该考试");
+                    DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
+                    if (ObjUtil.isNotEmpty(examSurveyAnswer)) { // 用户已经参加过问卷
+                        throw new CustomException("您已参加过该问卷");
                     } else {
                         yesOrNo = true;
                     }
                 } else {
-                    throw new CustomException("您不具备该考试权限");
+                    throw new CustomException("您不具备该问卷权限");
                 }
             } else {
                 throw new CustomException("该问卷未发布");
@@ -178,19 +178,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (yesOrNo) {
             return dwSurveyDirectory;
         } else {
-            throw new CustomException("您不具备该考试权限");
+            throw new CustomException("您不具备该问卷权限");
         }
     }
 
     /**
-     * 复制考试目录的方法
+     * 复制问卷目录的方法
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
      */
     @Override
     public void copyDwDirectory(InputObject inputObject, OutputObject outputObject) {
-        DwSurveyDirectory examSurveyDirectories = new DwSurveyDirectory(); // 创建新的考试目录对象
+        DwSurveyDirectory examSurveyDirectories = new DwSurveyDirectory(); // 创建新的问卷目录对象
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
         String dwDirectoryId = map.get("id").toString(); // 获取问卷ID
         String userId = InputObject.getLogParamsStatic().get("id").toString();
@@ -248,7 +248,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     /**
      * 创建/更新题目前的操作
      *
-     * @param dwSurveyDirectory 考试目录对象
+     * @param dwSurveyDirectory 问卷目录对象
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
@@ -265,21 +265,21 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
 //    /**
-//     * 创建考试目录后的后置操作
+//     * 创建问卷目录后的后置操作
 //     *
-//     * @param entity 考试目录对象
+//     * @param entity 问卷目录对象
 //     * @param userId 创建者ID
 //     */
 //    @Transactional
 //    @Override
 //    public void createPostpose(DwSurveyDirectory entity, String userId) {
-//        String id = entity.getId(); // 获取考试目录ID
+//        String id = entity.getId(); // 获取问卷目录ID
 //        String reader = entity.getReaderList(); // 阅卷人
 //        String[] readerList = reader.split(","); // 将阅卷人转换为列表
 //        String classId = entity.getClassId(); // 获取班级ID
 //        String[] classIdList = classId.split(","); // 将班级ID转换为列表
 //        for (String classIdItem : classIdList) {
-//            examSurveyClassService.createExamSurveyClass(id, classIdItem, userId); // 创建考试班级
+//            examSurveyClassService.createExamSurveyClass(id, classIdItem, userId); // 创建问卷班级
 //        }
 //        for (String readerItem : readerList) {
 //            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
@@ -289,7 +289,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 //    @Transactional
 //    @Override
 //    public void updatePostpose(ExamSurveyDirectory entity, String userId) {
-//        String id = entity.getId(); // 获取考试id
+//        String id = entity.getId(); // 获取问卷id
 //        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), id);
 //        examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
@@ -301,7 +301,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 //    }
 
     /**
-     * 切换是否删除考试目录的方法
+     * 切换是否删除问卷目录的方法
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
@@ -317,7 +317,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     /**
-     * 更新考试状态结束信息的方法
+     * 更新问卷状态结束信息的方法
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
@@ -329,9 +329,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
         DwSurveyDirectory dwSurveyDirectory = getOne(queryWrapper);
-        // 判断考试目录对象是否存在
+        // 判断问卷目录对象是否存在
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
-            // 判断考试目录状态是否为进行中（NUM_ONE）
+            // 判断问卷目录状态是否为进行中（NUM_ONE）
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
                 // 获取当前时间作为实际结束时间
                 String realEndTime = DateUtil.getTimeAndToString();
@@ -339,7 +339,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 updateWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
                 // 设置实际结束时间为当前时间
                 updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getRealEndTime), realEndTime);
-                // 设置考试目录状态为已结束（NUM_TWO）
+                // 设置问卷目录状态为已结束（NUM_TWO）
                 updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO);
                 // 设置结束类型为自动结束（NUM_ONE）
                 updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getEndType), CommonNumConstants.NUM_ONE);

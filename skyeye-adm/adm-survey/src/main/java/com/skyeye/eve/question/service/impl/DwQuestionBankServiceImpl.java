@@ -68,7 +68,5 @@ public class DwQuestionBankServiceImpl extends SkyeyeBusinessServiceImpl<DwQuest
         outputObject.settotal(page.getTotal());
     }
 
-
-
 }
 
