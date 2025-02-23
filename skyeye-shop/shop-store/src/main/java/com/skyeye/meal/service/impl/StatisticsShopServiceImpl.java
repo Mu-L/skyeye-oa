@@ -7,12 +7,15 @@ package com.skyeye.meal.service.impl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.meal.dao.StatisticsShopDao;
 import com.skyeye.eve.service.ISysDictDataService;
+import com.skyeye.keepfit.classenum.KeepFitOrderState;
+import com.skyeye.meal.classenum.ShopMealOrderState;
+import com.skyeye.meal.dao.StatisticsShopDao;
 import com.skyeye.meal.service.StatisticsShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,36 +46,41 @@ public class StatisticsShopServiceImpl implements StatisticsShopService {
     @Override
     public void queryStatisticsShop(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // 套餐订单状态
+        params.put("mealStateList", Arrays.asList(ShopMealOrderState.PAY.getKey()));
+        // 保养订单状态
+        params.put("keepFitStateList", Arrays.asList(KeepFitOrderState.PAY.getKey(), KeepFitOrderState.PAY_VERIFICATION.getKey(),
+            KeepFitOrderState.PAY_VERIFICATION.getKey()));
         Map<String, Object> result = new HashMap<>();
-        // 获取指定日期范围内的购买套餐(已支付，已收货)的会员数
+        // 获取指定日期范围内的购买套餐(已支付)的会员数
         String mealOrderMemberByNum = statisticsShopDao.queryMealOrderMemberByNum(params);
         result.put("mealOrderMemberByNum", mealOrderMemberByNum);
-        // 获取指定日期范围内的购买套餐(已支付，已收货)的数量
+        // 获取指定日期范围内的购买套餐(已支付)的数量
         String mealOrderNum = statisticsShopDao.queryMealOrderNum(params);
         result.put("mealOrderNum", mealOrderNum);
-        // 获取指定日期范围内的保养订单(保养完成，已核销)的数量
+        // 获取指定日期范围内的保养订单(已支付，保养完成，已核销)的数量
         String keepFitOrderNum = statisticsShopDao.queryKeepFitOrderNum(params);
         result.put("keepFitOrderNum", keepFitOrderNum);
-        // 获取指定日期范围内的保养订单(保养完成，已核销)的金额
+        // 获取指定日期范围内的保养订单(已支付，保养完成，已核销)的金额
         String keepFitOrderPrice = statisticsShopDao.queryKeepFitOrderPrice(params);
         result.put("keepFitOrderPrice", keepFitOrderPrice);
         String startTime = params.get("startTime").toString();
         String endTime = params.get("endTime").toString();
         List<String> month = DateUtil.getMonth(startTime, endTime);
         params.put("month", month);
-        // 按年月获取指定日期范围内的购买套餐(已支付，已收货)的数量
+        // 按年月获取指定日期范围内的购买套餐(已支付)的数量
         List<Map<String, Object>> monthMealOrderNum = statisticsShopDao.queryMonthMealOrderNum(params);
         result.put("monthMealOrderNum", monthMealOrderNum);
-        // 按年月获取指定日期范围内的购买套餐(已支付，已收货)的数量
+        // 按年月获取指定日期范围内的保养订单(已支付，保养完成，已核销)的数量
         List<Map<String, Object>> monthKeepFitOrderNum = statisticsShopDao.queryMonthKeepFitOrderNum(params);
         result.put("monthKeepFitOrderNum", monthKeepFitOrderNum);
-        // 按年月获取指定日期范围内门店的购买套餐(已支付，已收货)的数量
+        // 按年月获取指定日期范围内门店的购买套餐(已支付)的数量
         List<Map<String, Object>> storeMealOrderNum = statisticsShopDao.queryStoreMealOrderNum(params);
         result.put("storeMealOrderNum", storeMealOrderNum);
-        // 按年月获取指定日期范围内门店的保养订单(保养完成，已核销)的数量
+        // 按年月获取指定日期范围内门店的保养订单(已支付，保养完成，已核销)的数量
         List<Map<String, Object>> storeKeepFitOrderNum = statisticsShopDao.queryStoreKeepFitOrderNum(params);
         result.put("storeKeepFitOrderNum", storeKeepFitOrderNum);
-        // 按年月获取指定日期范围内性质的套餐订单(已支付，已收货)的数量
+        // 按年月获取指定日期范围内性质的套餐订单(已支付)的数量
         List<Map<String, Object>> natureMealOrderNum = statisticsShopDao.queryNatureMealOrderNum(params);
         iSysDictDataService.setNameForMap(natureMealOrderNum, "natureId", "name");
         result.put("natureMealOrderNum", natureMealOrderNum);
