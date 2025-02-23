@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -363,11 +364,38 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @Override
+    /*@Override
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         map.put("userId", inputObject.getLogParams().get("id"));
         List<Map<String, Object>> beans = forumContentDao.queryNewForumContentList(map);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }*/
+    @Override
+    public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
+                .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                        .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> bean = list(queryWrapper);
+        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
+        List<ForumContent> beans = bean.stream().map(item -> {
+            //如果时匿名的
+            if (item.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
+                Map<String, Object> createMation = item.getCreateMation();
+                createMation.put("picture", "/images/upload/wallPost/1726212288676.jpg");
+            }
+            return item;
+        }).collect(Collectors.toList());
+        // 取前20条
+        if (beans.size() > 20) {
+            beans = beans.subList(0, 20);
+        }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
