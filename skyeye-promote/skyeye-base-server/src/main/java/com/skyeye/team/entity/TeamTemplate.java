@@ -31,13 +31,11 @@ import lombok.Data;
 public class TeamTemplate extends AbstractTeam {
 
     @TableField("`name`")
-    @ApiModelProperty(value = "名称", required = "required")
+    @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
-    /**
-     * 编码
-     */
     @TableField("`code`")
+    @Property(value = "编码", fuzzyLike = true)
     private String code;
 
     @TableField("remark")

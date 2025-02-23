@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.object.InputObject;
@@ -39,15 +38,11 @@ import java.util.Map;
 public class TeamTemplateServiceImpl extends AbstractTeamServiceImpl<TeamTemplateDao, TeamTemplate> implements TeamTemplateService {
 
     @Autowired
-    private TeamTemplateDao teamTemplateDao;
-
-    @Autowired
     private ICodeRuleService iCodeRuleService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = teamTemplateDao.queryList(commonPageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setNameForMap(beans, "chargeUser", "chargeUserName");
         return beans;
     }

@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.exception.CustomException;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "订单管理", groupName = "租户管理", flowable = true)
+@SkyeyeService(name = "订单管理", groupName = "租户管理", flowable = true, tenant = TenantEnum.PLATE)
 public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<TenantAppBuyOrderDao, TenantAppBuyOrder> implements TenantAppBuyOrderService {
 
     @Autowired
@@ -99,7 +100,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<Tena
     @Override
     public TenantAppBuyOrder selectById(String id) {
         TenantAppBuyOrder tenantAppBuyOrder = super.selectById(id);
-        tenantService.setDataMation(tenantAppBuyOrder, TenantAppBuyOrder::getTenantId);
+        tenantService.setDataMation(tenantAppBuyOrder, TenantAppBuyOrder::getBuyTenantId);
         if (CollectionUtil.isNotEmpty(tenantAppBuyOrder.getTenantAppBuyOrderYearList())) {
             List<String> appIds = tenantAppBuyOrder.getTenantAppBuyOrderYearList().stream().map(TenantAppBuyOrderYear::getAppId).collect(Collectors.toList());
             Map<String, TenantApp> tenantAppMap = tenantAppService.queryTenantAppByAppId(appIds.toArray(new String[]{}));
@@ -115,13 +116,13 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<Tena
         TenantAppBuyOrder tenantAppBuyOrder = selectById(entity.getId());
         if (CollectionUtil.isNotEmpty(tenantAppBuyOrder.getTenantAppBuyOrderNumList())) {
             tenantAppBuyOrder.getTenantAppBuyOrderNumList().forEach(tenantAppBuyOrderNum -> {
-                tenantService.editTenantAccountNumber(tenantAppBuyOrder.getTenantId(), tenantAppBuyOrderNum.getAccountNum());
+                tenantService.editTenantAccountNumber(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderNum.getAccountNum());
             });
         }
 
         if (CollectionUtil.isNotEmpty(tenantAppBuyOrder.getTenantAppBuyOrderYearList())) {
             tenantAppBuyOrder.getTenantAppBuyOrderYearList().forEach(tenantAppBuyOrderYear -> {
-                tenantAppLinkService.saveTenantAppLink(tenantAppBuyOrder.getTenantId(), tenantAppBuyOrderYear.getAppId(), tenantAppBuyOrderYear.getAccountYear());
+                tenantAppLinkService.saveTenantAppLink(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderYear.getAppId(), tenantAppBuyOrderYear.getAccountYear());
             });
         }
     }

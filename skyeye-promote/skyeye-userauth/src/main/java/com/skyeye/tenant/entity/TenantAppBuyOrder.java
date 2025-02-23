@@ -34,13 +34,13 @@ public class TenantAppBuyOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "单据日期", required = "required")
     private String operTime;
 
-    @TableField(value = "tenant_id")
+    @TableField(value = "buy_tenant_id")
     @ApiModelProperty(value = "租户id", required = "required")
-    private String tenantId;
+    private String buyTenantId;
 
     @TableField(exist = false)
     @Property("租户信息")
-    private Tenant tenantMation;
+    private Tenant buyTenantMation;
 
     @TableField(value = "remark")
     @ApiModelProperty(value = "备注")
