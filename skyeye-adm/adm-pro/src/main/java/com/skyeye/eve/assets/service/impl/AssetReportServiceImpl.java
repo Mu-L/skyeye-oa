@@ -120,6 +120,13 @@ public class AssetReportServiceImpl extends SkyeyeBusinessServiceImpl<AssetRepor
     }
 
     @Override
+    public AssetReport selectById(String id) {
+        AssetReport assetReport = super.selectById(id);
+        iAuthUserService.setDataMation(assetReport, AssetReport::getAssetAdmin);
+        return assetReport;
+    }
+
+    @Override
     public void setAssetReportEmployee(String id, String useId, String useUserId) {
         UpdateWrapper<AssetReport> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
