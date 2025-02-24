@@ -135,7 +135,7 @@ public class ForumContentController {
 
     /**
      * 获取帖子评论信息
-     *
+     *-----------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -157,7 +157,7 @@ public class ForumContentController {
 
     /**
      * 获取帖子评论回复信息
-     *
+     *------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -245,16 +245,16 @@ public class ForumContentController {
         forumContentService.querySearchForumList(inputObject, outputObject);
     }
 
-    /**
-     * 获取solr上次同步数据的时间
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ForumContentController/querySolrSynchronousTime")
-    public void querySolrSynchronousTime(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.querySolrSynchronousTime(inputObject, outputObject);
-    }
+//    /**
+//     * 获取solr上次同步数据的时间
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+//    @RequestMapping("/post/ForumContentController/querySolrSynchronousTime")
+//    public void querySolrSynchronousTime(InputObject inputObject, OutputObject outputObject) {
+//        forumContentService.querySolrSynchronousTime(inputObject, outputObject);
+//    }
 
 //    /**
 //     * solr同步数据
@@ -280,7 +280,7 @@ public class ForumContentController {
 
     /**
      * 根据评论id删除评论
-     *
+     *--------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -291,7 +291,7 @@ public class ForumContentController {
 
     /**
      * 获取我的通知列表
-     *
+     *----------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -302,7 +302,7 @@ public class ForumContentController {
 
     /**
      * 根据通知id删除通知
-     *
+     *-----------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */

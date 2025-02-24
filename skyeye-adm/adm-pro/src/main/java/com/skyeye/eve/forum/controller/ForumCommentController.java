@@ -45,4 +45,19 @@ public class ForumCommentController {
     public void queryForumCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryList(inputObject, outputObject);
     }
+
+
+    /**
+     * 根据评论id删除评论
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "deleteCommentById", value = "根据评论id删除评论", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/ForumCommentController/deleteCommentById")
+    public void deleteCommentById(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.deleteById(inputObject, outputObject);
+    }
 }

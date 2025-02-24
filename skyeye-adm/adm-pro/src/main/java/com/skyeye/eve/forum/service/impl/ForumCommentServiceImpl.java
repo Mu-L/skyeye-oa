@@ -4,12 +4,17 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.forum.dao.ForumCommentDao;
 import com.skyeye.eve.forum.entity.ForumComment;
+import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.service.ForumCommentService;
+import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +30,48 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
     private ForumCommentService forumCommentService;
 
     @Autowired
+    private ForumContentService forumContentService;
+
+    @Autowired
     private IAuthUserService iAuthUserService;
 
 
+    @Override
     public void createPrepose(ForumComment forumComment) {
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         forumComment.setCommentId(currentUserId);
     }
 
+    @Override
+    public void createPostpose(ForumComment forumComment, String userId) {
+        ForumContent forumContent = forumContentService.selectById(forumComment.getForumId());
+        if (forumContent.getCommentNum() != null) {
+            forumContentService.updateCommentCount(forumContent.getId(), CalculationUtil.add(CommonNumConstants.NUM_ZERO,
+                forumContent.getCommentNum(), String.valueOf(CommonNumConstants.NUM_ONE)));
+        }
+    }
+
+    @Override
+    public void deletePostpose(ForumComment forumComment) {
+        // 查询所有评论条数，更新帖子评论总数
+        QueryWrapper<ForumComment> countQueryWrapper = new QueryWrapper<>();
+        countQueryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumComment.getForumId());
+        long count = count(countQueryWrapper);
+        forumContentService.updateCommentCount(forumComment.getForumId(), String.valueOf(count));
+    }
+
+    @Override
+    protected void deletePreExecution(ForumComment forumComment) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String forumId = forumComment.getForumId();
+        ForumContent forumContent = forumContentService.selectById(forumId);
+        if (forumContent.getCreateId().equals(userId)) {
+            return;
+        }
+        if (!userId.equals(forumComment.getCreateId())) {
+            throw new CustomException("无权限");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
@@ -45,13 +84,13 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
             return JSONUtil.<Map<String, Object>>toBean(JSONUtil.toJsonStr(forumComment), null);
         }).collect(Collectors.toList());
         // 设置评论人信息和回复人信息
-        iAuthUserService.setMationForMap(beans, "commentId","commentNation");
-        iAuthUserService.setMationForMap(beans, "replyId","replyNation");
+        iAuthUserService.setMationForMap(beans, "commentId", "commentNation");
+        iAuthUserService.setMationForMap(beans, "replyId", "replyNation");
         return beans;
     }
 
     @Override
-    public Integer countNumByForumId(String forumId){
+    public Integer countNumByForumId(String forumId) {
         QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumId);
         long count = count(queryWrapper);

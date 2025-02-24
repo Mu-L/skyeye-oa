@@ -59,4 +59,7 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
     void deleteNoticeById(InputObject inputObject, OutputObject outputObject);
 
+    void updateViewCount(String forumId, String count);
+
+    void updateCommentCount(String id, String count);
 }
