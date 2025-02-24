@@ -29,6 +29,7 @@ import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumTag;
+import com.skyeye.eve.forum.service.ForumCommentService;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import com.skyeye.eve.forum.service.ForumTagService;
@@ -68,6 +69,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
 
     @Autowired
     private ForumSensitiveWordsDao forumSensitiveWordsDao;
+
+    @Autowired
+    private ForumCommentService forumCommentService;
 
     @Autowired
     private ForumTagService forumTagService;
@@ -525,10 +529,12 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
                     String browseNum = jedisClient.get(key);
                     m.put("browseNum", browseNum);
                 }
-                Map<String, Object> ma = forumContentDao.selectForumCommentNumById(m);
-                if (!ToolUtil.isBlank(ma.get("commentNum").toString())) {
+//                Map<String, Object> ma = forumContentDao.selectForumCommentNumById(m);
+                Integer countNumByForumId = forumCommentService.countNumByForumId(m.get("forumId").toString());
+
+                if (!ToolUtil.isBlank(String.valueOf(countNumByForumId))) {
                     // 评论数
-                    m.put("commentNum", ma.get("commentNum"));
+                    m.put("commentNum", countNumByForumId);
                 } else {
                     m.put("commentNum", 0);
                 }

@@ -38,7 +38,7 @@ import java.util.Map;
 public class Task extends SkyeyeFlowable {
 
     @TableField("`name`")
-    @ApiModelProperty(value = "名称", required = "required")
+    @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "type_id")

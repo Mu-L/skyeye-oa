@@ -85,6 +85,10 @@ public class IntervieweeServiceImpl extends SkyeyeBusinessServiceImpl<Interviewe
 
     @Override
     public void validatorEntity(Interviewee entity) {
+        // 判断工作年限是否为负数
+        if (Double.parseDouble(entity.getWorkYears()) < 0) {
+            throw new CustomException("工作年限不能为负数!");
+        }
         // 根据姓名、手机号查询面试者信息
         QueryWrapper<Interviewee> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Interviewee::getName), entity.getName());
