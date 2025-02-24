@@ -19,6 +19,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @ClassName: DepotPutFromType
  * @Description: 仓库入库单来源单据类型
@@ -69,6 +73,10 @@ public enum DepotPutFromType implements SkyeyeEnumClass {
             }
         }
         return StrUtil.EMPTY;
+    }
+
+    public static List<String> getAllIdKeys() {
+        return Arrays.stream(DepotPutFromType.values()).map(DepotPutFromType::getIdKey).collect(Collectors.toList());
     }
 
 }
