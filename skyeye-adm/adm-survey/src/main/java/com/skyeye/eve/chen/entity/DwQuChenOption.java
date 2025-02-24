@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -25,31 +26,23 @@ import lombok.Data;
 @UniqueField
 @TableName(value = "dw_qu_chen_option")
 @ApiModel(value = "矩陈题题选项实体类")
-public class DwQuChenOption extends CommonInfo {
+public class DwQuChenOption extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题", required = "required")
+    @ApiModelProperty(value = "问题编号ID", required = "required")
     private String quId;
 
     @TableField("option_name")
-    @ApiModelProperty(value = "选项内容", required = "required")
+    @ApiModelProperty(value = "选项名称", required = "required")
     private String optionName;
 
     @TableField("order_by_id")
     @ApiModelProperty(value = "排序ID")
     private Integer orderById;
-
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private String createTime;
 
 }
 
