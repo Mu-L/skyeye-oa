@@ -15,17 +15,11 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.dao.StatisticsDao;
+import com.skyeye.depot.classenum.DepotOutFromType;
+import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.other.service.impl.OtherOutLetsServiceImpl;
-import com.skyeye.other.service.impl.OtherWareHousServiceImpl;
-import com.skyeye.purchase.service.impl.PurchasePutServiceImpl;
-import com.skyeye.purchase.service.impl.PurchaseReturnsServiceImpl;
-import com.skyeye.retail.service.impl.RetailOutLetServiceImpl;
-import com.skyeye.retail.service.impl.RetailReturnsServiceImpl;
-import com.skyeye.seal.service.impl.SalesOutLetServiceImpl;
-import com.skyeye.seal.service.impl.SalesReturnsServiceImpl;
 import com.skyeye.service.StatisticsService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,12 +69,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public void queryWarehousingDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setObjectBusiness(Arrays.asList(
-            PurchasePutServiceImpl.class.getName(),
-            SalesReturnsServiceImpl.class.getName(),
-            RetailReturnsServiceImpl.class.getName(),
-            OtherWareHousServiceImpl.class.getName()
-        ));
+        pageInfo.setObjectBusiness(DepotPutFromType.getAllIdKeys());
         getBeans(outputObject, pageInfo);
     }
 
@@ -109,12 +98,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public void queryOutgoingDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setObjectBusiness(Arrays.asList(
-            SalesOutLetServiceImpl.class.getName(),
-            PurchaseReturnsServiceImpl.class.getName(),
-            RetailOutLetServiceImpl.class.getName(),
-            OtherOutLetsServiceImpl.class.getName()
-        ));
+        pageInfo.setObjectBusiness(DepotOutFromType.getAllIdKeys());
         getBeans(outputObject, pageInfo);
     }
 
@@ -128,14 +112,14 @@ public class StatisticsServiceImpl implements StatisticsService {
     public void queryInComimgDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // ERP入库操作相关单据类型的集合
-        List<String> subTypeList = Arrays.asList(PurchasePutServiceImpl.class.getName(),
-            SalesReturnsServiceImpl.class.getName(),
-            RetailReturnsServiceImpl.class.getName(),
-            OtherWareHousServiceImpl.class.getName());
+        List<String> subTypeList = Arrays.asList(DepotPutFromType.PURCHASE_PUT.getIdKey(),
+            DepotPutFromType.SEAL_RETURNS.getIdKey(),
+            DepotPutFromType.RETAIL_RETURNS.getIdKey(),
+            DepotPutFromType.OTHER_WARE_HOUS.getIdKey());
 
         // ERP退货入库操作相关单据类型的集合
-        List<String> returnSubTypeList = Arrays.asList(SalesReturnsServiceImpl.class.getName(),
-            RetailReturnsServiceImpl.class.getName());
+        List<String> returnSubTypeList = Arrays.asList(DepotPutFromType.SEAL_RETURNS.getIdKey(),
+            DepotPutFromType.RETAIL_RETURNS.getIdKey());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Map<String, Object>> beans = getPointSubTypeOrderStatistics(commonPageInfo, subTypeList, returnSubTypeList);
         outputObject.setBeans(beans);
@@ -178,13 +162,13 @@ public class StatisticsServiceImpl implements StatisticsService {
     public void querySalesDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // ERP出库操作相关单据类型的集合
-        List<String> subTypeList = Arrays.asList(SalesOutLetServiceImpl.class.getName(),
-            PurchaseReturnsServiceImpl.class.getName(),
-            RetailOutLetServiceImpl.class.getName(),
-            OtherOutLetsServiceImpl.class.getName());
+        List<String> subTypeList = Arrays.asList(DepotOutFromType.SEAL_OUTLET.getIdKey(),
+            DepotOutFromType.PURCHASE_RETURNS.getIdKey(),
+            DepotOutFromType.RETAIL_OUTLET.getIdKey(),
+            DepotOutFromType.OTHER_OUTLET.getIdKey());
 
         // ERP退货出库操作相关单据类型的集合
-        List<String> returnSubTypeList = Arrays.asList(PurchaseReturnsServiceImpl.class.getName());
+        List<String> returnSubTypeList = Arrays.asList(DepotOutFromType.PURCHASE_RETURNS.getIdKey());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Map<String, Object>> beans = getPointSubTypeOrderStatistics(commonPageInfo, subTypeList, returnSubTypeList);
         outputObject.setBeans(beans);

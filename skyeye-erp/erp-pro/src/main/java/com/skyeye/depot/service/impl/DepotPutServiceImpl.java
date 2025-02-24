@@ -32,7 +32,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.holder.classenum.HolderNormsChildState;
 import com.skyeye.holder.service.HolderNormsChildService;
 import com.skyeye.machin.service.MachinPutService;
-import com.skyeye.machin.service.impl.MachinPutServiceImpl;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.material.classenum.MaterialItemCode;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
@@ -41,21 +40,13 @@ import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
 import com.skyeye.other.service.OtherWareHousService;
-import com.skyeye.other.service.impl.OtherWareHousServiceImpl;
 import com.skyeye.pick.service.ReturnPutService;
-import com.skyeye.pick.service.impl.ReturnPutServiceImpl;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
-import com.skyeye.pickconfirm.service.impl.ConfirmReturnServiceImpl;
 import com.skyeye.purchase.service.PurchasePutService;
-import com.skyeye.purchase.service.impl.PurchasePutServiceImpl;
 import com.skyeye.retail.service.RetailReturnsService;
-import com.skyeye.retail.service.impl.RetailReturnsServiceImpl;
 import com.skyeye.seal.service.SalesReturnsService;
-import com.skyeye.seal.service.impl.SalesReturnsServiceImpl;
 import com.skyeye.shop.service.ShopConfirmReturnService;
 import com.skyeye.shop.service.ShopReturnsService;
-import com.skyeye.shop.service.impl.ShopConfirmReturnServiceImpl;
-import com.skyeye.shop.service.impl.ShopReturnsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,11 +65,7 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "仓库入库单", groupName = "仓库出入库", flowable = true)
 public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, DepotPut> implements DepotPutService {
 
-    // 采购入库单，销售退货单，零售退货单，其他入库单，退料入库单，物料退货单，加工入库单，门店退货单，门店物料退货单
-    private static final List<String> PUT_ORDER_TYPE = Arrays.asList(PurchasePutServiceImpl.class.getName(), SalesReturnsServiceImpl.class.getName(),
-        RetailReturnsServiceImpl.class.getName(), OtherWareHousServiceImpl.class.getName(), ReturnPutServiceImpl.class.getName(),
-        ConfirmReturnServiceImpl.class.getName(), MachinPutServiceImpl.class.getName(), ShopReturnsServiceImpl.class.getName(),
-        ShopConfirmReturnServiceImpl.class.getName());
+    private static final List<String> PUT_ORDER_TYPE = DepotPutFromType.getAllIdKeys();
 
     @Autowired
     private HolderNormsChildService holderNormsChildService;
