@@ -13,6 +13,8 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.eve.assets.classenum.PurchaseReturnFromType;
 import lombok.Data;
 
 import java.util.List;
@@ -49,11 +51,11 @@ public class AssetPurchaseReturn extends SkyeyeFlowable {
     private String allPrice;
 
     @TableField("need_depot")
-    @ApiModelProperty(value = "是否需要出入库，参考#WhetherEnum")
+    @ApiModelProperty(value = "是否需要出入库", enumClass = WhetherEnum.class)
     private Integer needDepot;
 
     @TableField(value = "from_type_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "来源单据类型，参考#PurchaseReturnFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = PurchaseReturnFromType.class)
     private Integer fromTypeId;
 
     @TableField(value = "from_id", updateStrategy = FieldStrategy.NEVER)

@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
-import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -32,24 +31,26 @@ public class DwAnCheckbox extends OperatorUserInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "belongAnswerId")
+    @ApiModelProperty(value = "对应的答卷信息表Id")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "belongId" )
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
+    @TableField("other_text")
+    @ApiModelProperty(value = "otherText")
+    private String otherText;
+
     @TableField("qu_id")
-    @ApiModelProperty(value = "quId" )
+    @ApiModelProperty(value = "问题ID")
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "quItemId" )
+    @ApiModelProperty(value = "quItemId")
     private String quItemId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "visibility" )
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
-
-
 }
