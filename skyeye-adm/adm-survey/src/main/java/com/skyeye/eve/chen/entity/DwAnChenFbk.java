@@ -32,27 +32,31 @@ public class DwAnChenFbk extends CommonInfo {
     private String id;
 
     @TableField("answer_value")
-    @ApiModelProperty(value = "answerValue" )
+    @ApiModelProperty(value = "答案取值")
     private String answerValue;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "belongAnswerId" )
+    @ApiModelProperty(value = "对应的答卷信息表Id")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "belongId" )
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
     @TableField("qu_col_id")
-    @ApiModelProperty(value = "quColId" )
+    @ApiModelProperty(value = "矩阵列选项ID")
     private String quColId;
 
+    @TableField("qu_id")
+    @ApiModelProperty(value = "问题ID")
+    private String quId;
+
     @TableField("qu_row_id")
-    @ApiModelProperty(value = "quRowId" )
+    @ApiModelProperty(value = "矩阵行选项ID")
     private String quRowId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "visibility" )
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
 }

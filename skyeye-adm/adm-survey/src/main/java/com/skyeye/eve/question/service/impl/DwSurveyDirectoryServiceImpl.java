@@ -388,15 +388,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
-    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
     public void validatorEntity(List<DwSurveyDirectory> entity) {
         DwSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
         String realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间

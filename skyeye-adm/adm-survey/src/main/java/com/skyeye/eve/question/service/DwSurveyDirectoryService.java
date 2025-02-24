@@ -22,5 +22,4 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
 
     void queryAllDwList(InputObject inputObject, OutputObject outputObject);
 
-    void queryMySurvey(InputObject inputObject, OutputObject outputObject);
 }

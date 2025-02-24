@@ -171,17 +171,4 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryFilterDwLists(inputObject, outputObject);
     }
 
-    /**
-     * 筛选我的问卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMySurvey", value = "筛选我的问卷列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwSurveyDirectoryController/queryMySurvey")
-    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
-        dwSurveyDirectoryService.queryMySurvey(inputObject, outputObject);
-    }
-
 }
