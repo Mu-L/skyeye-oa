@@ -89,6 +89,11 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
     public void validatorEntity(PurchaseReturn entity) {
         if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
             entity.setOtherState(DepotOutState.NEED_OUT.getKey());
+            entity.getErpOrderItemList().forEach(erpOrderItem -> {
+                if (StrUtil.isEmpty(erpOrderItem.getDepotId())) {
+                    throw new CustomException("请选择出库仓库.");
+                }
+            });
         } else {
             entity.setOtherState(DepotOutState.NOT_NEED_OUT.getKey());
         }

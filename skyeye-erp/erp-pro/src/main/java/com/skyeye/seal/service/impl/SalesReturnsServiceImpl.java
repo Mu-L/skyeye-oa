@@ -71,6 +71,11 @@ public class SalesReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<SalesRetu
     public void validatorEntity(SalesReturns entity) {
         if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
             entity.setOtherState(DepotPutState.NEED_PUT.getKey());
+            entity.getErpOrderItemList().forEach(erpOrderItem -> {
+                if (StrUtil.isEmpty(erpOrderItem.getDepotId())) {
+                    throw new CustomException("请选择入库仓库.");
+                }
+            });
         } else {
             entity.setOtherState(DepotPutState.NOT_NEED_PUT.getKey());
         }
