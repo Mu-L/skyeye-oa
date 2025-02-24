@@ -70,7 +70,7 @@ public class Interviewee extends OperatorUserInfo implements EnclosureFace {
     private String basicResume;
 
     @TableField(value = "work_years")
-    @ApiModelProperty(value = "工作年限", required = "required")
+    @ApiModelProperty(value = "工作年限", required = "required,double")
     private String workYears;
 
     @TableField(value = "state")
