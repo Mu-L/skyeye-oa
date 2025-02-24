@@ -17,7 +17,8 @@ import lombok.Data;
 
 /**
  * @ClassName: DwSurveyMailInvite
- * @Description:问卷选择发送邮件调查时的邮件服务实体类
+ * @Description: 问卷选择发送邮件调查时的邮件服务实体类
+ * TODO :问卷发送邮件
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/8 14:35
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -42,7 +43,7 @@ public class DwSurveyMailInvite extends OperatorUserInfo {
     private String error_msg;
 
     @TableField("audit")
-    @ApiModelProperty(value = "审核 0未审核  1审核通过 2审核拒绝 3审核中", enumClass= AuditTypes.class, required = "required")
+    @ApiModelProperty(value = "审核 0未审核  1审核通过 2审核拒绝 3审核中", enumClass = AuditTypes.class, required = "required")
     private Integer audit;
 
     @TableField("sendcloud_msg_id")
@@ -50,7 +51,7 @@ public class DwSurveyMailInvite extends OperatorUserInfo {
     private String sendcloudMsgId;
 
     @TableField("status")
-    @ApiModelProperty(value = "状态 0未发送 1正在发送 2发送完成 3发送失败  4发送异常", enumClass = SendingStatus.class ,required = "required")
+    @ApiModelProperty(value = "状态 0未发送 1正在发送 2发送完成 3发送失败  4发送异常", enumClass = SendingStatus.class, required = "required")
     private Integer status;
 
     @TableField("subject")

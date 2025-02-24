@@ -35,10 +35,6 @@ public class DwQuRadio extends OperatorUserInfo {
     @ApiModelProperty(value = "所属题", required = "required")
     private String quId;
 
-    @TableField("belong_id")
-    @ApiModelProperty(value = "所属问卷id")
-    private String belongId;
-
     @TableField("option_name")
     @ApiModelProperty(value = "选项内容", required = "required")
     private String optionName;
@@ -70,6 +66,10 @@ public class DwQuRadio extends OperatorUserInfo {
     @TableField("is_default_answer")
     @ApiModelProperty(value = "是否是默认答案  1.是  2.否")
     private Integer isDefaultAnswer;
+
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属问卷id")
+    private String belongId;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "选项id")
