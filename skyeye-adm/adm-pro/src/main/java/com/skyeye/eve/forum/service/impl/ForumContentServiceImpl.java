@@ -5,6 +5,10 @@
 package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+<<<<<<< HEAD
+=======
+import cn.hutool.core.util.ObjectUtil;
+>>>>>>> fe2bee444e25c30587a580ce502beba8a6c3da2a
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -26,8 +30,10 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.classenum.ContentStateEnum;
+import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
+import com.skyeye.eve.forum.entity.ForumComment;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHistoryView;
 import com.skyeye.eve.forum.entity.ForumTag;
@@ -866,6 +872,35 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String userId = inputObject.getLogParams().get("id").toString();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> bean = list(queryWrapper);
+        iAuthUserService.setName(bean, "createId","createName");
+        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        for (ForumContent forumContent : bean) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("forumContentMation", forumContent);
+            QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
+            queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumContent.getId())
+                    .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCommentTime));
+            List<ForumComment> list = forumCommentService.list(queryComment);
+            if(CollectionUtil.isNotEmpty(list)){
+                iAuthUserService.setDataMation(list,ForumComment::getReplyId);
+                map.put("forumCommentMation", list);
+            }
+            mapList.add(map);
+        }
+        outputObject.setBeans(mapList);
+        outputObject.settotal(page.getTotal());
+    }
+    /*@Override
+    public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         map.put("userId", inputObject.getLogParams().get("id"));
         Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
@@ -876,7 +911,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
-    }
+    }*/
 
     /**
      * 根据评论id删除评论

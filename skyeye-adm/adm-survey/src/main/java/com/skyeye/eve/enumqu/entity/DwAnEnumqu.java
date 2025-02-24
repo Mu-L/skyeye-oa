@@ -44,10 +44,10 @@ public class DwAnEnumqu extends CommonInfo {
     private Integer enumItem;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属枚举题答案")
+    @ApiModelProperty(value = "问题ID")
     private String quId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示")
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 }

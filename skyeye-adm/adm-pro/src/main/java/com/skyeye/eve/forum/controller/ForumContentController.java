@@ -274,10 +274,16 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryMyCommentList", value = "获取我的帖子列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryMyCommentList")
     public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryMyCommentList(inputObject, outputObject);
     }
+    /*@RequestMapping("/post/ForumContentController/queryMyCommentList")
+    public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.queryMyCommentList(inputObject, outputObject);
+    }*/
 
     /**
      * 根据评论id删除评论

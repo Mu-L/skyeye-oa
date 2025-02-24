@@ -32,27 +32,27 @@ public class DwAnChenScore extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "belongAnswerId" )
+    @ApiModelProperty(value = "对应的答卷信息表" )
     private String belongAnswerId;
 
     @TableField("answer_score")
-    @ApiModelProperty(value = "answer_score" )
+    @ApiModelProperty(value = "回答分数" )
     private String answer_score;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "belongId" )
+    @ApiModelProperty(value = "所属问卷ID" )
     private String belongId;
 
     @TableField("qu_col_id")
-    @ApiModelProperty(value = "quColId" )
+    @ApiModelProperty(value = "矩阵列选项ID" )
     private String quColId;
 
     @TableField("qu_row_id")
-    @ApiModelProperty(value = "quRowId" )
+    @ApiModelProperty(value = "矩阵行选项ID" )
     private String quRowId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "visibility" )
+    @ApiModelProperty(value = "1 是 0非" )
     private Integer visibility;
 
 

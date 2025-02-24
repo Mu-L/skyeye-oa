@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 
@@ -26,22 +27,22 @@ import lombok.Data;
 @UniqueField
 @TableName(value = "dw_mail_invite_inbox")
 @ApiModel(value = "答案是非题结果保存实体类")
-public class DwMailInviteInbox extends CommonInfo {
+public class DwMailInviteInbox extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField("email")
-    @ApiModelProperty(value = "email")
+    @ApiModelProperty(value = "邮箱")
     private String email;
 
     @TableField("name")
-    @ApiModelProperty(value = "名称")
+    @ApiModelProperty(value = "姓名")
     private String name;
 
     @TableField("sendcloud_id")
-    @ApiModelProperty(value = "sendclound返回的任务id")
+    @ApiModelProperty(value = "返回的任务id")
     private String sendcloudId;
 
     @TableField("status")
@@ -55,15 +56,6 @@ public class DwMailInviteInbox extends CommonInfo {
     @TableField("us_contacts_id")
     @ApiModelProperty(value = "联系人id")
     private String usContactsId;
-
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private String createTime;
-
 
 }
 
