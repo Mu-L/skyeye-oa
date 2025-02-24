@@ -193,10 +193,12 @@ public class ForumContentController {
 
     /**
      * 根据标签id获取帖子列表
-     *
+     *------------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryForumListByTagId", value = "根据标签id获取帖子列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryForumListByTagId")
     public void queryForumListByTagId(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryForumListByTagId(inputObject, outputObject);
@@ -270,7 +272,7 @@ public class ForumContentController {
 
     /**
      * 获取我的帖子列表
-     *
+     *-------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
