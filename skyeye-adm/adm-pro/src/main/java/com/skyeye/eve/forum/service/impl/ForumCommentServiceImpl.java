@@ -1,5 +1,6 @@
 package com.skyeye.eve.forum.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -18,6 +19,8 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,5 +98,26 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumId);
         long count = count(queryWrapper);
         return (int) count;
+    }
+
+    @Override
+    public List<String> queryListByForumIds(List<String> idList) {
+        List<String> result = new ArrayList<>();
+        QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ForumComment::getForumId), idList)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
+        List<ForumComment> commentList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(commentList)) {
+            return result;
+        }
+        for (ForumComment forumComment : commentList) {
+            if (!result.contains(forumComment.getForumId())) {
+                result.add(forumComment.getForumId());
+                if (result.size() == 15) {
+                    break;
+                }
+            }
+        }
+        return result;
     }
 }

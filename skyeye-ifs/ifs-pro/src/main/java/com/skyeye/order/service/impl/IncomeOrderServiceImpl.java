@@ -76,6 +76,9 @@ public class IncomeOrderServiceImpl extends SkyeyeFlowableServiceImpl<IncomeOrde
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(IncomeOrder::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(IncomeOrder::getType), commonPageInfo.getTypeId());
+        }
         return queryWrapper;
     }
 
