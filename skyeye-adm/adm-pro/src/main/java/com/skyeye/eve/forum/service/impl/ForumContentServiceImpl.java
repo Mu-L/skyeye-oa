@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.forum.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -28,6 +29,7 @@ import com.skyeye.eve.forum.classenum.ContentStateEnum;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumContent;
+import com.skyeye.eve.forum.entity.ForumHistoryView;
 import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.*;
 import com.skyeye.exception.CustomException;
@@ -116,7 +118,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(pages.getTotal());
     }
 
-//    /**
+    //    /**
 //     * 新增我的帖子
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象
@@ -294,7 +296,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         return bean;
     }
 
-//    @Override
+    //    @Override
     public void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> bean = forumContentDao.queryForumContentMationToDetails(map);
@@ -387,10 +389,10 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
-                .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                        .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
+            .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> bean = list(queryWrapper);
         iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
         List<ForumContent> beans = bean.stream().map(item -> {
@@ -505,51 +507,66 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryForumMyBrowerList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String userId = inputObject.getLogParams().get("id").toString();
-        String keys = ForumConstants.forumBrowseMationByUserid(userId);
-        List<Map<String, Object>> beans = new ArrayList<>();
-        if (!ToolUtil.isBlank(jedisClient.get(keys))) {
-            beans = JSONUtil.toList(jedisClient.get(keys), null);
-            // 按浏览时间给集合排序
-            beans.sort(new Comparator<Map<String, Object>>() {
-                @Override
-                public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                    int flag = m1.get("browseTime").toString().compareTo(m2.get("browseTime").toString());
-                    return -flag;
-                }
-            });
-            int count = beans.size();
-            int pageMaxSize = Integer.parseInt(map.get("page").toString()) * Integer.parseInt(map.get("limit").toString());
-            if (count < pageMaxSize) {
-                pageMaxSize = count;
-            }
-            beans = beans.subList((Integer.parseInt(map.get("page").toString()) - 1) * Integer.parseInt(map.get("limit").toString()), pageMaxSize);
-            for (Map<String, Object> m : beans) {
-                String key = ForumConstants.forumBrowseNumsByForumId(m.get("forumId").toString());
-                if (ToolUtil.isBlank(jedisClient.get(key))) {
-                    // 浏览量
-                    m.put("browseNum", 0);
-                } else {
-                    String browseNum = jedisClient.get(key);
-                    m.put("browseNum", browseNum);
-                }
-//                Map<String, Object> ma = forumContentDao.selectForumCommentNumById(m);
-                Integer countNumByForumId = forumCommentService.countNumByForumId(m.get("forumId").toString());
-
-                if (!ToolUtil.isBlank(String.valueOf(countNumByForumId))) {
-                    // 评论数
-                    m.put("commentNum", countNumByForumId);
-                } else {
-                    m.put("commentNum", 0);
-                }
-                // 浏览时间
-                m.put("browseTime", ToolUtil.timeFormat(m.get("browseTime").toString()));
-            }
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        List<ForumHistoryView> forumHistoryViewList = forumHistoryViewService.queryMyHistory(currentUserId);
+        if (CollectionUtil.isEmpty(forumHistoryViewList)) {
+            return;
         }
+        List<String> forumIds = forumHistoryViewList.stream().map(ForumHistoryView::getForumId).collect(Collectors.toList());
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<ForumContent> beans = forumContentService.selectByIds(String.valueOf(forumIds));
         outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        outputObject.settotal(pages.getTotal());
     }
+//    @Override
+//    public void queryForumMyBrowerList(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        String userId = inputObject.getLogParams().get("id").toString();
+//        String keys = ForumConstants.forumBrowseMationByUserid(userId);
+//        List<Map<String, Object>> beans = new ArrayList<>();
+//        if (!ToolUtil.isBlank(jedisClient.get(keys))) {
+//            beans = JSONUtil.toList(jedisClient.get(keys), null);
+//            // 按浏览时间给集合排序
+//            beans.sort(new Comparator<Map<String, Object>>() {
+//                @Override
+//                public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+//                    int flag = m1.get("browseTime").toString().compareTo(m2.get("browseTime").toString());
+//                    return -flag;
+//                }
+//            });
+//            int count = beans.size();
+//            int pageMaxSize = Integer.parseInt(map.get("page").toString()) * Integer.parseInt(map.get("limit").toString());
+//            if (count < pageMaxSize) {
+//                pageMaxSize = count;
+//            }
+//            beans = beans.subList((Integer.parseInt(map.get("page").toString()) - 1) * Integer.parseInt(map.get("limit").toString()), pageMaxSize);
+//            for (Map<String, Object> m : beans) {
+//                String key = ForumConstants.forumBrowseNumsByForumId(m.get("forumId").toString());
+//                if (ToolUtil.isBlank(jedisClient.get(key))) {
+//                    // 浏览量
+//                    m.put("browseNum", 0);
+//                } else {
+//                    String browseNum = jedisClient.get(key);
+//                    m.put("browseNum", browseNum);
+//                }
+////                Map<String, Object> ma = forumContentDao.selectForumCommentNumById(m);
+//                Integer countNumByForumId = forumCommentService.countNumByForumId(m.get("forumId").toString());
+//
+//                if (!ToolUtil.isBlank(String.valueOf(countNumByForumId))) {
+//                    // 评论数
+//                    m.put("commentNum", countNumByForumId);
+//                } else {
+//                    m.put("commentNum", 0);
+//                }
+//                // 浏览时间
+//                m.put("browseTime", ToolUtil.timeFormat(m.get("browseTime").toString()));
+//            }
+//        }
+//        outputObject.setBeans(beans);
+//        outputObject.settotal(beans.size());
+//    }
 
     /**
      * 获取最新评论
@@ -559,8 +576,18 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryNewCommentList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans = forumContentDao.queryNewCommentList(map);
+//        Map<String, Object> map = inputObject.getParams();
+//        List<Map<String, Object>> beans = forumContentDao.queryNewCommentList(map);
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(CommonConstants.ID)
+            .ne(MybatisPlusUtil.toColumns(ForumContent::getCommentNum), CommonNumConstants.NUM_ZERO);
+        List<ForumContent> onlyIds = list(queryWrapper);
+        if (CollectionUtil.isEmpty(onlyIds)) {
+            return;
+        }
+        List<String> idList = onlyIds.stream().map(ForumContent::getId).collect(Collectors.toList());
+        List<String> forumContentIdList = forumCommentService.queryListByForumIds(idList);
+        List<ForumContent> beans = forumContentService.selectByIds(String.valueOf(forumContentIdList));
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
@@ -928,7 +955,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      * 更新浏览量-----wst
      *
      * @param forumId 帖子id
-     * @param count 浏览量
+     * @param count   浏览量
      */
     @Override
     public void updateViewCount(String forumId, String count) {
@@ -942,7 +969,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     /**
      * 更新评论量-----wst
      *
-     * @param id 帖子id
+     * @param id    帖子id
      * @param count 评论量
      */
     @Override

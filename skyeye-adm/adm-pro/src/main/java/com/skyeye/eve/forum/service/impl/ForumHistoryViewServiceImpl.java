@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.forum.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -19,6 +20,9 @@ import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumHistoryViewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: HistoryPostServiceImpl
@@ -79,6 +83,14 @@ public class ForumHistoryViewServiceImpl extends SkyeyeBusinessServiceImpl<Forum
         } else {
             forumContentService.updateViewCount(forumHistoryView.getForumId(), String.valueOf(CommonNumConstants.NUM_ZERO));
         }
+    }
+
+    @Override
+    public List<ForumHistoryView> queryMyHistory(String currentUserId) {
+        QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHistoryView::getCreateId), currentUserId);
+        List<ForumHistoryView> list = list(queryWrapper);
+        return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
 //
 //    @Override

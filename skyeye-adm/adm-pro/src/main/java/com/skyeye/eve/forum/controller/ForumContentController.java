@@ -168,7 +168,7 @@ public class ForumContentController {
 
     /**
      * 获取我的浏览信息
-     *
+     *-----------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -181,10 +181,11 @@ public class ForumContentController {
 
     /**
      * 获取最新评论
-     *
+     *------------------------
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryNewCommentList", value = "获取最新评论", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryNewCommentList")
     public void queryNewCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewCommentList(inputObject, outputObject);
