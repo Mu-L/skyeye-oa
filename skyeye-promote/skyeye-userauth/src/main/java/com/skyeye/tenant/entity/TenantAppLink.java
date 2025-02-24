@@ -30,9 +30,9 @@ public class TenantAppLink extends CommonInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField(value = "tenant_id")
+    @TableField(value = "buy_tenant_id")
     @Property(value = "租户id")
-    private String tenantId;
+    private String buyTenantId;
 
     @TableField(value = "app_id")
     @Property(value = "应用id")

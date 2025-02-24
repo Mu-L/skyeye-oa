@@ -33,12 +33,12 @@ public class TenantAppLinkServiceImpl extends SkyeyeBusinessServiceImpl<TenantAp
     @Override
     public void saveTenantAppLink(String tenantId, String appId, Integer year) {
         QueryWrapper<TenantAppLink> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getTenantId), tenantId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getBuyTenantId), tenantId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getAppId), appId);
         TenantAppLink tenantAppLink = getOne(queryWrapper, false);
         if (ObjectUtil.isEmpty(tenantAppLink)) {
             TenantAppLink newTenantAppLink = new TenantAppLink();
-            newTenantAppLink.setTenantId(tenantId);
+            newTenantAppLink.setBuyTenantId(tenantId);
             newTenantAppLink.setAppId(appId);
             String currentTime = DateUtil.getYmdTimeAndToString();
             newTenantAppLink.setStartTime(currentTime);
@@ -55,7 +55,7 @@ public class TenantAppLinkServiceImpl extends SkyeyeBusinessServiceImpl<TenantAp
     @Override
     public List<TenantAppLink> selectByTenantId(String tenantId) {
         QueryWrapper<TenantAppLink> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getTenantId), tenantId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getBuyTenantId), tenantId);
         List<TenantAppLink> tenantAppLinkList = list(queryWrapper);
         return tenantAppLinkList;
     }
