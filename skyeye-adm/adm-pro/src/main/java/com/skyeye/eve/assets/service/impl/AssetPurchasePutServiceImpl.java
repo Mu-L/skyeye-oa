@@ -77,6 +77,7 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
     public void validatorEntity(AssetPurchasePut entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
+        checkAndEditAssetBarCodeDepotMaiton(entity, false);
         getTotalPrice(entity);
     }
 
@@ -169,7 +170,7 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
         // 修改条形码编码信息
-        editAssetBarCodeDepotMaiton(entity);
+        checkAndEditAssetBarCodeDepotMaiton(entity, true);
         // 修改子单据状态
         assetPurchaseLinkService.editStateByPId(entity.getId(), FlowableChildStateEnum.ADEQUATE.getKey());
     }
@@ -179,7 +180,7 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
         assetPurchaseLinkService.editStateByPId(entity.getId(), FlowableChildStateEnum.REJECT.getKey());
     }
 
-    private void editAssetBarCodeDepotMaiton(AssetPurchasePut entity) {
+    private void checkAndEditAssetBarCodeDepotMaiton(AssetPurchasePut entity, boolean saveData) {
         // 获取所有的条形码信息
         List<String> normsCodeList = entity.getPurchaseLinks().stream()
             .filter(bean -> CollectionUtil.isNotEmpty(bean.getNormsCodeList()))
@@ -197,26 +198,28 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
             throw new CustomException(
                 String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
         }
-        // 批量修改条形码信息
-        Map<String, AssetPurchaseLink> purchaseLinkMap = entity.getPurchaseLinks().stream()
-            .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
-        String warehousingTime = DateUtil.getTimeAndToString();
-        assetReportList.forEach(assetReport -> {
-            AssetPurchaseLink assetPurchaseLink = purchaseLinkMap.get(assetReport.getAssetId());
-            assetReport.setUnitPrice(assetPurchaseLink.getUnitPrice());
-            assetReport.setFromId(assetPurchaseLink.getFromId());
-            if (StrUtil.isNotEmpty(entity.getFromId())) {
-                assetReport.setPurchaseId(entity.getFromId());
-                assetReport.setPurchaseTime(entity.getFromMation().get("createTime").toString());
-            }
-            if (!StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
-                throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
-            }
-            assetReport.setWarehousingId(entity.getId());
-            assetReport.setWarehousingTime(warehousingTime);
-            assetReport.setState(AssetReportState.NORMAL.getKey());
-        });
-        assetReportService.updateEntity(assetReportList, entity.getCreateId());
+        if (saveData) {
+            // 批量修改条形码信息
+            Map<String, AssetPurchaseLink> purchaseLinkMap = entity.getPurchaseLinks().stream()
+                .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
+            String warehousingTime = DateUtil.getTimeAndToString();
+            assetReportList.forEach(assetReport -> {
+                AssetPurchaseLink assetPurchaseLink = purchaseLinkMap.get(assetReport.getAssetId());
+                assetReport.setUnitPrice(assetPurchaseLink.getUnitPrice());
+                assetReport.setFromId(assetPurchaseLink.getFromId());
+                if (StrUtil.isNotEmpty(entity.getFromId())) {
+                    assetReport.setPurchaseId(entity.getFromId());
+                    assetReport.setPurchaseTime(entity.getFromMation().get("createTime").toString());
+                }
+                if (!StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
+                    throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
+                }
+                assetReport.setWarehousingId(entity.getId());
+                assetReport.setWarehousingTime(warehousingTime);
+                assetReport.setState(AssetReportState.NORMAL.getKey());
+            });
+            assetReportService.updateEntity(assetReportList, entity.getCreateId());
+        }
     }
 
     @Override

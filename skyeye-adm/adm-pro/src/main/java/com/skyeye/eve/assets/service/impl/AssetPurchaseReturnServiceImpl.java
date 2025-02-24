@@ -78,6 +78,10 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
     public void validatorEntity(AssetPurchaseReturn entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
+        if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
+            // 修改条形码编码信息
+            checkAndEditAssetBarCodeDepotMaiton(entity, false);
+        }
         getTotalPrice(entity);
     }
 
@@ -173,7 +177,7 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
         checkMaterialNorms(entity, true);
         if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
             // 修改条形码编码信息
-            editAssetBarCodeDepotMaiton(entity);
+            checkAndEditAssetBarCodeDepotMaiton(entity, true);
         }
         // 修改子单据状态
         assetPurchaseLinkService.editStateByPId(entity.getId(), FlowableChildStateEnum.ADEQUATE.getKey());
@@ -184,7 +188,7 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
         assetPurchaseLinkService.editStateByPId(entity.getId(), FlowableChildStateEnum.REJECT.getKey());
     }
 
-    private void editAssetBarCodeDepotMaiton(AssetPurchaseReturn entity) {
+    private void checkAndEditAssetBarCodeDepotMaiton(AssetPurchaseReturn entity, boolean saveData) {
         // 获取所有的条形码信息
         List<String> normsCodeList = entity.getPurchaseLinks().stream()
             .filter(bean -> CollectionUtil.isNotEmpty(bean.getNormsCodeList()))
@@ -200,23 +204,24 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
             .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(diffList)) {
             throw new CustomException(
-                String.format(Locale.ROOT, "编码【%s】未入库，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
+                String.format(Locale.ROOT, "编码【%s】未入库/不存在，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
         }
-        // 批量修改条形码信息
-        Map<String, AssetPurchaseLink> returnLinkMap = entity.getPurchaseLinks().stream()
-            .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
-        String returnTime = DateUtil.getTimeAndToString();
-        assetReportList.forEach(assetReport -> {
-            AssetPurchaseLink assetReturnLink = returnLinkMap.get(assetReport.getAssetId());
-            if (!StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
-                throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
-            }
-            assetReport.setReturnId(entity.getId());
-            assetReport.setReturnTime(returnTime);
-            assetReport.setState(AssetReportState.RETURN.getKey());
-        });
-        assetReportService.updateEntity(assetReportList, entity.getCreateId());
-
+        if (saveData) {
+            // 批量修改条形码信息
+            Map<String, AssetPurchaseLink> returnLinkMap = entity.getPurchaseLinks().stream()
+                .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
+            String returnTime = DateUtil.getTimeAndToString();
+            assetReportList.forEach(assetReport -> {
+                AssetPurchaseLink assetReturnLink = returnLinkMap.get(assetReport.getAssetId());
+                if (!StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
+                    throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
+                }
+                assetReport.setReturnId(entity.getId());
+                assetReport.setReturnTime(returnTime);
+                assetReport.setState(AssetReportState.RETURN.getKey());
+            });
+            assetReportService.updateEntity(assetReportList, entity.getCreateId());
+        }
     }
 
     @Override
