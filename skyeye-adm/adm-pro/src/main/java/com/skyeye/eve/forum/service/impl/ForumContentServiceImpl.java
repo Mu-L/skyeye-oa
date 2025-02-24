@@ -5,10 +5,6 @@
 package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-<<<<<<< HEAD
-=======
-import cn.hutool.core.util.ObjectUtil;
->>>>>>> fe2bee444e25c30587a580ce502beba8a6c3da2a
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
