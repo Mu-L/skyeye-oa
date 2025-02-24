@@ -33,7 +33,7 @@ public class DwQuChenOption extends OperatorUserInfo {
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "问题编号ID", required = "required")
+    @ApiModelProperty(value = "问题编号ID")
     private String quId;
 
     @TableField("option_name")
