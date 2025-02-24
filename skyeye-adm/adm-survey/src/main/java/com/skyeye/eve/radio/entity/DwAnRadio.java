@@ -33,27 +33,27 @@ public class DwAnRadio extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "belongAnswerId")
+    @ApiModelProperty(value = "对应的答卷信息表")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "belongId")
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
     @TableField("other_text")
-    @ApiModelProperty(value = "otherText")
+    @ApiModelProperty(value = "复合题的其它项")
     private String otherText;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "quId")
+    @ApiModelProperty(value = "题目 ID")
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "quItemId")
+    @ApiModelProperty(value = "结果选项ID")
     private String quItemId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "visibility")
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
 
