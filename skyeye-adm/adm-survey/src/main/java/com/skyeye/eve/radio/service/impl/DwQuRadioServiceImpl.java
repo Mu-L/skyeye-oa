@@ -18,6 +18,8 @@ import com.skyeye.eve.radio.dao.DwQuRadioDao;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwQuRadioService;
 import com.skyeye.exception.CustomException;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ import java.util.Map;
 @SkyeyeService(name = "单选题选项", groupName = "单选题选项")
 public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao, DwQuRadio> implements DwQuRadioService {
 
+    @Autowired
+    private DwQuRadioService dwQuRadioService;
     @Override
     protected QueryWrapper<DwQuRadio> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<DwQuRadio> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -78,21 +82,21 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 editquRadio.add(bean);
             }
         }
-        if (!quRadio.isEmpty()) {
-            createEntity(quRadio, userId);
+        if (CollectionUtils.isNotEmpty(quRadio)) {
+            dwQuRadioService.createEntity(quRadio, userId);
         }
-        if (!editquRadio.isEmpty()) {
-            updateEntity(editquRadio, userId);
+        if (CollectionUtils.isNotEmpty(editquRadio)) {
+            dwQuRadioService.updateEntity(editquRadio, userId);
         }
     }
 
-    @Override
-    protected void deletePreExecution(DwQuRadio entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
+//    @Override
+//    protected void deletePreExecution(DwQuRadio entity) {
+//        Integer visibility = entity.getVisibility();
+//        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
+//            throw new CustomException("该选项已显示，请先隐藏再删除");
+//        }
+//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {

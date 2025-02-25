@@ -73,5 +73,18 @@ public class DwQuestionBankController {
         dwQuestionBankService.deleteById(inputObject, outputObject);
     }
 
+    /**
+     * 发布题库
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "setUpDwQuestionBank", value = "发布题库", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/DwQuestionBankController/setUpDwQuestionBank")
+    public void setUpDwQuestionBank(InputObject inputObject, OutputObject outputObject) {
+        dwQuestionBankService.setUpDwQuestionBank(inputObject, outputObject);
+    }
 
 }

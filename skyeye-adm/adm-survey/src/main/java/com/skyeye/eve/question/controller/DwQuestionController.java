@@ -34,12 +34,12 @@ public class DwQuestionController {
     }
 
     /**
-     * 分页获取题目信息列表
+     * 分页获取未删除题目信息列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwQuestionList", value = "分页获取题目信息列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryDwQuestionList", value = "分页获取未删除题目信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwQuestionController/queryDwQuestionList")
     public void queryDwQuestionList(InputObject inputObject, OutputObject outputObject) {

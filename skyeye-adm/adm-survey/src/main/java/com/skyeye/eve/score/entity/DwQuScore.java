@@ -24,7 +24,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "dw_qu_score")
 @ApiModel(value = "评分题行选项实体类")
 public class DwQuScore extends OperatorUserInfo {
@@ -54,7 +54,7 @@ public class DwQuScore extends OperatorUserInfo {
     private Integer visibility;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属题", required = "required")
+    @ApiModelProperty(value = "所属问卷")
     private String belongId;
 
     @TableField(exist = false)

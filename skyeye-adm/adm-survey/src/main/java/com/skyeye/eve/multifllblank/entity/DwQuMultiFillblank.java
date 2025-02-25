@@ -23,7 +23,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "dw_qu_multi_fillblank")
 @ApiModel(value = "多行填空题实体类")
 public class DwQuMultiFillblank extends OperatorUserInfo {
@@ -33,7 +33,7 @@ public class DwQuMultiFillblank extends OperatorUserInfo {
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题ID", required = "required")
+    @ApiModelProperty(value = "所属题ID")
     private String quId;
 
     @TableField("belong_id")

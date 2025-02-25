@@ -8,9 +8,9 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.myquestionbank.dao.MatrixMultipleChoiceQuestionDao;
 import com.skyeye.eve.myquestionbank.entity.MatrixMultipleChoiceQuestion;
 import com.skyeye.eve.myquestionbank.service.MatrixMultipleChoiceQuestionService;
-import com.skyeye.eve.myquestionbank.dao.MatrixMultipleChoiceQuestionDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,7 +101,7 @@ public class MatrixMultipleChoiceQuestionServiceImpl extends SkyeyeBusinessServi
     /**
      * 新增矩阵单选题
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
@@ -195,7 +195,7 @@ public class MatrixMultipleChoiceQuestionServiceImpl extends SkyeyeBusinessServi
     /**
      * 编辑矩阵单选题,矩阵多选题,矩阵评分题,矩阵填空题时回显
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override

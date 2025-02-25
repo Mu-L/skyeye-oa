@@ -22,7 +22,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "dw_question_bank")
 @ApiModel(value = "题库实体类")
 public class DwQuestionBank extends OperatorUserInfo {
@@ -40,7 +40,7 @@ public class DwQuestionBank extends OperatorUserInfo {
     private String bankNote;
 
     @TableField("bank_state")
-    @ApiModelProperty(value = "状态 0设计状态  1发布状态", required = "required")
+    @ApiModelProperty(value = "状态 0设计状态  1发布状态")
     private Integer bankState;
 
     @TableField("bank_tag")
@@ -56,7 +56,7 @@ public class DwQuestionBank extends OperatorUserInfo {
     private String parentId;
 
     @TableField("excerpt_num")
-    @ApiModelProperty(value = "引用次数", required = "required")
+    @ApiModelProperty(value = "引用次数")
     private Integer excerptNum;
 
     @TableField("group_id1")
@@ -72,7 +72,7 @@ public class DwQuestionBank extends OperatorUserInfo {
     private Integer quNum;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
 }

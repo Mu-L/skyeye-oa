@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "dw_survey_answer")
 @ApiModel(value = "问卷回答信息表实体类")
 public class DwSurveyAnswer extends CommonInfo {
@@ -75,11 +75,11 @@ public class DwSurveyAnswer extends CommonInfo {
     private String city;
 
     @TableField("is_complete")
-    @ApiModelProperty(value = "是否完成  1完成 0未完成", required = "required")
+    @ApiModelProperty(value = "是否完成  1完成 0未完成")
     private Integer isComplete;
 
     @TableField("is_effective")
-    @ApiModelProperty(value = "是否是有效数据  1有效  0无效", required = "required")
+    @ApiModelProperty(value = "是否是有效数据  1有效  0无效")
     private Integer isEffective;
 
     @TableField("pc_mac")
@@ -87,11 +87,11 @@ public class DwSurveyAnswer extends CommonInfo {
     private String pcMac;
 
     @TableField("qu_num")
-    @ApiModelProperty(value = "回答的题数", required = "required")
+    @ApiModelProperty(value = "回答的题数")
     private Integer quNum;
 
     @TableField("total_time")
-    @ApiModelProperty(value = "用时", required = "required")
+    @ApiModelProperty(value = "用时")
     private Float totalTime;
 
     @TableField("create_id")
@@ -121,7 +121,6 @@ public class DwSurveyAnswer extends CommonInfo {
     @TableField(exist = false)
     @Property(value = "问卷信息")
     private DwSurveyDirectory surveyMation;
-
 
 }
 

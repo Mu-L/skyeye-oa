@@ -26,7 +26,9 @@ import com.skyeye.eve.chen.service.DwAnChenCheckboxService;
 import com.skyeye.eve.chen.service.DwAnChenRadioService;
 import com.skyeye.eve.chen.service.DwQuChenColumnService;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
+import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
 import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
@@ -85,6 +87,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     private DwAnChenRadioService dwAnChenRadioService;
     @Autowired
     private DwAnChenCheckboxService dwAnChenCheckboxService;
+    @Autowired
+    private DwAnDfillblankService dwAnDfillblankService;
 
     @Override
     protected void createPrepose(DwQuestion entity) {
@@ -111,16 +115,14 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         Integer tag = entity.getTag();
         if (tag == null) {
             throw new CustomException("请设置题目标记");
-        } else {
-            if (tag.equals(CommonNumConstants.NUM_TWO)) {
-                List<DwQuestionLogic> questionLogic = entity.getQuestionLogic();
-                if (CollectionUtils.isEmpty(questionLogic)) {
-                } else {
-                    dwQuestionLogicService.setLogics(quId, questionLogic, userId);
-                }
-            } else {
-                throw new CustomException("题目标记值不正确");
+        } else if (tag.equals(CommonNumConstants.NUM_ONE)) {
+        } else if (tag.equals(CommonNumConstants.NUM_TWO)) {
+            List<DwQuestionLogic> questionLogic = entity.getQuestionLogic();
+            if (CollectionUtils.isNotEmpty(questionLogic)) {
+                dwQuestionLogicService.setLogics(quId, questionLogic, userId);
             }
+        } else {
+            throw new CustomException("题目标记值不正确");
         }
         // 根据不同的题目类型，保存对应的题目数据
         // 处理单选题
@@ -269,6 +271,14 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 List<DwAnOrder> dwAnOrderbyList = dwAnOrderService.selectAnOrderByQuId(question.getId());
                 question.setOrderbyTd(orderbyList);
                 question.setOrderbyAn(dwAnOrderbyList);
+                continue;
+            }
+            // 4 多行填空题
+            if (question.getQuType() == QuType.MULTIFILLBLANK.getIndex()) {
+                List<DwQuMultiFillblank> dwQuMultiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(question.getId());
+                List<DwAnDfillblank> dwAnDfillblanks = dwAnDfillblankService.selectAnDfillblankQuId(question.getId());
+                question.setMultifillblankTd(dwQuMultiFillblanks);
+                question.setDfillblankAn(dwAnDfillblanks);
                 continue;
             }
             // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE
