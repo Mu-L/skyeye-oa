@@ -1,6 +1,7 @@
 package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -112,6 +113,41 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
             beans.add(forumHot);
         }
         createEntity(beans,null);
+    }
+
+    @Override
+    public void queryHotTagList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState),CommonNumConstants.NUM_ONE)
+                .select(MybatisPlusUtil.toColumns(ForumContent::getTagId));
+        List<ForumContent> list = forumContentService.list(queryWrapper);
+        List<String> tagIds = new ArrayList<>();
+        for(ForumContent content:list){
+            String[] tagId = content.getTagId().split(",");
+            for (int i = 0; i < tagId.length; i++) {
+                if(StrUtil.isNotEmpty(tagId[i])){
+                    tagIds.add(tagId[i]);
+                }
+            }
+        }
+        // 分组统计
+        Map<String, Long> collect = tagIds.stream().collect(
+                Collectors.groupingBy(e -> e, Collectors.counting())
+        );
+        // 排序
+        List<Map.Entry<String, Long>> collectSort = collect.entrySet()
+                .stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toList());
+        List<String> tagIdList = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : collectSort) {
+            tagIdList.add(entry.getKey());
+        }
+        // 取前10
+        if(tagIdList.size()>10){
+            tagIdList = tagIdList.subList(0, 10);
+        }
+        outputObject.setBeans(tagIdList);
+        outputObject.settotal(tagIdList.size());
     }
 
     public String getBeforeOrFutureDay(int num) {
