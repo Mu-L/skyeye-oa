@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.eve.forum.classenum.ContentStateEnum;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @Data
 @ApiModel("论坛话题实体类")
+@RedisCacheField(name = "forum:content", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @TableName("forum_content")
 public class ForumContent extends OperatorUserInfo {
 

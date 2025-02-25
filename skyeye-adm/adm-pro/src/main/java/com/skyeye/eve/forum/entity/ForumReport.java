@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.forum.classenum.ExamineStateEnum;
 import lombok.Data;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @Data
 @TableName("forum_report")
+@RedisCacheField(name = "forum:report", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel(value = "论坛举报实体类")
 public class ForumReport extends OperatorUserInfo {
 

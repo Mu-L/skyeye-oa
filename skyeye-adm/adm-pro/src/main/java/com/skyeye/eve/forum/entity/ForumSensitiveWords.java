@@ -6,11 +6,12 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "forum:sensitiveWords")
+@RedisCacheField(name = "forum:sensitiveWords", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel(value = "敏感词管理")
 @TableName("forum_sensitive_words")
 public class ForumSensitiveWords extends OperatorUserInfo {
