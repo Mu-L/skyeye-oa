@@ -504,7 +504,11 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         List<String> forumIds = forumHistoryViewList.stream().map(ForumHistoryView::getForumId).collect(Collectors.toList());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<ForumContent> beans = forumContentService.selectByIds(String.valueOf(forumIds));
+        List<ForumContent> beans = forumContentService.selectByIds(forumIds.toArray(new String[forumIds.size()]));
+        forumTagService.setTagMationForContentList(beans);
+        setAnonymous(beans);
+        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -702,9 +706,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
         List<ForumContent> contentBean = list(queryWrapper);
         Map<String, Long> contentMap = contentBean.stream().
-                collect(Collectors.groupingBy(ForumContent::getCreateId, Collectors.counting()));
+            collect(Collectors.groupingBy(ForumContent::getCreateId, Collectors.counting()));
 
-        Map<String,List<Long>> weightMap = new HashMap<>();
+        Map<String, List<Long>> weightMap = new HashMap<>();
         for (Map.Entry<String, Long> entry : contentMap.entrySet()) {
             // 帖子
             List<Long> list = new ArrayList<>();
@@ -713,10 +717,10 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             list.add(value);
             // 评论
             QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
-            queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getCreateId),key);
+            queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getCreateId), key);
             long count = forumCommentService.count(queryComment);
             list.add(count);
-            weightMap.put(key,list);
+            weightMap.put(key, list);
         }
         // 计算权重
         Map<String, Double> weight = new HashMap<>();
@@ -724,7 +728,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             String key = entry.getKey();
             List<Long> value = entry.getValue();
             double w = 0.4 * value.get(CommonNumConstants.NUM_ZERO) + 0.6 * value.get(CommonNumConstants.NUM_ONE);
-            weight.put(key,w);
+            weight.put(key, w);
         }
         // 排序
         List<Map.Entry<String, Double>> list = new ArrayList<>(weight.entrySet());
@@ -797,68 +801,85 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void querySearchForumList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String searchValue = map.get("searchValue").toString();
-        List<Map<String, Object>> beans = new ArrayList<>();
-        List<Map<String, Object>> rbeans = new ArrayList<>();
-        // 关键字模糊查询
-        SolrQuery query = new SolrQuery();
-        String forumTitle = "forumTitle:" + searchValue;
-        String forumDesc = " OR forumDesc:" + searchValue;
-        String forumContent = " OR forumContent:" + searchValue;
-        query.set("q", forumTitle + forumDesc + forumContent);
-        query.setStart(0);
-        query.setRows(20);
-        query.setHighlight(true); //开启高亮
-        query.addHighlightField("forumContent"); //高亮字段
-        query.setHighlightSimplePre("<font color='red'>"); //高亮单词的前缀
-        query.setHighlightSimplePost("</font>"); //高亮单词的后缀
-        query.setHighlightFragsize(400);
-        int count = 0;
-        String createId = inputObject.getLogParams().get("id").toString();
-        try {
-            QueryResponse response = solrClient.query(query);
-            SolrDocumentList documentList = response.getResults();
-            for (SolrDocument document : documentList) {
-                beans.add(document);
-            }
-            Map<String, Map<String, List<String>>> maplist = response.getHighlighting();
-            if (beans != null) {
-                for (Map<String, Object> m : beans) {
-                    if (m.get("type").toString().replaceAll("\\[|\\]", "").substring(0, 1).equals("1")) {
-                        for (String key : maplist.keySet()) {
-                            if (key.equals(m.get("id").toString())) {
-                                Map<String, List<String>> fieldMap = maplist.get(key);
-                                if (fieldMap.size() > 0) {
-                                    m.put("forumContent", "..." + fieldMap.get("forumContent").get(0));
-                                }
-                            }
-                        }
-                        rbeans.add(m);
-                    } else {
-                        if (m.get("createId").toString().replaceAll("\\[|\\]", "").equals(createId)) {
-                            for (String key : maplist.keySet()) {
-                                if (key.equals(m.get("id").toString())) {
-                                    Map<String, List<String>> fieldMap = maplist.get(key);
-                                    if (fieldMap.size() > 0) {
-                                        m.put("forumContent", "..." + fieldMap.get("forumContent").get(0));
-                                    }
-                                }
-                            }
-                            rbeans.add(m);
-                        }
-                    }
-                }
-            }
-            count = rbeans.size();
-        } catch (SolrServerException e) {
-            outputObject.setreturnMessage("搜索失败！");
-        } catch (Exception e) {
-            outputObject.setreturnMessage("搜索失败！");
+        String searchValue = inputObject.getParams().get("searchValue").toString();
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), searchValue)
+            .or().like(MybatisPlusUtil.toColumns(ForumContent::getForumDesc), searchValue);
+        List<ForumContent> beans = list(queryWrapper);
+        if (CollectionUtil.isEmpty(beans)){
+            return;
         }
-        outputObject.setBeans(rbeans);
-        outputObject.settotal(count);
+        forumTagService.setTagMationForContentList(beans);
+        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
+        setAnonymous(beans);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
+//    @Override
+//    public void querySearchForumList(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        String searchValue = map.get("searchValue").toString();
+//        List<Map<String, Object>> beans = new ArrayList<>();
+//        List<Map<String, Object>> rbeans = new ArrayList<>();
+//        // 关键字模糊查询
+//        SolrQuery query = new SolrQuery();
+//        String forumTitle = "forumTitle:" + searchValue;
+//        String forumDesc = " OR forumDesc:" + searchValue;
+//        String forumContent = " OR forumContent:" + searchValue;
+//        query.set("q", forumTitle + forumDesc + forumContent);
+//        query.setStart(0);
+//        query.setRows(20);
+//        query.setHighlight(true); //开启高亮
+//        query.addHighlightField("forumContent"); //高亮字段
+//        query.setHighlightSimplePre("<font color='red'>"); //高亮单词的前缀
+//        query.setHighlightSimplePost("</font>"); //高亮单词的后缀
+//        query.setHighlightFragsize(400);
+//        int count = 0;
+//        String createId = inputObject.getLogParams().get("id").toString();
+//        try {
+//            QueryResponse response = solrClient.query(query);
+//            SolrDocumentList documentList = response.getResults();
+//            for (SolrDocument document : documentList) {
+//                beans.add(document);
+//            }
+//            Map<String, Map<String, List<String>>> maplist = response.getHighlighting();
+//            if (beans != null) {
+//                for (Map<String, Object> m : beans) {
+//                    if (m.get("type").toString().replaceAll("\\[|\\]", "").substring(0, 1).equals("1")) {
+//                        for (String key : maplist.keySet()) {
+//                            if (key.equals(m.get("id").toString())) {
+//                                Map<String, List<String>> fieldMap = maplist.get(key);
+//                                if (fieldMap.size() > 0) {
+//                                    m.put("forumContent", "..." + fieldMap.get("forumContent").get(0));
+//                                }
+//                            }
+//                        }
+//                        rbeans.add(m);
+//                    } else {
+//                        if (m.get("createId").toString().replaceAll("\\[|\\]", "").equals(createId)) {
+//                            for (String key : maplist.keySet()) {
+//                                if (key.equals(m.get("id").toString())) {
+//                                    Map<String, List<String>> fieldMap = maplist.get(key);
+//                                    if (fieldMap.size() > 0) {
+//                                        m.put("forumContent", "..." + fieldMap.get("forumContent").get(0));
+//                                    }
+//                                }
+//                            }
+//                            rbeans.add(m);
+//                        }
+//                    }
+//                }
+//            }
+//            count = rbeans.size();
+//        } catch (SolrServerException e) {
+//            outputObject.setreturnMessage("搜索失败！");
+//        } catch (Exception e) {
+//            outputObject.setreturnMessage("搜索失败！");
+//        }
+//        outputObject.setBeans(rbeans);
+//        outputObject.settotal(count);
+//    }
 
     /**
      * 获取solr上次同步数据的时间
@@ -1043,6 +1064,22 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     }
 
     /**
+     * 设置匿名
+     *
+     * @param forumContentList
+     */
+    public void setAnonymous(List<ForumContent> forumContentList) {
+        for (ForumContent forumContent : forumContentList) {
+            if (forumContent.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
+                Map<String, Object> createMation = forumContent.getCreateMation();
+                createMation.put("name", "匿名用户");
+                createMation.put("picture", "/images/upload/wallPost/1726212288676.jpg");
+                forumContent.setCreateMation(createMation);
+            }
+        }
+    }
+
+    /**
      * 更新浏览量-----wst
      *
      * @param forumId 帖子id
@@ -1051,7 +1088,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Override
     public void updateViewCount(String forumId, String count) {
         UpdateWrapper<ForumContent> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, count);
+        updateWrapper.eq(CommonConstants.ID, forumId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ForumContent::getBrowseNum), count);
         update(updateWrapper);
         refreshCache(forumId);

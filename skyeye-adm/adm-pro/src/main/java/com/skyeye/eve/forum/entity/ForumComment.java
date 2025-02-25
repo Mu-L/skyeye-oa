@@ -31,7 +31,7 @@ public class ForumComment extends OperatorUserInfo {
     private String content;
 
     @TableField(value = "comment_id")
-    @ApiModelProperty(value = "评论人", required = "required")
+    @ApiModelProperty(value = "评论人")
     private String commentId;
 
     @TableField(exist = false)
@@ -39,7 +39,7 @@ public class ForumComment extends OperatorUserInfo {
     private Map<String, Object> commentMation;
 
     @TableField(value = "belong_comment_id")
-    @ApiModelProperty(value = "回复时，属于哪个评论模块", required = "required")
+    @ApiModelProperty(value = "回复时，属于哪个评论模块")
     private String belongCommentId;
 
     @TableField(value = "reply_id")
@@ -51,6 +51,6 @@ public class ForumComment extends OperatorUserInfo {
     private Map<String, Object> replyMation;
 
     @TableField(value = "comment_time")
-    @ApiModelProperty(value = "评论时间", required = "required")
+    @ApiModelProperty(value = "评论时间")
     private String commentTime;
 }
