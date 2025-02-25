@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.forum.dao.ForumCommentDao;
 import com.skyeye.eve.forum.entity.ForumComment;
@@ -43,6 +44,7 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
     public void createPrepose(ForumComment forumComment) {
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         forumComment.setCommentId(currentUserId);
+        forumComment.setCommentTime(DateUtil.getTimeAndToString());
     }
 
     @Override
@@ -66,11 +68,6 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
     @Override
     protected void deletePreExecution(ForumComment forumComment) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String forumId = forumComment.getForumId();
-        ForumContent forumContent = forumContentService.selectById(forumId);
-        if (forumContent.getCreateId().equals(userId)) {
-            return;
-        }
         if (!userId.equals(forumComment.getCreateId())) {
             throw new CustomException("无权限");
         }
@@ -87,8 +84,10 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
             return JSONUtil.<Map<String, Object>>toBean(JSONUtil.toJsonStr(forumComment), null);
         }).collect(Collectors.toList());
         // 设置评论人信息和回复人信息
-        iAuthUserService.setMationForMap(beans, "commentId", "commentNation");
-        iAuthUserService.setMationForMap(beans, "replyId", "replyNation");
+        iAuthUserService.setMationForMap(beans, "commentId", "commentMation");
+        iAuthUserService.setMationForMap(beans, "replyId", "replyMation");
+        iAuthUserService.setMationForMap(beans, "createId","createMation");
+        iAuthUserService.setMationForMap(beans, "lastUpdateId","lastUpdateMation");
         return beans;
     }
 

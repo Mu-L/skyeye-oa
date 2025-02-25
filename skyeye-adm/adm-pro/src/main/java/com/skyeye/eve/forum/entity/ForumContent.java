@@ -30,15 +30,15 @@ public class ForumContent extends OperatorUserInfo {
     private String forumContent;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "话题类型  1.所有人可看  2.只能自己查看", required = "required")
+    @ApiModelProperty(value = "话题类型  1.所有人可看  2.只能自己查看", required = "required",defaultValue = "1")
     private Integer type;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "状态  1.正常  2.删除", required = "required")
+    @ApiModelProperty(value = "状态  1.正常  2.删除", required = "required",defaultValue = "1")
     private Integer state;
 
     @TableField(value = "report_state")
-    @ApiModelProperty(value = "举报状态  1.正常  2.已举报", required = "required", enumClass = ContentStateEnum.class)
+    @ApiModelProperty(value = "举报状态  1.正常  2.被举报", required = "required",defaultValue = "1", enumClass = ContentStateEnum.class)
     private Integer reportState;
 
     @TableField(value = "tag_id")
@@ -58,7 +58,7 @@ public class ForumContent extends OperatorUserInfo {
     private String forumDesc;
 
     @TableField(value = "anonymous")
-    @ApiModelProperty(value = "是否匿名发帖  0.不是匿名发帖  1.匿名发帖", required = "required", enumClass = WhetherEnum.class)
+    @ApiModelProperty(value = "是否匿名发帖  0.不是匿名发帖  1.匿名发帖", required = "required",defaultValue = "0", enumClass = WhetherEnum.class)
     private Integer anonymous;
 
     @TableField(value = "browse_num")
