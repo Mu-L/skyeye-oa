@@ -10,4 +10,6 @@ public interface DwQuestionBankService extends SkyeyeBusinessService<DwQuestionB
     void queryDwQuestionBankList(InputObject inputObject, OutputObject outputObject);
 
     void queryMyDwQuestionBankList(InputObject inputObject, OutputObject outputObject);
+
+    void setUpDwQuestionBank(InputObject inputObject, OutputObject outputObject);
 }

@@ -97,7 +97,6 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
     public List<DwQuMultiFillblank> selectQuMultiFillblank(String copyFromId) {
         QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId),copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
 

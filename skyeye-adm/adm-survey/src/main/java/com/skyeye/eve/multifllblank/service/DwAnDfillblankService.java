@@ -11,4 +11,6 @@ public interface DwAnDfillblankService extends SkyeyeBusinessService<DwAnDfillbl
     void queryDwAnDfillblankById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnDfillblank> selectBySurveyId(String surveyId);
+
+    List<DwAnDfillblank> selectAnDfillblankQuId(String id);
 }

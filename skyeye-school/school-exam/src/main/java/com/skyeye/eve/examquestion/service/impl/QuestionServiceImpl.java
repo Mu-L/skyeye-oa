@@ -29,6 +29,8 @@ import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
+import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
 import com.skyeye.exam.examanradio.entity.ExamAnRadio;
@@ -131,6 +133,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Autowired
     private ExamAnChenCheckboxService examAnChenCheckboxService;
+
+    @Autowired
+    private ExamAnDfilllankService examAnDfilllankService;
 
     @Override
     protected void createPrepose(Question entity) {
@@ -328,6 +333,14 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 List<ExamAnOrder> examAnOrderbyList = examAnOrderService.selectAnOrderByQuId(question.getId());
                 question.setOrderbyTd(orderbyList);
                 question.setOrderbyAn(examAnOrderbyList);
+                continue;
+            }
+            // 4 多行填空题
+            if (question.getQuType() == QuType.MULTIFILLBLANK.getIndex()) {
+                List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(question.getId());
+                List<ExamAnDfillblank> examAnDfillblankList = examAnDfilllankService.selectAnMultiFillblankQuId(question.getId());
+                question.setMultifillblankTd(multiFillblanks);
+                question.setDFillblankAn(examAnDfillblankList);
                 continue;
             }
             // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE

@@ -19,4 +19,6 @@ public interface ExamAnDfilllankService extends SkyeyeBusinessService<ExamAnDfil
     void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnDfillblank> selectBySurveyId(String surveyId);
+
+    List<ExamAnDfillblank> selectAnMultiFillblankQuId(String id);
 }

@@ -231,7 +231,7 @@ public class MatrixMultipleChoiceServiceImpl extends SkyeyeBusinessServiceImpl<M
                 List<Map<String, Object>> questionChenOption = matrixMultipleChoiceDao.queryQuestionChenOptionListByQuestionId(question);// 获取选项
                 question.put("questionChenOption", questionChenOption);
             }
-            // 获取知识点
+            // 获取F知识点
             question.put("knowledgeList", getKnowledgeListBuQuId(quId));
             question.put("quTypeName", quType.toUpperCase());
             outputObject.setBean(question);

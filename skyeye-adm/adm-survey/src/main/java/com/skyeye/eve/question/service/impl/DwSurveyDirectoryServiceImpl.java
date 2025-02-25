@@ -52,8 +52,10 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -111,8 +113,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         DwSurveyDirectory dwSurveyDirectory = selectById(id); // 根据ID查询问卷信息
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) { // 判断问卷信息是否存在
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断问卷是否未发布
-                String belongId = dwSurveyDirectory.getId(); // 获取问卷ID
-                List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(belongId); // 根据问卷ID查询题目
+                List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(id); // 根据问卷ID查询题目
                 if (CollectionUtil.isNotEmpty(questions)) { // 判断是否有题目
                     // 总分数
                     int fraction = 0;
@@ -142,6 +143,15 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
     }
 
+    @Override
+    protected void createPrepose(DwSurveyDirectory entity) {
+        String endTime = entity.getEndTime();
+        if (StrUtil.isEmpty(endTime)) {
+            endTime = null;
+        }
+        entity.setEndTime(endTime);
+    }
+
     /**
      * 参加问卷的方法
      *
@@ -157,6 +167,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
         String id = map.get("id").toString(); // 获取问卷ID
         DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectById(id); // 根据ID查询问卷信息
+        if (dwSurveyDirectory == null || dwSurveyDirectory.getId() == null) {
+            throw new CustomException("该问卷不存在");
+        }
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) { // 判断问卷是否存在
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) { // 判断问卷是否发布
                 if (!ToolUtil.isBlank(userId)) { // 判断用户是否登录
@@ -172,8 +185,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             } else {
                 throw new CustomException("该问卷未发布");
             }
-        } else {
-            throw new CustomException("该问卷不存在");
         }
         if (yesOrNo) {
             return dwSurveyDirectory;
@@ -252,53 +263,48 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//        String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
+//        String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+//        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
+//            LocalDateTime start = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
+//            LocalDateTime end = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
+//            if (start.isAfter(end)) { // 判断开始时间是否在结束时间之后
+//                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
+//            }
+//        }
+        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
         String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+
         if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-            LocalDateTime start = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
-            LocalDateTime end = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
+            LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3); // 将字符串转换为 LocalDateTime
+            LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3); // 将字符串转换为 LocalDateTime
+
             if (start.isAfter(end)) { // 判断开始时间是否在结束时间之后
                 throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
             }
         }
     }
 
-//    /**
-//     * 创建问卷目录后的后置操作
-//     *
-//     * @param entity 问卷目录对象
-//     * @param userId 创建者ID
-//     */
-//    @Transactional
-//    @Override
-//    public void createPostpose(DwSurveyDirectory entity, String userId) {
-//        String id = entity.getId(); // 获取问卷目录ID
-//        String reader = entity.getReaderList(); // 阅卷人
-//        String[] readerList = reader.split(","); // 将阅卷人转换为列表
-//        String classId = entity.getClassId(); // 获取班级ID
-//        String[] classIdList = classId.split(","); // 将班级ID转换为列表
-//        for (String classIdItem : classIdList) {
-//            examSurveyClassService.createExamSurveyClass(id, classIdItem, userId); // 创建问卷班级
-//        }
-//        for (String readerItem : readerList) {
-//            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
-//        }
-//    }
-
-//    @Transactional
-//    @Override
-//    public void updatePostpose(ExamSurveyDirectory entity, String userId) {
-//        String id = entity.getId(); // 获取问卷id
-//        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), id);
-//        examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
-//        String reader = entity.getReaderList(); // 阅卷人
-//        String[] readerList = reader.split(","); // 将阅卷人转换为列表
-//        for (String readerItem : readerList) {
-//            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
-//        }
-//    }
+    private LocalDateTime parseDateTime(String dateTimeStr, DateTimeFormatter... formatters) {
+        for (DateTimeFormatter formatter : formatters) {
+            try {
+                // 如果时间字符串的长度是 10（即 yyyy-MM-dd），则解析为 LocalDate
+                if (dateTimeStr.length() == 10) {
+                    LocalDate date = LocalDate.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    return date.atStartOfDay(); // 将日期转换为当天的起始时间
+                }
+                return LocalDateTime.parse(dateTimeStr, formatter);
+            } catch (DateTimeParseException e) {
+                // 忽略异常，继续尝试下一个格式
+            }
+        }
+        throw new DateTimeParseException("无法解析时间字符串: " + dateTimeStr, dateTimeStr, 0);
+    }
 
     /**
      * 切换是否删除问卷目录的方法
@@ -358,14 +364,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateId), userId);
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
-    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
         outputResult(outputObject, page, queryWrapper);
     }
 

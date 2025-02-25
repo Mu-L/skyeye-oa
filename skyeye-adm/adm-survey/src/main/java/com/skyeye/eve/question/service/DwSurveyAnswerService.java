@@ -14,7 +14,7 @@ public interface DwSurveyAnswerService extends SkyeyeBusinessService<DwSurveyAns
 
     List<DwSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
 
-    List<DwSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
+    void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
 
