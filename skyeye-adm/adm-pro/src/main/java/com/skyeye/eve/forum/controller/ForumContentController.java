@@ -221,10 +221,15 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "queryActiveUsersList", value = "获取活跃用户", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryActiveUsersList")
     public void queryActiveUsersList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryActiveUsersList(inputObject, outputObject);
     }
+    /*@RequestMapping("/post/ForumContentController/queryActiveUsersList")
+    public void queryActiveUsersList(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.queryActiveUsersList(inputObject, outputObject);
+    }*/
 
     /**
      * 获取热门贴
