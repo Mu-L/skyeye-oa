@@ -9,6 +9,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.dao.ForumContentDao;
+import com.skyeye.eve.forum.service.ForumHotService;
 import com.skyeye.jedis.JedisClientService;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -40,11 +41,17 @@ public class HotForumQuartz {
     @Autowired
     private ForumContentDao forumContentDao;
 
+    @Autowired
+    private ForumHotService forumHotService;
+
     /**
      * 定时器计算每日热门贴
      */
     @XxlJob("hotForumQuartz")
     public void editHotForumMation() {
+        forumHotService.editHotForumMation();
+    }
+    /*public void editHotForumMation() {
         try {
             String yestoday = DateAfterSpacePointTime.getSpecifiedTime(
                 DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD, DateAfterSpacePointTime.AroundType.BEFORE);
@@ -146,7 +153,7 @@ public class HotForumQuartz {
         } catch (Exception e) {
             log.warn("editHotForumMation error.", e);
         }
-    }
+    }*/
 
     /**
      * 获取过去7天内的日期数组
