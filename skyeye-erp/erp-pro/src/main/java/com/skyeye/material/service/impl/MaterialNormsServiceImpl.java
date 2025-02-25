@@ -73,6 +73,10 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
             normsStockList.addAll(materialNorms.getNormsStock());
         }
         materialNormsStockService.saveMaterialNormsInitStock(material.getId(), normsStockList, userId);
+
+        // 刷新规格的缓存
+        List<String> normsIds = materialNormsList.stream().map(MaterialNorms::getId).collect(Collectors.toList());
+        refreshCache(normsIds);
     }
 
     private void setNormsName(Material material) {
