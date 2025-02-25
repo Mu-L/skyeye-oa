@@ -279,7 +279,14 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<MaterialNormsCode> wrapper = new QueryWrapper<>();
         setCustomerWrapper(inputObject, wrapper);
-        wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getPickUseState), PickNormsCodeUseState.WAIT_USE.getKey());
+        if (StrUtil.equals(commonPageInfo.getType(), "noUse")) {
+            // 未使用
+            wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getPickUseState), PickNormsCodeUseState.WAIT_USE.getKey());
+        } else if (StrUtil.equals(commonPageInfo.getType(), "used")) {
+            // 已使用
+            wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getPickUseState), PickNormsCodeUseState.USED.getKey());
+        }
+
         List<MaterialNormsCode> materialNormsCodeList = list(wrapper);
         List<Map<String, Object>> dataList = JSONUtil.toList(JSONUtil.toJsonStr(materialNormsCodeList), null);
         materialService.setMationForMap(dataList, "materialId", "materialMation");
