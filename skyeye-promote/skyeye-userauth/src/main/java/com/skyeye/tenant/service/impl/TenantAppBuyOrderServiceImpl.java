@@ -55,7 +55,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<Tena
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
-        tenantService.setMationForMap(beans, "tenantId", "tenantMation");
+        tenantService.setMationForMap(beans, "buyTenantId", "buyTenantMation");
         return beans;
     }
 
