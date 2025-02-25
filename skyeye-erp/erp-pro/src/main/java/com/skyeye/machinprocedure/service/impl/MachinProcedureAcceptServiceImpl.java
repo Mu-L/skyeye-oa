@@ -234,12 +234,13 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
 
     @Override
     public void approvalEndIsSuccess(MachinProcedureAccept entity) {
+        MachinProcedureAccept realEntity = selectById(entity.getId());
         // 获取车间任务
-        MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(entity.getMachinProcedureFarmId());
+        MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(realEntity.getMachinProcedureFarmId());
         // 获取该任务下已经完成的量
-        Integer allComplateNum = calcNumByMachinProcedureFarmId(entity.getMachinProcedureFarmId());
+        Integer allComplateNum = calcNumByMachinProcedureFarmId(realEntity.getMachinProcedureFarmId());
         // 计算未完成的量 = 车间任务目标量 - 已完成的量 - 当前单据合格的量
-        Integer noComplateNum = machinProcedureFarm.getTargetNum() - allComplateNum - entity.getQualifiedNum();
+        Integer noComplateNum = machinProcedureFarm.getTargetNum() - allComplateNum - realEntity.getQualifiedNum();
         if (noComplateNum == 0) {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.ALL_COMPLETED.getKey());
         } else if (noComplateNum > 0) {
@@ -248,7 +249,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.EXCESS_COMPLETED.getKey());
         }
         // 校验并修改条形码信息
-        checkNormsCodeAndSave(entity, false);
+        checkNormsCodeAndSave(realEntity, false);
     }
 
     /**

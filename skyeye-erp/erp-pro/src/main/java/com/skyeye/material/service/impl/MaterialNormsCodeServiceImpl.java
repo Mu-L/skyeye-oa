@@ -117,6 +117,9 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         if (commonPageInfo.getInDepot() != null) {
             wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getInDepot), commonPageInfo.getInDepot());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            wrapper.like(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), commonPageInfo.getKeyword());
+        }
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(MaterialNormsCode::getCreateTime));
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum));
     }
