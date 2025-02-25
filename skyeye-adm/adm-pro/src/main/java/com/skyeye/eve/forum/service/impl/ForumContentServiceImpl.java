@@ -31,7 +31,6 @@ import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumComment;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHistoryView;
-import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.*;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
@@ -103,23 +102,14 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
             .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
-//        for (Map<String, Object> bean : beans) {
-//            String createTime = ToolUtil.timeFormat(bean.get("createTime").toString());
-//            bean.put("createTime", createTime);
-//            String key = ForumConstants.forumBrowseNumsByForumId(bean.get("id").toString());
-//            if (ToolUtil.isBlank(jedisClient.get(key))) {
-//                // 浏览量
-//                bean.put("browseNum", 0);
-//            } else {
-//                String browseNum = jedisClient.get(key);
-//                bean.put("browseNum", browseNum);
-//            }
-//        }
+        forumTagService.setTagMationForContentList(beans);
+        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-//    /**
+    //    /**
 //     * 新增我的帖子
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象
@@ -283,17 +273,14 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Override
     public ForumContent selectById(String id) {
         ForumContent bean = super.selectById(id);
-        List<ForumTag> forumTagList = forumTagService.selectByIds(bean.getTagId());
-//        List<Map<String, Object>> tagList = forumTagList.stream().map(item -> {
-//            return JSONUtil.<Map<String, Object>>toBean(JSONUtil.toJsonStr(item), null);
-//        }).collect(Collectors.toList());
-        List<Map<String, Object>> tagList = JSONUtil.toList(JSONUtil.toJsonStr(forumTagList), null);
-        bean.setTagList(tagList);
+        forumTagService.setTagMationForContentList(Arrays.asList(bean));
         // 设置匿名
         if (bean.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
             bean.setCreateId(StrUtil.EMPTY);
             bean.setLastUpdateId(StrUtil.EMPTY);
         }
+        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
+        iAuthUserService.setDataMation(bean, ForumContent::getLastUpdateId);
         return bean;
     }
 

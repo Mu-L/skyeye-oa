@@ -5,11 +5,13 @@
 package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -17,6 +19,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumTagDao;
+import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumTagService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -26,7 +29,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ForumTagServiceImpl
@@ -61,11 +68,11 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
             queryWrapper.like(MybatisPlusUtil.toColumns(ForumTag::getTagName), keyword);
         }
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
-                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+            .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
+            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> list = list(queryWrapper);
-        iAuthUserService.setName(list, "createId","createName");
-        iAuthUserService.setName(list, "lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(list, "createId", "createName");
+        iAuthUserService.setName(list, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(list);
         outputObject.settotal(pages.getTotal());
     }
@@ -73,8 +80,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
     @Override
     public ForumTag selectById(String id) {
         ForumTag forumTag = super.selectById(id);
-        iAuthUserService.setName(forumTag, "createId","createName");
-        iAuthUserService.setName(forumTag, "lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(forumTag, "createId", "createName");
+        iAuthUserService.setName(forumTag, "lastUpdateId", "lastUpdateName");
         return forumTag;
     }
 
@@ -149,6 +156,43 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
     }
 
     /**
+     * 为话题列表中设置标签信息
+     *
+     * @param beans
+     */
+    @Override
+    public void setTagMationForContentList(List<ForumContent> beans) {
+        List<String> tagIdList = new ArrayList<>();
+        for (ForumContent bean : beans) {
+            if (StrUtil.isNotEmpty(bean.getTagId())) {
+                String[] tagIdArr = bean.getTagId().split(",");
+                tagIdList.addAll(Arrays.asList(tagIdArr));
+            }
+        }
+        List<String> distinctTagIds = tagIdList.stream().distinct().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(distinctTagIds)) {
+            return;
+        }
+        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, distinctTagIds);
+        List<ForumTag> tagList = list(queryWrapper);
+        Map<String, Map<String, Object>> tagMap = tagList.stream()
+            .collect(Collectors.toMap(ForumTag::getId, forumTag -> {
+                return JSONUtil.toBean(JSONUtil.toJsonStr(forumTag), null);
+            }));
+        for (ForumContent bean : beans) {
+            for (String s : bean.getTagId().split(",")) {
+                if (tagMap.containsKey(s)) {
+                    if (bean.getTagList() == null) { // 检查是否为 null
+                        bean.setTagList(new ArrayList<>()); // 初始化为一个空集合
+                    }
+                    bean.getTagList().add(tagMap.get(s));
+                }
+            }
+        }
+    }
+
+    /**
      * 论坛标签上移
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -164,8 +208,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         int orderBy = forumTag.getOrderBy();
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+            .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
             throw new CustomException("该数据已经是第一条数据，无法上移");
@@ -196,8 +240,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         int orderBy = forumTag.getOrderBy();
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+            .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
             throw new CustomException("已经是最后一条数据了,无法下移");
@@ -226,8 +270,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.UP_LINE.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> beans = list(queryWrapper);
-        iAuthUserService.setName(beans, "createId","createName");
-        iAuthUserService.setName(beans, "lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(beans, "createId", "createName");
+        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
         outputObject.setBean(beans);
         outputObject.settotal(page.getTotal());
     }
