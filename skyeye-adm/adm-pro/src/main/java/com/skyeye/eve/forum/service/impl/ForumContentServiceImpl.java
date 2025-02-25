@@ -696,11 +696,56 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryActiveUsersList(InputObject inputObject, OutputObject outputObject) {
+        // 获取活跃用户
+        //按 create_id 分组，计算每个用户的发帖数量
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
+        List<ForumContent> contentBean = list(queryWrapper);
+        Map<String, Long> contentMap = contentBean.stream().
+                collect(Collectors.groupingBy(ForumContent::getCreateId, Collectors.counting()));
+
+        Map<String,List<Long>> weightMap = new HashMap<>();
+        for (Map.Entry<String, Long> entry : contentMap.entrySet()) {
+            // 帖子
+            List<Long> list = new ArrayList<>();
+            String key = entry.getKey();
+            Long value = entry.getValue();
+            list.add(value);
+            // 评论
+            QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
+            queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getCreateId),key);
+            long count = forumCommentService.count(queryComment);
+            list.add(count);
+            weightMap.put(key,list);
+        }
+        // 计算权重
+        Map<String, Double> weight = new HashMap<>();
+        for (Map.Entry<String, List<Long>> entry : weightMap.entrySet()) {
+            String key = entry.getKey();
+            List<Long> value = entry.getValue();
+            double w = 0.4 * value.get(CommonNumConstants.NUM_ZERO) + 0.6 * value.get(CommonNumConstants.NUM_ONE);
+            weight.put(key,w);
+        }
+        // 排序
+        List<Map.Entry<String, Double>> list = new ArrayList<>(weight.entrySet());
+        list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
+        // 返回前15名
+        List<String> userIds = new ArrayList<>();
+        for (int i = 0; i < list.size() && i < 15; i++) {
+            Map.Entry<String, Double> entry = list.get(i);
+            userIds.add(entry.getKey());
+        }
+
+        outputObject.setBeans(userIds);
+        outputObject.settotal(userIds.size());
+    }
+    /*@Override
+    public void queryActiveUsersList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         List<Map<String, Object>> beans = forumContentDao.queryActiveUsersList(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
-    }
+    }*/
 
     /**
      * 获取热门贴
