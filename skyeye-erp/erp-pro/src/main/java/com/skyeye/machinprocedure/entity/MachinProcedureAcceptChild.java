@@ -69,7 +69,7 @@ public class MachinProcedureAcceptChild extends CommonInfo {
     private List<String> normsCodeList;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "类型", required = "required,num", enumClass = MachinProcedureAcceptChildType.class)
+    @Property(value = "类型", enumClass = MachinProcedureAcceptChildType.class)
     private Integer type;
 
     @TableField(exist = false)
