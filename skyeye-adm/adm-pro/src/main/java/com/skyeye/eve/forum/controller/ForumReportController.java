@@ -30,7 +30,7 @@ public class ForumReportController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertForumReportMation", value = "添加举报信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "insertForumReportMation", value = "添加举报信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ForumReport.class)
     @RequestMapping("/post/ForumReportController/insertForumReportMation")
     public void insertForumReportMation(InputObject inputObject, OutputObject outputObject) {
@@ -56,7 +56,7 @@ public class ForumReportController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "checkForumReport", value = "举报信息审核", method = "POST", allUse = "1")
+    @ApiOperation(id = "checkForumReport", value = "举报信息审核", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "state", name = "state", value = "审核状态", required = "required"),

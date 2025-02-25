@@ -46,7 +46,7 @@ public class ForumReport extends OperatorUserInfo {
     private String reportDesc;
 
     @TableField(value = "examine_state")
-    @ApiModelProperty(value = "审核状态  1.未审核  2.审核通过  3.审核不通过", required = "required", enumClass = ExamineStateEnum.class)
+    @ApiModelProperty(value = "默认为1 .审核状态  1.未审核  2.审核通过  3.审核不通过", enumClass = ExamineStateEnum.class)
     private Integer examineState;
 
     @TableField(value = "examine_nopass_reason")

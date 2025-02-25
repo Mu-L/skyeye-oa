@@ -9,7 +9,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.forum.classenum.NoticeStateEnum;
+import com.skyeye.eve.forum.classenum.ReadEnum;
 import com.skyeye.eve.forum.dao.ForumNoticeDao;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumNotice;
@@ -47,7 +47,7 @@ public class ForumNoticeServiceImpl extends SkyeyeBusinessServiceImpl<ForumNotic
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumNotice> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getState), NoticeStateEnum.NOT_READ.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getState), ReadEnum.NO_READ.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getCreateId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumNotice::getCreateTime));
         List<ForumNotice> bean = list(queryWrapper);

@@ -20,7 +20,7 @@ public class ForumSensitiveWords extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField(value = "sensitive_words")
+    @TableField(value = "sensitive_word")
     @ApiModelProperty(value = "敏感词", required = "required")
-    private String sensitiveWords;
+    private String sensitiveWord;
 }

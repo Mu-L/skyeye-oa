@@ -5,19 +5,15 @@
 package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.jedis.JedisClientService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,101 +28,15 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "论坛敏感词管理", groupName = "论坛敏感词管理")
 public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<ForumSensitiveWordsDao, ForumSensitiveWords> implements ForumSensitiveWordsService {
 
-    @Autowired
-    private ForumSensitiveWordsDao forumSensitiveWordsDao;
-
-    @Autowired
-    private JedisClientService jedisClient;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
-
-    //    /**
-//     * 查出所有论坛敏感词列表
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @Override
-//    public void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-//        List<Map<String, Object>> beans = forumSensitiveWordsDao.queryForumSensitiveWordsList(map);
-//
-//        iAuthUserService.setDataMation();
-//
-//        outputObject.setBeans(beans);
-//        outputObject.settotal(pages.getTotal());
-//    }
-
     public void validatorEntity(ForumSensitiveWords forumSensitiveWords) {
         super.validatorEntity(forumSensitiveWords);
         QueryWrapper<ForumSensitiveWords> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumSensitiveWords::getSensitiveWords), forumSensitiveWords.getSensitiveWords());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumSensitiveWords::getSensitiveWord), forumSensitiveWords.getSensitiveWord());
         ForumSensitiveWords one = getOne(queryWrapper);
-        if (ObjectUtil.isNotEmpty(one)) {
+        if (ObjectUtil.isNotEmpty(one) && StrUtil.isEmpty(forumSensitiveWords.getId())) {
+            throw new CustomException("该论坛敏感词名称已存在，请更换");
+        } else if (ObjectUtil.isNotEmpty(one) && !one.getId().equals(forumSensitiveWords.getId())) {
             throw new CustomException("该论坛敏感词名称已存在，请更换");
         }
     }
-//    @Override
-//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-//    public void insertForumSensitiveWordsMation(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        Map<String, Object> bean = forumSensitiveWordsDao.queryForumSensitiveWordsMationByName(map);
-//        if (!CollectionUtils.isEmpty(bean)) {
-//            outputObject.setreturnMessage("该论坛敏感词名称已存在，请更换");
-//        } else {
-//            DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
-//            forumSensitiveWordsDao.insertForumSensitiveWordsMation(map);
-//            jedisClient.del(ForumConstants.forumSensitiveWordsAll());
-//        }
-//    }
-
-//    /**
-//     * 删除论坛敏感词
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @Override
-//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-//    public void deleteForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        forumSensitiveWordsDao.deleteForumSensitiveWordsById(map);
-//        jedisClient.del(ForumConstants.forumSensitiveWordsAll());
-//    }
-
-//    /**
-//     * 通过id查找对应的论坛敏感词信息
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @Override
-//    public void selectForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        Map<String, Object> bean = forumSensitiveWordsDao.selectForumSensitiveWordsById(map);
-//        outputObject.setBean(bean);
-//        outputObject.settotal(1);
-//    }
-
-//    /**
-//     * 通过id编辑对应的论坛敏感词信息
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @Override
-//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-//    public void editForumSensitiveWordsMationById(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        Map<String, Object> bean = forumSensitiveWordsDao.queryForumSensitiveWordsMationByName(map);
-//        if (!CollectionUtils.isEmpty(bean)) {
-//            outputObject.setreturnMessage("该论坛敏感词名称已存在，请更换");
-//        } else {
-//            forumSensitiveWordsDao.editForumSensitiveWordsMationById(map);
-//            jedisClient.del(ForumConstants.forumSensitiveWordsAll());
-//        }
-//    }
 }

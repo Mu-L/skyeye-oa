@@ -20,6 +20,7 @@ import com.skyeye.eve.forum.classenum.ExamineStateEnum;
 import com.skyeye.eve.forum.classenum.NotificationTypeEnum;
 import com.skyeye.eve.forum.classenum.ReadEnum;
 import com.skyeye.eve.forum.dao.ForumReportDao;
+import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumNotice;
 import com.skyeye.eve.forum.entity.ForumReport;
 import com.skyeye.eve.forum.service.ForumContentService;
@@ -75,7 +76,27 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         forumReport.setReportTime(DateUtil.getTimeAndToString());
         forumReport.setExamineState(ExamineStateEnum.NOT_EXAMINE.getKey());
     }
-//    /**
+
+    @Override
+    protected void createPostpose(ForumReport entity, String userId) {
+        super.createPostpose(entity, userId);
+        // 通知举报人
+        ForumNotice forumNotice = new ForumNotice();
+        forumNotice.setNoticeTitle("举报");
+        forumNotice.setNoticeContent("您举报的帖子已提交、等待审核。举报内容为："+entity.getReportDesc());
+        forumNotice.setForumId(entity.getForumId());
+        forumNotice.setReceiveId(entity.getCreateId());
+        forumNotice.setType(NotificationTypeEnum.REPORT.getKey());
+        forumNotice.setState(ReadEnum.NO_READ.getKey());
+        forumNoticeService.createEntity(forumNotice,null);
+        // 通知被举报人
+        ForumContent forumContent = forumContentService.selectById(entity.getForumId());
+        forumNotice.setNoticeContent("您的帖子被举报、等待审核。举报内容为："+entity.getReportDesc());
+        forumNotice.setReceiveId(forumContent.getCreateId());
+        forumNoticeService.createEntity(forumNotice,null);
+    }
+
+    //    /**
 //     * 新增举报信息
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象

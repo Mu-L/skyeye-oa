@@ -39,7 +39,7 @@ public class ForumNotice extends OperatorUserInfo {
     private String receiveId;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "通知类型  1.帖子回复通知  2.发帖通知粉丝", required = "required", enumClass = NotificationTypeEnum.class)
+    @ApiModelProperty(value = "通知类型  1.帖子回复通知  2.发帖通知粉丝 3.举报通知", required = "required", enumClass = NotificationTypeEnum.class)
     private Integer type;
 
     @TableField(value = "state")

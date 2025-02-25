@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 public enum NotificationTypeEnum implements SkyeyeEnumClass {
 
     REPLY(1, "帖子回复通知", true, true),
-    SEND_TO_FANS(2, "发帖通知粉丝", true, true);
+    SEND_TO_FANS(2, "发帖通知粉丝", true, true),
+    REPORT(3, "举报通知", true, true);
 
     private Integer key;
 
