@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 
@@ -26,19 +27,15 @@ import lombok.Data;
 @UniqueField
 @TableName(value = "dw_qu_score")
 @ApiModel(value = "评分题行选项实体类")
-public class DwQuScore extends CommonInfo {
+public class DwQuScore extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题", required = "required")
+    @ApiModelProperty(value = "所属题")
     private String quId;
-
-    @TableField("belong_id")
-    @ApiModelProperty(value = "所属题", required = "required")
-    private String belongId;
 
     @TableField("option_name")
     @ApiModelProperty(value = "选项内容")
@@ -56,13 +53,9 @@ public class DwQuScore extends CommonInfo {
     @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
     private Integer visibility;
 
-    @TableField("create_id")
-    @ApiModelProperty(value = "创建人", required = "required")
-    private String createId;
-
-    @TableField("create_time")
-    @ApiModelProperty(value = "创建时间", required = "required")
-    private String createTime;
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题", required = "required")
+    private String belongId;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "选项id")

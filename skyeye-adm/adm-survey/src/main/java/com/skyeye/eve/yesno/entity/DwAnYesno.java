@@ -32,23 +32,23 @@ public class DwAnYesno extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "belongAnswerId")
+    @ApiModelProperty(value = "对应的答卷信息表")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "belongId")
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "quId")
+    @ApiModelProperty(value = "问题ID")
     private String quId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "visibility")
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
     @TableField("year_answer")
-    @ApiModelProperty(value = "year_answer")
+    @ApiModelProperty(value = "年度答案")
     private String year_answer;
 
 

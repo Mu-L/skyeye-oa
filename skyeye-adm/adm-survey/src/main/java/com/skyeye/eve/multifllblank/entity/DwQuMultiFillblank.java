@@ -33,7 +33,7 @@ public class DwQuMultiFillblank extends OperatorUserInfo {
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题", required = "required")
+    @ApiModelProperty(value = "所属题ID", required = "required")
     private String quId;
 
     @TableField("belong_id")
@@ -41,7 +41,7 @@ public class DwQuMultiFillblank extends OperatorUserInfo {
     private String belongId;
 
     @TableField("option_name")
-    @ApiModelProperty(value = "选项内容", required = "required")
+    @ApiModelProperty(value = "选项问题", required = "required")
     private String optionName;
 
     @TableField("option_title")

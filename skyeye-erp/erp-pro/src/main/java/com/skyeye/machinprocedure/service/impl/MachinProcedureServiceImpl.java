@@ -22,6 +22,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedure;
 import com.skyeye.machinprocedure.entity.MachinProcedureFarm;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
+import com.skyeye.procedure.service.WorkProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,9 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
     @Autowired
     private MachinProcedureFarmService machinProcedureFarmService;
 
+    @Autowired
+    private WorkProcedureService workProcedureService;
+
     @Override
     public void deleteByParentId(String parentId) {
         QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
@@ -60,6 +64,13 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         List<MachinProcedureFarm> machinProcedureFarmList = machinProcedureFarmService.queryAllMachinProcedureFarmByMachinProcedureId(id);
         machinProcedure.setMachinProcedureFarmList(machinProcedureFarmList);
         return machinProcedure;
+    }
+
+    @Override
+    public List<MachinProcedure> selectByIds(String... ids) {
+        List<MachinProcedure> machinProcedureList = super.selectByIds(ids);
+        workProcedureService.setDataMation(machinProcedureList, MachinProcedure::getProcedureId);
+        return machinProcedureList;
     }
 
     @Override

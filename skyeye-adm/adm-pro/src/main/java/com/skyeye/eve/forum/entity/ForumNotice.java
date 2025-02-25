@@ -6,12 +6,15 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.forum.classenum.NotificationTypeEnum;
 import lombok.Data;
 
 @Data
 @TableName("forum_notice")
+@RedisCacheField(name = "forum:notice", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel(value = "论坛通知实体类")
 public class ForumNotice extends OperatorUserInfo {
 

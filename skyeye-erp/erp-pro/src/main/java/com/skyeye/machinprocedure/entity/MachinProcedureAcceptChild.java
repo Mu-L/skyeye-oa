@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
@@ -68,7 +69,7 @@ public class MachinProcedureAcceptChild extends CommonInfo {
     private List<String> normsCodeList;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "类型，参考#MachinProcedureAcceptChildType", required = "required,num")
+    @Property(value = "类型", enumClass = MachinProcedureAcceptChildType.class)
     private Integer type;
 
     @TableField(exist = false)

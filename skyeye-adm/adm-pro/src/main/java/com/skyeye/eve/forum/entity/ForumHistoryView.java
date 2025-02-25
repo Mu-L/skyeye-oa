@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
@@ -21,7 +23,8 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@TableName(value = "wall_history_post")
+@TableName(value = "wall_history_view")
+@RedisCacheField(name = "forum:historyview", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel(value = "历史帖子实体类")
 public class ForumHistoryView extends CommonInfo {
 

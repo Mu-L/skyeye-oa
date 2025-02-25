@@ -28,11 +28,11 @@ public class DwAnOrder extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "所属评分题答案id")
+    @ApiModelProperty(value = "对应的答卷信息表")
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属试卷id")
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
     @TableField("ordery_num")
@@ -40,14 +40,14 @@ public class DwAnOrder extends CommonInfo {
     private String orderyNum;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属评分题")
+    @ApiModelProperty(value = "问题ID")
     private String quId;
 
     @TableField("qu_row_id")
-    @ApiModelProperty(value = "所属评分题行id")
+    @ApiModelProperty(value = "矩阵行选项ID")
     private String quRowId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示")
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 }

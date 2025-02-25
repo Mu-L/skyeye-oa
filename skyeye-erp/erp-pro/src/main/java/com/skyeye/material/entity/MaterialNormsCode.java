@@ -14,8 +14,10 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
 import com.skyeye.material.classenum.MaterialNormsCodeType;
+import com.skyeye.pick.classenum.PickNormsCodeUseState;
 import com.skyeye.shop.classenum.StoreNormsCodeUseState;
 import lombok.Data;
 
@@ -83,11 +85,11 @@ public class MaterialNormsCode extends CommonInfo {
     private Farm farmMation;
 
     @TableField("pick_use_state")
-    @Property(value = "加工时，物料使用状态，参考#PickNormsCodeUseState")
+    @Property(value = "加工时，物料使用状态", enumClass = PickNormsCodeUseState.class)
     private Integer pickUseState;
 
     @TableField("pick_state")
-    @Property(value = "加工使用结果状态，参考#MachinProcedureAcceptChildType")
+    @Property(value = "加工使用结果状态", enumClass = MachinProcedureAcceptChildType.class)
     private Integer pickState;
 
     @TableField(value = "store_id")

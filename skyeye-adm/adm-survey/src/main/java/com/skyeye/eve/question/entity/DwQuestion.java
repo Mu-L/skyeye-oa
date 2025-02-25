@@ -51,10 +51,6 @@ public class DwQuestion extends OperatorUserInfo {
     @ApiModelProperty(value = "填空的input行")
     private Integer answerInputRow;
 
-    @TableField("fraction")
-    @ApiModelProperty(value = "每道题的分数，不能小于1")
-    private Integer fraction;
-
     @TableField("answer_input_width")
     @ApiModelProperty(value = "填空的input宽度")
     private Integer answerInputWidth;
@@ -162,6 +158,10 @@ public class DwQuestion extends OperatorUserInfo {
     @TableField("whether_upload")
     @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否", required = "required")
     private Integer whetherUpload;
+
+    @TableField("fraction")
+    @ApiModelProperty(value = "每道题的分数，不能小于1")
+    private Integer fraction;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "单选题选项信息", required = "json")

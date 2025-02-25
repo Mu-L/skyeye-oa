@@ -33,7 +33,7 @@ public class DwQuChenColumn extends OperatorUserInfo {
     private String id;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题", required = "required")
+    @ApiModelProperty(value = "所属题")
     private String quId;
 
     @TableField("belong_id")

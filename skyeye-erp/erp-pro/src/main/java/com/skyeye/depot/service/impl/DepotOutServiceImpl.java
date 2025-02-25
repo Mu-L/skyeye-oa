@@ -49,32 +49,25 @@ import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.other.service.OtherOutLetsService;
-import com.skyeye.other.service.impl.OtherOutLetsServiceImpl;
 import com.skyeye.otherwise.service.OtherWiseOrderService;
 import com.skyeye.pick.service.PatchOutLetService;
 import com.skyeye.pick.service.RequisitionOutLetService;
-import com.skyeye.pick.service.impl.PatchOutLetServiceImpl;
-import com.skyeye.pick.service.impl.RequisitionOutLetServiceImpl;
 import com.skyeye.pickconfirm.classenum.ConfirmFromType;
 import com.skyeye.pickconfirm.entity.ConfirmPut;
 import com.skyeye.pickconfirm.entity.ConfirmReturn;
 import com.skyeye.pickconfirm.service.ConfirmPutService;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
 import com.skyeye.purchase.service.PurchaseReturnsService;
-import com.skyeye.purchase.service.impl.PurchaseReturnsServiceImpl;
 import com.skyeye.rest.sealservice.rest.IServiceApplyRest;
 import com.skyeye.rest.shop.service.IShopStoreService;
 import com.skyeye.retail.service.RetailOutLetService;
-import com.skyeye.retail.service.impl.RetailOutLetServiceImpl;
 import com.skyeye.seal.service.SalesOutLetService;
-import com.skyeye.seal.service.impl.SalesOutLetServiceImpl;
 import com.skyeye.shop.classenum.ShopConfirmFromType;
 import com.skyeye.shop.entity.ShopConfirmPut;
 import com.skyeye.shop.entity.ShopConfirmReturn;
 import com.skyeye.shop.service.ShopConfirmPutService;
 import com.skyeye.shop.service.ShopConfirmReturnService;
 import com.skyeye.shop.service.ShopOutLetsService;
-import com.skyeye.shop.service.impl.ShopOutLetsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -93,10 +86,7 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "仓库出库单", groupName = "仓库出入库", flowable = true)
 public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, DepotOut> implements DepotOutService {
 
-    // 采购退货单，销售出库单，零售出库单，其他出库单，领料出库单，补料出库单，配件申领单，门店申领单
-    private static final List<String> OUT_ORDER_TYPE = Arrays.asList(PurchaseReturnsServiceImpl.class.getName(), SalesOutLetServiceImpl.class.getName(),
-        RetailOutLetServiceImpl.class.getName(), OtherOutLetsServiceImpl.class.getName(), RequisitionOutLetServiceImpl.class.getName(),
-        PatchOutLetServiceImpl.class.getName(), DepotOutFromType.SEAL_APPLY.getIdKey(), ShopOutLetsServiceImpl.class.getName());
+    private static final List<String> OUT_ORDER_TYPE = DepotOutFromType.getAllIdKeys();
 
     @Autowired
     private HolderNormsChildService holderNormsChildService;

@@ -26,7 +26,6 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.classenum.ContentStateEnum;
-import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumComment;
@@ -120,7 +119,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(pages.getTotal());
     }
 
-    //    /**
+//    /**
 //     * 新增我的帖子
 //     *
 //     * @param inputObject  入参以及用户信息等获取对象
@@ -602,62 +601,91 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryForumListByTagId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans = new ArrayList<>();
-        long total = 0;
-        if (!map.get("tagId").toString().equals("hot")) {
-            map.put("userId", inputObject.getLogParams().get("id"));
-            Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-            beans = forumContentDao.queryForumListByTagId(map);
-            total = pages.getTotal();
-            for (Map<String, Object> m : beans) {
-                String createTime = ToolUtil.timeFormat(m.get("createTime").toString());
-                m.put("createTime", createTime);
-                String key = ForumConstants.forumBrowseNumsByForumId(m.get("id").toString());
-                if (ToolUtil.isBlank(jedisClient.get(key))) {
-                    // 浏览量
-                    m.put("browseNum", 0);
-                } else {
-                    String browseNum = jedisClient.get(key);
-                    m.put("browseNum", browseNum);
-                }
-            }
-        } else {
-            map.put("userId", inputObject.getLogParams().get("id"));
-            beans = forumContentDao.queryAllHotForumList(map);
-            for (Map<String, Object> m : beans) {
-                String createTime = ToolUtil.timeFormat(m.get("createTime").toString());
-                m.put("createTime", createTime);
-                String key = ForumConstants.forumBrowseNumsByForumId(m.get("id").toString());
-                if (ToolUtil.isBlank(jedisClient.get(key))) {
-                    // 浏览量
-                    m.put("browseNum", 0);
-                } else {
-                    String browseNum = jedisClient.get(key);
-                    m.put("browseNum", browseNum);
-                }
-            }
-            // 按浏览量和评论数给集合排序
-            beans.sort(new Comparator<Map<String, Object>>() {
-                @Override
-                public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                    Integer m1num = Integer.parseInt(m1.get("browseNum").toString()) + Integer.parseInt(m1.get("commentNum").toString());
-                    Integer m2num = Integer.parseInt(m2.get("browseNum").toString()) + Integer.parseInt(m2.get("commentNum").toString());
-                    int flag = m1num.compareTo(m2num);
-                    return -flag;
-                }
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        String tagId = commonPageInfo.getObjectId();
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        // A&B&(C|(D&E))
+        queryWrapper
+            .like(MybatisPlusUtil.toColumns(ForumContent::getTagId), tagId)
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+            .and(wrapper -> {
+                wrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
+                    .or(w -> {
+                        w.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
+                            .eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId);
+                    });
             });
-            int count = beans.size();
-            int pageMaxSize = Integer.parseInt(map.get("page").toString()) * Integer.parseInt(map.get("limit").toString());
-            if (count < pageMaxSize) {
-                pageMaxSize = count;
+        List<ForumContent> beans = list(queryWrapper);
+        for (ForumContent bean : beans) {
+            if (bean.getAnonymous() == WhetherEnum.DISABLE_USING.getKey()) {
+                bean.setLastUpdateId(StrUtil.EMPTY);
+                bean.setCreateId(StrUtil.EMPTY);
             }
-            beans = beans.subList((Integer.parseInt(map.get("page").toString()) - 1) * Integer.parseInt(map.get("limit").toString()), pageMaxSize);
-            total = count;
         }
         outputObject.setBeans(beans);
-        outputObject.settotal(total);
+        outputObject.settotal(pages.getTotal());
     }
+//    @Override
+//    public void queryForumListByTagId(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        List<Map<String, Object>> beans = new ArrayList<>();
+//        long total = 0;
+//        if (!map.get("tagId").toString().equals("hot")) {
+//            map.put("userId", inputObject.getLogParams().get("id"));
+//            Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
+//            beans = forumContentDao.queryForumListByTagId(map);
+//            total = pages.getTotal();
+//            for (Map<String, Object> m : beans) {
+//                String createTime = ToolUtil.timeFormat(m.get("createTime").toString());
+//                m.put("createTime", createTime);
+//                String key = ForumConstants.forumBrowseNumsByForumId(m.get("id").toString());
+//                if (ToolUtil.isBlank(jedisClient.get(key))) {
+//                    // 浏览量
+//                    m.put("browseNum", 0);
+//                } else {
+//                    String browseNum = jedisClient.get(key);
+//                    m.put("browseNum", browseNum);
+//                }
+//            }
+//        } else {
+//            map.put("userId", inputObject.getLogParams().get("id"));
+//            beans = forumContentDao.queryAllHotForumList(map);
+//            for (Map<String, Object> m : beans) {
+//                String createTime = ToolUtil.timeFormat(m.get("createTime").toString());
+//                m.put("createTime", createTime);
+//                String key = ForumConstants.forumBrowseNumsByForumId(m.get("id").toString());
+//                if (ToolUtil.isBlank(jedisClient.get(key))) {
+//                    // 浏览量
+//                    m.put("browseNum", 0);
+//                } else {
+//                    String browseNum = jedisClient.get(key);
+//                    m.put("browseNum", browseNum);
+//                }
+//            }
+//            // 按浏览量和评论数给集合排序
+//            beans.sort(new Comparator<Map<String, Object>>() {
+//                @Override
+//                public int compare(Map<String, Object> m1, Map<String, Object> m2) {
+//                    Integer m1num = Integer.parseInt(m1.get("browseNum").toString()) + Integer.parseInt(m1.get("commentNum").toString());
+//                    Integer m2num = Integer.parseInt(m2.get("browseNum").toString()) + Integer.parseInt(m2.get("commentNum").toString());
+//                    int flag = m1num.compareTo(m2num);
+//                    return -flag;
+//                }
+//            });
+//            int count = beans.size();
+//            int pageMaxSize = Integer.parseInt(map.get("page").toString()) * Integer.parseInt(map.get("limit").toString());
+//            if (count < pageMaxSize) {
+//                pageMaxSize = count;
+//            }
+//            beans = beans.subList((Integer.parseInt(map.get("page").toString()) - 1) * Integer.parseInt(map.get("limit").toString()), pageMaxSize);
+//            total = count;
+//        }
+//        outputObject.setBeans(beans);
+//        outputObject.settotal(total);
+//    }
 
     /**
      * 获取热门标签
@@ -873,21 +901,21 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> bean = list(queryWrapper);
-        iAuthUserService.setName(bean, "createId","createName");
-        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(bean, "createId", "createName");
+        iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
         List<Map<String, Object>> mapList = new ArrayList<>();
         for (ForumContent forumContent : bean) {
             Map<String, Object> map = new HashMap<>();
             map.put("forumContentMation", forumContent);
             QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
             queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumContent.getId())
-                    .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCommentTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCommentTime));
             List<ForumComment> list = forumCommentService.list(queryComment);
-            if(CollectionUtil.isNotEmpty(list)){
-                iAuthUserService.setDataMation(list,ForumComment::getReplyId);
+            if (CollectionUtil.isNotEmpty(list)) {
+                iAuthUserService.setDataMation(list, ForumComment::getReplyId);
                 map.put("forumCommentMation", list);
             }
             mapList.add(map);

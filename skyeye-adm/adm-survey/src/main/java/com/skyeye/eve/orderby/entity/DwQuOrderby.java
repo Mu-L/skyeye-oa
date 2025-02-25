@@ -18,10 +18,6 @@ public class DwQuOrderby extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("belong_id")
-    @ApiModelProperty(value = "所属题库或试卷")
-    private String belongId;
-
     @TableField("qu_id")
     @ApiModelProperty(value = "所属题")
     private String quId;
@@ -29,10 +25,6 @@ public class DwQuOrderby extends OperatorUserInfo {
     @TableField("option_name")
     @ApiModelProperty(value = "选项内容", required = "required")
     private String optionName;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "所属题")
-    private String optionId;
 
     @TableField("option_title")
     @ApiModelProperty(value = "标识")
@@ -45,5 +37,13 @@ public class DwQuOrderby extends OperatorUserInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
+
+    @TableField("belong_id")
+    @ApiModelProperty(value = "所属题库或试卷")
+    private String belongId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "所属题")
+    private String optionId;
 
 }
