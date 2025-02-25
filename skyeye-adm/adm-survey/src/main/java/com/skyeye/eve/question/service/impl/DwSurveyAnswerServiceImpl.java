@@ -175,12 +175,14 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     }
 
     @Override
-    public List<DwSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
+    public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String state = map.get("state").toString();
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getState), state);
-        return list(queryWrapper);
+        List<DwSurveyAnswer> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     @Override
@@ -224,7 +226,6 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
                 return StrUtil.contains(surveyMation.getSurveyName(), commonPageInfo.getKeyword());
             }).collect(Collectors.toList());
         }
-        // 将筛选后端beans按分页参数返回
         int fromIndex = (page - 1) * limit;
         if (fromIndex >= beans.size()) {
             outputObject.setBeans(new ArrayList<>());
@@ -233,7 +234,6 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         int toIndex = Math.min(fromIndex + limit, beans.size());
         outputObject.setBeans(beans.subList(fromIndex, toIndex));
         outputObject.settotal(beans.size());
-
     }
 
 }

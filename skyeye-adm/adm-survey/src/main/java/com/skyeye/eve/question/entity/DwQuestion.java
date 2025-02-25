@@ -18,6 +18,7 @@ import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
 import com.skyeye.eve.chen.entity.DwAnChenRadio;
 import com.skyeye.eve.chen.entity.DwQuChenColumn;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
@@ -38,7 +39,6 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
 @TableName(value = "dw_question")
 @ApiModel(value = "问题表实体类")
 public class DwQuestion extends OperatorUserInfo {
@@ -206,6 +206,10 @@ public class DwQuestion extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "多行填空题选项信息", required = "json")
     private List<DwQuMultiFillblank> multifillblankTd;
+
+    @TableField(exist = false)
+    @Property(value = "多行填空题选项信息答案")
+    private List<DwAnDfillblank> dfillblankAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")

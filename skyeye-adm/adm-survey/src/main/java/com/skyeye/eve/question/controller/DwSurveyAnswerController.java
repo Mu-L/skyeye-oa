@@ -62,12 +62,12 @@ public class DwSurveyAnswerController {
     }
 
     /**
-     * 根据createId获取my问卷回答信息
+     * 获取我的问卷回答信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMySurveyAnswerList", value = "根据createId获取my问卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMySurveyAnswerList", value = "获取我的问卷回答信息", method = "POST", allUse = "2")
     @RequestMapping("/post/DwSurveyAnswerController/queryMySurveyAnswerList")
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.queryMySurveyAnswerList(inputObject, outputObject);

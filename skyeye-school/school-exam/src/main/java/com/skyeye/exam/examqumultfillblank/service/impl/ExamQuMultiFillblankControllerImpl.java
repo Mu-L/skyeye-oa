@@ -98,7 +98,6 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
     public List<ExamQuMultiFillblank> selectQuMultiFillblank(String copyFromId) {
         QueryWrapper<ExamQuMultiFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getQuId),copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
 

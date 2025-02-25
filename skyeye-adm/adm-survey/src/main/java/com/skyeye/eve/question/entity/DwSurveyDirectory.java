@@ -23,7 +23,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "dw_survey_directory")
 @ApiModel(value = "问卷目录及问卷实体类")
 public class DwSurveyDirectory extends OperatorUserInfo {
@@ -41,15 +41,15 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String surveyNote;
 
     @TableField("survey_qu_num")
-    @ApiModelProperty(value = "问卷下面有多少题目数", required = "required")
+    @ApiModelProperty(value = "问卷下面有多少题目数")
     private Integer surveyQuNum;
 
     @TableField("survey_state")
-    @ApiModelProperty(value = "问卷状态  0默认设计状态  1执行中 2结束 ", required = "required")
+    @ApiModelProperty(value = "问卷状态  0默认设计状态  1执行中 2结束 ")
     private Integer surveyState;
 
     @TableField("real_start_time")
-    @ApiModelProperty(value = "回答的题项目数 ---- 表示有些题下面会有多重回答")
+    @ApiModelProperty(value = "实际开始时间")
     private String realStartTime;
 
     @TableField("real_end_time")
@@ -61,19 +61,19 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer surveyModel;
 
     @TableField("an_item_least_num")
-    @ApiModelProperty(value = "可以回答的最少选项数目", required = "required")
+    @ApiModelProperty(value = "可以回答的最少选项数目")
     private Integer anItemLeastNum;
 
     @TableField("an_item_most_num")
-    @ApiModelProperty(value = "可以回答的最多选项数目", required = "required")
+    @ApiModelProperty(value = "可以回答的最多选项数目")
     private Integer anItemMostNum;
 
     @TableField("effective")
-    @ApiModelProperty(value = "问卷有效性限制 ---1不限制,2使用Cookie技术,3使用来源IP检测,4 每台电脑或手机只能答一次 ", required = "required")
+    @ApiModelProperty(value = "问卷有效性限制 ---1不限制,2使用Cookie技术,3使用来源IP检测,4 每台电脑或手机只能答一次 ")
     private Integer ceffective;
 
     @TableField("effective_ip")
-    @ApiModelProperty(value = "每个IP只能答一次 1是 0否", required = "required")
+    @ApiModelProperty(value = "每个IP只能答一次 1是 0否")
     private Integer effectiveIp;
 
     @TableField("effective_time")
@@ -81,15 +81,15 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer effectiveTime;
 
     @TableField("yn_end_num")
-    @ApiModelProperty(value = "是否依据收到的份数结束   1是   0否", required = "required")
+    @ApiModelProperty(value = "是否依据收到的份数结束   1是   0否")
     private Integer ynEndNum;
 
     @TableField("end_num")
-    @ApiModelProperty(value = "依据收到的份数", required = "required")
+    @ApiModelProperty(value = "收到的份数")
     private Integer endNum;
 
     @TableField("yn_end_time")
-    @ApiModelProperty(value = "是否依据时间结束  1是   0否", required = "required")
+    @ApiModelProperty(value = "是否依据时间结束  1是   0否")
     private Integer ynEndTime;
 
     @TableField("end_time")
@@ -109,7 +109,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer answerNum;
 
     @TableField("refresh")
-    @ApiModelProperty(value = "有重复回答启用验证码   1是  0否", required = "required")
+    @ApiModelProperty(value = "有重复回答启用验证码   1是  0否")
     private Integer refresh;
 
     @TableField("excerpt_num")
@@ -121,7 +121,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String htmlPath;
 
     @TableField("is_share")
-    @ApiModelProperty(value = "是否共享问卷  0不共享 1共享", required = "required")
+    @ApiModelProperty(value = "是否共享问卷  0不共享 1共享")
     private Integer isShare;
 
     @TableField("sid")
@@ -133,23 +133,23 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer dirType;
 
     @TableField("end_type")
-    @ApiModelProperty(value = "结束方式   1手动结束,2依据结束时间,3依据收到的份数")
+    @ApiModelProperty(value = "结束方式   1手动结束,2依据结束时间,3依据收到的份数", required = "required")
     private Integer endType;
 
     @TableField("mail_only")
-    @ApiModelProperty(value = "只有邮件邀请唯一链接的受访者可回答  1启用 0不启用", required = "required")
+    @ApiModelProperty(value = "只有邮件邀请唯一链接的受访者可回答  1启用 0不启用")
     private Integer mailOnly;
 
     @TableField("survey_tag")
-    @ApiModelProperty(value = "问卷标识 默认 0待审核  1审核通过  2审核未通过  3审核中", required = "required")
+    @ApiModelProperty(value = "问卷标识 默认 0待审核  1审核通过  2审核未通过  3审核中")
     private Integer surveyTag;
 
     @TableField("view_answer")
-    @ApiModelProperty(value = "是否公开结果  0不  1公开", required = "required")
+    @ApiModelProperty(value = "是否公开结果  0不  1公开")
     private Integer viewAnswer;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否被删除  1.未删除  0.已删除", required = "required")
+    @ApiModelProperty(value = "是否被删除  1.未删除  0.已删除")
     private Integer visibility;
 
     @TableField("fraction")

@@ -122,7 +122,7 @@ public class DwSurveyDirectoryController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteSurvey", value = "删除问卷信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "deleteSurvey", value = "物理删除问卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/deleteSurvey")
@@ -156,19 +156,6 @@ public class DwSurveyDirectoryController {
     @RequestMapping("/post/DwSurveyDirectoryController/updateDwMationEndById")
     public void updateDwMationEndById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.updateDwMationEndById(inputObject, outputObject);
-    }
-
-    /**
-     * 分页筛选问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryFilterDwLists", value = "筛选问卷", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwSurveyDirectoryController/queryFilterDwLists")
-    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
-        dwSurveyDirectoryService.queryFilterDwLists(inputObject, outputObject);
     }
 
 }

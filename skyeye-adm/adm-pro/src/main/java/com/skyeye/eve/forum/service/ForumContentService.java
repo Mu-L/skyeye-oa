@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.forum.entity.ForumContent;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ForumContentService extends SkyeyeBusinessService<ForumContent> {
 
@@ -17,47 +18,17 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
     void deleteForumContentById(InputObject inputObject, OutputObject outputObject);
 
-    void queryForumContentMationById(InputObject inputObject, OutputObject outputObject);
-
-//    void editForumContentMationById(InputObject inputObject, OutputObject outputObject);
-
-//    void queryForumContentMationToDetails(InputObject inputObject, OutputObject outputObject);
-
     void queryNewForumContentList(InputObject inputObject, OutputObject outputObject);
-
-    void insertForumCommentMation(InputObject inputObject, OutputObject outputObject);
-
-    void queryForumCommentList(InputObject inputObject, OutputObject outputObject);
-
-    void insertForumReplyMation(InputObject inputObject, OutputObject outputObject);
-
-    void queryForumReplyList(InputObject inputObject, OutputObject outputObject);
-
     void queryForumMyBrowerList(InputObject inputObject, OutputObject outputObject);
 
     void queryNewCommentList(InputObject inputObject, OutputObject outputObject);
 
     void queryForumListByTagId(InputObject inputObject, OutputObject outputObject);
 
-    void queryHotTagList(InputObject inputObject, OutputObject outputObject);
-
     void queryActiveUsersList(InputObject inputObject, OutputObject outputObject);
 
-    void queryHotForumList(InputObject inputObject, OutputObject outputObject);
-
     void querySearchForumList(InputObject inputObject, OutputObject outputObject);
-
-    void querySolrSynchronousTime(InputObject inputObject, OutputObject outputObject);
-
-//    void updateSolrSynchronousData(InputObject inputObject, OutputObject outputObject);
-
     void queryMyCommentList(InputObject inputObject, OutputObject outputObject);
-
-    void deleteCommentById(InputObject inputObject, OutputObject outputObject);
-
-    void queryMyNoticeList(InputObject inputObject, OutputObject outputObject);
-
-    void deleteNoticeById(InputObject inputObject, OutputObject outputObject);
 
     void updateViewCount(String forumId, String count);
 

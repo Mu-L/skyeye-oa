@@ -18,6 +18,7 @@ import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanradio.entity.ExamAnRadio;
@@ -245,6 +246,10 @@ public class Question extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "多行填空题选项信息", required = "json")
     private List<ExamQuMultiFillblank> multifillblankTd;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-行选项信息答案")
+    private List<ExamAnDfillblank> dFillblankAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
