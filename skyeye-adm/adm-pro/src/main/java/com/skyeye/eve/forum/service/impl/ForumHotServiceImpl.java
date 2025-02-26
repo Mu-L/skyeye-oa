@@ -21,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -117,13 +120,37 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
 
     @Override
     public void queryHotTagList(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
+        // 获取前一个月的日期范围yyyy-MM-dd
+        LocalDate today = LocalDate.now();
+        LocalDate beforeMonth = today.minusMonths(1);
+        String start = beforeMonth.format(DateTimeFormatter.ISO_DATE);
+        String end = today.format(DateTimeFormatter.ISO_DATE);
 
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState),CommonNumConstants.NUM_ONE)
-                .select(MybatisPlusUtil.toColumns(ForumContent::getTagId));
-        List<ForumContent> list = forumContentService.list(queryWrapper);
+        queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
+                .select(MybatisPlusUtil.toColumns(ForumHot::getTagId))
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime));
+        List<ForumHot> forumHots = list(queryWrapper);
+        outputObject.setBeans(forumHots);
+        outputObject.settotal(forumHots.size());
+    }
+
+    /**
+     * 获取热门标签
+     * */
+    @Override
+    public void queryHotForumTagList() {
+        String beforeDay = getBeforeOrFutureDay(-29);
+        String today = DateUtil.getTimeAndToString();
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+                .between(MybatisPlusUtil.toColumns(ForumContent::getCreateTime), beforeDay, today)
+                .select(MybatisPlusUtil.toColumns(ForumContent::getTagId))
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> forumContents = forumContentService.list(queryWrapper);
+
         List<String> tagIds = new ArrayList<>();
-        for(ForumContent content:list){
+        for(ForumContent content:forumContents){
             String[] tagId = content.getTagId().split(",");
             for (int i = 0; i < tagId.length; i++) {
                 if(StrUtil.isNotEmpty(tagId[i])){
@@ -146,8 +173,19 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         if(tagIdList.size()>10){
             tagIdList = tagIdList.subList(0, 10);
         }
-        outputObject.setBeans(tagIdList);
-        outputObject.settotal(tagIdList.size());
+        // 保存到ForumHot
+        List<ForumHot> forumHots = new ArrayList<>();
+        for (String tagId : tagIdList) {
+            ForumHot forumHot = new ForumHot();
+            forumHot.setTagId(tagId);
+            // 当前时间yyyy-mm-dd
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String formattedDate = now.format(formatter);
+            forumHot.setUpdateTime(formattedDate);
+            forumHots.add(forumHot);
+        }
+        createEntity(forumHots,null);
     }
 
     public String getBeforeOrFutureDay(int num) {

@@ -20,4 +20,6 @@ public interface ForumHotService extends SkyeyeBusinessService<ForumHot> {
     void editHotForumMation();
 
     void queryHotTagList(InputObject inputObject, OutputObject outputObject);
+
+    void queryHotForumTagList();
 }
