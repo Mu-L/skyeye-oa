@@ -90,7 +90,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     @Override
     public void deletePreExecution(String id) {
         QueryWrapper<GroupsInformation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getId), id);
+        queryWrapper.eq(CommonConstants.ID, id);
         groupsService.deleteGroups(id);
     }
 

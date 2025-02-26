@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -51,7 +52,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         List<String> ids = list.stream().map(ForumHot::getForumId).collect(Collectors.toList());
         // 查询帖子信息
         QueryWrapper<ForumContent> queryContent = new QueryWrapper<>();
-        queryContent.in(MybatisPlusUtil.toColumns(ForumContent::getId), ids);
+        queryContent.in(CommonConstants.ID, ids);
         List<ForumContent> forumContents = forumContentService.list(queryContent);
 
         iAuthUserService.setDataMation(forumContents, ForumContent::getCreateId);

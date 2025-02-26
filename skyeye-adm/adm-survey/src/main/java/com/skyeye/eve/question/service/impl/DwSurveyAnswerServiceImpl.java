@@ -6,6 +6,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -169,7 +170,7 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     public List<DwSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId) {
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getId), answerId);
+        queryWrapper.eq(CommonConstants.ID, answerId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateId), userId);
         return list(queryWrapper);
     }
