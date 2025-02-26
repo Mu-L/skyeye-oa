@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -42,7 +43,7 @@ public class ConferenceRoomReserveServiceImpl extends SkyeyeFlowableServiceImpl<
         queryWrapper.ge(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getStartTime), entity.getStartTime());
         queryWrapper.le(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getEndTime), entity.getEndTime());
         if (StrUtil.isNotEmpty(entity.getId())) {
-            queryWrapper.ne(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getId), entity.getId());
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
         if (this.count(queryWrapper) > 0) {
             throw new IllegalArgumentException("会议室预定时间冲突");

@@ -89,8 +89,6 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
 
     @Override
     public void deletePreExecution(String id) {
-        QueryWrapper<GroupsInformation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getId), id);
         groupsService.deleteGroups(id);
     }
 
@@ -110,8 +108,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                 updateWrapper.eq(CommonConstants.ID, id);
                 updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getJoinGroupsStu), groupsInformation.getJoinGroupsStu() + CommonNumConstants.NUM_ONE);
                 update(updateWrapper);
-            }
-            else {
+            } else {
                 //删除
                 UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
                 updateWrapper.eq(CommonConstants.ID, id);
@@ -120,15 +117,13 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             }
             refreshCache(id);
             LOGGER.info("editGroupsInformationStuNum is success.");
-        }
-        catch (Exception ee) {
+        } catch (Exception ee) {
             LOGGER.warn("editGroupsInformationStuNum error, because {}", ee);
-            if(ee instanceof CustomException) {
+            if (ee instanceof CustomException) {
                 throw new CustomException(ee.getMessage());
             }
             throw new RuntimeException(ee.getMessage());
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
 

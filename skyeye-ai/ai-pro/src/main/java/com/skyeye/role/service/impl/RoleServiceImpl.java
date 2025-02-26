@@ -7,14 +7,14 @@ package com.skyeye.role.service.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.skyeye.role.dao.RoleDao;
-import com.skyeye.role.entity.Role;
-import com.skyeye.role.service.RoleService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.role.dao.RoleDao;
+import com.skyeye.role.entity.Role;
+import com.skyeye.role.service.RoleService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +34,7 @@ public class RoleServiceImpl extends SkyeyeBusinessServiceImpl<RoleDao, Role> im
 
     /**
      * 分页查询AI角色信息
+     *
      * @param commonPageInfo
      * @return
      */
@@ -58,12 +59,5 @@ public class RoleServiceImpl extends SkyeyeBusinessServiceImpl<RoleDao, Role> im
         QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
         List<Role> beans = list(queryWrapper);
         return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
-    }
-
-    @Override
-    public List<Role> queryRoleList(String id){
-        QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Role::getId), id);
-        return list(queryWrapper);
     }
 }
