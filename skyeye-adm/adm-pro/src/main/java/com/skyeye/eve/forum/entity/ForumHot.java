@@ -33,6 +33,10 @@ public class ForumHot extends OperatorUserInfo {
     @ApiModelProperty(value = "标签id")
     private String tagId;
 
+    @TableField("order_by")
+    @ApiModelProperty(value = "排序字段")
+    private Float orderBy;
+
     @TableField("update_time")
     @ApiModelProperty(value = "更新时间")
     private String updateTime;

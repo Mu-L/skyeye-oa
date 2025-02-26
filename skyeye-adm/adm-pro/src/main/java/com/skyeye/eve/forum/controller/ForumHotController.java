@@ -54,5 +54,4 @@ public class ForumHotController {
         forumHotService.queryHotTagList(inputObject, outputObject);
     }
 
-    // TODO 获取热门标签 的定时任务
 }

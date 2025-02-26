@@ -388,6 +388,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      *
      * @param forumContentList
      */
+    @Override
     public void setAnonymous(List<ForumContent> forumContentList) {
         for (ForumContent forumContent : forumContentList) {
             if (forumContent.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
