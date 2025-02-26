@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 /**
@@ -18,6 +20,7 @@ import lombok.Data;
 
 @Data
 @TableName("forum_hot")
+@RedisCacheField(name = "forum:hot", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel("热门帖子和标签实体类")
 public class ForumHot extends OperatorUserInfo {
 
