@@ -48,11 +48,9 @@ public class ForumNoticeServiceImpl extends SkyeyeBusinessServiceImpl<ForumNotic
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumNotice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getState), ReadEnum.NO_READ.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getCreateId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumNotice::getReceiveId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumNotice::getCreateTime));
         List<ForumNotice> bean = list(queryWrapper);
-        iAuthUserService.setName(bean, "createId", "createName");
-        iAuthUserService.setName(bean, "updateId", "updateName");
         for (ForumNotice forumNotice : bean) {
             ForumContent forumContent = forumContentService.selectById(forumNotice.getForumId());
             forumNotice.setForumContentMation(forumContent);
