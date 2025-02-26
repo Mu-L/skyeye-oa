@@ -6,7 +6,6 @@ package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -21,9 +20,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.SensitiveWordInit;
 import com.skyeye.common.util.SensitivewordEngine;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.constans.ForumConstants;
 import com.skyeye.eve.forum.classenum.ContentStateEnum;
 import com.skyeye.eve.forum.dao.ForumContentDao;
 import com.skyeye.eve.forum.entity.ForumComment;
@@ -31,7 +28,6 @@ import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHistoryView;
 import com.skyeye.eve.forum.service.*;
 import com.skyeye.exception.CustomException;
-import com.skyeye.jedis.JedisClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,9 +48,6 @@ import java.util.stream.Collectors;
 public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumContentDao, ForumContent> implements ForumContentService {
 
     @Autowired
-    private ForumContentDao forumContentDao;
-
-    @Autowired
     private ForumContentService forumContentService;
 
     @Autowired
@@ -68,10 +61,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
 
     @Autowired
     private ForumSensitiveWordsService forumSensitiveWordsService;
-
-    @Autowired
-    public JedisClientService jedisClient;
-
 
     /**
      * 获取我的帖子列表
@@ -92,7 +81,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         List<ForumContent> beans = list(queryWrapper);
         forumTagService.setTagMationForContentList(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -147,7 +135,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             bean.setLastUpdateId(StrUtil.EMPTY);
         }
         iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(bean, ForumContent::getLastUpdateId);
         return bean;
     }
 
@@ -169,7 +156,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         setAnonymous(beans);
         forumTagService.setTagMationForContentList(beans);
         // 取前20条
@@ -201,7 +187,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         forumTagService.setTagMationForContentList(beans);
         setAnonymous(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -225,7 +210,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         List<String> forumContentIdList = forumCommentService.queryListByForumIds(idList);
         List<ForumContent> beans = forumContentService.selectByIds(forumContentIdList.toArray(new String[forumContentIdList.size()]));
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         setAnonymous(beans);
         forumTagService.setTagMationForContentList(beans);
         outputObject.setBeans(beans);
@@ -259,7 +243,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             });
         List<ForumContent> beans = list(queryWrapper);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         setAnonymous(beans);
         forumTagService.setTagMationForContentList(beans);
         outputObject.setBeans(beans);
@@ -337,7 +320,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         forumTagService.setTagMationForContentList(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        iAuthUserService.setDataMation(beans, ForumContent::getLastUpdateId);
         setAnonymous(beans);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
@@ -379,7 +361,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(page.getTotal());
     }
 
-
     /**
      * 查找内容中的包含的敏感词
      *
@@ -388,13 +369,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     public String querySensitiveWordsByMap(ForumContent forumContent) {
         String content = forumContent.getForumTitle() + "," + forumContent.getForumContent();
-        List<Map<String, Object>> sensitiveWords;
-        if (ToolUtil.isBlank(jedisClient.get(ForumConstants.forumSensitiveWordsAll()))) {
-            sensitiveWords = forumSensitiveWordsService.queryAllDataForMap();
-            jedisClient.set(ForumConstants.forumSensitiveWordsAll(), JSONUtil.toJsonStr(sensitiveWords));
-        } else {
-            sensitiveWords = JSONUtil.toList(jedisClient.get(ForumConstants.forumSensitiveWordsAll()), null);
-        }
+        List<Map<String, Object>> sensitiveWords = forumSensitiveWordsService.queryAllDataForMap();
         SensitiveWordInit sensitiveWordInit = new SensitiveWordInit();
         Map<String, Object> sensitiveWordMap = sensitiveWordInit.initKeyWord(sensitiveWords);
         SensitivewordEngine.sensitiveWordMap = sensitiveWordMap;
