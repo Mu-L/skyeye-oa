@@ -3,9 +3,12 @@ package com.skyeye.eve.forum.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -41,11 +44,13 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
 
     @Override
     public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
+        CommonPageInfo  commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         LocalDate today = LocalDate.now();
         LocalDate beforeMonth = today.minusMonths(1);
         String start = beforeMonth.format(DateTimeFormatter.ISO_DATE);
         String end = today.format(DateTimeFormatter.ISO_DATE);
+        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
                 .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), null)
                 .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
@@ -61,7 +66,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
             forumContentService.setAnonymous(forumContentList);
         }
         outputObject.setBeans(forumContentList);
-        outputObject.settotal(forumContentList.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -115,20 +120,21 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
 
     @Override
     public void queryHotTagList(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 获取前一个月的日期范围yyyy-MM-dd
         LocalDate today = LocalDate.now();
         LocalDate beforeMonth = today.minusMonths(1);
         String start = beforeMonth.format(DateTimeFormatter.ISO_DATE);
         String end = today.format(DateTimeFormatter.ISO_DATE);
-
+        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
                 .select(MybatisPlusUtil.toColumns(ForumHot::getTagId))
                 .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), null)
                 .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
         List<ForumHot> forumHots = list(queryWrapper);
         outputObject.setBeans(forumHots);
-        outputObject.settotal(forumHots.size());
+        outputObject.settotal(page.getTotal());
     }
 
     /**
