@@ -2,6 +2,7 @@ package com.skyeye.eve.forum.controller;
 
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -46,10 +47,11 @@ public class ForumNoticeController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteNoticeById", value = "根据通知id删除通知", method = "DELETE", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ForumNoticeController/deleteNoticeById")
-    public void deleteNoticeById(InputObject inputObject, OutputObject outputObject) {
+    @ApiOperation(id = "deleteForumNoticeById", value = "根据通知id删除通知", method = "DELETE", allUse = "2")
+    @ApiImplicitParams(
+            @ApiImplicitParam(id = "id", name = "id",value = "主键id", required = "required"))
+    @RequestMapping("/post/ForumNoticeController/deleteForumNoticeById")
+    public void deleteForumNoticeById(InputObject inputObject, OutputObject outputObject) {
         forumNoticeService.deleteById(inputObject, outputObject);
     }
 

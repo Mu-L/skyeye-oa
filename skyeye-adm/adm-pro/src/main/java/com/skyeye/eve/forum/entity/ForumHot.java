@@ -18,7 +18,7 @@ import lombok.Data;
 
 @Data
 @TableName("forum_hot")
-@ApiModel("热门帖子实体类")
+@ApiModel("热门帖子和标签实体类")
 public class ForumHot extends OperatorUserInfo {
 
     @TableId("id")
@@ -28,6 +28,10 @@ public class ForumHot extends OperatorUserInfo {
     @TableField("forum_id")
     @ApiModelProperty(value = "帖子id")
     private String forumId;
+
+    @TableField("tag_id")
+    @ApiModelProperty(value = "标签id")
+    private String tagId;
 
     @TableField("update_time")
     @ApiModelProperty(value = "更新时间")
