@@ -11,13 +11,6 @@ import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 
 public interface ForumSensitiveWordsService extends SkyeyeBusinessService<ForumSensitiveWords> {
 
-//    void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject);
+    void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject);
 
-//    void insertForumSensitiveWordsMation(InputObject inputObject, OutputObject outputObject);
-
-//    void deleteForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
-
-//    void selectForumSensitiveWordsById(InputObject inputObject, OutputObject outputObject);
-
-//    void editForumSensitiveWordsMationById(InputObject inputObject, OutputObject outputObject);
 }
