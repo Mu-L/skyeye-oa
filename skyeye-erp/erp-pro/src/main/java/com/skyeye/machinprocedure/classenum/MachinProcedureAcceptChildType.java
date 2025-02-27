@@ -26,12 +26,14 @@ import java.util.Map;
 @AllArgsConstructor
 public enum MachinProcedureAcceptChildType implements SkyeyeEnumClass {
 
-    NORMAL(1, "正常", true, false),
-    SCRAP(2, "报废", true, false);
+    NORMAL(1, "正常", "green", true, false),
+    SCRAP(2, "报废", "red", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
