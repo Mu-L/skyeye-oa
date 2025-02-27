@@ -198,6 +198,8 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         String fromTypeIdKey;
         if (StrUtil.isNotEmpty(entity.getId())) {
             DepotOut depotOut = selectById(entity.getId());
+            entity.setFromTypeId(depotOut.getFromTypeId());
+            entity.setFromId(depotOut.getFromId());
             fromTypeIdKey = DepotOutFromType.getItemIdKey(depotOut.getFromTypeId());
         } else {
             fromTypeIdKey = DepotOutFromType.getItemIdKey(entity.getFromTypeId());
