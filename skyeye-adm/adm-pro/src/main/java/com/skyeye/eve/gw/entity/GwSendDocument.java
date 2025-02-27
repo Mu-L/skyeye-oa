@@ -57,19 +57,19 @@ public class GwSendDocument extends SkyeyeFlowable {
     private String title;
 
     @TableField("secret")
-    @ApiModelProperty(value = "密级级别", required = "num", enumClass = GwDocumentSecret.class)
+    @ApiModelProperty(value = "密级级别", enumClass = GwDocumentSecret.class)
     private String secret;
 
     @TableField("period")
-    @ApiModelProperty(value = "保密期间", required = "num", enumClass = GwDocumentPeriod.class)
+    @ApiModelProperty(value = "保密期间", enumClass = GwDocumentPeriod.class)
     private String period;
 
     @TableField("urgency")
-    @ApiModelProperty(value = "紧急程度", required = "num", enumClass = GwDocumentUrgency.class)
+    @ApiModelProperty(value = "紧急程度", enumClass = GwDocumentUrgency.class)
     private String urgency;
 
     @TableField("open_category")
-    @ApiModelProperty(value = "公开类别", required = "num", enumClass = GwDocumentOpenCategory.class)
+    @ApiModelProperty(value = "公开类别", enumClass = GwDocumentOpenCategory.class)
     private String openCategory;
 
     @TableField("year")
