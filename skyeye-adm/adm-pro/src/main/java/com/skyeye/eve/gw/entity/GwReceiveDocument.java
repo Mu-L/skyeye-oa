@@ -13,6 +13,10 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.eve.gw.classenum.GwDocumentOpenCategory;
+import com.skyeye.eve.gw.classenum.GwDocumentPeriod;
+import com.skyeye.eve.gw.classenum.GwDocumentSecret;
+import com.skyeye.eve.gw.classenum.GwDocumentUrgency;
 import lombok.Data;
 
 import java.util.List;
@@ -37,20 +41,20 @@ public class GwReceiveDocument extends SkyeyeFlowable {
     private String title;
 
     @TableField("secret")
-    @ApiModelProperty(value = "密级级别，参考#GwDocumentSecret", required = "num")
-    private Integer secret;
+    @ApiModelProperty(value = "密级级别", required = "num", enumClass = GwDocumentSecret.class)
+    private String secret;
 
     @TableField("period")
-    @ApiModelProperty(value = "保密期间，参考#GwDocumentPeriod", required = "num")
-    private Integer period;
+    @ApiModelProperty(value = "保密期间", required = "num", enumClass = GwDocumentPeriod.class)
+    private String period;
 
     @TableField("urgency")
-    @ApiModelProperty(value = "紧急程度，参考#GwDocumentUrgency", required = "num")
-    private Integer urgency;
+    @ApiModelProperty(value = "紧急程度", required = "num", enumClass = GwDocumentUrgency.class)
+    private String urgency;
 
     @TableField("open_category")
-    @ApiModelProperty(value = "公开类别，参考#GwDocumentOpenCategory", required = "num")
-    private Integer openCategory;
+    @ApiModelProperty(value = "公开类别", required = "num", enumClass = GwDocumentOpenCategory.class)
+    private String openCategory;
 
     @TableField("year")
     @ApiModelProperty(value = "年份", required = "required")

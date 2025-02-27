@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @AllArgsConstructor
 public enum GwDocumentOpenCategory implements SkyeyeEnumClass {
-    PROACTIVELY_DISCLOSE(1, "主动公开", true, true),
-    ACCORDING_TO_THE_APPLICATION(2, "依申请公开", true, false),
-    NOT_TO_DISCLOSED(3, "不予公开", true, false);
+    PROACTIVELY_DISCLOSE("1", "主动公开", true, true),
+    ACCORDING_TO_THE_APPLICATION("2", "依申请公开", true, false),
+    NOT_TO_DISCLOSED("3", "不予公开", true, false);
 
-    private Integer key;
+    private String key;
 
     private String value;
 
@@ -34,7 +34,7 @@ public enum GwDocumentOpenCategory implements SkyeyeEnumClass {
 
     private Boolean isDefault;
 
-    public static String getShowName(Integer type) {
+    public static String getShowName(String type) {
         for (GwDocumentOpenCategory value : GwDocumentOpenCategory.values()) {
             if (value.getKey().equals(type)) {
                 return value.getValue();

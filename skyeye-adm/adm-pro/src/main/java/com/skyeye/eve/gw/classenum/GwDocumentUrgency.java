@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @AllArgsConstructor
 public enum GwDocumentUrgency implements SkyeyeEnumClass {
-    COMMONLY(1, "一般", true, true),
-    URGENT(2, "紧急", true, false),
-    EXTRA_GRADE(3, "特级", true, false);
+    COMMONLY("1", "一般", true, true),
+    URGENT("2", "紧急", true, false),
+    EXTRA_GRADE("3", "特级", true, false);
 
-    private Integer key;
+    private String key;
 
     private String value;
 
@@ -34,7 +34,7 @@ public enum GwDocumentUrgency implements SkyeyeEnumClass {
 
     private Boolean isDefault;
 
-    public static String getShowName(Integer type) {
+    public static String getShowName(String type) {
         for (GwDocumentUrgency value : GwDocumentUrgency.values()) {
             if (value.getKey().equals(type)) {
                 return value.getValue();

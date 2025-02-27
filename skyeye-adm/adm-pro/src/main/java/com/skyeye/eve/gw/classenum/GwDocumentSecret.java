@@ -22,12 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @AllArgsConstructor
 public enum GwDocumentSecret implements SkyeyeEnumClass {
-    INSIDE(1, "内部", true, true),
-    SECRET(2, "秘密", true, false),
-    CONFIDENTIAL(3, "机密", true, false),
-    TOP_SECRET(4, "绝密", true, false);
+    INSIDE("1", "内部", true, true),
+    SECRET("2", "秘密", true, false),
+    CONFIDENTIAL("3", "机密", true, false),
+    TOP_SECRET("4", "绝密", true, false);
 
-    private Integer key;
+    private String key;
 
     private String value;
 
@@ -35,7 +35,7 @@ public enum GwDocumentSecret implements SkyeyeEnumClass {
 
     private Boolean isDefault;
 
-    public static String getShowName(Integer type) {
+    public static String getShowName(String type) {
         for (GwDocumentSecret value : GwDocumentSecret.values()) {
             if (value.getKey().equals(type)) {
                 return value.getValue();

@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @AllArgsConstructor
 public enum GwDocumentPeriod implements SkyeyeEnumClass {
-    SHORT_TERM(1, "短期", true, true),
-    LONG_TERM(2, "长期", true, false),
-    PERMANENT(3, "永久", true, false);
+    SHORT_TERM("1", "短期", true, true),
+    LONG_TERM("2", "长期", true, false),
+    PERMANENT("3", "永久", true, false);
 
-    private Integer key;
+    private String key;
 
     private String value;
 
@@ -34,7 +34,7 @@ public enum GwDocumentPeriod implements SkyeyeEnumClass {
 
     private Boolean isDefault;
 
-    public static String getShowName(Integer type) {
+    public static String getShowName(String type) {
         for (GwDocumentPeriod value : GwDocumentPeriod.values()) {
             if (value.getKey().equals(type)) {
                 return value.getValue();
