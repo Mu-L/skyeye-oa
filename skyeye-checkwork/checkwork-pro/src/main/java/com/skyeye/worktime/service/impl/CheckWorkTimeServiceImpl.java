@@ -93,6 +93,7 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     public void queryEnableCheckWorkTimeList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<CheckWorkTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CheckWorkTime::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckWorkTime::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
         List<CheckWorkTime> checkWorkTimeList = list(queryWrapper);
         outputObject.setBeans(checkWorkTimeList);
         outputObject.settotal(checkWorkTimeList.size());
