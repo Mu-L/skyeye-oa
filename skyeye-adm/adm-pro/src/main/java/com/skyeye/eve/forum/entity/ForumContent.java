@@ -53,10 +53,6 @@ public class ForumContent extends OperatorUserInfo {
     @ApiModelProperty(value = "标题", required = "required")
     private String forumTitle;
 
-    @TableField(value = "forum_desc")
-    @ApiModelProperty(value = "简介", required = "required")
-    private String forumDesc;
-
     @TableField(value = "anonymous")
     @ApiModelProperty(value = "是否匿名发帖(默认0)  0.不是匿名发帖  1.匿名发帖",defaultValue = "0", enumClass = WhetherEnum.class)
     private Integer anonymous;

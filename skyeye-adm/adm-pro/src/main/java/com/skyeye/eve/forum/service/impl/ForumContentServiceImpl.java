@@ -93,10 +93,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         } else {
             forumContent.setState(CommonNumConstants.NUM_ONE);
             forumContent.setReportState(CommonNumConstants.NUM_ONE);
-            // 贴子纯文本内容
-            String content = forumContent.getForumContent();
-            // 简介
-            forumContent.setForumDesc(content.length() > 400 ? content.substring(0, 400) : content);
         }
     }
 
@@ -312,8 +308,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     public void querySearchForumList(InputObject inputObject, OutputObject outputObject) {
         String searchValue = inputObject.getParams().get("searchValue").toString();
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), searchValue)
-            .or().like(MybatisPlusUtil.toColumns(ForumContent::getForumDesc), searchValue);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), searchValue);
         List<ForumContent> beans = list(queryWrapper);
         if (CollectionUtil.isEmpty(beans)) {
             return;
