@@ -244,6 +244,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         farmService.setDataMation(machinProcedureFarmList, MachinProcedureFarm::getFarmId);
         machinProcedureFarmList.forEach(machinProcedureFarm -> {
             machinProcedureFarm.setStateMation(MachinProcedureFarmState.getMation(machinProcedureFarm.getState()));
+            machinProcedureFarm.setServiceClassName(getServiceClassName());
         });
         return machinProcedureFarmList;
     }
