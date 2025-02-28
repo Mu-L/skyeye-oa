@@ -5,6 +5,8 @@
 package com.skyeye.school.knowledge.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.knowledge.entity.KnowledgePoints;
 
 /**
@@ -17,4 +19,5 @@ import com.skyeye.school.knowledge.entity.KnowledgePoints;
  */
 public interface KnowledgePointsService extends SkyeyeBusinessService<KnowledgePoints> {
 
+    void queryKnowledgePointsList(InputObject inputObject, OutputObject outputObject);
 }

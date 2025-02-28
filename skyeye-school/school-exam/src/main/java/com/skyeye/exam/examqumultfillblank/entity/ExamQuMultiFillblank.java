@@ -47,11 +47,11 @@ public class ExamQuMultiFillblank extends OperatorUserInfo {
 
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
-    private Integer visibility;
+    private String visibility;
 
     @TableField("is_default_answer")
     @ApiModelProperty(value = "是否是默认答案  1.是  2.否")
-    private Long isDefaultAnswer;
+    private String isDefaultAnswer;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "选项id")

@@ -49,10 +49,11 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
             bean.setOptionTitle(object.getOptionTitle());
-            bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
+            if (StrUtil.isNotEmpty(object.getIsDefaultAnswer())){
+                bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
+            }
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
-                bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
@@ -71,20 +72,11 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
     }
 
     @Override
-    protected void deletePreExecution(ExamQuMultiFillblank entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)){
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<ExamQuMultiFillblank> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID,id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
 

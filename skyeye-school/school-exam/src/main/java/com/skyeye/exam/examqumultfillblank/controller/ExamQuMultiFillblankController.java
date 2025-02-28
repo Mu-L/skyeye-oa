@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examqumultfillblank.service.ExamQuMultiFillblankService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,20 +45,7 @@ public class ExamQuMultiFillblankController {
     public void deleteExamQuMultiFillblankById(InputObject inputObject, OutputObject outputObject) {
         examQuMultiFillblankService.deleteById(inputObject, outputObject);
     }
-
-    /**
-     * 逻辑删除多行填空题选项表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "changeVisibility", value = "逻辑删除多行填空题选项表信息", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/ExamQuMultiFillblankController/changeVisibility")
-    public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
-        examQuMultiFillblankService.changeVisibility(inputObject, outputObject);
-    }
+}
 
 
-                                                                                                                                                                                     }
+
