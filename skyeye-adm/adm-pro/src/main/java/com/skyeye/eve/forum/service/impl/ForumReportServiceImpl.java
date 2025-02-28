@@ -96,24 +96,6 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         forumNoticeService.createEntity(forumNotice,null);
     }
 
-    //    /**
-//     * 新增举报信息
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @Override
-//    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-//    public void insertForumReportMation(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        Map<String, Object> user = inputObject.getLogParams();
-//        map.put("reportId", user.get("id"));
-//        map.put("reportTime", DateUtil.getTimeAndToString());
-//        map.put("id", ToolUtil.getSurFaceId());
-//        map.put("examineState", "1");
-//        forumReportDao.insertForumReportMation(map);
-//    }
-
     @Override
     public QueryWrapper<ForumReport> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ForumReport> queryWrapper = super.getQueryWrapper(commonPageInfo);

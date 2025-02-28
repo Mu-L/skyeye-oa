@@ -56,7 +56,7 @@ public class ForumContentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteForumContentById", value = "举报信息审核", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteForumContentById", value = "删除帖子", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ForumContentController/deleteForumContentById")
@@ -151,16 +151,4 @@ public class ForumContentController {
         forumContentService.querySearchForumList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的帖子列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMyCommentList", value = "获取我的帖子列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ForumContentController/queryMyCommentList")
-    public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.queryMyCommentList(inputObject, outputObject);
-    }
 }

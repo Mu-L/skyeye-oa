@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.forum.entity.ForumComment;
@@ -44,6 +45,19 @@ public class ForumCommentController {
     @RequestMapping("/post/ForumCommentController/queryForumCommentList")
     public void queryForumCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryList(inputObject, outputObject);
+    }
+
+    /**
+     * 获取我的评论信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyForumCommentList", value = "获取我的评论信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ForumCommentController/queryMyForumCommentList")
+    public void queryMyForumCommentList(InputObject inputObject, OutputObject outputObject) {
+        forumContentService.queryMyForumCommentList(inputObject, outputObject);
     }
 
 
