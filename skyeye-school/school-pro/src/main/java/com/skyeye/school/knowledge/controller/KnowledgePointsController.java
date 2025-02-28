@@ -42,7 +42,7 @@ public class KnowledgePointsController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KnowledgePointsController/queryKnowledgePointsList")
     public void queryKnowledgePointsList(InputObject inputObject, OutputObject outputObject) {
-        knowledgePointsService.queryKnowledgePointsList(inputObject, outputObject);
+        knowledgePointsService.queryPageList(inputObject, outputObject);
     }
 
     /**
