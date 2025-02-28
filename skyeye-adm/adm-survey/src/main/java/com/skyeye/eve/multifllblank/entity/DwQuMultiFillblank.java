@@ -62,7 +62,7 @@ public class DwQuMultiFillblank extends OperatorUserInfo {
 
     @TableField("is_default_answer")
     @ApiModelProperty(value = "是否是默认答案  1.是  2.否")
-    private Long isDefaultAnswer;
+    private String isDefaultAnswer;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "选项id")

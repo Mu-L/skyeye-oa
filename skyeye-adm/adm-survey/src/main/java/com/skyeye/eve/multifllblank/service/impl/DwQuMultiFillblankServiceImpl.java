@@ -48,7 +48,9 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
             bean.setOptionTitle(object.getOptionTitle());
-            bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
+            if (StrUtil.isNotEmpty(object.getIsDefaultAnswer())) {
+                bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
+            }
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
@@ -90,14 +92,14 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<DwQuMultiFillblank> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), quId);
         remove(updateWrapper);
     }
 
     @Override
     public List<DwQuMultiFillblank> selectQuMultiFillblank(String copyFromId) {
         QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId),copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), copyFromId);
         return list(queryWrapper);
     }
 
@@ -107,17 +109,17 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
             return new HashMap<>();
         }
         QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getBelongId), id);
         List<DwQuMultiFillblank> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;
