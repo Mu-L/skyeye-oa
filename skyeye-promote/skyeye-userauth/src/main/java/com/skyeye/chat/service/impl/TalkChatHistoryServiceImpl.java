@@ -90,4 +90,22 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
         update(updateWrapper);
     }
 
+    @Override
+    public void queryMyTalkMessageList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        // 分组查询我的最近的聊天消息列表(50条)
+        QueryWrapper<TalkChatHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkChatHistory::getReceiveId), userId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime));
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId));
+        queryWrapper.last("LIMIT 50");
+        queryWrapper.select(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId), MybatisPlusUtil.toColumns(TalkChatHistory::getContent),
+            MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime), MybatisPlusUtil.toColumns(TalkChatHistory::getChatType));
+        List<TalkChatHistory> talkChatHistoryList = list(queryWrapper);
+        // 根据chatType进行分组
+        Map<Integer, List<TalkChatHistory>> chatTypeToTalkChatHistoryListMap = talkChatHistoryList.stream().collect(Collectors.groupingBy(TalkChatHistory::getChatType));
+
+
+    }
+
 }

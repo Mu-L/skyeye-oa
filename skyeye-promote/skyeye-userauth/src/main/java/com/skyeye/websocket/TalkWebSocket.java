@@ -13,6 +13,9 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.dao.CompanyTalkGroupDao;
+import com.skyeye.eve.entity.talk.group.CompanyTalkGroup;
+import com.skyeye.eve.enumclass.CompanyTalkGroupState;
+import com.skyeye.eve.service.CompanyTalkGroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -151,9 +154,9 @@ public class TalkWebSocket {
                 sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
             } else if (SocketConstants.MessageType.Eleventh.getType() == type) {//群聊
                 map1 = SocketConstants.sendGroupTalkPeopleMsg(jsonObject);
-                CompanyTalkGroupDao companyTalkGroupDao = SpringUtils.getBean(CompanyTalkGroupDao.class);
-                Map<String, Object> groupState = companyTalkGroupDao.queryGroupStateById(map1);
-                if ("1".equals(groupState.get("state").toString())) {//正常
+                CompanyTalkGroupService companyTalkGroupService = SpringUtils.getBean(CompanyTalkGroupService.class);
+                CompanyTalkGroup groupMation = companyTalkGroupService.selectById(map1.get("id").toString());
+                if (CompanyTalkGroupState.NORMAL.getKey() == groupMation.getState()) {//正常
                     //插入消息记录
                     TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
                     String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.GROUP_CHAT.getKey());
@@ -168,10 +171,10 @@ public class TalkWebSocket {
                 }
             } else if (SocketConstants.MessageType.Twelfth.getType() == type) {//退出群聊--创建人接收消息
                 map1 = SocketConstants.sendOutGroupToCreaterMsg(jsonObject);
-                CompanyTalkGroupDao companyTalkGroupDao = SpringUtils.getBean(CompanyTalkGroupDao.class);
-                Map<String, Object> groupMation = companyTalkGroupDao.queryGroupCreateIdById(map1);
-                map1.put("toId", groupMation.get("createId"));//收件人id
-                sendMessageTo(JSONUtil.toJsonStr(map1), groupMation.get("createId").toString());
+                CompanyTalkGroupService companyTalkGroupService = SpringUtils.getBean(CompanyTalkGroupService.class);
+                CompanyTalkGroup groupMation = companyTalkGroupService.selectById(map1.get("groupId").toString());
+                map1.put("toId", groupMation.getCreateId());//收件人id
+                sendMessageTo(JSONUtil.toJsonStr(map1), groupMation.getCreateId());
             } else if (SocketConstants.MessageType.Thirteenth.getType() == type) {//解散群聊--所有人接收消息
                 map1 = SocketConstants.sendDisbandGroupToAllMsg(jsonObject);
                 sendMessageToThisGroupMember(map1);

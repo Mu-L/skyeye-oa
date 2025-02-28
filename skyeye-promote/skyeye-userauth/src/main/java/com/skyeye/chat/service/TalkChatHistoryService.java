@@ -25,4 +25,6 @@ public interface TalkChatHistoryService extends SkyeyeBusinessService<TalkChatHi
     void queryMyUnReadMessageList(InputObject inputObject, OutputObject outputObject);
 
     void editTalkChatHistoryToRead(InputObject inputObject, OutputObject outputObject);
+
+    void queryMyTalkMessageList(InputObject inputObject, OutputObject outputObject);
 }
