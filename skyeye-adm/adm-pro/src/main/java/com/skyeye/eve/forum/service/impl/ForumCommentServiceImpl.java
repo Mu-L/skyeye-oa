@@ -3,10 +3,14 @@ package com.skyeye.eve.forum.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -52,7 +56,7 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         ForumContent forumContent = forumContentService.selectById(forumComment.getForumId());
         if (forumContent.getCommentNum() != null) {
             forumContentService.updateCommentCount(forumContent.getId(), CalculationUtil.add(CommonNumConstants.NUM_ZERO,
-                forumContent.getCommentNum(), String.valueOf(CommonNumConstants.NUM_ONE)));
+                    forumContent.getCommentNum(), String.valueOf(CommonNumConstants.NUM_ONE)));
         }
     }
 
@@ -78,7 +82,7 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         String forumId = inputObject.getParams().get("id").toString();
         QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumId)
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
         List<ForumComment> commentList = list(queryWrapper);
         List<Map<String, Object>> beans = commentList.stream().map(forumComment -> {
             return JSONUtil.<Map<String, Object>>toBean(JSONUtil.toJsonStr(forumComment), null);
@@ -86,8 +90,8 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         // 设置评论人信息和回复人信息
         iAuthUserService.setMationForMap(beans, "commentId", "commentMation");
         iAuthUserService.setMationForMap(beans, "replyId", "replyMation");
-        iAuthUserService.setMationForMap(beans, "createId","createMation");
-        iAuthUserService.setMationForMap(beans, "lastUpdateId","lastUpdateMation");
+        iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        iAuthUserService.setMationForMap(beans, "lastUpdateId", "lastUpdateMation");
         return beans;
     }
 
@@ -104,7 +108,7 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         List<String> result = new ArrayList<>();
         QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ForumComment::getForumId), idList)
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
         List<ForumComment> commentList = list(queryWrapper);
         if (CollectionUtil.isEmpty(commentList)) {
             return result;
@@ -118,5 +122,20 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
             }
         }
         return result;
+    }
+
+    @Override
+    public void queryMyForumCommentList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getCreateId), userId)
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
+        List<ForumComment> beans = list(queryWrapper);
+        iAuthUserService.setName(beans, "createId","createName");
+        iAuthUserService.setName(beans, "lastUpdateId","lastUpdateName");
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 }

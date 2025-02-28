@@ -326,42 +326,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     }
 
     /**
-     * 获取我的帖子列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryMyCommentList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = inputObject.getLogParams().get("id").toString();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
-        List<ForumContent> bean = list(queryWrapper);
-        iAuthUserService.setName(bean, "createId", "createName");
-        iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
-        List<Map<String, Object>> mapList = new ArrayList<>();
-        for (ForumContent forumContent : bean) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("forumContentMation", forumContent);
-            QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
-            queryComment.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumContent.getId())
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCommentTime));
-            List<ForumComment> list = forumCommentService.list(queryComment);
-            if (CollectionUtil.isNotEmpty(list)) {
-                iAuthUserService.setDataMation(list, ForumComment::getReplyId);
-                map.put("forumCommentMation", list);
-            }
-            mapList.add(map);
-        }
-        outputObject.setBeans(mapList);
-        outputObject.settotal(page.getTotal());
-    }
-
-    /**
      * 查找内容中的包含的敏感词
      *
      * @param forumContent

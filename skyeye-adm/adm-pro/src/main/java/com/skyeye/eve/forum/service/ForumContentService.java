@@ -16,11 +16,10 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
 
     void queryMyForumContentList(InputObject inputObject, OutputObject outputObject);
 
-//    void insertForumContentMation(InputObject inputObject, OutputObject outputObject);
-
     void deleteForumContentById(InputObject inputObject, OutputObject outputObject);
 
     void queryNewForumContentList(InputObject inputObject, OutputObject outputObject);
+
     void queryForumMyBrowerList(InputObject inputObject, OutputObject outputObject);
 
     void queryNewCommentList(InputObject inputObject, OutputObject outputObject);
@@ -30,7 +29,6 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
     void queryActiveUsersList(InputObject inputObject, OutputObject outputObject);
 
     void querySearchForumList(InputObject inputObject, OutputObject outputObject);
-    void queryMyCommentList(InputObject inputObject, OutputObject outputObject);
 
     void setAnonymous(List<ForumContent> forumContentList);
 
