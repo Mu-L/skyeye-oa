@@ -10,45 +10,6 @@
 	<url id="companychat002" path="/post/CompanyChatController/editUserSignByUserId" val="编辑签名" allUse="2" groupName="聊天模块">
 		<property id="userSign" name="userSign" ref="" var="签名"/>
 	</url>
-	<url id="companytalkgroup001" path="/post/CompanyTalkGroupController/insertGroupMation" val="添加群组信息" allUse="2" groupName="聊天模块">
-		<property id="groupName" name="groupName" ref="required" var="群组名称"/>
-		<property id="groupImg" name="groupImg" ref="required" var="群组logo"/>
-		<property id="groupDesc" name="groupDesc" ref="" var="群组简介"/>
-		<property id="userIds" name="userIds" ref="required" var="成员id，逗号隔开"/>
-	</url>
-	<url id="companytalkgroup002" path="/post/CompanyTalkGroupController/queryGroupInvitationMation" val="获取邀请信息/入群信息" allUse="2" groupName="聊天模块">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-	    <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-	</url>
-	<url id="companytalkgroup003" path="/post/CompanyTalkGroupController/editAgreeInGroupInvitationMation" val="同意入群" allUse="2" groupName="聊天模块">
-		<property id="rowId" name="id" ref="required" var="邀请信息id" />
-	</url>
-	<url id="companytalkgroup004" path="/post/CompanyTalkGroupController/editRefuseInGroupInvitationMation" val="拒绝入群" allUse="2" groupName="聊天模块">
-		<property id="rowId" name="id" ref="required" var="邀请信息id" />
-	</url>
-	<url id="companytalkgroup005" path="/post/CompanyTalkGroupController/queryGroupMationList" val="搜索群组列表" allUse="2" groupName="聊天模块">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-	    <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-	    <property id="groupNameOrNum" name="groupNameOrNum" ref="" var="群组名称/群组账号" />
-	</url>
-	<url id="companytalkgroup006" path="/post/CompanyTalkGroupController/insertGroupMationToTalk" val="申请加入群聊" allUse="2" groupName="聊天模块">
-	    <property id="groupId" name="groupId" ref="required" var="群聊id" />
-	</url>
-	<url id="companytalkgroup007" path="/post/CompanyTalkGroupController/queryGroupMemberByGroupId" val="获取群成员" allUse="2" groupName="聊天模块">
-	    <property id="id" name="id" ref="required" var="群聊id" />
-	</url>
-	<url id="companytalkgroup008" path="/post/CompanyTalkGroupController/queryChatLogByType" val="获取聊天记录" allUse="2" groupName="聊天模块">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-	    <property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-	    <property id="receiveId" name="receiveId" ref="required" var="接收人id" />
-	    <property id="chatType" name="chatType" ref="required" var="消息类型   1个人对个人   2群组聊天  该字段决定receive_id值的类型" />
-	</url>
-	<url id="companytalkgroup009" path="/post/CompanyTalkGroupController/editUserToExitGroup" val="退出群聊" allUse="2" groupName="聊天模块">
-		<property id="groupId" name="groupId" ref="required" var="群聊id" />
-	</url>
-	<url id="companytalkgroup010" path="/post/CompanyTalkGroupController/editCreateToExitGroup" val="解散群聊" allUse="2" groupName="聊天模块">
-		<property id="groupId" name="groupId" ref="required" var="群聊id" />
-	</url>
 	<!-- 聊天结束 -->
 	
 	<!-- 系统各部分说明开始 -->

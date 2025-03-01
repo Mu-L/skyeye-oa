@@ -68,18 +68,4 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
         return knowledgePoints;
     }
 
-    @Override
-    public void queryKnowledgePointsList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<KnowledgePoints> queryWrapper = getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(CommonConstants.ID,inputObject.getParams().get("id").toString());
-        String keyword = commonPageInfo.getKeyword();
-        if (StrUtil.isNotEmpty(keyword)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(KnowledgePoints::getName), keyword);
-        }
-        List<KnowledgePoints> list = list(queryWrapper);
-        outputObject.setBean(list);
-        outputObject.settotal(page.getTotal());
-    }
 }

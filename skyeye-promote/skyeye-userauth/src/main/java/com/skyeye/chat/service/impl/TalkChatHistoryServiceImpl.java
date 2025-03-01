@@ -13,6 +13,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.chat.dao.TalkChatHistoryDao;
 import com.skyeye.chat.entity.TalkChatHistory;
+import com.skyeye.chat.enums.TalkChatType;
 import com.skyeye.chat.service.TalkChatHistoryService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
@@ -20,10 +21,15 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.entity.talk.group.CompanyTalkGroup;
+import com.skyeye.eve.enumclass.CompanyTalkGroupState;
+import com.skyeye.eve.service.CompanyTalkGroupService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +48,9 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
 
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
+
+    @Autowired
+    private CompanyTalkGroupService companyTalkGroupService;
 
     @Override
     public String createEntity(JSONObject jsonObject, Integer chatType) {
@@ -88,6 +97,57 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
         updateWrapper.eq(MybatisPlusUtil.toColumns(TalkChatHistory::getReadType), WhetherEnum.DISABLE_USING.getKey());
         updateWrapper.set(MybatisPlusUtil.toColumns(TalkChatHistory::getReadType), WhetherEnum.ENABLE_USING.getKey());
         update(updateWrapper);
+    }
+
+    @Override
+    public void queryMyTalkMessageList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        // 分组查询我的最近的聊天消息列表(50条)
+        QueryWrapper<TalkChatHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkChatHistory::getReceiveId), userId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime));
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId));
+        queryWrapper.last("LIMIT 50");
+        queryWrapper.select(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId), MybatisPlusUtil.toColumns(TalkChatHistory::getContent),
+            MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime), MybatisPlusUtil.toColumns(TalkChatHistory::getChatType));
+        List<TalkChatHistory> talkChatHistoryList = list(queryWrapper);
+
+        // 根据用户id查询员工数据
+        List<String> userIds = talkChatHistoryList.stream()
+            .filter(talkChatHistory -> talkChatHistory.getChatType() == TalkChatType.PERSONAL_TO_PERSONAL.getKey())
+            .map(TalkChatHistory::getSendId).distinct().collect(Collectors.toList());
+        Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
+
+        // 根据群组id 查询群组数据
+        List<String> groupIds = talkChatHistoryList.stream()
+            .filter(talkChatHistory -> talkChatHistory.getChatType() == TalkChatType.GROUP_CHAT.getKey())
+            .map(TalkChatHistory::getSendId).distinct().collect(Collectors.toList());
+        Map<String, CompanyTalkGroup> groupMap = companyTalkGroupService.selectMapByIds(groupIds);
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        talkChatHistoryList.forEach(talkChatHistory -> {
+            Map<String, Object> bean = new HashMap<>();
+
+            if (talkChatHistory.getChatType() == TalkChatType.PERSONAL_TO_PERSONAL.getKey()) {
+                Map<String, Object> user = userMap.get(talkChatHistory.getSendId());
+                bean.put("name", user.get("userName").toString());
+                bean.put("avatar", user.get("userPhoto").toString());
+            } else if (talkChatHistory.getChatType() == TalkChatType.GROUP_CHAT.getKey()) {
+                CompanyTalkGroup group = groupMap.get(talkChatHistory.getSendId());
+                if (group.getState() != CompanyTalkGroupState.NORMAL.getKey()) {
+                    return;
+                }
+                bean.put("name", group.getGroupName());
+                bean.put("avatar", group.getGroupImg());
+            }
+            bean.put("sendId", talkChatHistory.getSendId());
+            bean.put("content", talkChatHistory.getContent());
+            bean.put("createTime", talkChatHistory.getCreateTime());
+            bean.put("chatType", talkChatHistory.getChatType());
+            result.add(bean);
+        });
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
     }
 
 }

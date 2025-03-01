@@ -43,4 +43,10 @@ public class TalkChatHistoryController {
     public void editTalkChatHistoryToRead(InputObject inputObject, OutputObject outputObject) {
         talkChatHistoryService.editTalkChatHistoryToRead(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryMyTalkMessageList", value = "查询我的最近的聊天消息列表", method = "GET", allUse = "2")
+    @RequestMapping("/post/TalkChatHistoryController/queryMyTalkMessageList")
+    public void queryMyTalkMessageList(InputObject inputObject, OutputObject outputObject) {
+        talkChatHistoryService.queryMyTalkMessageList(inputObject, outputObject);
+    }
 }
