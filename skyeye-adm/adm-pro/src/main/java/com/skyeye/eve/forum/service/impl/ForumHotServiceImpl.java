@@ -56,7 +56,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String end = today.format(DateTimeFormatter.ISO_DATE);
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
-                .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), null)
+                .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), StrUtil.EMPTY)
                 .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
         List<ForumHot> bean = list(queryWrapper);
         List<String> ids = new ArrayList<>();
