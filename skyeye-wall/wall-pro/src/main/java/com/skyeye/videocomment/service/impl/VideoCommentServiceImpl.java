@@ -55,7 +55,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
 
     @Override
     public void createPrepose(VideoComment entity) {
-        entity.setId(IpUtil.getLocalAddress().toString());
+        entity.setIp(IpUtil.getLocalAddress().toString());
     }
 
     // 新增评论 事务 评论+1
