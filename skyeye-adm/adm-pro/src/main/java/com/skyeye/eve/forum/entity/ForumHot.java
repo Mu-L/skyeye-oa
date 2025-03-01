@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
@@ -44,4 +45,11 @@ public class ForumHot extends OperatorUserInfo {
     @ApiModelProperty(value = "更新时间")
     private String updateTime;
 
+    @TableField(exist = false)
+    @Property(value = "标签信息")
+    private ForumTag forumTag;
+
+    @TableField(exist = false)
+    @Property(value = "帖子信息")
+    private ForumContent forumContent;
 }

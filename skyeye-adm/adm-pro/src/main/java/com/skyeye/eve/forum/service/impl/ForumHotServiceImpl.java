@@ -18,6 +18,7 @@ import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHot;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumHotService;
+import com.skyeye.eve.forum.service.ForumTagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,9 +43,12 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
     @Autowired
     private ForumContentService forumContentService;
 
+    @Autowired
+    private ForumTagService forumTagService;
+
     @Override
     public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo  commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         LocalDate today = LocalDate.now();
         LocalDate beforeMonth = today.minusMonths(1);
@@ -111,6 +115,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         for (Map.Entry<String, Float> entry : ids.entrySet()) {
             ForumHot forumHot = new ForumHot();
             forumHot.setForumId(entry.getKey());
+            forumHot.setTagId(StrUtil.EMPTY);
             forumHot.setOrderBy(entry.getValue());
             forumHot.setUpdateTime(today);
             beans.add(forumHot);
@@ -129,10 +134,13 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String end = today.format(DateTimeFormatter.ISO_DATE);
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
-                .select(MybatisPlusUtil.toColumns(ForumHot::getTagId))
-                .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), null)
+                .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), StrUtil.EMPTY)
                 .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
         List<ForumHot> forumHots = list(queryWrapper);
+        // 设置标签信息
+        for (ForumHot forumHot : forumHots) {
+            forumHot.setForumTag(forumTagService.selectById(forumHot.getTagId()));
+        }
         outputObject.setBeans(forumHots);
         outputObject.settotal(page.getTotal());
     }
@@ -182,6 +190,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         for (Map.Entry<String, Float> entry : tagHot.entrySet()) {
             ForumHot forumHot = new ForumHot();
             forumHot.setTagId(entry.getKey());
+            forumHot.setForumId(StrUtil.EMPTY);
             forumHot.setOrderBy(entry.getValue());
             forumHot.setUpdateTime(today);
             forumHots.add(forumHot);
