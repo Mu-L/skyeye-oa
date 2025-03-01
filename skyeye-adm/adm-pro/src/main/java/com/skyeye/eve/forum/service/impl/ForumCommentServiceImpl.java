@@ -135,6 +135,7 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         List<ForumComment> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId","createName");
         iAuthUserService.setName(beans, "lastUpdateId","lastUpdateName");
+        iAuthUserService.setDataMation(beans,ForumComment::getReplyId);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

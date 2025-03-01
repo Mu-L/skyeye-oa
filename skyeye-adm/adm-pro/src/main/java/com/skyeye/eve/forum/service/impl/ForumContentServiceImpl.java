@@ -293,9 +293,17 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
             Map.Entry<String, Double> entry = list.get(i);
             userIds.add(entry.getKey());
         }
-
-        outputObject.setBeans(userIds);
-        outputObject.settotal(userIds.size());
+        // 设置用户信息
+        List<Map<String, Object>> userInfos = new ArrayList<>();
+        for (String userId : userIds) {
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", userId);
+            userInfo.put("userMation", StrUtil.EMPTY);
+            iAuthUserService.setMationForMap(userInfo, "userId", "userMation");
+            userInfos.add(userInfo);
+        }
+        outputObject.setBeans(userInfos);
+        outputObject.settotal(userInfos.size());
     }
 
     /**
