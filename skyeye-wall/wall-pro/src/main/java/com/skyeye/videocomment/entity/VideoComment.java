@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -26,15 +27,15 @@ public class VideoComment extends OperatorUserInfo {
     private String id;
 
     @TableField("content")
-    @ApiModelProperty(value = "评论内容")
+    @ApiModelProperty(value = "评论内容",required = "required")
     private String content;
 
     @TableField("ip")
-    @ApiModelProperty(value = "IP属地", required = "required")
+    @Property(value = "IP属地")
     private String ip;
 
     @TableField("upvote_num")
-    @ApiModelProperty(value = "点赞数量")
+    @ApiModelProperty(value = "点赞数量",defaultValue = "0")
     private String upvoteNum;
 
     @TableField("parent_id")

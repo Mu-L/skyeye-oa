@@ -14,6 +14,7 @@ import com.skyeye.video.service.VideoService;
 import com.skyeye.videocomment.dao.VideoCommentDao;
 import com.skyeye.videocomment.entity.VideoComment;
 import com.skyeye.videocomment.service.VideoCommentService;
+import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,11 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         if (StrUtil.isNotEmpty(videoComment.getParentId())) {
             throw new CustomException("不可评论");
         }
+    }
+
+    @Override
+    public void createPrepose(VideoComment entity) {
+        entity.setId(IpUtil.getLocalAddress().toString());
     }
 
     // 新增评论 事务 评论+1
