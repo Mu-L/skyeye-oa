@@ -145,11 +145,13 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         String userId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
 
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-            .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
-            .or().and(w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO))
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE);
+        queryWrapper.or(
+            w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                    .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
+        );
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
         setAnonymous(beans);
