@@ -64,11 +64,11 @@ public class CircleViewController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteCircleById", value = "根据ID删除圈子浏览信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteCircleViewById", value = "根据ID删除圈子浏览信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/CircleViewController/deleteCircleById")
-    public void deleteCircleById(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/CircleViewController/deleteCircleViewById")
+    public void deleteCircleViewById(InputObject inputObject, OutputObject outputObject) {
         circleViewService.deleteById(inputObject, outputObject);
     }
 }

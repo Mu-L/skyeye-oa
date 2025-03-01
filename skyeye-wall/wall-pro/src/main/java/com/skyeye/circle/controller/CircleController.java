@@ -66,7 +66,7 @@ public class CircleController {
      */
     @ApiOperation(id = "deleteCircleById", value = "根据ID删除圈子信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/CircleController/deleteCircleById")
     public void deleteCircleById(InputObject inputObject, OutputObject outputObject) {
         circleService.deleteById(inputObject, outputObject);
