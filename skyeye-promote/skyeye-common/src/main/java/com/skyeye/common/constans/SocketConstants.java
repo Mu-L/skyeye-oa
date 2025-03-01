@@ -21,7 +21,8 @@ public class SocketConstants {
         Tenth(10, "搜索账号入群审核同意后通知用户加载群信息通知", ""),
         Eleventh(11, "群聊消息通知", ""),
         Twelfth(12, "退出群聊通知", ""),
-        Thirteenth(13, "解散群聊通知", "");
+        Thirteenth(13, "解散群聊通知", ""),
+        ForceOffline(14, "强制下线通知", "");
 
         private int type;
         private String title;

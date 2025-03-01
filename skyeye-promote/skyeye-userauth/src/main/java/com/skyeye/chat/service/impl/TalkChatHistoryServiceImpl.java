@@ -54,12 +54,17 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
 
     @Override
     public String createEntity(JSONObject jsonObject, Integer chatType) {
+        return createEntity(jsonObject, chatType, WhetherEnum.DISABLE_USING.getKey());
+    }
+
+    @Override
+    public String createEntity(JSONObject jsonObject, Integer chatType, Integer readType) {
         TalkChatHistory talkChatHistory = new TalkChatHistory();
         talkChatHistory.setContent(jsonObject.getStr("message"));
         talkChatHistory.setSendId(jsonObject.getStr("userId"));
         talkChatHistory.setReceiveId(jsonObject.getStr("to"));
         talkChatHistory.setCreateTime(DateUtil.getTimeAndToString());
-        talkChatHistory.setReadType(WhetherEnum.DISABLE_USING.getKey());
+        talkChatHistory.setReadType(readType);
         talkChatHistory.setChatType(chatType);
         return createEntity(talkChatHistory, StrUtil.EMPTY);
     }
