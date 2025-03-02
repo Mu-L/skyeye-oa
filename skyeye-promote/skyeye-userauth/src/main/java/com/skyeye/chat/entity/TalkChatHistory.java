@@ -34,6 +34,10 @@ public class TalkChatHistory extends CommonInfo {
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("unique_id")
+    @ApiModelProperty(value = "会话id，两个人聊天的唯一标识", required = "required")
+    private String uniqueId;
+
     @TableField("send_id")
     @ApiModelProperty(value = "消息发送人", required = "required")
     private String sendId;

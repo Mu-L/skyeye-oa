@@ -307,6 +307,8 @@ public class TalkWebSocket {
                         } else {
                             talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.DISABLE_USING.getKey());
                         }
+                        // 给发送者发送消息，保证其他终端收到消息
+                        sendMessageToMe(jsonObject.getStr("message"), toUserId, type);
                         return true;
                     } catch (Exception e) {
                         status.setRollbackOnly();
@@ -393,6 +395,24 @@ public class TalkWebSocket {
                 LOGGER.error("发送错误通知失败: {}", ex.getMessage());
             }
         }
+    }
+
+    /**
+     * 发送给自己的其他终端
+     *
+     * @param messageStr 消息内容
+     * @param talkId     聊天对象id(接收者id)
+     * @param msgType    消息类型
+     */
+    public void sendMessageToMe(String messageStr, String talkId, Integer msgType) {
+        Map<String, Object> sendMsg = new HashMap<>();
+        // 我的用户id
+        sendMsg.put("myId", this.userId);
+        sendMsg.put("type", SocketConstants.MessageType.SendToMe.getType());
+        sendMsg.put("message", messageStr);
+        sendMsg.put("msgType", msgType);
+        sendMsg.put("talkId", talkId);
+        sendMessageTo(JSONUtil.toJsonStr(sendMsg), this.userId);
     }
 
     /**

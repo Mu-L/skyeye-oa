@@ -22,7 +22,8 @@ public class SocketConstants {
         Eleventh(11, "群聊消息通知", ""),
         Twelfth(12, "退出群聊通知", ""),
         Thirteenth(13, "解散群聊通知", ""),
-        ForceOffline(14, "强制下线通知", "");
+        ForceOffline(14, "强制下线通知", ""),
+        SendToMe(15, "发送消息给自己通知", "");
 
         private int type;
         private String title;

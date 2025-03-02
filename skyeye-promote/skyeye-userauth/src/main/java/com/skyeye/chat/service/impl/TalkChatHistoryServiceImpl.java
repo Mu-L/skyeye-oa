@@ -4,6 +4,7 @@
 
 package com.skyeye.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -62,11 +63,24 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
         TalkChatHistory talkChatHistory = new TalkChatHistory();
         talkChatHistory.setContent(jsonObject.getStr("message"));
         talkChatHistory.setSendId(jsonObject.getStr("userId"));
+        String uniqueId = getSortString(jsonObject.getStr("userId"), jsonObject.getStr("to"));
+        talkChatHistory.setUniqueId(uniqueId);
         talkChatHistory.setReceiveId(jsonObject.getStr("to"));
         talkChatHistory.setCreateTime(DateUtil.getTimeAndToString());
         talkChatHistory.setReadType(readType);
         talkChatHistory.setChatType(chatType);
         return createEntity(talkChatHistory, StrUtil.EMPTY);
+    }
+
+    /**
+     * 对两个字符串进行排序，然后组装成一个字符创返回
+     */
+    private String getSortString(String str1, String str2) {
+        List<String> list = new ArrayList<>();
+        list.add(str1);
+        list.add(str2);
+        list.sort(String::compareTo);
+        return Joiner.on(CommonCharConstants.HORIZONTAL_LINE_MARK).join(list);
     }
 
     @Override
@@ -109,48 +123,71 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
         String userId = inputObject.getLogParams().get("id").toString();
         // 分组查询我的最近的聊天消息列表(50条)
         QueryWrapper<TalkChatHistory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkChatHistory::getReceiveId), userId);
+        queryWrapper.and(wrapper ->
+            wrapper.eq(MybatisPlusUtil.toColumns(TalkChatHistory::getReceiveId), userId)
+                .or().eq(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId), userId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime));
-        queryWrapper.groupBy(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId));
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(TalkChatHistory::getUniqueId));
         queryWrapper.last("LIMIT 50");
-        queryWrapper.select(MybatisPlusUtil.toColumns(TalkChatHistory::getSendId), MybatisPlusUtil.toColumns(TalkChatHistory::getContent),
-            MybatisPlusUtil.toColumns(TalkChatHistory::getCreateTime), MybatisPlusUtil.toColumns(TalkChatHistory::getChatType));
         List<TalkChatHistory> talkChatHistoryList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(talkChatHistoryList)) {
+            return;
+        }
 
         // 根据用户id查询员工数据
         List<String> userIds = talkChatHistoryList.stream()
             .filter(talkChatHistory -> talkChatHistory.getChatType() == TalkChatType.PERSONAL_TO_PERSONAL.getKey())
             .map(TalkChatHistory::getSendId).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(userIds)) {
+            List<String> receiveIds = talkChatHistoryList.stream()
+                .filter(talkChatHistory -> talkChatHistory.getChatType() == TalkChatType.PERSONAL_TO_PERSONAL.getKey())
+                .map(TalkChatHistory::getReceiveId).distinct().collect(Collectors.toList());
+            userIds.addAll(receiveIds);
+            userIds = userIds.stream().distinct().collect(Collectors.toList());
+        }
         Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
 
-        // 根据群组id 查询群组数据
+        // 根据群组id 查询群组数据，对于群聊聊天，只会有receiveId
         List<String> groupIds = talkChatHistoryList.stream()
             .filter(talkChatHistory -> talkChatHistory.getChatType() == TalkChatType.GROUP_CHAT.getKey())
-            .map(TalkChatHistory::getSendId).distinct().collect(Collectors.toList());
+            .map(TalkChatHistory::getReceiveId).distinct().collect(Collectors.toList());
         Map<String, CompanyTalkGroup> groupMap = companyTalkGroupService.selectMapByIds(groupIds);
 
         List<Map<String, Object>> result = new ArrayList<>();
-        talkChatHistoryList.forEach(talkChatHistory -> {
+        for (TalkChatHistory talkChatHistory : talkChatHistoryList) {
             Map<String, Object> bean = new HashMap<>();
 
             if (talkChatHistory.getChatType() == TalkChatType.PERSONAL_TO_PERSONAL.getKey()) {
-                Map<String, Object> user = userMap.get(talkChatHistory.getSendId());
+                Map<String, Object> user;
+                if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
+                    // 我发送的消息
+                    user = userMap.get(talkChatHistory.getReceiveId());
+                } else {
+                    // 我接收的消息
+                    user = userMap.get(talkChatHistory.getSendId());
+                }
+                // 发送者信息
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
+                bean.put("staffId", user.get("staffId").toString());
+                bean.put("talkId", user.get("id").toString());
             } else if (talkChatHistory.getChatType() == TalkChatType.GROUP_CHAT.getKey()) {
-                CompanyTalkGroup group = groupMap.get(talkChatHistory.getSendId());
+                // 群信息
+                CompanyTalkGroup group = groupMap.get(talkChatHistory.getReceiveId());
                 if (group.getState() != CompanyTalkGroupState.NORMAL.getKey()) {
                     return;
                 }
                 bean.put("name", group.getGroupName());
                 bean.put("avatar", group.getGroupImg());
+                bean.put("groupId", group.getId());
+                bean.put("talkId", group.getId());
             }
             bean.put("sendId", talkChatHistory.getSendId());
             bean.put("content", talkChatHistory.getContent());
             bean.put("createTime", talkChatHistory.getCreateTime());
             bean.put("chatType", talkChatHistory.getChatType());
             result.add(bean);
-        });
+        }
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
     }
