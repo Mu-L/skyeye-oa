@@ -36,24 +36,9 @@ import java.util.List;
 @SkyeyeService(name = "历史帖子管理", groupName = "历史帖子管理")
 public class ForumHistoryViewServiceImpl extends SkyeyeBusinessServiceImpl<ForumHistoryViewDao, ForumHistoryView> implements ForumHistoryViewService {
 
-
     @Autowired
     private ForumContentService forumContentService;
-//
-//    @Override
-//    public List<ForumHistoryView> getHistoryPostById(String userId) {
-//        QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHistoryView::getCreateId), userId);
-//        queryWrapper.select(MybatisPlusUtil.toColumns(ForumHistoryView::getForumId));
-//        queryWrapper.groupBy(MybatisPlusUtil.toColumns(ForumHistoryView::getForumId));
-//        List<ForumHistoryView> historyPostList = list(queryWrapper);
-//        return historyPostList;
-//    }
-//
-//
-////    @Autowired
-////    private PopularPostService popularPostService;
-//
+
     @Override
     public String createEntity(ForumHistoryView entity, String userId) {
         QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
@@ -92,27 +77,4 @@ public class ForumHistoryViewServiceImpl extends SkyeyeBusinessServiceImpl<Forum
         List<ForumHistoryView> list = list(queryWrapper);
         return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
-//
-//    @Override
-//    public void deleteMyHistoryPost(InputObject inputObject, OutputObject outputObject) {
-//        String userId = InputObject.getLogParamsStatic().get("id").toString();
-//        QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHistoryView::getCreateId), userId);
-//        remove(queryWrapper);
-//    }
-//
-//    @Override
-//    public void deleteHistoryPostByIds(InputObject inputObject, OutputObject outputObject) {
-//        String ids = inputObject.getParams().get("ids").toString();
-//        List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK));
-//        idList = idList.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
-//        if (CollectionUtil.isEmpty(idList)) {
-//            return;
-//        }
-//        QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.in(CommonConstants.ID, idList);
-//        remove(queryWrapper);
-//        outputObject.setBeans(idList);
-//        outputObject.settotal(idList.size());
-//    }
 }

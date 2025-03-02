@@ -15,7 +15,6 @@ import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumNotice;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumNoticeService;
-import com.skyeye.eve.service.IAuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,9 +33,6 @@ import java.util.List;
 @Service
 @SkyeyeService(name = "论坛通知管理", groupName = "论坛通知管理")
 public class ForumNoticeServiceImpl extends SkyeyeBusinessServiceImpl<ForumNoticeDao, ForumNotice> implements ForumNoticeService {
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
 
     @Autowired
     private ForumContentService forumContentService;

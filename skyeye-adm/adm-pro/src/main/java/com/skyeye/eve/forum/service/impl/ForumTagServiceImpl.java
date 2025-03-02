@@ -68,8 +68,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
             queryWrapper.like(MybatisPlusUtil.toColumns(ForumTag::getTagName), keyword);
         }
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-            .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
-            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+                .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
+                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> list = list(queryWrapper);
         iAuthUserService.setName(list, "createId", "createName");
         iAuthUserService.setName(list, "lastUpdateId", "lastUpdateName");
@@ -127,6 +127,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
             // 新建或者下线可以删除----逻辑删除
             forumTag.setState(ForumStateEnum.IS_DELETE.getKey());
             updateEntity(forumTag, userId);
+            refreshCache(forumTag.getId());
         } else {
             outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
         }
@@ -153,6 +154,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
             forumTag.setState(ForumStateEnum.DOWN_LINE.getKey());
         }
         updateEntity(forumTag, userId);
+        refreshCache(forumTag.getId());
     }
 
     /**
@@ -177,9 +179,9 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         queryWrapper.in(CommonConstants.ID, distinctTagIds);
         List<ForumTag> tagList = list(queryWrapper);
         Map<String, Map<String, Object>> tagMap = tagList.stream()
-            .collect(Collectors.toMap(ForumTag::getId, forumTag -> {
-                return JSONUtil.toBean(JSONUtil.toJsonStr(forumTag), null);
-            }));
+                .collect(Collectors.toMap(ForumTag::getId, forumTag -> {
+                    return JSONUtil.toBean(JSONUtil.toJsonStr(forumTag), null);
+                }));
         for (ForumContent bean : beans) {
             for (String s : bean.getTagId().split(",")) {
                 if (tagMap.containsKey(s)) {
@@ -208,8 +210,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         int orderBy = forumTag.getOrderBy();
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-            .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+                .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
             throw new CustomException("该数据已经是第一条数据，无法上移");
@@ -221,6 +223,10 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
 
             updateEntity(forumTag, userId);
             updateEntity(upForumTag, userId);
+            List<String> ids = new ArrayList<>();
+            ids.add(forumTag.getId());
+            ids.add(upForumTag.getId());
+            refreshCache(ids);
         }
     }
 
@@ -240,8 +246,8 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         int orderBy = forumTag.getOrderBy();
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-            .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
+                .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
+                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> bean = list(queryWrapper);
         if (CollectionUtils.isEmpty(bean)) {
             throw new CustomException("已经是最后一条数据了,无法下移");
@@ -253,6 +259,10 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
 
             updateEntity(forumTag, userId);
             updateEntity(downForumTag, userId);
+            List<String> ids = new ArrayList<>();
+            ids.add(forumTag.getId());
+            ids.add(downForumTag.getId());
+            refreshCache(ids);
         }
     }
 
@@ -275,21 +285,5 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         outputObject.setBean(beans);
         outputObject.settotal(page.getTotal());
     }
-/*
-    @Override
-    public void queryForumTagUpStateList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans;
-        if (ToolUtil.isBlank(jedisClient.get(ForumConstants.FORUM_TAG_UP_STATE_LIST))) {
-            beans = forumTagDao.queryForumTagUpStateList(map);
-            jedisClient.set(ForumConstants.FORUM_TAG_UP_STATE_LIST, JSONUtil.toJsonStr(beans));
-        } else {
-            beans = JSONUtil.toList(jedisClient.get(ForumConstants.FORUM_TAG_UP_STATE_LIST), null);
-        }
-        if (!beans.isEmpty()) {
-            outputObject.setBeans(beans);
-            outputObject.settotal(beans.size());
-        }
-    }*/
 
 }
