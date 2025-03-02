@@ -54,7 +54,7 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         // 组装消息内容
         String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
         // 发送消息
-        talkWebSocket.sendMessageAll(msgContent);
+        talkWebSocket.sendMessageToAll(msgContent);
     }
 
     private Map<String, Object> getMsg(String message, int messageType) {

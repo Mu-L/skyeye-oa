@@ -22,6 +22,8 @@ public interface TalkChatHistoryService extends SkyeyeBusinessService<TalkChatHi
 
     String createEntity(JSONObject jsonObject, Integer chatType);
 
+    String createEntity(JSONObject jsonObject, Integer chatType, Integer readType);
+
     void queryMyUnReadMessageList(InputObject inputObject, OutputObject outputObject);
 
     void editTalkChatHistoryToRead(InputObject inputObject, OutputObject outputObject);
