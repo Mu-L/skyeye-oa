@@ -214,7 +214,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "矩阵题-列选项信息答案")
-    private ExamAnChenRadio chenAn;
+    private List<ExamAnChenRadio> chenAn;
 
     @TableField(exist = false)
     @Property(value = "矩阵题-行选项信息答案")

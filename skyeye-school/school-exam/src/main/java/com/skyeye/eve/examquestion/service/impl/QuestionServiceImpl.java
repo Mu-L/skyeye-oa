@@ -375,10 +375,10 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     question.getQuType() == QuType.CHENSCORE.getIndex()) {
                 List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
                 List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getId());
-                ExamAnChenRadio examAnChenRadio = examAnChenRadioService.selectById(question.getId());
+                List<ExamAnChenRadio> examAnChenRadioList = examAnChenRadioService.selectAnChenRadioByQuId(question.getId());
                 List<ExamAnChenCheckbox> examAnCheckboxList = examAnChenCheckboxService.selectAnChenCheckboxByQuId(question.getId());
                 question.setColumnTd(examQuChenColumnList);
-                question.setChenAn(examAnChenRadio);
+                question.setChenAn(examAnChenRadioList);
                 question.setRowTd(examQuChenRowList);
                 question.setChenRowAn(examAnCheckboxList);
 
