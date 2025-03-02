@@ -299,35 +299,6 @@
         LIMIT 15
     </select>
 	
-    <select id="queryHotForumList" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.forum_desc `desc`,
-            (select GROUP_CONCAT(DISTINCT tag_name,'-',id) from forum_tag  where INSTR(CONCAT(',', a.tag_id, ','), CONCAT(',', id, ','))) tagName,
-            a.forum_title title,
-            (SELECT COUNT(*) FROM forum_comment b WHERE a.id = b.forum_id) commentNum,
-            CONVERT(a.create_time, char) createTime,
-            b.user_photo userPhoto,
-            b.id userId
-        FROM
-            forum_content a
-            LEFT JOIN sys_eve_user_staff b ON b.user_id = a.create_id
-        WHERE a.state = '1' AND (a.type = '1' OR (a.type = '2' AND a.create_id = #{userId})) AND a.anonymous = '1' AND a.id in (SELECT t.id FROM(select DISTINCT(forum_id) id from forum_hot ORDER BY update_time desc LIMIT 6)t)
-        UNION ALL 
-        SELECT
-            a.id,
-            a.forum_desc `desc`,
-            (select GROUP_CONCAT(DISTINCT tag_name,'-',id) from forum_tag  where INSTR(CONCAT(',', a.tag_id, ','), CONCAT(',', id, ','))) tagName,
-            a.forum_title title,
-            (SELECT COUNT(*) FROM forum_comment b WHERE a.id = b.forum_id) commentNum,
-            CONVERT(a.create_time, char) createTime,
-            '../../assets/images/anonymousphoto.jpg' userPhoto,
-            '' userId
-        FROM
-            forum_content a
-        WHERE a.state = '1' AND (a.type = '1' OR (a.type = '2' AND a.create_id = #{userId})) AND a.anonymous = '2' AND a.id in (SELECT t.id FROM(select DISTINCT(forum_id) id from forum_hot ORDER BY update_time desc LIMIT 6)t)
-    </select>
-    
     <select id="queryAllHotForumList" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT
             a.id,

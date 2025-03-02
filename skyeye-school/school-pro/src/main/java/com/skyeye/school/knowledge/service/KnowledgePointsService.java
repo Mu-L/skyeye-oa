@@ -5,9 +5,9 @@
 package com.skyeye.school.knowledge.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.knowledge.entity.KnowledgePoints;
+
+import java.util.List;
 
 /**
  * @ClassName: KnowledgePointsService
@@ -18,4 +18,5 @@ import com.skyeye.school.knowledge.entity.KnowledgePoints;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface KnowledgePointsService extends SkyeyeBusinessService<KnowledgePoints> {
+    List<KnowledgePoints> queryKnowledge(String knowledgeId);
 }

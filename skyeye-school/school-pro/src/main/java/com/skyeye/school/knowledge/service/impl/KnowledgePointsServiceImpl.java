@@ -7,14 +7,11 @@ package com.skyeye.school.knowledge.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.knowledge.dao.KnowledgePointsDao;
@@ -68,4 +65,11 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
         return knowledgePoints;
     }
 
+    @Override
+    public List<KnowledgePoints> queryKnowledge(String knowledgeId) {
+        QueryWrapper<KnowledgePoints> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, knowledgeId);
+        List<KnowledgePoints> knowledgePointsList = list(queryWrapper);
+        return knowledgePointsList;
+    }
 }

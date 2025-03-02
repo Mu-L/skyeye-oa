@@ -297,6 +297,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             questionService.createEntity(question, userId); // 创建新的题目
             questionService.copyQuestionListMation(question); // 复制题目选项信息
             outputObject.setBean(examSurveyDirectories);
+            outputObject.settotal(1);
         }
     }
 

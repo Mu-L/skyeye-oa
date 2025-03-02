@@ -50,46 +50,4 @@ public class MainPageServiceImpl implements MainPageService {
         outputObject.setBean(map);
     }
 
-    /**
-     * 获取前八条热门论坛帖
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("userId", inputObject.getLogParams().get("id"));
-        List<Map<String, Object>> beans = mainPageDao.queryHotForumList(map);
-        for (Map<String, Object> m : beans) {
-            String createTime = ToolUtil.timeFormat(m.get("createTime").toString());
-            m.put("createTime", createTime);
-            String key = ForumConstants.forumBrowseNumsByForumId(m.get("id").toString());
-            if (ToolUtil.isBlank(jedisClient.get(key))) {
-                // 浏览量
-                m.put("browseNum", 0);
-            } else {
-                String browseNum = jedisClient.get(key);
-                m.put("browseNum", browseNum);
-            }
-        }
-        //按浏览量和评论数给集合排序
-        beans.sort(new Comparator<Map<String, Object>>() {
-            @Override
-            public int compare(Map<String, Object> m1, Map<String, Object> m2) {
-                Integer m1num = Integer.parseInt(m1.get("browseNum").toString()) + Integer.parseInt(m1.get("commentNum").toString());
-                Integer m2num = Integer.parseInt(m2.get("browseNum").toString()) + Integer.parseInt(m2.get("commentNum").toString());
-                int flag = m1num.compareTo(m2num);
-                return -flag; // 不取反，则按正序排列
-            }
-        });
-        int count = beans.size();
-        int pageMaxSize = 6;
-        if (count < pageMaxSize) {
-            pageMaxSize = count;
-        }
-        outputObject.setBeans(beans.subList(0, pageMaxSize));
-        outputObject.settotal(beans.size());
-    }
-
 }
