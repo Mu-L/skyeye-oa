@@ -11,7 +11,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.user.service.UserService;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
@@ -49,9 +49,42 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Override
     public Video selectById(String id) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = super.selectById(id);
-        userService.setDataMation(video,Video::getCreateId);
+        setCheckUpvote(video,userId);
+        setCheckCollection(video,userId);
+        userService.setDataMation(video, Video::getCreateId);
         return video;
+    }
+
+    // 检验当前登录人是否对视频点赞
+    private void setCheckUpvote(Video video, String userId) {
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), video.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
+        video.setCheckUpvote(videoRecordService.count(queryWrapper) > 0);
+    }
+
+    private void checkUpvote(List<Video> videoList,String userId) {
+        for (Video video : videoList) {
+            setCheckUpvote(video, userId);
+        }
+    }
+
+    // 检验当前登录人是否对视频收藏
+    private void setCheckCollection(Video video, String userId) {
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), video.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
+        video.setCheckCollection(videoRecordService.count(queryWrapper) > 0);
+    }
+
+    private void checkCollection(List<Video> videoList,String userId) {
+        for (Video video : videoList) {
+            setCheckCollection(video, userId);
+        }
     }
 
     @Override
@@ -63,9 +96,16 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
         List<Video> list = this.list(queryWrapper);
+        // 检验当前登录人是否点赞
+        checkUpvote(list, userId);
+        // 检验当前登录人是否收藏
+        checkCollection(list, userId);
+        userService.setDataMation(list,Video::getCreateId);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
+
+
 
     /**
      * 点赞或取消点赞
@@ -151,11 +191,13 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag));
         List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
                 .filter(item -> item.getCtFlag() == CommonNumConstants.NUM_ONE)
-                .collect(Collectors.toList());;
+                .collect(Collectors.toList());
         List<Video> supportList = new ArrayList<>();
         for (VideoRecord videoRecord : videoRecordList) {
             supportList.add(selectById(videoRecord.getVideoId()));
         }
+        checkCollection(supportList,userId);
+        userService.setDataMation(supportList, Video::getCreateId);
         outputObject.setBeans(supportList);
         outputObject.settotal(page.getTotal());
     }
@@ -175,6 +217,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         for (VideoRecord videoRecord : videoRecordList) {
             collectList.add(selectById(videoRecord.getVideoId()));
         }
+        checkUpvote(collectList,userId);
+        userService.setDataMation(collectList, Video::getCreateId);
         outputObject.setBeans(collectList);
         outputObject.settotal(page.getTotal());
     }
@@ -192,15 +236,26 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Override
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(),commonPageInfo.getLimit());
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum));
         List<Video> bean = list(queryWrapper);
-        userService.setDataMation(bean,Video::getCreateId);
+        checkUpvote(bean,userId);
+        checkCollection(bean,userId);
+        userService.setDataMation(bean, Video::getCreateId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    protected void deletePreExecution(Video entity) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        if (!userId.equals(entity.getCreateId())) {
+            throw new CustomException("无权限");
+        }
     }
 }

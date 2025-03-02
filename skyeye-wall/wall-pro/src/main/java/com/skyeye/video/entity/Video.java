@@ -58,4 +58,8 @@ public class Video extends OperatorUserInfo {
     @Property(value = "当前登陆人是否点赞")
     private Boolean checkUpvote;
 
+    @TableField(exist = false)
+    @Property(value = "当前登陆人是否收藏")
+    private Boolean checkCollection;
+
 }
