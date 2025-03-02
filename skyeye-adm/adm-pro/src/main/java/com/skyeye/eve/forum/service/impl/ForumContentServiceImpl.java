@@ -401,4 +401,19 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         update(updateWrapper);
         refreshCache(id);
     }
+
+    @Override
+    public void queryAllForumContentList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        List<ForumContent> bean = list(queryWrapper);
+        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
+        setAnonymous(bean);
+        forumTagService.setTagMationForContentList(bean);
+        outputObject.setBeans(bean);
+        outputObject.settotal(page.getTotal());
+    }
 }
