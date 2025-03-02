@@ -32,6 +32,7 @@ import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.school.faculty.entity.Faculty;
+import com.skyeye.school.knowledge.entity.KnowledgePoints;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
@@ -213,7 +214,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "矩阵题-列选项信息答案")
-    private ExamAnChenRadio chenAn;
+    private List<ExamAnChenRadio> chenAn;
 
     @TableField(exist = false)
     @Property(value = "矩阵题-行选项信息答案")
@@ -258,5 +259,9 @@ public class Question extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
     private List<ExamQuestionLogic> questionLogic;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "知识点信息", required = "json")
+    private List<KnowledgePoints> knowledgePointsMation;
 
 }

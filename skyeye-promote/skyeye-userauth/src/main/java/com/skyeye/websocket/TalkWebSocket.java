@@ -185,7 +185,7 @@ public class TalkWebSocket {
             map2.put("messageType", SocketConstants.MessageType.Third.getType());
             map2.put("onlineUsers", userSessions.keySet());
             map2.put("terminals", userSessions.get(userId).size());  // 当前用户的终端数
-            sendMessageTo(JSONUtil.toJsonStr(map2), userId);
+            sendMessageTo(JSONUtil.toJsonStr(map2), userId, null);
         } catch (Exception e) {
             LOGGER.error("建立连接异常: {}", e.getMessage(), e);
         }
@@ -303,7 +303,7 @@ public class TalkWebSocket {
                             finalMap.put("dataId", id);
                             // 给接收者发送消息
                             finalMap.putAll(SocketConstants.sendOrdinaryMsg(jsonObject));
-                            sendMessageTo(JSONUtil.toJsonStr(finalMap), toUserId);
+                            sendMessageTo(JSONUtil.toJsonStr(finalMap), toUserId, null);
                         } else {
                             talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.DISABLE_USING.getKey());
                         }
@@ -327,7 +327,7 @@ public class TalkWebSocket {
             } else if (SocketConstants.MessageType.Seventh.getType() == type) {
                 // 群组邀请消息
                 map1.put("toId", jsonObject.getStr("to")); // 收件人id
-                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
+                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"), null);
             } else if (SocketConstants.MessageType.Eighth.getType() == type) {
                 // 隐身消息
                 map1.put("userId", jsonObject.getStr("userId"));
@@ -339,7 +339,7 @@ public class TalkWebSocket {
             } else if (SocketConstants.MessageType.Tenth.getType() == type) {
                 // 搜索账号入群审核同意后通知用户加载群信息
                 map1 = SocketConstants.sendAgreeJoinGroupMsg(jsonObject);
-                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"));
+                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"), null);
             } else if (SocketConstants.MessageType.Eleventh.getType() == type) {
                 // 群聊 - 使用事务保证数据一致性
                 TransactionTemplate transactionTemplate = SpringUtils.getBean(TransactionTemplate.class);
@@ -377,7 +377,7 @@ public class TalkWebSocket {
                 CompanyTalkGroupService companyTalkGroupService = SpringUtils.getBean(CompanyTalkGroupService.class);
                 CompanyTalkGroup groupMation = companyTalkGroupService.selectById(map1.get("groupId").toString());
                 map1.put("toId", groupMation.getCreateId());//收件人id
-                sendMessageTo(JSONUtil.toJsonStr(map1), groupMation.getCreateId());
+                sendMessageTo(JSONUtil.toJsonStr(map1), groupMation.getCreateId(), null);
             } else if (SocketConstants.MessageType.Thirteenth.getType() == type) {
                 // 解散群聊--所有人接收消息
                 map1 = SocketConstants.sendDisbandGroupToAllMsg(jsonObject);
@@ -412,7 +412,7 @@ public class TalkWebSocket {
         sendMsg.put("message", messageStr);
         sendMsg.put("msgType", msgType);
         sendMsg.put("talkId", talkId);
-        sendMessageTo(JSONUtil.toJsonStr(sendMsg), this.userId);
+        sendMessageTo(JSONUtil.toJsonStr(sendMsg), this.userId, this.sessionId);
     }
 
     /**
@@ -434,15 +434,19 @@ public class TalkWebSocket {
     /**
      * 发送消息给指定用户的所有终端
      *
-     * @param message 消息内容
-     * @param userId  用户ID
+     * @param message      消息内容
+     * @param userId       用户ID
+     * @param notSessionId 不发送的终端id
      */
-    public void sendMessageTo(String message, String userId) {
+    public void sendMessageTo(String message, String userId, String notSessionId) {
         Set<TalkWebSocket> sockets = userSessions.get(userId);
         if (sockets != null && !sockets.isEmpty()) {
             for (TalkWebSocket socket : sockets) {
                 try {
                     if (socket.session.isOpen()) {
+                        if (notSessionId != null && notSessionId.equals(socket.sessionId)) {
+                            continue;
+                        }
                         socket.session.getAsyncRemote().sendText(message);
                     }
                 } catch (Exception e) {

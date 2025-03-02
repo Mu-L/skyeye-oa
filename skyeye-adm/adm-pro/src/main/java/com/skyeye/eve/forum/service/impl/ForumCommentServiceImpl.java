@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,9 +32,6 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "论坛评论管理", groupName = "论坛评论管理")
 public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCommentDao, ForumComment> implements ForumCommentService {
-
-    @Autowired
-    private ForumCommentService forumCommentService;
 
     @Autowired
     private ForumContentService forumContentService;
@@ -133,9 +129,9 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getCreateId), userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
         List<ForumComment> beans = list(queryWrapper);
-        iAuthUserService.setName(beans, "createId","createName");
-        iAuthUserService.setName(beans, "lastUpdateId","lastUpdateName");
-        iAuthUserService.setDataMation(beans,ForumComment::getReplyId);
+        iAuthUserService.setName(beans, "createId", "createName");
+        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
+        iAuthUserService.setDataMation(beans, ForumComment::getReplyId);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

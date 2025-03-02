@@ -138,5 +138,4 @@ public class QuestionController {
         questionService.queryFilterQuestionList(inputObject, outputObject);
     }
 
-
 }

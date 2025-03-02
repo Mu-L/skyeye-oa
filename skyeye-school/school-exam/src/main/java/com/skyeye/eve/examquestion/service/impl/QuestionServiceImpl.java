@@ -55,6 +55,8 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.knowledge.entity.KnowledgePoints;
+import com.skyeye.school.knowledge.service.KnowledgePointsService;
 import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.apache.commons.collections.CollectionUtils;
@@ -137,6 +139,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     @Autowired
     private ExamAnDfilllankService examAnDfilllankService;
 
+    @Autowired
+    private KnowledgePointsService knowledgePointsService;
+
     @Override
     protected void createPrepose(Question entity) {
         // 设置题目的标签和可见性
@@ -215,36 +220,43 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
      */
     @Override
     public void updatePrepose(Question entity) {
+        String entityId = entity.getId();
         // 获取当前登录用户ID
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         // 更新不同题目类型的数据
         // 更新单选题
+        examQuRadioService.removeByQuId(entityId);
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (ObjUtil.isNotEmpty(radioTd)) {
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 更新得分题
+        examquScoreService.removeByquId(entityId);
         List<ExamQuScore> scoreTd = entity.getScoreTd();
         if (ObjUtil.isNotEmpty(scoreTd)) {
             examquScoreService.saveList(scoreTd, quId, userId);
         }
         // 更新多选题
+        examQuCheckboxService.removeByQuId(entityId);
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (ObjUtil.isNotEmpty(checkboxTd)) {
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 更新多空填空题
+        examQuMultiFillblankService.removeByQuId(entityId);
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (ObjUtil.isNotEmpty(multiFillblankTd)) {
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
+        examQuOrderbyService.removeByQuId(entityId);
         List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
         if (ObjUtil.isNotEmpty(orderbyTd)) {
             examQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
         // 更新陈列题
+        examQuChenColumnService.removeByQuId(entityId);
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
         if (ObjUtil.isNotEmpty(columnTd) && ObjUtil.isNotEmpty(rowTd)) {
@@ -292,6 +304,12 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             Question question = super.selectById(id);
             questionList.add(question);
         }
+//        String knowledgeIds = entity.getKnowledgeIds();
+//        String[] split = knowledgeIds.split(",");
+//        for (String knowledgeId : split) {
+//            List<KnowledgePoints> knowledgePointsList = knowledgePointsService.queryKnowledge(knowledgeId);
+//            entity.setKnowledgePointsMation(knowledgePointsList);
+//        }
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         questionList = questionList.stream().map(item -> {
@@ -301,8 +319,15 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
             return item;
         }).collect(Collectors.toList());
-
         for (Question question : questionList) {
+            String knowledgeIds = question.getKnowledgeIds();
+            String[] split = knowledgeIds.split(",");
+            List<KnowledgePoints> allKnowledgePointsList = new ArrayList<>();
+            for (String knowledgeId : split) {
+                List<KnowledgePoints> knowledgePointsList = knowledgePointsService.queryKnowledge(knowledgeId);
+                allKnowledgePointsList.addAll(knowledgePointsList);
+            }
+            question.setKnowledgePointsMation(allKnowledgePointsList);
             // 1 单选题
             if (question.getQuType() == QuType.RADIO.getIndex()) {
                 List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(question.getId());
@@ -350,10 +375,10 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     question.getQuType() == QuType.CHENSCORE.getIndex()) {
                 List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
                 List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getId());
-                ExamAnChenRadio examAnChenRadio = examAnChenRadioService.selectById(question.getId());
+                List<ExamAnChenRadio> examAnChenRadioList = examAnChenRadioService.selectAnChenRadioByQuId(question.getId());
                 List<ExamAnChenCheckbox> examAnCheckboxList = examAnChenCheckboxService.selectAnChenCheckboxByQuId(question.getId());
                 question.setColumnTd(examQuChenColumnList);
-                question.setChenAn(examAnChenRadio);
+                question.setChenAn(examAnChenRadioList);
                 question.setRowTd(examQuChenRowList);
                 question.setChenRowAn(examAnCheckboxList);
 

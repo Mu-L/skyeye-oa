@@ -26,4 +26,6 @@ public interface ExamQuRadioService extends SkyeyeBusinessService<ExamQuRadio> {
     List<ExamQuRadio> selectQuRadio(String copyFromId);
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+
+    void deleteByQuestionId(String entityId);
 }

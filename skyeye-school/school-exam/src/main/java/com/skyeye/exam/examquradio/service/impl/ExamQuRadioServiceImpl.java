@@ -141,4 +141,11 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
         });
         return result;
     }
+
+    @Override
+    public void deleteByQuestionId(String entityId) {
+        UpdateWrapper<ExamQuRadio> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), entityId);
+        remove(updateWrapper);
+    }
 }

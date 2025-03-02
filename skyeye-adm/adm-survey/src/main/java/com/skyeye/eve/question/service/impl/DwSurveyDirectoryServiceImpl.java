@@ -146,10 +146,17 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     @Override
     protected void createPrepose(DwSurveyDirectory entity) {
         String endTime = entity.getEndTime();
+        String realStartTime = entity.getRealStartTime(); // 获取实际开始时间
+        String realEndTime = entity.getRealEndTime(); // 获取实际结束时间
+        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
+        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
+        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
         if (StrUtil.isEmpty(endTime)) {
             endTime = null;
         }
         entity.setEndTime(endTime);
+        entity.setRealStartTime(realStartTime);
+        entity.setRealEndTime(realEndTime);
     }
 
     /**
@@ -253,6 +260,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             dwQuestionService.createEntity(question, userId); // 创建新的题目
             dwQuestionService.copyQuestionListMation(question); // 复制题目选项信息
             outputObject.setBean(examSurveyDirectories);
+            outputObject.settotal(1);
         }
     }
 
@@ -263,29 +271,18 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//        String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
-//        String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-//        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-//            LocalDateTime start = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
-//            LocalDateTime end = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
-//            if (start.isAfter(end)) { // 判断开始时间是否在结束时间之后
-//                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
-//            }
-//        }
         DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
         String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
         String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-
-        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-            LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3); // 将字符串转换为 LocalDateTime
-            LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3); // 将字符串转换为 LocalDateTime
-
-            if (start.isAfter(end)) { // 判断开始时间是否在结束时间之后
-                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
+        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
+        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
+        if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
+            LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3);
+            LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3);
+            if (start.isAfter(end)) {
+                throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
         }
     }
@@ -293,14 +290,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     private LocalDateTime parseDateTime(String dateTimeStr, DateTimeFormatter... formatters) {
         for (DateTimeFormatter formatter : formatters) {
             try {
-                // 如果时间字符串的长度是 10（即 yyyy-MM-dd），则解析为 LocalDate
                 if (dateTimeStr.length() == 10) {
                     LocalDate date = LocalDate.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                     return date.atStartOfDay(); // 将日期转换为当天的起始时间
                 }
                 return LocalDateTime.parse(dateTimeStr, formatter);
             } catch (DateTimeParseException e) {
-                // 忽略异常，继续尝试下一个格式
             }
         }
         throw new DateTimeParseException("无法解析时间字符串: " + dateTimeStr, dateTimeStr, 0);

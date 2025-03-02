@@ -28,15 +28,4 @@ public class MainPageController {
         mainPageService.queryFourNumListByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取前八条热门论坛帖
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/MainPageController/queryHotForumList")
-    public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
-        mainPageService.queryHotForumList(inputObject, outputObject);
-    }
-
 }
