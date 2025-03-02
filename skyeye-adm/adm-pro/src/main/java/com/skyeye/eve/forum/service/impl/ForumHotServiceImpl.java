@@ -19,6 +19,7 @@ import com.skyeye.eve.forum.entity.ForumHot;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumHotService;
 import com.skyeye.eve.forum.service.ForumTagService;
+import com.skyeye.eve.service.IAuthUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,9 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
     @Autowired
     private ForumTagService forumTagService;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -69,6 +73,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
             forumContentList = forumContentService.selectByIds(array);
             forumContentService.setAnonymous(forumContentList);
         }
+        iAuthUserService.setDataMation(forumContentList, ForumContent::getCreateId);
         outputObject.setBeans(forumContentList);
         outputObject.settotal(page.getTotal());
     }
