@@ -37,6 +37,10 @@ public class ForumReport extends OperatorUserInfo {
     @ApiModelProperty(value = "举报类型id", required = "required")
     private String reportTypeId;
 
+    @TableField(exist = false)
+    @Property(value = "举报类型信息")
+    private Map<String, Object> reportTypeMation;
+
     @TableField(value = "report_other_content")
     @ApiModelProperty(value = "举报类型为'其他'时，需要填写内容")
     private String reportOtherContent;

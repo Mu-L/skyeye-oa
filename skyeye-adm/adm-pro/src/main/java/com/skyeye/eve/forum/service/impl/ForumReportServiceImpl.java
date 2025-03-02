@@ -71,6 +71,11 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
 
     @Override
     public void createPrepose(ForumReport forumReport) {
+        iSysDictDataService.setDataMation(forumReport,ForumReport::getReportTypeId);
+        String dictName = forumReport.getReportTypeMation().get("dictName").toString();
+        if ("其他".equals(dictName) && StrUtil.isEmpty(forumReport.getReportOtherContent())) {
+            throw new CustomException("请输入举报内容");
+        }
         Map<String, Object> user = InputObject.getLogParamsStatic();
         forumReport.setReportId(user.get("id").toString());
         forumReport.setReportTime(DateUtil.getTimeAndToString());
