@@ -21,6 +21,7 @@ import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.grade.entity.YearSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +55,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
             ExamQuChenColumn object = column.get(i);
             ExamQuChenColumn bean = new ExamQuChenColumn();
             bean.setOrderById(object.getOrderById());
+            bean.setOrderBy(object.getOrderBy());
             bean.setOptionName(object.getOptionName());
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
@@ -81,6 +83,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
             ExamQuChenRow object = row.get(i);
             ExamQuChenRow bean = new ExamQuChenRow();
             bean.setOrderById(object.getOrderById());
+            bean.setOrderBy(object.getOrderBy());
             bean.setOptionName(object.getOptionName());
             if (ToolUtil.isBlank(object.getOptionId())) {
                 bean.setQuId(quId);
@@ -138,6 +141,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
     public List<ExamQuChenColumn> selectQuChenColumn(String copyFromId) {
         QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuChenColumn::getOrderBy));
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }

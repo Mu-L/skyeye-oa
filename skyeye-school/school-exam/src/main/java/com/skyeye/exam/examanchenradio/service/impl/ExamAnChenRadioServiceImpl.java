@@ -45,4 +45,11 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         return list(queryWrapper);
     }
 
+    @Override
+    public List<ExamAnChenRadio> selectAnChenRadioByQuId(String id) {
+        QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), id);
+        return list(queryWrapper);
+    }
+
 }

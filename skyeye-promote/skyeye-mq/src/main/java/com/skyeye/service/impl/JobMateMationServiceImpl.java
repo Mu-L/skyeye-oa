@@ -230,7 +230,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
             int bigType = MqConstants.JobMateMationJobType.getBigTypeByJobType(jobType);
             boolean sendMsgToPage = MqConstants.JobMateMationJobType.getSendMsgToPageByJobType(jobType);
             if (sendMsgToPage) {
-                talkWebSocket.sendMessageTo(JSONUtil.toJsonStr(getMsg(status, bigType, jobType)), userId);
+                talkWebSocket.sendMessageTo(JSONUtil.toJsonStr(getMsg(status, bigType, jobType)), userId, null);
             }
         }
     }

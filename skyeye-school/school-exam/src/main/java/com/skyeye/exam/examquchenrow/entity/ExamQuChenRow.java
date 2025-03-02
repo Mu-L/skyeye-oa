@@ -35,6 +35,10 @@ public class ExamQuChenRow extends OperatorUserInfo {
     @ApiModelProperty(value = "排序ID")
     private Integer orderById;
 
+    @TableField("order_by")
+    @ApiModelProperty(value = "排序")
+    private Integer orderBy;
+
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;

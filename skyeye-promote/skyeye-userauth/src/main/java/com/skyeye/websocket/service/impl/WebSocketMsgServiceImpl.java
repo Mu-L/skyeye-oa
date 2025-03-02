@@ -41,7 +41,7 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
         // 发送消息
         for (String userId : userIdList) {
-            talkWebSocket.sendMessageTo(msgContent, userId);
+            talkWebSocket.sendMessageTo(msgContent, userId, null);
         }
     }
 
