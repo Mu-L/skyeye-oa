@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -52,5 +53,9 @@ public class Video extends OperatorUserInfo {
     @TableField("remark_num")
     @ApiModelProperty(value = "收藏数量，默认0", defaultValue = "0")
     private String remarkNum;
+
+    @TableField(exist = false)
+    @Property(value = "当前登陆人是否点赞")
+    private Boolean checkUpvote;
 
 }
