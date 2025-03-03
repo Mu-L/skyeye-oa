@@ -58,6 +58,8 @@ public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<Fo
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumSensitiveWords::getCreateTime));
         List<ForumSensitiveWords> beans = list(queryWrapper);
+        iAuthUserService.setName(beans, "createId", "createName");
+        iAuthUserService.setName(beans,"lastUpdateId","lastUpdateName");
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

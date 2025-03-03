@@ -13,6 +13,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.forum.classenum.ContentStateEnum;
 import com.skyeye.eve.forum.classenum.ExamineStateEnum;
 import com.skyeye.eve.forum.classenum.NotificationTypeEnum;
 import com.skyeye.eve.forum.classenum.ReadEnum;
@@ -88,11 +89,6 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         forumNotice.setType(NotificationTypeEnum.REPORT.getKey());
         forumNotice.setState(ReadEnum.NO_READ.getKey());
         forumNoticeService.createEntity(forumNotice, null);
-        // 通知被举报人
-        ForumContent forumContent = forumContentService.selectById(entity.getForumId());
-        forumNotice.setNoticeContent("您的帖子被举报、等待审核。举报内容为：" + entity.getReportDesc());
-        forumNotice.setReceiveId(forumContent.getCreateId());
-        forumNoticeService.createEntity(forumNotice, null);
     }
 
     @Override
@@ -110,7 +106,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
     public void checkForumReport(InputObject inputObject, OutputObject outputObject) {
         // 校验数据
         Map<String, Object> map = inputObject.getParams();
-        if (StrUtil.isEmpty(map.get("state").toString())
+        if (StrUtil.isEmpty(map.get("reason").toString())
                 && ExamineStateEnum.EXAMINE_NO_PASS.getKey().toString().equals(map.get("state").toString())) {
             throw new CustomException("审核不通过需要填写未通过的原因");
         }
@@ -121,24 +117,27 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             forumReport.setExamineId(currentUser.get("id").toString());
             forumReport.setExamineTime(DateUtil.getTimeAndToString());
             // 更新状态
+            forumReport.setExamineState((Integer) map.get("state"));
             forumReportService.updateById(forumReport);
             if (ExamineStateEnum.EXAMINE_PASS.getKey().equals(forumReport.getExamineState())) {// 审核通过
-                // 通知发帖人
+                // 设置举报帖子的状态为不正常
+                String forumId = forumReport.getForumId();
+                ForumContent forumContent = forumContentService.selectById(forumId);
+                forumContent.setReportState(ContentStateEnum.DELETE.getKey());
+                forumContentService.updateById(forumContent);
+                // 通知举报人
                 ForumNotice forumNotice = new ForumNotice();
-                forumNotice.setNoticeContent(forumReport.getExamineState().toString());
                 forumNotice.setNoticeTitle("违规");
-                forumNotice.setReceiveId(forumReport.getCreateId());
                 forumNotice.setType(NotificationTypeEnum.REPLY.getKey());
                 forumNotice.setState(ReadEnum.NO_READ.getKey());
-                forumNoticeService.createEntity(forumNotice, null);
-                // 通知举报人
                 forumNotice.setReceiveId(forumReport.getReportId());
                 forumNotice.setNoticeTitle("违规");
+                forumNotice.setNoticeContent("举报审核通过，已惩罚！！！");
                 forumNoticeService.createEntity(forumNotice, null);
             } else if (ExamineStateEnum.EXAMINE_NO_PASS.getKey().equals(forumReport.getExamineState())) {// 审核不通过
                 // 审核不通过，通知举报人
                 ForumNotice forumNotice = new ForumNotice();
-                forumNotice.setNoticeContent(forumReport.getExamineState().toString());
+                forumNotice.setNoticeContent("举报审核不通过,原因:"+ map.get("reason").toString());
                 forumNotice.setNoticeTitle("举报");
                 forumNotice.setForumId(forumReport.getForumId());
                 forumNotice.setReceiveId(forumReport.getReportId());

@@ -197,21 +197,17 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
      */
     @Override
     public void queryNewCommentList(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select(CommonConstants.ID)
-            .ne(MybatisPlusUtil.toColumns(ForumContent::getCommentNum), CommonNumConstants.NUM_ZERO);
-        List<ForumContent> onlyIds = list(queryWrapper);
-        if (CollectionUtil.isEmpty(onlyIds)) {
-            return;
+        QueryWrapper<ForumComment> queryComment = new QueryWrapper<>();
+        queryComment.orderByDesc(MybatisPlusUtil.toColumns(ForumComment::getCreateTime));
+        List<ForumComment> forumCommentList = forumCommentService.list(queryComment);
+        // 获取前15条
+        if (forumCommentList.size() > 15) {
+            forumCommentList = forumCommentList.subList(0, 15);
         }
-        List<String> idList = onlyIds.stream().map(ForumContent::getId).collect(Collectors.toList());
-        List<String> forumContentIdList = forumCommentService.queryListByForumIds(idList);
-        List<ForumContent> beans = forumContentService.selectByIds(forumContentIdList.toArray(new String[forumContentIdList.size()]));
-        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        setAnonymous(beans);
-        forumTagService.setTagMationForContentList(beans);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        iAuthUserService.setDataMation(forumCommentList,ForumComment::getCreateId);
+        iAuthUserService.setDataMation(forumCommentList, ForumComment::getReplyId);
+        outputObject.setBeans(forumCommentList);
+        outputObject.settotal(forumCommentList.size());
     }
 
     /**

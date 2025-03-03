@@ -117,12 +117,12 @@ public class ForumContentController {
     }
 
     /**
-     * 根据最新的评论获取前15条帖子
+     * 获取最新的前15条评论
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryNewCommentList", value = "根据最新的评论获取前15条帖子", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryNewCommentList", value = "获取最新的前15条评论", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryNewCommentList")
     public void queryNewCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewCommentList(inputObject, outputObject);
