@@ -78,6 +78,8 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
             queryWrapper.eq(MybatisPlusUtil.toColumns(Pick::getDepartmentId), departmentId);
         } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
             // 指定车间
+            String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Pick::getDepartmentId), departmentId);
             queryWrapper.eq(MybatisPlusUtil.toColumns(Pick::getFarmId), commonPageInfo.getObjectId());
         }
         return queryWrapper;
