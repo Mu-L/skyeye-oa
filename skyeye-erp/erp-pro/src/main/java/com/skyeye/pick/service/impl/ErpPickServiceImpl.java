@@ -87,6 +87,8 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         machinService.setMationForMap(beans, "fromId", "fromMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
+        iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         return beans;
     }
 
