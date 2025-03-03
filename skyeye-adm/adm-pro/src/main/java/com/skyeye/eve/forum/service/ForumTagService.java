@@ -22,17 +22,9 @@ import java.util.List;
  */
 public interface ForumTagService extends SkyeyeBusinessService<ForumTag> {
 
-    void queryForumTagList(InputObject inputObject, OutputObject outputObject);
-
     void deleteForumTagById(InputObject inputObject, OutputObject outputObject);
 
-    void editForumTagMationOrderNumUpById(InputObject inputObject, OutputObject outputObject);
-
-    void editForumTagMationOrderNumDownById(InputObject inputObject, OutputObject outputObject);
-
     void queryForumTagUpStateList(InputObject inputObject, OutputObject outputObject);
-
-    void updateUpOrDownForumTagById(InputObject inputObject, OutputObject outputObject);
 
     void setTagMationForContentList(List<ForumContent> beans);
 }

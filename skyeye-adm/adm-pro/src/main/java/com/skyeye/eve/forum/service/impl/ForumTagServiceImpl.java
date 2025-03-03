@@ -50,31 +50,20 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
     @Autowired
     private IAuthUserService iAuthUserService;
 
-    /**
-     * 查出所有论坛标签列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    public void queryForumTagList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String keyword = commonPageInfo.getKeyword();
-        String userId = inputObject.getLogParams().get("id").toString();
-        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(keyword)) {
-            // 根据标签名模糊搜索
-            queryWrapper.like(MybatisPlusUtil.toColumns(ForumTag::getTagName), keyword);
-        }
-        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), userId)
-                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
-        List<ForumTag> list = list(queryWrapper);
-        iAuthUserService.setName(list, "createId", "createName");
-        iAuthUserService.setName(list, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(list);
-        outputObject.settotal(pages.getTotal());
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iAuthUserService.setName(beans, "createId", "createName");
+        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
+        return beans;
+    }
+
+    @Override
+    public void getQueryWrapper(InputObject inputObject, QueryWrapper<ForumTag> wrapper) {
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        wrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.NEW_Built.getKey())
+            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy))
+            .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), currentUserId);
     }
 
     @Override
@@ -106,6 +95,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
     public void createPrepose(ForumTag entity) {
         entity.setState(ForumStateEnum.NEW_Built.getKey());
         QueryWrapper<ForumTag> wrapper = new QueryWrapper<>();
+        wrapper.select(CommonConstants.ID);
         int count = (int) count(wrapper);
         entity.setOrderBy(count + CommonNumConstants.NUM_ONE);
     }
@@ -123,38 +113,13 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         String id = inputObject.getParams().get("id").toString();
         ForumTag forumTag = selectById(id);
         int state = forumTag.getState();
-        if (state == ForumStateEnum.NEW_Built.getKey() || state == ForumStateEnum.DOWN_LINE.getKey()) {
+        if (state == ForumStateEnum.NEW_Built.getKey()) {
             // 新建或者下线可以删除----逻辑删除
             forumTag.setState(ForumStateEnum.IS_DELETE.getKey());
             updateEntity(forumTag, userId);
-            refreshCache(forumTag.getId());
         } else {
             outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
         }
-    }
-
-    /**
-     * 论坛标签上线或下线
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void updateUpOrDownForumTagById(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        String id = inputObject.getParams().get("id").toString();
-        ForumTag forumTag = selectById(id);
-        int state = forumTag.getState();
-        // 新建或者下线可以上线
-        if (state == ForumStateEnum.NEW_Built.getKey() || state == ForumStateEnum.DOWN_LINE.getKey()) {
-            forumTag.setState(ForumStateEnum.UP_LINE.getKey());
-        } else {
-            // 上线可以下线
-            forumTag.setState(ForumStateEnum.DOWN_LINE.getKey());
-        }
-        updateEntity(forumTag, userId);
-        refreshCache(forumTag.getId());
     }
 
     /**
@@ -179,9 +144,9 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         queryWrapper.in(CommonConstants.ID, distinctTagIds);
         List<ForumTag> tagList = list(queryWrapper);
         Map<String, Map<String, Object>> tagMap = tagList.stream()
-                .collect(Collectors.toMap(ForumTag::getId, forumTag -> {
-                    return JSONUtil.toBean(JSONUtil.toJsonStr(forumTag), null);
-                }));
+            .collect(Collectors.toMap(ForumTag::getId, forumTag -> {
+                return JSONUtil.toBean(JSONUtil.toJsonStr(forumTag), null);
+            }));
         for (ForumContent bean : beans) {
             for (String s : bean.getTagId().split(",")) {
                 if (tagMap.containsKey(s)) {
@@ -191,78 +156,6 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
                     bean.getTagList().add(tagMap.get(s));
                 }
             }
-        }
-    }
-
-    /**
-     * 论坛标签上移
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editForumTagMationOrderNumUpById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        String userId = inputObject.getLogParams().get("id").toString();
-        // 获取当前数据的同级分类下的上一条数据
-        ForumTag forumTag = selectById(id);
-        int orderBy = forumTag.getOrderBy();
-        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .lt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
-        List<ForumTag> bean = list(queryWrapper);
-        if (CollectionUtils.isEmpty(bean)) {
-            throw new CustomException("该数据已经是第一条数据，无法上移");
-        } else {
-            ForumTag upForumTag = bean.get(0);
-            // 修改当前数据的排序
-            forumTag.setOrderBy(upForumTag.getOrderBy());
-            upForumTag.setOrderBy(orderBy);
-
-            updateEntity(forumTag, userId);
-            updateEntity(upForumTag, userId);
-            List<String> ids = new ArrayList<>();
-            ids.add(forumTag.getId());
-            ids.add(upForumTag.getId());
-            refreshCache(ids);
-        }
-    }
-
-    /**
-     * 论坛标签下移
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editForumTagMationOrderNumDownById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        String userId = inputObject.getLogParams().get("id").toString();
-        // 获取当前数据的同级分类下的下一条数据
-        ForumTag forumTag = selectById(id);
-        int orderBy = forumTag.getOrderBy();
-        QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.IS_DELETE.getKey())
-                .gt(MybatisPlusUtil.toColumns(ForumTag::getOrderBy), orderBy)
-                .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
-        List<ForumTag> bean = list(queryWrapper);
-        if (CollectionUtils.isEmpty(bean)) {
-            throw new CustomException("已经是最后一条数据了,无法下移");
-        } else {
-            ForumTag downForumTag = bean.get(0);
-            // 修改当前数据的排序
-            forumTag.setOrderBy(downForumTag.getOrderBy());
-            downForumTag.setOrderBy(orderBy);
-
-            updateEntity(forumTag, userId);
-            updateEntity(downForumTag, userId);
-            List<String> ids = new ArrayList<>();
-            ids.add(forumTag.getId());
-            ids.add(downForumTag.getId());
-            refreshCache(ids);
         }
     }
 
@@ -277,7 +170,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.UP_LINE.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.NEW_Built.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId", "createName");

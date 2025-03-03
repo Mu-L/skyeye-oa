@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
@@ -30,14 +31,14 @@ public class ForumTag extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "tag_name")
-    @ApiModelProperty(value = "标签名称", required = "required")
+    @ApiModelProperty(value = "标签名称", required = "required", fuzzyLike = true)
     private String tagName;
 
     @TableField(value = "order_by")
-    @ApiModelProperty(value = "排序，值越大越往后")
+    @Property(value = "排序，值越大越往后")
     private Integer orderBy;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "状态  1.新建  2.上线  3.下线  4.删除", defaultValue = "1")
+    @Property(value = "状态  1.新建 4.删除")
     private Integer state;
 }
