@@ -71,7 +71,7 @@ public class OtherWiseOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertOtherWiseOrderToDepotOut", value = "其他微服务的单据转仓库出库单", method = "POST", allUse = "1")
+    @ApiOperation(id = "insertOtherWiseOrderToDepotOut", value = "其他微服务的单据转仓库出库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotOut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OtherWiseOrderController/insertOtherWiseOrderToDepotOut")
