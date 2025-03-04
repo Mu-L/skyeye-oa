@@ -14,6 +14,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchencolumn.dao.ExamQuChenColumnDao;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
@@ -142,7 +143,6 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), copyFromId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuChenColumn::getOrderBy));
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenColumn::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
 

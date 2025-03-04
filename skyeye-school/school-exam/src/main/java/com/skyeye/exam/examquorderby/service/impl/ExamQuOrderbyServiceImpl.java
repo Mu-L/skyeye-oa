@@ -2,6 +2,7 @@ package com.skyeye.exam.examquorderby.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Mysql;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -98,7 +99,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
     public List<ExamQuOrderby> selectQuOrderby(String copyFromId) {
         QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getVisibility), CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuOrderby::getOrderById));
         return list(queryWrapper);
     }
 

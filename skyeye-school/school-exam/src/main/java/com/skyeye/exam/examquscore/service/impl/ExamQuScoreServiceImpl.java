@@ -99,7 +99,7 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     public List<ExamQuScore> selectQuScore(String copyFromId) {
         QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuScore::getOrderById));
         return list(queryWrapper);
     }
 

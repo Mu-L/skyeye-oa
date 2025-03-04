@@ -331,9 +331,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             // 1 单选题
             if (question.getQuType() == QuType.RADIO.getIndex()) {
                 List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(question.getId());
-                ExamAnRadio examAnRadio = examAnRadioService.selectById(question.getId());
+                List<ExamAnRadio> examAnRadioList = examAnRadioService.selectByQuid(question.getId());
                 question.setRadioTd(radioList);
-                question.setRadioAn(examAnRadio);
+                question.setRadioAn(examAnRadioList);
                 continue;
             }
             // 2 多选题
