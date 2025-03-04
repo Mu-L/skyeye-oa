@@ -14,10 +14,10 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.forum.classenum.ForumStateEnum;
 import com.skyeye.eve.forum.dao.ForumTagDao;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumTag;
@@ -60,10 +60,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
 
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<ForumTag> wrapper) {
-        String currentUserId = inputObject.getLogParams().get("id").toString();
-        wrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.NEW_Built.getKey())
-            .orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy))
-            .eq(MybatisPlusUtil.toColumns(ForumTag::getCreateId), currentUserId);
+        wrapper.orderByAsc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
     }
 
     @Override
@@ -76,16 +73,18 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
 
     @Override
     public void validatorEntity(ForumTag entity) {
+        super.validatorEntity(entity);
         String tagName = entity.getTagName();
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getTagName), tagName);
-        // tagName不能重复
-        if (count(queryWrapper) > 0 && StrUtil.isEmpty(entity.getId())) {
+        long count = count(queryWrapper);
+        // 新增，tagName不能重复
+        if (count > 0 && StrUtil.isEmpty(entity.getId())) {
             throw new CustomException("标签名已存在");
         }
         // 编辑时的校验
         ForumTag forumTag = selectById(entity.getId());
-        if (count(queryWrapper) > 0 && !forumTag.getTagName().equals(tagName)) {
+        if (count > 0 && !forumTag.getTagName().equals(tagName)) {
             // 如果编辑时修改了tagName，并且数据库中已经存在该tagName，则抛出异常
             throw new CustomException("标签名已存在");
         }
@@ -93,7 +92,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
 
     @Override
     public void createPrepose(ForumTag entity) {
-        entity.setState(ForumStateEnum.NEW_Built.getKey());
+        entity.setState(EnableEnum.ENABLE_USING.getKey());
         QueryWrapper<ForumTag> wrapper = new QueryWrapper<>();
         wrapper.select(CommonConstants.ID);
         int count = (int) count(wrapper);
@@ -113,9 +112,9 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         String id = inputObject.getParams().get("id").toString();
         ForumTag forumTag = selectById(id);
         int state = forumTag.getState();
-        if (state == ForumStateEnum.NEW_Built.getKey()) {
+        if (state == EnableEnum.ENABLE_USING.getKey()) {
             // 新建或者下线可以删除----逻辑删除
-            forumTag.setState(ForumStateEnum.IS_DELETE.getKey());
+            forumTag.setState(EnableEnum.DISABLE_USING.getKey());
             updateEntity(forumTag, userId);
         } else {
             outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
@@ -160,7 +159,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
     }
 
     /**
-     * 获取已经上线的论坛标签列表
+     * 获取启用的论坛标签列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -170,7 +169,7 @@ public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, 
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), ForumStateEnum.NEW_Built.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumTag::getState), EnableEnum.ENABLE_USING.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         List<ForumTag> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId", "createName");

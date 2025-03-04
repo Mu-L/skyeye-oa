@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -35,10 +35,10 @@ public class ForumTag extends OperatorUserInfo {
     private String tagName;
 
     @TableField(value = "order_by")
-    @Property(value = "排序，值越大越往后")
+    @ApiModelProperty(value = "排序，值越大越往后", required = "required")
     private Integer orderBy;
 
     @TableField(value = "state")
-    @Property(value = "状态  1.新建 4.删除")
+    @ApiModelProperty(value = "状态  1.启用 2.禁用",required = "required", enumClass = EnableEnum.class)
     private Integer state;
 }
