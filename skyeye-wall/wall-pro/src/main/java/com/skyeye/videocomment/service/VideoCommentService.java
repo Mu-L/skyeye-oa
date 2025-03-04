@@ -18,4 +18,8 @@ import java.util.List;
  */
 public interface VideoCommentService extends SkyeyeBusinessService<VideoComment> {
 
+    /**
+     * 根据视频ID查询视频评论列表
+     */
+    List<VideoComment> queryVideoCommentListByVideoId(String videoId);
 }

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -98,5 +99,13 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         userService.setMationForMap(beans, "createId", "createMation");
         userService.setMationForMap(beans, "userId", "userMation");
         return beans;
+    }
+
+    @Override
+    public List<VideoComment> queryVideoCommentListByVideoId(String videoId) {
+        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
+        return list(queryWrapper);
     }
 }
