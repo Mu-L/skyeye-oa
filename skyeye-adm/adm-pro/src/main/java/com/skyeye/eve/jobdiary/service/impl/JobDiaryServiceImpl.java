@@ -99,7 +99,10 @@ public class JobDiaryServiceImpl extends SkyeyeBusinessServiceImpl<JobDiaryDao, 
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        // 删除标记为正常
         commonPageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
+        // 只查询正常状态的日志
+        commonPageInfo.setState(String.valueOf(JobDiaryState.NORMAL.getKey()));
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyReceivedJobDiaryList(commonPageInfo);
         String serviceClassName = getServiceClassName();
         beans.forEach(bean -> {

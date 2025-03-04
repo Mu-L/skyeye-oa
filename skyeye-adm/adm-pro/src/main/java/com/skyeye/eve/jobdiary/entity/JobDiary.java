@@ -16,6 +16,8 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.jobdiary.classenum.JobDiaryState;
+import com.skyeye.eve.jobdiary.classenum.JobDiaryType;
 import lombok.Data;
 
 import java.util.List;
@@ -69,11 +71,11 @@ public class JobDiary extends OperatorUserInfo implements EnclosureFace {
     private String workSummary;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#JobDiaryState")
+    @Property(value = "状态", enumClass = JobDiaryState.class)
     private Integer state;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "日志类型，参考#JobDiaryType", required = "required,num")
+    @ApiModelProperty(value = "日志类型", enumClass = JobDiaryType.class, required = "required,num")
     private Integer type;
 
     @TableField(value = "delete_flag")

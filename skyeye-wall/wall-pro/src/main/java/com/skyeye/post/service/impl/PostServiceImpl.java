@@ -379,6 +379,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         List<String> postIds = popularPostList.stream()
             .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        if(CollectionUtil.isEmpty(postIds)){
+            throw new CustomException("暂无热门帖子");
+        }
         queryWrapper.in(CommonConstants.ID, postIds);
         List<Post> postList = list(queryWrapper);
         //获取点赞信息
