@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.eve.jobdiary.classenum.ReadState;
 import lombok.Data;
 
 /**
@@ -34,7 +35,7 @@ public class JobDiaryReceived extends CommonInfo {
     private String id;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#ReadState")
+    @Property(value = "状态", enumClass = ReadState.class)
     private Integer state;
 
     @TableField(value = "diary_id")

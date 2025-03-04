@@ -45,6 +45,7 @@
 			b.received_id = #{createId}
 			AND b.diary_id = a.id
 			AND a.delete_flag = #{deleteFlag}
+			AND a.state = #{state}
 			<if test="type != '' and type != null">
 				AND a.type = #{type}
 			</if>
