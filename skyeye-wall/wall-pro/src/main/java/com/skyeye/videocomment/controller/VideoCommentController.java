@@ -42,19 +42,6 @@ public class VideoCommentController {
     }
 
     /**
-     * 获取视频所有评论信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryVideoCommentList", value = "获取视频评论所有信息列表", method = "POST", allUse = "0")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoCommentController/queryVideoCommentList")
-    public void queryVideoCommentList(InputObject inputObject, OutputObject outputObject) {
-        videoCommentService.queryPageList(inputObject, outputObject);
-    }
-
-    /**
      * 根据ID删除视频评论
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -66,6 +53,19 @@ public class VideoCommentController {
     @RequestMapping("/post/VideoCommentController/deleteVideoCommentById")
     public void deleteVideoCommentById(InputObject inputObject, OutputObject outputObject) {
         videoCommentService.deleteById(inputObject, outputObject);
+    }
+
+    /**
+     * 根据视频id获取评论信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCommentListByVideoId", value = "根据视频id获取评论信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/VideoCommentController/queryCommentListByVideoId")
+    public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
+        videoCommentService.queryCommentListByVideoId(inputObject, outputObject);
     }
 
 

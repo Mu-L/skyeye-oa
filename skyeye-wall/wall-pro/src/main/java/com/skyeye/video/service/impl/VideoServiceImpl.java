@@ -18,8 +18,6 @@ import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
 import com.skyeye.video.service.VideoRecordService;
 import com.skyeye.video.service.VideoService;
-import com.skyeye.videocomment.entity.VideoComment;
-import com.skyeye.videocomment.service.VideoCommentService;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,10 +45,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private VideoCommentService videoCommentService;
-
 
     @Override
     public Video selectById(String id) {
@@ -98,10 +92,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         List<Video> list = this.list(queryWrapper);
         //检查当前登录人点赞和收藏
         checkUpvoteAndCollection(list, userId);
-        for (Video video : list) {
-            List<VideoComment> videoComments = videoCommentService.queryVideoCommentListByVideoId(video.getId());
-            video.setVideoComment(videoComments);
-        }
         userService.setDataMation(list, Video::getCreateId);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
@@ -118,11 +108,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
         List<Video> list = list(queryWrapper);
         checkUpvoteAndCollection(list, userId);
-        // 获取评论信息
-        for (Video video : list) {
-            List<VideoComment> videoComments = videoCommentService.queryVideoCommentListByVideoId(video.getId());
-            video.setVideoComment(videoComments);
-        }
         outputObject.setBean(list);
         outputObject.settotal(page.getTotal());
     }
@@ -139,10 +124,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum));
         List<Video> bean = list(queryWrapper);
         checkUpvoteAndCollection(bean, userId);
-        for (Video video : bean) {
-            List<VideoComment> videoComments = videoCommentService.queryVideoCommentListByVideoId(video.getId());
-            video.setVideoComment(videoComments);
-        }
         userService.setDataMation(bean, Video::getCreateId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());

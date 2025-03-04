@@ -2,8 +2,11 @@ package com.skyeye.videocomment.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -19,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +82,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         VideoComment videoComment = selectById(id);
         //查询子数据并删除
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId), id);
         List<VideoComment> videoComments = list(queryWrapper);
         remove(queryWrapper);
         super.deleteById(id);
@@ -88,24 +90,22 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
         Integer videoRemarkNum = Integer.parseInt(video.getRemarkNum());
-        videoRemarkNum = videoRemarkNum-videoComments.size()-1;
+        videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
     }
 
     @Override
-    protected List<Map<String, Object>> queryDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryDataList(inputObject);
-        userService.setMationForMap(beans, "createId", "createMation");
-        userService.setMationForMap(beans, "userId", "userMation");
-        return beans;
-    }
-
-    @Override
-    public List<VideoComment> queryVideoCommentListByVideoId(String videoId) {
+    public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String videoId = commonPageInfo.getObjectId();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
-        return list(queryWrapper);
+        List<VideoComment> videoCommentList = list(queryWrapper);
+        userService.setDataMation(videoCommentList, VideoComment::getCreateId);
+        outputObject.setBeans(videoCommentList);
+        outputObject.settotal(page.getTotal());
     }
 }
