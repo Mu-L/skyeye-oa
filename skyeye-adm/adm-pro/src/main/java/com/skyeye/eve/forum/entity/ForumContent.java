@@ -26,7 +26,7 @@ public class ForumContent extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "forum_content")
-    @ApiModelProperty(value = "话题内容", required = "required")
+    @ApiModelProperty(value = "话题内容", required = "required",fuzzyLike = true)
     private String forumContent;
 
     @TableField(value = "type")

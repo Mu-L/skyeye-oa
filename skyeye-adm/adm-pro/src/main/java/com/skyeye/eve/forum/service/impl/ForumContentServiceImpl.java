@@ -6,6 +6,7 @@ package com.skyeye.eve.forum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -28,6 +29,7 @@ import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHistoryView;
 import com.skyeye.eve.forum.service.*;
 import com.skyeye.exception.CustomException;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -399,17 +401,19 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     }
 
     @Override
-    public void queryAllForumContentList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
-        List<ForumContent> bean = list(queryWrapper);
-        iAuthUserService.setDataMation(bean, ForumContent::getCreateId);
-        setAnonymous(bean);
-        forumTagService.setTagMationForContentList(bean);
-        outputObject.setBeans(bean);
-        outputObject.settotal(page.getTotal());
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
+        List<ForumContent> beans = mapList.stream().map(map -> {
+            return JSONUtil.toBean(JSONUtil.toJsonStr(map), ForumContent.class);
+        }).collect(Collectors.toList());
+        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        setAnonymous(beans);
+        forumTagService.setTagMationForContentList(beans);
+        return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
+    }
+
+    @Override
+    public void getQueryWrapper(InputObject inputObject, QueryWrapper<ForumContent> wrapper) {
+        wrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
     }
 }
