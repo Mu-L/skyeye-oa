@@ -47,7 +47,7 @@ public class ForumContentController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryAllForumContentList")
     public void queryAllForumContentList(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.queryAllForumContentList(inputObject, outputObject);
+        forumContentService.queryPageList(inputObject, outputObject);
     }
 
     /**
