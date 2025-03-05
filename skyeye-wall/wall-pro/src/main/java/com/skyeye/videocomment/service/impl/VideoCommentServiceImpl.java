@@ -1,16 +1,25 @@
 package com.skyeye.videocomment.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.picture.entity.Picture;
+import com.skyeye.picture.service.PictureService;
+import com.skyeye.upvote.entity.Upvote;
+import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.service.UserService;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.service.VideoService;
@@ -22,8 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: VideoCommentServiceImpl
@@ -45,6 +56,12 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PictureService pictureService;
+
+    @Autowired
+    private UpvoteService upvoteService;
 
     @Override
     public void validatorEntity(VideoComment entity) {
@@ -71,6 +88,9 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         remarkNum++;
         video.setRemarkNum(String.valueOf(remarkNum));
         videoService.updateEntity(video, userId);
+        if (ObjectUtil.isNotEmpty(entity.getPicture())) {
+            pictureService.createEntity(entity.getPicture(), userId);
+        }
     }
 
     @Transactional
@@ -95,11 +115,31 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoService.updateEntity(video, userId);
     }
 
+    private void setCommentPicture(List<VideoComment> list) {
+        for (VideoComment videoComment : list) {
+            QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), videoComment.getId());
+            Picture one = pictureService.getOne(queryWrapper);
+            videoComment.setPicture(one);
+        }
+    }
+
+    private void checkUpvote(List<VideoComment> list, String userId) {
+        for (VideoComment videoComment : list) {
+            QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), videoComment.getId());
+            Upvote one = upvoteService.getOne(queryWrapper);
+            videoComment.setCheckUpvote(ObjectUtil.isNotEmpty(one));
+        }
+    }
+
     @Override
     public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String videoId = commonPageInfo.getObjectId();
-        if(StrUtil.isEmpty(videoId)){
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        if (StrUtil.isEmpty(videoId)) {
             throw new CustomException("视频id(objectId)不能为空");
         }
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
@@ -107,8 +147,60 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
         List<VideoComment> videoCommentList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(videoCommentList)) {
+            throw new CustomException("该视频暂无评论");
+        }
+        setCommentPicture(videoCommentList);
+        checkUpvote(videoCommentList, userId);
         userService.setDataMation(videoCommentList, VideoComment::getCreateId);
         outputObject.setBeans(videoCommentList);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void supportOrNotComment(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        String commentId = inputObject.getParams().get("commentId").toString();
+        QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), commentId)
+                .eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
+        Upvote one = upvoteService.getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(one)) {
+            // 该用户没有对这个评论进行点赞
+            VideoComment videoComment = selectById(commentId);
+            int supportNum = Integer.parseInt(videoComment.getUpvoteNum()) + CommonNumConstants.NUM_ONE;
+            videoComment.setUpvoteNum(Integer.toString(supportNum));
+            updateById(videoComment);
+            // 保存点赞记录
+            Upvote upvote = new Upvote();
+            upvote.setObjectId(commentId);
+            upvote.setUserId(userId);
+            upvote.setObjectKey(videoCommentService.getServiceClassName());
+            upvote.setCreateTime(LocalDateTime.now().toString());
+            upvoteService.createEntity(upvote, null);
+        } else {
+            // 该用户已经对这个评论进行点赞
+            VideoComment videoComment = selectById(commentId);
+            int supportNum = Integer.parseInt(videoComment.getUpvoteNum()) - CommonNumConstants.NUM_ONE;
+            videoComment.setUpvoteNum(Integer.toString(supportNum));
+            updateById(videoComment);
+            // 删除点赞记录
+            QueryWrapper<Upvote> query = new QueryWrapper<>();
+            query.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), commentId);
+            query.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
+            upvoteService.remove(query);
+        }
+    }
+
+    @Override
+    public void deletePreExecution(VideoComment entity) {
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        Video video = videoService.selectById(entity.getVideoId());
+        if (video.getCreateId().equals(userId)) {
+            return;
+        }
+        if (!userId.equals(entity.getCreateId())) {
+            throw new CustomException("无权限");
+        }
     }
 }

@@ -68,5 +68,20 @@ public class VideoCommentController {
         videoCommentService.queryCommentListByVideoId(inputObject, outputObject);
     }
 
+    /**
+     * 点赞或取消点赞评论
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "supportOrNotComment", value = "点赞或取消点赞评论", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id", required = "required")
+    })
+    @RequestMapping("/post/VideoCommentController/supportOrNotComment")
+    public void supportOrNotComment(InputObject inputObject, OutputObject outputObject) {
+        videoCommentService.supportOrNotComment(inputObject, outputObject);
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package com.skyeye.video.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -81,43 +82,17 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         }
     }
 
-    @Override
-    public void queryMyVideoList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), userId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
-        List<Video> list = this.list(queryWrapper);
-        //检查当前登录人点赞和收藏
-        checkUpvoteAndCollection(list, userId);
-        userService.setDataMation(list, Video::getCreateId);
-        outputObject.setBeans(list);
-        outputObject.settotal(page.getTotal());
-    }
-
-    @Override
-    public void queryTaVideoList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String taUserId = commonPageInfo.getObjectId();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), taUserId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
-        List<Video> list = list(queryWrapper);
-        checkUpvoteAndCollection(list, userId);
-        outputObject.setBean(list);
-        outputObject.settotal(page.getTotal());
-    }
 
     @Override
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String objectId = commonPageInfo.getObjectId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(objectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), objectId);
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum));
@@ -205,12 +180,15 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     @Override
-    public void queryMySupportVideo(InputObject inputObject, OutputObject outputObject) {
+    public void queryAllSupportVideo(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String objectId = commonPageInfo.getObjectId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
+        if (StrUtil.isNotEmpty(objectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), objectId);
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCreateTime));
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag));
         List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
@@ -229,12 +207,15 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     @Override
-    public void queryMyCollectVideo(InputObject inputObject, OutputObject outputObject) {
+    public void queryAllCollectVideo(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String objectId = commonPageInfo.getObjectId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
+        if (StrUtil.isNotEmpty(objectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), objectId);
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCreateTime));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag));
         List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()

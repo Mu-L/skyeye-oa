@@ -71,35 +71,6 @@ public class VideoController {
     }
 
     /**
-     * 分页获取我的视频列表
-     *
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMyVideoList", value = "分页获取我的视频列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryMyVideoList")
-    public void queryMyVideoList(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryMyVideoList(inputObject, outputObject);
-    }
-
-    /**
-     * 分页获取他的视频列表
-     *
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryTaVideoList", value = "分页获取我的视频列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryTaVideoList")
-    public void queryTaVideoList(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryTaVideoList(inputObject, outputObject);
-    }
-
-
-    /**
      * 点赞或取消点赞
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -130,29 +101,29 @@ public class VideoController {
     }
 
     /**
-     * 分页获取我点赞的视频
+     * 分页获取我的、他的点赞的视频
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMySupportVideo", value = "分页获取我点赞的视频", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllSupportVideo", value = "分页获取我的、他的点赞的视频（用户id,objectId）", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryMySupportVideo")
-    public void queryMySupportVideo(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryMySupportVideo(inputObject, outputObject);
+    @RequestMapping("/post/VideoController/queryAllSupportVideo")
+    public void queryAllSupportVideo(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryAllSupportVideo(inputObject, outputObject);
     }
 
     /**
-     * 分页获取我收藏的视频
+     * 分页获取我的、他的收藏的视频
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMyCollectVideo", value = "分页获取我收藏的视频", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllCollectVideo", value = "分页获取我的、他的收藏的视频（用户id,objectId）", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryMyCollectVideo")
-    public void queryMyCollectVideo(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryMyCollectVideo(inputObject, outputObject);
+    @RequestMapping("/post/VideoController/queryAllCollectVideo")
+    public void queryAllCollectVideo(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryAllCollectVideo(inputObject, outputObject);
     }
 
     /**
@@ -171,12 +142,12 @@ public class VideoController {
     }
 
     /**
-     * 分页获取全部视频
+     * 分页获取我的和他的（传objectId）或全部视频
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllVideoList", value = "分页获取全部视频，根据点赞数量倒序排序", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryAllVideoList", value = "分页获取我的和他的（传objectId）或全部视频", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoController/queryAllVideoList")
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {

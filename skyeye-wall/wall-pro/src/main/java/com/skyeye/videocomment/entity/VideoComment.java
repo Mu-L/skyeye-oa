@@ -1,5 +1,6 @@
 package com.skyeye.videocomment.entity;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -7,7 +8,11 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.picture.entity.Picture;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: VideoComment
@@ -50,4 +55,11 @@ public class VideoComment extends OperatorUserInfo {
     @ApiModelProperty(value = "视频id", required = "required")
     private String videoId;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "评论图片")
+    private Picture picture;
+
+    @TableField(exist = false)
+    @Property(value = "当前登陆人是否点赞")
+    private Boolean checkUpvote;
 }

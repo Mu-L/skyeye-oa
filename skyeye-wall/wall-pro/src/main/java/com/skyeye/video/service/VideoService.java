@@ -14,19 +14,15 @@ import com.skyeye.video.entity.Video;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface VideoService extends SkyeyeBusinessService<Video> {
-    void queryMyVideoList(InputObject inputObject, OutputObject outputObject);
-
     void supportOrNotVideo(InputObject inputObject, OutputObject outputObject);
 
     void collectOrNotVideo(InputObject inputObject, OutputObject outputObject);
 
-    void queryMySupportVideo(InputObject inputObject, OutputObject outputObject);
+    void queryAllSupportVideo(InputObject inputObject, OutputObject outputObject);
 
-    void queryMyCollectVideo(InputObject inputObject, OutputObject outputObject);
+    void queryAllCollectVideo(InputObject inputObject, OutputObject outputObject);
 
     void refreshVisitVideo(InputObject inputObject, OutputObject outputObject);
 
     void queryAllVideoList(InputObject inputObject, OutputObject outputObject);
-
-    void queryTaVideoList(InputObject inputObject, OutputObject outputObject);
 }
