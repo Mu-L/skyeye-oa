@@ -6,7 +6,6 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.service.ScoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,19 +17,6 @@ public class ScoreController {
 
     @Autowired
     private ScoreService scoreService;
-
-    /**
-     * 添加或修改成绩信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "writeScore", value = "添加或修改成绩信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = Score.class)
-    @RequestMapping("/post/ScoreController/writeScore")
-    public void writeScore(InputObject inputObject, OutputObject outputObject) {
-        scoreService.saveOrUpdateEntity(inputObject, outputObject);
-    }
 
     /**
      * 根据id获取成绩信息

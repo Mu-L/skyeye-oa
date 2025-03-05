@@ -99,6 +99,9 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String videoId = commonPageInfo.getObjectId();
+        if(StrUtil.isEmpty(videoId)){
+            throw new CustomException("视频id(objectId)不能为空");
+        }
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
