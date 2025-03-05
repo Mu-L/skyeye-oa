@@ -18,4 +18,5 @@ import java.util.List;
  */
 public interface VideoCommentService extends SkyeyeBusinessService<VideoComment> {
 
+    void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject);
 }

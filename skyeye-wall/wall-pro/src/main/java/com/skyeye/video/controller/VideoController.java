@@ -84,6 +84,20 @@ public class VideoController {
         videoService.queryMyVideoList(inputObject, outputObject);
     }
 
+    /**
+     * 分页获取他的视频列表
+     *
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTaVideoList", value = "分页获取我的视频列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/VideoController/queryTaVideoList")
+    public void queryTaVideoList(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryTaVideoList(inputObject, outputObject);
+    }
+
 
     /**
      * 点赞或取消点赞
@@ -162,7 +176,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllVideoList", value = "分页获取全部视频，根据点赞数量倒序排序", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllVideoList", value = "分页获取全部视频，根据点赞数量倒序排序", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoController/queryAllVideoList")
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {

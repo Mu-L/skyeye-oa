@@ -113,7 +113,7 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
     public List<ExamQuCheckbox> selectQuChenbox(String copyFromId) {
         QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId),copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility),CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuCheckbox::getOrderById));
         return list(queryWrapper);
     }
 

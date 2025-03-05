@@ -7,7 +7,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.videocomment.entity.VideoComment;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: Video
@@ -43,15 +46,15 @@ public class Video extends OperatorUserInfo {
     private String collectionNum;
 
     @TableField("visit_num")
-    @ApiModelProperty(value = "收藏数量，默认0",defaultValue = "0")
+    @ApiModelProperty(value = "浏览数量，默认0",defaultValue = "0")
     private String visitNum;
 
     @TableField("tasn_num")
-    @ApiModelProperty(value = "收藏数量，默认0", defaultValue = "0")
+    @ApiModelProperty(value = "点赞数量，默认0", defaultValue = "0")
     private String tasnNum;
 
     @TableField("remark_num")
-    @ApiModelProperty(value = "收藏数量，默认0", defaultValue = "0")
+    @ApiModelProperty(value = "评论数量，默认0", defaultValue = "0")
     private String remarkNum;
 
     @TableField(exist = false)
@@ -61,5 +64,9 @@ public class Video extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "当前登陆人是否收藏")
     private Boolean checkCollection;
+
+    @TableField(exist = false)
+    @Property(value = "视频评论")
+    private List<VideoComment> videoComment;
 
 }

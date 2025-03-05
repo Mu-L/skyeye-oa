@@ -12,9 +12,7 @@ import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @SkyeyeService(name = "单选题保存表管理", groupName = "单选题保存表管理")
@@ -34,6 +32,13 @@ public class ExamAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnRadi
     public List<ExamAnRadio> selectRadioBySurveyId(String surveyId) {
         QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getBelongId), surveyId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnRadio> selectByQuid(String id) {
+        QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id);
         return list(queryWrapper);
     }
 }

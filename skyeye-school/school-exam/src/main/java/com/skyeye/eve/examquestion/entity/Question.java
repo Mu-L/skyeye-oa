@@ -202,7 +202,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "单选题答案信息")
-    private ExamAnRadio radioAn;
+    private List<ExamAnRadio> radioAn;
 
     @TableField(exist = false)
     @Property(value = "评分题答案信息")
