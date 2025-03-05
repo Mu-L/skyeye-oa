@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
+import com.skyeye.leave.classenum.UseYearHolidayType;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import lombok.Data;
 
@@ -61,7 +62,7 @@ public class LeaveTimeSlot extends SkyeyeLinkData {
     private String leaveHour;
 
     @TableField(value = "use_year_holiday")
-    @Property(value = "是否使用年假/补休，参考#UseYearHolidayType")
+    @Property(value = "是否使用年假/补休", enumClass = UseYearHolidayType.class)
     private Integer useYearHoliday;
 
     @TableField(exist = false)

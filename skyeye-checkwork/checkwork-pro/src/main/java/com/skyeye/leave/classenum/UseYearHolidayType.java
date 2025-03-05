@@ -40,7 +40,7 @@ public enum UseYearHolidayType implements SkyeyeEnumClass {
                 return value.getValue();
             }
         }
-        return StringUtils.EMPTY;
+        return "未使用年假/补休";
     }
 
 }
