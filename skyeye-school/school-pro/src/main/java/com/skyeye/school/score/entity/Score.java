@@ -38,11 +38,11 @@ public class Score extends OperatorUserInfo {
     private Integer grade;
 
     @TableField("object_id")
-    @ApiModelProperty(value = "所属对象id", required = "required")
+    @ApiModelProperty(value = "所属对象id")
     private String objectId;
 
     @TableField("object_key")
-    @ApiModelProperty(value = "所属对象类型", required = "required")
+    @ApiModelProperty(value = "所属对象类型")
     private String objectKey;
 
 }

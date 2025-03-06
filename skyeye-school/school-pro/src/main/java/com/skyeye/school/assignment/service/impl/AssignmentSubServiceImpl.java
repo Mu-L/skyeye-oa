@@ -30,7 +30,6 @@ import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
-import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.service.ScoreService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +64,9 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
 
     @Autowired
     private ScoreService scoreService;
+
+    @Autowired
+    private AssignmentSubService assignmentSubService;
 
     @Override
     public void validatorEntity(AssignmentSub entity) {
