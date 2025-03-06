@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.checkwork.entity.Checkwork;
 
+import java.util.Map;
+
 /**
  * @ClassName: CheckworkService
  * @Description: 考勤管理服务接口层
@@ -22,4 +24,6 @@ public interface CheckworkService extends SkyeyeBusinessService<Checkwork> {
     void queryCheckworkBySourceCode(InputObject inputObject, OutputObject outputObject);
 
     Checkwork queryCheckworkBySourceCode(String sourceCode);
+
+   void queryCheckworkBySourceCodeAll(InputObject inputObject, OutputObject outputObject);
 }

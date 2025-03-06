@@ -100,4 +100,18 @@ public class CheckworkController {
         checkworkService.deleteById(inputObject, outputObject);
     }
 
+    /**
+     * 已考勤 待考勤的数量统计
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCheckworkBySourceCodeAll", value = "已考勤 待考勤的数量统计", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/CheckworkController/queryCheckworkBySourceCodeAll")
+    public void queryCheckworkBySourceCodeAll(InputObject inputObject, OutputObject outputObject) {
+        checkworkService.queryCheckworkBySourceCodeAll(inputObject, outputObject);
+    }
+
 }

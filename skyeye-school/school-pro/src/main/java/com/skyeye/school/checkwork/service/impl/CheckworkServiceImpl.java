@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -157,5 +159,26 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         }
         subjectClassesService.setDataMation(checkwork, Checkwork::getSubClassLinkId);
         return checkwork;
+    }
+
+    @Override
+    public void queryCheckworkBySourceCodeAll(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        QueryWrapper<CheckworkSign> signedqueryWrapper = new QueryWrapper<>();
+        signedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), id);
+        signedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.SIGN.getKey());
+        long signedCount = checkworkSignService.count(signedqueryWrapper);
+        // 查询待考勤的数量
+        QueryWrapper<CheckworkSign> unsignedqueryWrapper = new QueryWrapper<>();
+        unsignedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), id);
+        unsignedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.NOT_SIGN.getKey());
+        long unsignedCount = checkworkSignService.count(unsignedqueryWrapper);
+        //返回
+        Map<String, Integer> result = new HashMap<>();
+        result.put("signedCount", (int) signedCount);
+        result.put("unsignedCount", (int) unsignedCount);
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }
