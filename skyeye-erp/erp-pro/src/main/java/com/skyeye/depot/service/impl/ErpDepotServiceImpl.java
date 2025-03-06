@@ -54,7 +54,7 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
             QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
-            Depot defaultDepot = getOne(queryWrapper);
+            Depot defaultDepot = getOne(queryWrapper, false);
 
             // 2. 修改之前的默认仓库信息
             UpdateWrapper<Depot> updateWrapper = new UpdateWrapper<>();
