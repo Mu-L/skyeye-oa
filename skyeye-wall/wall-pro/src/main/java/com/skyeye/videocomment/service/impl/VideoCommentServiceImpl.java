@@ -89,6 +89,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         video.setRemarkNum(String.valueOf(remarkNum));
         videoService.updateEntity(video, userId);
         if (ObjectUtil.isNotEmpty(entity.getPicture())) {
+            Picture picture = entity.getPicture();
+            picture.setObjectId(entity.getId());
             pictureService.createEntity(entity.getPicture(), userId);
         }
     }
