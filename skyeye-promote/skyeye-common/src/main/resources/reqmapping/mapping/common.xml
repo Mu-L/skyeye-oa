@@ -4,30 +4,6 @@
         - allUse  是否需要登录才能使用   1是   0否  2需要登陆才能访问，但无需授权    默认为否
      -->
 
-    <!-- 系统模板分类开始 -->
-    <url id="sysevemodeltype001" path="/post/SysEveModelTypeController/querySysEveModelTypeList" method="POST" val="获取系统模板分类列表" allUse="1" groupName="系统模板分类">
-        <property id="typeName" name="typeName" ref="" var="分类名称"/>
-    </url>
-    <url id="sysevemodeltype002" path="/post/SysEveModelTypeController/insertSysEveModelType" method="POST" val="新增系统模板分类" allUse="1" groupName="系统模板分类">
-        <property id="typeName" name="typeName" ref="required" var="分类名称"/>
-        <property id="parentId" name="parentId" ref="required" var="父id"/>
-    </url>
-    <url id="sysevemodeltype003" path="/post/SysEveModelTypeController/delSysEveModelTypeById" method="DELETE" val="删除系统模板分类" allUse="1" groupName="系统模板分类">
-        <property id="id" name="id" ref="required" var="系统模板分类id"/>
-    </url>
-    <url id="sysevemodeltype004" path="/post/SysEveModelTypeController/querySysEveModelTypeById" method="GET" val="根据id查询系统模板分类详情" allUse="2" groupName="系统模板分类">
-        <property id="id" name="id" ref="required" var="系统模板分类id"/>
-    </url>
-    <url id="sysevemodeltype005" path="/post/SysEveModelTypeController/updateSysEveModelTypeById" method="PUT" val="通过id编辑对应的系统模板分类信息" allUse="1" groupName="系统模板分类">
-        <property id="id" name="id" ref="required" var="系统模板分类id"/>
-        <property id="typeName" name="typeName" ref="required" var="分类名称"/>
-        <property id="parentId" name="parentId" ref="required" var="父id"/>
-    </url>
-    <url id="sysevemodeltype006" path="/post/SysEveModelTypeController/querySysEveModelTypeByParentId" method="GET" val="通过parentId查找对应的系统模板分类列表" allUse="2" groupName="系统模板分类">
-        <property id="parentId" name="parentId" ref="required" var="父id"/>
-    </url>
-    <!-- 系统模板分类结束 -->
-
     <!-- 系统编辑器模板开始 -->
     <url id="sysevemodel002" path="/post/SysEveModelController/insertSysEveModelMation" val="新增系统编辑器模板" method="POST" allUse="1" groupName="系统编辑器模板">
         <property id="title" name="title" ref="required" var="标题" />

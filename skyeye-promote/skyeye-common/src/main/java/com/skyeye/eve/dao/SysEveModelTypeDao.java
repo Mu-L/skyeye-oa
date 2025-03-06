@@ -4,10 +4,7 @@
 
 package com.skyeye.eve.dao;
 
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
-import java.util.Map;
+import com.skyeye.eve.entity.model.SysEveModelType;
 
 /**
  * @ClassName: SysEveModelTypeDao
@@ -17,22 +14,6 @@ import java.util.Map;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public interface SysEveModelTypeDao {
-
-    List<Map<String, Object>> querySysEveModelTypeList(Map<String, Object> map);
-
-    void insertSysEveModelType(Map<String, Object> map);
-
-    Map<String, Object> querySysEveModelTypeById(@Param("id") String id);
-
-    String querySysEveModelTypeByParentIdAndTypeName(Map<String, Object> map);
-
-    List<Map<String, Object>> querySysEveModelTypeByParentId(@Param("parentId") String parentId);
-
-    void updateSysEveModelTypeById(Map<String, Object> map);
-
-    void delSysEveModelTypeById(@Param("id") String id);
-
-    void delSysEveModelTypeByParentId(@Param("parentId") String parentId);
+public interface SysEveModelTypeDao extends SkyeyeBaseMapper<SysEveModelType> {
 
 }
