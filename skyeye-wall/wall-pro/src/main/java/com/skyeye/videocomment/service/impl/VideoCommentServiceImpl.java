@@ -104,8 +104,11 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId), id);
         List<VideoComment> videoComments = list(queryWrapper);
+        List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
+        ids.add(id);
         remove(queryWrapper);
         super.deleteById(id);
+        deleteCommentPicture(ids);
         String videoId = videoComment.getVideoId();
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
@@ -113,6 +116,17 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
+    }
+    // 删除评论的图片
+    private void deleteCommentPicture(List<String> ids) {
+        for (String id : ids) {
+            QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), id);
+            Picture one = pictureService.getOne(queryWrapper);
+            if(ObjectUtil.isNotEmpty(one)){
+                pictureService.remove(queryWrapper);
+            }
+        }
     }
 
     private void setCommentPicture(List<VideoComment> list) {
