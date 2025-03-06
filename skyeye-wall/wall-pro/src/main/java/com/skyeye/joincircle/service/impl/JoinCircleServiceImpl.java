@@ -5,6 +5,7 @@
 package com.skyeye.joincircle.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -35,6 +36,18 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     private CircleService circleService;
 
     @Override
+    public String createEntity(JoinCircle joinCircle, String userId) {
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), joinCircle.getCircleId())
+            .eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
+        long count = count(queryWrapper);
+        if (count > 0) {
+            return StrUtil.EMPTY;
+        }
+        return super.createEntity(joinCircle, userId);
+    }
+
+    @Override
     public void validatorEntity(JoinCircle joinCircle) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         joinCircle.setCreateId(userId);
@@ -44,7 +57,7 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     @Override
     public void createPostpose(JoinCircle joinCircle, String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), joinCircle.getCircleId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), joinCircle.getCircleId());
         long count = count(queryWrapper);
         circleService.updateJoinNum(joinCircle.getCircleId(), (int) count);
     }
@@ -72,5 +85,12 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
         JoinCircle joinCircle = getOne(queryWrapper);
         return ObjectUtil.isEmpty(joinCircle) ? new JoinCircle(): joinCircle;
+    }
+
+    @Override
+    public void deleteJoinByCircleId(String circleId) {
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
+        remove(queryWrapper);
     }
 }

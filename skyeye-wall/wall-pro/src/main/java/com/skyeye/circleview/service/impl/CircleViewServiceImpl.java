@@ -55,16 +55,12 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
     }
 
     @Override
-    public String createEntity(CircleView circleView, String userId) {
+    public void deleteCircleViewByCircleId(String circleId) {
         QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), circleView.getCircleId())
-            .eq(MybatisPlusUtil.toColumns(CircleView::getCreateId), userId);
-        long count = count(queryWrapper);
-        if (count > 0) {
-            return StrUtil.EMPTY;
-        }
-        return super.createEntity(circleView, userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), circleId);
+        remove(queryWrapper);
     }
+
 
     @Override
     public void validatorEntity(CircleView circleView) {

@@ -17,4 +17,5 @@ import com.skyeye.joincircle.entity.JoinCircle;
  */
 public interface JoinCircleService extends SkyeyeBusinessService<JoinCircle> {
     JoinCircle selectByCircleId(String circleId, String userId);
+    void deleteJoinByCircleId(String circleId);
 }

@@ -13,11 +13,13 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.circle.dao.CircleDao;
 import com.skyeye.circle.entity.Circle;
 import com.skyeye.circle.service.CircleService;
+import com.skyeye.circleview.service.CircleViewService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.post.service.PostService;
 import com.skyeye.user.service.UserService;
@@ -44,6 +46,12 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Autowired
     private MaterialService materialService;
+
+    @Autowired
+    private CircleViewService circleViewService;
+
+    @Autowired
+    private JoinCircleService joinCircleService;
 
     @Override
     public void validatorEntity(Circle circle) {
@@ -72,6 +80,8 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     public void deletePostpose(String id) {
         postService.deleteByCircleId(id);
         materialService.deleteByCircleId(id);
+        circleViewService.deleteCircleViewByCircleId(id);
+        joinCircleService.deleteJoinByCircleId(id);
     }
 
     @Override
@@ -85,7 +95,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     public void updateViewNum(String circleId, Integer count) {
         UpdateWrapper<Circle> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, circleId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getNum), count);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getViewNum), count);
         update(updateWrapper);
     }
 
@@ -93,7 +103,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     public void updateJoinNum(String circleId, Integer joinNum) {
         UpdateWrapper<Circle> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, circleId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getViewNum), joinNum);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getNum), joinNum);
         update(updateWrapper);
     }
 }
