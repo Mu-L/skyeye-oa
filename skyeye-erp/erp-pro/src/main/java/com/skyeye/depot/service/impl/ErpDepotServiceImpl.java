@@ -50,11 +50,23 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
     protected void writePostpose(Depot entity, String userId) {
         if (entity.getIsDefault().equals(IsDefaultEnum.IS_DEFAULT.getKey())) {
             // 如果将当前数据修改为默认数据，则需要修改之前的数据为非默认
+            // 1. 先查询默认的仓库信息
+            QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+            Depot defaultDepot = getOne(queryWrapper);
+
+            // 2. 修改之前的默认仓库信息
             UpdateWrapper<Depot> updateWrapper = new UpdateWrapper<>();
             updateWrapper.ne(CommonConstants.ID, entity.getId());
             updateWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
             updateWrapper.set(MybatisPlusUtil.toColumns(Depot::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
             update(updateWrapper);
+
+            // 3. 如果不为空，则刷新缓存
+            if (defaultDepot != null) {
+                refreshCache(defaultDepot.getId());
+            }
         }
     }
 
