@@ -4,17 +4,16 @@
 
 package com.skyeye.eve.service.impl;
 
-import com.skyeye.common.constans.CommonNumConstants;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.SysEveModelTypeDao;
-import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.entity.model.SysEveModelType;
 import com.skyeye.eve.service.SysEveModelTypeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,92 +27,26 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-public class SysEveModelTypeServiceImpl implements SysEveModelTypeService {
-
-    @Autowired
-    private SysEveModelTypeDao sysEveModelTypeDao;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
-    /**
-     * 获取系统模板分类列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void querySysEveModelTypeList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> inputParams = inputObject.getParams();
-        List<Map<String, Object>> beans = sysEveModelTypeDao.querySysEveModelTypeList(inputParams);
-        iAuthUserService.setNameForMap(beans, "createId", "createName");
-        iAuthUserService.setNameForMap(beans, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
-    }
-
-    @Override
-    public void insertSysEveModelType(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> inputParams = inputObject.getParams();
-        if (checkParentIdExists(inputParams, outputObject)) {
-            return;
-        }
-        inputParams.put("id", ToolUtil.getSurFaceId());
-        inputParams.put("createTime", DateUtil.getTimeAndToString());
-        inputParams.put("userId", inputObject.getLogParams().get("id"));
-        sysEveModelTypeDao.insertSysEveModelType(inputParams);
-    }
-
-    @Override
-    public void querySysEveModelTypeById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> inputParams = inputObject.getParams();
-        Map<String, Object> sysEveModelTypeBean = sysEveModelTypeDao.querySysEveModelTypeById(inputParams.get("id").toString());
-        outputObject.setBean(sysEveModelTypeBean);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
-    }
+@SkyeyeService(name = "素材分类管理", groupName = "素材管理")
+public class SysEveModelTypeServiceImpl extends SkyeyeBusinessServiceImpl<SysEveModelTypeDao, SysEveModelType> implements SysEveModelTypeService {
 
     @Override
     public void querySysEveModelTypeByParentId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> inputParams = inputObject.getParams();
-        List<Map<String, Object>> sysEveModelTypeList = sysEveModelTypeDao.querySysEveModelTypeByParentId(inputParams.get("parentId").toString());
-        outputObject.setBeans(sysEveModelTypeList);
-        outputObject.settotal(sysEveModelTypeList.size());
+        String parentId = inputParams.get("parentId").toString();
+        QueryWrapper<SysEveModelType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModelType::getParentId), parentId);
+        List<SysEveModelType> modelTypeList = list(queryWrapper);
+        outputObject.setBeans(modelTypeList);
+        outputObject.settotal(modelTypeList.size());
     }
 
     @Override
-    public void updateSysEveModelTypeById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> inputParams = inputObject.getParams();
-        if (checkParentIdExists(inputParams, outputObject)) {
-            return;
-        }
-        inputParams.put("lastUpdateTime", DateUtil.getTimeAndToString());
-        inputParams.put("userId", inputObject.getLogParams().get("id"));
-        sysEveModelTypeDao.updateSysEveModelTypeById(inputParams);
+    public void deletePostpose(SysEveModelType entity) {
+        super.deletePostpose(entity);
+        QueryWrapper<SysEveModelType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModelType::getParentId), entity.getId());
+        remove(queryWrapper);
     }
 
-    /**
-     * 校验parentId是否存在
-     *
-     * @param inputParams
-     * @param outputObject 出参以及提示信息的返回值对象
-     * @return true: parentId+typeName存在, 反之false
-     */
-    private boolean checkParentIdExists(Map<String, Object> inputParams, OutputObject outputObject) {
-        String tempId = sysEveModelTypeDao.querySysEveModelTypeByParentIdAndTypeName(inputParams);
-        if (tempId == null || tempId.equals(inputParams.get("id"))) {
-            return false;
-        }
-        outputObject.setreturnMessage("父节点下已存在该分类名称.");
-        return true;
-    }
-
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void delSysEveModelTypeById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> inputParams = inputObject.getParams();
-        String id = inputParams.get("id").toString();
-        // 根据Id删除该节点id被作为parentId使用的其他页面分类数据
-        sysEveModelTypeDao.delSysEveModelTypeByParentId(id);
-        sysEveModelTypeDao.delSysEveModelTypeById(id);
-    }
 }
