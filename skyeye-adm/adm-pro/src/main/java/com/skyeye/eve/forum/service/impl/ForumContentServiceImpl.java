@@ -16,6 +16,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -126,6 +127,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Override
     public ForumContent selectById(String id) {
         ForumContent bean = super.selectById(id);
+        if(bean.getState() == EnableEnum.DISABLE_USING.getKey()){
+            throw new CustomException("该帖子已被删除！");
+        }
         forumTagService.setTagMationForContentList(Arrays.asList(bean));
         // 设置匿名
         if (bean.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
