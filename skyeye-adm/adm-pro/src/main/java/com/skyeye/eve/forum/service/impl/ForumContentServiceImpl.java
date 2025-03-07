@@ -65,6 +65,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Autowired
     private ForumSensitiveWordsService forumSensitiveWordsService;
 
+    @Autowired
+    private ForumHotService forumHotService;
+
     /**
      * 获取我的帖子列表
      *
@@ -122,14 +125,16 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         updateWrapper.set(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.DELETE.getKey());
         update(updateWrapper);
+        // 删除热门帖子记录
+        forumHotService.deleteByForumId(one.getId());
+        // 删除评论记录
+        forumCommentService.deleteByForumId(one.getId());
+        refreshCache(one.getId());
     }
 
     @Override
     public ForumContent selectById(String id) {
         ForumContent bean = super.selectById(id);
-        if(bean.getState() == EnableEnum.DISABLE_USING.getKey()){
-            throw new CustomException("该帖子已被删除！");
-        }
         forumTagService.setTagMationForContentList(Arrays.asList(bean));
         // 设置匿名
         if (bean.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {

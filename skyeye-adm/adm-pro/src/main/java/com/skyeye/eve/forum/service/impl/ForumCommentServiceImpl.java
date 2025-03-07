@@ -142,4 +142,14 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
+
+    /**
+     * 根据帖子id删除评论
+     * */
+    @Override
+    public void deleteByForumId(String id) {
+        QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), id);
+        remove(queryWrapper);
+    }
 }

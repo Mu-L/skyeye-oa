@@ -140,7 +140,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
                 .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), StrUtil.EMPTY)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
+                .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::   getOrderBy));
         List<ForumHot> forumHots = list(queryWrapper);
         // 设置标签信息
         for (ForumHot forumHot : forumHots) {
@@ -201,6 +201,15 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
             forumHots.add(forumHot);
         }
         createEntity(forumHots, null);
+    }
+
+    /**
+     * 根据帖子id删除热门记录*/
+    @Override
+    public void deleteByForumId(String id) {
+        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), id);
+        remove(queryWrapper);
     }
 
     public String getBeforeOrFutureDay(int num) {
