@@ -8,10 +8,10 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.model.SysEveModel;
-import com.skyeye.eve.entity.sysmodel.SysEveModelQueryDo;
 import com.skyeye.eve.service.SysEveModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +33,7 @@ public class SysEveModelController {
     private SysEveModelService sysEveModelService;
 
     @ApiOperation(id = "sysevemodel001", value = "获取素材列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = SysEveModelQueryDo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveModelController/querySysEveModelList")
     public void querySysEveModelList(InputObject inputObject, OutputObject outputObject) {
         sysEveModelService.queryPageList(inputObject, outputObject);

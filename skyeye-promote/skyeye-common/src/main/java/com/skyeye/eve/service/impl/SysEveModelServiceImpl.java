@@ -53,6 +53,12 @@ public class SysEveModelServiceImpl extends SkyeyeBusinessServiceImpl<SysEveMode
         if (StrUtil.isEmpty(type)) {
             throw new CustomException("类型不能为空");
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getFirstTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getFirstTypeId), commonPageInfo.getFirstTypeId());
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getSecondTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getSecondTypeId), commonPageInfo.getSecondTypeId());
+        }
         queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getType), type);
         if (Integer.parseInt(type) == SysEveModelAttrType.PERSONAL.getKey()) {
             // 个人模板
