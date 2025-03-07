@@ -84,41 +84,38 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             // 教师身份信息
             // 查询当前用户创建的科目
             List<Subject> subjectList = querySubjectListByUserId(userId);
-            if (CollectionUtil.isEmpty(subjectList)) {
-                throw new CustomException("当前用户没有创建科目");
+            if(CollectionUtil.isNotEmpty(subjectList)){
+                List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
+                subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
             }
-            List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
-            subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
             String studentNumber = certification.get("studentNumber").toString();
             List<String> subClassLinkIdList = subjectClassesStuService.querySubClassLinkIdByStuNo(studentNumber);
-            if (CollectionUtil.isEmpty(subClassLinkIdList)) {
-                throw new CustomException("当前学生没有加入任何科目");
+            if (CollectionUtil.isNotEmpty(subClassLinkIdList)) {
+                subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
             }
-            subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
-        }
-        if (CollectionUtil.isEmpty(subjectClassesList)) {
-            throw new CustomException("当前用户没有创建或加入任何科目");
         }
         List<Semester> semesterList = new ArrayList<>();
         List<String> semesterIdList = new ArrayList<>();
-        subjectClassesList.forEach(subjectClasses -> {
-            if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
-                Semester semester = new Semester();
-                semester.setId(subjectClasses.getSemesterId());
-                semester.setName(subjectClasses.getSemesterMation().getName());
-                semesterList.add(semester);
-                semesterIdList.add(subjectClasses.getSemesterId());
+        if (CollectionUtil.isNotEmpty(subjectClassesList)) {
+            subjectClassesList.forEach(subjectClasses -> {
+                if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
+                    Semester semester = new Semester();
+                    semester.setId(subjectClasses.getSemesterId());
+                    semester.setName(subjectClasses.getSemesterMation().getName());
+                    semesterList.add(semester);
+                    semesterIdList.add(subjectClasses.getSemesterId());
+                }
+            });
+            // 按学期分组
+            for (Semester semester : semesterList) {
+                List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
+                        .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
+                        .collect(Collectors.toList());
+                semester.setSubjectClassesList(subjectClassesListBySemester);
             }
-        });
-        // 按学期分组
-        for (Semester semester : semesterList) {
-            List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
-                .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
-                .collect(Collectors.toList());
-            semester.setSubjectClassesList(subjectClassesListBySemester);
         }
         outputObject.setBeans(semesterList);
         outputObject.settotal(semesterList.size());
