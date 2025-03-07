@@ -4,21 +4,17 @@
 
 package com.skyeye.eve.service;
 
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
+import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.eve.entity.model.SysEveModel;
 
-public interface SysEveModelService {
-
-    void querySysEveModelList(InputObject inputObject, OutputObject outputObject);
-
-    void insertSysEveModelMation(InputObject inputObject, OutputObject outputObject);
-
-    void deleteSysEveModelById(InputObject inputObject, OutputObject outputObject);
-
-    void selectSysEveModelById(InputObject inputObject, OutputObject outputObject);
-
-    void selectSysEveModelMationById(InputObject inputObject, OutputObject outputObject);
-
-    void editSysEveModelMationById(InputObject inputObject, OutputObject outputObject);
+/**
+ * @ClassName: SysEveModelService
+ * @Description: 素材管理服务接口
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/3/7 14:33
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+public interface SysEveModelService extends SkyeyeBusinessService<SysEveModel> {
 
 }

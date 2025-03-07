@@ -4,152 +4,115 @@
 
 package com.skyeye.eve.service.impl;
 
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.skyeye.common.constans.CommonNumConstants;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
-import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.SysEveModelDao;
-import com.skyeye.eve.entity.sysmodel.SysEveModelQueryDo;
-import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.entity.model.SysEveModel;
+import com.skyeye.eve.enums.SysEveModelAttrType;
 import com.skyeye.eve.service.SysEveModelService;
-import com.skyeye.jedis.JedisClientService;
+import com.skyeye.eve.service.SysEveModelTypeService;
+import com.skyeye.exception.CustomException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  * @ClassName: SysEveModelServiceImpl
- * @Description: 系统编辑器模板服务类
+ * @Description: 素材管理服务类
  * @author: skyeye云系列
  * @date: 2021/11/14 9:10
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-public class SysEveModelServiceImpl implements SysEveModelService {
-
-    @Autowired
-    private SysEveModelDao sysEveModelDao;
+@SkyeyeService(name = "素材管理", groupName = "素材管理")
+public class SysEveModelServiceImpl extends SkyeyeBusinessServiceImpl<SysEveModelDao, SysEveModel> implements SysEveModelService {
 
     @Value("${IMAGES_PATH}")
     private String tPath;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private SysEveModelTypeService sysEveModelTypeService;
 
-    /**
-     * 获取系统编辑器模板表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    public void querySysEveModelList(InputObject inputObject, OutputObject outputObject) {
-        SysEveModelQueryDo sysEveModelQuery = inputObject.getParams(SysEveModelQueryDo.class);
-        sysEveModelQuery.setUserId(inputObject.getLogParams().get("id").toString());
-        Page pages = PageHelper.startPage(sysEveModelQuery.getPage(), sysEveModelQuery.getLimit());
-        List<Map<String, Object>> beans = sysEveModelDao.querySysEveModelList(sysEveModelQuery);
-        iAuthUserService.setNameForMap(beans, "createId", "createName");
-        iAuthUserService.setNameForMap(beans, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(beans);
-        outputObject.settotal(pages.getTotal());
+    public QueryWrapper<SysEveModel> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<SysEveModel> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        String type = commonPageInfo.getType();
+        if (StrUtil.isEmpty(type)) {
+            throw new CustomException("类型不能为空");
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getFirstTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getFirstTypeId), commonPageInfo.getFirstTypeId());
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getSecondTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getSecondTypeId), commonPageInfo.getSecondTypeId());
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getType), type);
+        if (Integer.parseInt(type) == SysEveModelAttrType.PERSONAL.getKey()) {
+            // 个人模板
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getCreateId), userId);
+        }
+
+        return queryWrapper;
     }
 
-    /**
-     * 新增系统编辑器模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void insertSysEveModelMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("userId", inputObject.getLogParams().get("id"));
-        Map<String, Object> bean = sysEveModelDao.querySysEveModelMationByNameAndType(map);
-        if (bean != null && !bean.isEmpty()) {
-            outputObject.setreturnMessage("该系统编辑器模板已存在，请更换");
-        } else {
-            map.put("id", ToolUtil.getSurFaceId());
-            map.put("createTime", DateUtil.getTimeAndToString());
-            sysEveModelDao.insertSysEveModelMation(map);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        sysEveModelTypeService.setNameMationForMap(beans, "firstTypeId", "firstTypeName", "typeName");
+        sysEveModelTypeService.setNameMationForMap(beans, "secondTypeId", "secondTypeName", "typeName");
+        beans.forEach(bean -> {
+            bean.put("type", SysEveModelAttrType.getName(Integer.parseInt(bean.get("type").toString())));
+        });
+        return beans;
+    }
+
+    @Override
+    public void validatorEntity(SysEveModel entity) {
+        super.validatorEntity(entity);
+        QueryWrapper<SysEveModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getTitle), entity.getTitle());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getType), entity.getType());
+        if (entity.getType() == SysEveModelAttrType.PERSONAL.getKey()) {
+            // 个人模板
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveModel::getCreateId), userId);
+        }
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        SysEveModel checkModelMation = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(checkModelMation)) {
+            throw new CustomException("该标题名称已存在，请更换");
         }
     }
 
-    /**
-     * 删除编辑器模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void deleteSysEveModelById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString();
-        Map<String, Object> bean = sysEveModelDao.selectSysEveModelMationById(id);
-        if (bean != null && !bean.isEmpty()) {
-            FileUtil.deleteFile(tPath.replace("images", "") + bean.get("logo").toString());
-            sysEveModelDao.deleteSysEveModelById(id);
-        }
+    public void deletePostpose(SysEveModel entity) {
+        FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + entity.getLogo());
     }
 
-    /**
-     * 通过id查找对应的编辑器模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    public void selectSysEveModelById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString();
-        Map<String, Object> bean = sysEveModelDao.selectSysEveModelMationById(id);
-        outputObject.setBean(bean);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    public SysEveModel selectById(String id) {
+        SysEveModel sysEveModel = super.selectById(id);
+        sysEveModel.setTypeName(SysEveModelAttrType.getName(sysEveModel.getType()));
+        sysEveModelTypeService.setNameDataMation(sysEveModel, SysEveModel::getFirstTypeId, "typeName");
+        sysEveModelTypeService.setNameDataMation(sysEveModel, SysEveModel::getSecondTypeId, "typeName");
+        return sysEveModel;
     }
 
-    /**
-     * 通过id编辑对应的编辑器模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editSysEveModelMationById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("userId", inputObject.getLogParams().get("id"));
-        Map<String, Object> bean = sysEveModelDao.querySysEveModelMationByNameAndType(map);
-        if (bean != null && !bean.isEmpty()) {
-            outputObject.setreturnMessage("该编辑器模板已存在，请更换");
-        } else {
-            map.put("lastUpdateTime", DateUtil.getTimeAndToString());
-            sysEveModelDao.editSysEveModelMationById(map);
-        }
-    }
-
-    /**
-     * 通过id查找对应的编辑器模板详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void selectSysEveModelMationById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString();
-        Map<String, Object> bean = sysEveModelDao.selectSysEveModelMationById(id);
-        outputObject.setBean(bean);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
-    }
 }
 
