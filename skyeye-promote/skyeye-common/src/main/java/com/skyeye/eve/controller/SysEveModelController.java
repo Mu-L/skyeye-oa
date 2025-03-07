@@ -32,7 +32,7 @@ public class SysEveModelController {
     @Autowired
     private SysEveModelService sysEveModelService;
 
-    @ApiOperation(id = "sysevemodel001", value = "获取素材列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "sysevemodel001", value = "获取素材列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveModelController/querySysEveModelList")
     public void querySysEveModelList(InputObject inputObject, OutputObject outputObject) {
