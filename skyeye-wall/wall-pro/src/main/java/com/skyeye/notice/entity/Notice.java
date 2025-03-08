@@ -44,7 +44,7 @@ public class Notice extends OperatorUserInfo {
     private String receiveId;
 
     @TableField("object_id")
-    @ApiModelProperty(value = "业务员对象id（圈子id,视频id等）")
+    @ApiModelProperty(value = "业务员对象id（圈子id,视频id等）",required = "required")
     private String objectId;
 
     @TableField("notice_type")
