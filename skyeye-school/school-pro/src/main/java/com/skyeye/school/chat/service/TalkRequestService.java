@@ -9,4 +9,6 @@ public interface TalkRequestService extends SkyeyeBusinessService<TalkRequest> {
     void queryTalkRequest(InputObject inputObject, OutputObject outputObject);
 
     void changeFriendStatus(InputObject inputObject, OutputObject outputObject);
+
+    void queryTalkRequestFriend(InputObject inputObject, OutputObject outputObject);
 }

@@ -47,6 +47,21 @@ public class TalkRequestController {
     }
 
     /**
+     * 查询好友自己的消息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTalkRequestFriend", value = "查询好友申请消息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/TalkMessageController/queryTalkRequestFriend")
+    public void queryTalkRequestFriend(InputObject inputObject, OutputObject outputObject) {
+        talkMessageService.queryTalkRequestFriend(inputObject, outputObject);
+    }
+
+
+    /**
      * 好友申请验证
      *
      * @param inputObject  入参以及用户信息等获取对象
