@@ -8,10 +8,12 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.vehicle.dao.VehicleApplyUseDao;
 import com.skyeye.eve.vehicle.entity.VehicleUse;
 import com.skyeye.eve.vehicle.service.VehicleApplyUseService;
 import com.skyeye.eve.vehicle.service.VehicleService;
+import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,15 @@ public class VehicleApplyUseServiceImpl extends SkyeyeFlowableServiceImpl<Vehicl
 
     @Autowired
     private VehicleService vehicleService;
+
+    @Override
+    public void validatorEntity(VehicleUse entity) {
+        super.validatorEntity(entity);
+        if (DateUtil.compare(entity.getReturnTime(), entity.getDepartureTime())) {
+            // 返回时间不能小于出发时间
+            throw new CustomException("返回时间不能小于出发时间");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
