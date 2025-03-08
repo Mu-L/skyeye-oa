@@ -26,6 +26,9 @@ import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: CircleServiceImpl
  * @Description: 圈子服务层
@@ -105,5 +108,12 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         updateWrapper.eq(CommonConstants.ID, circleId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getNum), joinNum);
         update(updateWrapper);
+    }
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        userService.setMationForMap(beans, "createId","createMation");
+        return beans;
     }
 }
