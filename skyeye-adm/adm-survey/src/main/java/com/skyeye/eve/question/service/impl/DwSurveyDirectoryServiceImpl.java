@@ -3,7 +3,6 @@ package com.skyeye.eve.question.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -18,7 +17,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
@@ -56,10 +54,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "问卷管理", groupName = "问卷管理")
@@ -287,6 +283,27 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
     }
 
+    @Override
+    protected void createPostpose(DwSurveyDirectory entity, String userId) {
+        List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
+        if (CollectionUtil.isNotEmpty(dwQuestionMation)) {
+            for (DwQuestion dwQuestion : dwQuestionMation) {
+                dwQuestion.setBelongId(entity.getId()); // 设置所属试卷ID
+                dwQuestionService.createEntity(dwQuestion, userId); // 创建新的题目
+            }
+        }
+    }
+
+    @Override
+    protected void updatePostpose(DwSurveyDirectory entity, String userId) {
+        List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
+        if (CollectionUtil.isNotEmpty(dwQuestionMation)) {
+            for (DwQuestion dwQuestion : dwQuestionMation) {
+                dwQuestionService.updateEntity(dwQuestion, userId); // 更新题目
+            }
+        }
+    }
+
     private LocalDateTime parseDateTime(String dateTimeStr, DateTimeFormatter... formatters) {
         for (DateTimeFormatter formatter : formatters) {
             try {
@@ -381,6 +398,36 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
+    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        extracted(commonPageInfo, queryWrapper);
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    @Override
+    public void queryMyDwurvey(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        extracted(commonPageInfo, queryWrapper);
+        outputResult(outputObject, page, queryWrapper);
+    }
+
+    private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<DwSurveyDirectory> queryWrapper) {
+        // 试卷名称
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
+        }
+        // 状态
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), commonPageInfo.getState());
+        }
+    }
+
+    @Override
     public void validatorEntity(List<DwSurveyDirectory> entity) {
         DwSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
         String realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
@@ -408,48 +455,49 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (CollectionUtil.isEmpty(questionList)) {
             outputObject.setBean(bean);
         }
-        List<String> questionIds = questionList.stream().map(DwQuestion::getId).collect(Collectors.toList());
-        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = dwQuestionLogicService.selectByQuestionIds(questionIds);
-        Map<String, List<Map<String, Object>>> examQuRadioMapList = dwQuRadioService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuScoreMapList = dwQuScoreService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = dwQuCheckboxService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = dwQuChenColumnService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuchenRowMapList = dwQuChenRowService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = dwQuMultiFillblankService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = dwQuOrderbyService.selectByBelongId(id);
-        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
-        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
-        questionList.forEach(item -> {
-            String quId = item.getId();
-            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
-                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuRadio.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
-                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuScore.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
-                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuCheckbox.class));
-            }
-            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
-            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
-                try {
-                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenColumn.class));// 尝试转换为列选择项
-                } catch (RuntimeException e) {
-                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
-                }
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
-                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuMultiFillblank.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
-                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuOrderby.class));
-            }
-            if (collect.containsKey(quId)) {// 问题逻辑设置信息
-                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuestionLogic.class));
-            }
-        });
+
+//        List<String> questionIds = questionList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+//        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = dwQuestionLogicService.selectByQuestionIds(questionIds);
+//        Map<String, List<Map<String, Object>>> examQuRadioMapList = dwQuRadioService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuScoreMapList = dwQuScoreService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = dwQuCheckboxService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = dwQuChenColumnService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuchenRowMapList = dwQuChenRowService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = dwQuMultiFillblankService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = dwQuOrderbyService.selectByBelongId(id);
+//        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
+//                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
+//        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
+//        questionList.forEach(item -> {
+//            String quId = item.getId();
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
+//                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuRadio.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
+//                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuScore.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
+//                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuCheckbox.class));
+//            }
+//            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
+//            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
+//                try {
+//                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenColumn.class));// 尝试转换为列选择项
+//                } catch (RuntimeException e) {
+//                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
+//                }
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
+//                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuMultiFillblank.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
+//                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuOrderby.class));
+//            }
+//            if (collect.containsKey(quId)) {// 问题逻辑设置信息
+//                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuestionLogic.class));
+//            }
+//        });
         outputObject.setBean(bean);
         outputObject.setBeans(questionList);
     }

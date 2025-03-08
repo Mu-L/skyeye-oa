@@ -137,6 +137,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Classes classesMation;
 
     @TableField(exist = false)
-    @Property(value = "题目信息")
-    private List<Question> questionList;
+    @ApiModelProperty(value = "题目信息", required = "json")
+    private List<Question> questionMation;
+
 }

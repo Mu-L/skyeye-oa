@@ -42,4 +42,11 @@ public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<DwAnRadio> selectRadioByQuId(String id) {
+        QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getQuId), id);
+        return list(queryWrapper);
+    }
 }

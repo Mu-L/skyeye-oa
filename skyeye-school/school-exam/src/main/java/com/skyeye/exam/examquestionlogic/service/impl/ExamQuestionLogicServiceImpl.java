@@ -86,7 +86,7 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
         }
         QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), questionIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
+//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
         List<ExamQuestionLogic> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
         list.forEach(item->{

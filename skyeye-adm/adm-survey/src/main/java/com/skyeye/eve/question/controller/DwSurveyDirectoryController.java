@@ -158,4 +158,31 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.updateDwMationEndById(inputObject, outputObject);
     }
 
+    /**
+     * 分页筛选问卷
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryFilterDwLists", value = "分页筛选问卷", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/DwSurveyDirectoryController/queryFilterDwLists")
+    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
+        dwSurveyDirectoryService.queryFilterDwLists(inputObject, outputObject);
+    }
+
+    /**
+     * 筛选我的问卷列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyDwurvey", value = "筛选我的问卷列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/DwSurveyDirectoryController/queryMyDwurvey")
+    public void queryMyDwurvey(InputObject inputObject, OutputObject outputObject) {
+        dwSurveyDirectoryService.queryMyDwurvey(inputObject, outputObject);
+    }
+
+
 }

@@ -45,4 +45,11 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<ExamAnChenFbk> selectByQuId(String id) {
+        QueryWrapper<ExamAnChenFbk> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), id);
+        return list(queryWrapper);
+    }
 }

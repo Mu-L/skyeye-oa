@@ -37,6 +37,8 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     void queryMyQuestionList(InputObject inputObject, OutputObject outputObject);
 
+    void deleteBySurveyDirectoryId(String id);
+
 //    String saveQuestion(Question question, String id, String userId);
 
 }

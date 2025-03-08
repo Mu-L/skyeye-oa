@@ -48,6 +48,13 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<DwAnChenFbk> selectByQuId(String id) {
+        QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), id);
+        return list(queryWrapper);
+    }
 }
 
 

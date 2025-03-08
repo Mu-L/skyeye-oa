@@ -3,7 +3,6 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -18,7 +17,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -53,11 +51,9 @@ import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -245,9 +241,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
         examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
-        if(StrUtil.isNotEmpty(surveyName)){
+        if (StrUtil.isNotEmpty(surveyName)) {
             examSurveyDirectories.setSurveyName(surveyName); // 设置试卷名称
-        }else {
+        } else {
             examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
         }
         examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
@@ -323,7 +319,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param entity 考试目录对象
      * @param userId 创建者ID
      */
-    @Transactional
     @Override
     public void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试目录ID
@@ -337,9 +332,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         for (String readerItem : readerList) {
             examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
         }
+        List<Question> questionList = entity.getQuestionMation();
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            for (Question question : questionList) {
+                question.setBelongId(entity.getId()); // 设置所属试卷ID
+                questionService.createEntity(question, userId); // 创建新的题目
+            }
+        }
     }
 
-    @Transactional
     @Override
     public void updatePostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试id
@@ -350,6 +351,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String[] readerList = reader.split(","); // 将阅卷人转换为列表
         for (String readerItem : readerList) {
             examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
+        }
+        List<Question> questionList = entity.getQuestionMation();
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            for (Question question : questionList) {
+                questionService.updateEntity(question, userId); // 更新题目
+            }
         }
     }
 
@@ -367,6 +374,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_TWO);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO);
         update(updateWrapper);
+    }
+
+    @Override
+    protected void deletePostpose(ExamSurveyDirectory entity) {
+        String id = entity.getId();
+        questionService.deleteBySurveyDirectoryId(id);
     }
 
     /**
@@ -558,48 +571,49 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isEmpty(questionList)) {
             outputObject.setBean(bean);
         }
-        List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
-        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
-        Map<String, List<Map<String, Object>>> examQuRadioMapList = examQuRadioService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuScoreMapList = examQuScoreService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = examQuCheckboxService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = examQuChenColumnService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuchenRowMapList = examQuChenRowService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = examQuMultiFillblankService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = examQuOrderbyService.selectByBelongId(id);
-        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-            examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
-        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
-        questionList.forEach(item -> {
-            String quId = item.getId();
-            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
-                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuRadio.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
-                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuScore.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
-                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuCheckbox.class));
-            }
-            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
-            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
-                try {
-                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenColumn.class));// 尝试转换为列选择项
-                } catch (RuntimeException e) {
-                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
-                }
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
-                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuMultiFillblank.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
-                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuOrderby.class));
-            }
-            if (collect.containsKey(quId)) {// 问题逻辑设置信息
-                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
-            }
-        });
+
+//        List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
+//        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
+//        Map<String, List<Map<String, Object>>> examQuRadioMapList = examQuRadioService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuScoreMapList = examQuScoreService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = examQuCheckboxService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = examQuChenColumnService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuchenRowMapList = examQuChenRowService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = examQuMultiFillblankService.selectByBelongId(id);
+//        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = examQuOrderbyService.selectByBelongId(id);
+//        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
+//                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
+//        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
+//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
+//        questionList.forEach(item -> {
+//            String quId = item.getId();
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
+//                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuRadio.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
+//                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuScore.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
+//                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuCheckbox.class));
+//            }
+//            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
+//            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
+//                try {
+//                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenColumn.class));// 尝试转换为列选择项
+//                } catch (RuntimeException e) {
+//                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
+//                }
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
+//                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuMultiFillblank.class));
+//            }
+//            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
+//                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuOrderby.class));
+//            }
+//            if (collect.containsKey(quId)) {// 问题逻辑设置信息
+//                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
+//            }
+//        });
         outputObject.setBean(bean);
         outputObject.setBeans(questionList);
     }

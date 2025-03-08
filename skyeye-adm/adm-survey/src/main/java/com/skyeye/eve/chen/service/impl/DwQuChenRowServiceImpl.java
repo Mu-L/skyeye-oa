@@ -84,7 +84,6 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     public List<DwQuChenRow> selectQuChenRow(String copyFromId) {
         QueryWrapper<DwQuChenRow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenRow::getQuId), copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
 
