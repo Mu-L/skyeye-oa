@@ -5,6 +5,8 @@
 package com.skyeye.joincircle.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.joincircle.entity.JoinCircle;
 
 /**
@@ -18,4 +20,6 @@ import com.skyeye.joincircle.entity.JoinCircle;
 public interface JoinCircleService extends SkyeyeBusinessService<JoinCircle> {
     JoinCircle selectByCircleId(String circleId, String userId);
     void deleteJoinByCircleId(String circleId);
+
+    void queryJoinUserByCircleId(InputObject inputObject, OutputObject outputObject);
 }
