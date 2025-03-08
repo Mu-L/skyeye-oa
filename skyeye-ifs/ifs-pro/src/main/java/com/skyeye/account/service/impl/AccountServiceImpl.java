@@ -4,6 +4,7 @@
 
 package com.skyeye.account.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.account.dao.AccountDao;
@@ -17,6 +18,8 @@ import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +36,21 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "账户管理", groupName = "账户管理")
 public class AccountServiceImpl extends SkyeyeBusinessServiceImpl<AccountDao, Account> implements AccountService {
+
+    @Override
+    public void validatorEntity(Account entity) {
+        super.validatorEntity(entity);
+        QueryWrapper<Account> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(wrapper ->
+            wrapper.eq(MybatisPlusUtil.toColumns(Account::getSerialNo), entity.getSerialNo()));
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        Account checkAccountMation = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(checkAccountMation)) {
+            throw new CustomException("该编号已存在，请重新输入！");
+        }
+    }
 
     @Override
     public void createPrepose(Account entity) {
