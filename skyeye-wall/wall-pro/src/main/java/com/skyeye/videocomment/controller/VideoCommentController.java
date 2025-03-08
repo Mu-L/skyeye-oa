@@ -83,5 +83,17 @@ public class VideoCommentController {
         videoCommentService.supportOrNotComment(inputObject, outputObject);
     }
 
-
+    /**
+     * 根据ID获取评论信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCommentById", value = "根据ID获取评论信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/VideoCommentController/queryCommentById")
+    public void queryCommentById(InputObject inputObject, OutputObject outputObject) {
+        videoCommentService.selectById(inputObject, outputObject);
+    }
 }

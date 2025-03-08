@@ -18,14 +18,8 @@ import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
-import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
-import com.skyeye.eve.chen.entity.DwAnChenRadio;
-import com.skyeye.eve.chen.entity.DwQuChenColumn;
-import com.skyeye.eve.chen.entity.DwQuChenRow;
-import com.skyeye.eve.chen.service.DwAnChenCheckboxService;
-import com.skyeye.eve.chen.service.DwAnChenRadioService;
-import com.skyeye.eve.chen.service.DwQuChenColumnService;
-import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.chen.entity.*;
+import com.skyeye.eve.chen.service.*;
 import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
@@ -89,6 +83,12 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     private DwAnChenCheckboxService dwAnChenCheckboxService;
     @Autowired
     private DwAnDfillblankService dwAnDfillblankService;
+    @Autowired
+    private DwAnChenFbkService dwAnChenFbkService;
+    @Autowired
+    private DwAnChenScoreService dwAnChenScoreService;
+    @Autowired
+    private DwAnCompChenRadioService dwAnCompChenRadioService;
 
     @Override
     protected void createPrepose(DwQuestion entity) {
@@ -164,11 +164,21 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
      * @param entity 题目实体对象
      */
     @Override
-    public void updatePrepose(DwQuestion entity) {
+    public void updatePostpose(DwQuestion entity, String userId) {
         // 获取当前登录用户ID
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         // 更新不同题目类型的数据
         // 更新单选题
+        String belongId = entity.getBelongId();
+        String dwQuId = entity.getId();
+        if (StrUtil.isEmpty(belongId)) {
+            dwQuRadioService.removeByQuId(dwQuId);
+            dwQuScoreService.removeByQuId(dwQuId);
+            dwQuCheckboxService.removeByQuId(dwQuId);
+            dwQuMultiFillblankService.removeByQuId(dwQuId);
+            dwQuOrderbyService.removeByQuId(dwQuId);
+            dwQuChenColumnService.removeByQuId(dwQuId);
+        }
+
         List<DwQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (CollectionUtils.isNotEmpty(radioTd)) {
@@ -241,42 +251,43 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         for (DwQuestion question : questionList) {
+            String id = question.getId();
             // 1 单选题
             if (question.getQuType() == QuType.RADIO.getIndex()) {
-                List<DwQuRadio> radioList = dwQuRadioService.selectQuRadio(question.getId());
-                DwAnRadio dwAnRadio = dwAnRadioService.selectById(question.getId());
+                List<DwQuRadio> radioList = dwQuRadioService.selectQuRadio(id);
+                List<DwAnRadio> dwAnRadios = dwAnRadioService.selectRadioByQuId(id);
                 question.setRadioTd(radioList);
-                question.setRadioAn(dwAnRadio);
+                question.setRadioAn(dwAnRadios);
                 continue;
             }
             // 2 多选题
             if (question.getQuType() == QuType.CHECKBOX.getIndex()) {
-                List<DwQuCheckbox> dwQuCheckboxeList = dwQuCheckboxService.selectQuChenbox(question.getId());
-                List<DwAnCheckbox> dwAnCheckboxes = dwAnCheckboxService.selectAnCheckBoxByQuId(question.getId());
+                List<DwQuCheckbox> dwQuCheckboxeList = dwQuCheckboxService.selectQuChenbox(id);
+                List<DwAnCheckbox> dwAnCheckboxes = dwAnCheckboxService.selectAnCheckBoxByQuId(id);
                 question.setCheckboxTd(dwQuCheckboxeList);
                 question.setCheckboxAn(dwAnCheckboxes);
                 continue;
             }
             // 8 评分题
             if (question.getQuType() == QuType.SCORE.getIndex()) {
-                List<DwQuScore> scoreList = dwQuScoreService.selectQuScore(question.getId());
-                List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(question.getId());
+                List<DwQuScore> scoreList = dwQuScoreService.selectQuScore(id);
+                List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
                 question.setScoreTd(scoreList);
                 question.setScoreAn(dwAnScoreList);
                 continue;
             }
             // 9 排序题
             if (question.getQuType() == QuType.ORDERQU.getIndex()) {
-                List<DwQuOrderby> orderbyList = dwQuOrderbyService.selectQuOrderby(question.getId());
-                List<DwAnOrder> dwAnOrderbyList = dwAnOrderService.selectAnOrderByQuId(question.getId());
+                List<DwQuOrderby> orderbyList = dwQuOrderbyService.selectQuOrderby(id);
+                List<DwAnOrder> dwAnOrderbyList = dwAnOrderService.selectAnOrderByQuId(id);
                 question.setOrderbyTd(orderbyList);
                 question.setOrderbyAn(dwAnOrderbyList);
                 continue;
             }
             // 4 多行填空题
             if (question.getQuType() == QuType.MULTIFILLBLANK.getIndex()) {
-                List<DwQuMultiFillblank> dwQuMultiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(question.getId());
-                List<DwAnDfillblank> dwAnDfillblanks = dwAnDfillblankService.selectAnDfillblankQuId(question.getId());
+                List<DwQuMultiFillblank> dwQuMultiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(id);
+                List<DwAnDfillblank> dwAnDfillblanks = dwAnDfillblankService.selectAnDfillblankQuId(id);
                 question.setMultifillblankTd(dwQuMultiFillblanks);
                 question.setDfillblankAn(dwAnDfillblanks);
                 continue;
@@ -286,14 +297,20 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                     question.getQuType() == QuType.CHENFBK.getIndex() ||
                     question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
                     question.getQuType() == QuType.CHENSCORE.getIndex()) {
-                List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(question.getId());
-                List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(question.getId());
-                DwAnChenRadio dwAnChenRadio = dwAnChenRadioService.selectById(question.getId());
-                List<DwAnChenCheckbox> dwAnCheckboxList = dwAnChenCheckboxService.selectAnChenCheckboxByQuId(question.getId());
+                List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(id);
+                List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(id);
+                List<DwAnChenRadio> dwAnChenRadios = dwAnChenRadioService.selectByQuId(id);
+                List<DwAnChenCheckbox> dwAnCheckboxList = dwAnChenCheckboxService.selectAnChenCheckboxByQuId(id);
+                List<DwAnChenFbk> dwAnChenFbks = dwAnChenFbkService.selectByQuId(id);
+                List<DwAnChenScore> dwAnChenScores = dwAnChenScoreService.slectByQuId(id);
+                List<DwAnCompChenRadio> dwAnCompChenRadios = dwAnCompChenRadioService.selectByQuId(id);
                 question.setColumnTd(dwQuChenColumnList);
-                question.setChenAn(dwAnChenRadio);
                 question.setRowTd(dwQuChenRowList);
-                question.setChenRowAn(dwAnCheckboxList);
+                question.setChenRadioAn(dwAnChenRadios);
+                question.setChenCheckboxAn(dwAnCheckboxList);
+                question.setChenFbkAn(dwAnChenFbks);
+                question.setChenScoreAn(dwAnChenScores);
+                question.setCompChenRadioAn(dwAnCompChenRadios);
             }
         }
         return questionList;
@@ -309,7 +326,44 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     public List<DwQuestion> QueryQuestionByBelongId(String belongId) {
         QueryWrapper<DwQuestion> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestion::getBelongId), belongId);
-        return list(queryWrapper);
+        List<DwQuestion> dwQuestionList = list(queryWrapper);
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            Integer quType = dwQuestion.getQuType();
+            String id = dwQuestion.getId();
+            if (quType.equals(QuType.RADIO.getIndex())) {
+                dwQuestion.setRadioTd(dwQuRadioService.selectQuRadio(id));
+                dwQuestion.setRadioAn(dwAnRadioService.selectRadioByQuId(id));
+            }
+            if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
+                dwQuestion.setMultifillblankTd(dwQuMultiFillblankService.selectQuMultiFillblank(id));
+                dwQuestion.setDfillblankAn(dwAnDfillblankService.selectAnDfillblankQuId(id));
+            }
+            if (quType.equals(QuType.CHECKBOX.getIndex())) {
+                dwQuestion.setCheckboxTd(dwQuCheckboxService.selectQuChenbox(id));
+                dwQuestion.setCheckboxAn(dwAnCheckboxService.selectAnCheckBoxByQuId(id));
+            }
+            if (quType.equals(QuType.SCORE.getIndex())) {
+                dwQuestion.setScoreTd(dwQuScoreService.selectQuScore(id));
+                dwQuestion.setScoreAn(dwAnScoreService.selectAnScoreByQuId(id));
+            }
+            if (quType.equals(QuType.ORDERQU.getIndex())) {
+                dwQuestion.setOrderbyTd(dwQuOrderbyService.selectQuOrderby(id));
+                //TODO 差一张排序题答卷表
+            }
+            if (quType.equals(QuType.CHENRADIO.getIndex()) ||
+                    quType.equals(QuType.CHENFBK.getIndex()) ||
+                    quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+                    quType.equals(QuType.CHENSCORE.getIndex())) {
+                dwQuestion.setColumnTd(dwQuChenColumnService.selectQuChenColumn(id));
+                dwQuestion.setRowTd(dwQuChenRowService.selectQuChenRow(id));
+                dwQuestion.setChenCheckboxAn(dwAnChenCheckboxService.selectAnChenCheckboxByQuId(id));
+                dwQuestion.setChenFbkAn(dwAnChenFbkService.selectByQuId(id));
+                dwQuestion.setChenRadioAn(dwAnChenRadioService.selectByQuId(id));
+                dwQuestion.setChenScoreAn(dwAnChenScoreService.slectByQuId(id));
+                dwQuestion.setCompChenRadioAn(dwAnCompChenRadioService.selectByQuId(id));
+            }
+        }
+        return dwQuestionList;
     }
 
     /**

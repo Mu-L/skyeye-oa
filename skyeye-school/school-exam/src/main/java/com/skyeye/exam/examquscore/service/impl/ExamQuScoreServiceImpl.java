@@ -14,6 +14,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquscore.dao.ExamQuScoreDao;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
@@ -129,6 +130,13 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     public void removeByquId(String entityId) {
         UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), entityId);
+        remove(updateWrapper);
+    }
+
+    @Override
+    public void removeByQuId(String quId) {
+        UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId),quId);
         remove(updateWrapper);
     }
 

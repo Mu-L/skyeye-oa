@@ -25,5 +25,7 @@ public interface DwAnChenRadioService extends SkyeyeBusinessService<DwAnChenRadi
     void queryDwAnChenRadioListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnChenRadio> selectBySurveyId(String surveyId);
+
+    List<DwAnChenRadio> selectByQuId(String id);
 }
 

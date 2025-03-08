@@ -14,6 +14,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import lombok.Data;
 
 /**
@@ -44,10 +46,11 @@ public class Account extends BaseGeneralInfo {
     private String currentAmount;
 
     @TableField(value = "is_default")
-    @ApiModelProperty(value = "是否默认，参考#IsDefaultEnum", required = "required,num")
+    @ApiModelProperty(value = "是否默认", enumClass = IsDefaultEnum.class, required = "required,num")
     private Integer isDefault;
 
     @TableField(value = "delete_flag")
+    @Property(value = "删除标记", enumClass = DeleteFlagEnum.class)
     private Integer deleteFlag;
 
 }

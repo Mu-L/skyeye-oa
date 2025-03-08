@@ -98,7 +98,6 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
     public List<DwQuOrderby> selectQuOrderby(String copyFromId) {
         QueryWrapper<DwQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuOrderby::getQuId), copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuOrderby::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
 

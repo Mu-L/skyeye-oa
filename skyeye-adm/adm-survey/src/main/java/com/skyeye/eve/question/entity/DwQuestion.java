@@ -14,10 +14,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
-import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
-import com.skyeye.eve.chen.entity.DwAnChenRadio;
-import com.skyeye.eve.chen.entity.DwQuChenColumn;
-import com.skyeye.eve.chen.entity.DwQuChenRow;
+import com.skyeye.eve.chen.entity.*;
 import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.order.entity.DwAnOrder;
@@ -169,7 +166,7 @@ public class DwQuestion extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "单选题答案信息")
-    private DwAnRadio radioAn;
+    private List<DwAnRadio> radioAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "评分题选项信息", required = "json")
@@ -192,16 +189,28 @@ public class DwQuestion extends OperatorUserInfo {
     private List<DwQuChenColumn> columnTd;
 
     @TableField(exist = false)
-    @Property(value = "矩阵题-列选项信息答案")
-    private DwAnChenRadio chenAn;
+    @Property(value = "矩阵题-单选题选项信息答案")
+    private List<DwAnChenRadio> chenRadioAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "矩阵题-行选项信息", required = "json")
     private List<DwQuChenRow> rowTd;
 
     @TableField(exist = false)
-    @Property(value = "矩阵题-行选项信息答案")
-    private List<DwAnChenCheckbox> chenRowAn;
+    @Property(value = "矩阵题-矩阵多选题信息答案")
+    private List<DwAnChenCheckbox> chenCheckboxAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-矩阵多选题信息答案")
+    private List<DwAnChenFbk> chenFbkAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-矩阵评分题信息答案")
+    private List<DwAnChenScore> chenScoreAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-矩阵评分题信息答案")
+    private List<DwAnCompChenRadio> compChenRadioAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "多行填空题选项信息", required = "json")

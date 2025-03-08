@@ -43,6 +43,10 @@ public class DwAnChenScore extends CommonInfo {
     @ApiModelProperty(value = "所属问卷ID" )
     private String belongId;
 
+    @TableField("qu_id")
+    @ApiModelProperty(value = "所属题目ID" )
+    private String quId;
+
     @TableField("qu_col_id")
     @ApiModelProperty(value = "矩阵列选项ID" )
     private String quColId;
