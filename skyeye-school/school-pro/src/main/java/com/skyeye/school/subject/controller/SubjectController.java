@@ -99,4 +99,11 @@ public class SubjectController {
         subjectService.querySubjectListByMajorId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "searchSubjectList", value = "根据关键字搜索科目", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "keyword", name = "keyword", value = "关键字")})
+    @RequestMapping("/post/SubjectController/searchSubjectList")
+    public void searchSubjectList(InputObject inputObject, OutputObject outputObject) {
+        subjectService.searchSubjectList(inputObject, outputObject);
+    }
 }
