@@ -4,6 +4,7 @@
 
 package com.skyeye.account.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.account.dao.AccountDao;
 import com.skyeye.account.entity.Account;
@@ -47,20 +48,26 @@ public class AccountServiceImpl extends SkyeyeBusinessServiceImpl<AccountDao, Ac
     public void writePostpose(Account entity, String userId) {
         if (entity.getIsDefault().equals(IsDefaultEnum.IS_DEFAULT.getKey())) {
             // 如果将当前数据修改为默认数据，则需要修改之前的数据为非默认
+            // 1. 先查询默认的账号信息
+            QueryWrapper<Account> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Account::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Account::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+            Account defaultAccount = getOne(queryWrapper, false);
+
+            // 2. 修改默认的账号信息
             UpdateWrapper<Account> updateWrapper = new UpdateWrapper<>();
             updateWrapper.ne(CommonConstants.ID, entity.getId());
             updateWrapper.eq(MybatisPlusUtil.toColumns(Account::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
             updateWrapper.set(MybatisPlusUtil.toColumns(Account::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
             update(updateWrapper);
+
+            // 3. 如果不为空，则刷新缓存
+            if (defaultAccount != null) {
+                refreshCache(defaultAccount.getId());
+            }
         }
     }
 
-    /**
-     * 获取账户信息展示为下拉框
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAllAccountList(InputObject inputObject, OutputObject outputObject) {
         List<Map<String, Object>> beans = queryAllDataForMap();
