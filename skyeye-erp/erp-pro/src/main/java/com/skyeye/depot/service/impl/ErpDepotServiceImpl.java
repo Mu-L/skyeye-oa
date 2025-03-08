@@ -52,6 +52,7 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
             // 如果将当前数据修改为默认数据，则需要修改之前的数据为非默认
             // 1. 先查询默认的仓库信息
             QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
             Depot defaultDepot = getOne(queryWrapper, false);
