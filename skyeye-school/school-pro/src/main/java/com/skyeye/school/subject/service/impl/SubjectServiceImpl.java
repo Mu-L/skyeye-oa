@@ -10,14 +10,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.SchoolConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.dao.SubjectDao;
@@ -79,16 +77,17 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     public void querySubjectListByUserId(InputObject inputObject, OutputObject outputObject) {
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        List<SubjectClasses> subjectClassesList = null;
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             // 教师身份信息
             // 查询当前用户创建的科目
             List<Subject> subjectList = querySubjectListByUserId(userId);
-            if(CollectionUtil.isNotEmpty(subjectList)){
-                List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
-                subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
+            if (CollectionUtil.isNotEmpty(subjectList)) {
+                // 教师直接返回科目信息
+                outputObject.setBeans(subjectList);
+                outputObject.settotal(subjectList.size());
             }
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            List<SubjectClasses> subjectClassesList = null;
             // 学生身份信息
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
             String studentNumber = certification.get("studentNumber").toString();
@@ -96,29 +95,30 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             if (CollectionUtil.isNotEmpty(subClassLinkIdList)) {
                 subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
             }
-        }
-        List<Semester> semesterList = new ArrayList<>();
-        List<String> semesterIdList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(subjectClassesList)) {
-            subjectClassesList.forEach(subjectClasses -> {
-                if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
-                    Semester semester = new Semester();
-                    semester.setId(subjectClasses.getSemesterId());
-                    semester.setName(subjectClasses.getSemesterMation().getName());
-                    semesterList.add(semester);
-                    semesterIdList.add(subjectClasses.getSemesterId());
-                }
-            });
-            // 按学期分组
-            for (Semester semester : semesterList) {
-                List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
+            // 学生按照学期分组
+            List<Semester> semesterList = new ArrayList<>();
+            List<String> semesterIdList = new ArrayList<>();
+            if (CollectionUtil.isNotEmpty(subjectClassesList)) {
+                subjectClassesList.forEach(subjectClasses -> {
+                    if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
+                        Semester semester = new Semester();
+                        semester.setId(subjectClasses.getSemesterId());
+                        semester.setName(subjectClasses.getSemesterMation().getName());
+                        semesterList.add(semester);
+                        semesterIdList.add(subjectClasses.getSemesterId());
+                    }
+                });
+                // 按学期分组
+                for (Semester semester : semesterList) {
+                    List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
                         .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
                         .collect(Collectors.toList());
-                semester.setSubjectClassesList(subjectClassesListBySemester);
+                    semester.setSubjectClassesList(subjectClassesListBySemester);
+                }
             }
+            outputObject.setBeans(semesterList);
+            outputObject.settotal(semesterList.size());
         }
-        outputObject.setBeans(semesterList);
-        outputObject.settotal(semesterList.size());
     }
 
     @Override
@@ -127,7 +127,7 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getMajorId), majorId);
         List<Subject> list = list(queryWrapper);
-        iAuthUserService.setDataMation(list,Subject::getCreateId);
+        iAuthUserService.setDataMation(list, Subject::getCreateId);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
