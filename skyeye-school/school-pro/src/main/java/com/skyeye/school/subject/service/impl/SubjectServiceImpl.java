@@ -5,6 +5,7 @@
 package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -16,6 +17,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.dao.SubjectDao;
@@ -59,6 +61,12 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     @Override
     public void createPrepose(Subject entity) {
         entity.setOwnerId(InputObject.getLogParamsStatic().get("id").toString());
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getNo),entity.getNo());
+        Subject one = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(one)) {
+            throw new CustomException("有相同的数据存在");
+        }
     }
 
     @Override
