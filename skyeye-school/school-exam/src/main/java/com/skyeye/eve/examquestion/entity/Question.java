@@ -236,7 +236,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "排序题答案信息")
-    private List<ExamAnOrder> orderbyAn;
+    private List<ExamAnOrder> orderByAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "单选题选项信息", required = "json")
@@ -268,7 +268,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
-    private List<ExamQuOrderby> orderbyTd;
+    private List<ExamQuOrderby> orderByTd;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
