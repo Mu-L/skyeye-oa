@@ -74,7 +74,7 @@ public class ScoreController {
         @ApiImplicitParam(id = "classId", name = "classId", value = "班级id"),
         @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id"),
         @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期id"),
-        @ApiImplicitParam(id = "objectId", name = "objectId", value = " "),
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象id"),
         @ApiImplicitParam(id = "objectKey", name = "objectKey", value = "业务对象key")})
     @RequestMapping("/post/ScoreController/queryScoreList")
     public void queryScoreList(InputObject inputObject, OutputObject outputObject) {
