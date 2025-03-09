@@ -100,7 +100,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public void updatePrepose(User entity) {
-        User user = selectById(entity.getId());
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, entity.getId());
+        User user = getOne(queryWrapper);
         entity.setPassword(user.getPassword());
         entity.setRealName(user.getRealName());
         entity.setStudentNumber(user.getStudentNumber());
