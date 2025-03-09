@@ -117,4 +117,15 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         outputObject.setBeans(joinCircleList);
         outputObject.settotal(page.getTotal());
     }
+
+    /**
+     * 检验当前登录人是否加入改圈子
+     * */
+    @Override
+    public Boolean checkIsJoinCircle(String circleId, String userId) {
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
+        return count(queryWrapper) > 0;
+    }
 }

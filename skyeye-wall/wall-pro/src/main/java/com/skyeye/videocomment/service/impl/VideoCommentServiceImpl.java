@@ -16,6 +16,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
 import com.skyeye.upvote.entity.Upvote;
@@ -63,6 +64,9 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     @Autowired
     private UpvoteService upvoteService;
 
+    @Autowired
+    private NoticeService noticeService;
+
     @Override
     public void validatorEntity(VideoComment entity) {
         String parentId = entity.getParentId();
@@ -109,7 +113,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
         ids.add(id);
         remove(queryWrapper);
-        super.deleteById(id);
+        deleteById(id);
         deleteCommentPicture(ids);
         String videoId = videoComment.getVideoId();
         //根据 videoId 获取评论数量
@@ -118,6 +122,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
     }
     // 删除评论的图片
     private void deleteCommentPicture(List<String> ids) {
