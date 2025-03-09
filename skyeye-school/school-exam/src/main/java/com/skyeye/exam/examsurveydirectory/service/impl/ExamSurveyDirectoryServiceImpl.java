@@ -334,7 +334,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<Question> questionList = entity.getQuestionMation();
         if (CollectionUtil.isNotEmpty(questionList)) {
             for (Question question : questionList) {
-                question.setBelongId(entity.getId()); // 设置所属试卷ID
+                question.setBelongId(id); // 设置所属试卷ID
                 questionService.createEntity(question, userId); // 创建新的题目
             }
         }
@@ -355,12 +355,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
         List<String> existingIds = existingQuestions.stream()
                 .map(Question::getId)
-                .collect(Collectors.toList());//数据库中所有id
+                .collect(Collectors.toList());
         Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
                 .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
-        // 获取id不为空的Question列表
         List<Question> questionsWithId = partitionedQuestions.get(true);
-        // 获取id为空的Question列表
         List<Question> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
                 .map(Question::getId)
@@ -374,7 +372,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
             for (Question question : questionsWithId) {
-                questionService.updateEntity(question, userId); // 更新题目
+                String questionId = question.getId();
+                String belongId = question.getBelongId();
+                if (StrUtil.isNotEmpty(questionId)&&StrUtil.isEmpty(belongId)){
+                    question.setBelongId(surveId);
+                }else {
+                    questionService.updateEntity(question, userId); // 更新题目
+                }
             }
         }
         for (Question question : questionsWithoutId) {
