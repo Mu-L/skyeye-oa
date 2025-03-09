@@ -22,18 +22,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum ArrangementState implements SkyeyeEnumClass {
 
-    SUBMIT(2, "已提交待安排面试人员", true, false),
-    TO_BE_INTERVIEWED(3, "已提交待面试", true, false),
-    INTERVIEWED_PASS(4, "面试通过", true, false),
-    INTERVIEWED_FAIL(5, "面试不通过", true, false),
-    COMPLATE(6, "已完成入职", true, false),
-    COMPLATE_REFUSE(7, "已完成拒绝入职", true, false),
-    NULLIFY(8, "作废(HR操作)", true, false),
-    INDUCTION_OTHER(9, "入职其他部门", false, false);
+    SUBMIT(2, "已提交待安排面试人员", "#FFA500", true, false),
+    TO_BE_INTERVIEWED(3, "已提交待面试", "#00BFFF", true, false),
+    INTERVIEWED_PASS(4, "面试通过", "#008000", true, false),
+    INTERVIEWED_FAIL(5, "面试不通过", "#FF0000", true, false),
+    COMPLATE(6, "已完成入职", "#0000FF", true, false),
+    COMPLATE_REFUSE(7, "已完成拒绝入职", "#FF0000", true, false),
+    NULLIFY(8, "作废(HR操作)", "#808080", true, false),
+    INDUCTION_OTHER(9, "入职其他部门", "#0000FF", false, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
