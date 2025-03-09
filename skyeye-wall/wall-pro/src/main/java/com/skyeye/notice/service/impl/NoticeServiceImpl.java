@@ -67,13 +67,20 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Override
     public String createEntity(Notice entity, String userId) {
-        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getType), TypeEnum.LIKE.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId),entity.getObjectId());
-        long length = count(queryWrapper);
-        if (length > CommonNumConstants.NUM_ZERO) {
+        // 如果接收者是本人，直接不新增通知
+        if(userId.equals(entity.getReceiveId())){
             return StrUtil.EMPTY;
+        }
+        // 如果是点赞，只通知一次
+        if(entity.getType() == TypeEnum.LIKE.getKey()){
+            QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getSendId), entity.getSendId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getType), TypeEnum.LIKE.getKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId),entity.getObjectId());
+            long length = count(queryWrapper);
+            if (length > CommonNumConstants.NUM_ZERO) {
+                return StrUtil.EMPTY;
+            }
         }
         return super.createEntity(entity, userId);
     }
