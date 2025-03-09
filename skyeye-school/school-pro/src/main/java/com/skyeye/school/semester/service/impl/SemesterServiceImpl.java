@@ -41,16 +41,8 @@ public class SemesterServiceImpl extends SkyeyeBusinessServiceImpl<SemesterDao, 
     @Override
     protected void validatorEntity(Semester entity) {
         super.validatorEntity(entity);
-        String startTime = entity.getStartTime();
-        String endTime = entity.getEndTime();
-        // 转换为日期格式
-        LocalDate start = LocalDate.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE);
-        LocalDate end = LocalDate.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE);
-        // 结束时间早于开始时间，则compare为true
-        boolean compare = end.isBefore(start);
-        // 开始时间不能晚于结束时间
-        if(compare){
-            throw new CustomException("开始时间不能晚于结束时间");
+        if (DateUtil.compare(entity.getEndTime()+" 00:00:00",entity.getStartTime() + " 00:00:00"))  {
+            throw new CustomException("结束时间不能小于开始时间");
         }
     }
 
