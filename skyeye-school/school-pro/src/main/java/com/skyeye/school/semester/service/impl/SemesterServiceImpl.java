@@ -9,12 +9,20 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.school.semester.dao.SemesterDao;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.semester.service.SemesterService;
+import org.jsoup.helper.DataUtil;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +37,22 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "学期管理", groupName = "学期管理")
 public class SemesterServiceImpl extends SkyeyeBusinessServiceImpl<SemesterDao, Semester> implements SemesterService {
+
+    @Override
+    protected void validatorEntity(Semester entity) {
+        super.validatorEntity(entity);
+        String startTime = entity.getStartTime();
+        String endTime = entity.getEndTime();
+        // 转换为日期格式
+        LocalDate start = LocalDate.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE);
+        LocalDate end = LocalDate.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE);
+        // 结束时间早于开始时间，则compare为true
+        boolean compare = end.isBefore(start);
+        // 开始时间不能晚于结束时间
+        if(compare){
+            throw new CustomException("开始时间不能晚于结束时间");
+        }
+    }
 
     @Override
     public void queryAllSemesterList(InputObject inputObject, OutputObject outputObject) {

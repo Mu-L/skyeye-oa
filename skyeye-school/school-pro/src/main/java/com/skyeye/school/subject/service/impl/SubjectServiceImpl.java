@@ -10,6 +10,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -59,14 +61,42 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     private IAuthUserService iAuthUserService;
 
     @Override
+    public void validatorEntity(Subject entity) {
+        super.validatorEntity(entity);
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getName), entity.getName())
+                .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+        long count = count(queryWrapper);
+        // name 同时作唯一性约束
+        if(StrUtil.isEmpty(entity.getId()) && count > CommonNumConstants.NUM_ZERO){
+            throw new CustomException("课程名称已存在");
+        }
+        if(StrUtil.isNotEmpty(entity.getId()) ){
+            Subject subject = selectById(entity.getId());
+            if(!subject.getName().equals(entity.getName()) && count > CommonNumConstants.NUM_ZERO){
+                throw new CustomException("课程名称已存在");
+            }
+        }
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getNo), entity.getNo())
+                .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+        long countNo = count(queryWrapper);
+        // no 同时作唯一性约束
+        if(StrUtil.isEmpty(entity.getId()) && countNo > CommonNumConstants.NUM_ZERO){
+            throw new CustomException("课程编号已存在");
+        }
+        if(StrUtil.isNotEmpty(entity.getId()) ){
+            Subject subject = selectById(entity.getId());
+            if(!subject.getNo().equals(entity.getNo()) && countNo > CommonNumConstants.NUM_ZERO) {
+                throw new CustomException("课程编号已存在");
+            }
+        }
+    }
+
+    @Override
     public void createPrepose(Subject entity) {
         entity.setOwnerId(InputObject.getLogParamsStatic().get("id").toString());
-        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getNo),entity.getNo());
-        Subject one = getOne(queryWrapper);
-        if (ObjectUtil.isNotEmpty(one)) {
-            throw new CustomException("有相同的数据存在");
-        }
     }
 
     @Override

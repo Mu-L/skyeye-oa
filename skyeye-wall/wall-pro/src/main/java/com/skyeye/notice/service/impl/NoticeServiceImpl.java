@@ -129,6 +129,8 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                 }
             }
         }
+        userService.setDataMation(bean,Notice::getSendId);
+        userService.setDataMation(bean,Notice::getReceiveId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }
