@@ -201,10 +201,10 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             // 查科目与班级关联id
             List<String> subClassLinkIdList = subjectClassesStuService.querySubClassLinkIdByStuNo(studentNumber);
             QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-            queryWrapper.select(MybatisPlusUtil.toColumns(SubjectClasses::getObjectMation))
+            queryWrapper.select(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId))
                 .in(CommonConstants.ID, subClassLinkIdList);
             List<SubjectClasses> subjectClasses = subjectClassesService.list(queryWrapper);
-            List<String> subkectIdList = subjectClasses.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<String> subkectIdList = subjectClasses.stream().map(SubjectClasses::getObjectId).collect(Collectors.toList());
             if (CollectionUtil.isEmpty(subkectIdList)) {
                 return;
             }
