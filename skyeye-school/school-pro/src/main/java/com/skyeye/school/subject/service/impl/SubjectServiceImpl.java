@@ -7,12 +7,16 @@ package com.skyeye.school.subject.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -173,33 +177,57 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     public void searchSubjectList(InputObject inputObject, OutputObject outputObject) {
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
-        String keyword = inputObject.getParams().get("keyword").toString();
-        List<Subject> beans = null;
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = null;
+        List<Map<String, Object>> beans = null;
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            // 开启分页
+            setCommonPageInfoOtherInfo(commonPageInfo);
+            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             // 教师查询
             QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
-            if (StrUtil.isNotEmpty(keyword)) {
-                queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), keyword);
+            if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+                queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), commonPageInfo.getKeyword());
             }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
-            beans = list(queryWrapper);
+            List<Subject> list = list(queryWrapper);
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息
+            // 查学号
             Map<String, Object> certification = iCertificationService.queryCertificationById(currentUserId);
             String studentNumber = certification.get("studentNumber").toString();
+            // 查科目与班级关联id
             List<String> subClassLinkIdList = subjectClassesStuService.querySubClassLinkIdByStuNo(studentNumber);
-            if (CollectionUtil.isNotEmpty(subClassLinkIdList)) {
-                List<SubjectClasses> subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
-                beans = subjectClassesList.stream().map(SubjectClasses::getObjectMation).filter(subject -> {
-                    return subject.getName().contains(keyword);
-                }).collect(Collectors.toList());
+            QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+            queryWrapper.select(MybatisPlusUtil.toColumns(SubjectClasses::getObjectMation))
+                .in(CommonConstants.ID, subClassLinkIdList);
+            List<SubjectClasses> subjectClasses = subjectClassesService.list(queryWrapper);
+            List<String> subkectIdList = subjectClasses.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(subkectIdList)) {
+                return;
             }
+            // 开启分页
+            setCommonPageInfoOtherInfo(commonPageInfo);
+            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            // 查科目
+            QueryWrapper<Subject> wrapper = new QueryWrapper<>();
+            if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+                wrapper.like(MybatisPlusUtil.toColumns(Subject::getName), commonPageInfo.getKeyword());
+            }
+            wrapper.in(CommonConstants.ID, subkectIdList);
+            List<Subject> list = list(wrapper);
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         }
-        if (beans != null) {
-            outputObject.setBeans(beans);
-            outputObject.settotal(beans.size());
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
         }
+        for (Map<String, Object> bean : beans) {
+            bean.put("serviceClassName", getServiceClassName());
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
     }
 
     private List<Subject> querySubjectListByUserId(String userId) {
