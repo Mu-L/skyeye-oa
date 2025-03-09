@@ -28,16 +28,6 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     private IAuthUserService iAuthUserService;
 
     @Override
-    protected void createPrepose(FriendRelationship entity) {
-        entity.setStatus(CommonNumConstants.NUM_ZERO);
-    }
-
-    @Override
-    protected void updatePrepose(FriendRelationship entity) {
-        entity.setStatus(entity.getStatus());
-    }
-
-    @Override
     protected QueryWrapper<FriendRelationship> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<FriendRelationship> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {

@@ -68,6 +68,7 @@ public class AccountServiceImpl extends SkyeyeBusinessServiceImpl<AccountDao, Ac
             // 如果将当前数据修改为默认数据，则需要修改之前的数据为非默认
             // 1. 先查询默认的账号信息
             QueryWrapper<Account> queryWrapper = new QueryWrapper<>();
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Account::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Account::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
             Account defaultAccount = getOne(queryWrapper, false);

@@ -26,7 +26,7 @@ public class ForumContent extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "forum_content")
-    @ApiModelProperty(value = "话题内容", required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "话题内容", required = "required")
     private String forumContent;
 
     @TableField(value = "type")
@@ -50,7 +50,7 @@ public class ForumContent extends OperatorUserInfo {
     private List<Map<String, Object>> tagList;
 
     @TableField(value = "forum_title")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required",fuzzyLike = true)
     private String forumTitle;
 
     @TableField(value = "anonymous")

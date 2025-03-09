@@ -55,6 +55,10 @@ public class Notice extends OperatorUserInfo {
     @ApiModelProperty(value = "通知类型，0:评论，1，点赞",required = "required")
     private Integer type;
 
+    @TableField("comment_id")
+    @ApiModelProperty(value = "评论id")
+    private String commentId;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "评论图片")
     private Picture picture;

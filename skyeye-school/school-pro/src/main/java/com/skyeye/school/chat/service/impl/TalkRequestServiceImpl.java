@@ -15,11 +15,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.chat.dao.TalkRequestDao;
-import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.chat.service.TalkRequestService;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,20 +51,34 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
             LocalDateTime newDateTime = dateTime.plusWeeks(1);
             entity.setExpireTime(newDateTime);
         } catch (DateTimeParseException e) {
-            throw new CustomException("createTime格式不正确: " + e.getMessage());
+            throw new CustomException("时间格式不正确: " + e.getMessage());
         } catch (Exception e) {
             throw new CustomException("处理过期时间失败: " + e.getMessage());
         }
         entity.setStatus(CommonNumConstants.NUM_ZERO);
-    }
 
+        String recipientId = entity.getRecipientId();//被申请人Id
+        String applicantId = entity.getApplicantId();//申请人Id
+        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .or(wrapper -> wrapper
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                .or(wrapper -> wrapper
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
+        List<TalkRequest> talkRequestList = list(queryWrapper);
+        if (talkRequestList.size() != CommonNumConstants.NUM_ONE) {
+            throw new CustomException("禁止重新添加好友");
+        }
+    }
 
     @Override
     protected void createPostpose(TalkRequest entity, String userId) {
         String recipientId = entity.getRecipientId();
         String applicantId = entity.getApplicantId();
         Integer status = entity.getStatus();
-        friendRelationshipService.addFriendRelationship(entity.getId(),applicantId, recipientId,status,entity.getCreateId());
+        friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
 
     @Override
@@ -95,7 +107,15 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         updateWrapper.eq(CommonConstants.ID, userId);
         updateWrapper.set(MybatisPlusUtil.toColumns(TalkRequest::getStatus), status);
         update(updateWrapper);
-        friendRelationshipService.changeFriendStatus(userId,status);
+        friendRelationshipService.changeFriendStatus(userId, status);
+    }
+
+    @Override
+    public void queryTalkRequestFriend(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        Map<String, Object> Friend = iAuthUserService.queryDataMationById(id);
+        outputObject.setBean(Friend);
     }
 }
 

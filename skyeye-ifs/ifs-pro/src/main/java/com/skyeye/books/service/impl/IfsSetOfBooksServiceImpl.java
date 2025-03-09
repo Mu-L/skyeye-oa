@@ -44,7 +44,7 @@ public class IfsSetOfBooksServiceImpl extends SkyeyeBusinessServiceImpl<IfsSetOf
         for (Map<String, Object> bean : beans) {
             String startTime = bean.get("startTime").toString();
             String endTime = bean.get("endTime").toString();
-            String currentTime = DateUtil.getYmdTimeAndToString();
+            String currentTime = DateUtil.getTimeAndToString();
             if (DateUtil.getDistanceDay(startTime, currentTime) >= 0 && DateUtil.getDistanceDay(currentTime, endTime) >= 0) {
                 // startTime <= 当前时间 <= endTime
                 bean.put("haveAccess", true);

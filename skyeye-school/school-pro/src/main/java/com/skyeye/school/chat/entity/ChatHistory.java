@@ -34,11 +34,11 @@ public class ChatHistory extends OperatorUserInfo {
     private String content;
 
     @TableField("read_type")
-    @ApiModelProperty(value = "是否已读，默认为0", required = "required")
+    @ApiModelProperty(value = "是否已读，默认为0")
     private Integer readType;
 
     @TableField("chat_type")
-    @ApiModelProperty(value = "消息类型", required = "required")
+    @ApiModelProperty(value = "消息类型 1文字,2图片,3视频,4文件,5音频", required = "required")
     private Integer chatType;
 
 }
