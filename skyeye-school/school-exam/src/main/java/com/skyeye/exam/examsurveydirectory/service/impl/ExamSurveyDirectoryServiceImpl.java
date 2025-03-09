@@ -17,6 +17,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -280,7 +281,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(question.getId());
             question.setMultifillblankTd(multiFillblanks);
             List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
-            question.setOrderbyTd(examQuOrderbyList);
+            question.setOrderByTd(examQuOrderbyList);
             List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
             question.setColumnTd(examQuChenColumnList);
             List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(question.getId());
@@ -359,10 +360,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         // 获取id不为空的Question列表
         List<Question> questionsWithId = partitionedQuestions.get(true);
-        System.out.println("Questions with ID: " + questionsWithId);
         // 获取id为空的Question列表
         List<Question> questionsWithoutId = partitionedQuestions.get(false);
-        System.out.println("Questions without ID: " + questionsWithoutId);
         List<String> submittedIds = questionsWithId.stream()
                 .map(Question::getId)
                 .collect(Collectors.toList());
