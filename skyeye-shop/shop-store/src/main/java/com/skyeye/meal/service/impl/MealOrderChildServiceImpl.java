@@ -77,8 +77,8 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
             if (ObjectUtil.isEmpty(shopMeal) || StrUtil.isEmpty(shopMeal.getId())) {
                 throw new CustomException("套餐不存在，请刷新后重试.");
             }
-            bean.setMealPrice(shopMeal.getPrice());
-            payablePrice = CalculationUtil.add(payablePrice, shopMeal.getPrice(), CommonNumConstants.NUM_TWO);
+            bean.setMealPrice(shopMeal.getShowPrice());
+            payablePrice = CalculationUtil.add(payablePrice, shopMeal.getShowPrice(), CommonNumConstants.NUM_TWO);
         }
         return payablePrice;
     }
