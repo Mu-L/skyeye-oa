@@ -6,9 +6,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.picture.entity.Picture;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: Notice
@@ -39,9 +42,17 @@ public class Notice extends OperatorUserInfo {
     @ApiModelProperty(value = "发送人id",required = "required")
     private String sendId;
 
+    @TableField(exist = false)
+    @Property(value = "发送人信息")
+    private Map<String,Object> sendMation;
+
     @TableField("receive_id")
     @ApiModelProperty(value = "接收人id",required = "required")
     private String receiveId;
+
+    @TableField(exist = false)
+    @Property(value = "接收人信息")
+    private Map<String ,Object> receiveMation;
 
     @TableField("object_id")
     @ApiModelProperty(value = "业务员对象id（圈子id,视频id等）",required = "required")
