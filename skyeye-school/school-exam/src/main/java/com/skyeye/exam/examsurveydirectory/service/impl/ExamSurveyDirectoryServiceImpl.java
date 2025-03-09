@@ -53,9 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -343,20 +341,45 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public void updatePostpose(ExamSurveyDirectory entity, String userId) {
-        String id = entity.getId(); // 获取考试id
+        String surveId = entity.getId(); // 获取考试id
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
         String reader = entity.getReaderList(); // 阅卷人
         String[] readerList = reader.split(","); // 将阅卷人转换为列表
         for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
+            examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerItem, userId); // 创建阅卷人关系
         }
         List<Question> questionList = entity.getQuestionMation();
-        if (CollectionUtil.isNotEmpty(questionList)) {
-            for (Question question : questionList) {
+        List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
+        List<String> existingIds = existingQuestions.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());//数据库中所有id
+        Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
+                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+        // 获取id不为空的Question列表
+        List<Question> questionsWithId = partitionedQuestions.get(true);
+        System.out.println("Questions with ID: " + questionsWithId);
+        // 获取id为空的Question列表
+        List<Question> questionsWithoutId = partitionedQuestions.get(false);
+        System.out.println("Questions without ID: " + questionsWithoutId);
+        List<String> submittedIds = questionsWithId.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        Set<String> submittedIdSet = new HashSet<>(submittedIds);
+        List<String> idsToDelete = existingIds.stream()
+                .filter(id -> !submittedIdSet.contains(id))
+                .collect(Collectors.toList());
+        for (String idToDelete : idsToDelete) {
+            questionService.deleteById(idToDelete);
+        }
+        if (CollectionUtil.isNotEmpty(questionsWithId)) {
+            for (Question question : questionsWithId) {
                 questionService.updateEntity(question, userId); // 更新题目
             }
+        }
+        for (Question question : questionsWithoutId) {
+            questionService.createEntity(question,userId);
         }
     }
 
@@ -546,6 +569,33 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
+    }
+
+
+    @Override
+    public ExamSurveyDirectory selectById(String id) {
+        ExamSurveyDirectory bean = super.selectById(id);
+        bean.setClassesMation(classesService.selectById(bean.getClassId()));
+        bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
+        bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
+        bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
+        List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.selectBySurveyId(bean.getId());
+        if (CollectionUtil.isNotEmpty(examSurveyMarkExamList)) {
+            List<String> markIds = examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList());
+            String[] string = markIds.toString().substring(1, markIds.toString().length() - 1).split(" ");
+            StringBuffer sb = new StringBuffer();
+            for (String s : string) {
+                sb.append(s);
+            }
+            List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
+            bean.setReaderMationList(userMationList);
+        }
+        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
+        if (CollectionUtil.isEmpty(questionList)) {
+            return bean;
+        }
+        bean.setQuestionMation(questionList);
+        return bean;
     }
 
     @Override

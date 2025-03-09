@@ -99,7 +99,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
     public List<ExamQuOrderby> selectQuOrderby(String copyFromId) {
         QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), copyFromId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuOrderby::getOrderById));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuOrderby::getOrderById));
         return list(queryWrapper);
     }
 

@@ -117,7 +117,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     public List<ExamQuRadio> selectQuRadio(String copyFromId) {
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), copyFromId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         return list(queryWrapper);
     }
 
