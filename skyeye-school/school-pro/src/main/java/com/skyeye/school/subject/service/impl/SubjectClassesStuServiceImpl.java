@@ -262,9 +262,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     }
 
     public void updateRewardNumberById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getLogParams();
-        String subjectClassesStuId = map.get("id").toString();
-        String reward = map.get("reward").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String subjectClassesStuId = params.get("id").toString();
+        String reward = params.get("reward").toString();
         updateReward(subjectClassesStuId, reward);
     }
 
