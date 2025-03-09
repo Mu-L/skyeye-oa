@@ -8,27 +8,21 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.comment.entity.Comment;
-import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.notice.dao.NoticeDao;
 import com.skyeye.notice.entity.Notice;
-import com.skyeye.notice.noticeenum.NoticeTypeEnum;
 import com.skyeye.notice.noticeenum.ReadEnum;
 import com.skyeye.notice.noticeenum.TypeEnum;
 import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
 import com.skyeye.user.service.UserService;
-import com.skyeye.videocomment.entity.VideoComment;
-import com.skyeye.videocomment.service.VideoCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,12 +48,6 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Autowired
     private PictureService pictureService;
 
-    @Autowired
-    private VideoCommentService videoCommentService;
-
-    @Autowired
-    private CommentService commentService;
-
     @Override
     protected void createPrepose(Notice entity) {
         entity.setState(ReadEnum.UNREAD.getKey());
@@ -68,15 +56,15 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public String createEntity(Notice entity, String userId) {
         // 如果接收者是本人，直接不新增通知
-        if(userId.equals(entity.getReceiveId())){
+        if (userId.equals(entity.getReceiveId())) {
             return StrUtil.EMPTY;
         }
         // 如果是点赞，只通知一次
-        if(entity.getType() == TypeEnum.LIKE.getKey()){
+        if (entity.getType() == TypeEnum.LIKE.getKey()) {
             QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getSendId), entity.getSendId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getType), TypeEnum.LIKE.getKey());
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId),entity.getObjectId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId), entity.getObjectId());
             long length = count(queryWrapper);
             if (length > CommonNumConstants.NUM_ZERO) {
                 return StrUtil.EMPTY;
@@ -96,7 +84,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     protected void deletePreExecution(Notice entity) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
-        if(!userId.equals(entity.getReceiveId())) {
+        if (!userId.equals(entity.getReceiveId())) {
             throw new CustomException("无权限");
         }
     }
@@ -114,30 +102,13 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
         List<Notice> bean = list(queryWrapper);
-        // 如果是评论通知找一下图片
         for (Notice notice : bean) {
             if (notice.getType() == TypeEnum.COMMENT.getKey()) {
-                // 判断这个评论是否被删除
-                if (notice.getNoticeType() == NoticeTypeEnum.TYPE_VIDEO.getKey()) {
-                    VideoComment videoComment = videoCommentService.selectById(notice.getCommentId());
-                    if (ObjectUtil.isEmpty(videoComment)) {
-                        notice.setContent("该评论已被删除");
-                    } else {
-                        setCommentPicture(notice);
-                    }
-                }
-                if (notice.getNoticeType() == NoticeTypeEnum.TYPE_WALL.getKey()) {
-                    Comment comment = commentService.selectById(notice.getCommentId());
-                    if (ObjectUtil.isEmpty(comment)) {
-                        notice.setContent("该评论已被删除");
-                    } else {
-                        setCommentPicture(notice);
-                    }
-                }
+                setCommentPicture(notice);
             }
         }
-        userService.setDataMation(bean,Notice::getSendId);
-        userService.setDataMation(bean,Notice::getReceiveId);
+        userService.setDataMation(bean, Notice::getSendId);
+        userService.setDataMation(bean, Notice::getReceiveId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }
@@ -173,6 +144,18 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         Map<Integer, Long> countMap = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> (long) e.getValue().size()));
         outputObject.setBean(countMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    /**
+     * 删除视频评论时候把通知删除
+     */
+    @Override
+    public void deleteVideoNoticeByCommentIds(List<String> commentIds) {
+        for (String commentId : commentIds) {
+            QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getCommentId), commentId);
+            remove(queryWrapper);
+        }
     }
 
 }

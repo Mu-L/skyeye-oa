@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.notice.entity.Notice;
 
+import java.util.List;
+
 /**
  * @ClassName: NoticeService
  * @Description: 通知信息服务接口层
@@ -19,4 +21,6 @@ public interface NoticeService extends SkyeyeBusinessService<Notice> {
     void updateStateById(InputObject inputObject, OutputObject outputObject);
 
     void queryUnReadNum(InputObject inputObject, OutputObject outputObject);
+
+    void deleteVideoNoticeByCommentIds(List<String> commentIds);
 }

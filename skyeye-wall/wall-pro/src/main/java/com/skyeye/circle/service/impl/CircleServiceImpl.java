@@ -90,6 +90,8 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     @Override
     public Circle selectById(String id) {
         Circle circle = super.selectById(id);
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        circle.setIsJoin(joinCircleService.checkIsJoinCircle(userId, id));
         userService.setDataMation(circle, Circle::getCreateId);
         return circle;
     }

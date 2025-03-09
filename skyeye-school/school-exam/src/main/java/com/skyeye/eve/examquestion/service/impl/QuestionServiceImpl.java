@@ -4,7 +4,6 @@
 
 package com.skyeye.eve.examquestion.service.impl;
 
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -194,33 +193,33 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 根据不同的题目类型，保存对应的题目数据
         // 处理单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
-        if (ObjUtil.isNotEmpty(radioTd)) {
+        if (CollectionUtils.isNotEmpty(radioTd)) {
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 处理得分题
         List<ExamQuScore> ScoreTd = entity.getScoreTd();
-        if (ObjUtil.isNotEmpty(ScoreTd)) {
+        if (CollectionUtils.isNotEmpty(ScoreTd)) {
             examquScoreService.saveList(ScoreTd, quId, userId);
         }
         // 处理多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
-        if (ObjUtil.isNotEmpty(checkboxTd)) {
+        if (CollectionUtils.isNotEmpty(checkboxTd)) {
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 处理多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
-        if (ObjUtil.isNotEmpty(multiFillblankTd)) {
+        if (CollectionUtils.isNotEmpty(multiFillblankTd)) {
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 处理排序题
-        List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
-        if (ObjUtil.isNotEmpty(orderbyTd)) {
-            examQuOrderbyService.saveList(orderbyTd, quId, userId);
+        List<ExamQuOrderby> orderByTd = entity.getOrderByTd();
+        if (CollectionUtils.isNotEmpty(orderByTd)) {
+            examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 处理矩阵题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
-        if (ObjUtil.isNotEmpty(columnTd) && ObjUtil.isNotEmpty(rowTd)) {
+        if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
             examQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }
@@ -260,9 +259,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
-        List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
-        if (CollectionUtils.isNotEmpty(orderbyTd)) {
-            examQuOrderbyService.saveList(orderbyTd, quId, userId);
+        List<ExamQuOrderby> orderByTd = entity.getOrderByTd();
+        if (CollectionUtils.isNotEmpty(orderByTd)) {
+            examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 更新陈列题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
@@ -307,7 +306,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<ExamQuMultiFillblank> examQuMultiFillblankList = examQuMultiFillblankService.selectQuMultiFillblank(id);
         question.setMultifillblankTd(examQuMultiFillblankList);
         List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(id);
-        question.setOrderbyTd(examQuOrderbyList);
+        question.setOrderByTd(examQuOrderbyList);
         List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(id);
         question.setColumnTd(examQuChenColumnList);
         List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(id);
@@ -376,8 +375,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (question.getQuType() == QuType.ORDERQU.getIndex()) {
                 List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
                 List<ExamAnOrder> examAnOrderbyList = examAnOrderService.selectAnOrderByQuId(question.getId());
-                question.setOrderbyTd(orderbyList);
-                question.setOrderbyAn(examAnOrderbyList);
+                question.setOrderByTd(orderbyList);
+                question.setOrderByAn(examAnOrderbyList);
                 continue;
             }
             // 4 多行填空题
@@ -465,8 +464,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 question.setScoreAn(examAnScoreService.selectAnScoreByQuId(id));
             }
             if (quType.equals(QuType.ORDERQU.getIndex())) {
-                question.setOrderbyTd(examQuOrderbyService.selectQuOrderby(id));
-                question.setOrderbyAn(examAnOrderService.selectAnOrderByQuId(id));
+                question.setOrderByTd(examQuOrderbyService.selectQuOrderby(id));
+                question.setOrderByAn(examAnOrderService.selectAnOrderByQuId(id));
             }
             if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
                 question.setMultifillblankTd(examQuMultiFillblankService.selectQuMultiFillblank(id));
@@ -637,7 +636,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 case 9:
                     // 去ExamQuOrderby表查询
                     List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(quId);
-                    question.setOrderbyTd(orderbyList);
+                    question.setOrderByTd(orderbyList);
                     break;
                 case 2:
                     // 去ExamQuCheckBox表查询
