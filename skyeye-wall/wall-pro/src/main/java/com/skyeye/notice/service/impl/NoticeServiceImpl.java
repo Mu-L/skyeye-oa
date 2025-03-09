@@ -112,7 +112,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             if (notice.getType() == TypeEnum.COMMENT.getKey()) {
                 // 判断这个评论是否被删除
                 if (notice.getNoticeType() == NoticeTypeEnum.TYPE_VIDEO.getKey()) {
-                    VideoComment videoComment = videoCommentService.selectById(notice.getObjectId());
+                    VideoComment videoComment = videoCommentService.selectById(notice.getCommentId());
                     if (ObjectUtil.isEmpty(videoComment)) {
                         notice.setContent("该评论已被删除");
                     } else {
@@ -120,7 +120,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                     }
                 }
                 if (notice.getNoticeType() == NoticeTypeEnum.TYPE_WALL.getKey()) {
-                    Comment comment = commentService.selectById(notice.getObjectId());
+                    Comment comment = commentService.selectById(notice.getCommentId());
                     if (ObjectUtil.isEmpty(comment)) {
                         notice.setContent("该评论已被删除");
                     } else {
@@ -137,7 +137,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     private void setCommentPicture(Notice notice) {
         QueryWrapper<Picture> queryPicture = new QueryWrapper<>();
-        queryPicture.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), notice.getObjectId());
+        queryPicture.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), notice.getCommentId());
         Picture one = pictureService.getOne(queryPicture);
         if (ObjectUtil.isNotEmpty(one)) {
             notice.setPicture(one);
