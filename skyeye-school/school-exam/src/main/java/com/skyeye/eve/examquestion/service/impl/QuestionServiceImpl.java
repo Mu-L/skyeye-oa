@@ -228,7 +228,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     @Override
     protected void updatePostpose(Question entity, String userId) {
         String entityId = entity.getId();
-
         // 更新单选题
         String belongId = entity.getBelongId();
         if (StrUtil.isEmpty(belongId)) {
