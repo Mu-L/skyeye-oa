@@ -78,11 +78,11 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
     public void validatorEntity(AssetPurchaseReturn entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
+        getTotalPrice(entity);
         if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
             // 修改条形码编码信息
             checkAndEditAssetBarCodeDepotMaiton(entity, false);
         }
-        getTotalPrice(entity);
     }
 
     @Override
