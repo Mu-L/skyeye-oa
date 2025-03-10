@@ -30,7 +30,7 @@ public class Video extends OperatorUserInfo {
     private String id;
 
     @TableField("topic")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required",fuzzyLike = true)
     private String topic;
 
     @TableField("content")
@@ -56,6 +56,10 @@ public class Video extends OperatorUserInfo {
     @TableField("remark_num")
     @ApiModelProperty(value = "评论数量，默认0", defaultValue = "0")
     private String remarkNum;
+
+    @TableField("video_duration")
+    @ApiModelProperty(value = "视频时长，默认0", defaultValue = "0")
+    private Integer videoDuration;
 
     @TableField(exist = false)
     @Property(value = "当前登陆人是否点赞")

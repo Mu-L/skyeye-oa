@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.joincircle.entity.JoinCircle;
 
+import java.util.List;
+
 /**
  * @ClassName: JoinCircleService
  * @Description: 加入圈子服务接口层
@@ -24,4 +26,6 @@ public interface JoinCircleService extends SkyeyeBusinessService<JoinCircle> {
     void queryJoinUserByCircleId(InputObject inputObject, OutputObject outputObject);
 
     Boolean checkIsJoinCircle(String circleId, String userId);
+
+    List<JoinCircle> queryMyJoinCircle(String userId);
 }
