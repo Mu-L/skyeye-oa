@@ -192,7 +192,17 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
             List<Subject> list = list(queryWrapper);
-            beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+            // 取出主键id，查询班级信息
+            List<String> subjectIdList = list.stream().map(Subject::getId).collect(Collectors.toList());
+            List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectIdList.toArray(new String[]{}));
+            // 将科目信息按id分组，为班级信息设置科目信息
+            Map<String, Subject> subjectMap = list.stream().collect(Collectors.toMap(Subject::getId, subject -> subject));
+            for (SubjectClasses subjectClasses : subjectClassesList) {
+                if (subjectMap.containsKey(subjectClasses.getObjectId())){
+                    subjectClasses.setObjectMation(subjectMap.get(subjectClasses.getObjectId()));
+                }
+            }
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(subjectClassesList), null);
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息
             // 查学号
