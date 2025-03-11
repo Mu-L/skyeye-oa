@@ -5,7 +5,6 @@
 package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -23,6 +22,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.semester.entity.Semester;
@@ -64,35 +64,38 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private SchoolService schoolService;
+
     @Override
     public void validatorEntity(Subject entity) {
         super.validatorEntity(entity);
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getName), entity.getName())
-                .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+            .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
         long count = count(queryWrapper);
         // name 同时作唯一性约束
-        if(StrUtil.isEmpty(entity.getId()) && count > CommonNumConstants.NUM_ZERO){
+        if (StrUtil.isEmpty(entity.getId()) && count > CommonNumConstants.NUM_ZERO) {
             throw new CustomException("课程名称已存在");
         }
-        if(StrUtil.isNotEmpty(entity.getId()) ){
+        if (StrUtil.isNotEmpty(entity.getId())) {
             Subject subject = selectById(entity.getId());
-            if(!subject.getName().equals(entity.getName()) && count > CommonNumConstants.NUM_ZERO){
+            if (!subject.getName().equals(entity.getName()) && count > CommonNumConstants.NUM_ZERO) {
                 throw new CustomException("课程名称已存在");
             }
         }
         queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getNo), entity.getNo())
-                .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+            .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
         long countNo = count(queryWrapper);
         // no 同时作唯一性约束
-        if(StrUtil.isEmpty(entity.getId()) && countNo > CommonNumConstants.NUM_ZERO){
+        if (StrUtil.isEmpty(entity.getId()) && countNo > CommonNumConstants.NUM_ZERO) {
             throw new CustomException("课程编号已存在");
         }
-        if(StrUtil.isNotEmpty(entity.getId()) ){
+        if (StrUtil.isNotEmpty(entity.getId())) {
             Subject subject = selectById(entity.getId());
-            if(!subject.getNo().equals(entity.getNo()) && countNo > CommonNumConstants.NUM_ZERO) {
+            if (!subject.getNo().equals(entity.getNo()) && countNo > CommonNumConstants.NUM_ZERO) {
                 throw new CustomException("课程编号已存在");
             }
         }
@@ -198,7 +201,7 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             // 将科目信息按id分组，为班级信息设置科目信息
             Map<String, Subject> subjectMap = list.stream().collect(Collectors.toMap(Subject::getId, subject -> subject));
             for (SubjectClasses subjectClasses : subjectClassesList) {
-                if (subjectMap.containsKey(subjectClasses.getObjectId())){
+                if (subjectMap.containsKey(subjectClasses.getObjectId())) {
                     subjectClasses.setObjectMation(subjectMap.get(subjectClasses.getObjectId()));
                 }
             }
@@ -236,6 +239,24 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         for (Map<String, Object> bean : beans) {
             bean.put("serviceClassName", getServiceClassName());
         }
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public void queryMySubjectListOnly(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = null;
+        // 开启分页
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 教师查询
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
+            .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
+        List<Subject> beans = list(queryWrapper);
+        schoolService.setDataMation(beans, Subject::getSchoolId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }

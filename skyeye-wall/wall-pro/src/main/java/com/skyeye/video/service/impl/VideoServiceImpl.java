@@ -7,6 +7,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -17,16 +18,24 @@ import com.skyeye.user.service.UserService;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
+import com.skyeye.video.entity.VideoView;
 import com.skyeye.video.service.VideoRecordService;
 import com.skyeye.video.service.VideoService;
+import com.skyeye.video.service.VideoViewService;
+import com.skyeye.videocomment.entity.VideoComment;
+import com.skyeye.videocomment.service.VideoCommentService;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +55,12 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private VideoViewService videoViewService;
+
+    @Autowired
+    private VideoCommentService videoCommentService;
 
     @Override
     public Video selectById(String id) {
@@ -82,8 +97,60 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         }
     }
 
-
+    @Transactional
     @Override
+    public void createPostpose(Video entity, String userId) {
+        // 获取视频时长
+        String videoUrl = entity.getVideoSrc();
+        String ffmpeg_path = "172.18.92.41:7000/dev/fileBase/";
+        List<String> commands = new ArrayList<>();
+        commands.add(ffmpeg_path);
+        commands.add("-i");
+        commands.add(videoUrl);
+        try {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command(commands);
+            final Process p = builder.start();
+
+            //从输入流中读取视频信息
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            StringBuffer sb = new StringBuffer();
+            String line = "";
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+            }
+            br.close();
+            //从视频信息中解析时长
+            String regexDuration = "Duration: (.*?), start: (.*?), bitrate: (\\d*) kb\\/s";
+            Pattern pattern = Pattern.compile(regexDuration);
+            Matcher m = pattern.matcher(sb.toString());
+            if (m.find()) {
+                int time = getTimelen(m.group(1));
+                entity.setVideoDuration(time);
+                updateEntity(entity,userId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static int getTimelen(String timelen) {
+        int min = 0;
+        String strs[] = timelen.split(":");
+        if (strs[0].compareTo("0") > 0) {
+            min += Integer.valueOf(strs[0]) * 60 * 60;//秒
+        }
+        if (strs[1].compareTo("0") > 0) {
+            min += Integer.valueOf(strs[1]) * 60;
+        }
+        if (strs[2].compareTo("0") > 0) {
+            min += Math.round(Float.valueOf(strs[2]));
+        }
+        return min;
+    }
+
+        @Override
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -102,6 +169,36 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         userService.setDataMation(bean, Video::getCreateId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        // 获取当前用户的浏览记录
+        List<VideoView> videoViews = videoViewService.queryVideoViewByUserId(userId);
+        List<String> videoIds = videoViews.stream().map(VideoView::getVideoId).collect(Collectors.toList());
+        // 获取当前用户的点赞的视频
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId)
+                .eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
+        List<VideoRecord> supportVideos = videoRecordService.list(queryWrapper);
+        // 获取当前用户的收藏的视频
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId)
+                .eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
+        List<VideoRecord> collectVideos = videoRecordService.list(queryWrapper);
+        // 获取当前用户的评论的视频
+        QueryWrapper<VideoComment> queryComment = new QueryWrapper<>();
+        queryComment.eq(MybatisPlusUtil.toColumns(VideoComment::getCreateId), userId);
+        List<VideoComment> commentVideos = videoCommentService.list(queryComment);
+        // 评论更具视频id进行分组
+        Map<String, List<VideoComment>> commentMap = commentVideos.stream()
+                .collect(Collectors.groupingBy(VideoComment::getVideoId));
+        //TODO
+        // ItemCF算法
+        // 1，准备用户对视频的评分，点赞、收藏、评论
+        // 2，计算视频之间的相似度
+        // 3，根据用户的历史行为，推荐相似的视频
     }
 
 

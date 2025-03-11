@@ -135,6 +135,12 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
             String examineId = inputObject.getLogParams().get("id").toString();
             Integer state = Integer.parseInt(map.get("state").toString());
             String examineNopassReason = map.get("examineNopassReason").toString();
+            if (state.equals(KnowlgContentState.NO_PASS.getKey())) {
+                // 不通过
+                if (StrUtil.isEmpty(examineNopassReason)) {
+                    throw new CustomException("请填写不通过原因！");
+                }
+            }
             UpdateWrapper<KnowledgeContent> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, id);
             updateWrapper.set(MybatisPlusUtil.toColumns(KnowledgeContent::getExamineId), examineId);

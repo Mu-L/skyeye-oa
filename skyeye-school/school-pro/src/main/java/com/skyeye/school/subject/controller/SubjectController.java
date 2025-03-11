@@ -105,4 +105,11 @@ public class SubjectController {
     public void searchSubjectList(InputObject inputObject, OutputObject outputObject) {
         subjectService.searchSubjectList(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryMySubjectList", value = "查询科目信息(只查科目信息和学校信息)", method = "GET", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SubjectController/queryMySubjectList")
+    public void queryMySubjectList(InputObject inputObject, OutputObject outputObject){
+        subjectService.queryMySubjectListOnly(inputObject, outputObject);
+    }
 }

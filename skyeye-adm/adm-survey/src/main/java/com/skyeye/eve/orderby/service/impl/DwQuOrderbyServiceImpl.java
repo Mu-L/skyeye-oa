@@ -17,6 +17,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.orderby.dao.DwQuOrderbyDao;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
@@ -98,6 +99,7 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
     public List<DwQuOrderby> selectQuOrderby(String copyFromId) {
         QueryWrapper<DwQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuOrderby::getQuId), copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuOrderby::getOrderById));
         return list(queryWrapper);
     }
 
