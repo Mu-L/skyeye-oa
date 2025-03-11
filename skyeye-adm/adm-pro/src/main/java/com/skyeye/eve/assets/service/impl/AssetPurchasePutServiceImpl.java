@@ -77,8 +77,9 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
     public void validatorEntity(AssetPurchasePut entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
-        checkAndEditAssetBarCodeDepotMaiton(entity, false);
         getTotalPrice(entity);
+        // 校验资产编号信息
+        checkAndEditAssetBarCodeDepotMaiton(entity, false);
     }
 
     @Override

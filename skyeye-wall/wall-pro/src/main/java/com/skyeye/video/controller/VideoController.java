@@ -153,4 +153,17 @@ public class VideoController {
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
         videoService.queryAllVideoList(inputObject, outputObject);
     }
+
+    /**
+     * 推荐视频算法ItemCF算法
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/VideoController/queryRecommendVideoList")
+    public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryRecommendVideoList(inputObject, outputObject);
+    }
 }

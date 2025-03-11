@@ -128,4 +128,12 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
         return count(queryWrapper) > 0;
     }
+
+    @Override
+    public List<JoinCircle> queryMyJoinCircle(String userId){
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId)
+                .orderByDesc(MybatisPlusUtil.toColumns(JoinCircle::getCreateTime));
+        return list(queryWrapper);
+    }
 }

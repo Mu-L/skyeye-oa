@@ -98,6 +98,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_TEN) : beans;
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
+            String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+            if(StrUtil.isEmpty(userId) || !typeId.equals(userId)){
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
+            }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
                 .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
@@ -123,7 +127,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         // 获取点赞信息
         String userId = inputObject.getLogParams().get("id").toString();
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
+        if(StrUtil.isNotEmpty(userId)){
+            checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        }
+        Map<String, Boolean> finalCheckUpvoteMap = checkUpvoteMap;
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
             // 是否匿名
@@ -139,7 +147,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
             bean.put("pictureSize", pictureMap.size());
             // 设置点赞信息
-            bean.put("checkUpvote", checkUpvoteMap.get(id));
+            if(CollectionUtil.isNotEmpty(finalCheckUpvoteMap)){
+                bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
+            }
         });
         userService.setMationForMap(beans, "createId", "createMation");
         return beans;
