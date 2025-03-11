@@ -201,7 +201,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         // 旧密码匹配
         if (user.getPassword().equals(ToolUtil.MD5(map.get("oldPassword").toString()))) {
             String newPassword = ToolUtil.MD5(map.get("newPassword").toString());
-
             UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, stuId);
             updateWrapper.set(MybatisPlusUtil.toColumns(User::getPassword), newPassword);

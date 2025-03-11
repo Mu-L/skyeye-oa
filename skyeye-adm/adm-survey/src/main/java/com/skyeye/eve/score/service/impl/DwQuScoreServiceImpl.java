@@ -15,6 +15,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.score.dao.DwQuScoreDao;
 import com.skyeye.eve.score.entity.DwQuScore;
 import com.skyeye.eve.score.service.DwQuScoreService;
@@ -100,6 +101,7 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
     public List<DwQuScore> selectQuScore(String copyFromId) {
         QueryWrapper<DwQuScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuScore::getQuId), copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuScore::getOrderById));
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getVisibility), CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }

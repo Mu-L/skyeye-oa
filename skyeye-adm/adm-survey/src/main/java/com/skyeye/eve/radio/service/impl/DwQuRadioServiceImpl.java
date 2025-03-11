@@ -120,6 +120,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
     public List<DwQuRadio> selectQuRadio(String copyFromId) {
         QueryWrapper<DwQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuRadio::getQuId), copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuRadio::getOrderById));
         return list(queryWrapper);
     }
 
