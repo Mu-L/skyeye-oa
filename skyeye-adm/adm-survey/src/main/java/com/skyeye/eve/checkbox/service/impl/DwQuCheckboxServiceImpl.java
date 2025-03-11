@@ -22,6 +22,7 @@ import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.checkbox.dao.DwQuCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
@@ -119,6 +120,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
     public List<DwQuCheckbox> selectQuChenbox(String copyFromId) {
         QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId),copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuCheckbox::getOrderById));
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
     }
