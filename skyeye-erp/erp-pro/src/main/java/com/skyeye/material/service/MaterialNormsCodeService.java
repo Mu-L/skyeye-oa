@@ -55,6 +55,8 @@ public interface MaterialNormsCodeService extends SkyeyeBusinessService<Material
 
     void queryNormsStockDetailList(InputObject inputObject, OutputObject outputObject);
 
+    void queryNormsStockDetailAllLists(InputObject inputObject, OutputObject outputObject);
+
     void queryStoreNormsStockDetailList(InputObject inputObject, OutputObject outputObject);
 
     void queryMaterialNormsCode(InputObject inputObject, OutputObject outputObject);
