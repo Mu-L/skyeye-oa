@@ -50,6 +50,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -546,6 +547,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         createEntity(examSurveyDirectoryList, userId);
     }
 
+//    @Override
+//    public void queryExamFxById(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        String id = map.get("id").toString();
+//        ExamSurveyDirectory examSurveyDirectory = selectById(id);
+//        if (examSurveyDirectory!=null){
+//            List<Question> questionList = questionService.QueryQuestionByBelongId(id);
+//            for (Question question : questionList) {
+//            }
+//        }
+//
+//    }
+
     @Override
     public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
         for (ExamSurveyDirectory entity : examSurveyDirectory) {
@@ -577,22 +591,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public ExamSurveyDirectory selectById(String id) {
-        ExamSurveyDirectory bean = super.selectById(id);
-        bean.setClassesMation(classesService.selectById(bean.getClassId()));
-        bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
-        bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
-        bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
-        List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.selectBySurveyId(bean.getId());
-        if (CollectionUtil.isNotEmpty(examSurveyMarkExamList)) {
-            List<String> markIds = examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList());
-            String[] string = markIds.toString().substring(1, markIds.toString().length() - 1).split(" ");
-            StringBuffer sb = new StringBuffer();
-            for (String s : string) {
-                sb.append(s);
-            }
-            List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
-            bean.setReaderMationList(userMationList);
-        }
+        ExamSurveyDirectory bean = getExamSurveyDirectory(id);
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isEmpty(questionList)) {
             return bean;
@@ -604,6 +603,17 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
+        ExamSurveyDirectory bean = getExamSurveyDirectory(id);
+        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
+        if (CollectionUtil.isEmpty(questionList)) {
+            outputObject.setBean(bean);
+        }
+        outputObject.setBean(bean);
+        outputObject.setBeans(questionList);
+    }
+
+    @NotNull
+    private ExamSurveyDirectory getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
         bean.setClassesMation(classesService.selectById(bean.getClassId()));
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
@@ -620,54 +630,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
             bean.setReaderMationList(userMationList);
         }
-        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
-        if (CollectionUtil.isEmpty(questionList)) {
-            outputObject.setBean(bean);
-        }
-
-//        List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
-//        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
-//        Map<String, List<Map<String, Object>>> examQuRadioMapList = examQuRadioService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuScoreMapList = examQuScoreService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = examQuCheckboxService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = examQuChenColumnService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuchenRowMapList = examQuChenRowService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = examQuMultiFillblankService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = examQuOrderbyService.selectByBelongId(id);
-//        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-//                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
-//        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
-//        questionList.forEach(item -> {
-//            String quId = item.getId();
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
-//                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuRadio.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
-//                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuScore.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
-//                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuCheckbox.class));
-//            }
-//            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
-//            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
-//                try {
-//                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenColumn.class));// 尝试转换为列选择项
-//                } catch (RuntimeException e) {
-//                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
-//                }
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
-//                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuMultiFillblank.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
-//                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuOrderby.class));
-//            }
-//            if (collect.containsKey(quId)) {// 问题逻辑设置信息
-//                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
-//            }
-//        });
-        outputObject.setBean(bean);
-        outputObject.setBeans(questionList);
+        return bean;
     }
 }

@@ -54,8 +54,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "问卷管理", groupName = "问卷管理")
@@ -137,22 +140,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         } else {
             throw new CustomException("该问卷信息不存在。");
         }
-    }
-
-    @Override
-    protected void createPrepose(DwSurveyDirectory entity) {
-        String endTime = entity.getEndTime();
-        String realStartTime = entity.getRealStartTime(); // 获取实际开始时间
-        String realEndTime = entity.getRealEndTime(); // 获取实际结束时间
-        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
-        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
-        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
-        if (StrUtil.isEmpty(endTime)) {
-            endTime = null;
-        }
-        entity.setEndTime(endTime);
-        entity.setRealStartTime(realStartTime);
-        entity.setRealEndTime(realEndTime);
     }
 
     /**
@@ -260,6 +247,23 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
     }
 
+
+    @Override
+    protected void createPrepose(DwSurveyDirectory entity) {
+        String endTime = entity.getEndTime();
+        String realStartTime = entity.getRealStartTime(); // 获取实际开始时间
+        String realEndTime = entity.getRealEndTime(); // 获取实际结束时间
+        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
+        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
+        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
+        if (StrUtil.isEmpty(endTime)) {
+            endTime = null;
+        }
+        entity.setEndTime(endTime);
+        entity.setRealStartTime(realStartTime);
+        entity.setRealEndTime(realEndTime);
+    }
+
     /**
      * 创建/更新题目前的操作
      *
@@ -297,10 +301,35 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     @Override
     protected void updatePostpose(DwSurveyDirectory entity, String userId) {
         List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
-        if (CollectionUtil.isNotEmpty(dwQuestionMation)) {
-            for (DwQuestion dwQuestion : dwQuestionMation) {
-                dwQuestionService.updateEntity(dwQuestion, userId); // 更新题目
+        List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
+        List<String> collect = dwQuestions.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<Boolean, List<DwQuestion>> partitionedQuestions = dwQuestionMation.stream()
+                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+        List<DwQuestion> questionsWithId = partitionedQuestions.get(true);
+        List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);
+        List<String> submittedIds = questionsWithId.stream()
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
+        Set<String> submittedIdSet = new HashSet<>(submittedIds);
+        List<String> idsToDelete = collect.stream()
+                .filter(id -> !submittedIdSet.contains(id))
+                .collect(Collectors.toList());
+        for (String idToDelete : idsToDelete) {
+            dwQuestionService.deleteById(idToDelete);
+        }
+        if (CollectionUtil.isNotEmpty(questionsWithId)) {
+            for (DwQuestion question : questionsWithId) {
+                String questionId = question.getId();
+                String belongId = question.getBelongId();
+                if (StrUtil.isNotEmpty(questionId) && StrUtil.isEmpty(belongId)) {
+                    question.setBelongId(entity.getId());
+                } else {
+                    dwQuestionService.updateEntity(question, userId); // 更新题目
+                }
             }
+        }
+        for (DwQuestion question : questionsWithoutId) {
+            dwQuestionService.createEntity(question, userId);
         }
     }
 
