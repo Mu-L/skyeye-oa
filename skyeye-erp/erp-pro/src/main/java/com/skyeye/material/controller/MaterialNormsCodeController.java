@@ -61,7 +61,7 @@ public class MaterialNormsCodeController {
         materialNormsCodeService.queryNormsBarCodeList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryNormsStockDetailList", value = "获取物料库存明细信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryNormsStockDetailList", value = "获取部门/车间物料库存明细信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MaterialNormsCodeQueryDo.class)
     @RequestMapping("/post/MaterialNormsCodeController/queryNormsStockDetailList")
     public void queryNormsStockDetailList(InputObject inputObject, OutputObject outputObject) {
