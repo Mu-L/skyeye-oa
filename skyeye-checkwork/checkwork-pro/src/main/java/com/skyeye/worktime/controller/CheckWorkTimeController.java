@@ -32,12 +32,6 @@ public class CheckWorkTimeController {
     @Autowired
     private CheckWorkTimeService checkWorkTimeService;
 
-    /**
-     * 查询考勤班次列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworktime001", value = "查询考勤班次列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CheckWorkTimeController/queryCheckWorkTimeList")
@@ -45,12 +39,6 @@ public class CheckWorkTimeController {
         checkWorkTimeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑考勤班次信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCheckWorkTime", value = "新增/编辑考勤班次信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CheckWorkTime.class)
     @RequestMapping("/post/CheckWorkTimeController/writeCheckWorkTime")
@@ -58,12 +46,6 @@ public class CheckWorkTimeController {
         checkWorkTimeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 设置线上打卡的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setOnlineCheckWorkTime", value = "设置线上打卡的信息", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -79,12 +61,6 @@ public class CheckWorkTimeController {
         checkWorkTimeService.setOnlineCheckWorkTime(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询考勤班次信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCheckWorkTimeById", value = "根据id查询考勤班次信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -93,12 +69,6 @@ public class CheckWorkTimeController {
         checkWorkTimeService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除考勤班次信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCheckWorkTimeById", value = "根据id删除考勤班次信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -107,36 +77,18 @@ public class CheckWorkTimeController {
         checkWorkTimeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 查询启用的考勤班次列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnableCheckWorkTimeList", value = "查询启用的考勤班次列表", method = "GET", allUse = "2")
     @RequestMapping("/post/CheckWorkTimeController/queryEnableCheckWorkTimeList")
     public void queryEnableCheckWorkTimeList(InputObject inputObject, OutputObject outputObject) {
         checkWorkTimeService.queryEnableCheckWorkTimeList(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登陆人的考勤班次
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworktime007", value = "获取当前登陆人的考勤班次", method = "GET", allUse = "2")
     @RequestMapping("/post/CheckWorkTimeController/queryCheckWorkTimeListByLoginUser")
     public void queryCheckWorkTimeListByLoginUser(InputObject inputObject, OutputObject outputObject) {
         checkWorkTimeService.queryCheckWorkTimeListByLoginUser(inputObject, outputObject);
     }
 
-    /**
-     * 根据指定年月获取所有的考勤班次的信息以及工作日信息等
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getAllCheckWorkTime", value = "根据指定年月获取所有的考勤班次的信息以及工作日信息等", method = "GET", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "pointMonthDate", name = "pointMonthDate", value = "指定年月，格式为yyyy-MM", required = "required")})

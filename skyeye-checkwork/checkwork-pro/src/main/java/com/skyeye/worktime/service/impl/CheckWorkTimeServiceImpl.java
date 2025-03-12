@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.checkwork.service.SysEveUserStaffTimeService;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -20,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.dao.CheckWorkTimeDao;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -52,6 +54,9 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     @Autowired
     private SysEveUserService sysEveUserService;
 
+    @Autowired
+    private SysEveUserStaffTimeService sysEveUserStaffTimeService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -64,6 +69,15 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     protected void writePostpose(CheckWorkTime entity, String userId) {
         super.writePostpose(entity, userId);
         checkWorkTimeWeekService.saveCheckWorkTimeWeekList(entity.getId(), entity.getCheckWorkTimeWeekList(), userId);
+    }
+
+    @Override
+    protected void deletePreExecution(String id) {
+        // 判断该考勤班次是否被员工使用
+        boolean exist = sysEveUserStaffTimeService.checkIsExistByTimeId(id);
+        if (exist) {
+            throw new CustomException("该考勤班次已被员工使用，无法删除。");
+        }
     }
 
     @Override
@@ -83,12 +97,6 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         return checkWorkTimeList;
     }
 
-    /**
-     * 查询启用的考勤班次列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryEnableCheckWorkTimeList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<CheckWorkTime> queryWrapper = new QueryWrapper<>();
@@ -99,12 +107,6 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         outputObject.settotal(checkWorkTimeList.size());
     }
 
-    /**
-     * 获取当前登陆人的考勤班次
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryCheckWorkTimeListByLoginUser(InputObject inputObject, OutputObject outputObject) {
         String staffId = inputObject.getLogParams().get("staffId").toString();
@@ -117,12 +119,6 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         outputObject.settotal(checkWorkTimes.size());
     }
 
-    /**
-     * 根据指定年月获取所有的考勤班次的信息以及工作日信息等
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void getAllCheckWorkTime(InputObject inputObject, OutputObject outputObject) {
         String pointMonthDate = inputObject.getParams().get("pointMonthDate").toString();
