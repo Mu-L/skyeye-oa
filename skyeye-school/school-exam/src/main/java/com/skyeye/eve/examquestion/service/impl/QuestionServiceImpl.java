@@ -446,6 +446,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public List<Question> QueryQuestionByBelongId(String belongId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
         List<Question> questionList = list(queryWrapper);
         for (Question question : questionList) {
             // 根据题目类型获取题目选项
