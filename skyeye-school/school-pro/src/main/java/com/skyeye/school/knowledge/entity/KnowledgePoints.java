@@ -54,4 +54,8 @@ public class KnowledgePoints extends BaseGeneralInfo {
     @ApiModelProperty(value = "内容", required = "required")
     private String content;
 
+    @TableField("annex")
+    @ApiModelProperty(value = "附件")
+    private String annex;
+
 }

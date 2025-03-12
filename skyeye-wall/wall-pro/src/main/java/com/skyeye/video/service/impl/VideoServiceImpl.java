@@ -27,6 +27,7 @@ import com.skyeye.videocomment.entity.VideoComment;
 import com.skyeye.videocomment.service.VideoCommentService;
 import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,6 +61,9 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Autowired
     private VideoCommentService videoCommentService;
+
+    @Value("${IMAGES_PATH}")
+    private String tPath;
 
     @Override
     public Video selectById(String id) {
@@ -99,54 +103,39 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Transactional
     @Override
     public void createPostpose(Video entity, String userId) {
-        // 获取视频时长
-        String videoUrl = entity.getVideoSrc();
-        String ffmpeg_path = "172.18.92.41:7000/dev/fileBase/";
-        List<String> commands = new ArrayList<>();
-        commands.add(ffmpeg_path);
-        commands.add("-i");
-        commands.add(videoUrl);
-        try {
-            ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commands);
-            final Process p = builder.start();
+        // 确保这是服务器本地的文件路径
+        String videoPath = "/dev/fileBase/" + entity.getVideoSrc(); // 修改为本地路径
+        String ffmpegGPath = tPath + "/util/ffmpeg.exe"; // FFmpeg路径
 
-            //从输入流中读取视频信息
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            StringBuffer sb = new StringBuffer();
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-            br.close();
-            //从视频信息中解析时长
-            String regexDuration = "Duration: (.*?), start: (.*?), bitrate: (\\d*) kb\\/s";
-            Pattern pattern = Pattern.compile(regexDuration);
-            Matcher m = pattern.matcher(sb.toString());
-            if (m.find()) {
-                int time = getTimelen(m.group(1));
-                entity.setVideoDuration(time);
-                updateEntity(entity,userId);
+        List<String> commands = new ArrayList<>();
+        commands.add(ffmpegGPath);
+        commands.add("-i");
+        commands.add(videoPath);
+        commands.add("-v");
+        commands.add("error");
+        commands.add("-show_entries");
+        commands.add("format=duration");
+        commands.add("-of");
+        commands.add("default=noprint_wrappers=1:nokey=1");
+
+        try {
+            ProcessBuilder builder = new ProcessBuilder(commands);
+            Process process = builder.start();
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String duration = br.readLine();
+                if (duration != null && !duration.isEmpty()) {
+                    int time = (int) Math.ceil(Double.parseDouble(duration));
+                    entity.setVideoDuration(time);
+                    updateEntity(entity, userId); // 更新视频时长
+                }
+            } finally {
+                process.destroy();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-    }
-
-    private static int getTimelen(String timelen) {
-        int min = 0;
-        String strs[] = timelen.split(":");
-        if (strs[0].compareTo("0") > 0) {
-            min += Integer.valueOf(strs[0]) * 60 * 60;//秒
-        }
-        if (strs[1].compareTo("0") > 0) {
-            min += Integer.valueOf(strs[1]) * 60;
-        }
-        if (strs[2].compareTo("0") > 0) {
-            min += Math.round(Float.valueOf(strs[2]));
-        }
-        return min;
     }
 
         @Override

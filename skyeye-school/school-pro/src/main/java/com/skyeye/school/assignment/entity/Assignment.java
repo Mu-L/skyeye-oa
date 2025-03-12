@@ -102,4 +102,7 @@ public class Assignment extends BaseGeneralInfo {
     @Property(value = "未批改作业的人数")
     private Long noCorrectNum;
 
+    @TableField("annex")
+    @ApiModelProperty(value = "附件")
+    private String annex;
 }
