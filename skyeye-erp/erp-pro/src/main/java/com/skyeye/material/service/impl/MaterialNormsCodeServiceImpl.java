@@ -130,7 +130,6 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         materialService.setMationForMap(dataList, "materialId", "materialMation");
         materialNormsService.setMationForMap(dataList, "normsId", "normsMation");
         erpDepotService.setMationForMap(dataList, "depotId", "depotMation");
-        iShopStoreService.setMationForMap(dataList, "storeId", "storeMation");
         iBarCodeService.setBarCodeMationForMap(dataList, "id", getServiceClassName());
         return dataList;
     }
