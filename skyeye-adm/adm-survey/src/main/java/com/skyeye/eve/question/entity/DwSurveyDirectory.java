@@ -162,10 +162,8 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "是否删除  1.未删除  2.删除", required = "required")
     private Integer whetherDelete;
 
-    @TableField("dwQuestionMation")
+    @TableField(exist = false)
     @ApiModelProperty(value = "题目信息", required = "json")
     private List<DwQuestion> dwQuestionMation;
-
-
 }
 
