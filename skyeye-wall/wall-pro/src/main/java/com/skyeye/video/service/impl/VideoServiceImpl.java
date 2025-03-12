@@ -1,5 +1,6 @@
 package com.skyeye.video.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -31,9 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -173,34 +172,173 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Override
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
-        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
-        // 获取当前用户的浏览记录
-        List<VideoView> videoViews = videoViewService.queryVideoViewByUserId(userId);
-        List<String> videoIds = videoViews.stream().map(VideoView::getVideoId).collect(Collectors.toList());
-        // 获取当前用户的点赞的视频
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        // 定义行为的评分权重
+        double VIEW_SCORE = 0.1; // 浏览
+        double LIKE_SCORE = 3.0; // 点赞
+        double COLLECT_SCORE = 5.0; // 收藏
+        double COMMENT_SCORE = 2.0; // 评论
+        String currentUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        Map<String, Map<String, Double>> userVideoScores = new HashMap<>();
+        // 获取所有用户的点赞的视频
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId)
-                .eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
         List<VideoRecord> supportVideos = videoRecordService.list(queryWrapper);
-        // 获取当前用户的收藏的视频
+        setUserVideoScores(supportVideos,userVideoScores,LIKE_SCORE);
+        // 获取所有用户的收藏的视频
         queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId)
-                .eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
         List<VideoRecord> collectVideos = videoRecordService.list(queryWrapper);
-        // 获取当前用户的评论的视频
+        setUserVideoScores(collectVideos,userVideoScores,COLLECT_SCORE);
+        // 获取所有用户的评论
         QueryWrapper<VideoComment> queryComment = new QueryWrapper<>();
-        queryComment.eq(MybatisPlusUtil.toColumns(VideoComment::getCreateId), userId);
         List<VideoComment> commentVideos = videoCommentService.list(queryComment);
-        // 评论更具视频id进行分组
-        Map<String, List<VideoComment>> commentMap = commentVideos.stream()
-                .collect(Collectors.groupingBy(VideoComment::getVideoId));
-        //TODO
-        // ItemCF算法
-        // 1，准备用户对视频的评分，点赞、收藏、评论
+        if(CollectionUtil.isNotEmpty(commentVideos)){
+            for (VideoComment videoComment : commentVideos) {
+                String userId = videoComment.getCreateId();
+                String videoId = videoComment.getVideoId();
+                Map<String, Double> userVideoScore = userVideoScores.getOrDefault(userId, new HashMap<>());
+                double score = userVideoScore.getOrDefault(videoId, 0.0) + COMMENT_SCORE;
+                userVideoScore.put(videoId, score);
+                userVideoScores.put(userId, userVideoScore);
+            }
+        }
+        // 获取所有用户的浏览记录
+        QueryWrapper<VideoView> queryView = new QueryWrapper<>();
+        List<VideoView> viewList = videoViewService.list(queryView);
+        setUserVideoScores(viewList,userVideoScores,VIEW_SCORE);
+        if(CollectionUtil.isEmpty(userVideoScores)){
+            throw new CustomException("没有用户的行为记录");
+        }
         // 2，计算视频之间的相似度
-        // 3，根据用户的历史行为，推荐相似的视频
+        Map<String, Map<String, Double>> similarityMap= buildSimilarityMatrix(userVideoScores);
+        List<String> videoIds = recommendVideos(currentUserId, userVideoScores, similarityMap, 10);
+        List<Video> videos = new ArrayList<>();
+        if(CollectionUtil.isNotEmpty(videoIds)){
+            for (String videoId : videoIds) {
+                Video video = selectById(videoId);
+                videos.add(video);
+            }
+            outputObject.setBeans(videos);
+            outputObject.settotal(videos.size());
+        }else {
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            QueryWrapper<Video> queryVideo = new QueryWrapper<>();
+            queryVideo.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
+            videos = list(queryVideo);
+            outputObject.setBeans(videos);
+            outputObject.settotal(page.getTotal());
+        }
+
+    }
+    private<T> void setUserVideoScores(List<T> list, Map<String, Map<String, Double>> userVideoScores, double weight){
+        if(CollectionUtil.isNotEmpty(list)){
+            for (T t : list) {
+                String userId = BeanUtil.getProperty(t, "userId");
+                String videoId = BeanUtil.getProperty(t, "videoId");
+                // 如果用户已经存在，则获取其评分Map，否则创建一个新的评分Map
+                Map<String, Double> userVideoScore = userVideoScores.getOrDefault(userId, new HashMap<>());
+                // 如果视频已经存在，则累加评分，否则初始化评分
+                double score = userVideoScore.getOrDefault(videoId, 0.0) + weight;
+                // 更新用户对视频的评分
+                userVideoScore.put(videoId, score);
+                // 将更新后的评分Map放回用户评分中
+                userVideoScores.put(userId, userVideoScore);
+            }
+        }
     }
 
+    // 计算两个视频之间的余弦相似度
+    private static double cosineSimilarity(Map<String, Double> scores1, Map<String, Double> scores2) {
+        double dotProduct = 0.0;
+        double normA = 0.0;
+        double normB = 0.0;
+        Set<String> commonUsers = new HashSet<>(scores1.keySet());
+        commonUsers.retainAll(scores2.keySet());
+        for (String user : commonUsers) {
+            dotProduct += scores1.get(user) * scores2.get(user);
+        }
+        for (double score : scores1.values()) {
+            normA += Math.pow(score, 2);
+        }
+        for (double score : scores2.values()) {
+            normB += Math.pow(score, 2);
+        }
+        return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    //构建视频之间的相似度矩阵
+    private Map<String, Map<String, Double>> buildSimilarityMatrix(Map<String, Map<String, Double>> userVideoScores) {
+        Map<String, Map<String, Double>> similarityMatrix = new HashMap<>();
+
+        // 获取所有视频ID
+        Set<String> allVideoIds = new HashSet<>();
+        for (Map<String, Double> userScores : userVideoScores.values()) {
+            allVideoIds.addAll(userScores.keySet());
+        }
+
+        List<String> videoIds = new ArrayList<>(allVideoIds);
+
+        // 计算视频之间的相似度
+        for (int i = 0; i < videoIds.size(); i++) {
+            for (int j = i + 1; j < videoIds.size(); j++) {
+                String videoId1 = videoIds.get(i);
+                String videoId2 = videoIds.get(j);
+
+                Map<String, Double> scores1 = userVideoScores.values().stream()
+                        .filter(scores -> scores.containsKey(videoId1))
+                        .collect(Collectors.toMap(
+                                map -> map.keySet().iterator().next(), // 键
+                                map -> map.values().iterator().next(), // 值
+                                (existingValue, newValue) -> existingValue // 合并函数：保留第一个值
+                        ));
+                Map<String, Double> scores2 = userVideoScores.values().stream()
+                        .filter(scores -> scores.containsKey(videoId2))
+                        .collect(Collectors.toMap(
+                                map -> map.keySet().iterator().next(), // 键
+                                map -> map.values().iterator().next(), // 值
+                                (existingValue, newValue) -> existingValue // 合并函数：保留第一个值
+                        ));
+
+                double similarity = cosineSimilarity(scores1, scores2);
+
+                similarityMatrix.computeIfAbsent(videoId1, k -> new HashMap<>()).put(videoId2, similarity);
+                similarityMatrix.computeIfAbsent(videoId2, k -> new HashMap<>()).put(videoId1, similarity);
+            }
+        }
+        return similarityMatrix;
+    }
+
+    // 为用户生成推荐列表
+    private  List<String> recommendVideos(String userId,
+                                          Map<String, Map<String, Double>> userVideoScores,
+                                          Map<String, Map<String, Double>> similarityMatrix,
+                                          int topN){
+        // 获取用户对视频的评分
+        Map<String, Double> userScores = userVideoScores.get(userId);
+        if (CollectionUtil.isEmpty(userScores)) {
+            return Collections.emptyList(); // 如果用户没有评分记录，返回空列表
+        }
+
+        // 找到用户评分最高的视频
+        String mostLikedVideo = Collections.max(userScores.entrySet(), Map.Entry.comparingByValue()).getKey();
+
+        // 获取与该视频相似度最高的其他视频
+        Map<String, Double> similarities = similarityMatrix.get(mostLikedVideo);
+        if (CollectionUtil.isEmpty(similarities)) {
+            return Collections.emptyList(); // 如果没有相似视频，返回空列表
+        }
+
+        // 按相似度排序并推荐
+        return similarities.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(topN)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
 
     /**
      * 点赞或取消点赞
