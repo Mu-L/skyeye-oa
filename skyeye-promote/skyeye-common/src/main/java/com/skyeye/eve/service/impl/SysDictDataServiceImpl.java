@@ -68,11 +68,25 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
 
     private void setIsDefault(SysDictData sysDictData) {
         if (sysDictData.getIsDefault().equals(IsDefaultEnum.IS_DEFAULT.getKey())) {
+            // 如果将当前数据修改为默认数据，则需要修改之前的数据为非默认
+            // 1. 先查询默认的仓库信息
+            QueryWrapper<SysDictData> queryWrapper = new QueryWrapper<>();
+            queryWrapper.ne(CommonConstants.ID, sysDictData.getId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getDictTypeId), sysDictData.getDictTypeId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
+            SysDictData dictData = getOne(queryWrapper, false);
+
+            // 2. 修改之前的默认仓库信息
             UpdateWrapper<SysDictData> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getDictTypeId), sysDictData.getDictTypeId());
             updateWrapper.ne(CommonConstants.ID, sysDictData.getId());
             updateWrapper.set(MybatisPlusUtil.toColumns(SysDictData::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
             update(null, updateWrapper);
+
+            // 3. 如果不为空，则刷新缓存
+            if (dictData != null) {
+                refreshCache(dictData.getId());
+            }
         }
     }
 
