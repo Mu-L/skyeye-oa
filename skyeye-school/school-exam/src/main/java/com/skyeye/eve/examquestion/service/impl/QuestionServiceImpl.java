@@ -240,33 +240,77 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (CollectionUtils.isNotEmpty(radioTd)) {
+            List<String> collect = radioTd.stream().map(ExamQuRadio::getOptionId).collect(Collectors.toList());
+            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(entityId);
+            List<String> collect1 = examQuRadioList.stream().map(ExamQuRadio::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuRadioService.deleteById(id);
+            }
             examQuRadioService.saveList(radioTd, quId, userId);
         }
-
         // 更新得分题
         List<ExamQuScore> scoreTd = entity.getScoreTd();
         if (CollectionUtils.isNotEmpty(scoreTd)) {
+            List<String> collect = scoreTd.stream().map(ExamQuScore::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examquScoreService.selectQuScore(entityId).stream().map(ExamQuScore::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examquScoreService.deleteById(id);
+            }
             examquScoreService.saveList(scoreTd, quId, userId);
         }
         // 更新多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (CollectionUtils.isNotEmpty(checkboxTd)) {
+            List<String> collect = checkboxTd.stream().map(ExamQuCheckbox::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuCheckboxService.selectQuChenbox(entityId).stream().map(ExamQuCheckbox::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuCheckboxService.deleteById(id);
+            }
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 更新多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (CollectionUtils.isNotEmpty(multiFillblankTd)) {
+            List<String> collect = multiFillblankTd.stream().map(ExamQuMultiFillblank::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuMultiFillblankService.selectQuMultiFillblank(entityId).stream().map(ExamQuMultiFillblank::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuMultiFillblankService.deleteById(id);
+            }
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
         List<ExamQuOrderby> orderByTd = entity.getOrderByTd();
         if (CollectionUtils.isNotEmpty(orderByTd)) {
+            List<String> collect = orderByTd.stream().map(ExamQuOrderby::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuOrderbyService.selectQuOrderby(entityId).stream().map(ExamQuOrderby::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuOrderbyService.deleteById(id);
+            }
             examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 更新陈列题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
         if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
+            List<String> collect = columnTd.stream().map(ExamQuChenColumn::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuChenColumnService.selectQuChenColumn(entityId).stream().map(ExamQuChenColumn::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuChenColumnService.deleteById(id);
+            }
+            List<String> collect3 = rowTd.stream().map(ExamQuChenRow::getOptionId).collect(Collectors.toList());
+            List<String> collect4 = examQuChenRowService.selectQuChenRow(entityId).stream().map(ExamQuChenRow::getId).collect(Collectors.toList());
+            List<String> collect5 = collect4.stream().filter(optionId -> !collect3.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect5) {
+                examQuChenRowService.deleteById(id);
+            }
             examQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }

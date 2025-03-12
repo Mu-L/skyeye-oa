@@ -85,14 +85,6 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
     }
 
     @Override
-    protected void deletePreExecution(ExamQuCheckbox entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility == 1){
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();

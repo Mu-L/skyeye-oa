@@ -17,7 +17,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -375,15 +374,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             for (Question question : questionsWithId) {
                 String questionId = question.getId();
                 String belongId = question.getBelongId();
-                if (StrUtil.isNotEmpty(questionId)&&StrUtil.isEmpty(belongId)){
+                if (StrUtil.isNotEmpty(questionId) && StrUtil.isEmpty(belongId)) {
                     question.setBelongId(surveId);
-                }else {
+                } else {
                     questionService.updateEntity(question, userId); // 更新题目
                 }
             }
         }
         for (Question question : questionsWithoutId) {
-            questionService.createEntity(question,userId);
+            questionService.createEntity(question, userId);
         }
     }
 

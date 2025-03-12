@@ -71,14 +71,6 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
     }
 
     @Override
-    protected void deletePreExecution(ExamQuOrderby entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();

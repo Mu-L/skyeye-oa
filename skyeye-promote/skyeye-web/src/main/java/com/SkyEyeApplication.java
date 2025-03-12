@@ -4,12 +4,15 @@
 
 package com;
 
+import com.alibaba.nacos.api.config.annotation.NacosConfigurationProperties;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -30,6 +33,8 @@ import javax.servlet.MultipartConfigElement;
 @ComponentScan(basePackages = {"com.skyeye"})
 @EnableDiscoveryClient // 开启服务发现
 @EnableFeignClients
+//@RefreshScope
+//@NacosConfigurationProperties(dataId = "skyeye-common.xml", autoRefreshed = true)
 public class SkyEyeApplication {
 
     @Value("${IMAGES_PATH}")
