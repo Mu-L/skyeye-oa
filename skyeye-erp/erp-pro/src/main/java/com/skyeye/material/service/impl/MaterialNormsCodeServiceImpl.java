@@ -300,22 +300,6 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
     }
 
     @Override
-    public void queryNormsStockDetailAllLists(InputObject inputObject, OutputObject outputObject) {
-        MaterialNormsCodeQueryDo commonPageInfo = inputObject.getParams(MaterialNormsCodeQueryDo.class);
-        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<MaterialNormsCode> wrapper = new QueryWrapper<>();
-        List<MaterialNormsCode> list = list(wrapper);
-        List<Map<String, Object>> dataList = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
-        materialService.setMationForMap(dataList, "materialId", "materialMation");
-        materialNormsService.setMationForMap(dataList, "normsId", "normsMation");
-        erpDepotService.setMationForMap(dataList, "depotId", "depotMation");
-        iBarCodeService.setBarCodeMationForMap(dataList, "id", getServiceClassName());
-        iShopStoreService.setMationForMap(dataList, "storeId", "storeMation");
-        outputObject.setBeans(list);
-        outputObject.settotal(pages.getTotal());
-    }
-
-    @Override
     public void queryStoreNormsStockDetailList(InputObject inputObject, OutputObject outputObject) {
         MaterialNormsCodeQueryDo commonPageInfo = inputObject.getParams(MaterialNormsCodeQueryDo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
