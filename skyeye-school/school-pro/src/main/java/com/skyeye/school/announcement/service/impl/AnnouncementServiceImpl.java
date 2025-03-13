@@ -9,6 +9,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -111,6 +112,9 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         } else {
             iAuthUserService.setDataMation(announcementList, Announcement::getCreateId);
         }
+        for (Announcement announcement : announcementList) {
+            setCheckIsConfirm(announcement);
+        }
         outputObject.setBeans(announcementList);
         outputObject.settotal(announcementList.size());
     }
@@ -133,8 +137,18 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     @Override
     public Announcement selectById(String id){
         Announcement announcement = super.selectById(id);
+        setCheckIsConfirm(announcement);
         iAuthUserService.setDataMation(announcement,Announcement::getCreateId);
         return announcement;
+    }
+
+    private void setCheckIsConfirm(Announcement announcement){
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<AnnouncementRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId),announcement.getId())
+                .eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getCreateId),userId);
+        AnnouncementRecord one = announcementRecordService.getOne(queryWrapper);
+        announcement.setCheckConfirm(ObjectUtil.isNotEmpty(one));
     }
 
     @Override
