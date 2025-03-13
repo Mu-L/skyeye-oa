@@ -467,7 +467,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         } else if (quType.equals(QuType.CHECKBOX.getIndex())) {
             examQuCheckboxService.removeByQuId(quId);
         } else if (quType.equals(QuType.SCORE.getIndex())) {
-            examQuScoreService.removeByQuId(quId);
+            examQuScoreService.removeByquId(quId);
         } else if (quType.equals(QuType.ORDERQU.getIndex())) {
             examQuOrderbyService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||

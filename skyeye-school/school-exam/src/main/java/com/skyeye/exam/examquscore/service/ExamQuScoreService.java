@@ -27,6 +27,5 @@ public interface ExamQuScoreService extends SkyeyeBusinessService<ExamQuScore> {
 
     void removeByquId(String entityId);
 
-    void removeByQuId(String quId);
 }
 
