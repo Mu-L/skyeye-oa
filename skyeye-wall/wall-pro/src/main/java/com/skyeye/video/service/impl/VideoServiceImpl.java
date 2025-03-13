@@ -34,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -103,42 +101,50 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Transactional
     @Override
     public void createPostpose(Video entity, String userId) {
-        // 确保这是服务器本地的文件路径
-        String videoPath = "/dev/fileBase/" + entity.getVideoSrc(); // 修改为本地路径
-        String ffmpegGPath = tPath + "/util/ffmpeg.exe"; // FFmpeg路径
+        String localVideoPath = "/dev/fileBase" + entity.getVideoSrc();
+        // 获取视频时长
+        int duration = getVideoDuration(localVideoPath);
+        if (duration > 0) {
+            entity.setVideoDuration(duration);
+            updateEntity(entity, userId);
+        }
+    }
 
+    private int getVideoDuration(String videoPath) {
+        String ffmpegPath = tPath + "/util/ffmpeg.exe"; // FFmpeg路径
         List<String> commands = new ArrayList<>();
-        commands.add(ffmpegGPath);
+        commands.add(ffmpegPath);
         commands.add("-i");
         commands.add(videoPath);
-        commands.add("-v");
-        commands.add("error");
-        commands.add("-show_entries");
-        commands.add("format=duration");
-        commands.add("-of");
-        commands.add("default=noprint_wrappers=1:nokey=1");
 
         try {
             ProcessBuilder builder = new ProcessBuilder(commands);
             Process process = builder.start();
 
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String duration = br.readLine();
-                if (duration != null && !duration.isEmpty()) {
-                    int time = (int) Math.ceil(Double.parseDouble(duration));
-                    entity.setVideoDuration(time);
-                    updateEntity(entity, userId); // 更新视频时长
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("Duration")) {
+                        // 提取时长信息，格式为 HH:MM:SS.mmm
+                        String durationStr = line.substring(line.indexOf("Duration: ") + 10, line.indexOf(",", line.indexOf("Duration: ")));
+                        String[] parts = durationStr.split(":");
+                        int hours = Integer.parseInt(parts[0]);
+                        int minutes = Integer.parseInt(parts[1]);
+                        double seconds = Double.parseDouble(parts[2]);
+                        int totalSeconds = (int) (hours * 3600 + minutes * 60 + seconds);
+                        return totalSeconds;
+                    }
                 }
             } finally {
-                process.destroy();
+                process.destroy(); // 确保进程被销毁
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        return -1; // 获取失败
     }
-
-        @Override
+    
+    @Override
     public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -173,16 +179,16 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
         List<VideoRecord> supportVideos = videoRecordService.list(queryWrapper);
-        setUserVideoScores(supportVideos,userVideoScores,LIKE_SCORE);
+        setUserVideoScores(supportVideos, userVideoScores, LIKE_SCORE);
         // 获取所有用户的收藏的视频
         queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
         List<VideoRecord> collectVideos = videoRecordService.list(queryWrapper);
-        setUserVideoScores(collectVideos,userVideoScores,COLLECT_SCORE);
+        setUserVideoScores(collectVideos, userVideoScores, COLLECT_SCORE);
         // 获取所有用户的评论
         QueryWrapper<VideoComment> queryComment = new QueryWrapper<>();
         List<VideoComment> commentVideos = videoCommentService.list(queryComment);
-        if(CollectionUtil.isNotEmpty(commentVideos)){
+        if (CollectionUtil.isNotEmpty(commentVideos)) {
             for (VideoComment videoComment : commentVideos) {
                 String userId = videoComment.getCreateId();
                 String videoId = videoComment.getVideoId();
@@ -195,22 +201,22 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         // 获取所有用户的浏览记录
         QueryWrapper<VideoView> queryView = new QueryWrapper<>();
         List<VideoView> viewList = videoViewService.list(queryView);
-        setUserVideoScores(viewList,userVideoScores,VIEW_SCORE);
-        if(CollectionUtil.isEmpty(userVideoScores)){
+        setUserVideoScores(viewList, userVideoScores, VIEW_SCORE);
+        if (CollectionUtil.isEmpty(userVideoScores)) {
             throw new CustomException("没有用户的行为记录");
         }
         // 2，计算视频之间的相似度
-        Map<String, Map<String, Double>> similarityMap= buildSimilarityMatrix(userVideoScores);
+        Map<String, Map<String, Double>> similarityMap = buildSimilarityMatrix(userVideoScores);
         List<String> videoIds = recommendVideos(currentUserId, userVideoScores, similarityMap, 10);
         List<Video> videos = new ArrayList<>();
-        if(CollectionUtil.isNotEmpty(videoIds)){
+        if (CollectionUtil.isNotEmpty(videoIds)) {
             for (String videoId : videoIds) {
                 Video video = selectById(videoId);
                 videos.add(video);
             }
             outputObject.setBeans(videos);
             outputObject.settotal(videos.size());
-        }else {
+        } else {
             Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             QueryWrapper<Video> queryVideo = new QueryWrapper<>();
             queryVideo.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime))
@@ -223,8 +229,9 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         }
 
     }
-    private<T> void setUserVideoScores(List<T> list, Map<String, Map<String, Double>> userVideoScores, double weight){
-        if(CollectionUtil.isNotEmpty(list)){
+
+    private <T> void setUserVideoScores(List<T> list, Map<String, Map<String, Double>> userVideoScores, double weight) {
+        if (CollectionUtil.isNotEmpty(list)) {
             for (T t : list) {
                 String userId = BeanUtil.getProperty(t, "userId");
                 String videoId = BeanUtil.getProperty(t, "videoId");
@@ -302,10 +309,10 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     // 为用户生成推荐列表
-    private  List<String> recommendVideos(String userId,
-                                          Map<String, Map<String, Double>> userVideoScores,
-                                          Map<String, Map<String, Double>> similarityMatrix,
-                                          int topN){
+    private List<String> recommendVideos(String userId,
+                                         Map<String, Map<String, Double>> userVideoScores,
+                                         Map<String, Map<String, Double>> similarityMatrix,
+                                         int topN) {
         // 获取用户对视频的评分
         Map<String, Double> userScores = userVideoScores.get(userId);
         if (CollectionUtil.isEmpty(userScores)) {
