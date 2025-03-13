@@ -77,7 +77,8 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
     public List<String> getAuthPermissionKeyList() {
         return Arrays.asList(TaskAuthEnum.ADD.getKey(), TaskAuthEnum.EDIT.getKey(), TaskAuthEnum.DELETE.getKey(),
             TaskAuthEnum.REVOKE.getKey(), TaskAuthEnum.INVALID.getKey(), TaskAuthEnum.SUBMIT_TO_APPROVAL.getKey(), TaskAuthEnum.LIST.getKey(),
-            TaskAuthEnum.EXECUTING.getKey(), TaskAuthEnum.COMPLETED.getKey(), TaskAuthEnum.CLOSE.getKey(), TaskAuthEnum.MY_EXECUTE.getKey(), TaskAuthEnum.MY_CREATE.getKey());
+            TaskAuthEnum.EXECUTING.getKey(), TaskAuthEnum.COMPLETED.getKey(), TaskAuthEnum.CLOSE.getKey(), TaskAuthEnum.MY_EXECUTE.getKey(), TaskAuthEnum.MY_CREATE.getKey(),
+            TaskAuthEnum.SIMPLE_BY_DEPARTMENT.getKey());
     }
 
     @Override
@@ -103,6 +104,11 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         } else if (StrUtil.equals("list", commonPageInfo.getType())) {
             // 所有的
             checkAuthPermission(task, userId, CommonNumConstants.NUM_SIX);
+        } else if (StrUtil.equals("simpleByDepartment", commonPageInfo.getType())) {
+            // 同部门人员执行的任务列表
+            checkAuthPermission(task, userId, CommonNumConstants.NUM_THIRTEEN);
+            queryWrapper.apply("INSTR(CONCAT(',', REPLACE(REPLACE(" + MybatisPlusUtil.toColumns(Task::getPerformId) + ", '[', ''), ']', ''), ','), CONCAT(',\"', {0}, '\",'))",
+                commonPageInfo.getChargePersonId());
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Task::getObjectId), commonPageInfo.getObjectId());
@@ -182,6 +188,11 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         List<Task> tasks = super.selectByIds(ids);
         iDepmentService.setDataMation(tasks, Task::getDepartmentId);
 
+        setPerformMation(tasks);
+        return tasks;
+    }
+
+    private void setPerformMation(List<Task> tasks) {
         List<String> performIdList = tasks.stream()
             .filter(bean -> CollectionUtil.isNotEmpty(bean.getPerformId()))
             .flatMap(norms -> norms.getPerformId().stream()).distinct().collect(Collectors.toList());
@@ -201,7 +212,6 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
                 task.setPerformMation(userMation);
             });
         }
-        return tasks;
     }
 
     @Override
@@ -310,6 +320,7 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         if (CollectionUtil.isEmpty(list)) {
             return;
         }
+        setPerformMation(list);
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         // 构造数据
         List<Map<String, Object>> node = new ArrayList<>();
@@ -332,6 +343,7 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         Map<String, Object> retult = new HashMap<>();
         retult.put("id", bean.get("id"));
         retult.put("text", bean.get("name"));
+        retult.put("performMation", bean.get("performMation"));
         retult.put("state", bean.get("state"));
         retult.put("parent", bean.get("parentId"));
         retult.put("start_date", bean.get("startTime"));
