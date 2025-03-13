@@ -81,6 +81,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         classesService.setMationForMap(beans, "classesId", "classesMation");
         return beans;
     }
+    @Override
+    public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), inputObject.getParams().get("objectId").toString());
+        List<SubjectClasses> list = list(queryWrapper);
+        classesService.setDataMation(list, SubjectClasses::getClassesId);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
 
     @Override
     public void createPrepose(SubjectClasses entity) {
@@ -209,7 +218,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
         if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
+                                      String subjectClassesId = map.get("id").toString();
             updateEnabled(subjectClassesId, Integer.parseInt(enabled));
         }
     }
