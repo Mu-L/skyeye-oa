@@ -332,6 +332,7 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         Map<String, Object> retult = new HashMap<>();
         retult.put("id", bean.get("id"));
         retult.put("text", bean.get("name"));
+        retult.put("state", bean.get("state"));
         retult.put("parent", bean.get("parentId"));
         retult.put("start_date", bean.get("startTime"));
         retult.put("end_date", bean.get("endTime"));
