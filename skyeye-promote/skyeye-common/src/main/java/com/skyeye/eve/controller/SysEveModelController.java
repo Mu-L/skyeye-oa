@@ -39,7 +39,7 @@ public class SysEveModelController {
         sysEveModelService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "sysevemodeltype002", value = "新增素材", method = "POST", allUse = "1")
+    @ApiOperation(id = "sysevemodel002", value = "新增素材", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysEveModel.class)
     @RequestMapping("/post/SysEveModelController/insertSysEveModelMation")
     public void insertSysEveModelMation(InputObject inputObject, OutputObject outputObject) {

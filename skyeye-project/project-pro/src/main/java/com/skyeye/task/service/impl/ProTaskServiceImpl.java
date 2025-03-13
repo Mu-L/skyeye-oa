@@ -279,12 +279,6 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         }
     }
 
-    /**
-     * 任务关闭
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void closeTask(InputObject inputObject, OutputObject outputObject) {
@@ -309,9 +303,6 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
     @Override
     public void queryProTaskListForGantt(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
-        if (StrUtil.isEmpty(tableSelectInfo.getHolderId())) {
-            return;
-        }
         // 查询数据
         QueryWrapper<Task> queryWrapper = new QueryWrapper<>();
         setQueryWrapper(tableSelectInfo, queryWrapper);
