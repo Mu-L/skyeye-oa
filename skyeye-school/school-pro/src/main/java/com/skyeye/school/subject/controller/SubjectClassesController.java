@@ -33,17 +33,32 @@ public class SubjectClassesController {
     private SubjectClassesService subjectClassesService;
 
     /**
-     * 获取科目下的班级列表
+     * 分页获取科目下的班级列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySubjectClassesList", value = "获取科目下的班级列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "querySubjectClassesList", value = "分页获取科目下的班级列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SubjectClassesController/querySubjectClassesList")
     public void querySubjectClassesList(InputObject inputObject, OutputObject outputObject) {
         subjectClassesService.queryPageList(inputObject, outputObject);
     }
+
+    /**
+     * 不分页获取科目下的班级列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryNoPageSubjectClassesList", value = "不分页获取科目下的班级列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "科目Id", required = "required")})
+    @RequestMapping("/post/SubjectClassesController/queryNoPageSubjectClassesList")
+    public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
+        subjectClassesService.queryNoPageSubjectClassesList(inputObject, outputObject);
+    }
+
 
     /**
      * 添加或修改科目与班级的关系

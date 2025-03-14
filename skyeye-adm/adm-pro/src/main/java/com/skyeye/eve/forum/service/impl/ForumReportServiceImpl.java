@@ -106,6 +106,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
         for (Map<String, Object> map : maps) {
             map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
+            map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
         }
         return maps;
     }

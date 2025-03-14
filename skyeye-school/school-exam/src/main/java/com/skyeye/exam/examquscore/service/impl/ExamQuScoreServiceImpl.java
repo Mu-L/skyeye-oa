@@ -125,11 +125,4 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         remove(updateWrapper);
     }
 
-    @Override
-    public void removeByQuId(String quId) {
-        UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId),quId);
-        remove(updateWrapper);
-    }
-
 }
