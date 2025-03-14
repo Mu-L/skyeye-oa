@@ -105,7 +105,8 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         Map<String, Object> map = inputObject.getParams();
         String subjectClassesId = map.get("subjectClassesId").toString();
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId)
+                .orderByDesc(MybatisPlusUtil.toColumns(Announcement::getCreateTime));
         List<Announcement> announcementList = list(queryWrapper);
         if (CollectionUtil.isEmpty(announcementList)) {
             iUserService.setDataMation(announcementList, Announcement::getCreateId);

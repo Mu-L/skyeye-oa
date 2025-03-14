@@ -114,7 +114,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         ids.add(id);
         remove(queryWrapper);
         deleteById(id);
-        deleteCommentPicture(ids);
+        pictureService.deleteByCommentIds(ids);
         String videoId = videoComment.getVideoId();
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
@@ -124,34 +124,24 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoService.updateEntity(video, userId);
         noticeService.deleteVideoNoticeByCommentIds(ids);
     }
-    // 删除评论的图片
-    private void deleteCommentPicture(List<String> ids) {
-        for (String id : ids) {
-            QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), id);
-            Picture one = pictureService.getOne(queryWrapper);
-            if(ObjectUtil.isNotEmpty(one)){
-                pictureService.remove(queryWrapper);
+
+    private void setCommentPicture(List<VideoComment> list) {
+        List<String> ids = list.stream().map(VideoComment::getId).collect(Collectors.toList());
+        Map<String, List<Picture>> pictureMapListByIds = pictureService.getPictureMapListByIds(ids);
+        for (VideoComment videoComment : list) {
+            List<Picture> pictures = pictureMapListByIds.get(videoComment.getId());
+            if(CollectionUtil.isNotEmpty(pictures)){
+                videoComment.setPicture(pictures.get(CommonNumConstants.NUM_ZERO));
             }
         }
     }
 
-    private void setCommentPicture(List<VideoComment> list) {
-        for (VideoComment videoComment : list) {
-            QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), videoComment.getId());
-            Picture one = pictureService.getOne(queryWrapper);
-            videoComment.setPicture(one);
-        }
-    }
-
     private void checkUpvote(List<VideoComment> list, String userId) {
+        List<String> ids = list.stream().map(VideoComment::getCreateId).collect(Collectors.toList());
+        String[] commentIds = ids.toArray(new String[0]);
+        Map<String, Boolean> stringBooleanMap = upvoteService.checkUpvote(userId, commentIds);
         for (VideoComment videoComment : list) {
-            QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), videoComment.getId());
-            Upvote one = upvoteService.getOne(queryWrapper);
-            videoComment.setCheckUpvote(ObjectUtil.isNotEmpty(one));
+            videoComment.setCheckUpvote(stringBooleanMap.get(videoComment.getId()));
         }
     }
 
@@ -182,11 +172,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     public void supportOrNotComment(InputObject inputObject, OutputObject outputObject) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         String commentId = inputObject.getParams().get("commentId").toString();
-        QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), commentId)
-                .eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
-        Upvote one = upvoteService.getOne(queryWrapper);
-        if (ObjectUtil.isEmpty(one)) {
+        Map<String, Boolean> stringBooleanMap = upvoteService.checkUpvote(userId, commentId);
+        if (!stringBooleanMap.get(commentId)) {
             // 该用户没有对这个评论进行点赞
             VideoComment videoComment = selectById(commentId);
             int supportNum = Integer.parseInt(videoComment.getUpvoteNum()) + CommonNumConstants.NUM_ONE;

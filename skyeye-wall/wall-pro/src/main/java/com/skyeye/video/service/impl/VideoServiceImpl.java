@@ -25,7 +25,7 @@ import com.skyeye.video.service.VideoService;
 import com.skyeye.video.service.VideoViewService;
 import com.skyeye.videocomment.entity.VideoComment;
 import com.skyeye.videocomment.service.VideoCommentService;
-import org.joda.time.LocalDateTime;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "视频管理", groupName = "视频管理")
 public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video> implements VideoService {
@@ -65,48 +66,21 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Override
     public Video selectById(String id) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = super.selectById(id);
-        setCheckUpvote(video, userId);
-        setCheckCollection(video, userId);
+        videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE);
+        videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO);
         userService.setDataMation(video, Video::getCreateId);
         return video;
     }
 
-    // 检验当前登录人是否对视频点赞
-    private void setCheckUpvote(Video video, String userId) {
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), video.getId());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
-        video.setCheckUpvote(videoRecordService.count(queryWrapper) > CommonNumConstants.NUM_ZERO);
-    }
-
-    // 检验当前登录人是否对视频收藏
-    private void setCheckCollection(Video video, String userId) {
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), video.getId());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
-        video.setCheckCollection(videoRecordService.count(queryWrapper) > CommonNumConstants.NUM_ZERO);
-    }
-
-    private void checkUpvoteAndCollection(List<Video> videoList, String userId) {
-        for (Video video : videoList) {
-            setCheckUpvote(video, userId);
-            setCheckCollection(video, userId);
-        }
-    }
-
-    @Transactional
     @Override
-    public void createPostpose(Video entity, String userId) {
-        String localVideoPath = "/dev/fileBase" + entity.getVideoSrc();
+    public void createPrepose(Video entity) {
+        String localVideoPath = tPath.replace("images", StrUtil.EMPTY) + entity.getVideoSrc();
         // 获取视频时长
         int duration = getVideoDuration(localVideoPath);
+        log.info(String.format(Locale.ROOT, "video id is %s, duration is %s", entity.getId(), duration));
         if (duration > 0) {
             entity.setVideoDuration(duration);
-            updateEntity(entity, userId);
         }
     }
 
@@ -121,50 +95,56 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             ProcessBuilder builder = new ProcessBuilder(commands);
             Process process = builder.start();
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                 BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
                 String line;
-                while ((line = reader.readLine()) != null) {
+                while ((line = errorReader.readLine()) != null) {
+                    log.info("Error stream: {}", line);
                     if (line.contains("Duration")) {
-                        // 提取时长信息，格式为 HH:MM:SS.mmm
+                        log.info("Duration found in error stream");
+                        // 提取时长信息
                         String durationStr = line.substring(line.indexOf("Duration: ") + 10, line.indexOf(",", line.indexOf("Duration: ")));
                         String[] parts = durationStr.split(":");
                         int hours = Integer.parseInt(parts[0]);
                         int minutes = Integer.parseInt(parts[1]);
                         double seconds = Double.parseDouble(parts[2]);
                         int totalSeconds = (int) (hours * 3600 + minutes * 60 + seconds);
+                        log.info("视频时长为: {} 秒", totalSeconds);
+                        return totalSeconds;
+                    }
+                }
+
+                while ((line = outputReader.readLine()) != null) {
+                    log.info("Output stream: {}", line);
+                    if (line.contains("Duration")) {
+                        log.info("Duration found in output stream");
+                        // 提取时长信息
+                        String durationStr = line.substring(line.indexOf("Duration: ") + 10, line.indexOf(",", line.indexOf("Duration: ")));
+                        String[] parts = durationStr.split(":");
+                        int hours = Integer.parseInt(parts[0]);
+                        int minutes = Integer.parseInt(parts[1]);
+                        double seconds = Double.parseDouble(parts[2]);
+                        int totalSeconds = (int) (hours * 3600 + minutes * 60 + seconds);
+                        log.info("视频时长为: {} 秒", totalSeconds);
                         return totalSeconds;
                     }
                 }
             } finally {
-                process.destroy(); // 确保进程被销毁
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    log.error("FFmpeg command failed with exit code: {}", exitCode);
+                }
+                process.destroy();
             }
         } catch (Exception e) {
             e.printStackTrace();
+            log.error("Failed to get video duration from: {}", videoPath, e);
         }
         return -1; // 获取失败
     }
-    
-    @Override
-    public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String objectId = commonPageInfo.getObjectId();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(objectId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), objectId);
-        }
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum));
-        List<Video> bean = list(queryWrapper);
-        checkUpvoteAndCollection(bean, userId);
-        userService.setDataMation(bean, Video::getCreateId);
-        outputObject.setBeans(bean);
-        outputObject.settotal(page.getTotal());
-    }
 
+    // TODO 待优化
     @Override
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -228,6 +208,54 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             outputObject.settotal(page.getTotal());
         }
 
+    }
+
+    /**
+     * 获取全部视频
+     * 获取我，他点赞的视频 userId type=1
+     * 获取我，他收藏的视频 userId type=2
+     */
+    @Override
+    public void queryAllCollectSupportVideo(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonConstants.class);
+        String type = commonPageInfo.getType();
+        String objectId = commonPageInfo.getObjectId();
+        if (StrUtil.isNotEmpty(type)) {
+            Map<String, List<String>> map = videoRecordService.queryAllCollectSupportVideoIds(inputObject);
+            if (CollectionUtil.isEmpty(map)) {
+                return;
+            }
+            String[] videoIds = map.get("videoIds").toArray(new String[0]);
+            String total = map.get("total").get(CommonNumConstants.NUM_ZERO);
+            List<Video> videos = selectByIds(videoIds);
+            for (Video video : videos) {
+                video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
+                video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
+            }
+            userService.setDataMation(videos, Video::getCreateId);
+            outputObject.setBean(videos);
+            outputObject.settotal(Integer.parseInt(total));
+        } else {
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            QueryWrapper<Video> queryWrapper = new QueryWrapper<>();
+            if (StrUtil.isNotEmpty(objectId)) {
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), objectId);
+            }
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
+            List<Video> beans = list(queryWrapper);
+            if (CollectionUtil.isEmpty(beans)) {
+                return;
+            }
+            for (Video video : beans) {
+                video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
+                video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
+            }
+            outputObject.setBeans(beans);
+            outputObject.settotal(page.getTotal());
+        }
     }
 
     private <T> void setUserVideoScores(List<T> list, Map<String, Map<String, Double>> userVideoScores, double weight) {
@@ -340,128 +368,29 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
      * 点赞或取消点赞
      */
     @Override
-    @Transactional
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void supportOrNotVideo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = selectById(videoId);
         int supportNum = Integer.parseInt(video.getTasnNum());
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
-        // 过滤到单一的点赞视频
-        List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
-                .filter(item -> item.getCtFlag() == CommonNumConstants.NUM_ONE)
-                .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(videoRecordList)) {
-            //  不为空证明已经点赞了——进行取消点赞——删除记录表 点赞数减1
-            supportNum--;
-            video.setTasnNum(String.valueOf(supportNum));
-            updateById(video);
-            videoRecordService.removeById(videoRecordList.get(0).getId());
-        } else {
-            // 点赞数加1
-            supportNum++;
-            video.setTasnNum(String.valueOf(supportNum));
-            updateById(video);
-            // 为空则进行点赞记录
-            VideoRecord videoRecord = new VideoRecord();
-            videoRecord.setVideoId(videoId);
-            videoRecord.setUserId(userId);
-            videoRecord.setCtFlag(CommonNumConstants.NUM_ONE);
-            videoRecord.setCreateTime(LocalDateTime.now().toString());
-            videoRecordService.createEntity(videoRecord, userId);
-        }
+        boolean isSupport = videoRecordService.checkSupportOrCollectByVideoId(videoId, CommonNumConstants.NUM_ONE);
+        supportNum = isSupport ? supportNum - CommonNumConstants.NUM_ONE : supportNum + CommonNumConstants.NUM_ONE;
+        video.setTasnNum(String.valueOf(supportNum));
+        updateById(video);
     }
 
     @Override
-    @Transactional
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void collectOrNotVideo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         Video video = selectById(videoId);
         int collectNum = Integer.parseInt(video.getCollectionNum());
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
-        List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
-                .filter(item -> item.getCtFlag() == CommonNumConstants.NUM_TWO)
-                .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(videoRecordList)) {
-            // 不为空——取消收藏——删除记录,收藏数-1
-            collectNum--;
-            video.setCollectionNum(String.valueOf(collectNum));
-            updateById(video);
-            videoRecordService.removeById(videoRecordList.get(0).getId());
-        } else {
-            // 收藏数加1
-            collectNum++;
-            video.setCollectionNum(String.valueOf(collectNum));
-            updateById(video);
-            // 为空则_进行收藏记录
-            VideoRecord videoRecord = new VideoRecord();
-            videoRecord.setVideoId(videoId);
-            videoRecord.setUserId(userId);
-            videoRecord.setCtFlag(CommonNumConstants.NUM_TWO);
-            videoRecord.setCreateTime(LocalDateTime.now().toString());
-            videoRecordService.createEntity(videoRecord, userId);
-        }
-    }
-
-    @Override
-    public void queryAllSupportVideo(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String objectId = commonPageInfo.getObjectId();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(objectId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), objectId);
-        }
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCreateTime));
-        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag));
-        List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
-                .filter(item -> item.getCtFlag() == CommonNumConstants.NUM_ONE)
-                .collect(Collectors.toList());
-        List<Video> supportList = new ArrayList<>();
-        for (VideoRecord videoRecord : videoRecordList) {
-            Video video = selectById(videoRecord.getVideoId());
-            setCheckCollection(video, userId);
-            video.setCheckUpvote(true);
-            supportList.add(video);
-        }
-        userService.setDataMation(supportList, Video::getCreateId);
-        outputObject.setBeans(supportList);
-        outputObject.settotal(page.getTotal());
-    }
-
-    @Override
-    public void queryAllCollectVideo(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String objectId = commonPageInfo.getObjectId();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(objectId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), objectId);
-        }
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCreateTime));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag));
-        List<VideoRecord> videoRecordList = videoRecordService.list(queryWrapper).stream()
-                .filter(item -> item.getCtFlag() == CommonNumConstants.NUM_TWO)
-                .collect(Collectors.toList());
-        List<Video> collectList = new ArrayList<>();
-        for (VideoRecord videoRecord : videoRecordList) {
-            Video video = selectById(videoRecord.getVideoId());
-            video.setCheckCollection(true);
-            setCheckUpvote(video, userId);
-            collectList.add(video);
-        }
-        userService.setDataMation(collectList, Video::getCreateId);
-        outputObject.setBeans(collectList);
-        outputObject.settotal(page.getTotal());
+        boolean isCollect = videoRecordService.checkSupportOrCollectByVideoId(videoId, CommonNumConstants.NUM_TWO);
+        collectNum = isCollect ? collectNum - CommonNumConstants.NUM_ONE : collectNum + CommonNumConstants.NUM_ONE;
+        video.setTasnNum(String.valueOf(collectNum));
+        updateById(video);
     }
 
     @Override
