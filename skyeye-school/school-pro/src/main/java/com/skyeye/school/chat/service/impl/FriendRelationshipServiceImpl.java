@@ -68,4 +68,13 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         update(updateWrapper);
     }
 
+    @Override
+    public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
+        List<FriendRelationship> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
+
 }

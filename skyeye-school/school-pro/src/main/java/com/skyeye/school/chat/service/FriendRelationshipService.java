@@ -10,4 +10,5 @@ public interface FriendRelationshipService extends SkyeyeBusinessService<FriendR
 
     void changeFriendStatus(String userId, String status);
 
+    void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject);
 }

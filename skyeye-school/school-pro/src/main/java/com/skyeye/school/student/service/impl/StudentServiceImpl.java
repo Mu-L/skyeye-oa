@@ -12,9 +12,15 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.SchoolConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -23,6 +29,8 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.rest.wall.certification.rest.ICertificationRest;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.entity.SchoolStudentExcelModel;
 import com.skyeye.school.entity.SchoolStudentGlobalExcelDictHandler;
 import com.skyeye.school.faculty.service.FacultyService;
@@ -30,6 +38,9 @@ import com.skyeye.school.grade.entity.YearSystem;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.grade.service.YearSystemService;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.personnel.entity.SysEveUserStaff;
+import com.skyeye.school.personnel.service.SysEveUserStaffService;
+import com.skyeye.school.personnel.service.impl.SysEveUserStaffServiceImpl;
 import com.skyeye.school.student.dao.StudentDao;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentBodyMindService;
@@ -39,10 +50,13 @@ import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.yearsub.service.YearSubjectService;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.aspectj.weaver.ast.Var;
+import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -85,6 +99,13 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private YearSubjectService yearSubjectService;
+
+    @Autowired
+    private ICertificationRest iCertificationRest;
+
+    @Autowired
+    private ICertificationService iCertificationService;
+
 
     private static final String EXPORT_EXCEL_NAME = "学生导入模板";
 
@@ -196,6 +217,49 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("name").toString();
+        String no = map.get("no").toString();
+        QueryWrapper<Student> queryWrapper= new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(name)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getName),name);
+        }
+        if (StrUtil.isNotEmpty(no)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo),no);
+        }
+        List<Student> studentList = list(queryWrapper);
+        List<Map<String, Object>> beans = studentList.stream()
+                .map(student -> {
+                    Map<String, Object> map1 = new HashMap<>();
+                    // 假设 Student 类有字段 id 和 name
+                    map1.put("id", student.getId());
+                    map1.put("name", student.getName());
+                    // 添加其他字段
+                    return map1;
+                })
+                .collect(Collectors.toList());
+        schoolService.setMationForMap(beans, "schoolId", "schoolMation");
+        facultyService.setMationForMap(beans, "facultyId", "facultyMation");
+        majorService.setMationForMap(beans, "majorId", "majorMation");
+        classesService.setMationForMap(beans, "classId", "classMation");
+        outputObject.setBeans(studentList);
+        outputObject.settotal(studentList.size());
+    }
+    @Autowired
+    private SysEveUserStaffService sysEveUserStaffService;
+
+    @Override
+    public void queryTeacherListByName(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("name").toString();
+        String number = map.get("jobNumber").toString();
+        List<SysEveUserStaff> sysEveUserStaffList = sysEveUserStaffService.selectByName(name, number);
+        outputObject.setBeans(sysEveUserStaffList);
+        outputObject.settotal(sysEveUserStaffList.size());
     }
 
     private List<Map<String, Object>> getStudentSubject(Map<String, Object> studentMap) {

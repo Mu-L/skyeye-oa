@@ -193,10 +193,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             videoComment.setUpvoteNum(Integer.toString(supportNum));
             updateById(videoComment);
             // 删除点赞记录
-            QueryWrapper<Upvote> query = new QueryWrapper<>();
-            query.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), commentId);
-            query.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
-            upvoteService.remove(query);
+            upvoteService.deleteUpvoteByObjectId(userId,commentId);
         }
     }
 
