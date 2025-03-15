@@ -19,6 +19,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -126,10 +127,13 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         // 获取帖子图片信息
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         // 获取点赞信息
-        String userId = inputObject.getLogParams().get("id").toString();
         Map<String, Boolean> checkUpvoteMap = new HashMap<>();
-        if(StrUtil.isNotEmpty(userId)){
-            checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isNotEmpty(userToken)){
+            String userId = inputObject.getLogParams().get("id").toString();
+            if(StrUtil.isNotEmpty(userId)){
+                checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+            }
         }
         Map<String, Boolean> finalCheckUpvoteMap = checkUpvoteMap;
         beans.forEach(bean -> {

@@ -25,6 +25,7 @@ import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
 import com.skyeye.school.subject.entity.Subject;
@@ -68,6 +69,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Autowired
     private SemesterService semesterService;
 
+    @Autowired
+    private ScoreTypeService scoreTypeService;
+
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SubjectClasses> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -104,6 +108,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         entity.setSourceCodeLogo(sourceCodeLogo);
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
         refreshCache(entity.getId());
+    }
+
+    @Override
+    public void createPostpose(SubjectClasses entity, String userId){
+        scoreTypeService.createDeFaultInfo(entity, userId);
     }
 
     @Override
