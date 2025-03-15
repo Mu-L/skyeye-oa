@@ -23,4 +23,6 @@ public interface VideoRecordService extends SkyeyeBusinessService<VideoRecord> {
     Map<String, List<String>> queryAllCollectSupportVideoIds(InputObject inputObject);
 
     boolean checkSupportOrCollectByVideoId(String videoId, int type);
+
+    List<VideoRecord> queryAllSupportOrCollect(int type);
 }

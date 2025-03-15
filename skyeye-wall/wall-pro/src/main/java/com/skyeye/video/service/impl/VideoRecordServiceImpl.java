@@ -9,18 +9,14 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.video.dao.VideoRecordDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
 import com.skyeye.video.service.VideoRecordService;
-import com.skyeye.video.service.VideoService;
 import org.joda.time.LocalDateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -109,6 +105,10 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
         }
     }
 
-
-
+    @Override
+    public List<VideoRecord> queryAllSupportOrCollect(int type) {
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), type);
+        return list(queryWrapper);
+    };
 }

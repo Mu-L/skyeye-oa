@@ -311,7 +311,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setPictureList(pictureMap.get(post.getId()));
             post.setCheckUpvote(booleanMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
-                CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
+                    CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
         });
         userService.setDataMation(list, Post::getCreateId);
         return sortPostList;
@@ -328,7 +328,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return;
         }
         List<String> postIds = historyPostList.stream()
-            .map(HistoryPost::getPostId).collect(Collectors.toList());
+                .map(HistoryPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
         List<Post> postList = list(queryWrapper);
@@ -353,11 +353,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         //查询近三十天的帖子
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper
-            // 取浏览量超过1的帖子
-            .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
-            // 取前三十天以内的帖子
-            .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
-            .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+                // 取浏览量超过1的帖子
+                .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
+                // 取前三十天以内的帖子
+                .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
+                .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         return list(queryWrapper);
     }
 
@@ -376,7 +376,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), circleId);
         List<Post> postList = list(queryWrapper);
         List<String> postIds = postList.stream()
-            .map(Post::getId).collect(Collectors.toList());
+                .map(Post::getId).collect(Collectors.toList());
         pictureService.deleteByPostIds(postIds);
         commentService.deleteByPostIds(postIds);
         remove(queryWrapper);
@@ -387,9 +387,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<PopularPost> popularPostList = popularPostService.queryTodayPopularPostList();
         List<String> postIds = popularPostList.stream()
-            .map(PopularPost::getPostId).collect(Collectors.toList());
+                .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        if(CollectionUtil.isEmpty(postIds)){
+        if (CollectionUtil.isEmpty(postIds)) {
             throw new CustomException("暂无热门帖子");
         }
         queryWrapper.in(CommonConstants.ID, postIds);

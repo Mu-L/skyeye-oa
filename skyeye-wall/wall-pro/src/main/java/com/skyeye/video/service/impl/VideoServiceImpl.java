@@ -156,18 +156,13 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String currentUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         Map<String, Map<String, Double>> userVideoScores = new HashMap<>();
         // 获取所有用户的点赞的视频
-        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_ONE);
-        List<VideoRecord> supportVideos = videoRecordService.list(queryWrapper);
+        List<VideoRecord> supportVideos = videoRecordService.queryAllSupportOrCollect(CommonNumConstants.NUM_ONE);
         setUserVideoScores(supportVideos, userVideoScores, LIKE_SCORE);
         // 获取所有用户的收藏的视频
-        queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), CommonNumConstants.NUM_TWO);
-        List<VideoRecord> collectVideos = videoRecordService.list(queryWrapper);
+        List<VideoRecord> collectVideos = videoRecordService.queryAllSupportOrCollect(CommonNumConstants.NUM_TWO);
         setUserVideoScores(collectVideos, userVideoScores, COLLECT_SCORE);
         // 获取所有用户的评论
-        QueryWrapper<VideoComment> queryComment = new QueryWrapper<>();
-        List<VideoComment> commentVideos = videoCommentService.list(queryComment);
+        List<VideoComment> commentVideos = videoCommentService.queryAllData();
         if (CollectionUtil.isNotEmpty(commentVideos)) {
             for (VideoComment videoComment : commentVideos) {
                 String userId = videoComment.getCreateId();
@@ -179,8 +174,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             }
         }
         // 获取所有用户的浏览记录
-        QueryWrapper<VideoView> queryView = new QueryWrapper<>();
-        List<VideoView> viewList = videoViewService.list(queryView);
+        List<VideoView> viewList = videoViewService.queryAllData();
         setUserVideoScores(viewList, userVideoScores, VIEW_SCORE);
         if (CollectionUtil.isEmpty(userVideoScores)) {
             throw new CustomException("没有用户的行为记录");
