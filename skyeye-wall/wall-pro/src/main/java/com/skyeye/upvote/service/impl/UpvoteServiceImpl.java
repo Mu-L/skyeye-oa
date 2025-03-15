@@ -146,4 +146,12 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Upvote::getCreateTime));
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteUpvoteByObjectId(String userId,String objectId) {
+        QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);
+        remove(queryWrapper);
+    }
 }

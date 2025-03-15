@@ -65,7 +65,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         String id = inputObject.getParams().get("announcementId").toString();
         String stuNo = inputObject.getParams().get("stuNo").toString();
         UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("id", id);
+        updateWrapper.eq(CommonConstants.ID, id);
         Announcement announcement = announcementService.getOne(updateWrapper);
         if(ObjectUtil.isEmpty(announcement)){
             throw new CustomException("该公告不存在");
@@ -170,16 +170,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         announcement.setObjectId(subjectClasses.getObjectId());
         announcement.setObjectKey(subjectClasses.getObjectKey());
         // 删除记录表先前announcedId的记录
-        List<String> ids = new ArrayList<>();
-        QueryWrapper<AnnouncementRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId),id);
-        List<AnnouncementRecord> announcementRecordList = announcementRecordService.list(queryWrapper);
-        if(CollectionUtil.isNotEmpty(announcementRecordList)){
-            for(AnnouncementRecord record : announcementRecordList){
-                ids.add(record.getId());
-            }
-            announcementRecordService.deleteById(ids);
-        }
+        announcementRecordService.deleteRecordByAnnouncementId(id);
     }
 
     @Override

@@ -18,4 +18,6 @@ public interface AnnouncementRecordService extends SkyeyeBusinessService<Announc
     void queryRecordByAnnouncementId(InputObject inputObject, OutputObject outputObject);
 
     void queryUnConfirmRecordByAnnouncementId(InputObject inputObject, OutputObject outputObject);
+
+    void deleteRecordByAnnouncementId(String announcementId);
 }

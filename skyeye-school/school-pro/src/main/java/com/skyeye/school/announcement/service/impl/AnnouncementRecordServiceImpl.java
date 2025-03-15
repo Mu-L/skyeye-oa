@@ -1,8 +1,6 @@
 package com.skyeye.school.announcement.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -161,5 +159,12 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
             }
         }
         announcementRecordService.deleteById(ids);
+    }
+
+    @Override
+    public void deleteRecordByAnnouncementId(String announcementId){
+        QueryWrapper<AnnouncementRecord> recordQueryWrapper = new QueryWrapper<>();
+        recordQueryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId), announcementId);
+        remove(recordQueryWrapper);
     }
 }
