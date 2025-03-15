@@ -3,5 +3,8 @@ package com.skyeye.school.personnel.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.school.personnel.entity.SysEveUserStaff;
 
+import java.util.List;
+
 public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUserStaff> {
+    List<SysEveUserStaff> selectByName(String name, String jobNumber);
 }
