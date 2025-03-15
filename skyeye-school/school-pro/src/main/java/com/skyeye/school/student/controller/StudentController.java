@@ -46,6 +46,36 @@ public class StudentController {
     }
 
     /**
+     * 根据学生姓名和学号获取在校学生信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryStudentListByNameOrNo", value = "根据学生姓名和学号获取在校学生信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "name", name = "name", value = "学生姓名"),
+            @ApiImplicitParam(id = "no", name = "no", value = "学号")})
+    @RequestMapping("/post/StudentController/queryStudentListByNameOrNo")
+    public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryStudentListByNameOrNo(inputObject, outputObject);
+    }
+
+    /**
+     * 根据姓名获取老师信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTeacherListByName", value = "根据姓名获取老师信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "name", name = "name", value = "老师姓名"),
+            @ApiImplicitParam(id = "jobNumber", name = "jobNumber", value = "员工工号")})
+    @RequestMapping("/post/StudentController/queryTeacherListByName")
+    public void queryTeacherListByName(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryTeacherListByName(inputObject, outputObject);
+    }
+
+    /**
      * 新增/修改学生信息
      *
      * @param inputObject  入参以及用户信息等获取对象

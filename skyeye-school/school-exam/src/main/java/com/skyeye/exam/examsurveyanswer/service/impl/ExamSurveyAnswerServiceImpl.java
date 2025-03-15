@@ -241,7 +241,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 }
             }
         }
-        iAuthUserService.setName(list,"createId","createName");
+        iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
@@ -252,7 +252,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Integer page = commonPageInfo.getPage();
         Integer limit = commonPageInfo.getLimit();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_TWO);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
@@ -262,7 +262,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Integer page = commonPageInfo.getPage();
         Integer limit = commonPageInfo.getLimit();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
@@ -296,22 +296,22 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getMajorId().equals(commonPageInfo.getObjectKey())).collect(Collectors.toList());
         }
         // 学号
-        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             beans = beans.stream().filter(examSurveyAnswer -> {
                 Map<String, Object> stuMation = examSurveyAnswer.getStuMation();
-                return  StrUtil.contains((String) stuMation.get("studentNumber"), commonPageInfo.getObjectId());
+                return StrUtil.contains((String) stuMation.get("studentNumber"), commonPageInfo.getObjectId());
             }).collect(Collectors.toList());
         }
         // 是否包含模糊搜索学生名字
-        if(StrUtil.isNotEmpty(commonPageInfo.getType())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
             beans = beans.stream().filter(examSurveyAnswer -> {
                 Map<String, Object> stuMation = examSurveyAnswer.getStuMation();
-                return  StrUtil.contains((String) stuMation.get("realName"), commonPageInfo.getType());
+                return StrUtil.contains((String) stuMation.get("realName"), commonPageInfo.getType());
             }).collect(Collectors.toList());
         }
         // 试卷名
-        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
-            beans = beans.stream().filter(examSurveyAnswer ->{
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            beans = beans.stream().filter(examSurveyAnswer -> {
                 ExamSurveyDirectory surveyMation = examSurveyAnswer.getSurveyMation();
                 return StrUtil.contains(surveyMation.getSurveyName(), commonPageInfo.getKeyword());
             }).collect(Collectors.toList());
@@ -326,7 +326,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         outputObject.setBeans(beans.subList(fromIndex, toIndex));
         outputObject.settotal(beans.size());
     }
-
 
 
 }

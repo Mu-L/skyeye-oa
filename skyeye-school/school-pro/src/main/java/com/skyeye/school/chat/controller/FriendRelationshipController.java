@@ -34,6 +34,19 @@ public class FriendRelationshipController {
     }
 
     /**
+     * 不分页查询好友管理列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryNoPageFriendsList", value = "不分页查询好友管理列表", method = "POST", allUse = "2")
+//    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/FriendRelationshipController/queryNoPageFriendsList")
+    public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
+        friendRelationshipService.queryNoPageFriendsList(inputObject, outputObject);
+    }
+
+    /**
      * 查询好友消息
      *
      * @param inputObject  入参以及用户信息等获取对象

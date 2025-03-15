@@ -546,19 +546,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         createEntity(examSurveyDirectoryList, userId);
     }
 
-//    @Override
-//    public void queryExamFxById(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        String id = map.get("id").toString();
-//        ExamSurveyDirectory examSurveyDirectory = selectById(id);
-//        if (examSurveyDirectory!=null){
-//            List<Question> questionList = questionService.QueryQuestionByBelongId(id);
-//            for (Question question : questionList) {
-//            }
-//        }
-//
-//    }
-
     @Override
     public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
         for (ExamSurveyDirectory entity : examSurveyDirectory) {

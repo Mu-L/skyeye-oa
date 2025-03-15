@@ -34,7 +34,6 @@ logging:
   level:
     com.skyeye.eve.centerrest: debug
 #    com.skyeye.eve.dao: debug
-
 feign:
   client:
     config:
