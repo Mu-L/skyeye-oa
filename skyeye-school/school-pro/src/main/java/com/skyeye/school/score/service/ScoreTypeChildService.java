@@ -4,6 +4,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.subject.entity.SubjectClasses;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     ScoreTypeChild queryByTypeId(String typeId);
 
-    void createDeFaultInfo(String userId);
+    void createDeFaultInfo(SubjectClasses subjectClasses);
 
     void boundData(InputObject inputObject, OutputObject outputObject);
 

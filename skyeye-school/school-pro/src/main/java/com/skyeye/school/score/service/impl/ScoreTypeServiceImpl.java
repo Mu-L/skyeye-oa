@@ -132,6 +132,6 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         scoreType.setClassId(subjectClasses.getClassesId());
         scoreType.setProportion("100");
         super.createEntity(scoreType, userId);
-        scoreTypeChildService.createDeFaultInfo(userId);
+        scoreTypeChildService.createDeFaultInfo(subjectClasses);
     }
 }

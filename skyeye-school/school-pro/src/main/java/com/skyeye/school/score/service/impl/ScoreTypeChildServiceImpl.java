@@ -22,6 +22,7 @@ import com.skyeye.school.score.entity.ScoreTypeChildList;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
+import com.skyeye.school.subject.entity.SubjectClasses;
 import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,7 +88,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
-    public void createDeFaultInfo(String userId) {
+    public void createDeFaultInfo(SubjectClasses subjectClasses) {
         List<String> nameList = Arrays.asList(
             "作业成绩", "测试成绩", "互动课件成绩",
             "资料成绩", "互动答题成绩", "话题成绩",
@@ -98,9 +99,11 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             scoreTypeChild.setIsDefault(IsDefaultEnum.IS_DEFAULT.getKey());
             scoreTypeChild.setName(s);
             scoreTypeChild.setProportion("12.5");
+            scoreTypeChild.setSubjectId(subjectClasses.getObjectId());
+            scoreTypeChild.setClassId(subjectClasses.getClassesId());
             scoreTypeChildList.add(scoreTypeChild);
         }
-        super.createEntity(scoreTypeChildList, userId);
+        super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
     }
 
     @Override
