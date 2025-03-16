@@ -1,5 +1,6 @@
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -56,7 +57,6 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
             throw new CustomException("处理过期时间失败: " + e.getMessage());
         }
         entity.setStatus(CommonNumConstants.NUM_ZERO);
-
         String recipientId = entity.getRecipientId();//被申请人Id
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
@@ -68,7 +68,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
                         .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
                         .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
         List<TalkRequest> talkRequestList = list(queryWrapper);
-        if (talkRequestList.size() != CommonNumConstants.NUM_ONE) {
+        if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
         }
     }
@@ -87,6 +87,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId),InputObject.getLogParamsStatic().get("id").toString());
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();
