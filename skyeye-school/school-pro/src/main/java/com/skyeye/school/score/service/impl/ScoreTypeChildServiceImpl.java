@@ -18,6 +18,7 @@ import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
 import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.entity.ScoreTypeChildList;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
@@ -142,20 +143,16 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void changeProportion(InputObject inputObject, OutputObject outputObject) {
-        HashMap<String, String> params = inputObject.getParams(HashMap.class);
-        List<String> proportionList = new ArrayList<>(params.values());
+        ScoreTypeChildList params = inputObject.getParams(ScoreTypeChildList.class);
+        List<ScoreTypeChild> scoreTypeChildList = params.getScoreTypeChildList();
+        if (CollectionUtil.isEmpty(scoreTypeChildList)){
+            return;
+        }
+        List<String> proportionList = scoreTypeChildList.stream().map(ScoreTypeChild::getProportion).collect(Collectors.toList());
         // 使用stream流计算占比总和是否小于100大于0
         double sum = proportionList.stream().mapToDouble(Double::parseDouble).sum();
         if (sum <= CommonNumConstants.NUM_ZERO || sum >= 100) {
             throw new CustomException("占比总和需要大于0小于100");
-        }
-        List<String> childIdList = new ArrayList<>(params.keySet());
-        List<ScoreTypeChild> scoreTypeChildList = queryListByParentIdList(childIdList);
-        for (String s : childIdList) {
-            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
-            scoreTypeChild.setId(s);
-            scoreTypeChild.setProportion(params.get(s));
-            scoreTypeChildList.add(scoreTypeChild);
         }
         super.updateEntity(scoreTypeChildList, inputObject.getLogParams().get("id").toString());
     }
