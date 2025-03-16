@@ -388,7 +388,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     @Override
     public void queryHotPostList(InputObject inputObject, OutputObject outputObject) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<PopularPost> popularPostList = popularPostService.queryTodayPopularPostList();
         List<String> postIds = popularPostList.stream()
                 .map(PopularPost::getPostId).collect(Collectors.toList());
@@ -398,15 +397,22 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
         queryWrapper.in(CommonConstants.ID, postIds);
         List<Post> postList = list(queryWrapper);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
+        if(StrUtil.isNotEmpty(userToken)){
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        }
         //获取点赞信息
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
-        checkUpvoteMap.forEach((key, value) -> {
-            postList.forEach(post -> {
-                if (key.equals(post.getId())) {
-                    post.setCheckUpvote(value);
-                }
+        if(CollectionUtil.isNotEmpty(checkUpvoteMap)){
+            checkUpvoteMap.forEach((key, value) -> {
+                postList.forEach(post -> {
+                    if (key.equals(post.getId())) {
+                        post.setCheckUpvote(value);
+                    }
+                });
             });
-        });
+        }
         outputObject.setBeans(postList);
         outputObject.settotal(popularPostList.size());
     }
