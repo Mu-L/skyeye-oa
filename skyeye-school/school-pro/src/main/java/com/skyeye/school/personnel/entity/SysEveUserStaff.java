@@ -29,7 +29,7 @@ import java.util.Map;
 //@RedisCacheField(name = CacheConstants.SYS_USER_STAFF_CACHE_KEY, cacheTime = RedisConstants.A_YEAR_SECONDS)
 @TableName(value = "sys_eve_user_staff")
 @ApiModel("员工管理实体类")
-public class SysEveUserStaff extends OperatorUserInfo {
+public class  SysEveUserStaff extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

@@ -63,32 +63,6 @@ public class DwSurveyDirectoryController {
     }
 
     /**
-     * 获取所有问卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAllDwList", value = "获取所有问卷列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwSurveyDirectoryController/queryAllDwList")
-    public void queryAllDwList(InputObject inputObject, OutputObject outputObject) {
-        dwSurveyDirectoryService.queryAllDwList(inputObject, outputObject);
-    }
-
-    /**
-     * 获取我的问卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMyDwList", value = "获取我的问卷列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwSurveyDirectoryController/queryMyDwList")
-    public void queryMyDwList(InputObject inputObject, OutputObject outputObject) {
-        dwSurveyDirectoryService.queryMyDwList(inputObject, outputObject);
-    }
-
-    /**
      * 根据id获取问卷信息
      *
      * @param inputObject  入参以及用户信息等获取对象

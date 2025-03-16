@@ -29,10 +29,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public List<SysEveUserStaff> selectByName(String name, String jobNumber) {
         QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(name)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), name);
+            queryWrapper.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), name);
         }
         if (StrUtil.isNotEmpty(jobNumber)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getJobNumber), jobNumber);
+            queryWrapper.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getJobNumber), jobNumber);
         }
         return list(queryWrapper);
     }

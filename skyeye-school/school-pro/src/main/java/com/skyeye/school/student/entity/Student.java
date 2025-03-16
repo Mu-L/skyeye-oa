@@ -60,7 +60,7 @@ public class Student extends OperatorUserInfo {
     private String id;
 
     @TableField("name")
-    @ApiModelProperty(value = "学生姓名", required = "required")
+    @ApiModelProperty(value = "学生姓名", required = "required",fuzzyLike = true)
     @Excel(name = "学生姓名", width = 15, isImportField = "true_st", orderNum = "1")
     private String name;
 
@@ -74,7 +74,7 @@ public class Student extends OperatorUserInfo {
     private String nameUsed;
 
     @TableField("no")
-    @ApiModelProperty(value = "学号", required = "required")
+    @ApiModelProperty(value = "学号", required = "required",fuzzyLike = true)
     @Excel(name = "学号", width = 15, isImportField = "true_st", orderNum = "3")
     private String no;
 

@@ -397,20 +397,17 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             throw new CustomException("该问卷信息不存在!");
         }
     }
-
     @Override
-    public void queryMyDwList(InputObject inputObject, OutputObject outputObject) {
+    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = inputObject.getLogParams().get("id").toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateId), userId);
-        outputResult(outputObject, page, queryWrapper);
+        outputDwList(outputObject, commonPageInfo, queryWrapper, page);
     }
 
-    private void outputResult(OutputObject outputObject, Page page, QueryWrapper<DwSurveyDirectory> queryWrapper) {
+    private void outputNoDelete(OutputObject outputObject, QueryWrapper<DwSurveyDirectory> queryWrapper, Page page) {
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateTime));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateTime));
         List<DwSurveyDirectory> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId", "createName");
         iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
@@ -419,33 +416,15 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
-    public void queryAllDwList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
-    public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        extracted(commonPageInfo, queryWrapper);
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
     public void queryMyDwurvey(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        extracted(commonPageInfo, queryWrapper);
-        outputResult(outputObject, page, queryWrapper);
+        outputDwList(outputObject, commonPageInfo, queryWrapper, page);
     }
 
-    private static void extracted(CommonPageInfo commonPageInfo, QueryWrapper<DwSurveyDirectory> queryWrapper) {
+    private void outputDwList(OutputObject outputObject, CommonPageInfo commonPageInfo, QueryWrapper<DwSurveyDirectory> queryWrapper, Page page) {
         // 试卷名称
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             queryWrapper.like(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
@@ -454,6 +433,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), commonPageInfo.getState());
         }
+        outputNoDelete(outputObject, queryWrapper, page);
     }
 
     @Override
@@ -484,49 +464,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (CollectionUtil.isEmpty(questionList)) {
             outputObject.setBean(bean);
         }
-
-//        List<String> questionIds = questionList.stream().map(DwQuestion::getId).collect(Collectors.toList());
-//        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = dwQuestionLogicService.selectByQuestionIds(questionIds);
-//        Map<String, List<Map<String, Object>>> examQuRadioMapList = dwQuRadioService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuScoreMapList = dwQuScoreService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = dwQuCheckboxService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = dwQuChenColumnService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuchenRowMapList = dwQuChenRowService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = dwQuMultiFillblankService.selectByBelongId(id);
-//        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = dwQuOrderbyService.selectByBelongId(id);
-//        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-//                examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
-//        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-//                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
-//        questionList.forEach(item -> {
-//            String quId = item.getId();
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
-//                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuRadio.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
-//                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuScore.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
-//                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuCheckbox.class));
-//            }
-//            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
-//            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
-//                try {
-//                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenColumn.class));// 尝试转换为列选择项
-//                } catch (RuntimeException e) {
-//                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
-//                }
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
-//                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuMultiFillblank.class));
-//            }
-//            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
-//                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuOrderby.class));
-//            }
-//            if (collect.containsKey(quId)) {// 问题逻辑设置信息
-//                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), DwQuestionLogic.class));
-//            }
-//        });
         outputObject.setBean(bean);
         outputObject.setBeans(questionList);
     }

@@ -91,7 +91,7 @@ public class StudentController {
     /**
      * 获取学生信息详情
      */
-    @ApiOperation(id = "queryStudentDetailById", value = "获取学生信息详情", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryStudentDetailById", value = "获取学生信息详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/StudentController/queryStudentDetailById")

@@ -226,10 +226,10 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         String no = map.get("no").toString();
         QueryWrapper<Student> queryWrapper= new QueryWrapper<>();
         if (StrUtil.isNotEmpty(name)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getName),name);
+            queryWrapper.like(MybatisPlusUtil.toColumns(Student::getName),name);
         }
         if (StrUtil.isNotEmpty(no)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo),no);
+            queryWrapper.like(MybatisPlusUtil.toColumns(Student::getNo),no);
         }
         List<Student> studentList = list(queryWrapper);
         List<Map<String, Object>> beans = studentList.stream()
