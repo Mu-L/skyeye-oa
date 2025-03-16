@@ -34,16 +34,29 @@ public class TalkRequestController {
     }
 
     /**
-     * 查询好友申请消息
+     * 被申请人查询好友申请消息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryTalkRequest", value = "查询好友申请消息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryTalkRequestByRecipient", value = "被申请人查询好友申请消息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/TalkMessageController/queryTalkRequest")
-    public void queryTalkRequest(InputObject inputObject, OutputObject outputObject) {
-        talkMessageService.queryTalkRequest(inputObject, outputObject);
+    @RequestMapping("/post/TalkMessageController/queryTalkRequestByRecipient")
+    public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
+        talkMessageService.queryTalkRequestByRecipient(inputObject, outputObject);
+    }
+
+    /**
+     * 申请人查询好友申请消息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTalkRequestByApplicant", value = "申请人查询好友申请消息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/TalkMessageController/queryTalkRequestByApplicant")
+    public void queryTalkRequestByApplicant(InputObject inputObject, OutputObject outputObject) {
+        talkMessageService.queryTalkRequestByApplicant(inputObject, outputObject);
     }
 
     /**
@@ -75,7 +88,5 @@ public class TalkRequestController {
     public void changeFriendStatus(InputObject inputObject, OutputObject outputObject) {
         talkMessageService.changeFriendStatus(inputObject, outputObject);
     }
-
-
 
 }

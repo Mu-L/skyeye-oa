@@ -6,9 +6,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chat.entity.TalkRequest;
 
 public interface TalkRequestService extends SkyeyeBusinessService<TalkRequest> {
-    void queryTalkRequest(InputObject inputObject, OutputObject outputObject);
+    void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject);
 
     void changeFriendStatus(InputObject inputObject, OutputObject outputObject);
 
     void queryTalkRequestFriend(InputObject inputObject, OutputObject outputObject);
+
+    void queryTalkRequestByApplicant(InputObject inputObject, OutputObject outputObject);
 }

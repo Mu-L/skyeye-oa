@@ -1,6 +1,7 @@
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -19,6 +20,10 @@ import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.chat.service.TalkRequestService;
+import com.skyeye.school.personnel.entity.SysEveUserStaff;
+import com.skyeye.school.personnel.service.SysEveUserStaffService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,36 +46,36 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
 
     @Override
     protected void createPrepose(TalkRequest entity) {
-        try {
-            String createTime = entity.getCreateTime();
-            if (createTime == null || createTime.trim().isEmpty()) {
-                throw new CustomException("createTime不能为空");
-            }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(createTime, formatter);
-            // 直接计算并设置 LocalDateTime
-            LocalDateTime newDateTime = dateTime.plusWeeks(1);
-            entity.setExpireTime(newDateTime);
-        } catch (DateTimeParseException e) {
-            throw new CustomException("时间格式不正确: " + e.getMessage());
-        } catch (Exception e) {
-            throw new CustomException("处理过期时间失败: " + e.getMessage());
-        }
-        entity.setStatus(CommonNumConstants.NUM_ZERO);
-        String recipientId = entity.getRecipientId();//被申请人Id
-        String applicantId = entity.getApplicantId();//申请人Id
-        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
-        queryWrapper
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
-        List<TalkRequest> talkRequestList = list(queryWrapper);
-        if (CollectionUtil.isNotEmpty(talkRequestList)) {
-            throw new CustomException("禁止重新添加好友");
-        }
+//        try {
+//            String createTime = entity.getCreateTime();
+//            if (createTime == null || createTime.trim().isEmpty()) {
+//                throw new CustomException("createTime不能为空");
+//            }
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//            LocalDateTime dateTime = LocalDateTime.parse(createTime, formatter);
+//            // 直接计算并设置 LocalDateTime
+//            LocalDateTime newDateTime = dateTime.plusWeeks(1);
+//            entity.setExpireTime(newDateTime);
+//        } catch (DateTimeParseException e) {
+//            throw new CustomException("时间格式不正确: " + e.getMessage());
+//        } catch (Exception e) {
+//            throw new CustomException("处理过期时间失败: " + e.getMessage());
+//        }
+//        entity.setStatus(CommonNumConstants.NUM_ZERO);
+//        String recipientId = entity.getRecipientId();//被申请人Id
+//        String applicantId = entity.getApplicantId();//申请人Id
+//        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
+//        queryWrapper
+//                .or(wrapper -> wrapper
+//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+//                .or(wrapper -> wrapper
+//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
+//        List<TalkRequest> talkRequestList = list(queryWrapper);
+//        if (CollectionUtil.isNotEmpty(talkRequestList)) {
+//            throw new CustomException("禁止重新添加好友");
+//        }
     }
 
     @Override
@@ -81,20 +86,55 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
 
+    @Autowired
+    private SysEveUserStaffService sysEveUserStaffService;
+
+    @Autowired
+    private StudentService studentService;
+
     @Override
-    public void queryTalkRequest(InputObject inputObject, OutputObject outputObject) {
+    public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId),InputObject.getLogParamsStatic().get("id").toString());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId),commonPageInfo.getHolderId());
+        List<TalkRequest> talkRequestList = list(queryWrapper);
+        for (TalkRequest talkRequest : talkRequestList) {
+            String applicantId = talkRequest.getApplicantId();
+            Student student = studentService.selectById(applicantId);
+            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(applicantId);
+            if (ObjectUtil.isNotEmpty(student)){
+                talkRequest.setStudentApplicantMation(student);
+            }
+            if (ObjectUtil.isNotEmpty(sysEveUserStaff)){
+                talkRequest.setTeacherApplicantMation(sysEveUserStaff);
+            }
+        }
+        outputObject.setBeans(talkRequestList);
+        outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryTalkRequestByApplicant(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId),commonPageInfo.getHolderId());
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();
-            Map<String, Object> userInfo = iAuthUserService.queryDataMationById(recipientId);
-            talkRequest.setRecipientMation(userInfo);
+            Student student = studentService.selectById(recipientId);
+            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(recipientId);
+            if (ObjectUtil.isNotEmpty(student)){
+                talkRequest.setStudentRecipientMation(student);
+            }
+            if (ObjectUtil.isNotEmpty(sysEveUserStaff)) {
+                talkRequest.setTeacherRecipientMation(sysEveUserStaff);
+            }
         }
-        outputObject.setBean(talkRequestList);
+        outputObject.setBeans(talkRequestList);
         outputObject.settotal(page.getTotal());
     }
 
@@ -115,8 +155,8 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     public void queryTalkRequestFriend(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
-        Map<String, Object> Friend = iAuthUserService.queryDataMationById(id);
-        outputObject.setBean(Friend);
+        Student student = studentService.selectById(id);
+        outputObject.setBean(student);
     }
 }
 
