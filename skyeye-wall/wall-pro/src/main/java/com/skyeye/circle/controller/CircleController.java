@@ -85,4 +85,19 @@ public class CircleController {
     public void selectCircleById(InputObject inputObject, OutputObject outputObject) {
         circleService.selectById(inputObject, outputObject);
     }
+
+    /**
+     * 获取相关圈子
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryRelateCircles", value = "获取相关圈子", method = "POST", allUse = "2")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
+    )
+    @RequestMapping("/post/CircleController/queryRelateCircles")
+    public void queryRelateCircles(InputObject inputObject, OutputObject outputObject) {
+        circleService.queryRelateCircles(inputObject, outputObject);
+    }
 }

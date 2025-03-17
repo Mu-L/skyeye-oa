@@ -16,7 +16,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exception.CustomException;
 import com.skyeye.historypost.dao.HistoryPostDao;
 import com.skyeye.historypost.entity.HistoryPost;
 import com.skyeye.historypost.service.HistoryPostService;
@@ -26,9 +25,7 @@ import com.skyeye.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -114,5 +111,15 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         remove(queryWrapper);
         outputObject.setBeans(idList);
         outputObject.settotal(idList.size());
+    }
+
+    @Override
+    public List<String> queryRecordUserIdByPostId(String postId) {
+        QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getPostId), postId)
+                .select(MybatisPlusUtil.toColumns(HistoryPost::getCreateId))
+                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime));
+        List<HistoryPost> historyPostList = list(queryWrapper);
+        return historyPostList.stream().map(HistoryPost::getCreateId).collect(Collectors.toList());
     }
 }

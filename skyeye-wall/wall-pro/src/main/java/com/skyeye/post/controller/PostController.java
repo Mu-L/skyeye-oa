@@ -53,7 +53,7 @@ public class PostController {
      */
     @ApiOperation(id = "queryPostById", value = "根据ID获取帖子信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PostController/queryPostById")
     public void queryPostById(InputObject inputObject, OutputObject outputObject) {
         postService.selectById(inputObject, outputObject);
@@ -80,7 +80,7 @@ public class PostController {
      */
     @ApiOperation(id = "deletePostById", value = "根据ID删除帖子信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PostController/deletePostById")
     public void deletePostById(InputObject inputObject, OutputObject outputObject) {
         postService.deleteById(inputObject, outputObject);
@@ -135,5 +135,35 @@ public class PostController {
     @RequestMapping("/post/PostController/queryHotPostList")
     public void queryHotPostList(InputObject inputObject, OutputObject outputObject) {
         postService.queryHotPostList(inputObject, outputObject);
+    }
+
+    /**
+     * 获取用户的总点赞、评论、帖子数量
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryUserPostCount", value = "获取用户的总点赞、评论、帖子数量", method = "POST", allUse = "0")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "userId", name = "userId", value = "用户id", required = "required")
+    )
+    @RequestMapping("/post/PostController/queryUserPostCount")
+    public void queryUserPostCount(InputObject inputObject, OutputObject outputObject) {
+        postService.queryUserPostCount(inputObject, outputObject);
+    }
+
+    /**
+     * 获取帖子的最近访客
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryPostVisitor", value = "获取帖子的最近访客", method = "POST", allUse = "0")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "required")
+    )
+    @RequestMapping("/post/PostController/queryPostVisitor")
+    public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
+        postService.queryPostVisitor(inputObject, outputObject);
     }
 }

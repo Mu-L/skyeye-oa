@@ -6,6 +6,8 @@ package com.skyeye.circle.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.circle.entity.Circle;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 
 /**
  * @ClassName: CircleService
@@ -19,4 +21,6 @@ public interface CircleService extends SkyeyeBusinessService<Circle> {
     void updateViewNum(String circleId, Integer count);
 
     void updateJoinNum(String circleId, Integer collectNum);
+
+    void queryRelateCircles(InputObject inputObject, OutputObject outputObject);
 }

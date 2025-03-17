@@ -40,6 +40,7 @@ import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
+import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -415,5 +416,44 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
         outputObject.setBeans(postList);
         outputObject.settotal(popularPostList.size());
+    }
+
+    @Override
+    public void queryUserPostCount(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String userId = params.get("userId").toString();
+        List<Map<String,Integer>> beans = new ArrayList<>();
+        Map<String,Integer> countMap = new HashMap<>();
+        QueryWrapper<Post> postRapper = new QueryWrapper<>();
+        postRapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId),userId);
+        List<Post> postList = list(postRapper);
+        if(CollectionUtil.isEmpty(postList)){
+            return;
+        }
+        // 计算总评论数量
+        int commentNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getCommentNum())).sum();
+        // 计算总点赞数量
+        int upvoteNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getUpvoteNum())).sum();
+        countMap.put("commentNum",commentNum);
+        countMap.put("upvoteNum",upvoteNum);
+        countMap.put("postNum",postList.size());
+        beans.add(countMap);
+        outputObject.setBeans(beans);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String postId =  params.get("postId").toString();
+        List<String> visitors = historyPostService.queryRecordUserIdByPostId(postId);
+        if(CollectionUtil.isEmpty(visitors)){
+            return;
+        }
+        // 转为数组
+        String[] userIs = visitors.toArray(new String[0]);
+        List<User> beans = userService.selectByIds(userIs);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 }
