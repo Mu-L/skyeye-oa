@@ -22,11 +22,23 @@ import org.yaml.snakeyaml.events.Event;
 public interface IUserRest {
 
     /**
-     * F根据id批量获取用户信息
+     * 根据id批量获取用户信息
      *
      * @param ids 主键id
      */
     @PostMapping("/queryUserByIds")
     String queryUserByIds(@RequestParam("ids") String ids);
+
+    /**
+     * 根据姓名或者学号获取用户信息
+     *
+     * @param realName 用户真实姓名
+     * @param studentNumber 学号
+     */
+    @PostMapping("/queryUserByRealNameOrStudentNumber")
+    String queryUserByRealNameOrStudentNumber(@RequestParam(value = "realName",required = false) String realName ,
+                                              @RequestParam(value = "studentNumber",required = false) String studentNumber);
+
+
 
 }

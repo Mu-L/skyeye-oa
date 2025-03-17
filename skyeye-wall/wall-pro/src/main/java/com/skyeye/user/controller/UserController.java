@@ -74,6 +74,21 @@ public class UserController {
     }
 
     /**
+     * 根据姓名或者学号获取用户信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryUserByRealNameOrStudentNumber", value = "根据姓名或者学号获取用户信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "realName", name = "realName", value = "用户真实姓名"),
+            @ApiImplicitParam(id = "studentNumber", name = "studentNumber", value = "学号")})
+    @RequestMapping("/post/UserController/queryUserByRealNameOrStudentNumber")
+    public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
+        userService.queryUserByRealNameOrStudentNumber(inputObject, outputObject);
+    }
+
+    /**
      * 更新用户信息
      *
      * @param inputObject  入参以及用户信息等获取对象

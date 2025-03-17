@@ -123,4 +123,19 @@ public class StudentController {
         studentService.queryCurrentUserSubject(inputObject, outputObject);
     }
 
+    /**
+     * 获取当前登录人的所有的年制信息，年制下【所学科目】信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySchoolStudentListByNo", value = "获取当前登录人年制信息科目信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required")})
+    @RequestMapping("/post/StudentController/querySchoolStudentListByNo")
+    public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
+        studentService.querySchoolStudentListByNo(inputObject, outputObject);
+    }
+
+
 }

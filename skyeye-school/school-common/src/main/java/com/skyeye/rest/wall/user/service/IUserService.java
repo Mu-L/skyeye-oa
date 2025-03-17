@@ -7,6 +7,7 @@ package com.skyeye.rest.wall.user.service;
 import com.skyeye.base.rest.service.IService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: IUserService
@@ -19,4 +20,8 @@ import java.util.List;
 public interface IUserService extends IService {
 
     void deleteUsersByIds(List<String> userIds);
+
+    List<Map<String, Object>> queryEntityMationByIds(String ids);
+
+    List<Map<String, Object>> queryUserByRealNameOrStudentNumber(String realName, String studentNumber);
 }

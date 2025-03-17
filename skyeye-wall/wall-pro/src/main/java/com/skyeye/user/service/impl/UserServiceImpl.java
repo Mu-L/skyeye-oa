@@ -22,6 +22,7 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.rest.school.service.ISchoolService;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -108,9 +109,15 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         entity.setStudentNumber(user.getStudentNumber());
     }
 
+    @Autowired
+    private ISchoolService iSchoolService;
+
     @Override
     public User selectById(String id) {
         User user = super.selectById(id);
+        String studentNumber = user.getStudentNumber();
+        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber);
+        user.setSchoolStudentMation(schoolStudentMation);
         Certification certification = certificationService.selectById(id);
         if (certification == null) {
             user.setState(StateEnum.UNVERIFIED.getKey());
@@ -231,5 +238,22 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         updateWrapper.set(MybatisPlusUtil.toColumns(User::getRealName), realName);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("realName").toString();
+        String studentNumber = map.get("studentNumber").toString();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(name)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), name);
+        }
+        if (StrUtil.isNotEmpty(studentNumber)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumber);
+        }
+        List<User> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 }

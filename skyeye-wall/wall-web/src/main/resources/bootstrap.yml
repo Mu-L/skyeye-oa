@@ -41,3 +41,6 @@ feign:
       # 全局配置
       default:
         loggerLevel: FULL
+webroot:
+  # 表白墙服务
+  skyeye-school: skyeye-school-${spring.profiles.active}

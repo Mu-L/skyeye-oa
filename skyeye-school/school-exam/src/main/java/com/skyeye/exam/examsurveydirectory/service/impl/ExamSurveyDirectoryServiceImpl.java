@@ -46,7 +46,10 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.jetbrains.annotations.NotNull;
@@ -125,6 +128,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private SemesterService semesterService;
+
+    @Autowired
+    private FacultyService facultyService;
+
+    @Autowired
+    private MajorService majorService;
 
     /**
      * 设置考试目录的方法
@@ -564,8 +573,31 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
+            //设置科目信息
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-            item.setClassesMation(classesService.selectById(item.getClassId()));
+            //设置学校信息
+            item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+            //设置学院信息
+            item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+            //设置专业信息
+            item.setMajorMation(majorService.selectById(item.getMajorId()));
+            //设置学期信息
+            item.setSemesterMation(semesterService.selectById(item.getSemesterId()));
+            String classId = item.getClassId();
+            if(StrUtil.isNotEmpty(classId)){
+                String[] idArray  = classId.split(",");
+                List<Classes> classesList = new ArrayList<>();
+                for (String idItem  : idArray) {
+                    idItem = idItem.trim();
+                    if (StrUtil.isNotEmpty(idItem)) {
+                        Classes classes = classesService.selectById(idItem);
+                        if (classes != null) {
+                            classesList.add(classes);
+                        }
+                    }
+                }
+                item.setClassesMation(classesList );
+            }
             return item;
         }).collect(Collectors.toList());
         iAuthUserService.setName(beans, "createId", "createName");
@@ -601,7 +633,21 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @NotNull
     private ExamSurveyDirectory getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
-        bean.setClassesMation(classesService.selectById(bean.getClassId()));
+        String classId = bean.getClassId();
+        if(StrUtil.isNotEmpty(classId)){
+            String[] idArray  = classId.split(",");
+            List<Classes> classesList = new ArrayList<>();
+            for (String idItem  : idArray) {
+                idItem = idItem.trim();
+                if (StrUtil.isNotEmpty(idItem)) {
+                    Classes classes = classesService.selectById(idItem);
+                    if (classes != null) {
+                        classesList.add(classes);
+                    }
+                }
+            }
+            bean.setClassesMation(classesList);
+        }
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
         bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
