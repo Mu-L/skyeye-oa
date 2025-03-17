@@ -45,11 +45,11 @@ public class TalkRequest extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生申请人信息")
-    private Student studentApplicantMation;
+    private List<Map<String,Object>> studentApplicantMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生被申请人信息")
-    private Student studentRecipientMation;
+    private List<Map<String,Object>> studentRecipientMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "老师申请人信息")
@@ -58,6 +58,4 @@ public class TalkRequest extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "老师被申请人信息")
     private SysEveUserStaff teacherRecipientMation;
-
-
 }

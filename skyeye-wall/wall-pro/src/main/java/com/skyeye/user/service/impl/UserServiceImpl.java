@@ -232,4 +232,21 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         update(updateWrapper);
         refreshCache(id);
     }
+
+    @Override
+    public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("realName").toString();
+        String studentNumber = map.get("studentNumber").toString();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(name)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), name);
+        }
+        if (StrUtil.isNotEmpty(studentNumber)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumber);
+        }
+        List<User> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
 }

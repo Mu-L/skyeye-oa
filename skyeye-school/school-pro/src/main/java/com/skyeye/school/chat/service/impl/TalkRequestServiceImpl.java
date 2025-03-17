@@ -16,6 +16,9 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.rest.wall.user.rest.IUserRest;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
@@ -46,36 +49,36 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
 
     @Override
     protected void createPrepose(TalkRequest entity) {
-//        try {
-//            String createTime = entity.getCreateTime();
-//            if (createTime == null || createTime.trim().isEmpty()) {
-//                throw new CustomException("createTime不能为空");
-//            }
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//            LocalDateTime dateTime = LocalDateTime.parse(createTime, formatter);
-//            // 直接计算并设置 LocalDateTime
-//            LocalDateTime newDateTime = dateTime.plusWeeks(1);
-//            entity.setExpireTime(newDateTime);
-//        } catch (DateTimeParseException e) {
-//            throw new CustomException("时间格式不正确: " + e.getMessage());
-//        } catch (Exception e) {
-//            throw new CustomException("处理过期时间失败: " + e.getMessage());
-//        }
-//        entity.setStatus(CommonNumConstants.NUM_ZERO);
-//        String recipientId = entity.getRecipientId();//被申请人Id
-//        String applicantId = entity.getApplicantId();//申请人Id
-//        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
-//        queryWrapper
-//                .or(wrapper -> wrapper
-//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-//                .or(wrapper -> wrapper
-//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-//                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
-//        List<TalkRequest> talkRequestList = list(queryWrapper);
-//        if (CollectionUtil.isNotEmpty(talkRequestList)) {
-//            throw new CustomException("禁止重新添加好友");
-//        }
+        try {
+            String createTime = entity.getCreateTime();
+            if (createTime == null || createTime.trim().isEmpty()) {
+                throw new CustomException("createTime不能为空");
+            }
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            LocalDateTime dateTime = LocalDateTime.parse(createTime, formatter);
+            // 直接计算并设置 LocalDateTime
+            LocalDateTime newDateTime = dateTime.plusWeeks(1);
+            entity.setExpireTime(newDateTime);
+        } catch (DateTimeParseException e) {
+            throw new CustomException("时间格式不正确: " + e.getMessage());
+        } catch (Exception e) {
+            throw new CustomException("处理过期时间失败: " + e.getMessage());
+        }
+        entity.setStatus(CommonNumConstants.NUM_ZERO);
+        String recipientId = entity.getRecipientId();//被申请人Id
+        String applicantId = entity.getApplicantId();//申请人Id
+        QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .or(wrapper -> wrapper
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                .or(wrapper -> wrapper
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
+        List<TalkRequest> talkRequestList = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(talkRequestList)) {
+            throw new CustomException("禁止重新添加好友");
+        }
     }
 
     @Override
@@ -92,6 +95,9 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private IUserService iUserService;
+
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -102,10 +108,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String applicantId = talkRequest.getApplicantId();
-            Student student = studentService.selectById(applicantId);
+            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(applicantId);
             SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(applicantId);
-            if (ObjectUtil.isNotEmpty(student)){
-                talkRequest.setStudentApplicantMation(student);
+            if (ObjectUtil.isNotEmpty(mapList)){
+                talkRequest.setStudentApplicantMation(mapList);
             }
             if (ObjectUtil.isNotEmpty(sysEveUserStaff)){
                 talkRequest.setTeacherApplicantMation(sysEveUserStaff);
@@ -125,10 +131,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();
-            Student student = studentService.selectById(recipientId);
+            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(recipientId);
             SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(recipientId);
-            if (ObjectUtil.isNotEmpty(student)){
-                talkRequest.setStudentRecipientMation(student);
+            if (ObjectUtil.isNotEmpty(mapList)){
+                talkRequest.setStudentRecipientMation(mapList);
             }
             if (ObjectUtil.isNotEmpty(sysEveUserStaff)) {
                 talkRequest.setTeacherRecipientMation(sysEveUserStaff);

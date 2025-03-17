@@ -31,6 +31,7 @@ import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.entity.SchoolStudentExcelModel;
 import com.skyeye.school.entity.SchoolStudentGlobalExcelDictHandler;
 import com.skyeye.school.faculty.service.FacultyService;
@@ -105,6 +106,14 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private ICertificationService iCertificationService;
+
+    @Autowired
+    private SysEveUserStaffService sysEveUserStaffService;
+
+    @Autowired
+    private IUserService iUserService;
+
+
 
 
     private static final String EXPORT_EXCEL_NAME = "学生导入模板";
@@ -218,39 +227,31 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
         return list(queryWrapper);
     }
-
     @Override
     public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String name = map.get("name").toString();
         String no = map.get("no").toString();
-        QueryWrapper<Student> queryWrapper= new QueryWrapper<>();
+        List<Map<String,Object>> mapList = new ArrayList<>();
         if (StrUtil.isNotEmpty(name)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Student::getName),name);
+            List<Map<String, Object>> maps1 = iUserService.queryUserByRealNameOrStudentNumber(name, null);
+            if (CollectionUtil.isNotEmpty(maps1)){
+                mapList.addAll(maps1);
+            }
         }
         if (StrUtil.isNotEmpty(no)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(Student::getNo),no);
+            List<Map<String, Object>> maps2 = iUserService.queryUserByRealNameOrStudentNumber(null, no);
+            if (CollectionUtil.isNotEmpty(maps2)){
+                mapList.addAll(maps2);
+            }
         }
-        List<Student> studentList = list(queryWrapper);
-        List<Map<String, Object>> beans = studentList.stream()
-                .map(student -> {
-                    Map<String, Object> map1 = new HashMap<>();
-                    // 假设 Student 类有字段 id 和 name
-                    map1.put("id", student.getId());
-                    map1.put("name", student.getName());
-                    // 添加其他字段
-                    return map1;
-                })
-                .collect(Collectors.toList());
-        schoolService.setMationForMap(beans, "schoolId", "schoolMation");
-        facultyService.setMationForMap(beans, "facultyId", "facultyMation");
-        majorService.setMationForMap(beans, "majorId", "majorMation");
-        classesService.setMationForMap(beans, "classId", "classMation");
-        outputObject.setBeans(studentList);
-        outputObject.settotal(studentList.size());
+        schoolService.setMationForMap(mapList, "schoolId", "schoolMation");
+        facultyService.setMationForMap(mapList, "facultyId", "facultyMation");
+        majorService.setMationForMap(mapList, "majorId", "majorMation");
+        classesService.setMationForMap(mapList, "classId", "classMation");
+        outputObject.setBeans(mapList);
+        outputObject.settotal(mapList.size());
     }
-    @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
 
     @Override
     public void queryTeacherListByName(InputObject inputObject, OutputObject outputObject) {
