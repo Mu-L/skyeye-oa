@@ -263,6 +263,17 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         outputObject.settotal(sysEveUserStaffList.size());
     }
 
+    @Override
+    public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String studentNumber = map.get("no").toString();
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo),studentNumber);
+        List<Student> studentList = list(queryWrapper);
+        outputObject.setBeans(studentList);
+        outputObject.settotal(studentList.size());
+    }
+
     private List<Map<String, Object>> getStudentSubject(Map<String, Object> studentMap) {
         Student student = JSONUtil.toBean(JSON.toJSONString(studentMap), Student.class);
         // 获取年制信息

@@ -88,7 +88,6 @@ public class UserController {
         userService.queryUserByRealNameOrStudentNumber(inputObject, outputObject);
     }
 
-
     /**
      * 更新用户信息
      *
