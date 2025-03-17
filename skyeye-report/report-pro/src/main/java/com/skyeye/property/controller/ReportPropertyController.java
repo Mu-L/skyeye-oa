@@ -32,12 +32,6 @@ public class ReportPropertyController {
     @Autowired
     private ReportPropertyService reportPropertyService;
 
-    /**
-     * 获取模型属性列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportproperty001", value = "获取模型属性列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReportPropertyController/queryPropertyList")
@@ -45,12 +39,6 @@ public class ReportPropertyController {
         reportPropertyService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑模型属性
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeProperty", value = "新增/编辑模型属性", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Property.class)
     @RequestMapping("/post/ReportPropertyController/writeProperty")
@@ -58,12 +46,6 @@ public class ReportPropertyController {
         reportPropertyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除模型属性
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deletePropertyById", value = "删除模型属性", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ReportPropertyController {
         reportPropertyService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取模型属性
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPropertyById", value = "根据id获取模型属性", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
