@@ -270,6 +270,10 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo),studentNumber);
         List<Student> studentList = list(queryWrapper);
+        schoolService.setDataMation(studentList, Student::getSchoolId);
+        facultyService.setDataMation(studentList, Student::getFacultyId);
+        majorService.setDataMation(studentList, Student::getMajorId);
+        classesService.setDataMation(studentList, Student::getClassId);
         outputObject.setBeans(studentList);
         outputObject.settotal(studentList.size());
     }

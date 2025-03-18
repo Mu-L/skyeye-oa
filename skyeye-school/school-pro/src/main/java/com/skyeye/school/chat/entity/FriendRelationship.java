@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.school.personnel.entity.SysEveUserStaff;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -38,5 +40,14 @@ public class FriendRelationship extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value ="好友信息")
     private Map<String, Object> friendMation;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value ="学生信息")
+    private List<Map<String, Object>> studentMation;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value ="老师信息")
+    private SysEveUserStaff teacherMation;
+
 
 }
