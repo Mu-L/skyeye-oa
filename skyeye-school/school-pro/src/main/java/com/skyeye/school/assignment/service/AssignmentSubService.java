@@ -9,6 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.assignment.entity.AssignmentSub;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,4 +54,6 @@ public interface AssignmentSubService extends SkyeyeBusinessService<AssignmentSu
     void queryAssignmentStuSubListByAssignmentId(InputObject inputObject, OutputObject outputObject);
 
     void queryAssignmentNotSubListByAssignmentId(InputObject inputObject, OutputObject outputObject);
+
+    double queryAssignmentFinshRate(List<String> assignmentIdList, long num);
 }

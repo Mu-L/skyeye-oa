@@ -64,4 +64,26 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
         List<CoursewareStudy> coursewareStudyList = list(queryWrapper);
         return coursewareStudyList.stream().collect(Collectors.toMap(CoursewareStudy::getCoursewareId, CoursewareStudy::getState));
     }
+
+    @Override
+    public double queryCoursewareFinshRate(List<String> ids, Long classNum) {
+        double sum = 0;
+        if (CollectionUtil.isNotEmpty(ids) || classNum == 0) {
+            return sum;
+        }
+        for (String id : ids) {
+            QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), id);
+            long count = count(queryWrapper);
+            if (count == 0) {
+                continue;
+            }
+            double temp = (double) count / classNum;
+            sum = sum + temp;
+        }
+        if(sum == 0){
+            return sum;
+        }
+        return sum / ids.size();
+    }
 }

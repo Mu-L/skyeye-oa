@@ -255,4 +255,27 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         outputObject.settotal(ObjectUtil.isEmpty(assignmentSub) ? CommonNumConstants.NUM_ZERO : CommonNumConstants.NUM_ONE);
     }
 
+
+    @Override
+    public double queryAssignmentFinshRate(List<String> assignmentIdList, long num) {
+        double sum = 0;
+        if(CollectionUtil.isEmpty(assignmentIdList) || num ==0){
+            return sum;
+        }
+        for (String assignmentId : assignmentIdList) {
+            QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId);
+            long total = count(queryWrapper);
+            if(total == 0){
+                continue;
+            }
+            double temp = (double) total / num;
+            sum = sum + temp;
+        }
+        if(sum == 0){
+            return sum;
+        }
+        return sum / assignmentIdList.size();
+    }
+
 }

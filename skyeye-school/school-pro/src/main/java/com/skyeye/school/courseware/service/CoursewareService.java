@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.courseware.entity.Courseware;
 
+import java.util.Map;
+
 /**
  * @ClassName: CoursewareService
  * @Description: 互动课件服务接口层
@@ -21,4 +23,5 @@ public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
 
     void queryCoursewareListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
 
+    Map<String, Double> queryCoursewareByChapterId(Long classNum,String ...ids);
 }

@@ -247,4 +247,26 @@ public class MeasurementSubServiceImpl extends SkyeyeBusinessServiceImpl<Measure
         outputObject.setBean(measurementSub);
         outputObject.settotal(ObjectUtil.isEmpty(measurementSub) ? CommonNumConstants.NUM_ZERO : CommonNumConstants.NUM_ONE);
     }
+
+    @Override
+    public double queryMeasurementFinshRate(List<String> ids, Long classNum) {
+        double sum = 0;
+        if(CollectionUtil.isEmpty(ids) || classNum == 0){
+            return sum;
+        }
+        for (String id : ids) {
+            QueryWrapper<MeasurementSub> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(MeasurementSub::getMeasurementId), id);
+            long count = count(queryWrapper);
+            if (count == 0){
+                continue;
+            }
+            double temp = (double) count / classNum;
+            sum += temp;
+        }
+        if(sum == 0){
+            return sum;
+        }
+        return sum / ids.size();
+    }
 }

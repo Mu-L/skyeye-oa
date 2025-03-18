@@ -5,6 +5,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.measurement.entity.MeasurementSub;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,4 +31,6 @@ public interface MeasurementSubService extends SkyeyeBusinessService<Measurement
     Map<String, String> querySubResult(String userId, String... testId);
 
     void queryMeasurementStuSubListByMeasurementId(InputObject inputObject, OutputObject outputObject);
+
+    double queryMeasurementFinshRate(List<String> ids, Long classNum);
 }

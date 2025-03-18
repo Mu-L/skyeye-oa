@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.measurement.entity.Measurement;
 
+import java.util.Map;
+
 
 /**
  * @ClassName: MeasurementService
@@ -17,4 +19,6 @@ import com.skyeye.school.measurement.entity.Measurement;
 public interface MeasurementService extends SkyeyeBusinessService<Measurement> {
 
     void queryMeasurementListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, Double> queryTestByChapterId(Long classNum,String... id);
 }
