@@ -407,7 +407,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 
     private void outputNoDelete(OutputObject outputObject, QueryWrapper<DwSurveyDirectory> queryWrapper, Page page) {
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
-        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateTime));
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwSurveyDirectory::getCreateTime));
         List<DwSurveyDirectory> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId", "createName");
         iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
