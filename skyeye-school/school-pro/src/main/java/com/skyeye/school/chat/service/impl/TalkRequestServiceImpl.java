@@ -42,7 +42,13 @@ import java.util.Map;
 public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkRequestDao, TalkRequest> implements TalkRequestService {
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private SysEveUserStaffService sysEveUserStaffService;
+
+    @Autowired
+    private StudentService studentService;
+
+    @Autowired
+    private IUserService iUserService;
 
     @Autowired
     private FriendRelationshipService friendRelationshipService;
@@ -88,15 +94,6 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         Integer status = entity.getStatus();
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
-
-    @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private IUserService iUserService;
 
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {

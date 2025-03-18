@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +39,8 @@ public class FriendRelationshipController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryNoPageFriendsList", value = "不分页查询好友管理列表", method = "POST", allUse = "2")
-//    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "所查询的Id", required = "required")})
     @RequestMapping("/post/FriendRelationshipController/queryNoPageFriendsList")
     public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
         friendRelationshipService.queryNoPageFriendsList(inputObject, outputObject);
