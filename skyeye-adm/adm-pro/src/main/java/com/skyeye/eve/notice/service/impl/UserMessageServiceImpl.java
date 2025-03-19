@@ -130,7 +130,7 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
     public void queryUnReadMessageCount(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<UserMessage> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getCreateId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getReceiveId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getState), WhetherEnum.DISABLE_USING.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
         long count = count(queryWrapper);
