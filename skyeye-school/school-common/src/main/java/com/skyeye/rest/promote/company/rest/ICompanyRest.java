@@ -12,5 +12,4 @@ public interface ICompanyRest {
     String queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(@RequestParam("companyId") String companyId,
                                                               @RequestParam("departmentId") String departmentId,
                                                               @RequestParam("jobId") String jobId);
-
 }
