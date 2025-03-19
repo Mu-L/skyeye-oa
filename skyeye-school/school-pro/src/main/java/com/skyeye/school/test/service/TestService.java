@@ -7,5 +7,5 @@ import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.school.test.entity.Test;
 
 public interface TestService extends SkyeyeBusinessService<Test> {
-    void queryAlltestall(InputObject inputObject, OutputObject outputObject);
+
 }

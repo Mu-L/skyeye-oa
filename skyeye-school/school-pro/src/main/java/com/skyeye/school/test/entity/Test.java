@@ -37,7 +37,7 @@ public class Test extends OperatorUserInfo {
     @TableField("age")
 //    required 是否为必填项
     @ApiModelProperty(value ="学生年龄",required ="required")
-    private int age;
+    private Integer age;
 
     @TableField("chengji")
     @ApiModelProperty(value ="学生成绩")

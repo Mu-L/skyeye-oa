@@ -8,7 +8,4 @@ import java.util.List;
 import java.util.Map;
 
 public interface TestDao extends SkyeyeBaseMapper<Test>{
-
-
-    List<Map<String, Object>> selectTestList(CommonPageInfo commonPageInfo);
 }

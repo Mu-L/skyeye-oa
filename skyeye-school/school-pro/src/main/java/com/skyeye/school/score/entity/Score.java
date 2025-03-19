@@ -9,7 +9,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@TableName(value = "school_score")
+@TableName(value = " score")
 @ApiModel(value = "成绩实体类")
 public class Score extends OperatorUserInfo {
 
