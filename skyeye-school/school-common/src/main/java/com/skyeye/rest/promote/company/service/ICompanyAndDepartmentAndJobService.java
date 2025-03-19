@@ -4,7 +4,7 @@ import com.skyeye.base.rest.service.IService;
 
 import java.util.Map;
 
-public interface ICompanyService extends IService {
+public interface ICompanyAndDepartmentAndJobService extends IService {
 
     Map<String, Object> queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(String companyId, String departmentId, String jobId);
 }

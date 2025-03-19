@@ -5,18 +5,16 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.rest.promote.company.service.ICompanyService;
+import com.skyeye.rest.promote.company.service.ICompanyAndDepartmentAndJobService;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.personnel.dao.SysEveUserStaffDao;
 import com.skyeye.school.personnel.entity.SysEveUserStaff;
 import com.skyeye.school.personnel.service.SysEveUserStaffService;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +48,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Autowired
     private FriendRelationshipService friendRelationshipService;
     @Autowired
-    private ICompanyService iCompanyService;
+    private ICompanyAndDepartmentAndJobService iCompanyService;
     @Override
     public void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("userId").toString();

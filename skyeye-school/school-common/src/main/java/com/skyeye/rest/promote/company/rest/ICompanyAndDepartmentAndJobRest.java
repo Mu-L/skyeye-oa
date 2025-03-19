@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(value = "${webroot.skyeye-promote}", configuration = ClientConfiguration.class)
-public interface ICompanyRest {
+public interface ICompanyAndDepartmentAndJobRest {
 
     @PostMapping("queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId")
     String queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(@RequestParam("companyId") String companyId,
