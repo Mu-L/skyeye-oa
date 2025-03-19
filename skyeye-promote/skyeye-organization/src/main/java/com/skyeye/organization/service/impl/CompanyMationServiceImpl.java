@@ -21,7 +21,11 @@ import com.skyeye.organization.dao.CompanyDepartmentDao;
 import com.skyeye.organization.dao.CompanyJobDao;
 import com.skyeye.organization.dao.CompanyMationDao;
 import com.skyeye.organization.entity.Company;
+import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.CompanyTaxRate;
+import com.skyeye.organization.entity.Department;
+import com.skyeye.organization.service.CompanyDepartmentService;
+import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.organization.service.CompanyTaxRateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +59,12 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
 
     @Autowired
     private CompanyTaxRateService companyTaxRateService;
+
+    @Autowired
+    private CompanyDepartmentService companyDepartmentService;
+
+    @Autowired
+    private CompanyJobService companyJobService;
 
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
@@ -241,4 +251,28 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
         return CollectionUtil.isNotEmpty(beans) ? beans : new ArrayList<>();
     }
 
+    @Override
+    public void queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String companyId = map.get("companyId").toString();
+        String departmentId = map.get("departmentId").toString();
+        String jobId = map.get("jobId").toString();
+        QueryWrapper<Company> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(companyId)) {
+            queryWrapper.eq(CommonConstants.ID, companyId);
+        }
+        List<Company> companyList = list(queryWrapper);
+        for (Company company : companyList) {
+            if (StrUtil.isNotEmpty(departmentId)) {
+                Department department = companyDepartmentService.selectById(departmentId);
+                company.setDepartmentMation(department);
+            }
+            if (StrUtil.isNotEmpty(jobId)) {
+                CompanyJob companyJob = companyJobService.selectById(jobId);
+                company.setJobMation(companyJob);
+            }
+        }
+        outputObject.setBeans(companyList);
+        outputObject.settotal(companyList.size());
+    }
 }

@@ -40,5 +40,4 @@ public class ChatHistory extends OperatorUserInfo {
     @TableField("chat_type")
     @ApiModelProperty(value = "消息类型 1文字,2图片,3视频,4文件,5音频", required = "required")
     private Integer chatType;
-
 }

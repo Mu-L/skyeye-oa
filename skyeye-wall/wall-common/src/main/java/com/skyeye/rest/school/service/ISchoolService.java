@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface ISchoolService extends IService {
-    List<Map<String,Object>> querySchoolStudentMation(String no);
+    List<Map<String,Object>> querySchoolStudentMation(String no,String id,String userId);
 }

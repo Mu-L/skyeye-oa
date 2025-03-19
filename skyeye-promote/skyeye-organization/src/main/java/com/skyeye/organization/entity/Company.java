@@ -13,6 +13,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
+import com.skyeye.organization.dao.CompanyDepartmentDao;
 import lombok.Data;
 
 import java.util.List;
@@ -51,6 +52,14 @@ public class Company extends AreaInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "公司个人所得税税率信息", required = "json")
     private List<CompanyTaxRate> taxRate;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "公司部门信息")
+    private Department departmentMation;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "公司职位信息")
+    private CompanyJob jobMation;
 
     public String getpId() {
         return pId;

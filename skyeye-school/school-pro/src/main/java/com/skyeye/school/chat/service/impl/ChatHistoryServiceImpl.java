@@ -1,11 +1,17 @@
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
@@ -16,6 +22,7 @@ import com.skyeye.school.chat.service.FriendRelationshipService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,5 +71,32 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
+    }
+
+    @Override
+    public String createEntity(JSONObject jsonObject, Integer chatType, Integer readType) {
+        ChatHistory chatHistory = new ChatHistory();
+        chatHistory.setContent(jsonObject.getStr("message"));
+        chatHistory.setSendId(jsonObject.getStr("userId"));
+        String uniqueId = getSortString(jsonObject.getStr("userId"), jsonObject.getStr("to"));
+        chatHistory.setUniqueId(uniqueId);
+        chatHistory.setReceiveId(jsonObject.getStr("to"));
+        chatHistory.setCreateTime(DateUtil.getTimeAndToString());
+        chatHistory.setReadType(readType);
+        chatHistory.setChatType(chatType);
+        return createEntity(chatHistory, StrUtil.EMPTY);
+    }
+
+    @Override
+    public String createEntity(JSONObject jsonObject, Integer chatType) {
+        return createEntity(jsonObject, chatType, WhetherEnum.DISABLE_USING.getKey());
+    }
+
+    private String getSortString(String str1, String str2) {
+        List<String> list = new ArrayList<>();
+        list.add(str1);
+        list.add(str2);
+        list.sort(String::compareTo);
+        return Joiner.on(CommonCharConstants.HORIZONTAL_LINE_MARK).join(list);
     }
 }

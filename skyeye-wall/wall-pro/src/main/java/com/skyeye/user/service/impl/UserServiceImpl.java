@@ -114,9 +114,11 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public User selectById(String id) {
+        //当前学生账户Id
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         User user = super.selectById(id);
         String studentNumber = user.getStudentNumber();
-        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber);
+        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber,id,userId);
         user.setSchoolStudentMation(schoolStudentMation);
         Certification certification = certificationService.selectById(id);
         if (certification == null) {

@@ -164,4 +164,21 @@ public class CompanyMationController {
         companyMationService.selectByIds(inputObject, outputObject);
     }
 
+
+    /**
+     * 根据企业Id，部门Id，职位Id查询公司等信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId", value = "根据企业Id，部门Id，职位Id查询公司等信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "companyId", name = "companyId", value = "企业Id"),
+            @ApiImplicitParam(id = "departmentId", name = "departmentId", value = "部门Id"),
+            @ApiImplicitParam(id = "jobId", name = "jobId", value = "职位Id")})
+    @RequestMapping("/post/CompanyMationController/queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId")
+    public void queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(InputObject inputObject, OutputObject outputObject) {
+        companyMationService.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(inputObject, outputObject);
+    }
+
 }

@@ -299,6 +299,20 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
+    protected void updatePrepose(DwSurveyDirectory entity) {
+        String realEndTime = entity.getRealEndTime();
+        String realStartTime = entity.getRealStartTime();
+        if (StrUtil.isEmpty(realStartTime)) {
+            realStartTime = null;
+        }
+        if (StrUtil.isEmpty(realEndTime)) {
+            realEndTime = null;
+        }
+        entity.setRealStartTime(realStartTime);
+        entity.setRealEndTime(realEndTime);
+    }
+
+    @Override
     protected void updatePostpose(DwSurveyDirectory entity, String userId) {
         List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
         List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());

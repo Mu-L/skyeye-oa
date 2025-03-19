@@ -53,6 +53,7 @@ public class StudentController {
      */
     @ApiOperation(id = "queryStudentListByNameOrNo", value = "根据学生姓名和学号获取在校学生信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "当前学生id"),
             @ApiImplicitParam(id = "name", name = "name", value = "学生姓名"),
             @ApiImplicitParam(id = "no", name = "no", value = "学号")})
     @RequestMapping("/post/StudentController/queryStudentListByNameOrNo")
@@ -66,13 +67,14 @@ public class StudentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryTeacherListByName", value = "根据姓名获取老师信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryTeacherListByNameOrJobNumber", value = "根据姓名或工号获取老师信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "本账户id"),
             @ApiImplicitParam(id = "name", name = "name", value = "老师姓名"),
             @ApiImplicitParam(id = "jobNumber", name = "jobNumber", value = "员工工号")})
-    @RequestMapping("/post/StudentController/queryTeacherListByName")
-    public void queryTeacherListByName(InputObject inputObject, OutputObject outputObject) {
-        studentService.queryTeacherListByName(inputObject, outputObject);
+    @RequestMapping("/post/StudentController/queryTeacherListByNameOrJobNumber")
+    public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryTeacherListByNameOrJobNumber(inputObject, outputObject);
     }
 
     /**
@@ -131,7 +133,9 @@ public class StudentController {
      */
     @ApiOperation(id = "querySchoolStudentListByNo", value = "根据学号获取学生的学校等信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required")})
+            @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required"),
+            @ApiImplicitParam(id = "id", name = "id", value = "所要查询的id"),
+            @ApiImplicitParam(id = "userId", name = "userId", value = "账户id")})
     @RequestMapping("/post/StudentController/querySchoolStudentListByNo")
     public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
         studentService.querySchoolStudentListByNo(inputObject, outputObject);
