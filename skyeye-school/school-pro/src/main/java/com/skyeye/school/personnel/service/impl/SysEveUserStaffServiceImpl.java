@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -24,6 +25,12 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "员工管理", groupName = "员工管理")
 public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserStaffDao, SysEveUserStaff> implements SysEveUserStaffService {
+
+    @Autowired
+    private FriendRelationshipService friendRelationshipService;
+
+    @Autowired
+    private ICompanyAndDepartmentAndJobService iCompanyService;
 
     @Override
     public QueryWrapper<SysEveUserStaff> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -45,10 +52,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         return list(queryWrapper);
     }
 
-    @Autowired
-    private FriendRelationshipService friendRelationshipService;
-    @Autowired
-    private ICompanyAndDepartmentAndJobService iCompanyService;
     @Override
     public void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("userId").toString();
@@ -69,11 +72,11 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             String companyId = sysEveUserStaff.getCompanyId();
             String departmentId = sysEveUserStaff.getDepartmentId();
             String jobId = sysEveUserStaff.getJobId();
-            Map<String, Object> map = iCompanyService.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(companyId, departmentId, jobId);
-            sysEveUserStaff.setCompanyMation(map);
+            List<Map<String, Object>> map = iCompanyService.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(companyId, departmentId, jobId);
+            sysEveUserStaff.setCompanyMation(map.get(CommonNumConstants.NUM_ZERO));
         }
         if (CollectionUtil.isNotEmpty(sysEveUserStaffs)) {
-            outputObject.setBean(sysEveUserStaffs);
+            outputObject.setBeans(sysEveUserStaffs);
             outputObject.settotal(sysEveUserStaffs.size());
         }
     }

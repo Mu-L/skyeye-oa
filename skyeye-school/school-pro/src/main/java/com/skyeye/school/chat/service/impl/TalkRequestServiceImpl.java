@@ -2,6 +2,7 @@ package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -102,6 +103,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId),commonPageInfo.getHolderId());
+        String state = commonPageInfo.getState();
+        if (StrUtil.isNotEmpty(state)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus),state);
+        }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String applicantId = talkRequest.getApplicantId();
@@ -125,6 +130,9 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId),commonPageInfo.getHolderId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus),commonPageInfo.getState());
+        }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();

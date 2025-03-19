@@ -276,8 +276,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
         String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+        String endTime = dwSurveyDirectory.getEndTime();
         realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
         realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
+        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
             LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3);
             LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3);
@@ -302,6 +304,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     protected void updatePrepose(DwSurveyDirectory entity) {
         String realEndTime = entity.getRealEndTime();
         String realStartTime = entity.getRealStartTime();
+        String endTime = entity.getEndTime();
+        if (StrUtil.isEmpty(endTime)){
+            endTime=null;
+        }
         if (StrUtil.isEmpty(realStartTime)) {
             realStartTime = null;
         }
@@ -310,6 +316,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         entity.setRealStartTime(realStartTime);
         entity.setRealEndTime(realEndTime);
+        entity.setEndTime(endTime);
     }
 
     @Override

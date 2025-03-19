@@ -45,4 +45,4 @@ webroot:
   # 表白墙服务
   skyeye-wall: skyeye-wall-${spring.profiles.active}
   # 基础服务
-  skyeye-promote: skyeye-promote-${spring.profiles.active}
+  skyeye-pro: skyeye-pro-${spring.profiles.active}

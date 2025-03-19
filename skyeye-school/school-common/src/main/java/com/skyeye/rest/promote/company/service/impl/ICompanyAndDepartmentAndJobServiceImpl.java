@@ -7,6 +7,7 @@ import com.skyeye.rest.promote.company.service.ICompanyAndDepartmentAndJobServic
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -16,8 +17,8 @@ public class ICompanyAndDepartmentAndJobServiceImpl extends IServiceImpl impleme
     private ICompanyAndDepartmentAndJobRest iCompanyAndDepartmentAndJobRest;
 
     @Override
-    public Map<String, Object> queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(String companyId, String departmentId, String jobId) {
-        return ExecuteFeignClient.get(() -> iCompanyAndDepartmentAndJobRest.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(companyId,departmentId,jobId)).getBean();
+    public List<Map<String, Object>> queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(String companyId, String departmentId, String jobId) {
+        return ExecuteFeignClient.get(() -> iCompanyAndDepartmentAndJobRest.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(companyId,departmentId,jobId)).getRows();
     }
 
 }
