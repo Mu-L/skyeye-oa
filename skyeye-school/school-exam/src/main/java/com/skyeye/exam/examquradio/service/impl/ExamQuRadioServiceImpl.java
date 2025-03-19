@@ -15,6 +15,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquradio.dao.ExamQuRadioDao;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquradio.service.ExamQuRadioService;
@@ -88,14 +89,6 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     }
 
     @Override
-    protected void deletePreExecution(ExamQuRadio entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -116,7 +109,7 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
     public List<ExamQuRadio> selectQuRadio(String copyFromId) {
         QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), copyFromId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         return list(queryWrapper);
     }
 

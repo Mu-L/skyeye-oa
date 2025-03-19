@@ -30,4 +30,6 @@ public interface UpvoteService extends SkyeyeBusinessService<Upvote> {
     Map<String, Boolean> checkUpvote(String userId, String... objectIds);
 
     List<Upvote> queryUpvoteList(String createId);
+
+    void deleteUpvoteByObjectId(String userId, String objectId);
 }

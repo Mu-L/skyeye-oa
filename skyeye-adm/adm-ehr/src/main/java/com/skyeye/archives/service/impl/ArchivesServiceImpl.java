@@ -11,6 +11,8 @@ import com.skyeye.archives.service.ArchivesService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.organization.service.ICompanyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,9 @@ import java.util.Map;
 @SkyeyeService(name = "员工档案", groupName = "员工档案", teamAuth = true)
 public class ArchivesServiceImpl extends SkyeyeBusinessServiceImpl<ArchivesDao, Archives> implements ArchivesService {
 
+    @Autowired
+    private ICompanyService iCompanyService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -35,4 +40,10 @@ public class ArchivesServiceImpl extends SkyeyeBusinessServiceImpl<ArchivesDao, 
         return beans;
     }
 
+    @Override
+    public Archives selectById(String id) {
+        Archives archives = super.selectById(id);
+        archives.setCompanyMation(iCompanyService.queryDataMationById(archives.getCompanyId()));
+        return archives;
+    }
 }

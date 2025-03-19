@@ -25,6 +25,7 @@ import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
 import com.skyeye.school.subject.entity.Subject;
@@ -68,6 +69,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Autowired
     private SemesterService semesterService;
 
+    @Autowired
+    private ScoreTypeService scoreTypeService;
+
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SubjectClasses> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -80,6 +84,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         classesService.setMationForMap(beans, "classesId", "classesMation");
         return beans;
+    }
+    @Override
+    public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), inputObject.getParams().get("objectId").toString());
+        List<SubjectClasses> list = list(queryWrapper);
+        classesService.setDataMation(list, SubjectClasses::getClassesId);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     @Override
@@ -95,6 +108,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         entity.setSourceCodeLogo(sourceCodeLogo);
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
         refreshCache(entity.getId());
+    }
+
+    @Override
+    public void createPostpose(SubjectClasses entity, String userId){
+        scoreTypeService.createDeFaultInfo(entity, userId);
     }
 
     @Override
@@ -209,7 +227,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
         if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
+                                      String subjectClassesId = map.get("id").toString();
             updateEnabled(subjectClassesId, Integer.parseInt(enabled));
         }
     }

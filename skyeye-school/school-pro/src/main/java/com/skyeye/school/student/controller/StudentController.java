@@ -46,6 +46,38 @@ public class StudentController {
     }
 
     /**
+     * 根据学生姓名和学号获取在校学生信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryStudentListByNameOrNo", value = "根据学生姓名和学号获取在校学生信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "当前学生id"),
+            @ApiImplicitParam(id = "name", name = "name", value = "学生姓名"),
+            @ApiImplicitParam(id = "no", name = "no", value = "学号")})
+    @RequestMapping("/post/StudentController/queryStudentListByNameOrNo")
+    public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryStudentListByNameOrNo(inputObject, outputObject);
+    }
+
+    /**
+     * 根据姓名获取老师信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTeacherListByNameOrJobNumber", value = "根据姓名或工号获取老师信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "本账户id"),
+            @ApiImplicitParam(id = "name", name = "name", value = "老师姓名"),
+            @ApiImplicitParam(id = "jobNumber", name = "jobNumber", value = "员工工号")})
+    @RequestMapping("/post/StudentController/queryTeacherListByNameOrJobNumber")
+    public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryTeacherListByNameOrJobNumber(inputObject, outputObject);
+    }
+
+    /**
      * 新增/修改学生信息
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -61,7 +93,7 @@ public class StudentController {
     /**
      * 获取学生信息详情
      */
-    @ApiOperation(id = "queryStudentDetailById", value = "获取学生信息详情", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryStudentDetailById", value = "获取学生信息详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/StudentController/queryStudentDetailById")
@@ -92,5 +124,22 @@ public class StudentController {
     public void queryCurrentUserSubject(InputObject inputObject, OutputObject outputObject) {
         studentService.queryCurrentUserSubject(inputObject, outputObject);
     }
+
+    /**
+     * 根据学号获取学生的学校等信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySchoolStudentListByNo", value = "根据学号获取学生的学校等信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required"),
+            @ApiImplicitParam(id = "id", name = "id", value = "所要查询的id"),
+            @ApiImplicitParam(id = "userId", name = "userId", value = "账户id")})
+    @RequestMapping("/post/StudentController/querySchoolStudentListByNo")
+    public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
+        studentService.querySchoolStudentListByNo(inputObject, outputObject);
+    }
+
 
 }

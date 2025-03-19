@@ -58,7 +58,7 @@ public class ForumReport extends OperatorUserInfo {
     private String examineNopassReason;
 
     @TableField(value = "examine_id")
-    @Property(value = "审核人id")
+    @ApiModelProperty(value = "审核人id")
     private String examineId;
 
     @TableField(exist = false)
@@ -66,11 +66,11 @@ public class ForumReport extends OperatorUserInfo {
     private Map<String, Object> examineMation;
 
     @TableField(value = "examine_time")
-    @Property(value = "审核时间")
+    @ApiModelProperty(value = "审核时间")
     private String examineTime;
 
     @TableField(value = "report_id")
-    @Property(value = "举报人id")
+    @ApiModelProperty(value = "举报人id")
     private String reportId;
 
     @TableField(exist = false)

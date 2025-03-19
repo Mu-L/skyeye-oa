@@ -92,11 +92,24 @@ public class SubjectController {
      */
     @ApiOperation(id = "querySubjectListByMajorId", value = "根据专业id查询所有科目", method = "GET", allUse = "2")
     @ApiImplicitParams({
-          @ApiImplicitParam(id = "majorId", name = "majorId", value = "专业id", required = "required")
+        @ApiImplicitParam(id = "majorId", name = "majorId", value = "专业id", required = "required")
     })
     @RequestMapping("/post/SubjectController/querySubjectListByMajorId")
     public void querySubjectListByMajorId(InputObject inputObject, OutputObject outputObject) {
         subjectService.querySubjectListByMajorId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "searchSubjectList", value = "根据关键字搜索科目", method = "GET", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SubjectController/searchSubjectList")
+    public void searchSubjectList(InputObject inputObject, OutputObject outputObject) {
+        subjectService.searchSubjectList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryMySubjectList", value = "查询科目信息(只查科目信息和学校信息)", method = "GET", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SubjectController/queryMySubjectList")
+    public void queryMySubjectList(InputObject inputObject, OutputObject outputObject){
+        subjectService.queryMySubjectListOnly(inputObject, outputObject);
+    }
 }

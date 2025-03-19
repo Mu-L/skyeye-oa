@@ -11,6 +11,7 @@ import com.skyeye.books.entity.SetOfBooks;
 import com.skyeye.books.service.IfsSetOfBooksService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,12 +30,21 @@ import java.util.Map;
 public class IfsSetOfBooksServiceImpl extends SkyeyeBusinessServiceImpl<IfsSetOfBooksDao, SetOfBooks> implements IfsSetOfBooksService {
 
     @Override
+    public void validatorEntity(SetOfBooks entity) {
+        super.validatorEntity(entity);
+        if (DateUtil.compare(entity.getEndTime(), entity.getStartTime())) {
+            // 结束时间早于开始时间
+            throw new CustomException("结束时间不能早于开始时间");
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         for (Map<String, Object> bean : beans) {
             String startTime = bean.get("startTime").toString();
             String endTime = bean.get("endTime").toString();
-            String currentTime = DateUtil.getYmdTimeAndToString();
+            String currentTime = DateUtil.getTimeAndToString();
             if (DateUtil.getDistanceDay(startTime, currentTime) >= 0 && DateUtil.getDistanceDay(currentTime, endTime) >= 0) {
                 // startTime <= 当前时间 <= endTime
                 bean.put("haveAccess", true);

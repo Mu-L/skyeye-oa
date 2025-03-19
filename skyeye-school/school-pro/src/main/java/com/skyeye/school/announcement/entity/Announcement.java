@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
@@ -65,4 +66,8 @@ public class Announcement extends OperatorUserInfo {
     @TableField("un_confirm_num")
     @ApiModelProperty(value = "未确认的人数")
     private int unConfirmNum;
+
+    @TableField(exist = false)
+    @Property(value = "检测当前登录人是否确认公告")
+    private Boolean checkConfirm;
 }

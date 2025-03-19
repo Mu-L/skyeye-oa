@@ -22,6 +22,7 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.rest.school.service.ISchoolService;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -100,15 +101,25 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public void updatePrepose(User entity) {
-        User user = selectById(entity.getId());
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, entity.getId());
+        User user = getOne(queryWrapper);
         entity.setPassword(user.getPassword());
         entity.setRealName(user.getRealName());
         entity.setStudentNumber(user.getStudentNumber());
     }
 
+    @Autowired
+    private ISchoolService iSchoolService;
+
     @Override
     public User selectById(String id) {
+        //当前学生账户Id
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         User user = super.selectById(id);
+        String studentNumber = user.getStudentNumber();
+        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber,id,userId);
+        user.setSchoolStudentMation(schoolStudentMation);
         Certification certification = certificationService.selectById(id);
         if (certification == null) {
             user.setState(StateEnum.UNVERIFIED.getKey());
@@ -199,7 +210,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         // 旧密码匹配
         if (user.getPassword().equals(ToolUtil.MD5(map.get("oldPassword").toString()))) {
             String newPassword = ToolUtil.MD5(map.get("newPassword").toString());
-
             UpdateWrapper<User> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, stuId);
             updateWrapper.set(MybatisPlusUtil.toColumns(User::getPassword), newPassword);
@@ -230,5 +240,22 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         updateWrapper.set(MybatisPlusUtil.toColumns(User::getRealName), realName);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("realName").toString();
+        String studentNumber = map.get("studentNumber").toString();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(name)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), name);
+        }
+        if (StrUtil.isNotEmpty(studentNumber)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumber);
+        }
+        List<User> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 }

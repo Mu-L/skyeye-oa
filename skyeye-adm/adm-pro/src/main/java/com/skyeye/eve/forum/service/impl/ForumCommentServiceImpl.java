@@ -58,6 +58,13 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
 
     @Override
     public void deletePostpose(ForumComment forumComment) {
+        String id = forumComment.getId();
+        QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getBelongCommentId), id);
+        List<ForumComment> bean = list(queryWrapper);
+        if(CollectionUtil.isNotEmpty(bean)){
+            remove(queryWrapper);
+        }
         // 查询所有评论条数，更新帖子评论总数
         QueryWrapper<ForumComment> countQueryWrapper = new QueryWrapper<>();
         countQueryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), forumComment.getForumId());
@@ -134,5 +141,15 @@ public class ForumCommentServiceImpl extends SkyeyeBusinessServiceImpl<ForumComm
         iAuthUserService.setDataMation(beans, ForumComment::getReplyId);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
+    }
+
+    /**
+     * 根据帖子id删除评论
+     * */
+    @Override
+    public void deleteByForumId(String id) {
+        QueryWrapper<ForumComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumComment::getForumId), id);
+        remove(queryWrapper);
     }
 }

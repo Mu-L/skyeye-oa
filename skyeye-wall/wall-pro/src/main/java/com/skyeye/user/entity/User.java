@@ -17,6 +17,9 @@ import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: User
  * @Description: 用户实体类
@@ -79,4 +82,8 @@ public class User extends CommonInfo {
     @TableField(exist = false)
     @Property(value = "认证状态")
     private Integer state;
+
+    @TableField(exist = false)
+    @Property(value = "学校学生的基本信息")
+    private List<Map<String,Object>> schoolStudentMation;
 }

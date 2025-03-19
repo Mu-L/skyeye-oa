@@ -21,4 +21,5 @@ public interface ChapterService extends SkyeyeBusinessService<Chapter> {
 
     void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
 
+    void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject);
 }

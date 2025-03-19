@@ -6,9 +6,14 @@ package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -17,6 +22,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.semester.entity.Semester;
@@ -58,6 +64,43 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private SchoolService schoolService;
+
+    @Override
+    public void validatorEntity(Subject entity) {
+        super.validatorEntity(entity);
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getName), entity.getName())
+            .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+        long count = count(queryWrapper);
+        // name 同时作唯一性约束
+        if (StrUtil.isEmpty(entity.getId()) && count > CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("课程名称已存在");
+        }
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            Subject subject = selectById(entity.getId());
+            if (!subject.getName().equals(entity.getName()) && count > CommonNumConstants.NUM_ZERO) {
+                throw new CustomException("课程名称已存在");
+            }
+        }
+        queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getNo), entity.getNo())
+            .eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);
+        long countNo = count(queryWrapper);
+        // no 同时作唯一性约束
+        if (StrUtil.isEmpty(entity.getId()) && countNo > CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("课程编号已存在");
+        }
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            Subject subject = selectById(entity.getId());
+            if (!subject.getNo().equals(entity.getNo()) && countNo > CommonNumConstants.NUM_ZERO) {
+                throw new CustomException("课程编号已存在");
+            }
+        }
+    }
+
     @Override
     public void createPrepose(Subject entity) {
         entity.setOwnerId(InputObject.getLogParamsStatic().get("id").toString());
@@ -84,41 +127,39 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             // 教师身份信息
             // 查询当前用户创建的科目
             List<Subject> subjectList = querySubjectListByUserId(userId);
-            if (CollectionUtil.isEmpty(subjectList)) {
-                throw new CustomException("当前用户没有创建科目");
+            if (CollectionUtil.isNotEmpty(subjectList)) {
+                List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
+                subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
             }
-            List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
-            subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
             String studentNumber = certification.get("studentNumber").toString();
             List<String> subClassLinkIdList = subjectClassesStuService.querySubClassLinkIdByStuNo(studentNumber);
-            if (CollectionUtil.isEmpty(subClassLinkIdList)) {
-                throw new CustomException("当前学生没有加入任何科目");
+            if (CollectionUtil.isNotEmpty(subClassLinkIdList)) {
+                subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
             }
-            subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
         }
-        if (CollectionUtil.isEmpty(subjectClassesList)) {
-            throw new CustomException("当前用户没有创建或加入任何科目");
-        }
+        // 学生按照学期分组
         List<Semester> semesterList = new ArrayList<>();
         List<String> semesterIdList = new ArrayList<>();
-        subjectClassesList.forEach(subjectClasses -> {
-            if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
-                Semester semester = new Semester();
-                semester.setId(subjectClasses.getSemesterId());
-                semester.setName(subjectClasses.getSemesterMation().getName());
-                semesterList.add(semester);
-                semesterIdList.add(subjectClasses.getSemesterId());
+        if (CollectionUtil.isNotEmpty(subjectClassesList)) {
+            subjectClassesList.forEach(subjectClasses -> {
+                if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
+                    Semester semester = new Semester();
+                    semester.setId(subjectClasses.getSemesterId());
+                    semester.setName(subjectClasses.getSemesterMation().getName());
+                    semesterList.add(semester);
+                    semesterIdList.add(subjectClasses.getSemesterId());
+                }
+            });
+            // 按学期分组
+            for (Semester semester : semesterList) {
+                List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
+                    .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
+                    .collect(Collectors.toList());
+                semester.setSubjectClassesList(subjectClassesListBySemester);
             }
-        });
-        // 按学期分组
-        for (Semester semester : semesterList) {
-            List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
-                .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
-                .collect(Collectors.toList());
-            semester.setSubjectClassesList(subjectClassesListBySemester);
         }
         outputObject.setBeans(semesterList);
         outputObject.settotal(semesterList.size());
@@ -130,9 +171,94 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getMajorId), majorId);
         List<Subject> list = list(queryWrapper);
-        iAuthUserService.setDataMation(list,Subject::getCreateId);
+        iAuthUserService.setDataMation(list, Subject::getCreateId);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
+    }
+
+    @Override
+    public void searchSubjectList(InputObject inputObject, OutputObject outputObject) {
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = null;
+        List<Map<String, Object>> beans = null;
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            // 开启分页
+            setCommonPageInfoOtherInfo(commonPageInfo);
+            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            // 教师查询
+            QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+            if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+                queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), commonPageInfo.getKeyword());
+            }
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
+                .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
+            List<Subject> list = list(queryWrapper);
+            // 取出主键id，查询班级信息
+            List<String> subjectIdList = list.stream().map(Subject::getId).collect(Collectors.toList());
+            List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectIdList.toArray(new String[]{}));
+            // 将科目信息按id分组，为班级信息设置科目信息
+            Map<String, Subject> subjectMap = list.stream().collect(Collectors.toMap(Subject::getId, subject -> subject));
+            for (SubjectClasses subjectClasses : subjectClassesList) {
+                if (subjectMap.containsKey(subjectClasses.getObjectId())) {
+                    subjectClasses.setObjectMation(subjectMap.get(subjectClasses.getObjectId()));
+                }
+            }
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(subjectClassesList), null);
+        } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生身份信息
+            // 查学号
+            Map<String, Object> certification = iCertificationService.queryCertificationById(currentUserId);
+            String studentNumber = certification.get("studentNumber").toString();
+            // 查科目与班级关联id
+            List<String> subClassLinkIdList = subjectClassesStuService.querySubClassLinkIdByStuNo(studentNumber);
+            QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+            queryWrapper.select(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId))
+                .in(CommonConstants.ID, subClassLinkIdList);
+            List<SubjectClasses> subjectClasses = subjectClassesService.list(queryWrapper);
+            List<String> subkectIdList = subjectClasses.stream().map(SubjectClasses::getObjectId).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(subkectIdList)) {
+                return;
+            }
+            // 开启分页
+            setCommonPageInfoOtherInfo(commonPageInfo);
+            pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            // 查科目
+            QueryWrapper<Subject> wrapper = new QueryWrapper<>();
+            if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+                wrapper.like(MybatisPlusUtil.toColumns(Subject::getName), commonPageInfo.getKeyword());
+            }
+            wrapper.in(CommonConstants.ID, subkectIdList);
+            List<Subject> list = list(wrapper);
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        }
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        for (Map<String, Object> bean : beans) {
+            bean.put("serviceClassName", getServiceClassName());
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public void queryMySubjectListOnly(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = null;
+        // 开启分页
+        setCommonPageInfoOtherInfo(commonPageInfo);
+        pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 教师查询
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
+            .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
+        List<Subject> beans = list(queryWrapper);
+        schoolService.setDataMation(beans, Subject::getSchoolId);
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
     }
 
     private List<Subject> querySubjectListByUserId(String userId) {

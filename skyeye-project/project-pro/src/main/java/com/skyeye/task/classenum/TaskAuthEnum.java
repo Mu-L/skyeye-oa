@@ -25,6 +25,7 @@ public enum TaskAuthEnum implements SkyeyeEnumClass {
     LIST("list", "所有任务列表", true, false),
     MY_EXECUTE("myExecute", "我执行的任务列表", true, false),
     MY_CREATE("myCreate", "我创建的任务列表", true, false),
+    SIMPLE_BY_DEPARTMENT("simpleByDepartment", "同部门人员执行的任务列表", true, false),
     ADD("add", "新增", true, false),
     EDIT("edit", "编辑", true, false),
     DELETE("delete", "删除", true, false),

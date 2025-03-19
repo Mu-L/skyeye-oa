@@ -9,6 +9,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -64,7 +65,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         String id = inputObject.getParams().get("announcementId").toString();
         String stuNo = inputObject.getParams().get("stuNo").toString();
         UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("id", id);
+        updateWrapper.eq(CommonConstants.ID, id);
         Announcement announcement = announcementService.getOne(updateWrapper);
         if(ObjectUtil.isEmpty(announcement)){
             throw new CustomException("该公告不存在");
@@ -104,12 +105,16 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         Map<String, Object> map = inputObject.getParams();
         String subjectClassesId = map.get("subjectClassesId").toString();
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId)
+                .orderByDesc(MybatisPlusUtil.toColumns(Announcement::getCreateTime));
         List<Announcement> announcementList = list(queryWrapper);
         if (CollectionUtil.isEmpty(announcementList)) {
             iUserService.setDataMation(announcementList, Announcement::getCreateId);
         } else {
             iAuthUserService.setDataMation(announcementList, Announcement::getCreateId);
+        }
+        for (Announcement announcement : announcementList) {
+            setCheckIsConfirm(announcement);
         }
         outputObject.setBeans(announcementList);
         outputObject.settotal(announcementList.size());
@@ -133,8 +138,18 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     @Override
     public Announcement selectById(String id){
         Announcement announcement = super.selectById(id);
+        setCheckIsConfirm(announcement);
         iAuthUserService.setDataMation(announcement,Announcement::getCreateId);
         return announcement;
+    }
+
+    private void setCheckIsConfirm(Announcement announcement){
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<AnnouncementRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId),announcement.getId())
+                .eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getCreateId),userId);
+        AnnouncementRecord one = announcementRecordService.getOne(queryWrapper);
+        announcement.setCheckConfirm(ObjectUtil.isNotEmpty(one));
     }
 
     @Override
@@ -155,16 +170,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         announcement.setObjectId(subjectClasses.getObjectId());
         announcement.setObjectKey(subjectClasses.getObjectKey());
         // 删除记录表先前announcedId的记录
-        List<String> ids = new ArrayList<>();
-        QueryWrapper<AnnouncementRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId),id);
-        List<AnnouncementRecord> announcementRecordList = announcementRecordService.list(queryWrapper);
-        if(CollectionUtil.isNotEmpty(announcementRecordList)){
-            for(AnnouncementRecord record : announcementRecordList){
-                ids.add(record.getId());
-            }
-            announcementRecordService.deleteById(ids);
-        }
+        announcementRecordService.deleteRecordByAnnouncementId(id);
     }
 
     @Override

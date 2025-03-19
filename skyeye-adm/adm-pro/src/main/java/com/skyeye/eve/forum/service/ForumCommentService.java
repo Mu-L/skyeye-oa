@@ -13,4 +13,6 @@ public interface ForumCommentService extends SkyeyeBusinessService<ForumComment>
     List<String> queryListByForumIds(List<String> idList);
 
     void queryMyForumCommentList(InputObject inputObject, OutputObject outputObject);
+
+    void deleteByForumId(String id);
 }

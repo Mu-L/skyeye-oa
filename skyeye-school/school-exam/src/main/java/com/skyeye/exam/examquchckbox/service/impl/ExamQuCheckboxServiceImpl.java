@@ -19,7 +19,6 @@ import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
-import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "多选题选项表管理", groupName = "多选题选项表管理")
@@ -57,10 +55,12 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
             bean.setOptionTitle(object.getOptionTitle());
             bean.setIsNote(object.getIsNote());
             bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
-            if (!ToolUtil.isNumeric(object.getCheckType().toString())) {
-                bean.setCheckType( CheckType.valueOf(object.getCheckType().toString()).getIndex());
-            } else {
-                bean.setCheckType(object.getCheckType());
+            if (object.getCheckType() != null) {
+                if (!ToolUtil.isNumeric(object.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(object.getCheckType().toString()).getIndex());
+                } else {
+                    bean.setCheckType(object.getCheckType());
+                }
             }
             bean.setIsRequiredFill(object.getIsRequiredFill());
             if (ToolUtil.isBlank(object.getOptionId())) {
@@ -85,19 +85,11 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
     }
 
     @Override
-    protected void deletePreExecution(ExamQuCheckbox entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility == 1){
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<ExamQuCheckbox> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID,id);
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -105,15 +97,15 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<ExamQuCheckbox> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), quId);
         remove(updateWrapper);
     }
 
     @Override
     public List<ExamQuCheckbox> selectQuChenbox(String copyFromId) {
         QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId),copyFromId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuCheckbox::getOrderById));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), copyFromId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuCheckbox::getOrderById));
         return list(queryWrapper);
     }
 
@@ -123,17 +115,17 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
             return new HashMap<>();
         }
         QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getBelongId), id);
         List<ExamQuCheckbox> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;

@@ -10,9 +10,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.arrangement.classenum.ArrangementState;
-import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.interviewee.entity.Interviewee;
 import com.skyeye.personrequire.entity.PersonRequire;
@@ -30,7 +27,6 @@ import java.util.Map;
  */
 @Data
 @TableName(value = "boss_interview_arrangement")
-@RedisCacheField(name = "boss:arrangement", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @ApiModel("面试安排表实体类")
 public class Arrangement extends OperatorUserInfo {
 

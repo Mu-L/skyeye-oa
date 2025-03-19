@@ -14,6 +14,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquscore.dao.ExamQuScoreDao;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
@@ -78,14 +79,6 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     }
 
     @Override
-    protected void deletePreExecution(ExamQuScore entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
-
-    @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -99,7 +92,7 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
     public List<ExamQuScore> selectQuScore(String copyFromId) {
         QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), copyFromId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamQuScore::getOrderById));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuScore::getOrderById));
         return list(queryWrapper);
     }
 

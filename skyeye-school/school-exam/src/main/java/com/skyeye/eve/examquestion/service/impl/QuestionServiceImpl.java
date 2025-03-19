@@ -4,7 +4,6 @@
 
 package com.skyeye.eve.examquestion.service.impl;
 
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -27,8 +26,11 @@ import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
+import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
+import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
@@ -140,6 +142,15 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     private ExamAnDfilllankService examAnDfilllankService;
 
     @Autowired
+    private ExamAnChenFbkService examAnChenFbkService;
+
+    @Autowired
+    private ExamAnChenScoreService examAnChenScoreService;
+
+    @Autowired
+    private ExamAnCompChenRadioService examAnCompChenRadioService;
+
+    @Autowired
     private KnowledgePointsService knowledgePointsService;
 
     @Override
@@ -182,84 +193,124 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 根据不同的题目类型，保存对应的题目数据
         // 处理单选题
         List<ExamQuRadio> radioTd = entity.getRadioTd();
-        if (ObjUtil.isNotEmpty(radioTd)) {
+        if (CollectionUtils.isNotEmpty(radioTd)) {
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 处理得分题
         List<ExamQuScore> ScoreTd = entity.getScoreTd();
-        if (ObjUtil.isNotEmpty(ScoreTd)) {
+        if (CollectionUtils.isNotEmpty(ScoreTd)) {
             examquScoreService.saveList(ScoreTd, quId, userId);
         }
         // 处理多选题
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
-        if (ObjUtil.isNotEmpty(checkboxTd)) {
+        if (CollectionUtils.isNotEmpty(checkboxTd)) {
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 处理多空填空题
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
-        if (ObjUtil.isNotEmpty(multiFillblankTd)) {
+        if (CollectionUtils.isNotEmpty(multiFillblankTd)) {
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 处理排序题
-        List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
-        if (ObjUtil.isNotEmpty(orderbyTd)) {
-            examQuOrderbyService.saveList(orderbyTd, quId, userId);
+        List<ExamQuOrderby> orderByTd = entity.getOrderByTd();
+        if (CollectionUtils.isNotEmpty(orderByTd)) {
+            examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 处理矩阵题
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
-        if (ObjUtil.isNotEmpty(columnTd) && ObjUtil.isNotEmpty(rowTd)) {
+        if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
             examQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }
 
-    /**
-     * 更新题目前的前置处理
-     *
-     * @param entity 题目实体对象
-     */
     @Override
-    public void updatePrepose(Question entity) {
+    protected void updatePostpose(Question entity, String userId) {
         String entityId = entity.getId();
-        // 获取当前登录用户ID
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        // 更新不同题目类型的数据
         // 更新单选题
-        examQuRadioService.removeByQuId(entityId);
+        String belongId = entity.getBelongId();
+        if (StrUtil.isEmpty(belongId)) {
+            examQuRadioService.removeByQuId(entityId);
+            examquScoreService.removeByquId(entityId);
+            examQuCheckboxService.removeByQuId(entityId);
+            examQuMultiFillblankService.removeByQuId(entityId);
+            examQuOrderbyService.removeByQuId(entityId);
+            examQuChenColumnService.removeByQuId(entityId);
+        }
         List<ExamQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
-        if (ObjUtil.isNotEmpty(radioTd)) {
+        if (CollectionUtils.isNotEmpty(radioTd)) {
+            List<String> collect = radioTd.stream().map(ExamQuRadio::getOptionId).collect(Collectors.toList());
+            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(entityId);
+            List<String> collect1 = examQuRadioList.stream().map(ExamQuRadio::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuRadioService.deleteById(id);
+            }
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 更新得分题
-        examquScoreService.removeByquId(entityId);
         List<ExamQuScore> scoreTd = entity.getScoreTd();
-        if (ObjUtil.isNotEmpty(scoreTd)) {
+        if (CollectionUtils.isNotEmpty(scoreTd)) {
+            List<String> collect = scoreTd.stream().map(ExamQuScore::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examquScoreService.selectQuScore(entityId).stream().map(ExamQuScore::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examquScoreService.deleteById(id);
+            }
             examquScoreService.saveList(scoreTd, quId, userId);
         }
         // 更新多选题
-        examQuCheckboxService.removeByQuId(entityId);
         List<ExamQuCheckbox> checkboxTd = entity.getCheckboxTd();
-        if (ObjUtil.isNotEmpty(checkboxTd)) {
+        if (CollectionUtils.isNotEmpty(checkboxTd)) {
+            List<String> collect = checkboxTd.stream().map(ExamQuCheckbox::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuCheckboxService.selectQuChenbox(entityId).stream().map(ExamQuCheckbox::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuCheckboxService.deleteById(id);
+            }
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 更新多空填空题
-        examQuMultiFillblankService.removeByQuId(entityId);
         List<ExamQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
-        if (ObjUtil.isNotEmpty(multiFillblankTd)) {
+        if (CollectionUtils.isNotEmpty(multiFillblankTd)) {
+            List<String> collect = multiFillblankTd.stream().map(ExamQuMultiFillblank::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuMultiFillblankService.selectQuMultiFillblank(entityId).stream().map(ExamQuMultiFillblank::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuMultiFillblankService.deleteById(id);
+            }
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
-        examQuOrderbyService.removeByQuId(entityId);
-        List<ExamQuOrderby> orderbyTd = entity.getOrderbyTd();
-        if (ObjUtil.isNotEmpty(orderbyTd)) {
-            examQuOrderbyService.saveList(orderbyTd, quId, userId);
+        List<ExamQuOrderby> orderByTd = entity.getOrderByTd();
+        if (CollectionUtils.isNotEmpty(orderByTd)) {
+            List<String> collect = orderByTd.stream().map(ExamQuOrderby::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuOrderbyService.selectQuOrderby(entityId).stream().map(ExamQuOrderby::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuOrderbyService.deleteById(id);
+            }
+            examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 更新陈列题
-        examQuChenColumnService.removeByQuId(entityId);
         List<ExamQuChenColumn> columnTd = entity.getColumnTd();
         List<ExamQuChenRow> rowTd = entity.getRowTd();
-        if (ObjUtil.isNotEmpty(columnTd) && ObjUtil.isNotEmpty(rowTd)) {
+        if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
+            List<String> collect = columnTd.stream().map(ExamQuChenColumn::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = examQuChenColumnService.selectQuChenColumn(entityId).stream().map(ExamQuChenColumn::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect2) {
+                examQuChenColumnService.deleteById(id);
+            }
+            List<String> collect3 = rowTd.stream().map(ExamQuChenRow::getOptionId).collect(Collectors.toList());
+            List<String> collect4 = examQuChenRowService.selectQuChenRow(entityId).stream().map(ExamQuChenRow::getId).collect(Collectors.toList());
+            List<String> collect5 = collect4.stream().filter(optionId -> !collect3.contains(optionId)).collect(Collectors.toList());
+            for (String id : collect5) {
+                examQuChenRowService.deleteById(id);
+            }
             examQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }
@@ -274,7 +325,17 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<Question> questionList = getBaseInfo(queryWrapper);
         outputObject.setBeans(questionList);
         outputObject.settotal(page.getTotal());
+    }
 
+    @Override
+    public void deleteBySurveyDirectoryId(String id) {
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), id);
+        List<Question> list = list(queryWrapper);
+        for (Question question : list) {
+            deleteById(question.getId());
+        }
+        remove(queryWrapper);
     }
 
     @Override
@@ -289,7 +350,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<ExamQuMultiFillblank> examQuMultiFillblankList = examQuMultiFillblankService.selectQuMultiFillblank(id);
         question.setMultifillblankTd(examQuMultiFillblankList);
         List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(id);
-        question.setOrderbyTd(examQuOrderbyList);
+        question.setOrderByTd(examQuOrderbyList);
         List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(id);
         question.setColumnTd(examQuChenColumnList);
         List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(id);
@@ -303,13 +364,15 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         for (String id : ids) {
             Question question = super.selectById(id);
             questionList.add(question);
+            String knowledgeIds = question.getKnowledgeIds();
+            if (StrUtil.isNotEmpty(knowledgeIds)) {
+                String[] split = knowledgeIds.split(",");
+                for (String knowledgeId : split) {
+                    List<KnowledgePoints> knowledgePointsList = knowledgePointsService.queryKnowledge(knowledgeId);
+                    question.setKnowledgePointsMation(knowledgePointsList);
+                }
+            }
         }
-//        String knowledgeIds = entity.getKnowledgeIds();
-//        String[] split = knowledgeIds.split(",");
-//        for (String knowledgeId : split) {
-//            List<KnowledgePoints> knowledgePointsList = knowledgePointsService.queryKnowledge(knowledgeId);
-//            entity.setKnowledgePointsMation(knowledgePointsList);
-//        }
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         questionList = questionList.stream().map(item -> {
@@ -356,8 +419,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             if (question.getQuType() == QuType.ORDERQU.getIndex()) {
                 List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
                 List<ExamAnOrder> examAnOrderbyList = examAnOrderService.selectAnOrderByQuId(question.getId());
-                question.setOrderbyTd(orderbyList);
-                question.setOrderbyAn(examAnOrderbyList);
+                question.setOrderByTd(orderbyList);
+                question.setOrderByAn(examAnOrderbyList);
                 continue;
             }
             // 4 多行填空题
@@ -378,10 +441,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 List<ExamAnChenRadio> examAnChenRadioList = examAnChenRadioService.selectAnChenRadioByQuId(question.getId());
                 List<ExamAnChenCheckbox> examAnCheckboxList = examAnChenCheckboxService.selectAnChenCheckboxByQuId(question.getId());
                 question.setColumnTd(examQuChenColumnList);
-                question.setChenAn(examAnChenRadioList);
+                question.setChenRadioAn(examAnChenRadioList);
                 question.setRowTd(examQuChenRowList);
-                question.setChenRowAn(examAnCheckboxList);
-
+                question.setChenCheckboxAn(examAnCheckboxList);
             }
         }
         return questionList;
@@ -404,6 +466,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             examQuMultiFillblankService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHECKBOX.getIndex())) {
             examQuCheckboxService.removeByQuId(quId);
+        } else if (quType.equals(QuType.SCORE.getIndex())) {
+            examQuScoreService.removeByquId(quId);
         } else if (quType.equals(QuType.ORDERQU.getIndex())) {
             examQuOrderbyService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||
@@ -426,7 +490,46 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public List<Question> QueryQuestionByBelongId(String belongId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
-        return list(queryWrapper);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
+        List<Question> questionList = list(queryWrapper);
+        for (Question question : questionList) {
+            // 根据题目类型获取题目选项
+            Integer quType = question.getQuType();
+            String id = question.getId();
+            if (quType.equals(QuType.RADIO.getIndex())) {
+                question.setRadioTd(examQuRadioService.selectQuRadio(id));
+                question.setRadioAn(examAnRadioService.selectByQuid(id));
+            }
+            if (quType.equals(QuType.CHECKBOX.getIndex())) {
+                question.setCheckboxTd(examQuCheckboxService.selectQuChenbox(id));
+                question.setCheckboxAn(examAnCheckboxService.selectAnCheckBoxByQuId(id));
+            }
+            if (quType.equals(QuType.SCORE.getIndex())) {
+                question.setScoreTd(examQuScoreService.selectQuScore(id));
+                question.setScoreAn(examAnScoreService.selectAnScoreByQuId(id));
+            }
+            if (quType.equals(QuType.ORDERQU.getIndex())) {
+                question.setOrderByTd(examQuOrderbyService.selectQuOrderby(id));
+                question.setOrderByAn(examAnOrderService.selectAnOrderByQuId(id));
+            }
+            if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
+                question.setMultifillblankTd(examQuMultiFillblankService.selectQuMultiFillblank(id));
+                question.setDFillblankAn(examAnDfilllankService.selectAnMultiFillblankQuId(id));
+            }
+            if (quType.equals(QuType.CHENRADIO.getIndex()) ||
+                    quType.equals(QuType.CHENFBK.getIndex()) ||
+                    quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+                    quType.equals(QuType.CHENSCORE.getIndex())) {
+                question.setColumnTd(examQuChenColumnService.selectQuChenColumn(id));
+                question.setChenRadioAn(examAnChenRadioService.selectAnChenRadioByQuId(id));
+                question.setChenFbkAn(examAnChenFbkService.selectByQuId(id));
+                question.setChenScoreAn(examAnChenScoreService.selectByQuId(id));
+                question.setCompChenRadioAn(examAnCompChenRadioService.selectByQuId(id));
+                question.setRowTd(examQuChenRowService.selectQuChenRow(id));
+                question.setChenCheckboxAn(examAnChenCheckboxService.selectAnChenCheckboxByQuId(id));
+            }
+        }
+        return questionList;
     }
 
     /**
@@ -531,9 +634,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public List<Question> queryQuestionMationCopyById(String surveyCopyId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId); // 等于归属ID
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_TWO); // 等于标签2
-//        queryWrapper.ne(MybatisPlusUtil.toColumns(Question::getQuTag), CommonNumConstants.NUM_TWO); // 不等于题目标签2
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE); // 等于可见性1
         return list(queryWrapper); // 返回查询结果列表
     }
 
@@ -581,7 +681,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 case 9:
                     // 去ExamQuOrderby表查询
                     List<ExamQuOrderby> orderbyList = examQuOrderbyService.selectQuOrderby(quId);
-                    question.setOrderbyTd(orderbyList);
+                    question.setOrderByTd(orderbyList);
                     break;
                 case 2:
                     // 去ExamQuCheckBox表查询

@@ -85,4 +85,19 @@ public class ChapterController {
     public void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
         chapterService.queryChapterListBySubjectClassesId(inputObject, outputObject);
     }
+
+    /**
+     * 章节分析
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryChapterAnalysis", value = "章节分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")
+    })
+    @RequestMapping("/post/ChapterController/queryChapterAnalysis")
+    public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {
+        chapterService.queryChapterAnalysis(inputObject, outputObject);
+    }
 }

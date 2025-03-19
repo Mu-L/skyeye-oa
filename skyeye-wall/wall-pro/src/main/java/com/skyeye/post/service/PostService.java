@@ -38,4 +38,8 @@ public interface PostService extends SkyeyeBusinessService<Post> {
     void deleteByCircleId(String circleId);
 
     void queryHotPostList(InputObject inputObject, OutputObject outputObject);
+
+    void queryUserPostCount(InputObject inputObject, OutputObject outputObject);
+
+    void queryPostVisitor(InputObject inputObject, OutputObject outputObject);
 }

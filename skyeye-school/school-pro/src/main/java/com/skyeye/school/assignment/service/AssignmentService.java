@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.assignment.entity.Assignment;
 
+import java.util.Map;
+
 /**
  * @ClassName: AssignmentService
  * @Description: 作业管理服务接口层
@@ -21,4 +23,5 @@ public interface AssignmentService extends SkyeyeBusinessService<Assignment> {
 
     void queryAssignmentListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
 
+    Map<String, Double> queryAssigmentByChapterId(long num,String... chapterId);
 }

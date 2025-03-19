@@ -17,6 +17,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.major.entity.Major;
@@ -60,7 +61,7 @@ public class Student extends OperatorUserInfo {
     private String id;
 
     @TableField("name")
-    @ApiModelProperty(value = "学生姓名", required = "required")
+    @ApiModelProperty(value = "学生姓名", required = "required",fuzzyLike = true)
     @Excel(name = "学生姓名", width = 15, isImportField = "true_st", orderNum = "1")
     private String name;
 
@@ -74,7 +75,7 @@ public class Student extends OperatorUserInfo {
     private String nameUsed;
 
     @TableField("no")
-    @ApiModelProperty(value = "学号", required = "required")
+    @ApiModelProperty(value = "学号", required = "required",fuzzyLike = true)
     @Excel(name = "学号", width = 15, isImportField = "true_st", orderNum = "3")
     private String no;
 
@@ -345,5 +346,10 @@ public class Student extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "学生父母情况", required = "json")
     private List<StudentParents> studentParents;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "朋友情况")
+    private List<FriendRelationship> friendMation;
+
 
 }

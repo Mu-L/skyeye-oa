@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -37,7 +38,7 @@ public class SetOfBooks extends BaseGeneralInfo {
     private String endTime;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
 }

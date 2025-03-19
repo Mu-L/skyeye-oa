@@ -160,7 +160,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
             || state.equals(ArrangementState.TO_BE_INTERVIEWED.getKey())) {
             // 2，3状态可以作废
             editStateById(id, ArrangementState.NULLIFY.getKey());
-            refreshCache(id);
         }
     }
 
@@ -223,7 +222,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
             updateWrapper.set(MybatisPlusUtil.toColumns(Arrangement::getInterviewer), interviewer);
             updateWrapper.set(MybatisPlusUtil.toColumns(Arrangement::getState), ArrangementState.TO_BE_INTERVIEWED.getKey());
             update(updateWrapper);
-            refreshCache(id);
         }
     }
 
@@ -282,7 +280,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
             updateWrapper.set(MybatisPlusUtil.toColumns(Arrangement::getEvaluation), map.get("evaluation").toString());
             updateWrapper.set(MybatisPlusUtil.toColumns(Arrangement::getState), map.get("state").toString());
             update(updateWrapper);
-            refreshCache(id);
         }
     }
 
@@ -327,7 +324,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
                 }
                 setInductionResult(id, ArrangementState.COMPLATE_REFUSE.getKey(), reason);
             }
-            refreshCache(id);
         }
     }
 

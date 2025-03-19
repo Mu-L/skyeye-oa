@@ -7,17 +7,23 @@ package com.skyeye.school.chapter.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.chapter.dao.ChapterDao;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
+import com.skyeye.school.courseware.service.CoursewareService;
+import com.skyeye.school.datum.service.DatumService;
+import com.skyeye.school.measurement.service.MeasurementService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ChapterServiceImpl
@@ -30,6 +36,21 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "章节管理", groupName = "章节管理")
 public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Chapter> implements ChapterService {
+
+    @Autowired
+    private AssignmentService assignmentService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private MeasurementService measurementService;
+
+    @Autowired
+    private DatumService datumService;
+
+    @Autowired
+    private CoursewareService coursewareService;
 
     /**
      * 根据科目表与班级表的关系id获取章节列表
@@ -51,6 +72,67 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         iAuthUserService.setDataMation(chapterList, Chapter::getLastUpdateId);
         outputObject.setBeans(chapterList);
         outputObject.settotal(chapterList.size());
+    }
+
+    /**
+     * 章节分析
+     */
+    @Override
+    public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectClassesId = params.get("subjectClassesId").toString();
+        QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectClassesId), subjectClassesId)
+                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+        // 查这个班的人数
+        Long classNum = subjectClassesStuService.queruClassStuNum(subjectClassesId);
+        List<Map<String, Map<String, Map<String, Double>>>> beans = new ArrayList<>();
+        List<Chapter> chapterList = list(queryWrapper);
+        List<String> ids = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
+        String[] idsArray = ids.toArray(new String[0]);
+        Map<String, Map<String, Double>> temp = new HashMap<>();
+        Map<String, Map<String, Map<String, Double>>> map = new HashMap<>();
+        for (Chapter chapter : chapterList) {
+            String name = "chapterAnalysis"+chapter.getSection();
+            // 作业分析--
+            Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum, chapter.getId());
+            temp.put("assAnalysis", assAnalysis);
+
+            // 测试分析--
+            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum,chapter.getId());
+            temp.put("testAnalysis", testAnalysis);
+
+            // 资料分析--
+            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum,chapter.getId());
+            temp.put("materialAnalysis", materialAnalysis);
+
+            // 互动课件分析
+            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum,chapter.getId());
+            temp.put("coursewareAnalysis", coursewareAnalysis);
+            // TODO:互动答题分析--
+            map.put(name, temp);
+            beans.add(map);
+            map = new HashMap<>();
+        }
+        if(idsArray.length > CommonNumConstants.NUM_ONE){
+            // 全部作业分析
+            Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum,idsArray);
+            // 全部测试分析
+            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum,idsArray);
+            // 全部资料分析
+            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum,idsArray);
+            // 全部互动课件分析
+            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum,idsArray);
+            temp.put("assAnalysis", assAnalysis);
+            temp.put("testAnalysis", testAnalysis);
+            temp.put("materialAnalysis", materialAnalysis);
+            temp.put("coursewareAnalysis", coursewareAnalysis);
+            // TODO:全部互动答题分析--
+        }
+        map.put("allAnalysis", temp);
+        beans.add(map);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
 }

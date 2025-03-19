@@ -22,4 +22,6 @@ public interface ForumHotService extends SkyeyeBusinessService<ForumHot> {
     void queryHotTagList(InputObject inputObject, OutputObject outputObject);
 
     void queryHotForumTagList();
+
+    void deleteByForumId(String id);
 }

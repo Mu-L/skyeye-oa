@@ -25,6 +25,8 @@ public interface DwAnChenFbkService extends SkyeyeBusinessService<DwAnChenFbk> {
     void queryDwAnChenFbkListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnChenFbk> selectBySurveyId(String surveyId);
+
+    List<DwAnChenFbk> selectByQuId(String id);
 }
 
 

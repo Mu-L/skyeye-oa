@@ -32,12 +32,6 @@ public class MealOrderController {
     @Autowired
     private MealOrderService mealOrderService;
 
-    /**
-     * 获取套餐订单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMealOrderList", value = "获取套餐订单信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MealOrderController/queryMealOrderList")
@@ -45,12 +39,6 @@ public class MealOrderController {
         mealOrderService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertMealOrder", value = "添加订单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = MealOrder.class)
     @RequestMapping("/post/MealController/insertMealOrder")
@@ -58,12 +46,6 @@ public class MealOrderController {
         mealOrderService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 支付订单完成后的回调
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mealOrderNotify", value = "支付订单完成后的回调", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "out_trade_no", name = "outTradeNo", value = "商户订单号", required = "required"),
@@ -73,12 +55,6 @@ public class MealOrderController {
         mealOrderService.mealOrderNotify(inputObject, outputObject);
     }
 
-    /**
-     * 套餐订单购买详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMealOrderById", value = "套餐订单购买详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "套餐订单id", required = "required")})
@@ -87,12 +63,6 @@ public class MealOrderController {
         mealOrderService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除套餐订单(待支付状态可以删除)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMealOrderById", value = "删除套餐订单(待支付状态可以删除)", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "套餐订单id", required = "required")})
@@ -101,12 +71,6 @@ public class MealOrderController {
         mealOrderService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 套餐订单状态修改
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateMealOrderState", value = "套餐订单状态修改", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "套餐订单id", required = "required"),

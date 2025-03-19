@@ -9,7 +9,9 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.grade.entity.Classes;
+import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
@@ -84,6 +86,14 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @Property(value = "学校信息")
     private School schoolMation;
 
+    @TableField(exist = false)
+    @Property(value = "所属院系信息")
+    private Faculty facultyMation;
+
+    @TableField(exist = false)
+    @Property(value = "专业信息")
+    private Major majorMation;
+
     @TableField("faculty_id")
     @ApiModelProperty(value = "所属学院")
     private String facultyId;
@@ -134,9 +144,10 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "班级信息")
-    private Classes classesMation;
+    private List<Classes> classesMation;
 
     @TableField(exist = false)
-    @Property(value = "题目信息")
-    private List<Question> questionList;
+    @ApiModelProperty(value = "题目信息", required = "json")
+    private List<Question> questionMation;
+
 }

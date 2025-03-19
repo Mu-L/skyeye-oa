@@ -24,9 +24,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -132,5 +130,31 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
                 measurement.setTimeState(MeasurementTimeState.EXPIRED.getKey());
             }
         }
+    }
+
+    @Override
+    public Map<String, Double> queryTestByChapterId(Long classNum, String... ids) {
+        Map<String, Double> map = new HashMap<>();
+        double sumSize = 0;
+        double finishRate = 0;
+        map.put("activeNum", sumSize);
+        map.put("finishRate", finishRate);
+        for (String id: ids){
+            QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getChapterId), id);
+            List<Measurement> list = list(queryWrapper);
+            if (CollectionUtil.isEmpty(list)) {
+                continue;
+            }
+            sumSize += list.size();
+            List<String> mIds = list.stream().map(Measurement::getId).collect(Collectors.toList());
+            double rate = measurementSubService.queryMeasurementFinshRate(mIds, classNum);
+            finishRate = finishRate + rate;
+        }
+        if(finishRate == 0 && ids.length > 1){
+            finishRate = finishRate / ids.length;
+        }
+        map.put("finishRate", finishRate);
+        return map;
     }
 }

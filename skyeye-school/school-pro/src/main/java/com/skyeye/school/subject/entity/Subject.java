@@ -26,7 +26,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = "no")
 @RedisCacheField(name = "school:subject", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "school_subject")
 @ApiModel(value = "科目实体类")
@@ -47,6 +46,10 @@ public class Subject extends BaseGeneralInfo {
     @TableField(value = "school_id")
     @ApiModelProperty("学校id")
     private String schoolId;
+
+    @TableField(exist = false)
+    @Property("学校信息")
+    private Map<String, Object> schoolMation;
 
     @TableField(value = "faculty_id")
     @ApiModelProperty("院系id")

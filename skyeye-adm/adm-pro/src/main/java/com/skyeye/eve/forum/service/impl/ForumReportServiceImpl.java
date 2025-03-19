@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -100,6 +101,15 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         return queryWrapper;
     }
 
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
+        for (Map<String, Object> map : maps) {
+            map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
+            map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
+        }
+        return maps;
+    }
 
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)

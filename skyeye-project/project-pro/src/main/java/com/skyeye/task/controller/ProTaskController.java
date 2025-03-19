@@ -33,12 +33,6 @@ public class ProTaskController {
     @Autowired
     private ProTaskService proTaskService;
 
-    /**
-     * 获取任务列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryProTaskList", value = "获取任务列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ProTaskController/queryProTaskList")
@@ -46,12 +40,6 @@ public class ProTaskController {
         proTaskService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑任务管理
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTask", value = "新增/编辑任务管理", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Task.class)
     @RequestMapping("/post/ProTaskController/writeTask")
@@ -59,12 +47,6 @@ public class ProTaskController {
         proTaskService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteProTaskById", value = "删除任务信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class ProTaskController {
         proTaskService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销任务审批申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeTask", value = "撤销任务审批申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -87,12 +63,6 @@ public class ProTaskController {
         proTaskService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 任务提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitToApprovalTask", value = "任务提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -102,12 +72,6 @@ public class ProTaskController {
         proTaskService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidTask", value = "作废任务", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -116,12 +80,6 @@ public class ProTaskController {
         proTaskService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 任务开始执行
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "executionTask", value = "任务开始执行", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -130,12 +88,6 @@ public class ProTaskController {
         proTaskService.executionTask(inputObject, outputObject);
     }
 
-    /**
-     * 任务执行完成
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "complateTask", value = "任务执行完成", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -147,12 +99,6 @@ public class ProTaskController {
         proTaskService.complateTask(inputObject, outputObject);
     }
 
-    /**
-     * 任务关闭
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "closeTask", value = "任务关闭", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -161,13 +107,7 @@ public class ProTaskController {
         proTaskService.closeTask(inputObject, outputObject);
     }
 
-    /**
-     * 获取任务列表(甘特图)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryProTaskListForGantt", value = "获取任务列表(甘特图)", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryProTaskListForGantt", value = "获取任务列表(甘特图/看板)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/ProTaskController/queryProTaskListForGantt")
     public void queryProTaskListForGantt(InputObject inputObject, OutputObject outputObject) {

@@ -16,6 +16,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -63,6 +64,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
 
     @Autowired
     private ForumSensitiveWordsService forumSensitiveWordsService;
+
+    @Autowired
+    private ForumHotService forumHotService;
 
     /**
      * 获取我的帖子列表
@@ -121,6 +125,11 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         updateWrapper.set(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.DELETE.getKey());
         update(updateWrapper);
+        // 删除热门帖子记录
+        forumHotService.deleteByForumId(one.getId());
+        // 删除评论记录
+        forumCommentService.deleteByForumId(one.getId());
+        refreshCache(one.getId());
     }
 
     @Override

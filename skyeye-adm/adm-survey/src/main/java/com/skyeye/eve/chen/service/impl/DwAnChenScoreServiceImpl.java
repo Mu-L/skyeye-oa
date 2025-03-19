@@ -46,5 +46,12 @@ public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         return list(queryWrapper);
     }
 
+    @Override
+    public List<DwAnChenScore> slectByQuId(String id) {
+        QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), id);
+        return list(queryWrapper);
+    }
+
 }
 

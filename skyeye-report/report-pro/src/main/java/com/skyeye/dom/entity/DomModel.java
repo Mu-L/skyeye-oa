@@ -35,7 +35,7 @@ public class DomModel extends BaseGeneralInfo {
     private String imgPath;
 
     @TableField("content")
-    @ApiModelProperty(value = "dom脚本", required = "required")
+    @ApiModelProperty(value = "dom脚本")
     private String content;
 
     @TableField(value = "type_id")

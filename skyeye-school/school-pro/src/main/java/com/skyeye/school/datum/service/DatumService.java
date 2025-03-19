@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.datum.entity.Datum;
 
+import java.util.Map;
+
 /**
  * @ClassName: DatumService
  * @Description: 资料管理服务层接口
@@ -15,4 +17,6 @@ import com.skyeye.school.datum.entity.Datum;
  */
 public interface DatumService extends SkyeyeBusinessService<Datum> {
     void queryDatumListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, Double> queryDatumByChapterId(Long classNum,String ...ids);
 }

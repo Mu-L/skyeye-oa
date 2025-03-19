@@ -4,6 +4,7 @@
 
 package com.skyeye.school.courseware.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -15,6 +16,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.dao.CoursewareDao;
 import com.skyeye.school.courseware.entity.Courseware;
@@ -23,9 +25,7 @@ import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -86,5 +86,31 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         iAuthUserService.setDataMation(coursewareList, Courseware::getLastUpdateId);
         outputObject.setBeans(coursewareList);
         outputObject.settotal(coursewareList.size());
+    }
+
+    @Override
+    public Map<String, Double> queryCoursewareByChapterId(Long classNum,String ... ids) {
+        Map<String, Double> map = new HashMap<>();
+        double sumSize = 0;
+        double finishRate = 0;
+        map.put("activeNum", sumSize);
+        map.put("finishRate", finishRate);
+        for (String id : ids) {
+            QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), id);
+            List<Courseware> list = list(queryWrapper);
+            if(CollectionUtil.isEmpty(list)){
+                continue;
+            }
+            sumSize += list.size();
+            List<String> cIds = list.stream().map(Courseware::getId).collect(Collectors.toList());
+            double rate = coursewareStudyService.queryCoursewareFinshRate(cIds, classNum);
+            finishRate = finishRate + rate;
+        }
+        if(finishRate == 0 && ids.length > 1){
+            finishRate = finishRate / ids.length;
+        }
+        map.put("finishRate",finishRate);
+        return map;
     }
 }

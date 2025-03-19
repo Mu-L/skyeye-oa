@@ -38,7 +38,7 @@ public class ExamQuScore extends OperatorUserInfo {
     private String quId;
 
     @TableField("qu_type")
-    @ApiModelProperty(value = "题目类型", required = "required")
+    @ApiModelProperty(value = "题目类型")
     private Integer quType;
 
     @TableField("option_name")

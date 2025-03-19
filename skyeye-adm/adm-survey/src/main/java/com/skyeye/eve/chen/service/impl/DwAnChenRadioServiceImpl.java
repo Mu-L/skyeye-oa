@@ -49,4 +49,11 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         return list(queryWrapper);
     }
 
+    @Override
+    public List<DwAnChenRadio> selectByQuId(String id) {
+        QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), id);
+        return list(queryWrapper);
+    }
+
 }

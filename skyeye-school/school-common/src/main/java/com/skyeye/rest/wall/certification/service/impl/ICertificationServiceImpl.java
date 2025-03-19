@@ -4,11 +4,8 @@
 
 package com.skyeye.rest.wall.certification.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import org.springframework.beans.factory.annotation.Autowired;

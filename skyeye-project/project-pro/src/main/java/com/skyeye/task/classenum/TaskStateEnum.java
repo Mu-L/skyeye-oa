@@ -26,13 +26,15 @@ import java.util.List;
 @AllArgsConstructor
 public enum TaskStateEnum implements SkyeyeEnumClass {
 
-    EXECUTING("executing", "执行中", true, false),
-    COMPLETED("completed", "执行完成", true, false),
-    CLOSE("close", "已关闭", true, false);
+    EXECUTING("executing", "执行中", "#FFA07A", true, false),
+    COMPLETED("completed", "执行完成", "#98FB98", true, false),
+    CLOSE("close", "已关闭", "#FFA07A", true, false);
 
     private String key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

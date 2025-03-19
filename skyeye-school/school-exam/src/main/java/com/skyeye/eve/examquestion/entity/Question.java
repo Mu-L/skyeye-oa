@@ -16,7 +16,9 @@ import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
+import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
+import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
@@ -213,16 +215,28 @@ public class Question extends OperatorUserInfo {
     private List<ExamAnCheckbox> checkboxAn;
 
     @TableField(exist = false)
-    @Property(value = "矩阵题-列选项信息答案")
-    private List<ExamAnChenRadio> chenAn;
+    @Property(value = "矩阵题-矩阵填空题信息答案")
+    private List<ExamAnChenFbk> chenFbkAn;
 
     @TableField(exist = false)
-    @Property(value = "矩阵题-行选项信息答案")
-    private List<ExamAnChenCheckbox> chenRowAn;
+    @Property(value = "矩阵题-矩阵单选题信息答案")
+    private List<ExamAnChenRadio> chenRadioAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-矩阵多选题信息答案")
+    private List<ExamAnChenScore> chenScoreAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-复合矩阵单选题信息答案")
+    private List<ExamAnCompChenRadio> compChenRadioAn;
+
+    @TableField(exist = false)
+    @Property(value = "矩阵题-矩阵多选题信息答案")
+    private List<ExamAnChenCheckbox> chenCheckboxAn;
 
     @TableField(exist = false)
     @Property(value = "排序题答案信息")
-    private List<ExamAnOrder> orderbyAn;
+    private List<ExamAnOrder> orderByAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "单选题选项信息", required = "json")
@@ -254,7 +268,7 @@ public class Question extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
-    private List<ExamQuOrderby> orderbyTd;
+    private List<ExamQuOrderby> orderByTd;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")

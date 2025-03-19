@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -30,7 +31,7 @@ public class Circle extends OperatorUserInfo {
     private String id;
 
     @TableField("title")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required",fuzzyLike = true)
     private String title;
 
     @TableField("`describe`")
@@ -48,4 +49,8 @@ public class Circle extends OperatorUserInfo {
     @TableField("num")
     @ApiModelProperty(value = "圈子人数")
     private Integer num;
+
+    @TableField(exist = false)
+    @Property(value="当前用户是否加入圈子")
+    private Boolean isJoin;
 }

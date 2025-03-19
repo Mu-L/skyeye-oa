@@ -26,12 +26,14 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public enum ShopMealOrderState implements SkyeyeEnumClass {
 
-    NO_PAYING(1, "待支付", true, false),
-    PAY(2, "已支付", true, false);
+    NO_PAYING(1, "待支付","red", true, false),
+    PAY(2, "已支付","green", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

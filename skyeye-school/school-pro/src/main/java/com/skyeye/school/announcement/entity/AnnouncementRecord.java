@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -24,7 +25,7 @@ import lombok.Data;
 @RedisCacheField(name = "school:announcementRecord", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "school_announcement_record")
 @ApiModel(value = "公告收到记录管理实体类")
-public class AnnouncementRecord extends CommonInfo {
+public class AnnouncementRecord extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id,没有则新增，有就编辑")

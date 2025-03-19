@@ -28,9 +28,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -138,6 +136,32 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
                 assignment.setTimeState(AssignmentTimeState.EXPIRED.getKey());
             }
         }
+    }
+
+    @Override
+    public Map<String, Double> queryAssigmentByChapterId(long num, String... ids) {
+        Map<String, Double> map = new HashMap<>();
+        double sumSize = 0;
+        double finishRate = 0;
+        map.put("activeNum", sumSize);
+        map.put("finishRate", finishRate);
+        for (String id :ids) {
+            QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),id);
+            List<Assignment> list = list(queryWrapper);
+            if (CollectionUtil.isEmpty(list)) {
+                continue;
+            }
+            sumSize += list.size();
+            List<String> assignmentIdList = list.stream().map(Assignment::getId).collect(Collectors.toList());
+            double rate = assignmentSubService.queryAssignmentFinshRate(assignmentIdList, num);
+            finishRate = finishRate + rate;
+        }
+        if(finishRate == 0 && ids.length > 1){
+            finishRate = finishRate / ids.length;
+        }
+        map.put("finishRate", finishRate);
+        return map;
     }
 
 }

@@ -49,6 +49,9 @@ public class ReportPropertyServiceImpl extends SkyeyeBusinessServiceImpl<ReportP
             beans.forEach(property -> {
                 if (Integer.parseInt(property.get("optional").toString()) == WhetherEnum.ENABLE_USING.getKey()) {
                     List<PropertyValue> propertyValueList = map.get(property.get("id").toString());
+                    if (CollectionUtil.isEmpty(propertyValueList)) {
+                        return;
+                    }
                     PropertyValue defaultProVal = propertyValueList.stream().filter(propertyValue -> propertyValue.getDefaultChoose().equals(WhetherEnum.ENABLE_USING.getKey()))
                         .findFirst().orElse(new PropertyValue());
                     property.put("defaultValue", defaultProVal.getValue());

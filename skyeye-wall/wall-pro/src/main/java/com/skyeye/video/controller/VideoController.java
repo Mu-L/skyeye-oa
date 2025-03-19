@@ -101,29 +101,16 @@ public class VideoController {
     }
 
     /**
-     * 分页获取我的、他的点赞的视频
+     * 分页获取 我的、他的点赞/收藏/所有的视频
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllSupportVideo", value = "分页获取我的、他的点赞的视频（用户id,objectId）", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllCollectSupportVideo", value = "分页获取我的、他的点赞/收藏的视频（用户id,objectId）type(1点赞，2收藏)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryAllSupportVideo")
-    public void queryAllSupportVideo(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryAllSupportVideo(inputObject, outputObject);
-    }
-
-    /**
-     * 分页获取我的、他的收藏的视频
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAllCollectVideo", value = "分页获取我的、他的收藏的视频（用户id,objectId）", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryAllCollectVideo")
-    public void queryAllCollectVideo(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryAllCollectVideo(inputObject, outputObject);
+    @RequestMapping("/post/VideoController/queryAllCollectSupportVideo")
+    public void queryAllCollectSupportVideo(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryAllCollectSupportVideo(inputObject, outputObject);
     }
 
     /**
@@ -142,15 +129,15 @@ public class VideoController {
     }
 
     /**
-     * 分页获取我的和他的（传objectId）或全部视频
+     * 推荐视频算法ItemCF算法
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllVideoList", value = "分页获取我的和他的（传objectId）或全部视频", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoController/queryAllVideoList")
-    public void queryAllVideoList(InputObject inputObject, OutputObject outputObject) {
-        videoService.queryAllVideoList(inputObject, outputObject);
+    @RequestMapping("/post/VideoController/queryRecommendVideoList")
+    public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
+        videoService.queryRecommendVideoList(inputObject, outputObject);
     }
 }

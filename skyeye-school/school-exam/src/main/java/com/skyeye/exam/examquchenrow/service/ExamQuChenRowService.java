@@ -15,8 +15,6 @@ public interface ExamQuChenRowService extends SkyeyeBusinessService<ExamQuChenRo
 
     QueryWrapper<ExamQuChenRow> QueryExamQuChenRowList(String quId);
 
-    int QueryvisibilityInRow(String quId, String createId);
-
     void changeVisibility(String quId, String createId);
 
     void removeByQuId(String quId);

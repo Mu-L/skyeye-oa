@@ -24,4 +24,6 @@ public interface DwAnCompChenRadioService extends SkyeyeBusinessService<DwAnComp
     void queryDwAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnCompChenRadio> selectBySurveyId(String surveyId);
+
+    List<DwAnCompChenRadio> selectByQuId(String id);
 }

@@ -25,4 +25,6 @@ public interface HistoryPostService extends SkyeyeBusinessService<HistoryPost> {
     void deleteMyHistoryPost(InputObject inputObject, OutputObject outputObject);
 
     void deleteHistoryPostByIds(InputObject inputObject, OutputObject outputObject);
+
+    List<String> queryRecordUserIdByPostId(String postId);
 }

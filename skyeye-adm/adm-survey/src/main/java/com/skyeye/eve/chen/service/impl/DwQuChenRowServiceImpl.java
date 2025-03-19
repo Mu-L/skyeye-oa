@@ -15,6 +15,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwQuChenRowDao;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +85,7 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     public List<DwQuChenRow> selectQuChenRow(String copyFromId) {
         QueryWrapper<DwQuChenRow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenRow::getQuId), copyFromId);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getVisibility), CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuChenRow::getOrderById));
         return list(queryWrapper);
     }
 

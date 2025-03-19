@@ -26,12 +26,14 @@ import java.util.List;
 @AllArgsConstructor
 public enum PersonRequireStateEnum implements SkyeyeEnumClass {
 
-    IN_RECRUITMENT("inRecruitment", "招聘中", true, false),
-    END_RECRUITMENT("endRecruitment", "招聘结束", true, false);
+    IN_RECRUITMENT("inRecruitment", "招聘中", "blue", true, false),
+    END_RECRUITMENT("endRecruitment", "招聘结束", "gray", true, false);
 
     private String key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

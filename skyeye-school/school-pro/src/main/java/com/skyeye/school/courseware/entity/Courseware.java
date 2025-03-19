@@ -54,4 +54,8 @@ public class Courseware extends BaseGeneralInfo {
     @Property(value = "学生学习的状态，学生身份获取互动课件时需要这个字段")
     private String state;
 
+    @TableField("annex")
+    @ApiModelProperty(value = "附件")
+    private String annex;
+
 }

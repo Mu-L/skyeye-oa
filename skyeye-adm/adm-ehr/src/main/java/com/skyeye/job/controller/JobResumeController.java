@@ -64,7 +64,7 @@ public class JobResumeController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteEducationById", value = "根据id删除员工工作履历信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteJobResumeById", value = "根据id删除员工工作履历信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/JobResumeController/deleteJobResumeById")

@@ -45,15 +45,6 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
     }
 
     @Override
-    public int QueryvisibilityInRow(String quId, String createId) {
-        QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getCreateId), createId);
-        ExamQuChenRow one = examQuChenRowService.getOne(queryWrapper);
-        return one.getVisibility();
-    }
-
-    @Override
     public void changeVisibility(String quId, String createId) {
         UpdateWrapper<ExamQuChenRow> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quId);

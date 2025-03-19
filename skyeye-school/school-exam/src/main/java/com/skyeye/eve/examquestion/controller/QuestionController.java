@@ -138,4 +138,17 @@ public class QuestionController {
         questionService.queryFilterQuestionList(inputObject, outputObject);
     }
 
+
+//    /**
+//     * 添加分页标记
+//     *
+//     * @param inputObject  入参以及用户信息等获取对象
+//     * @param outputObject 出参以及提示信息的返回值对象
+//     */
+//    @ApiOperation(id = "addQuPagetagMation", value = "筛选题目信息", method = "POST", allUse = "2")
+//    @RequestMapping("/post/QuestionController/addQuPagetagMation")
+//    public void addQuPagetagMation(InputObject inputObject, OutputObject outputObject) {
+//        questionService.addQuPagetag(inputObject, outputObject);
+//    }
+
 }

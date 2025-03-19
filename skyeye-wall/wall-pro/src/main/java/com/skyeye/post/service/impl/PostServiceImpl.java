@@ -19,6 +19,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -39,6 +40,7 @@ import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
+import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +100,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_TEN) : beans;
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
+            String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+            if(StrUtil.isEmpty(userId) || !typeId.equals(userId)){
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
+            }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
                 .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
@@ -122,8 +128,15 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         // 获取帖子图片信息
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         // 获取点赞信息
-        String userId = inputObject.getLogParams().get("id").toString();
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isNotEmpty(userToken)){
+            String userId = inputObject.getLogParams().get("id").toString();
+            if(StrUtil.isNotEmpty(userId)){
+                checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+            }
+        }
+        Map<String, Boolean> finalCheckUpvoteMap = checkUpvoteMap;
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
             // 是否匿名
@@ -139,7 +152,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
             bean.put("pictureSize", pictureMap.size());
             // 设置点赞信息
-            bean.put("checkUpvote", checkUpvoteMap.get(id));
+            if(CollectionUtil.isNotEmpty(finalCheckUpvoteMap)){
+                bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
+            }
         });
         userService.setMationForMap(beans, "createId", "createMation");
         return beans;
@@ -301,7 +316,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setPictureList(pictureMap.get(post.getId()));
             post.setCheckUpvote(booleanMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
-                CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
+                    CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
         });
         userService.setDataMation(list, Post::getCreateId);
         return sortPostList;
@@ -318,7 +333,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return;
         }
         List<String> postIds = historyPostList.stream()
-            .map(HistoryPost::getPostId).collect(Collectors.toList());
+                .map(HistoryPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
         List<Post> postList = list(queryWrapper);
@@ -343,11 +358,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         //查询近三十天的帖子
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper
-            // 取浏览量超过1的帖子
-            .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
-            // 取前三十天以内的帖子
-            .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
-            .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+                // 取浏览量超过1的帖子
+                .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
+                // 取前三十天以内的帖子
+                .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
+                .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         return list(queryWrapper);
     }
 
@@ -366,7 +381,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), circleId);
         List<Post> postList = list(queryWrapper);
         List<String> postIds = postList.stream()
-            .map(Post::getId).collect(Collectors.toList());
+                .map(Post::getId).collect(Collectors.toList());
         pictureService.deleteByPostIds(postIds);
         commentService.deleteByPostIds(postIds);
         remove(queryWrapper);
@@ -374,26 +389,71 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     @Override
     public void queryHotPostList(InputObject inputObject, OutputObject outputObject) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<PopularPost> popularPostList = popularPostService.queryTodayPopularPostList();
         List<String> postIds = popularPostList.stream()
-            .map(PopularPost::getPostId).collect(Collectors.toList());
+                .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        if(CollectionUtil.isEmpty(postIds)){
+        if (CollectionUtil.isEmpty(postIds)) {
             throw new CustomException("暂无热门帖子");
         }
         queryWrapper.in(CommonConstants.ID, postIds);
         List<Post> postList = list(queryWrapper);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
+        if(StrUtil.isNotEmpty(userToken)){
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
+        }
         //获取点赞信息
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
-        checkUpvoteMap.forEach((key, value) -> {
-            postList.forEach(post -> {
-                if (key.equals(post.getId())) {
-                    post.setCheckUpvote(value);
-                }
+        if(CollectionUtil.isNotEmpty(checkUpvoteMap)){
+            checkUpvoteMap.forEach((key, value) -> {
+                postList.forEach(post -> {
+                    if (key.equals(post.getId())) {
+                        post.setCheckUpvote(value);
+                    }
+                });
             });
-        });
+        }
         outputObject.setBeans(postList);
         outputObject.settotal(popularPostList.size());
+    }
+
+    @Override
+    public void queryUserPostCount(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String userId = params.get("userId").toString();
+        List<Map<String,Integer>> beans = new ArrayList<>();
+        Map<String,Integer> countMap = new HashMap<>();
+        QueryWrapper<Post> postRapper = new QueryWrapper<>();
+        postRapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId),userId);
+        List<Post> postList = list(postRapper);
+        if(CollectionUtil.isEmpty(postList)){
+            return;
+        }
+        // 计算总评论数量
+        int commentNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getCommentNum())).sum();
+        // 计算总点赞数量
+        int upvoteNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getUpvoteNum())).sum();
+        countMap.put("commentNum",commentNum);
+        countMap.put("upvoteNum",upvoteNum);
+        countMap.put("postNum",postList.size());
+        beans.add(countMap);
+        outputObject.setBeans(beans);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String postId =  params.get("postId").toString();
+        List<String> visitors = historyPostService.queryRecordUserIdByPostId(postId);
+        if(CollectionUtil.isEmpty(visitors)){
+            return;
+        }
+        // 转为数组
+        String[] userIs = visitors.toArray(new String[0]);
+        List<User> beans = userService.selectByIds(userIs);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 }

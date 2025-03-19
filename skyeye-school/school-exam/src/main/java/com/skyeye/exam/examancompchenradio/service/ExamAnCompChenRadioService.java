@@ -20,4 +20,6 @@ public interface ExamAnCompChenRadioService extends SkyeyeBusinessService<ExamAn
     void queryExamAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnCompChenRadio> selectBySurveyId(String surveyId);
+
+    List<ExamAnCompChenRadio> selectByQuId(String id);
 }

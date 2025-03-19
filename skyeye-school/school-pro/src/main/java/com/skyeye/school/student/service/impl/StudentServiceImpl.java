@@ -23,6 +23,11 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.rest.wall.certification.rest.ICertificationRest;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.rest.wall.user.service.IUserService;
+import com.skyeye.school.chat.entity.FriendRelationship;
+import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.entity.SchoolStudentExcelModel;
 import com.skyeye.school.entity.SchoolStudentGlobalExcelDictHandler;
 import com.skyeye.school.faculty.service.FacultyService;
@@ -30,6 +35,8 @@ import com.skyeye.school.grade.entity.YearSystem;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.grade.service.YearSystemService;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.personnel.entity.SysEveUserStaff;
+import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import com.skyeye.school.student.dao.StudentDao;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentBodyMindService;
@@ -85,6 +92,21 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private YearSubjectService yearSubjectService;
+
+    @Autowired
+    private ICertificationRest iCertificationRest;
+
+    @Autowired
+    private ICertificationService iCertificationService;
+
+    @Autowired
+    private SysEveUserStaffService sysEveUserStaffService;
+
+    @Autowired
+    private IUserService iUserService;
+
+    @Autowired
+    private FriendRelationshipService friendRelationshipService;
 
     private static final String EXPORT_EXCEL_NAME = "学生导入模板";
 
@@ -148,7 +170,7 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     }
 
     @Override
-    public List<Student> selectByIds(String...ids){
+    public List<Student> selectByIds(String... ids) {
         List<Student> studentList = super.selectByIds(ids);
         schoolService.setDataMation(studentList, Student::getSchoolId);
         facultyService.setDataMation(studentList, Student::getFacultyId);
@@ -196,6 +218,111 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("name").toString();
+        String no = map.get("no").toString();
+        String id = map.get("id").toString();
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        if (StrUtil.isNotEmpty(name)) {
+            List<Map<String, Object>> maps1 = iUserService.queryUserByRealNameOrStudentNumber(name, null);
+            if (CollectionUtil.isNotEmpty(maps1)) {
+                mapList.addAll(maps1);
+            }
+        }
+        if (StrUtil.isNotEmpty(no)) {
+            List<Map<String, Object>> maps2 = iUserService.queryUserByRealNameOrStudentNumber(null, no);
+            if (CollectionUtil.isNotEmpty(maps2)) {
+                mapList.addAll(maps2);
+            }
+        }
+        List<String> idList = mapList.stream()
+                .filter(map3 -> map3.get("id") != null)
+                .map(map4 -> map4.get("id").toString())
+                .distinct()
+                .collect(Collectors.toList());
+        for (String s : idList) {
+            QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
+            friendQueryWrapper
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), s)
+                    .or()
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), s);
+            List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
+            for (Map<String, Object> userMap : mapList) {
+                if (userMap.get("id").toString().equals(s)) {
+                    userMap.put("friendMation", list);
+                    break;
+                }
+            }
+        }
+        schoolService.setMationForMap(mapList, "schoolId", "schoolMation");
+        facultyService.setMationForMap(mapList, "facultyId", "facultyMation");
+        majorService.setMationForMap(mapList, "majorId", "majorMation");
+        classesService.setMationForMap(mapList, "classId", "classMation");
+        outputObject.setBeans(mapList);
+        outputObject.settotal(mapList.size());
+    }
+
+    @Override
+    public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String name = map.get("name").toString();
+        String number = map.get("jobNumber").toString();
+        String userId = map.get("id").toString();
+        // 查询教师列表
+        List<SysEveUserStaff> sysEveUserStaffList = sysEveUserStaffService.selectByName(name, number);
+        if (CollectionUtil.isNotEmpty(sysEveUserStaffList)) {
+            for (SysEveUserStaff sysEveUserStaff : sysEveUserStaffList) {
+                String id = sysEveUserStaff.getId();
+                QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
+                friendQueryWrapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
+                        .or()
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId);
+                List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
+                sysEveUserStaff.setFriendMation(list);
+            }
+        }
+        // 设置返回结果
+        outputObject.setBeans(sysEveUserStaffList);
+        outputObject.settotal(sysEveUserStaffList.size());
+    }
+
+    @Override
+    public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String studentNumber = map.get("no").toString();
+        String id = map.get("id").toString();//要查询的接口
+        String userId = map.get("userId").toString();
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
+        List<Student> studentList = list(queryWrapper);
+        for (Student student : studentList) {
+            QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
+            friendQueryWrapper
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
+                    .or()
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
+            List<FriendRelationship> friendRelationshipList = friendRelationshipService.list(friendQueryWrapper);
+            if (CollectionUtil.isNotEmpty(friendRelationshipList)) {
+                student.setFriendMation(friendRelationshipList);
+            }
+        }
+        schoolService.setDataMation(studentList, Student::getSchoolId);
+        facultyService.setDataMation(studentList, Student::getFacultyId);
+        majorService.setDataMation(studentList, Student::getMajorId);
+        classesService.setDataMation(studentList, Student::getClassId);
+        outputObject.setBeans(studentList);
+        outputObject.settotal(studentList.size());
     }
 
     private List<Map<String, Object>> getStudentSubject(Map<String, Object> studentMap) {

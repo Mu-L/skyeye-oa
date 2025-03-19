@@ -19,9 +19,7 @@ import com.skyeye.school.datum.service.DatumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName: DatumServiceImpl
@@ -68,5 +66,33 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         iAuthUserService.setDataMation(datumList, Datum::getCreateId);
         outputObject.setBeans(datumList);
         outputObject.settotal(datumList.size());
+    }
+
+    @Override
+    public Map<String, Double> queryDatumByChapterId(Long classNum, String... ids) {
+        Map<String, Double> map = new HashMap<>();
+        double sumSize = 0;
+        double finishRate = 0;
+        map.put("activeNum", sumSize);
+        map.put("finishRate", finishRate);
+        if(classNum == 0){
+            return map;
+        }
+        for (String id : ids) {
+            QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), id);
+            List<Datum> list = list(queryWrapper);
+            if (CollectionUtil.isEmpty(list)) {
+                continue;
+            }
+            sumSize += list.size();
+            double rate = (double) list.size() / classNum;
+            finishRate = finishRate + rate;
+        }
+        if(finishRate == 0 && ids.length > 1){
+            finishRate = finishRate / ids.length;
+        }
+        map.put("finishRate", finishRate);
+        return map;
     }
 }

@@ -18,12 +18,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.unit.DataSize;
-
 import javax.servlet.MultipartConfigElement;
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude = {
-    org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
 })
 @EnableTransactionManagement//启注解事务管理，等同于xml配置方式的 <tx:annotation-driven />
 @EnableScheduling

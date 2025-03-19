@@ -78,11 +78,11 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
     public void validatorEntity(AssetPurchaseReturn entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
+        getTotalPrice(entity);
         if (entity.getNeedDepot() == WhetherEnum.ENABLE_USING.getKey()) {
             // 修改条形码编码信息
             checkAndEditAssetBarCodeDepotMaiton(entity, false);
         }
-        getTotalPrice(entity);
     }
 
     @Override
@@ -206,16 +206,20 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
             throw new CustomException(
                 String.format(Locale.ROOT, "编码【%s】未入库/不存在，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
         }
+
+        Map<String, AssetPurchaseLink> returnLinkMap = entity.getPurchaseLinks().stream()
+            .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
+        assetReportList.forEach(assetReport -> {
+            AssetPurchaseLink assetReturnLink = returnLinkMap.get(assetReport.getAssetId());
+            if (!StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
+                throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
+            }
+        });
+
         if (saveData) {
             // 批量修改条形码信息
-            Map<String, AssetPurchaseLink> returnLinkMap = entity.getPurchaseLinks().stream()
-                .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
             String returnTime = DateUtil.getTimeAndToString();
             assetReportList.forEach(assetReport -> {
-                AssetPurchaseLink assetReturnLink = returnLinkMap.get(assetReport.getAssetId());
-                if (!StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
-                    throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
-                }
                 assetReport.setReturnId(entity.getId());
                 assetReport.setReturnTime(returnTime);
                 assetReport.setState(AssetReportState.RETURN.getKey());

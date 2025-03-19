@@ -77,8 +77,9 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
     public void validatorEntity(AssetPurchasePut entity) {
         checkOrderItem(entity.getPurchaseLinks());
         checkMaterialNorms(entity, false);
-        checkAndEditAssetBarCodeDepotMaiton(entity, false);
         getTotalPrice(entity);
+        // 校验资产编号信息
+        checkAndEditAssetBarCodeDepotMaiton(entity, false);
     }
 
     @Override
@@ -198,10 +199,17 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
             throw new CustomException(
                 String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
         }
+
+        Map<String, AssetPurchaseLink> purchaseLinkMap = entity.getPurchaseLinks().stream()
+            .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
+        assetReportList.forEach(assetReport -> {
+            AssetPurchaseLink assetPurchaseLink = purchaseLinkMap.get(assetReport.getAssetId());
+            if (!StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
+                throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
+            }
+        });
         if (saveData) {
             // 批量修改条形码信息
-            Map<String, AssetPurchaseLink> purchaseLinkMap = entity.getPurchaseLinks().stream()
-                .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
             String warehousingTime = DateUtil.getTimeAndToString();
             assetReportList.forEach(assetReport -> {
                 AssetPurchaseLink assetPurchaseLink = purchaseLinkMap.get(assetReport.getAssetId());
@@ -210,9 +218,6 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
                 if (StrUtil.isNotEmpty(entity.getFromId())) {
                     assetReport.setPurchaseId(entity.getFromId());
                     assetReport.setPurchaseTime(entity.getFromMation().get("createTime").toString());
-                }
-                if (!StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
-                    throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
                 }
                 assetReport.setWarehousingId(entity.getId());
                 assetReport.setWarehousingTime(warehousingTime);

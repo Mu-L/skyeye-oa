@@ -9,12 +9,20 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.school.semester.dao.SemesterDao;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.semester.service.SemesterService;
+import org.jsoup.helper.DataUtil;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +37,14 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "学期管理", groupName = "学期管理")
 public class SemesterServiceImpl extends SkyeyeBusinessServiceImpl<SemesterDao, Semester> implements SemesterService {
+
+    @Override
+    protected void validatorEntity(Semester entity) {
+        super.validatorEntity(entity);
+        if (DateUtil.compare(entity.getEndTime()+" 00:00:00",entity.getStartTime() + " 00:00:00"))  {
+            throw new CustomException("结束时间不能小于开始时间");
+        }
+    }
 
     @Override
     public void queryAllSemesterList(InputObject inputObject, OutputObject outputObject) {

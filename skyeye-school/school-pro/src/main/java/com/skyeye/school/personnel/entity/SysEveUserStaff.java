@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.school.chat.entity.FriendRelationship;
 import lombok.Data;
 
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.Map;
 //@RedisCacheField(name = CacheConstants.SYS_USER_STAFF_CACHE_KEY, cacheTime = RedisConstants.A_YEAR_SECONDS)
 @TableName(value = "sys_eve_user_staff")
 @ApiModel("员工管理实体类")
-public class SysEveUserStaff extends OperatorUserInfo {
+public class  SysEveUserStaff extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -210,5 +211,13 @@ public class SysEveUserStaff extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "员工考勤时间段信息")
     private List<Map<String, Object>> timeList;
+
+    @TableField(exist = false)
+    @Property(value = "朋友的信息")
+    private List<FriendRelationship> friendMation;
+
+    @TableField(exist = false)
+    @Property(value = "公司信息")
+    private Map<String,Object> companyMation;
 
 }

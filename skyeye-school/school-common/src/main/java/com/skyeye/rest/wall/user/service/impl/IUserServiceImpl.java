@@ -48,6 +48,10 @@ public class IUserServiceImpl extends IServiceImpl implements IUserService {
 
     @Override
     public void deleteUsersByIds(List<String> userIds) {
+    }
 
+    @Override
+    public List<Map<String, Object>> queryUserByRealNameOrStudentNumber(String realName,String studentNumber) {
+        return ExecuteFeignClient.get(() -> iUserRest.queryUserByRealNameOrStudentNumber(realName,studentNumber)).getRows();
     }
 }

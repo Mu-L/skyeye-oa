@@ -14,6 +14,8 @@ import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwSurveyDirectory
  * @Description:问卷目录及问卷实体类
@@ -160,5 +162,8 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "是否删除  1.未删除  2.删除", required = "required")
     private Integer whetherDelete;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "题目信息", required = "json")
+    private List<DwQuestion> dwQuestionMation;
 }
 

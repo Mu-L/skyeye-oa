@@ -3,7 +3,6 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -18,7 +17,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -48,18 +46,18 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -130,6 +128,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private SemesterService semesterService;
+
+    @Autowired
+    private FacultyService facultyService;
+
+    @Autowired
+    private MajorService majorService;
 
     /**
      * 设置考试目录的方法
@@ -245,9 +249,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectories.setSurveyModel(1); // 设置调查模型
         examSurveyDirectories.setCreateId(userId); // 设置创建者ID
         examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
-        if(StrUtil.isNotEmpty(surveyName)){
+        if (StrUtil.isNotEmpty(surveyName)) {
             examSurveyDirectories.setSurveyName(surveyName); // 设置试卷名称
-        }else {
+        } else {
             examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
         }
         examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
@@ -286,7 +290,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(question.getId());
             question.setMultifillblankTd(multiFillblanks);
             List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
-            question.setOrderbyTd(examQuOrderbyList);
+            question.setOrderByTd(examQuOrderbyList);
             List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
             question.setColumnTd(examQuChenColumnList);
             List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(question.getId());
@@ -323,7 +327,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      * @param entity 考试目录对象
      * @param userId 创建者ID
      */
-    @Transactional
     @Override
     public void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId(); // 获取考试目录ID
@@ -337,19 +340,58 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         for (String readerItem : readerList) {
             examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
         }
+        List<Question> questionList = entity.getQuestionMation();
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            for (Question question : questionList) {
+                question.setBelongId(id); // 设置所属试卷ID
+                questionService.createEntity(question, userId); // 创建新的题目
+            }
+        }
     }
 
-    @Transactional
     @Override
     public void updatePostpose(ExamSurveyDirectory entity, String userId) {
-        String id = entity.getId(); // 获取考试id
+        String surveId = entity.getId(); // 获取考试id
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
         String reader = entity.getReaderList(); // 阅卷人
         String[] readerList = reader.split(","); // 将阅卷人转换为列表
         for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
+            examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerItem, userId); // 创建阅卷人关系
+        }
+        List<Question> questionList = entity.getQuestionMation();
+        List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
+        List<String> existingIds = existingQuestions.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
+                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+        List<Question> questionsWithId = partitionedQuestions.get(true);
+        List<Question> questionsWithoutId = partitionedQuestions.get(false);
+        List<String> submittedIds = questionsWithId.stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        Set<String> submittedIdSet = new HashSet<>(submittedIds);
+        List<String> idsToDelete = existingIds.stream()
+                .filter(id -> !submittedIdSet.contains(id))
+                .collect(Collectors.toList());
+        for (String idToDelete : idsToDelete) {
+            questionService.deleteById(idToDelete);
+        }
+        if (CollectionUtil.isNotEmpty(questionsWithId)) {
+            for (Question question : questionsWithId) {
+                String questionId = question.getId();
+                String belongId = question.getBelongId();
+                if (StrUtil.isNotEmpty(questionId) && StrUtil.isEmpty(belongId)) {
+                    question.setBelongId(surveId);
+                } else {
+                    questionService.updateEntity(question, userId); // 更新题目
+                }
+            }
+        }
+        for (Question question : questionsWithoutId) {
+            questionService.createEntity(question, userId);
         }
     }
 
@@ -367,6 +409,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_TWO);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO);
         update(updateWrapper);
+    }
+
+    @Override
+    protected void deletePostpose(ExamSurveyDirectory entity) {
+        String id = entity.getId();
+        questionService.deleteBySurveyDirectoryId(id);
     }
 
     /**
@@ -525,8 +573,31 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
+            //设置科目信息
             item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-            item.setClassesMation(classesService.selectById(item.getClassId()));
+            //设置学校信息
+            item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+            //设置学院信息
+            item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+            //设置专业信息
+            item.setMajorMation(majorService.selectById(item.getMajorId()));
+            //设置学期信息
+            item.setSemesterMation(semesterService.selectById(item.getSemesterId()));
+            String classId = item.getClassId();
+            if(StrUtil.isNotEmpty(classId)){
+                String[] idArray  = classId.split(",");
+                List<Classes> classesList = new ArrayList<>();
+                for (String idItem  : idArray) {
+                    idItem = idItem.trim();
+                    if (StrUtil.isNotEmpty(idItem)) {
+                        Classes classes = classesService.selectById(idItem);
+                        if (classes != null) {
+                            classesList.add(classes);
+                        }
+                    }
+                }
+                item.setClassesMation(classesList );
+            }
             return item;
         }).collect(Collectors.toList());
         iAuthUserService.setName(beans, "createId", "createName");
@@ -535,11 +606,48 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.settotal(page.getTotal());
     }
 
+
+    @Override
+    public ExamSurveyDirectory selectById(String id) {
+        ExamSurveyDirectory bean = getExamSurveyDirectory(id);
+        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
+        if (CollectionUtil.isEmpty(questionList)) {
+            return bean;
+        }
+        bean.setQuestionMation(questionList);
+        return bean;
+    }
+
     @Override
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
+        ExamSurveyDirectory bean = getExamSurveyDirectory(id);
+        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
+        if (CollectionUtil.isEmpty(questionList)) {
+            outputObject.setBean(bean);
+        }
+        outputObject.setBean(bean);
+        outputObject.setBeans(questionList);
+    }
+
+    @NotNull
+    private ExamSurveyDirectory getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
-        bean.setClassesMation(classesService.selectById(bean.getClassId()));
+        String classId = bean.getClassId();
+        if(StrUtil.isNotEmpty(classId)){
+            String[] idArray  = classId.split(",");
+            List<Classes> classesList = new ArrayList<>();
+            for (String idItem  : idArray) {
+                idItem = idItem.trim();
+                if (StrUtil.isNotEmpty(idItem)) {
+                    Classes classes = classesService.selectById(idItem);
+                    if (classes != null) {
+                        classesList.add(classes);
+                    }
+                }
+            }
+            bean.setClassesMation(classesList);
+        }
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
         bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
@@ -554,53 +662,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
             bean.setReaderMationList(userMationList);
         }
-        List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
-        if (CollectionUtil.isEmpty(questionList)) {
-            outputObject.setBean(bean);
-        }
-        List<String> questionIds = questionList.stream().map(Question::getId).collect(Collectors.toList());
-        Map<String, List<Map<String, Object>>> examQuestionLogicMapList = examQuestionLogicService.selectByQuestionIds(questionIds);
-        Map<String, List<Map<String, Object>>> examQuRadioMapList = examQuRadioService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuScoreMapList = examQuScoreService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuCheckboxMapList = examQuCheckboxService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuChenColumnsMapList = examQuChenColumnService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuchenRowMapList = examQuChenRowService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuMultiFillblankMapList = examQuMultiFillblankService.selectByBelongId(id);
-        Map<String, List<Map<String, Object>>> examQuOrderbyMapList = examQuOrderbyService.selectByBelongId(id);
-        List<Map<String, List<Map<String, Object>>>> flagList = Arrays.asList(examQuestionLogicMapList, examQuRadioMapList, examQuScoreMapList,
-            examQuCheckboxMapList, examQuChenColumnsMapList, examQuchenRowMapList, examQuMultiFillblankMapList, examQuOrderbyMapList);
-        Map<String, List<Map<String, Object>>> collect = flagList.stream().flatMap(map -> map.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> newValue));
-        questionList.forEach(item -> {
-            String quId = item.getId();
-            if (collect.containsKey(quId) && item.getQuType() == QuType.RADIO.getIndex()) {// 单选题
-                item.setRadioTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuRadio.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.SCORE.getIndex()) {// 评分题
-                item.setScoreTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuScore.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.CHECKBOX.getIndex()) {// 多选题
-                item.setCheckboxTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuCheckbox.class));
-            }
-            List<Integer> quChenIndexList = Arrays.asList(QuType.CHENRADIO.getIndex(), QuType.CHENFBK.getIndex(), QuType.CHENCHECKBOX.getIndex(), QuType.COMPCHENRADIO.getIndex());
-            if (collect.containsKey(quId) && quChenIndexList.contains(item.getQuType())) {// 矩阵题
-                try {
-                    item.setColumnTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenColumn.class));// 尝试转换为列选择项
-                } catch (RuntimeException e) {
-                    item.setRowTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuChenRow.class));// 转换为列选择项失败时，则说明其为行选项
-                }
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ANSWER.getIndex()) {//多行填空题
-                item.setMultifillblankTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuMultiFillblank.class));
-            }
-            if (collect.containsKey(quId) && item.getQuType() == QuType.ORDERQU.getIndex()) {// 排序题
-                item.setOrderbyTd(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuOrderby.class));
-            }
-            if (collect.containsKey(quId)) {// 问题逻辑设置信息
-                item.setQuestionLogic(JSONUtil.toList(JSONUtil.parseArray(JSONUtil.toJsonStr(collect.get(quId))), ExamQuestionLogic.class));
-            }
-        });
-        outputObject.setBean(bean);
-        outputObject.setBeans(questionList);
+        return bean;
     }
 }

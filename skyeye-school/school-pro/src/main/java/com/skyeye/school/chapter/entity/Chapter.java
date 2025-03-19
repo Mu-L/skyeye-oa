@@ -46,4 +46,8 @@ public class Chapter extends BaseGeneralInfo {
     @ApiModelProperty(value = "科目表与班级表的关系id", required = "required")
     private String subjectClassesId;
 
+    @TableField(value = "annex")
+    @ApiModelProperty(value = "附件")
+    private String annex;
+
 }
