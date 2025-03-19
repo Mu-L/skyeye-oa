@@ -24,7 +24,6 @@ import lombok.Data;
 @Data
 @UniqueField(value = "tagName")
 @TableName(value = "wall_video_tag")
-@RedisCacheField(name = "wall:videotag", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @ApiModel(value = "视频标签实体类")
 public class VideoTag extends OperatorUserInfo {
 
@@ -37,11 +36,11 @@ public class VideoTag extends OperatorUserInfo {
     private String tagName;
 
     @TableField("state")
-    @ApiModelProperty(value = "状态:1.启用  2.禁用", required = "required", enumClass = EnableEnum.class)
+    @ApiModelProperty(value = "状态:1.启用  2.禁用", enumClass = EnableEnum.class)
     private Integer state;
 
     @TableField("order_by")
-    @ApiModelProperty(value = "排序:值越大越往后", required = "required")
+    @ApiModelProperty(value = "排序:值越大越往后")
     private Integer orderBy;
 
 }

@@ -1,23 +1,24 @@
 package com.skyeye.focus.service.impl;
 
 
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exception.CustomException;
 import com.skyeye.focus.dao.FocusDao;
 import com.skyeye.focus.entity.Focus;
 import com.skyeye.focus.service.FocusService;
+import com.skyeye.user.service.UserService;
+import com.skyeye.video.entity.Video;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,33 +32,46 @@ import java.util.Map;
  */
 
 @Service
-@SkyeyeService(name = "视频关注管理", groupName = "视频关注管理")
+@SkyeyeService(name = "视频用户关注管理", groupName = "视频用户关注管理")
 public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus> implements FocusService {
 
     @Autowired
-    private FocusService focusService;
+    private UserService userService;
 
-
-    /**
-     * 添加视频标签
-     */
     @Override
-    public void createPrepose(Focus entity) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        entity.setVideoId(userId);
-        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
-        //对比数据库里面的数据
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getVideoId),entity.getVideoId());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId),entity.getCreateId());
-        //获取唯一的数据
-        Focus one = getOne(queryWrapper);
-        //对比
-        if (ObjectUtil.isNotEmpty(one)) {
-            throw new CustomException("已关注");
-        }
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = queryFoucusList(inputObject);
+        userService.setMationForMap(beans,"userId","userMation");
+        return beans;
+    }
 
+    private  List<Map<String, Object>> queryFoucusList(InputObject inputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String userId = commonPageInfo.getObjectId();
+        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Focus::getCreateTime));
+        return JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
     }
 
 
+    @Override
+    public void checkFocus(Video video) {
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId), video.getCreateId())
+                .eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
+        video.setCheckFocus(count(queryWrapper) > 0);
+    }
 
+    @Override
+    public void deleteFocusByUserId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String userId = params.get("userId").toString();
+        String createId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId), userId)
+                .eq(MybatisPlusUtil.toColumns(Focus::getCreateId), createId);
+        remove(queryWrapper);
+    }
 }

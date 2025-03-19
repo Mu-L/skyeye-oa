@@ -3,7 +3,10 @@ package com.skyeye.videotag.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.video.entity.Video;
 import com.skyeye.videotag.entity.VideoTag;
+
+import java.util.List;
 
 /**
  * @ClassName: VideoTagService
@@ -18,4 +21,6 @@ public interface VideoTagService extends SkyeyeBusinessService<VideoTag> {
     void deleteVideoTagById(InputObject inputObject, OutputObject outputObject);
 
     void queryVideoTagUpStateList(InputObject inputObject, OutputObject outputObject);
+
+    void setTagMationForVideoList(Video... beans);
 }

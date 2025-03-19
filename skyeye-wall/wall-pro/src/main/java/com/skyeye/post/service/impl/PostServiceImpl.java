@@ -87,7 +87,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     private List<Map<String, Object>> queryPostList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String keyword = commonPageInfo.getKeyword();
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Post::getTitle), keyword);
+        }
         if (params.containsKey("holderId") && StrUtil.isNotEmpty(params.get("holderId").toString())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), params.get("holderId").toString());
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));

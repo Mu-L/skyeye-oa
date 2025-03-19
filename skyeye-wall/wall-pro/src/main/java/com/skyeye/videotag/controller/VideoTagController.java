@@ -97,12 +97,4 @@ public class VideoTagController {
         videoTagService.queryVideoTagUpStateList(inputObject, outputObject);
     }
 
-
-
-
-
-
-
-
-
 }

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName: FocusController
- * @Description: 视频关注管理
+ * @Description: 视频用户关注管理
  * @author: skyeye云系列--lqy
  * @date: 2024/3/9 14:31
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@Api(value = "视频关注管理", tags = "视频关注管理", modelName = "视频关注管理")
+@Api(value = "视频用户关注管理", tags = "视频用户关注管理", modelName = "视频用户关注管理")
 public class FocusController {
     @Autowired
     private FocusService focusService;
@@ -37,7 +37,6 @@ public class FocusController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    // TODO 只要新增
     @ApiOperation(id = "insertFocus", value = "新增视频关注", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Focus.class)
     @RequestMapping("/post/FocusController/insertFocus")
@@ -51,7 +50,7 @@ public class FocusController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryFocusList", value = "获取视频关注列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFocusList", value = "获取视频关注列表(用户id-objectId)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FocusController/queryFocusList")
     public void queryFocusList(InputObject inputObject, OutputObject outputObject) {
@@ -64,14 +63,13 @@ public class FocusController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteFocusById", value = "取消视频关注", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteFocusByUserId", value = "取消视频关注", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "标签id", required = "required")})
-    @RequestMapping("/post/FocusController/deleteFocusById")
-    public void deleteFocusById(InputObject inputObject, OutputObject outputObject) {
-        focusService.deleteById(inputObject, outputObject);
+            @ApiImplicitParam(id = "userId", name = "userId", value = "被关注人id", required = "required")})
+    @RequestMapping("/post/FocusController/deleteFocusByUserId")
+    public void deleteFocusByUserId(InputObject inputObject, OutputObject outputObject) {
+        focusService.deleteFocusByUserId(inputObject, outputObject);
     }
-
 
 
 }

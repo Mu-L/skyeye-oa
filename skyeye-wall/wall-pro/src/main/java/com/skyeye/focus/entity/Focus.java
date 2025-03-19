@@ -12,6 +12,8 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: Focus
  * @Description: 视频关注实体类
@@ -32,10 +34,9 @@ public class Focus extends OperatorUserInfo {
 
     @TableField("user_id")
     @ApiModelProperty(value = "关注用户id", required = "required")
-    private String videoId;
+    private String userId;
 
-    // TODO 加一个布尔类型的字段，判断当前登录人是否关注了这个视频
     @TableField(exist = false)
-    @Property(value = "当前登陆人是否关注")
-    private Boolean checkUpvote;
+    @Property(value = "关注用户信息")
+    private Map<String, Object> userMation;
 }

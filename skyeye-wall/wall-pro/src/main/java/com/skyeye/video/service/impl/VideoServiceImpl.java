@@ -15,6 +15,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.service.UserService;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
@@ -25,6 +26,7 @@ import com.skyeye.video.service.VideoService;
 import com.skyeye.video.service.VideoViewService;
 import com.skyeye.videocomment.entity.VideoComment;
 import com.skyeye.videocomment.service.VideoCommentService;
+import com.skyeye.videotag.service.VideoTagService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,14 +63,22 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Autowired
     private VideoCommentService videoCommentService;
 
+    @Autowired
+    private FocusService focusService;
+
+    @Autowired
+    private VideoTagService videoTagService;
+
     @Value("${IMAGES_PATH}")
     private String tPath;
 
     @Override
     public Video selectById(String id) {
         Video video = super.selectById(id);
+        focusService.checkFocus(video);
         videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE);
         videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO);
+        videoTagService.setTagMationForVideoList(video);
         userService.setDataMation(video, Video::getCreateId);
         return video;
     }
@@ -211,7 +221,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
      */
     @Override
     public void queryAllCollectSupportVideo(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonConstants.class);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String type = commonPageInfo.getType();
         String objectId = commonPageInfo.getObjectId();
         if (StrUtil.isNotEmpty(type)) {
@@ -226,6 +236,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
                 video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
             }
+            videoTagService.setTagMationForVideoList(videos.toArray(new Video[0]));
             userService.setDataMation(videos, Video::getCreateId);
             outputObject.setBean(videos);
             outputObject.settotal(Integer.parseInt(total));
@@ -247,6 +258,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
                 video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
             }
+            videoTagService.setTagMationForVideoList(beans.toArray(new Video[0]));
             outputObject.setBeans(beans);
             outputObject.settotal(page.getTotal());
         }

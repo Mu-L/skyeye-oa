@@ -1,7 +1,10 @@
 package com.skyeye.focus.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.focus.entity.Focus;
+import com.skyeye.video.entity.Video;
 
 /**
  * @ClassName: FocusService
@@ -14,4 +17,7 @@ import com.skyeye.focus.entity.Focus;
 
 public interface FocusService extends SkyeyeBusinessService<Focus> {
 
+    void checkFocus(Video video);
+
+    void deleteFocusByUserId(InputObject inputObject, OutputObject outputObject);
 }

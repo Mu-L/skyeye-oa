@@ -3,6 +3,7 @@ package com.skyeye.videotag.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -18,6 +19,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.video.entity.Video;
 import com.skyeye.videotag.dao.VideoTagDao;
 import com.skyeye.videotag.entity.VideoTag;
 import com.skyeye.videotag.service.VideoTagService;
@@ -25,8 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -71,7 +76,6 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
         if (StrUtil.isNotEmpty(commonPageInfo.getSqlExtract())) {
             wrapper.apply(commonPageInfo.getSqlExtract());
         }
-//        setNotDeleteFlag(wrapper);
         if (ReflectUtil.hasField(clazz, CommonConstants.DELETE_FLAG)) {
             // 判断是否有删除标识并放入，只查询没有删除的数据
             wrapper.ne(MybatisPlusUtil.toColumns(clazz, CommonConstants.DELETE_FLAG), DeleteFlagEnum.DELETED.getKey());
@@ -149,5 +153,28 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
         outputObject.settotal(page.getTotal());
     }
 
-
+    /**
+     * 为视频中设置标签信息
+     */
+    @Override
+    public void setTagMationForVideoList(Video ...beans) {
+        List<String> tagIdList = new ArrayList<>();
+        for (Video video : beans) {
+            String tagId = video.getTagId();
+            if (StrUtil.isEmpty(tagId)) {
+                continue;
+            }
+            String[] tagIdArr = tagId.split(",");
+            tagIdList.addAll(Arrays.asList(tagIdArr));
+            List<String> distinctTagIds = tagIdList.stream().distinct().collect(Collectors.toList());
+            if(CollectionUtil.isEmpty(distinctTagIds)) {
+                continue;
+            }
+            QueryWrapper<VideoTag> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in(CommonConstants.ID, distinctTagIds)
+                    .orderByDesc(MybatisPlusUtil.toColumns(VideoTag::getOrderBy));
+            List<VideoTag> videoTags = list(queryWrapper);
+            video.setTagMation(videoTags);
+        }
+    }
 }

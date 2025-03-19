@@ -38,11 +38,11 @@ public class Post extends OperatorUserInfo {
     private String id;
 
     @TableField("content")
-    @ApiModelProperty(value = "发帖内容", required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "发帖内容", required = "required")
     private String content;
 
     @TableField("title")
-    @ApiModelProperty(value = "发帖标题", required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "发帖标题", required = "required")
     private String title;
 
     @TableField("ip")

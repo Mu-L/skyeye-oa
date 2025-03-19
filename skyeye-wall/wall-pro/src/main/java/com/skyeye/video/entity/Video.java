@@ -8,9 +8,11 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.videocomment.entity.VideoComment;
+import com.skyeye.videotag.entity.VideoTag;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: Video
@@ -61,6 +63,14 @@ public class Video extends OperatorUserInfo {
     @ApiModelProperty(value = "视频时长，默认0", defaultValue = "0")
     private Integer videoDuration;
 
+    @TableField("tag_id")
+    @ApiModelProperty(value = "标签，最多三个标签", required = "required")
+    private String tagId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "标签名列表")
+    private List<VideoTag> tagMation;
+
     @TableField(exist = false)
     @Property(value = "当前登陆人是否点赞")
     private Boolean checkUpvote;
@@ -68,6 +78,10 @@ public class Video extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "当前登陆人是否收藏")
     private Boolean checkCollection;
+
+    @TableField(exist = false)
+    @Property(value = "当前登陆人是否关注")
+    private Boolean checkFocus;
 
     @TableField(exist = false)
     @Property(value = "视频评论")
