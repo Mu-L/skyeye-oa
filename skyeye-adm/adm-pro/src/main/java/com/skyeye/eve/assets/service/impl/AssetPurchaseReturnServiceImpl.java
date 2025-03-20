@@ -211,7 +211,7 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
             .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
         assetReportList.forEach(assetReport -> {
             AssetPurchaseLink assetReturnLink = returnLinkMap.get(assetReport.getAssetId());
-            if (!StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
+            if (assetReturnLink == null || !StrUtil.equals(assetReport.getAssetId(), assetReturnLink.getAssetId())) {
                 throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
             }
         });

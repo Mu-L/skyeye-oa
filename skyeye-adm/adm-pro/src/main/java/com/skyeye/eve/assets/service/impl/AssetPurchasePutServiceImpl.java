@@ -204,7 +204,7 @@ public class AssetPurchasePutServiceImpl extends SkyeyeFlowableServiceImpl<Asset
             .collect(Collectors.toMap(AssetPurchaseLink::getAssetId, bean -> bean));
         assetReportList.forEach(assetReport -> {
             AssetPurchaseLink assetPurchaseLink = purchaseLinkMap.get(assetReport.getAssetId());
-            if (!StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
+            if (assetPurchaseLink == null || !StrUtil.equals(assetReport.getAssetId(), assetPurchaseLink.getAssetId())) {
                 throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与资产不匹配，请确认", assetReport.getAssetNum()));
             }
         });
