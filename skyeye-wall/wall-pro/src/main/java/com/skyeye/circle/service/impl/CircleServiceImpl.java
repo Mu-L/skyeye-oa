@@ -21,6 +21,7 @@ import com.skyeye.circle.service.CircleService;
 import com.skyeye.circleview.service.CircleViewService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -136,6 +137,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     private List<Map<String, Object>> queryCircleList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
+        if(params.containsKey("keyword")&&StringUtils.isNotEmpty(params.get("keyword").toString())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Circle::getTitle), params.get("keyword").toString());
+        }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
         List<Circle> bean = new ArrayList<>();
@@ -154,7 +158,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
             }
         }
         if (CollectionUtil.isEmpty(bean)) {
-            bean = queryAllData();
+            bean = list(queryWrapper);
         }
         for (Circle circle : bean) {
             circle.setIsJoin(joinCircleService.checkIsJoinCircle(circle.getId(), userId));

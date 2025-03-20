@@ -31,7 +31,7 @@ public class Circle extends OperatorUserInfo {
     private String id;
 
     @TableField("title")
-    @ApiModelProperty(value = "标题", required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "标题", required = "required")
     private String title;
 
     @TableField("`describe`")
