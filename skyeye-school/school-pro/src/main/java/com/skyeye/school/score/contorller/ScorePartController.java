@@ -6,6 +6,7 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.service.ScorePartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,12 +19,19 @@ public class ScorePartController {
     @Autowired
     private ScorePartService scorePartService;
 
-    @ApiOperation(id = "updateScorePart", value = "新增成绩类型信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "updateScorePart", value = "修改修分数信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "score", name = "score", value = "成绩", required = "required")})
     @RequestMapping("/post/ScorePartController/updateScorePart")
     public void updateScorePart(InputObject inputObject, OutputObject outputObject) {
         scorePartService.updateScorePart(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "createScorePart", value = "自定义新增作业信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ScorePart.class)
+    @RequestMapping("/post/ScorePartController/createScorePart")
+    public void createScorePart(InputObject inputObject, OutputObject outputObject) {
+        scorePartService.createScorePart(inputObject, outputObject);
     }
 }

@@ -44,7 +44,7 @@ public class ScoreType extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "同表子成绩类型信息")
-    private List<Map<String,Object>> sameTableChildDateList;
+    private List<Map<String, Object>> sameTableChildDateList;
 
     @TableField(exist = false)
     @Property(value = "成绩列表")

@@ -23,6 +23,10 @@ public class ScoreSum extends OperatorUserInfo {
     @ApiModelProperty(value = "成绩", required = "required")
     private String score;
 
+    @TableField("proportion")
+    @ApiModelProperty(value = "占比")
+    private String proportion;
+
     @TableField("object_id")
     @ApiModelProperty(value = "第三方业务数据id(成绩类型主表id或成绩类型子表id)", required = "required")
     private String objectId;

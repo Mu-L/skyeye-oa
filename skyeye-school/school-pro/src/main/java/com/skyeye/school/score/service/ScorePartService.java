@@ -10,7 +10,13 @@ import java.util.List;
 public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
     List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList);
 
+    void updateScorePartByStuNoAndWorkId(String stuNo, String workId, String score, Integer workType);
+
     void updateScorePart(InputObject inputObject, OutputObject outputObject);
 
-    void updateScoreByObjectIdAndStuNo(String parentId, int parentPartScore, String stuNo);
+    void updateScoreByObjectIdAndStuNo(String parentId, double parentPartScore, String stuNo);
+
+    void deleteByObjectId(String objectId);
+
+    void createScorePart(InputObject inputObject, OutputObject outputObject);
 }

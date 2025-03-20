@@ -1,5 +1,7 @@
 package com.skyeye.school.score.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -21,10 +23,15 @@ import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -46,11 +53,38 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
     @Autowired
     private ScoreTypeService scoreTypeService;
 
+    @Autowired
+    private SubjectClassesService subjectClassesService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
     @Override
     public List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList) {
         QueryWrapper<ScorePart> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ScorePart::getObjectId), scoreTypeIdList);
         return list(queryWrapper);
+    }
+
+    /**
+     * 根据学号、任务id和修改成绩
+     * 此方法可用于教师打分
+     *
+     * @param stuNo
+     * @param workId
+     * @param score
+     * @param workType
+     */
+    @Override
+    public void updateScorePartByStuNoAndWorkId(String stuNo, String workId, String score, Integer workType) {
+        UpdateWrapper<ScorePart> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getStuNo), stuNo)
+            .eq(MybatisPlusUtil.toColumns(ScorePart::getWorkId), workId)
+            .set(MybatisPlusUtil.toColumns(ScorePart::getWorkType), workType)
+            .set(MybatisPlusUtil.toColumns(ScorePart::getScore), score);
+        update(updateWrapper);
+        ScorePart one = getOne(updateWrapper);
+        updateOtherScoreSum(one);
     }
 
     @Override
@@ -76,7 +110,10 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
 
     private void updateOtherScoreSum(ScorePart scorePart) {
         // 取出"作业成绩"信息
-        ScoreTypeChild scoreTypeChild = scoreTypeChildService.selectById(scorePart.getObjectId());
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.queryById(scorePart.getObjectId());
+        if (ObjectUtil.isEmpty(scoreTypeChild)) {
+            return;
+        }
         // 取出该学生的”作业成绩信息“下的所有作业信息
         List<ScorePart> scorePartList = queryByObjectIdListAndStuNo(Arrays.asList(scoreTypeChild.getId()), scorePart.getStuNo());
         int sumScore = CommonNumConstants.NUM_ZERO;
@@ -86,10 +123,12 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             sumScore = Integer.parseInt(flagScore) + sumScore;
         }
         // 更新该学生的"作业成绩"总分
-        scoreSumService.updataScoreByObjectIdAndStuNo(scoreTypeChild.getId(), sumScore, scorePart.getStuNo());
-
-        // 查询”平时成绩“的子成绩（作业成绩、测试成绩）
+        scoreSumService.updateScoreByObjectIdAndStuNo(scoreTypeChild.getId(), sumScore, scorePart.getStuNo());
+        // 查询”平时成绩“的子成绩（作业成绩、测试成绩）----------二阶段
         List<ScoreTypeChild> scoreTypeChildren = scoreTypeChildService.queryListByParentIdList(Arrays.asList(scoreTypeChild.getParentId()));
+        if (CollectionUtil.isEmpty(scoreTypeChildren)) {
+            return;
+        }
         // 获取子成绩的占比
         Map<String, String> proportionMap = scoreTypeChildren.stream()
             .collect(Collectors.toMap(ScoreTypeChild::getId, bean -> {
@@ -97,6 +136,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             }));
         // 取出子成绩（作业成绩、测试成绩）的id
         List<String> scoreTypeChildIdList = scoreTypeChildren.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(scoreTypeChildIdList)) {
+            return;
+        }
         // 查询子成绩（作业成绩、测试成绩）总分
         List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdListAndStuNo(scoreTypeChildIdList, scorePart.getStuNo());
         int parentPartScore = CommonNumConstants.NUM_ZERO;
@@ -108,10 +150,13 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         // 更新该学生的”平时成绩“
         scorePartService.updateScoreByObjectIdAndStuNo(scoreTypeChild.getParentId(), parentPartScore, scorePart.getStuNo());
 
-        // 获取”平时成绩“的父成绩id(总成绩id)
+        // 获取”平时成绩“的父成绩id(总成绩id)---三阶段
         ScoreTypeChild parentScoreType = scoreTypeChildService.queryByTypeId(scoreTypeChild.getParentId());
         // 查询”总成绩“的子成绩（平时成绩、考试成绩）child表
         List<ScoreTypeChild> scoreTypeChildren1 = scoreTypeChildService.queryListByParentIdList(Arrays.asList(parentScoreType.getParentId()));
+        if (CollectionUtil.isEmpty(scoreTypeChildren1)) {
+            return;
+        }
         // 收集子成绩（平时成绩、考试成绩）的id
         List<String> collectIdList = scoreTypeChildren1.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
         // 查询”总成绩“的子成绩（平时成绩、考试成绩） 主表
@@ -129,7 +174,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             lastScore = Integer.parseInt(flagScore + lastScore);
         }
         // 更新该学生的”总成绩“
-        scoreSumService.updataScoreByObjectIdAndStuNo(parentScoreType.getParentId(), lastScore, scorePart.getStuNo());
+        scoreSumService.updateScoreByObjectIdAndStuNo(parentScoreType.getParentId(), lastScore, scorePart.getStuNo());
     }
 
     public List<ScorePart> queryByObjectIdListAndStuNo(List<String> objectIdList, String stuNo) {
@@ -142,7 +187,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
     }
 
     @Override
-    public void updateScoreByObjectIdAndStuNo(String parentId, int parentPartScore, String stuNo) {
+    public void updateScoreByObjectIdAndStuNo(String parentId, double parentPartScore, String stuNo) {
         UpdateWrapper<ScorePart> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getObjectId), parentId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getStuNo), stuNo);
@@ -150,5 +195,36 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         update(updateWrapper);
     }
 
+    @Override
+    public void deleteByObjectId(String objectId) {
+        QueryWrapper<ScorePart> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getObjectId), objectId);
+        remove(queryWrapper);
+    }
 
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void createScorePart(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        ScorePart inputScorePart = inputObject.getParams(ScorePart.class);
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.queryById(inputScorePart.getObjectId());
+        if (ObjectUtil.isEmpty(scoreTypeChild)) {
+            throw new CustomException("objectId错误，关联的成绩类型不存在。");
+        }
+        SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(scoreTypeChild.getSubjectId(), scoreTypeChild.getClassId());
+        if (ObjectUtil.isNotEmpty(subjectClasses)) {
+            List<ScorePart> scorePartList = new ArrayList<>();
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(subjectClasses.getId());
+            for (SubjectClassesStu subjectClassesStu : subjectClassesStuList) {
+                ScorePart scorePart = new ScorePart();
+                scorePart.setWorkId(inputScorePart.getWorkId());
+                scorePart.setScore(CommonNumConstants.NUM_ZERO.toString());
+                scorePart.setProportion(scoreTypeChild.getProportion());
+                scorePart.setStuNo(subjectClassesStu.getStuNo());
+                scorePart.setObjectId(scoreTypeChild.getId());
+                scorePartList.add(scorePart);
+            }
+            scorePartService.createEntity(scorePartList, currentUserId);
+        }
+    }
 }
