@@ -33,4 +33,6 @@ public interface MeasurementSubService extends SkyeyeBusinessService<Measurement
     void queryMeasurementStuSubListByMeasurementId(InputObject inputObject, OutputObject outputObject);
 
     double queryMeasurementFinshRate(List<String> ids, Long classNum);
+
+    Long queryClassMeasurementJoinNum(String id);
 }

@@ -157,4 +157,20 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
         map.put("finishRate", finishRate);
         return map;
     }
+
+    // 根据科目班级id获取测试的数量
+    @Override
+    public Long queryClassMeasurementNum(String id) {
+        QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
+        return count(queryWrapper);
+    }
+
+    @Override
+    public List<String> queryMeasurementIdsBySubjectClassId(String id) {
+        QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
+        List<Measurement> list = list(queryWrapper);
+        return list.stream().map(Measurement::getId).collect(Collectors.toList());
+    }
 }

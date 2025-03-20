@@ -21,4 +21,8 @@ import java.util.Map;
 public interface TopicService extends SkyeyeBusinessService<Topic> {
 
     void updateCommentNum(String topicId, Integer num);
+
+    Long queryClassTopicNum(String id);
+
+    List<String> queryTopicIdsBySubjectClassesId(String id);
 }

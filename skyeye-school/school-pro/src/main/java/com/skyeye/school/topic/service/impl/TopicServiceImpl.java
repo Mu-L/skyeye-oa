@@ -19,6 +19,7 @@ import com.skyeye.school.topic.service.TopicService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -76,6 +77,21 @@ public class TopicServiceImpl extends SkyeyeBusinessServiceImpl<TopicDao, Topic>
         updateWrapper.eq(CommonConstants.ID, topicId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Topic::getCommentNum), num);
         update(updateWrapper);
+    }
+
+    @Override
+    public Long queryClassTopicNum(String id) {
+        QueryWrapper<Topic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id);
+        return count(queryWrapper);
+    }
+
+    @Override
+    public List<String> queryTopicIdsBySubjectClassesId(String id) {
+        QueryWrapper<Topic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id);
+        List<Topic> list = list(queryWrapper);
+        return list.stream().map(Topic::getId).collect(Collectors.toList());
     }
 
     @Override

@@ -164,4 +164,20 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         return map;
     }
 
+    // 查询科目班级id作业数量
+    @Override
+    public Long queryClassAssignmentNum(String id) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
+        return count(queryWrapper);
+    }
+
+    @Override
+    public List<String> queryAssignmentIdsBySubjectCLassId(String id) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
+        List<Assignment> list = list(queryWrapper);
+        return list.stream().map(Assignment::getId).collect(Collectors.toList());
+    }
+
 }

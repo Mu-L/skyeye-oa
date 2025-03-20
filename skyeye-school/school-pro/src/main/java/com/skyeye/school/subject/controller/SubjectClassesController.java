@@ -159,4 +159,18 @@ public class SubjectClassesController {
         subjectClassesService.queryTeacherMessage(inputObject, outputObject);
     }
 
+    /**
+     * 获取课程申报数据
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySubjectClassesInfo", value = "获取课程申报数据", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "科目表与班级表关系id",required = "require")})
+    @RequestMapping("/post/SubjectClassesController/querySubjectClassesInfo")
+    public void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject) {
+        subjectClassesService.querySubjectClassesInfo(inputObject, outputObject);
+    }
+
 }

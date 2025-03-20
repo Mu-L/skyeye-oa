@@ -121,6 +121,13 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     }
 
     @Override
+    public Long queryClassNoticeNum(String id) {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
+        return count(queryWrapper);
+    }
+
+    @Override
     public void validatorEntity(Announcement announcement){
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getTitle),announcement.getTitle());

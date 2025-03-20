@@ -52,10 +52,7 @@ public class StudentController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryStudentListByNameOrNo", value = "根据学生姓名和学号获取在校学生信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "当前学生id"),
-            @ApiImplicitParam(id = "name", name = "name", value = "学生姓名"),
-            @ApiImplicitParam(id = "no", name = "no", value = "学号")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StudentController/queryStudentListByNameOrNo")
     public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
         studentService.queryStudentListByNameOrNo(inputObject, outputObject);
@@ -68,10 +65,7 @@ public class StudentController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryTeacherListByNameOrJobNumber", value = "根据姓名或工号获取老师信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "本账户id"),
-            @ApiImplicitParam(id = "name", name = "name", value = "老师姓名"),
-            @ApiImplicitParam(id = "jobNumber", name = "jobNumber", value = "员工工号")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StudentController/queryTeacherListByNameOrJobNumber")
     public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
         studentService.queryTeacherListByNameOrJobNumber(inputObject, outputObject);

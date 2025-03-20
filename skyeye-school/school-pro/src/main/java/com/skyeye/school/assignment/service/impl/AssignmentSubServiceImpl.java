@@ -278,4 +278,23 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         return sum / assignmentIdList.size();
     }
 
+    // 获取作业参数人数
+    @Override
+    public Long queryClassAssignmentJoinNum(String id) {
+        Long sum = 0L;
+        // 获取作业id
+        List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(id);
+        if(CollectionUtil.isEmpty(ids)){
+            return sum;
+        }
+        for (String assignmentId : ids) {
+            QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId)
+                    .select(MybatisPlusUtil.toColumns(AssignmentSub::getId));
+            long total = count(queryWrapper);
+            sum += total;
+        }
+        return sum;
+    }
+
 }

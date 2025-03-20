@@ -19,4 +19,6 @@ public interface DatumService extends SkyeyeBusinessService<Datum> {
     void queryDatumListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
 
     Map<String, Double> queryDatumByChapterId(Long classNum,String ...ids);
+
+    Long queryClassDataNum(String id);
 }
