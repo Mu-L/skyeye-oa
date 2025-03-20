@@ -115,8 +115,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
             return beans;
         } else {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
-                .eq(MybatisPlusUtil.toColumns(Post::getCircleId), "")
+            queryWrapper.and(wrapper ->{
+                wrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
+                        .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            })
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
             return beans;

@@ -259,6 +259,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
             }
             videoTagService.setTagMationForVideoList(beans.toArray(new Video[0]));
+            userService.setDataMation(beans, Video::getCreateId);
             outputObject.setBeans(beans);
             outputObject.settotal(page.getTotal());
         }

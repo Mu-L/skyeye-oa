@@ -77,7 +77,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        if(userId.equals(subjectClasses.getCreateId())){
+            throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
+        }
         Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
+        if (!certification.containsKey("state")) {
+            throw new CustomException("请先进行学生认证");
+        }
         if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
             throw new CustomException("认证信息未通过审核，不允许加入课程班级");
         }
