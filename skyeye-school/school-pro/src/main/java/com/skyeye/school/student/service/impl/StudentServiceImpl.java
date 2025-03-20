@@ -8,6 +8,7 @@ import cn.afterturn.easypoi.excel.ExcelExportUtil;
 import cn.afterturn.easypoi.excel.entity.ExportParams;
 import cn.afterturn.easypoi.excel.entity.enmus.ExcelType;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
@@ -299,19 +300,32 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String studentNumber = map.get("no").toString();
-        String id = map.get("id").toString();//要查询的接口
-        String userId = map.get("userId").toString();
+        String id = map.get("id").toString();
+        String userId = map.get("userId").toString();//本学生或老师
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
         List<Student> studentList = list(queryWrapper);
         for (Student student : studentList) {
+            QueryWrapper<SysEveUserStaff> queryWrapper1 = new QueryWrapper<>();
+            queryWrapper1.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), userId);
+            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.getOne(queryWrapper1);
             QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-            friendQueryWrapper
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
-                    .or()
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
+            if (ObjectUtil.isNotEmpty(sysEveUserStaff)) {
+                String sysEveUserStaffId = sysEveUserStaff.getId();
+                friendQueryWrapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId)
+                        .or()
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), sysEveUserStaffId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
+            } else {
+                friendQueryWrapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
+                        .or()
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
+            }
             List<FriendRelationship> friendRelationshipList = friendRelationshipService.list(friendQueryWrapper);
             if (CollectionUtil.isNotEmpty(friendRelationshipList)) {
                 student.setFriendMation(friendRelationshipList);
