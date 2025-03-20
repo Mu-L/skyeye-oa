@@ -18,6 +18,7 @@ import com.skyeye.school.topiccomment.service.TopicCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -75,5 +76,50 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicComment.getTopicId());
         topicService.updateCommentNum(topicComment.getTopicId(), (int) count(queryWrapper));
+    }
+
+    @Override
+    public Long queryClassTopicJoinNum(String id) {
+        // 获取话题id
+        List<String> ids = topicService.queryTopicIdsBySubjectClassesId(id);
+        if (CollectionUtil.isEmpty(ids)) {
+            return 0L;
+        }
+        List<TopicComment> beans = new ArrayList<>();
+        for (String topicId : ids) {
+            // 获取话题评论数
+            QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId);
+            beans.addAll(list(queryWrapper));
+        }
+        // 根据createId去重
+        long count = beans.stream().map(TopicComment::getCreateId).distinct().count();
+        if(count == 0){
+            return (long) ids.size();
+        }
+        return count;
+    }
+
+    @Override
+    public Long queryClassTopicJoinPersonNum(String id) {
+        // 获取话题id
+        List<String> ids = topicService.queryTopicIdsBySubjectClassesId(id);
+        if (CollectionUtil.isEmpty(ids)) {
+            return 0L;
+        }
+        return queryTopicCommentNum(ids.toArray(new String[0]));
+    }
+
+    /**
+     * 根据话题id获取评论数量
+     * */
+    private Long queryTopicCommentNum(String ... topicIds) {
+        Long sum = 0L;
+        for (String topicId : topicIds) {
+            QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId);
+            sum += count(queryWrapper);
+        }
+        return sum;
     }
 }

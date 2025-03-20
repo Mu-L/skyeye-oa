@@ -269,4 +269,22 @@ public class MeasurementSubServiceImpl extends SkyeyeBusinessServiceImpl<Measure
         }
         return sum / ids.size();
     }
+
+    @Override
+    public Long queryClassMeasurementJoinNum(String id) {
+        Long sum = 0L;
+        //获取测试id
+        List<String> ids = measurementService.queryMeasurementIdsBySubjectClassId(id);
+        if (CollectionUtil.isEmpty(ids)){
+            return sum;
+        }
+        for (String measurementId : ids) {
+            QueryWrapper<MeasurementSub> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(MeasurementSub::getMeasurementId),measurementId)
+                    .select(MybatisPlusUtil.toColumns(MeasurementSub::getId));
+            Long total = count(queryWrapper);
+            sum += total;
+        }
+        return sum;
+    }
 }

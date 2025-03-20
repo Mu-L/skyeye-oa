@@ -24,14 +24,23 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.school.announcement.service.AnnouncementService;
+import com.skyeye.school.assignment.service.AssignmentService;
+import com.skyeye.school.assignment.service.AssignmentSubService;
+import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.measurement.service.MeasurementService;
+import com.skyeye.school.measurement.service.MeasurementSubService;
 import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
 import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectService;
+import com.skyeye.school.topic.service.TopicService;
+import com.skyeye.school.topiccomment.service.TopicCommentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +48,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,6 +81,33 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Autowired
     private ScoreTypeService scoreTypeService;
+    
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private DatumService datumService;
+
+    @Autowired
+    private AnnouncementService announcementService;
+
+    @Autowired
+    private TopicService topicService;
+
+    @Autowired
+    private TopicCommentService topicCommentService;
+
+    @Autowired
+    private AssignmentService assignmentService;
+
+    @Autowired
+    private AssignmentSubService assignmentSubService;
+
+    @Autowired
+    private MeasurementService measurementService;
+
+    @Autowired
+    private MeasurementSubService measurementSubService;
 
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -85,6 +122,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         classesService.setMationForMap(beans, "classesId", "classesMation");
         return beans;
     }
+
     @Override
     public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
@@ -111,7 +149,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public void createPostpose(SubjectClasses entity, String userId){
+    public void createPostpose(SubjectClasses entity, String userId) {
         scoreTypeService.createDeFaultInfo(entity, userId);
     }
 
@@ -227,7 +265,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
         if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-                                      String subjectClassesId = map.get("id").toString();
+            String subjectClassesId = map.get("id").toString();
             updateEnabled(subjectClassesId, Integer.parseInt(enabled));
         }
     }
@@ -259,6 +297,47 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         iAuthUserService.setDataMation(subjectClassesList, SubjectClasses::getCreateId);
         outputObject.setBean(subjectClassesList);
         outputObject.settotal(subjectClassesList.size());
+    }
+
+
+    @Override
+    public void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString(); // 科目与班级的关系id
+        Map<String, Object> resultMap = new HashMap<>();
+        // 获取加课人数
+        Long joinNum = subjectClassesStuService.queruClassStuNum(id);
+        resultMap.put("joinNum", joinNum);
+        // 资料个数
+        Long dataNum = datumService.queryClassDataNum(id);
+        resultMap.put("dataNum", dataNum);
+        // 公告数
+        Long noticeNum = announcementService.queryClassNoticeNum(id);
+        resultMap.put("noticeNum", noticeNum);
+        // 话题发帖数
+        Long topicNum = topicService.queryClassTopicNum(id);
+        resultMap.put("topicNum", topicNum);
+        // 话题参与人数
+        Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(id);
+        resultMap.put("topicJoinNum", topicJoinNum);
+        // 话题参与人次--评论总数
+        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id);
+        resultMap.put("topicJoinPersonNum", topicJoinPersonNum);
+        // 作业数
+        Long assignmentNum = assignmentService.queryClassAssignmentNum(id);
+        resultMap.put("assignmentNum", assignmentNum);
+        // 作业参数人数
+        Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
+        resultMap.put("assignmentJoinNum", assignmentJoinNum);
+        // 测试数量
+        Long testNum = measurementService.queryClassMeasurementNum(id);
+        resultMap.put("testNum", testNum);
+        // 测试参与人数
+        Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
+        resultMap.put("testJoinNum", testJoinNum);
+
+        outputObject.setBean(resultMap);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }

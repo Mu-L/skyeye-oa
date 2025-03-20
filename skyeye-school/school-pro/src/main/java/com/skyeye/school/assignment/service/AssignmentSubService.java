@@ -56,4 +56,6 @@ public interface AssignmentSubService extends SkyeyeBusinessService<AssignmentSu
     void queryAssignmentNotSubListByAssignmentId(InputObject inputObject, OutputObject outputObject);
 
     double queryAssignmentFinshRate(List<String> assignmentIdList, long num);
+
+    Long queryClassAssignmentJoinNum(String id);
 }

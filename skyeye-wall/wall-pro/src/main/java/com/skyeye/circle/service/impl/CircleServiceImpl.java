@@ -136,6 +136,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     private List<Map<String, Object>> queryCircleList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
         List<Circle> bean = new ArrayList<>();
         if (params.containsKey("objectId") && StrUtil.isNotEmpty(params.get("objectId").toString())) {
@@ -154,6 +155,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         }
         if (CollectionUtil.isEmpty(bean)) {
             bean = queryAllData();
+        }
+        for (Circle circle : bean) {
+            circle.setIsJoin(joinCircleService.checkIsJoinCircle(circle.getId(), userId));
         }
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
         return beans;

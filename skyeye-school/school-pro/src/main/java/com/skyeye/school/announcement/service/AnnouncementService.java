@@ -19,4 +19,6 @@ public interface AnnouncementService extends SkyeyeBusinessService<Announcement>
     void confirmAnnouncement(InputObject inputObject, OutputObject outputObject);
 
     void queryAnnouncementListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
+
+    Long queryClassNoticeNum(String id);
 }

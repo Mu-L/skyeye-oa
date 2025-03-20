@@ -95,4 +95,11 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         map.put("finishRate", finishRate);
         return map;
     }
+
+    @Override
+    public Long queryClassDataNum(String id) {
+        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
+        return count(queryWrapper);
+    }
 }
