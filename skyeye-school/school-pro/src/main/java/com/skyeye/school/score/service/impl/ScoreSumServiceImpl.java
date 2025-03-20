@@ -19,12 +19,13 @@ public class ScoreSumServiceImpl extends SkyeyeBusinessServiceImpl<ScoreSumDao, 
     @Override
     public List<ScoreSum> queryByObjectIdList(List<String> scoreTypeIdList) {
         QueryWrapper<ScoreSum> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), scoreTypeIdList);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), scoreTypeIdList)
+            .orderByDesc(MybatisPlusUtil.toColumns(ScoreSum::getStuNo));
         return list(queryWrapper);
     }
 
     @Override
-    public void updataScoreByObjectIdAndStuNo(String objectId, int sumScore, String stuNo) {
+    public void updateScoreByObjectIdAndStuNo(String objectId, double sumScore, String stuNo) {
         UpdateWrapper<ScoreSum> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), objectId)
             .eq(MybatisPlusUtil.toColumns(ScoreSum::getStuNo), stuNo)
@@ -40,5 +41,20 @@ public class ScoreSumServiceImpl extends SkyeyeBusinessServiceImpl<ScoreSumDao, 
             queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreSum::getStuNo), stuNo);
         }
         return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteByObjectId(String objectId) {
+        QueryWrapper<ScoreSum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), objectId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateProportionByObjectId(String objectId, String proportion) {
+        UpdateWrapper<ScoreSum> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), objectId)
+            .set(MybatisPlusUtil.toColumns(ScoreSum::getProportion), proportion);
+        update(updateWrapper);
     }
 }

@@ -11,30 +11,28 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.score.dao.ScoreTypeDao;
-import com.skyeye.school.score.entity.ScorePart;
-import com.skyeye.school.score.entity.ScoreSum;
-import com.skyeye.school.score.entity.ScoreType;
-import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.entity.*;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "成绩类型管理", groupName = "成绩类型管理")
 public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao, ScoreType> implements ScoreTypeService {
-
 
     @Autowired
     private ScoreTypeChildService scoreTypeChildService;
@@ -48,11 +46,17 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
     @Autowired
     private ScoreSumService scoreSumService;
 
+    @Autowired
+    private SubjectClassesService subjectClassesService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
     @Override
     public void validatorEntity(ScoreType scoreType) {
         if (StrUtil.isNotEmpty(scoreType.getProportion())) {
-            float proportion = Float.parseFloat(scoreType.getProportion());
-            if (proportion <= 0 || proportion > 100) {
+            double proportion = Double.parseDouble(scoreType.getProportion());
+            if (proportion < 0 || proportion > 100) {
                 throw new CustomException("占比必须为1-100");
             }
             QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
@@ -60,11 +64,61 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
                 .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), scoreType.getSubjectId())
                 .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
             List<ScoreType> scoreTypeList = list(queryWrapper);
-            double sumProportion = scoreTypeList.stream().map(ScoreType::getProportion).mapToDouble(Double::parseDouble).sum();
-            if (sumProportion + proportion > 100 || proportion + sumProportion < 0 ){
-                throw new CustomException("占比总和非法");
+            if (CollectionUtil.isNotEmpty(scoreTypeList)) {
+                double sumProportion = scoreTypeList.stream().map(ScoreType::getProportion).mapToDouble(Double::parseDouble).sum();
+                if (sumProportion + proportion > 100 || proportion + sumProportion < 0) {
+                    throw new CustomException("占比总和非法");
+                }
             }
         }
+    }
+
+    @Override
+    public void createPrepose(ScoreType scoreType) {
+        // 默认占比为0
+        scoreType.setProportion(StrUtil.isEmpty(scoreType.getProportion()) ? CommonNumConstants.NUM_ZERO.toString() : scoreType.getProportion());
+        // 默认为非默认
+        scoreType.setIsDefault(ObjectUtil.isEmpty(scoreType.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreType.getIsDefault());
+    }
+
+    @Override
+    public void createPostpose(ScoreType scoreType, String userId) {
+        if (Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.NOT_DEFAULT.getKey())) {// 新增非默认数据
+            QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), scoreType.getClassId())
+                .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), scoreType.getSubjectId())
+                .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
+            ScoreType parent = getOne(queryWrapper);
+            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
+            scoreTypeChild.setSubjectId(scoreType.getSubjectId());
+            scoreTypeChild.setClassId(scoreType.getClassId());
+            scoreTypeChild.setIsDefault(IsDefaultEnum.NOT_DEFAULT.getKey());
+            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+            scoreTypeChild.setParentId(parent.getId());
+            scoreTypeChild.setScoreTypeId(scoreType.getId());
+            scoreTypeChildService.createEntity(scoreTypeChild, userId);
+        }
+        // 给分成绩表增加空白数据
+        SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(scoreType.getSubjectId(), scoreType.getClassId());
+        if (ObjectUtil.isNotEmpty(subjectClasses)) {
+            List<ScorePart> scorePartList = new ArrayList<>();
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(subjectClasses.getId());
+            for (SubjectClassesStu subjectClassesStu : subjectClassesStuList) {
+                ScorePart scorePart = new ScorePart();
+                scorePart.setProportion(scoreType.getProportion());
+                scorePart.setStuNo(subjectClassesStu.getStuNo());
+                scorePart.setObjectId(scoreType.getId());
+                scorePartList.add(scorePart);
+            }
+            scorePartService.createEntity(scorePartList, userId);
+        }
+    }
+
+    @Override
+    public void updatePostpose(ScoreType scoreType, String userId) {
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.queryByTypeId(scoreType.getId());
+        scoreTypeChild.setProportion(scoreType.getProportion());
+        scoreTypeChildService.updateEntity(scoreTypeChild, userId);
     }
 
     @Override
@@ -81,6 +135,9 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         Map<Integer, List<ScoreType>> mapScoreTypeList = list.stream().collect(Collectors.groupingBy(ScoreType::getIsDefault));
         ScoreType bean = mapScoreTypeList.get(IsDefaultEnum.IS_DEFAULT.getKey()).get(CommonNumConstants.NUM_ZERO);
         List<ScoreType> sameTableChildDateList = mapScoreTypeList.get(IsDefaultEnum.NOT_DEFAULT.getKey());
+        if (CollectionUtil.isEmpty(sameTableChildDateList)) {
+            return;
+        }
         List<String> scoreTypeIdList = sameTableChildDateList.stream().map(ScoreType::getId).collect(Collectors.toList());
         List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList);
         Map<String, List<ScorePart>> mapByStuNo = scorePartList.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
@@ -103,25 +160,49 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey())
             .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), params.get("subjectId").toString());
         ScoreType bean = getOne(queryWrapper);
-        List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryListBySubjectIdAndClassId(bean.getId(), bean.getClassId());
-        bean.setDifferentTableChildDateList(scoreTypeChildList);
+        List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryListBySubjectIdAndClassId(bean.getSubjectId(), bean.getClassId());
+        List<ScoreTypeChild> deffrentTableDataList = scoreTypeChildList.stream()
+            .filter(scoreTypeChild -> StrUtil.isNotEmpty(scoreTypeChild.getScoreTypeId())).collect(Collectors.toList());
+        bean.setDifferentTableChildDateList(deffrentTableDataList);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 
     @Override
-    public void deletePreExecution(ScoreType scoreType){
-        if (ObjectUtil.equals(scoreType.getIsDefault(), IsDefaultEnum.IS_DEFAULT.getKey())){
+    public void deletePreExecution(ScoreType scoreType) {
+        if (ObjectUtil.equals(scoreType.getIsDefault(), IsDefaultEnum.IS_DEFAULT.getKey())) {
             throw new RuntimeException("默认数据不可删除");
         }
     }
 
     @Override
     public void deletePostpose(String id) {
-        scoreTypeChildService.deleteByTypeId(id);
+        // 删除成绩子表信息，并返回其parentId(该科目下的班级的总成绩的主键id)
+        String parentId = scoreTypeChildService.deleteByTypeId(id);
+        // 删除分成绩和总成绩
+        scorePartService.deleteByObjectId(id);
+        // 查询总成绩下的平时成绩，期末成绩等
+        List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryListByParentIdList(Arrays.asList(parentId));
+        if (CollectionUtil.isNotEmpty(scoreTypeChildList)) {
+            // 获取平时成绩，期末成绩的主键id
+            List<String> scoreTypeIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
+            // 查询平时成绩，期末成绩下的分成绩
+            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(scoreTypeIdList);
+            // 根据学号分组
+            Map<String, List<ScorePart>> mapScorePart = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
+            // 重新计算每一个学生的总成绩，并更新总成绩
+            mapScorePart.forEach((stuNo, ScorePartList) -> {
+                final double[] sum = {CommonNumConstants.NUM_ZERO};
+                for (ScorePart scorePart : ScorePartList) {
+                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), scorePart.getProportion(), CommonNumConstants.NUM_FOUR);
+                    sum[CommonNumConstants.NUM_ZERO] = sum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
+                }
+                // 更新总分
+                scoreSumService.updateScoreByObjectIdAndStuNo(parentId, sum[CommonNumConstants.NUM_ZERO], stuNo);
+            });
+        }
     }
-
 
     @Override
     public void createDeFaultInfo(SubjectClasses subjectClasses, String userId) {
@@ -133,5 +214,45 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         scoreType.setProportion("100");
         super.createEntity(scoreType, userId);
         scoreTypeChildService.createDeFaultInfo(subjectClasses);
+    }
+
+    @Override
+    public void writeScoreTypeList(InputObject inputObject, OutputObject outputObject) {
+        ScoreTypeList params = inputObject.getParams(ScoreTypeList.class);
+        List<ScoreType> scoreTypeChildList = params.getScoreTypeList();
+        scoreTypeChildList.forEach(scoreTypeChild -> {// 若执行新增操作，则将占比设置为0
+            if (StrUtil.isEmpty(scoreTypeChild.getProportion())) {
+                scoreTypeChild.setProportion("0");
+            }
+        });
+        // 校验每一个占比都要合法
+        boolean b = scoreTypeChildList.stream().map(ScoreType::getProportion)
+            .anyMatch(s -> Double.parseDouble(s) > 100 || Double.parseDouble(s) < 0);
+        if (b) {
+            throw new CustomException("存在非法的占比");
+        }
+        // 验证占比总和
+        double sumProportion = scoreTypeChildList.stream().map(ScoreType::getProportion).filter(StrUtil::isNotEmpty)
+            .mapToDouble(Double::parseDouble).sum();
+        if (sumProportion > 100 || sumProportion < 0) {
+            throw new CustomException("占比总和非法");
+        }
+
+        List<ScoreType> updataScoreList = new ArrayList<>();
+        List<ScoreType> addScoreTypeList = new ArrayList<>();
+        scoreTypeChildList.forEach(scoreTypeChild -> {
+            if (ObjectUtil.isNotEmpty(scoreTypeChild.getId())) {
+                updataScoreList.add(scoreTypeChild);
+            } else {
+                addScoreTypeList.add(scoreTypeChild);
+            }
+        });
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        if (CollectionUtil.isNotEmpty(updataScoreList)) {
+            scoreTypeService.updateEntity(updataScoreList, currentUserId);
+        }
+        if (CollectionUtil.isNotEmpty(addScoreTypeList)) {
+            scoreTypeService.createEntity(addScoreTypeList, currentUserId);
+        }
     }
 }

@@ -299,6 +299,12 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         outputObject.settotal(subjectClassesList.size());
     }
 
+    @Override
+    public SubjectClasses getSubjectClassesByObjectIdAndClassesId(String objectId, String classesId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classesId);
+        return getOne(queryWrapper);}
 
     @Override
     public void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject) {
@@ -339,5 +345,4 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
-
 }

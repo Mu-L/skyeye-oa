@@ -81,7 +81,7 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         String id = map.get("id").toString();
         QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
         queryWrapper.and(wrapper -> wrapper
                 .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
                 .or()

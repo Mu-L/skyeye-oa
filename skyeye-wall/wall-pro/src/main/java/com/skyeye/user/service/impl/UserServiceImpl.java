@@ -52,6 +52,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     @Autowired
     private CertificationService certificationService;
 
+    @Autowired
+    private ISchoolService iSchoolService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -108,9 +111,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         entity.setRealName(user.getRealName());
         entity.setStudentNumber(user.getStudentNumber());
     }
-
-    @Autowired
-    private ISchoolService iSchoolService;
 
     @Override
     public User selectById(String id) {

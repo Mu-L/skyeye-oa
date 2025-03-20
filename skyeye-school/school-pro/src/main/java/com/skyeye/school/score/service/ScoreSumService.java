@@ -8,7 +8,11 @@ import java.util.List;
 public interface ScoreSumService extends SkyeyeBusinessService<ScoreSum> {
     List<ScoreSum> queryByObjectIdList(List<String> scoreTypeIdList);
 
-    void updataScoreByObjectIdAndStuNo(String objectId, int sumScore, String stuNo);
+    void updateScoreByObjectIdAndStuNo(String objectId, double sumScore, String stuNo);
 
     List<ScoreSum> queryByObjectIdListAndStuNo(List<String> objectIdList, String stuNo);
+
+    void deleteByObjectId(String objectId);
+
+    void updateProportionByObjectId(String objectId, String proportion);
 }

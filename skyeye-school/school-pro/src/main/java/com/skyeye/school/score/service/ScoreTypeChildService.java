@@ -15,11 +15,13 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     void createDeFaultInfo(SubjectClasses subjectClasses);
 
-    void boundData(InputObject inputObject, OutputObject outputObject);
+    void boundDataOrNot(InputObject inputObject, OutputObject outputObject);
 
     void changeProportion(InputObject inputObject, OutputObject outputObject);
 
     List<ScoreTypeChild> queryListBySubjectIdAndClassId(String subjectId, String classId);
 
-    void deleteByTypeId(String typeId);
+    String deleteByTypeId(String typeId);
+
+    ScoreTypeChild queryById(String id);
 }

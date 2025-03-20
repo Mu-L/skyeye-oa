@@ -23,7 +23,7 @@ public class ScoreTypeController {
     @ApiImplicitParams(classBean = ScoreTypeList.class)
     @RequestMapping("/post/ScoreTypeController/updateScoreTypeList")
     public void updateScoreTypeList(InputObject inputObject, OutputObject outputObject) {
-        scoreTypeService.saveOrUpdateEntity(inputObject, outputObject);
+        scoreTypeService.writeScoreTypeList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "querySameTableDateList", value = "获取同表成绩类型信息", method = "POST", allUse = "2")
@@ -31,7 +31,7 @@ public class ScoreTypeController {
         @ApiImplicitParam(id = "classId", name = "classId", value = "班级id", required = "required"),
         @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required")})
     @RequestMapping("/post/ScoreTypeController/querySameTableDateList")
-    public void querySameTableDateList(InputObject inputObject, OutputObject outputObject){
+    public void querySameTableDateList(InputObject inputObject, OutputObject outputObject) {
         scoreTypeService.querySameTableDateList(inputObject, outputObject);
     }
 
@@ -40,11 +40,9 @@ public class ScoreTypeController {
         @ApiImplicitParam(id = "classId", name = "classId", value = "班级id", required = "required"),
         @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required")})
     @RequestMapping("/post/ScoreTypeController/queryDifferentTableDateList")
-    public void queryDifferentTableDateList(InputObject inputObject, OutputObject outputObject){
+    public void queryDifferentTableDateList(InputObject inputObject, OutputObject outputObject) {
         scoreTypeService.queryDifferentTableDateList(inputObject, outputObject);
     }
-
-
 
     @ApiOperation(id = "deleteScoreTypeById", value = "根据id删除成绩类型信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
