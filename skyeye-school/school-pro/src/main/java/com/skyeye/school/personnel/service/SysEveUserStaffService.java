@@ -6,9 +6,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.personnel.entity.SysEveUserStaff;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUserStaff> {
     List<SysEveUserStaff> selectByName(String name, String jobNumber);
 
     void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject);
+
 }

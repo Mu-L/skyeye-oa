@@ -1,4 +1,4 @@
-package com.skyeye.eve.entity.chat.group;
+package com.skyeye.school.chat.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -8,12 +8,13 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.eve.classenum.CompanyChatGroupState;
+
+import com.skyeye.school.chat.enums.CompanyChatGroupState;
 import lombok.Data;
 
 @Data
-@TableName(value = "school_talk_group")
-@RedisCacheField(name = "School:talk:group")
+@TableName(value = "sys_talk_group")
+@RedisCacheField(name = "chat:group")
 @ApiModel("群组实体类")
 public class CompanyChatGroup extends OperatorUserInfo {
 
@@ -52,4 +53,5 @@ public class CompanyChatGroup extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "成员id，逗号隔开", required = "required")
     private String userIds;
+
 }

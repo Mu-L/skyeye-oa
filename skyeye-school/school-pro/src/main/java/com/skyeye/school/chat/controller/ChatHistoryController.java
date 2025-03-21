@@ -20,73 +20,24 @@ public class ChatHistoryController {
     @Autowired
     private ChatHistoryService chatHistoryService;
 
-    /**
-     * 新增好友聊天历史消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "writeChatHistory", value = "新增好友聊天历史消息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ChatHistory.class)
-    @RequestMapping("/post/ChatHistoryController/writeChatHistory")
-    public void writeChatHistory(InputObject inputObject, OutputObject outputObject) {
-        chatHistoryService.saveOrUpdateEntity(inputObject, outputObject);
+    @ApiOperation(id = "queryMyChatUnReadMessageList", value = "查询我的未读消息列表", method = "GET", allUse = "2")
+    @RequestMapping("/post/ChatHistoryController/queryMyChatUnReadMessageList")
+    public void queryMyChatUnReadMessageList(InputObject inputObject, OutputObject outputObject) {
+        chatHistoryService.queryMyChatUnReadMessageList(inputObject, outputObject);
     }
 
-    /**
-     * 查询好友聊天历史列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryChatHistory", value = "查询好友聊天历史列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ChatHistoryController/queryChatHistory")
-    public void queryChatHistory(InputObject inputObject, OutputObject outputObject) {
-        chatHistoryService.queryPageList(inputObject, outputObject);
-    }
-
-    /**
-     * 查询好友聊天历史消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryChatHistoryByUniqueId", value = "查询好友聊天历史消息", method = "POST", allUse = "2")
+    @ApiOperation(id = "editChatHistoryToRead", value = "修改我与另一个用户/群聊的聊天记录为已读", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "uniqueId", name = "uniqueId", value = "唯一标识id", required = "required")})
-    @RequestMapping("/post/ChatHistoryController/queryChatHistoryByUniqueId")
-    public void queryChatHistoryByUniqueId(InputObject inputObject, OutputObject outputObject) {
-        chatHistoryService.queryChatHistoryByUniqueId(inputObject, outputObject);
+            @ApiImplicitParam(id = "sendId", name = "sendId", value = "发送人id", required = "required")})
+    @RequestMapping("/post/ChatHistoryController/editChatHistoryToRead")
+    public void editChatHistoryToRead(InputObject inputObject, OutputObject outputObject) {
+        chatHistoryService.editChatHistoryToRead(inputObject, outputObject);
     }
 
-    /**
-     * 删除全部好友聊天历史消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "deleteChatHistoryByUniqueId", value = "删除全部好友聊天历史消息", method = "DELETE", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "uniqueId", name = "uniqueId", value = "唯一标识id", required = "required")})
-    @RequestMapping("/post/ChatHistoryController/deleteChatHistoryByUniqueId")
-    public void deleteChatHistoryByUniqueId(InputObject inputObject, OutputObject outputObject) {
-        chatHistoryService.deleteChatHistoryByUniqueId(inputObject, outputObject);
+    @ApiOperation(id = "queryMyChatMessageList", value = "查询我的最近的聊天消息列表", method = "GET", allUse = "2")
+    @RequestMapping("/post/ChatHistoryController/queryMyChatMessageList")
+    public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
+        chatHistoryService.queryMyChatMessageList(inputObject, outputObject);
     }
-
-    /**
-     * 删除部分好友聊天历史消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "deleteChatHistoryById", value = "删除部分好友聊天历史消息", method = "DELETE", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/ChatHistoryController/deleteChatHistoryById")
-    public void deleteChatHistoryById(InputObject inputObject, OutputObject outputObject) {
-        chatHistoryService.deleteChatHistoryById(inputObject, outputObject);
-    }
-
 
 }

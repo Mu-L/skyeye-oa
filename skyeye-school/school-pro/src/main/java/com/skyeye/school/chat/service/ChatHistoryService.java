@@ -7,14 +7,14 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chat.entity.ChatHistory;
 
 public interface ChatHistoryService extends SkyeyeBusinessService<ChatHistory> {
-    void queryChatHistoryByUniqueId(InputObject inputObject, OutputObject outputObject);
-
-    void deleteChatHistoryByUniqueId(InputObject inputObject, OutputObject outputObject);
-
-    void deleteChatHistoryById(InputObject inputObject, OutputObject outputObject);
-
+    
     String createEntity(JSONObject jsonObject, Integer chatType, Integer readType);
 
     String createEntity(JSONObject jsonObject, Integer chatType);
 
+    void queryMyChatUnReadMessageList(InputObject inputObject, OutputObject outputObject);
+
+    void editChatHistoryToRead(InputObject inputObject, OutputObject outputObject);
+
+    void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject);
 }

@@ -256,6 +256,5 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);
-        outputObject.settotal(list.size());
     }
 }

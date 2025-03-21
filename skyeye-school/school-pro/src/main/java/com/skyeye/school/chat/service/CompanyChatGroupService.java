@@ -1,7 +1,7 @@
-package com.skyeye.eve.service;
+package com.skyeye.school.chat.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.eve.entity.chat.group.CompanyChatGroup;
+import com.skyeye.school.chat.entity.CompanyChatGroup;
 
 public interface CompanyChatGroupService extends SkyeyeBusinessService<CompanyChatGroup> {
 }

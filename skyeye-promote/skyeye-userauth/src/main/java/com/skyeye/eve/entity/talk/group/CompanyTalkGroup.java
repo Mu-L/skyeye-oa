@@ -12,6 +12,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+
+
 import com.skyeye.eve.enumclass.CompanyTalkGroupState;
 import lombok.Data;
 
