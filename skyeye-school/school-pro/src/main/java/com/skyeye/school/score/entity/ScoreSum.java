@@ -9,6 +9,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @TableName("school_score_sum")
@@ -34,6 +35,10 @@ public class ScoreSum extends OperatorUserInfo {
     @TableField("stu_no")
     @ApiModelProperty(value = "学号", required = "required")
     private String stuNo;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "学生信息")
+    private Map<String, Object> stuMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "成绩部分集合")

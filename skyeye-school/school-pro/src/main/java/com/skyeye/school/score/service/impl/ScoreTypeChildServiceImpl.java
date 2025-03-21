@@ -3,6 +3,7 @@ package com.skyeye.school.score.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -23,6 +24,8 @@ import com.skyeye.school.score.entity.ScoreTypeChildList;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -52,6 +55,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private StudentService studentService;
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
@@ -109,6 +115,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public ScoreTypeChild selectById(String id) {
         ScoreTypeChild bean = super.selectById(id);
         List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
+        List<String> stuNoList = scoreSumList.stream().map(ScoreSum::getStuNo).collect(Collectors.toList());
+        List<Student> studentList = studentService.queryListByStuNoList(stuNoList);
+        Map<String, Map<String, Object>> stuNoStudentMap = studentList.stream()
+            .collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
         List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()));
         // 将成绩列表根据创建时间排序饭后根据学号分组
         Map<String, List<ScorePart>> stuPartListMap = scorePartList.stream()
@@ -117,6 +127,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         for (ScoreSum scoreSum : scoreSumList) {
             if (stuPartListMap.containsKey(scoreSum.getStuNo())) {
                 scoreSum.setScorePartList(stuPartListMap.get(scoreSum.getStuNo()));
+            }
+            if (stuNoStudentMap.containsKey(scoreSum.getStuNo())) {
+                scoreSum.setStuMation(stuNoStudentMap.get(scoreSum.getStuNo()));
             }
         }
         bean.setScoreSumList(scoreSumList);

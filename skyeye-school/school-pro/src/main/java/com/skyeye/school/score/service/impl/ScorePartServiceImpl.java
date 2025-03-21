@@ -3,17 +3,20 @@ package com.skyeye.school.score.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alipay.api.domain.Person;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.score.classenum.WorkTypeEnum;
 import com.skyeye.school.score.dao.ScorePartDao;
 import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
@@ -31,10 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,6 +85,63 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         update(updateWrapper);
         ScorePart one = getOne(updateWrapper);
         updateOtherScoreSum(one);
+    }
+
+    /**
+     * 中途加入课程,给该学生增加该课程已有得数据(总成绩、平时成绩、作业等信息)
+     *
+     * @param stuNo
+     * @param subjectId
+     * @param classId
+     */
+    @Override
+    public void midCourse(String stuNo, String subjectId, String classId) {
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        // 成绩类型操作，与总成绩同级的数据
+        List<ScoreType> scoreTypeList = scoreTypeService.queryList(subjectId, classId);
+        for (ScoreType scoreType : scoreTypeList) {
+            if (Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.IS_DEFAULT.getKey())) {
+                ScoreSum scoreSum = new ScoreSum();
+                scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
+                scoreSum.setProportion(scoreType.getProportion());
+                scoreSum.setObjectId(scoreType.getId());
+                scoreSum.setStuNo(stuNo);
+                scoreSumService.createEntity(scoreSum, currentUserId);
+            } else if (Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.NOT_DEFAULT.getKey())) {
+                ScorePart scorePart = new ScorePart();
+                scorePart.setWorkId(scoreType.getName());
+                scorePart.setWorkType(WorkTypeEnum.CUSTOM_PERFORMANCE.getKey());
+                scorePart.setScore(CommonNumConstants.NUM_ZERO.toString());
+                scorePart.setProportion(scoreType.getProportion());
+                scorePart.setStuNo(stuNo);
+                scorePart.setObjectId(scoreType.getId());
+                scorePartService.createEntity(scorePart, currentUserId);
+            }
+        }
+        // 成绩子类型操作,与作业成绩、测试成绩同级数据
+        List<String> parentIdList = scoreTypeList.stream().filter(scoreType -> // 过滤默认数据
+            Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.NOT_DEFAULT.getKey())).map(ScoreType::getId).collect(Collectors.toList());
+        List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryListByParentIdList(parentIdList);
+        for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
+            ScoreSum scoreSum = new ScoreSum();
+            scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
+            scoreSum.setProportion(scoreTypeChild.getProportion());
+            scoreSum.setObjectId(scoreTypeChild.getId());
+            scoreSum.setStuNo(stuNo);
+            scoreSumService.createEntity(scoreSum, currentUserId);
+        }
+        // 作业成绩、测试成绩下的每一个任务操作
+        List<String> typeChildIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(typeChildIdList);
+        //  使用stream流根据workId过滤重复得scoreParts
+        List<ScorePart> scorePartList = scoreParts.stream().collect(Collectors.collectingAndThen(
+            Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScorePart::getWorkId))), ArrayList::new));
+        for (ScorePart scorePart : scorePartList) {
+            scorePart.setId(null);
+            scorePart.setStuNo(stuNo);
+            scorePart.setScore(CommonNumConstants.NUM_ZERO.toString());
+            scorePartService.createEntity(scorePart, currentUserId);
+        }
     }
 
     @Override
