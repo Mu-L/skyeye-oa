@@ -14,7 +14,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.rest.promote.company.service.ISysEveUserService;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.entity.CompanyChatGroup;
@@ -22,7 +22,6 @@ import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.enums.CompanyChatGroupState;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import com.skyeye.school.chat.service.CompanyChatGroupService;
-import com.skyeye.school.chat.service.FriendRelationshipService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +36,10 @@ import java.util.stream.Collectors;
 public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistoryDao, ChatHistory> implements ChatHistoryService {
 
     @Autowired
-    private FriendRelationshipService friendRelationshipService;
-
+    private CompanyChatGroupService companyChatGroupService;
 
     @Autowired
-    private CompanyChatGroupService companyChatGroupService;
+    private ISysEveUserStaffService iSysEveUserService;
 
     @Override
     public String createEntity(JSONObject jsonObject, Integer chatType, Integer readType) {
@@ -69,9 +67,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         list.sort(String::compareTo);
         return Joiner.on(CommonCharConstants.HORIZONTAL_LINE_MARK).join(list);
     }
-
-    @Autowired
-    private ISysEveUserService iSysEveUserService;
 
     @Override
     public void queryMyChatUnReadMessageList(InputObject inputObject, OutputObject outputObject) {

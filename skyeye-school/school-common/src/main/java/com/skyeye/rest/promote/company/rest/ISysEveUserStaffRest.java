@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(value = "${webroot.skyeye-pro}", configuration = ClientConfiguration.class)
-public interface ISysEveUserRest {
+public interface ISysEveUserStaffRest {
 
     @PostMapping("queryUserMationList")
     String queryUserMationList(@RequestParam(value = "userIds", required = false) String userIds,

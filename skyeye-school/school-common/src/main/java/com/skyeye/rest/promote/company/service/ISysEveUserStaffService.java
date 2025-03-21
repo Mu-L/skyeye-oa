@@ -5,6 +5,6 @@ import com.skyeye.base.rest.service.IService;
 import java.util.List;
 import java.util.Map;
 
-public interface ISysEveUserService extends IService {
+public interface ISysEveUserStaffService extends IService {
     List<Map<String, Object>> queryUserMationList(String userIds, String staffIds);
 }
