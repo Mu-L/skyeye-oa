@@ -255,4 +255,12 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             scoreTypeService.createEntity(addScoreTypeList, currentUserId);
         }
     }
+
+    @Override
+    public List<ScoreType> queryList(String subjectId, String classId) {
+        QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId);
+        return list(queryWrapper);
+    }
 }

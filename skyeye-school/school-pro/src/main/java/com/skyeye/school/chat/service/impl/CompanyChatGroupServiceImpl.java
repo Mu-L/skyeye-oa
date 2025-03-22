@@ -1,10 +1,10 @@
-package com.skyeye.eve.service.impl;
+package com.skyeye.school.chat.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.eve.dao.CompanyChatGroupDao;
-import com.skyeye.eve.entity.chat.group.CompanyChatGroup;
-import com.skyeye.eve.service.CompanyChatGroupService;
+import com.skyeye.school.chat.dao.CompanyChatGroupDao;
+import com.skyeye.school.chat.entity.CompanyChatGroup;
+import com.skyeye.school.chat.service.CompanyChatGroupService;
 import org.springframework.stereotype.Service;
 
 @Service

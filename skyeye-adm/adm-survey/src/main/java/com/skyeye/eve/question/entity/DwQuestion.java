@@ -153,7 +153,7 @@ public class DwQuestion extends OperatorUserInfo {
     private Integer fileType;
 
     @TableField("whether_upload")
-    @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否", required = "required")
+    @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否")
     private Integer whetherUpload;
 
     @TableField("fraction")

@@ -6,6 +6,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.ScoreType;
 import com.skyeye.school.subject.entity.SubjectClasses;
 
+import java.util.List;
+
 public interface ScoreTypeService extends SkyeyeBusinessService<ScoreType> {
 
     void querySameTableDateList(InputObject inputObject, OutputObject outputObject);
@@ -15,4 +17,6 @@ public interface ScoreTypeService extends SkyeyeBusinessService<ScoreType> {
     void createDeFaultInfo(SubjectClasses subjectClasses, String userId);
 
     void writeScoreTypeList(InputObject inputObject, OutputObject outputObject);
+
+    List<ScoreType> queryList(String subjectId,String ClassId);
 }

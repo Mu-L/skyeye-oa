@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -23,7 +22,8 @@ import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @SkyeyeService(name = "好友关系", groupName = "好友关系")
@@ -87,7 +87,7 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
                 .or()
                 .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id));
         List<FriendRelationship> list = list(queryWrapper);
-        for (FriendRelationship item  : list) {
+        for (FriendRelationship item : list) {
             String remainingId;
             if (item.getUserId().equals(id)) {
                 remainingId = item.getFriendId();
@@ -107,4 +107,19 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         outputObject.settotal(list.size());
     }
 
+    @Override
+    public List<FriendRelationship> queryFriendList( String holderId, String friendId) {
+        QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
+        friendQueryWrapper
+                .and(wapper -> wapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId)
+                )
+                .or()
+                .and(wapper -> wapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)
+                );
+        return list(friendQueryWrapper);
+    }
 }

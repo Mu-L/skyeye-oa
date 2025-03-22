@@ -227,7 +227,6 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     @Override
     public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
         String holderId = commonPageInfo.getHolderId();
@@ -235,37 +234,36 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 //        String no = map.get("no").toString();
 //        String id = map.get("id").toString();
         List<Map<String, Object>> mapList = new ArrayList<>();
+        List<Map<String, Object>> maps =new ArrayList<>();
         if (StrUtil.isNotEmpty(serviceClassName)) {
-            List<Map<String, Object>> maps1 = iUserService.queryUserByRealNameOrStudentNumber(serviceClassName, null);
-            if (CollectionUtil.isNotEmpty(maps1)) {
-                mapList.addAll(maps1);
+            maps = iUserService.queryUserByRealNameOrStudentNumber(commonPageInfo);
+            if (CollectionUtil.isNotEmpty(maps)) {
+                mapList.addAll(maps);
             }
         }
         if (StrUtil.isNotEmpty(keyword)) {
-            List<Map<String, Object>> maps2 = iUserService.queryUserByRealNameOrStudentNumber(null, keyword);
-            if (CollectionUtil.isNotEmpty(maps2)) {
-                mapList.addAll(maps2);
+            maps = iUserService.queryUserByRealNameOrStudentNumber(commonPageInfo);
+            if (CollectionUtil.isNotEmpty(maps)) {
+                mapList.addAll(maps);
             }
         }
+
         List<String> idList = mapList.stream()
                 .filter(map3 -> map3.get("id") != null)
                 .map(map4 -> map4.get("id").toString())
                 .distinct()
                 .collect(Collectors.toList());
+
+        List<Map<String, Object>> finalMapList = new ArrayList<>();
         for (String s : idList) {
-            QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-            friendQueryWrapper
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), s)
-                    .or()
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
-                    .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), s);
-            List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
-            for (Map<String, Object> userMap : mapList) {
-                if (userMap.get("id").toString().equals(s)) {
-                    userMap.put("friendMation", list);
-                    break;
-                }
+            List<Map<String, Object>> userMaps = mapList.stream()
+                    .filter(map -> s.equals(map.get("id").toString()))
+                    .collect(Collectors.toList());
+            if (!userMaps.isEmpty()) {
+                Map<String, Object> userMap = userMaps.get(0);
+                List<FriendRelationship> friendList = friendRelationshipService.queryFriendList(holderId, s);
+                userMap.put("friendMation", friendList);
+                finalMapList.add(userMap);
             }
         }
         schoolService.setMationForMap(mapList, "schoolId", "schoolMation");
@@ -273,7 +271,7 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         majorService.setMationForMap(mapList, "majorId", "majorMation");
         classesService.setMationForMap(mapList, "classId", "classMation");
         outputObject.setBeans(mapList);
-        outputObject.settotal(page);
+        outputObject.settotal(maps.size());
     }
 
     @Override
@@ -348,6 +346,13 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         classesService.setDataMation(studentList, Student::getClassId);
         outputObject.setBeans(studentList);
         outputObject.settotal(studentList.size());
+    }
+
+    @Override
+    public List<Student> queryListByStuNoList(List<String> stuNoList) {
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Student::getNo), stuNoList);
+        return list(queryWrapper);
     }
 
     private List<Map<String, Object>> getStudentSubject(Map<String, Object> studentMap) {

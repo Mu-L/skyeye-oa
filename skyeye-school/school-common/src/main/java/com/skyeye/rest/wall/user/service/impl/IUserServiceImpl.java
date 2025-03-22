@@ -7,6 +7,7 @@ package com.skyeye.rest.wall.user.service.impl;
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CacheConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.rest.wall.user.rest.IUserRest;
 import com.skyeye.rest.wall.user.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class IUserServiceImpl extends IServiceImpl implements IUserService {
     }
 
     @Override
-    public List<Map<String, Object>> queryUserByRealNameOrStudentNumber(String realName,String studentNumber) {
-        return ExecuteFeignClient.get(() -> iUserRest.queryUserByRealNameOrStudentNumber(realName,studentNumber)).getRows();
+    public List<Map<String, Object>> queryUserByRealNameOrStudentNumber(CommonPageInfo commonPageInfo) {
+        return ExecuteFeignClient.get(() -> iUserRest.queryUserByRealNameOrStudentNumber(commonPageInfo)).getRows();
     }
 }

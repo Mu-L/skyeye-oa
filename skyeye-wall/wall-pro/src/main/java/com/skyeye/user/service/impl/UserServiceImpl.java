@@ -9,6 +9,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certification.classenum.StateEnum;
@@ -244,18 +246,19 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String name = map.get("realName").toString();
-        String studentNumber = map.get("studentNumber").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(name)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), name);
+        String serviceClassName = commonPageInfo.getServiceClassName();
+        String keyword = commonPageInfo.getKeyword();
+        if (StrUtil.isNotEmpty(serviceClassName)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), serviceClassName);
         }
-        if (StrUtil.isNotEmpty(studentNumber)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumber);
+        if (StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);
-        outputObject.settotal(list.size());
+        outputObject.settotal(page.getTotal());
     }
 }
