@@ -9,6 +9,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.skyeye.afterseal.classenum.AfterSealState;
+import com.skyeye.afterseal.classenum.ProductWarrantyType;
+import com.skyeye.afterseal.classenum.SealOrderType;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -89,6 +92,10 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "服务类型，参考数据字典", required = "required")
     private String typeId;
 
+    @TableField(exist = false)
+    @Property(value = "服务类型信息")
+    private Map<String, Object> typeMation;
+
     @TableField(value = "product_id")
     @ApiModelProperty(value = "产品id", required = "required")
     private String productId;
@@ -98,7 +105,7 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     private Map<String, Object> productMation;
 
     @TableField(value = "product_warranty")
-    @ApiModelProperty(value = "质保类型，参考#ProductWarrantyType枚举", required = "required,num")
+    @ApiModelProperty(value = "质保类型", enumClass = ProductWarrantyType.class, required = "required,num")
     private Integer productWarranty;
 
     @TableField(value = "mode_id")
@@ -142,11 +149,11 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     private Enclosure enclosureInfo;
 
     @TableField(value = "state")
-    @Property(value = "状态")
+    @Property(value = "状态", enumClass = AfterSealState.class)
     private String state;
 
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "工单类型，参考#SealOrderType枚举", required = "required,num", defaultValue = "2")
+    @ApiModelProperty(value = "工单类型", enumClass = SealOrderType.class, required = "required,num", defaultValue = "2")
     private Integer type;
 
 }

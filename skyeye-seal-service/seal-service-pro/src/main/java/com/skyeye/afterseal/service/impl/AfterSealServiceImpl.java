@@ -15,14 +15,19 @@ import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.dao.AfterSealDao;
 import com.skyeye.afterseal.entity.AfterSeal;
 import com.skyeye.afterseal.service.AfterSealService;
+import com.skyeye.afterseal.service.SealFaultService;
+import com.skyeye.afterseal.service.SealFaultUseMaterialService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
@@ -35,9 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SealSeServiceServiceImpl
@@ -62,6 +66,12 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
 
     @Autowired
     private SealWorkerService sealWorkerService;
+
+    @Autowired
+    private SealFaultUseMaterialService sealFaultUseMaterialService;
+
+    @Autowired
+    private SealFaultService sealFaultService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -162,12 +172,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         iJobMateMationService.sendMQProducer(jobMateMation);
     }
 
-    /**
-     * 派工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSealSeServiceWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
@@ -191,12 +195,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         }
     }
 
-    /**
-     * 接单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void receivingSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject) {
@@ -221,12 +219,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         }
     }
 
-    /**
-     * 查询我的待完工状态的工单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySealSeServiceSignon(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
@@ -237,12 +229,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         outputObject.settotal(afterSealList.size());
     }
 
-    /**
-     * 工单完工操作
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void auditSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject) {
@@ -266,12 +252,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         refreshCache(id);
     }
 
-    /**
-     * 完工审核操作
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void finishSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -283,6 +263,172 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
         }
+    }
+
+    @Override
+    public void queryOverviewSealSeServiceOrder(InputObject inputObject, OutputObject outputObject) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        // 查询售后服务总览信息
+        Map<String, Object> resultMap = new HashMap<>();
+        // 总工单数
+        QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
+            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getEndTime())
+                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getStartTime());
+        }
+        Long totalOrders = count(queryWrapper);
+        resultMap.put("totalOrders", totalOrders);
+        // 完成工单数
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
+        resultMap.put("completedOrders", count(queryWrapper));
+        // 配件使用数
+        resultMap.put("useCount", sealFaultUseMaterialService.queryUseCount(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime()));
+        // 平均处理时长
+        if (totalOrders > CommonNumConstants.NUM_ZERO) {
+            resultMap.put("avgProcessTime", CalculationUtil.divide(String.valueOf(sealFaultService.getAllFinishedServiceTime(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime())),
+                String.valueOf(totalOrders), CommonNumConstants.NUM_TWO));
+        } else {
+            resultMap.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
+        }
+        outputObject.setBean(resultMap);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    private Map<String, Long> getAllFinishedServiceNum(List<String> userIds, String startTime, String endTime) {
+        QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
+        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
+            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime);
+        }
+        if (CollectionUtil.isNotEmpty(userIds)) {
+            queryWrapper.in(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), userIds);
+        }
+        List<AfterSeal> afterSealList = list(queryWrapper);
+        return afterSealList.stream().collect(Collectors.groupingBy(AfterSeal::getServiceUserId, Collectors.counting()));
+    }
+
+    @Override
+    public void querySealSeServiceOrderTypeStats(InputObject inputObject, OutputObject outputObject) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        // 根据typeId进行分组统计
+        QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
+            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getEndTime())
+                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getStartTime());
+        }
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(AfterSeal::getTypeId));
+        List<AfterSeal> resultList = list(queryWrapper);
+        iSysDictDataService.setDataMation(resultList, AfterSeal::getTypeId);
+        // 获取typeId对应的name
+        Map<String, String> stringMap = resultList.stream().collect(Collectors.toMap(AfterSeal::getTypeId, bean -> {
+            if (CollectionUtil.isNotEmpty(bean.getTypeMation())) {
+                return bean.getTypeMation().get("dictName").toString();
+            } else {
+                return StrUtil.EMPTY;
+            }
+        }));
+
+        Map<String, Long> collect = resultList.stream().collect(Collectors.groupingBy(AfterSeal::getTypeId, Collectors.counting()));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : collect.entrySet()) {
+            // 如果没有对应的name，则跳过
+            if (StrUtil.isBlank(stringMap.get(entry.getKey()))) {
+                continue;
+            }
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", stringMap.get(entry.getKey()));
+            map.put("value", entry.getValue());
+            result.add(map);
+        }
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
+    }
+
+    @Override
+    public void querySealSeServiceOrderTrendStats(InputObject inputObject, OutputObject outputObject) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        String startTime, endTime;
+        if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
+            startTime = tableSelectInfo.getStartTime();
+            endTime = tableSelectInfo.getEndTime();
+        } else {
+            startTime = DateUtil.formatDate2Str(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getYmdTimeAndToString(), DateUtil.YYYY_MM_DD), -30, "d"),
+                DateUtil.YYYY_MM_DD);
+            endTime = DateUtil.getYmdTimeAndToString();
+        }
+        List<String> dayList = DateUtil.getDays(startTime, endTime);
+        QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime));
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime)
+            .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime);
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime));
+        // 1. 新增的工单
+        List<AfterSeal> afterSealList = list(queryWrapper);
+        // 根据createTime进行分组统计
+        Map<String, Long> collect = afterSealList.stream().collect(Collectors.groupingBy(bean -> {
+            Date pointTime = DateUtil.getPointTime(bean.getCreateTime(), DateUtil.YYYY_MM_DD);
+            return DateUtil.formatDate2Str(pointTime, DateUtil.YYYY_MM_DD);
+        }, Collectors.counting()));
+        // 2. 完工的工单
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
+        List<AfterSeal> afterSealList2 = list(queryWrapper);
+        // 根据createTime进行分组统计
+        Map<String, Long> collect2 = afterSealList2.stream().collect(Collectors.groupingBy(bean -> {
+            Date pointTime = DateUtil.getPointTime(bean.getCreateTime(), DateUtil.YYYY_MM_DD);
+            return DateUtil.formatDate2Str(pointTime, DateUtil.YYYY_MM_DD);
+        }, Collectors.counting()));
+        // 构建结果集
+        Map<String, Object> resultMap = new HashMap<>();
+        List<Long> allNewOrders = new ArrayList<>();
+        List<Long> completedOrders = new ArrayList<>();
+        Long defaultValue = Long.valueOf(CommonNumConstants.NUM_ZERO);
+        for (String day : dayList) {
+            allNewOrders.add(collect.getOrDefault(day, defaultValue) - collect2.getOrDefault(day, defaultValue));
+            completedOrders.add(collect2.getOrDefault(day, defaultValue));
+        }
+        resultMap.put("allNewOrders", allNewOrders);
+        resultMap.put("completedOrders", completedOrders);
+        resultMap.put("dayList", dayList);
+
+        outputObject.setBean(resultMap);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void querySealServiceOrderWorkerStats(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        sealWorkerService.queryPageList(inputObject, outputObject);
+        List<Map<String, Object>> beans = (List<Map<String, Object>>) outputObject.getObject().get("rows");
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        List<String> userId = beans.stream().map(bean -> bean.get("userId").toString()).collect(Collectors.toList());
+        // 查询工单数量
+        Map<String, Long> allFinishedServiceNum = getAllFinishedServiceNum(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
+        // 查询工时
+        Map<String, Double> finishedServiceTime = sealFaultService.getAllFinishedServiceTime(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
+        // 查询使用配件数
+        Map<String, Long> useCount = sealFaultUseMaterialService.queryUseCountByUserId(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
+        // 合并数据
+        Long defaultValue = Long.valueOf(CommonNumConstants.NUM_ZERO);
+        Double defaultValueDouble = Double.valueOf(CommonNumConstants.NUM_ZERO);
+        for (Map<String, Object> bean : beans) {
+            String userIdStr = bean.get("userId").toString();
+            // 完成工单数量
+            bean.put("completedOrders", allFinishedServiceNum.getOrDefault(userIdStr, defaultValue));
+            // 平均工时
+            if (allFinishedServiceNum.getOrDefault(userIdStr, defaultValue) == 0) {
+                bean.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
+            } else {
+                bean.put("avgProcessTime", CalculationUtil.divide(String.valueOf(finishedServiceTime.getOrDefault(userIdStr, defaultValueDouble)),
+                    allFinishedServiceNum.getOrDefault(userIdStr, defaultValue).toString(), CommonNumConstants.NUM_TWO));
+            }
+            // 配件使用数
+            bean.put("totalParts", useCount.getOrDefault(userIdStr, defaultValue));
+        }
+
+        outputObject.setBeans(beans);
     }
 
 }
