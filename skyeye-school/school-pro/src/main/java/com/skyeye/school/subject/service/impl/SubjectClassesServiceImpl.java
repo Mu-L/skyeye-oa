@@ -490,7 +490,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 double dataRate = getRate(stuDataNum, dataNum);
                 double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
                 student.put("overallRate", overallRate);
-                tempMap.put(studentNumber, student);
+                tempMap.put(stuName, student);
                 bean.add(tempMap);
             }
             resultMap.put("all",bean);

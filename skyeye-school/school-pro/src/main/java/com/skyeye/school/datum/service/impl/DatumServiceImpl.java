@@ -100,7 +100,6 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     @Override
     public Long queryClassDataNum(String id,String chapterId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
         if(StrUtil.isNotEmpty(chapterId)){
             queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
         }
@@ -111,7 +110,6 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     @Override
     public Long queryStuDataNum(String id, String stuId, String chapterId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
         if(StrUtil.isNotEmpty(chapterId)){
             queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
         }

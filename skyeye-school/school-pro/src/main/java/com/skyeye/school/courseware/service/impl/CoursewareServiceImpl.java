@@ -117,9 +117,8 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     @Override
     public Long queryClassCoursewareNum(String id, String chapterId) {
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         if(StrUtil.isNotEmpty(chapterId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterId);
         }
         return count(queryWrapper);
     }
@@ -127,11 +126,10 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     @Override
     public Long queryStuCoursewareNum(String id, String stuId, String chapterId) {
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterId);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getCreateId), stuId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getCreateId), stuId);
         return count(queryWrapper);
     }
 }
