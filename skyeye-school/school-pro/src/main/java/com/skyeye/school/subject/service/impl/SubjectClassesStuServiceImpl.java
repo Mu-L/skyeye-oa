@@ -185,12 +185,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     public void queryAllStudentById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
-        String objectId = subjectClassesService.selectById(subClassLinkId).getObjectId();
-        String subjectName = subjectService.selectById(objectId).getName();
-        Map<String, Object> params = new HashMap<>();
-        params.put("subjectName", subjectName);
         List<Map<String, Object>> maps = queryClassStuIds(subClassLinkId);
-        maps.add(params);
         outputObject.setBeans(maps);
         outputObject.settotal(maps.size());
     }
