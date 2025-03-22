@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
 
-    void queryCoursewareListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
+    void queryCoursewareListBySubjectId(InputObject inputObject, OutputObject outputObject);
 
     Map<String, Double> queryCoursewareByChapterId(Long classNum,String ...ids);
 

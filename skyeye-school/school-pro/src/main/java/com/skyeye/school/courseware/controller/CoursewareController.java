@@ -73,17 +73,17 @@ public class CoursewareController {
     }
 
     /**
-     * 根据科目表与班级表的关系id获取互动课件列表
+     * 根据科目表id获取互动课件列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryCoursewareListBySubjectClassesId", value = "根据科目表与班级表的关系id获取互动课件列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryCoursewareListBySubjectId", value = "根据科目表id获取互动课件列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")})
-    @RequestMapping("/post/CoursewareController/queryCoursewareListBySubjectClassesId")
-    public void queryCoursewareListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
-        coursewareService.queryCoursewareListBySubjectClassesId(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目表id", required = "required")})
+    @RequestMapping("/post/CoursewareController/queryCoursewareListBySubjectId")
+    public void queryCoursewareListBySubjectId(InputObject inputObject, OutputObject outputObject) {
+        coursewareService.queryCoursewareListBySubjectId(inputObject, outputObject);
     }
 
 }

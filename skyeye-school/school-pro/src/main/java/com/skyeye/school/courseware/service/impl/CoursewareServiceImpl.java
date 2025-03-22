@@ -57,11 +57,11 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     }
 
     @Override
-    public void queryCoursewareListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
+    public void queryCoursewareListBySubjectId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String subjectClassesId = map.get("subjectClassesId").toString();
+        String subjectId = map.get("subjectId").toString();
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getSubjectId), subjectId);
         List<Courseware> coursewareList = list(queryWrapper);
 
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);

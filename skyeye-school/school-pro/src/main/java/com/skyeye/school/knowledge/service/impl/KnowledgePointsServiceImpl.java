@@ -43,7 +43,7 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
     public QueryWrapper<KnowledgePoints> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<KnowledgePoints> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(KnowledgePoints::getSubjectClassesId), commonPageInfo.getObjectId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(KnowledgePoints::getSubjectId), commonPageInfo.getObjectId());
         }
         return queryWrapper;
     }

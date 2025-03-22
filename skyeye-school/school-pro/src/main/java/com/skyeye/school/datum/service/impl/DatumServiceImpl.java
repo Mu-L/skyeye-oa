@@ -51,9 +51,9 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     @Override
     public void queryDatumListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String subjectClassesId = map.get("subjectClassesId").toString();
+        String subjectId = map.get("subjectId").toString();
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectId), subjectId);
         List<Datum> datumList = list(queryWrapper);
         if (CollectionUtil.isEmpty(datumList)) {
             return;
