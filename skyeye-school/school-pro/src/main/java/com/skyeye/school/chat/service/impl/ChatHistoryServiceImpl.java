@@ -5,10 +5,13 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -105,6 +108,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
 
     @Override
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
         // 分组查询我的最近的聊天消息列表(50条)
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
@@ -174,6 +179,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             result.add(bean);
         }
         outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        outputObject.settotal(page.getTotal());
     }
 }
