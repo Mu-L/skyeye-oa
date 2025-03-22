@@ -36,7 +36,7 @@ public class DwQuRadio extends OperatorUserInfo {
     private String quId;
 
     @TableField("option_name")
-    @ApiModelProperty(value = "选项内容", required = "required")
+    @ApiModelProperty(value = "选项内容")
     private String optionName;
 
     @TableField("option_title")
@@ -48,11 +48,11 @@ public class DwQuRadio extends OperatorUserInfo {
     private Integer checkType;
 
     @TableField("is_note")
-    @ApiModelProperty(value = "是否带说明  0否  1是", required = "required")
+    @ApiModelProperty(value = "是否带说明  0否  1是")
     private Integer isNote;
 
     @TableField("is_required_fill")
-    @ApiModelProperty(value = "说明内容是否必填 0非必填  1必填", required = "required")
+    @ApiModelProperty(value = "说明内容是否必填 0非必填  1必填")
     private Integer isRequiredFill;
 
     @TableField("order_by_id")
@@ -60,7 +60,7 @@ public class DwQuRadio extends OperatorUserInfo {
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
     @TableField("is_default_answer")

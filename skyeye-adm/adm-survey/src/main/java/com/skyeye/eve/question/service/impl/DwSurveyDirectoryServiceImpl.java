@@ -479,11 +479,11 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String id = inputObject.getParams().get("id").toString();
         DwSurveyDirectory bean = super.selectById(id);
         List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(bean.getId());
-        if (CollectionUtil.isEmpty(questionList)) {
-            outputObject.setBean(bean);
+        if (CollectionUtil.isNotEmpty(questionList)){
+            bean.setDwQuestionMation(questionList);
         }
         outputObject.setBean(bean);
-        outputObject.setBeans(questionList);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }
