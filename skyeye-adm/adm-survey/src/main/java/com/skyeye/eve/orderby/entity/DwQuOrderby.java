@@ -23,7 +23,7 @@ public class DwQuOrderby extends OperatorUserInfo {
     private String quId;
 
     @TableField("option_name")
-    @ApiModelProperty(value = "选项内容", required = "required")
+    @ApiModelProperty(value = "选项内容")
     private String optionName;
 
     @TableField("option_title")

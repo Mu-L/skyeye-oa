@@ -42,7 +42,7 @@ public class DwQuCheckbox extends OperatorUserInfo {
     private String belongId;
 
     @TableField("option_name")
-    @ApiModelProperty(value = "选项名称", required = "required")
+    @ApiModelProperty(value = "选项名称")
     private String optionName;
 
     @TableField("option_title")
@@ -70,7 +70,7 @@ public class DwQuCheckbox extends OperatorUserInfo {
     private Integer orderById;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示  0不显示  1显示", required = "required")
+    @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
     @TableField("is_default_answer")

@@ -37,7 +37,7 @@ public class DwAnChenScore extends CommonInfo {
 
     @TableField("answer_score")
     @ApiModelProperty(value = "回答分数" )
-    private String answer_score;
+    private String answerScore;
 
     @TableField("belong_id")
     @ApiModelProperty(value = "所属问卷ID" )
