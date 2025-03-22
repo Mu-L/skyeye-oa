@@ -76,10 +76,14 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     public Video selectById(String id) {
         Video video = super.selectById(id);
         focusService.checkFocus(video);
-        videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE);
-        videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO);
+        video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
+        video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
         videoTagService.setTagMationForVideoList(video);
-        userService.setDataMation(video, Video::getCreateId);
+        try {
+            userService.setDataMation(video, Video::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(video, Video::getCreateId);
+        }
         return video;
     }
 
@@ -224,6 +228,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String type = commonPageInfo.getType();
         String objectId = commonPageInfo.getObjectId();
+        String keyword = commonPageInfo.getKeyword();
         if (StrUtil.isNotEmpty(type)) {
             Map<String, List<String>> map = videoRecordService.queryAllCollectSupportVideoIds(inputObject);
             if (CollectionUtil.isEmpty(map)) {
@@ -237,7 +242,11 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
             }
             videoTagService.setTagMationForVideoList(videos.toArray(new Video[0]));
-            userService.setDataMation(videos, Video::getCreateId);
+            try {
+                userService.setDataMation(videos, Video::getCreateId);
+            }catch (Exception e){
+                iAuthUserService.setDataMation(videos, Video::getCreateId);
+            }
             outputObject.setBean(videos);
             outputObject.settotal(Integer.parseInt(total));
         } else {
@@ -246,10 +255,14 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             if (StrUtil.isNotEmpty(objectId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Video::getCreateId), objectId);
             }
-            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum))
+            if (StrUtil.isNotEmpty(keyword)) {
+                queryWrapper.like(MybatisPlusUtil.toColumns(Video::getTopic), keyword);
+            }
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getCollectionNum))
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getRemarkNum))
                     .orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum))
-                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum))
-                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getCreateTime));
+                    .orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
             List<Video> beans = list(queryWrapper);
             if (CollectionUtil.isEmpty(beans)) {
                 return;
@@ -259,7 +272,11 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
             }
             videoTagService.setTagMationForVideoList(beans.toArray(new Video[0]));
-            userService.setDataMation(beans, Video::getCreateId);
+            try{
+                userService.setDataMation(beans, Video::getCreateId);
+            }catch (Exception e){
+                iAuthUserService.setDataMation(beans, Video::getCreateId);
+            }
             outputObject.setBeans(beans);
             outputObject.settotal(page.getTotal());
         }

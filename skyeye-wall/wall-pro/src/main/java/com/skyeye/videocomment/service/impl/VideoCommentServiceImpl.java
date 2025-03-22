@@ -163,7 +163,11 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         }
         setCommentPicture(videoCommentList);
         checkUpvote(videoCommentList, userId);
-        userService.setDataMation(videoCommentList, VideoComment::getCreateId);
+        try {
+            userService.setDataMation(videoCommentList, VideoComment::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(videoCommentList, VideoComment::getCreateId);
+        }
         outputObject.setBeans(videoCommentList);
         outputObject.settotal(page.getTotal());
     }

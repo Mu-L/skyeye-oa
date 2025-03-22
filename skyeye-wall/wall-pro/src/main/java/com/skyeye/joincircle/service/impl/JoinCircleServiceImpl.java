@@ -17,6 +17,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.joincircle.dao.JoinCircleDao;
 import com.skyeye.joincircle.entity.JoinCircle;
@@ -44,6 +45,9 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     public String createEntity(JoinCircle joinCircle, String userId) {
@@ -105,7 +109,11 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(JoinCircle::getCreateTime));
         List<JoinCircle> joinCircleList = list(queryWrapper);
-        userService.setDataMation(joinCircleList, JoinCircle::getCreateId);
+        try {
+            userService.setDataMation(joinCircleList, JoinCircle::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(joinCircleList, JoinCircle::getCreateId);
+        }
         outputObject.setBeans(joinCircleList);
         outputObject.settotal(page.getTotal());
     }

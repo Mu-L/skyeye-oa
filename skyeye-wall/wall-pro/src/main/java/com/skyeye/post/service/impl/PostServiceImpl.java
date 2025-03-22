@@ -167,7 +167,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
             }
         });
-        userService.setMationForMap(beans, "createId", "createMation");
+        try {
+            userService.setMationForMap(beans, "createId", "createMation");
+        }catch (Exception e) {
+            iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        }
         return beans;
     }
 
@@ -188,10 +192,13 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (entity.getPictureList().size() > 20) {
             throw new CustomException("超过可上传的图片数量");
         }
-        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
-        if(StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())){
-            // 老师账号
-            iAuthUserService.setDataMation(entity, Post::getCreateId);
+        // 发圈子帖子的校验
+        String circleId = entity.getCircleId();
+        if(StrUtil.isNotEmpty(circleId)){
+            boolean isJoin = joinCircleService.checkIsJoinCircle(circleId, userId);
+            if(!isJoin){
+                throw new CustomException("您还没有加入该圈子，不能发帖");
+            }
         }
     }
 
@@ -213,13 +220,17 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Override
     public Post selectById(String id) {
         Post post = super.selectById(id);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        Map<String, Boolean> checkUpvote = upvoteService.checkUpvote(userId, post.getId());
+        post.setCheckUpvote(checkUpvote.get(post.getId()));
         if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
             // 匿名
             post.setCreateId(StrUtil.EMPTY);
             post.setLastUpdateId(StrUtil.EMPTY);
         } else {
-            userService.setDataMation(post, Post::getCreateId);
-            if(CollectionUtil.isEmpty(post.getCreateMation())){
+            try {
+                userService.setDataMation(post, Post::getCreateId);
+            }catch (Exception e) {
                 iAuthUserService.setDataMation(post, Post::getCreateId);
             }
         }
@@ -337,7 +348,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
                     CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
         });
-        userService.setDataMation(list, Post::getCreateId);
+        try {
+            userService.setDataMation(list, Post::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(list, Post::getCreateId);
+        }
         return sortPostList;
     }
 
@@ -470,9 +485,19 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return;
         }
         // 转为数组
+        // TODO 需要远程调用老师的信息--sys-eve-user
         String[] userIs = visitors.toArray(new String[0]);
         List<User> beans = userService.selectByIds(userIs);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
+    }
+
+    // 管理员删除
+    @Override
+    public void deletePost(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        remove(queryWrapper);
     }
 }

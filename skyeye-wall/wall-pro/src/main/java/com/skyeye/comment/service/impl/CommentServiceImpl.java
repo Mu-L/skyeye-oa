@@ -24,6 +24,7 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
@@ -65,6 +66,9 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
 
     @Autowired
     private UpvoteService upvoteService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -115,8 +119,16 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             // 设置点赞信息
             bean.put("checkUpvote", checkUpvoteMap.get(id));
         });
-        userService.setMationForMap(beans, "createId", "createMation");
-        userService.setMationForMap(beans, "userId", "userMation");
+        try {
+            userService.setMationForMap(beans, "createId", "createMation");
+        }catch (Exception e) {
+            iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        }
+        try{
+            userService.setMationForMap(beans, "userId", "userMation");
+        }catch (Exception e){
+            iAuthUserService.setMationForMap(beans, "userId", "userMation");
+        }
         return beans;
     }
 
@@ -158,7 +170,11 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
                 comment.setPicture(JSONUtil.toBean(JSON.toJSONString(pictures.stream().findFirst().orElse(null)), null));
             }
         });
-        userService.setDataMation(commentList, Comment::getCreateId);
+        try {
+            userService.setDataMation(commentList, Comment::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(commentList, Comment::getCreateId);
+        }
         Map<String, List<Comment>> commentMap = commentList.stream()
             .collect(Collectors.groupingBy(Comment::getPostId));
         return commentMap;

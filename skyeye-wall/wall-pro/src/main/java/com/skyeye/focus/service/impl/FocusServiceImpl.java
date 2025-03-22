@@ -10,6 +10,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.focus.dao.FocusDao;
 import com.skyeye.focus.entity.Focus;
 import com.skyeye.focus.service.FocusService;
@@ -38,10 +39,17 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = queryFoucusList(inputObject);
-        userService.setMationForMap(beans,"userId","userMation");
+        try {
+            userService.setMationForMap(beans,"userId","userMation");
+        }catch (Exception e) {
+            iAuthUserService.setMationForMap(beans,"userId","userMation");
+        }
         return beans;
     }
 

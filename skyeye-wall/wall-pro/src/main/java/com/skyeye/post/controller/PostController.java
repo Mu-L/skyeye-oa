@@ -166,4 +166,19 @@ public class PostController {
     public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
         postService.queryPostVisitor(inputObject, outputObject);
     }
+
+    /**
+     * 管理员删除帖子
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "deletePost", value = "管理员删除帖子", method = "DELETE", allUse = "0")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "id", name = "id", value = "帖子id", required = "required")
+    )
+    @RequestMapping("/post/PostController/deletePost")
+    public void deletePost(InputObject inputObject, OutputObject outputObject) {
+        postService.deletePost(inputObject, outputObject);
+    }
 }

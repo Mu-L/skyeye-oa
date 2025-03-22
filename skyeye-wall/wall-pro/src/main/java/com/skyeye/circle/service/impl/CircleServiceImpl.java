@@ -25,6 +25,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.joincircle.entity.JoinCircle;
 import com.skyeye.joincircle.service.JoinCircleService;
@@ -71,6 +72,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     @Autowired
     private JoinCircleService joinCircleService;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public void validatorEntity(Circle circle) {
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
@@ -107,7 +111,11 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         Circle circle = super.selectById(id);
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         circle.setIsJoin(joinCircleService.checkIsJoinCircle(id, userId));
-        userService.setDataMation(circle, Circle::getCreateId);
+        try{
+            userService.setDataMation(circle, Circle::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(circle, Circle::getCreateId););
+        }
         return circle;
     }
 
@@ -130,7 +138,11 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = queryCircleList(inputObject);
-        userService.setMationForMap(beans, "createId", "createMation");
+        try {
+            userService.setMationForMap(beans, "createId", "createMation");
+        }catch (Exception e){
+            iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        }
         return beans;
     }
 
@@ -199,7 +211,11 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         for (Map.Entry<String, Double> entry : list) {
             beans.add(selectById(entry.getKey()));
         }
-        userService.setDataMation(beans,Circle::getCreateId);
+        try {
+            userService.setDataMation(beans,Circle::getCreateId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(beans,Circle::getCreateId);
+        }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

@@ -14,6 +14,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.notice.dao.NoticeDao;
 import com.skyeye.notice.entity.Notice;
@@ -48,6 +49,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Autowired
     private PictureService pictureService;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     protected void createPrepose(Notice entity) {
         entity.setState(ReadEnum.UNREAD.getKey());
@@ -76,8 +80,16 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public Notice selectById(String id) {
         Notice notice = super.selectById(id);
-        userService.setDataMation(notice, Notice::getSendId);
-        userService.setDataMation(notice, Notice::getReceiveId);
+        try {
+            userService.setDataMation(notice, Notice::getSendId);
+        }catch (Exception e) {
+            iAuthUserService.setDataMation(notice, Notice::getSendId);
+        }
+        try{
+            userService.setDataMation(notice, Notice::getReceiveId);
+        }catch (Exception e) {
+            iAuthUserService.setDataMation(notice, Notice::getReceiveId);
+        }
         return notice;
     }
 
@@ -107,8 +119,16 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                 setCommentPicture(notice);
             }
         }
-        userService.setDataMation(bean, Notice::getSendId);
-        userService.setDataMation(bean, Notice::getReceiveId);
+        try {
+            userService.setDataMation(bean, Notice::getSendId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(bean, Notice::getSendId);
+        }
+        try {
+            userService.setDataMation(bean, Notice::getReceiveId);
+        }catch (Exception e){
+            iAuthUserService.setDataMation(bean, Notice::getReceiveId);
+        }
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }

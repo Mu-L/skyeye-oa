@@ -32,7 +32,7 @@ public class Video extends OperatorUserInfo {
     private String id;
 
     @TableField("topic")
-    @ApiModelProperty(value = "标题", required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "标题", required = "required")
     private String topic;
 
     @TableField("content")
