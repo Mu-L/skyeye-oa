@@ -114,7 +114,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         try{
             userService.setDataMation(circle, Circle::getCreateId);
         }catch (Exception e){
-            iAuthUserService.setDataMation(circle, Circle::getCreateId););
+            iAuthUserService.setDataMation(circle, Circle::getCreateId);
         }
         return circle;
     }
