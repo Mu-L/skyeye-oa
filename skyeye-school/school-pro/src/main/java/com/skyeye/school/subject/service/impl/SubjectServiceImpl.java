@@ -123,6 +123,7 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<SubjectClasses> subjectClassesList = null;
+        List<Semester> semesterList = new ArrayList<>();
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             // 教师身份信息
             // 查询当前用户创建的科目
@@ -131,6 +132,16 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
                 List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
                 subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
             }
+            Map<String, List<SubjectClasses>> collect = subjectClassesList.stream().collect(Collectors.groupingBy(SubjectClasses::getSemesterId));
+            collect.forEach((key, value) -> {
+                Semester semester = new Semester();
+                semester.setId(key);
+                semester.setName(value.get(CommonNumConstants.NUM_ZERO).getSemesterMation().getName());
+                semester.setSubjectList(value.stream().map(SubjectClasses::getObjectMation).collect(Collectors.toList()));
+                semesterList.add(semester);
+            });
+            outputObject.setBeans(semesterList);
+            outputObject.settotal(semesterList.size());
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
@@ -139,26 +150,25 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             if (CollectionUtil.isNotEmpty(subClassLinkIdList)) {
                 subjectClassesList = subjectClassesService.selectByIds(subClassLinkIdList.toArray(new String[]{}));
             }
-        }
-        // 学生按照学期分组
-        List<Semester> semesterList = new ArrayList<>();
-        List<String> semesterIdList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(subjectClassesList)) {
-            subjectClassesList.forEach(subjectClasses -> {
-                if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
-                    Semester semester = new Semester();
-                    semester.setId(subjectClasses.getSemesterId());
-                    semester.setName(subjectClasses.getSemesterMation().getName());
-                    semesterList.add(semester);
-                    semesterIdList.add(subjectClasses.getSemesterId());
+            // 学生按照学期分组
+            List<String> semesterIdList = new ArrayList<>();
+            if (CollectionUtil.isNotEmpty(subjectClassesList)) {
+                subjectClassesList.forEach(subjectClasses -> {
+                    if (!semesterIdList.contains(subjectClasses.getSemesterId())) {
+                        Semester semester = new Semester();
+                        semester.setId(subjectClasses.getSemesterId());
+                        semester.setName(subjectClasses.getSemesterMation().getName());
+                        semesterList.add(semester);
+                        semesterIdList.add(subjectClasses.getSemesterId());
+                    }
+                });
+                // 按学期分组
+                for (Semester semester : semesterList) {
+                    List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
+                        .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
+                        .collect(Collectors.toList());
+                    semester.setSubjectClassesList(subjectClassesListBySemester);
                 }
-            });
-            // 按学期分组
-            for (Semester semester : semesterList) {
-                List<SubjectClasses> subjectClassesListBySemester = subjectClassesList.stream()
-                    .filter(subjectClasses -> subjectClasses.getSemesterId().equals(semester.getId()))
-                    .collect(Collectors.toList());
-                semester.setSubjectClassesList(subjectClassesListBySemester);
             }
         }
         outputObject.setBeans(semesterList);
