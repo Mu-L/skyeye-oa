@@ -8,9 +8,9 @@ import com.skyeye.school.score.entity.ScorePart;
 import java.util.List;
 
 public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
-    List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList);
+    List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList, String stuNo);
 
-    void updateScorePartByStuNoAndWorkId(String stuNo, String workId, String score, Integer workType);
+    void updateScorePartByStuNoAndWorkId(String stuNo, String workId, String score);
 
     void updateScorePart(InputObject inputObject, OutputObject outputObject);
 
@@ -20,4 +20,6 @@ public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
 
     void createScorePart(InputObject inputObject, OutputObject outputObject);
     void midCourse(String stuNo, String subjectId, String classId);
+
+    void createScorePartByWorkId(String objectId, String workId);
 }

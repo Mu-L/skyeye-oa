@@ -20,8 +20,9 @@ import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
-import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,9 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         scoreType.setIsDefault(ObjectUtil.isEmpty(scoreType.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreType.getIsDefault());
     }
 
+    @Autowired
+    private StudentService studentService;
+
     @Override
     public void createPostpose(ScoreType scoreType, String userId) {
         if (Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.NOT_DEFAULT.getKey())) {// 新增非默认数据
@@ -101,12 +105,12 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         // 给分成绩表增加空白数据
         SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(scoreType.getSubjectId(), scoreType.getClassId());
         if (ObjectUtil.isNotEmpty(subjectClasses)) {
+            List<Student> studentList = studentService.queryListByClassesId(subjectClasses.getId());
             List<ScorePart> scorePartList = new ArrayList<>();
-            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(subjectClasses.getId());
-            for (SubjectClassesStu subjectClassesStu : subjectClassesStuList) {
+            for (Student student : studentList) {
                 ScorePart scorePart = new ScorePart();
                 scorePart.setProportion(scoreType.getProportion());
-                scorePart.setStuNo(subjectClassesStu.getStuNo());
+                scorePart.setStuNo(student.getNo());
                 scorePart.setObjectId(scoreType.getId());
                 scorePartList.add(scorePart);
             }
@@ -139,7 +143,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             return;
         }
         List<String> scoreTypeIdList = sameTableChildDateList.stream().map(ScoreType::getId).collect(Collectors.toList());
-        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList);
+        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList, null);
         Map<String, List<ScorePart>> mapByStuNo = scorePartList.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
         List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdList(scoreTypeIdList);
         for (ScoreSum scoreSum : scoreSumList) {
@@ -188,7 +192,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             // 获取平时成绩，期末成绩的主键id
             List<String> scoreTypeIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
             // 查询平时成绩，期末成绩下的分成绩
-            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(scoreTypeIdList);
+            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(scoreTypeIdList, null);
             // 根据学号分组
             Map<String, List<ScorePart>> mapScorePart = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
             // 重新计算每一个学生的总成绩，并更新总成绩

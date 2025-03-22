@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
@@ -32,7 +33,7 @@ import java.util.Map;
 //@RedisCacheField(name = "Exam:directory")
 @TableName(value = "exam_survey_directory")
 @ApiModel("试卷实体类")
-public class ExamSurveyDirectory extends OperatorUserInfo {
+public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

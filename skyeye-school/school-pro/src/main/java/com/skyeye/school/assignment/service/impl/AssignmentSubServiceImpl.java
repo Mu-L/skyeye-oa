@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -30,15 +31,17 @@ import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
+import com.skyeye.school.score.entity.ScorePart;
+import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreService;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -67,6 +70,9 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
 
     @Autowired
     private AssignmentSubService assignmentSubService;
+
+    @Autowired
+    private ScorePartService scorePartService;
 
     @Override
     public void validatorEntity(AssignmentSub entity) {
@@ -153,6 +159,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void readOverAssignmentSubById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -164,6 +171,9 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         updateWrapper.set(MybatisPlusUtil.toColumns(AssignmentSub::getState), AssignmentCorrectState.CORRECTED.getKey());
         updateWrapper.set(MybatisPlusUtil.toColumns(AssignmentSub::getComment), comment);
         update(updateWrapper);
+        AssignmentSub one = getOne(updateWrapper);
+        List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(one.getCreateId());
+        scorePartService.updateScorePartByStuNoAndWorkId(userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), id, score);
         refreshCache(id);
     }
 

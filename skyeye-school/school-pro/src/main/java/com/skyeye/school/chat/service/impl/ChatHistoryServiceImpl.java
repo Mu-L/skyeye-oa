@@ -11,7 +11,6 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -20,9 +19,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
-import com.skyeye.school.chat.entity.CompanyChatGroup;
 import com.skyeye.school.chat.enums.ChatType;
-import com.skyeye.school.chat.enums.CompanyChatGroupState;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import com.skyeye.school.chat.service.CompanyChatGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,8 +105,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
 
     @Override
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
         // 分组查询我的最近的聊天消息列表(50条)
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
@@ -123,7 +118,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         if (CollectionUtil.isEmpty(talkChatHistoryList)) {
             return;
         }
-
         // 根据用户id查询员工数据
         List<String> userIds = talkChatHistoryList.stream()
                 .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
@@ -136,17 +130,9 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             userIds = userIds.stream().distinct().collect(Collectors.toList());
         }
         Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
-
-        // 根据群组id 查询群组数据，对于群聊聊天，只会有receiveId
-        List<String> groupIds = talkChatHistoryList.stream()
-                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.GROUP_CHAT.getKey())
-                .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
-        Map<String, CompanyChatGroup> groupMap = companyChatGroupService.selectMapByIds(groupIds);
-
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory talkChatHistory : talkChatHistoryList) {
             Map<String, Object> bean = new HashMap<>();
-
             if (talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey()) {
                 Map<String, Object> user;
                 if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
@@ -161,16 +147,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                 bean.put("avatar", user.get("userPhoto").toString());
                 bean.put("staffId", user.get("staffId").toString());
                 bean.put("talkId", user.get("id").toString());
-            } else if (talkChatHistory.getChatType() == ChatType.GROUP_CHAT.getKey()) {
-                // 群信息
-                CompanyChatGroup group = groupMap.get(talkChatHistory.getReceiveId());
-                if (group.getState() != CompanyChatGroupState.NORMAL.getKey()) {
-                    return;
-                }
-                bean.put("name", group.getGroupName());
-                bean.put("avatar", group.getGroupImg());
-                bean.put("groupId", group.getId());
-                bean.put("talkId", group.getId());
             }
             bean.put("sendId", talkChatHistory.getSendId());
             bean.put("content", talkChatHistory.getContent());
@@ -179,6 +155,22 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             result.add(bean);
         }
         outputObject.setBeans(result);
-        outputObject.settotal(page.getTotal());
+        outputObject.settotal(result.size());
+    }
+
+    @Override
+    public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String chatType = map.get("chatType").toString();
+        if (StrUtil.equals(ChatType.PERSONAL_TO_PERSONAL.getChType(), chatType)) {//个人对个人
+            Map<String, Object> user = inputObject.getLogParams();
+            map.put("userId", user.get("id"));
+            Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
+            List<Map<String, Object>> beans = companyChatGroupService.queryChatLogByPerToPer(map);
+            outputObject.setBeans(beans);
+            outputObject.settotal(pages.getTotal());
+        } else {
+            outputObject.setreturnMessage("参数错误");
+        }
     }
 }

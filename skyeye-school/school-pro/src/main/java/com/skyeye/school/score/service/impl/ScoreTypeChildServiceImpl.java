@@ -16,6 +16,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
@@ -73,14 +74,14 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public void createPostpose(ScoreTypeChild scoreTypeChild, String userId) {
         if (StrUtil.isEmpty(scoreTypeChild.getScoreTypeId())) {
             // 新增作业成绩、测试成绩等时，给总成表新增空白数据
-            SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(scoreTypeChild.getSubjectId(), scoreTypeChild.getClassId());
-            if (ObjectUtil.isNotEmpty(subjectClasses)) {
+           List<Student> studentList = studentService.queryListByClassesId(scoreTypeChild.getClassId());
+            if (CollectionUtil.isNotEmpty(studentList)) {
                 List<ScoreSum> scorePartList = new ArrayList<>();
-                List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(subjectClasses.getId());
-                for (SubjectClassesStu subjectClassesStu : subjectClassesStuList) {
+                for (Student student : studentList) {
                     ScoreSum scoreSum = new ScoreSum();
+                    scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
                     scoreSum.setProportion(scoreTypeChild.getProportion());
-                    scoreSum.setStuNo(subjectClassesStu.getStuNo());
+                    scoreSum.setStuNo(student.getNo());
                     scoreSum.setObjectId(scoreTypeChild.getId());
                     scorePartList.add(scoreSum);
                 }
@@ -119,7 +120,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         List<Student> studentList = studentService.queryListByStuNoList(stuNoList);
         Map<String, Map<String, Object>> stuNoStudentMap = studentList.stream()
             .collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
-        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()));
+        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()),null);
         // 将成绩列表根据创建时间排序饭后根据学号分组
         Map<String, List<ScorePart>> stuPartListMap = scorePartList.stream()
             .sorted(Comparator.comparing(ScorePart::getCreateTime))
@@ -153,17 +154,22 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Override
     public void createDeFaultInfo(SubjectClasses subjectClasses) {
         List<String> nameList = Arrays.asList("作业成绩", "测试成绩", "互动答题成绩", "平时成绩");
-        List<ScoreTypeChild> scoreTypeChildList = new ArrayList<>();
-        for (String s : nameList) {
+        List<Integer> numberCodeList = Arrays.asList(NumberCodeEnum.WORK.getKey(), NumberCodeEnum.TEST.getKey()
+            , NumberCodeEnum.INTERACTION.getKey(), NumberCodeEnum.USUAL.getKey());
+        Map<String, Integer> map = new HashMap<>();
+        for (int i = 0; i < nameList.size(); i++) {
+            map.put(nameList.get(i), numberCodeList.get(i));
+        }
+        map.forEach((name, numberCode) -> {
             ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
             scoreTypeChild.setIsDefault(IsDefaultEnum.IS_DEFAULT.getKey());
-            scoreTypeChild.setName(s);
+            scoreTypeChild.setName(name);
             scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
             scoreTypeChild.setSubjectId(subjectClasses.getObjectId());
             scoreTypeChild.setClassId(subjectClasses.getClassesId());
-            scoreTypeChildList.add(scoreTypeChild);
-        }
-        super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
+            scoreTypeChild.setNumberCode(numberCode);
+            super.createEntity(scoreTypeChild, subjectClasses.getCreateId());
+        });
     }
 
     @Override
@@ -278,7 +284,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             // 取出平时成绩、期末成绩的主键id
             List<String> sameTableScoreTypeIdList = sameTableDateList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
             // 取出所有学生的成绩
-            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(sameTableScoreTypeIdList);
+            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(sameTableScoreTypeIdList,null);
             // 根据学号分组
             Map<String, List<ScorePart>> stuNoScorePartListMap = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
             // 循环分组重新计算所有学生的总成绩
@@ -320,6 +326,15 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public ScoreTypeChild queryById(String id) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public ScoreTypeChild selectBySubjectIdClassIdAndNumberCode(String subjectId, String classesId, Integer numberCode) {
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getClassId), classesId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNumberCode), numberCode);
         return getOne(queryWrapper);
     }
 }

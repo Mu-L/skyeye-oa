@@ -24,11 +24,20 @@ import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
 import com.skyeye.school.chapter.service.ChapterService;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
+import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.service.ScorePartService;
+import com.skyeye.school.score.service.ScoreTypeChildService;
+import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -52,12 +61,29 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Autowired
     private ChapterService chapterService;
 
+    @Autowired
+    private ScorePartService scorePartService;
+
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
+
+    @Autowired
+    private SubjectClassesService subjectClassesService;
+
     @Override
     public void validatorEntity(Assignment entity) {
         if (DateUtil.getDistanceDay(entity.getStartTime(), entity.getEndTime()) < 0) {
             // endTime < startTime
             throw new CustomException("结束时间不能早于开始时间");
         }
+    }
+
+    @Override
+    public void createPostpose(Assignment entity, String userId) {
+        // 新增作业时，创建空白成绩记录
+        SubjectClasses subjectClasses = subjectClassesService.selectById(entity.getSubjectClassesId());
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.selectBySubjectIdClassIdAndNumberCode(subjectClasses.getObjectId(), subjectClasses.getClassesId(), NumberCodeEnum.WORK.getKey());
+        scorePartService.createScorePartByWorkId(scoreTypeChild.getId(), entity.getId());
     }
 
     @Override
@@ -145,9 +171,9 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         double finishRate = 0;
         map.put("activeNum", sumSize);
         map.put("finishRate", finishRate);
-        for (String id :ids) {
+        for (String id : ids) {
             QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),id);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), id);
             List<Assignment> list = list(queryWrapper);
             if (CollectionUtil.isEmpty(list)) {
                 continue;
@@ -157,7 +183,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             double rate = assignmentSubService.queryAssignmentFinshRate(assignmentIdList, num);
             finishRate = finishRate + rate;
         }
-        if(finishRate == 0 && ids.length > 1){
+        if (finishRate == 0 && ids.length > 1) {
             finishRate = finishRate / ids.length;
         }
         map.put("finishRate", finishRate);
@@ -168,6 +194,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Override
     public Long queryClassAssignmentNum(String id, String chapterId) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
         if(StrUtil.isNotEmpty(chapterId)){
             queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),chapterId);
@@ -178,7 +205,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Override
     public List<String> queryAssignmentIdsBySubjectCLassId(String id) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         List<Assignment> list = list(queryWrapper);
         return list.stream().map(Assignment::getId).collect(Collectors.toList());
     }

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.school.score.classenum.WorkTypeEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -27,10 +26,6 @@ public class ScorePart extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "任务信息")
     private Map<String, Object> workMation;
-
-    @TableField("work_type")
-    @ApiModelProperty(value = "任务类型", enumClass = WorkTypeEnum.class, required = "required")
-    private Integer workType;
 
     @TableField("score")
     @ApiModelProperty(value = "成绩")

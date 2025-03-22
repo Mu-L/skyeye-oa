@@ -146,7 +146,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             dwQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 处理排序题
-        List<DwQuOrderby> orderbyTd = entity.getOrderbyTd();
+        List<DwQuOrderby> orderbyTd = entity.getOrderByTd();
         if (CollectionUtils.isNotEmpty(orderbyTd)) {
             dwQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
@@ -200,7 +200,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             dwQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
-        List<DwQuOrderby> orderbyTd = entity.getOrderbyTd();
+        List<DwQuOrderby> orderbyTd = entity.getOrderByTd();
         if (CollectionUtils.isNotEmpty(orderbyTd)) {
             dwQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
@@ -233,7 +233,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         List<DwQuMultiFillblank> dwQuMultiFillblankList = dwQuMultiFillblankService.selectQuMultiFillblank(id);
         question.setMultifillblankTd(dwQuMultiFillblankList);
         List<DwQuOrderby> dwQuOrderbyList = dwQuOrderbyService.selectQuOrderby(id);
-        question.setOrderbyTd(dwQuOrderbyList);
+        question.setOrderByTd(dwQuOrderbyList);
         List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(id);
         question.setColumnTd(dwQuChenColumnList);
         List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(id);
@@ -280,7 +280,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             if (question.getQuType() == QuType.ORDERQU.getIndex()) {
                 List<DwQuOrderby> orderbyList = dwQuOrderbyService.selectQuOrderby(id);
                 List<DwAnOrder> dwAnOrderbyList = dwAnOrderService.selectAnOrderByQuId(id);
-                question.setOrderbyTd(orderbyList);
+                question.setOrderByTd(orderbyList);
                 question.setOrderbyAn(dwAnOrderbyList);
                 continue;
             }
@@ -348,7 +348,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 dwQuestion.setScoreAn(dwAnScoreService.selectAnScoreByQuId(id));
             }
             if (quType.equals(QuType.ORDERQU.getIndex())) {
-                dwQuestion.setOrderbyTd(dwQuOrderbyService.selectQuOrderby(id));
+                dwQuestion.setOrderByTd(dwQuOrderbyService.selectQuOrderby(id));
                 //TODO 差一张排序题答卷表
             }
             if (quType.equals(QuType.CHENRADIO.getIndex()) ||

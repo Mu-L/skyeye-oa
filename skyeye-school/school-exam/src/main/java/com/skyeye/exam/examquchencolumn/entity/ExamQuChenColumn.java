@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ import lombok.Data;
 @RedisCacheField(name = "Exam:chencolumn")
 @TableName(value = "exam_qu_chen_column")
 @ApiModel("矩阵题-列选项实体类")
-public class ExamQuChenColumn extends OperatorUserInfo {
+public class ExamQuChenColumn extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

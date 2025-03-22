@@ -222,7 +222,7 @@ public class DwQuestion extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
-    private List<DwQuOrderby> orderbyTd;
+    private List<DwQuOrderby> orderByTd;
 
     @TableField(exist = false)
     @Property(value = "排序题答案信息")

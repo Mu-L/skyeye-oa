@@ -102,6 +102,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private ExamQuChenColumnService examQuChenColumnService;
 
+
     @Autowired
     private ExamQuChenRowService examQuChenRowService;
 

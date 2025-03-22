@@ -8,6 +8,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chat.entity.ChatHistory;
+import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +36,19 @@ public class ChatHistoryController {
     }
 
     @ApiOperation(id = "queryMyChatMessageList", value = "查询我的最近的聊天消息列表", method = "GET", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ChatHistoryController/queryMyChatMessageList")
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
         chatHistoryService.queryMyChatMessageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryChatLogByType", value = "获取聊天记录", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "limit", name = "limit", value = "分页参数,每页多少条数据", required = "required,num"),
+            @ApiImplicitParam(id = "page", name = "page", value = "分页参数,第几页", required = "required,num"),
+            @ApiImplicitParam(id = "receiveId", name = "receiveId", value = "接收人id", required = "required")})
+    @RequestMapping("/post/ChatHistoryController/queryChatLogByType")
+    public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
+        chatHistoryService.queryChatLogByType(inputObject, outputObject);
     }
 
 }

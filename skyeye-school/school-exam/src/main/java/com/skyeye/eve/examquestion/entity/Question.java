@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
@@ -52,7 +53,7 @@ import java.util.List;
 @Data
 @TableName(value = "exam_question")
 @ApiModel(value = "题目")
-public class Question extends OperatorUserInfo {
+public class Question extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

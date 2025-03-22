@@ -41,7 +41,7 @@ public class TalkRequest extends OperatorUserInfo {
 
     @TableField("expire_time")
     @ApiModelProperty(value = "申请过期时间")
-    private LocalDateTime expireTime;
+    private String expireTime;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生申请人信息")

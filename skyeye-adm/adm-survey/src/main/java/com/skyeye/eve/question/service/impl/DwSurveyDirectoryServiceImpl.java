@@ -234,7 +234,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             List<DwQuMultiFillblank> multiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(question.getId());
             question.setMultifillblankTd(multiFillblanks);
             List<DwQuOrderby> examQuOrderbyList = dwQuOrderbyService.selectQuOrderby(question.getId());
-            question.setOrderbyTd(examQuOrderbyList);
+            question.setOrderByTd(examQuOrderbyList);
             List<DwQuChenColumn> examQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(question.getId());
             question.setColumnTd(examQuChenColumnList);
             List<DwQuChenRow> examQuChenRows = dwQuChenRowService.selectQuChenRow(question.getId());
@@ -480,10 +480,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         DwSurveyDirectory bean = super.selectById(id);
         List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isNotEmpty(questionList)){
-            bean.setDwQuestionMation(questionList);
+           outputObject.setBeans(questionList);
         }
         outputObject.setBean(bean);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        outputObject.settotal(questionList.size());
     }
-
 }

@@ -368,4 +368,11 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         });
         return JSONUtil.toList(JSON.toJSONString(yearSystemList), null);
     }
+
+    @Override
+    public List<Student> queryListByClassesId(String classesId){
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
+        return list(queryWrapper);
+    }
 }
