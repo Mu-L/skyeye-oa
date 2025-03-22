@@ -16,10 +16,10 @@ import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.topic.dao.TopicDao;
 import com.skyeye.school.topic.entity.Topic;
 import com.skyeye.school.topic.service.TopicService;
+import com.skyeye.school.topiccomment.service.TopicCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +38,9 @@ public class TopicServiceImpl extends SkyeyeBusinessServiceImpl<TopicDao, Topic>
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private TopicCommentService topicCommentService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -92,6 +95,28 @@ public class TopicServiceImpl extends SkyeyeBusinessServiceImpl<TopicDao, Topic>
         queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id);
         List<Topic> list = list(queryWrapper);
         return list.stream().map(Topic::getId).collect(Collectors.toList());
+    }
+
+    @Override
+    public Long queryStuTopicCommentNum(String id, String stuId) {
+        Long sum = 0L;
+        List<String> topicIds = queryTopicIdsBySubjectClassesId(id);
+        if (CollectionUtil.isEmpty(topicIds)) {
+            return sum;
+        }
+        for (String topicId : topicIds) {
+           Long temp =  topicCommentService.queryStuTopicCommentNum(topicId, stuId);
+           sum += temp;
+        }
+        return sum;
+    }
+
+    @Override
+    public Long queryStuTopicNum(String id, String stuId) {
+        QueryWrapper<Topic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id)
+                .eq(MybatisPlusUtil.toColumns(Topic::getCreateId), stuId);
+        return count(queryWrapper);
     }
 
     @Override

@@ -15,4 +15,6 @@ public interface TopicCommentService extends SkyeyeBusinessService<TopicComment>
     Long queryClassTopicJoinNum(String id);
 
     Long queryClassTopicJoinPersonNum(String id);
+
+    Long queryStuTopicCommentNum(String topicId, String stuId);
 }

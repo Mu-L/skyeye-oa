@@ -9,12 +9,15 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certification.classenum.StateEnum;
 import com.skyeye.certification.entity.Certification;
 import com.skyeye.certification.service.CertificationService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.RequestType;
@@ -33,6 +36,7 @@ import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -244,17 +248,31 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public void queryUserByRealNameOrStudentNumber(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String name = map.get("realName").toString();
-        String studentNumber = map.get("studentNumber").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(name)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), name);
+        String serviceClassName = commonPageInfo.getServiceClassName();
+        String keyword = commonPageInfo.getKeyword();
+        if (StrUtil.isNotEmpty(serviceClassName)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), serviceClassName);
         }
-        if (StrUtil.isNotEmpty(studentNumber)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumber);
+        if (StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);
+        outputObject.settotal(page.getTotal());
+    }
+
+    // 老师用户进入主页
+    @Override
+    public void queryTeacherUserById(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getParams().get("id").toString();
+        Map<String,Object> teacherUser = new HashMap<>();
+        teacherUser.put("createId",userId);
+        teacherUser.put("createMation",StrUtil.EMPTY);
+        iAuthUserService.setMationForMap(teacherUser,"createId","createMation");
+        outputObject.setBean(teacherUser);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }

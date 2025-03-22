@@ -4,6 +4,7 @@
 
 package com.skyeye.afterseal.entity;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -76,6 +77,13 @@ public class SealFault extends OperatorUserInfo implements EnclosureFace {
     @TableField(value = "com_work_time")
     @ApiModelProperty(value = "工时")
     private String comWorkTime;
+
+    public Double getDoubleComWorkTime() {
+        if (StrUtil.isBlank(comWorkTime)) {
+            return 0.0;
+        }
+        return Double.parseDouble(comWorkTime);
+    }
 
     @TableField(value = "material_cost")
     @ApiModelProperty(value = "材料费")

@@ -15,6 +15,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.comment.entity.Comment;
 import com.skyeye.comment.service.CommentService;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -42,6 +43,7 @@ import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,7 +92,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String keyword = commonPageInfo.getKeyword();
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        if(StrUtil.isNotEmpty(keyword)){
+        if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(Post::getTitle), keyword);
         }
         if (params.containsKey("holderId") && StrUtil.isNotEmpty(params.get("holderId").toString())) {
@@ -106,20 +108,22 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
             String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
-            if(StrUtil.isEmpty(userId) || !typeId.equals(userId)){
+            if (StrUtil.isEmpty(userId) || !typeId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
             }
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
-                .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId)
-                .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+            queryWrapper.and(wrapper -> {
+                        wrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
+                                .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId);
+                    })
+                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
             return beans;
         } else {
-            queryWrapper.and(wrapper ->{
-                wrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
-                        .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
-            })
-                .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+            queryWrapper.and(wrapper -> {
+                        wrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
+                                .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+                    })
+                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
             return beans;
         }
@@ -129,7 +133,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = queryPostList(inputObject);
         List<String> postIds = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         // 获取评论信息
         Map<String, List<Comment>> commentMap = commentService.getCommentMapListByIds(postIds);
         // 获取帖子图片信息
@@ -137,9 +141,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         // 获取点赞信息
         Map<String, Boolean> checkUpvoteMap = new HashMap<>();
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if (StrUtil.isNotEmpty(userToken)){
+        if (StrUtil.isNotEmpty(userToken)) {
             String userId = inputObject.getLogParams().get("id").toString();
-            if(StrUtil.isNotEmpty(userId)){
+            if (StrUtil.isNotEmpty(userId)) {
                 checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
             }
         }
@@ -159,7 +163,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
             bean.put("pictureSize", pictureMap.size());
             // 设置点赞信息
-            if(CollectionUtil.isNotEmpty(finalCheckUpvoteMap)){
+            if (CollectionUtil.isNotEmpty(finalCheckUpvoteMap)) {
                 bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
             }
         });
@@ -183,6 +187,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         entity.setViewNum("0");
         if (entity.getPictureList().size() > 20) {
             throw new CustomException("超过可上传的图片数量");
+        }
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        if(StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())){
+            // 老师账号
+            iAuthUserService.setDataMation(entity, Post::getCreateId);
         }
     }
 
@@ -210,6 +219,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setLastUpdateId(StrUtil.EMPTY);
         } else {
             userService.setDataMation(post, Post::getCreateId);
+            if(CollectionUtil.isEmpty(post.getCreateMation())){
+                iAuthUserService.setDataMation(post, Post::getCreateId);
+            }
         }
         return post;
     }
@@ -407,12 +419,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         List<Post> postList = list(queryWrapper);
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         Map<String, Boolean> checkUpvoteMap = new HashMap<>();
-        if(StrUtil.isNotEmpty(userToken)){
+        if (StrUtil.isNotEmpty(userToken)) {
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
         }
         //获取点赞信息
-        if(CollectionUtil.isNotEmpty(checkUpvoteMap)){
+        if (CollectionUtil.isNotEmpty(checkUpvoteMap)) {
             checkUpvoteMap.forEach((key, value) -> {
                 postList.forEach(post -> {
                     if (key.equals(post.getId())) {
@@ -429,21 +441,21 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void queryUserPostCount(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String userId = params.get("userId").toString();
-        List<Map<String,Integer>> beans = new ArrayList<>();
-        Map<String,Integer> countMap = new HashMap<>();
+        List<Map<String, Integer>> beans = new ArrayList<>();
+        Map<String, Integer> countMap = new HashMap<>();
         QueryWrapper<Post> postRapper = new QueryWrapper<>();
-        postRapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId),userId);
+        postRapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId);
         List<Post> postList = list(postRapper);
-        if(CollectionUtil.isEmpty(postList)){
+        if (CollectionUtil.isEmpty(postList)) {
             return;
         }
         // 计算总评论数量
         int commentNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getCommentNum())).sum();
         // 计算总点赞数量
         int upvoteNum = postList.stream().mapToInt(item -> Integer.parseInt(item.getUpvoteNum())).sum();
-        countMap.put("commentNum",commentNum);
-        countMap.put("upvoteNum",upvoteNum);
-        countMap.put("postNum",postList.size());
+        countMap.put("commentNum", commentNum);
+        countMap.put("upvoteNum", upvoteNum);
+        countMap.put("postNum", postList.size());
         beans.add(countMap);
         outputObject.setBeans(beans);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -452,9 +464,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Override
     public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String postId =  params.get("postId").toString();
+        String postId = params.get("postId").toString();
         List<String> visitors = historyPostService.queryRecordUserIdByPostId(postId);
-        if(CollectionUtil.isEmpty(visitors)){
+        if (CollectionUtil.isEmpty(visitors)) {
             return;
         }
         // 转为数组

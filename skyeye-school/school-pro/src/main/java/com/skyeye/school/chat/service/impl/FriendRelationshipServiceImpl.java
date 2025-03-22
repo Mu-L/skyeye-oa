@@ -107,4 +107,19 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         outputObject.settotal(list.size());
     }
 
+    @Override
+    public List<FriendRelationship> queryFriendList( String holderId, String friendId) {
+        QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
+        friendQueryWrapper
+                .and(wapper -> wapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId)
+                )
+                .or()
+                .and(wapper -> wapper
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)
+                );
+        return list(friendQueryWrapper);
+    }
 }

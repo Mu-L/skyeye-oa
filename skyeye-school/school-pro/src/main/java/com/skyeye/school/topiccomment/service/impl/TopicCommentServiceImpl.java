@@ -110,6 +110,14 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         return queryTopicCommentNum(ids.toArray(new String[0]));
     }
 
+    @Override
+    public Long queryStuTopicCommentNum(String topicId, String stuId) {
+        QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId)
+                .eq(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuId);
+        return count(queryWrapper);
+    }
+
     /**
      * 根据话题id获取评论数量
      * */

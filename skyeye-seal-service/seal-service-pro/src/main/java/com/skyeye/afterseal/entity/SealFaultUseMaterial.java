@@ -56,6 +56,14 @@ public class SealFaultUseMaterial extends SkyeyeLinkData {
     @ApiModelProperty(value = "总金额", required = "double", defaultValue = "0")
     private String allPrice;
 
+    @TableField("create_id")
+    @Property(value = "使用人ID")
+    private String createId;
+
+    @TableField("create_time")
+    @Property(value = "创建时间")
+    private String createTime;
+
     @TableField(exist = false)
     @Property(value = "我的库存信息")
     private ServiceUserStock serviceUserStock;

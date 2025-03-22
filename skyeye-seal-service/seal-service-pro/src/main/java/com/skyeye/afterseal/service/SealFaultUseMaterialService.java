@@ -8,6 +8,7 @@ import com.skyeye.afterseal.entity.SealFaultUseMaterial;
 import com.skyeye.base.business.service.SkyeyeLinkDataService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: SealFaultUseMaterialService
@@ -26,5 +27,12 @@ public interface SealFaultUseMaterialService extends SkyeyeLinkDataService<SealF
      * @return
      */
     String calcOrderAllTotalPrice(List<SealFaultUseMaterial> sealFaultUseMaterials);
+
+    /**
+     * 配件使用数量统计
+     */
+    Long queryUseCount(String startTime, String endTime);
+
+    Map<String, Long> queryUseCountByUserId(List<String> userIdList, String startTime, String endTime);
 
 }

@@ -5,8 +5,10 @@
 package com.skyeye.rest.wall.user.rest;
 
 import com.skyeye.common.client.ClientConfiguration;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.yaml.snakeyaml.events.Event;
 
@@ -32,12 +34,10 @@ public interface IUserRest {
     /**
      * 根据姓名或者学号获取用户信息
      *
-     * @param realName 用户真实姓名
-     * @param studentNumber 学号
+     * @param commonPageInfo 分页参数
      */
     @PostMapping("/queryUserByRealNameOrStudentNumber")
-    String queryUserByRealNameOrStudentNumber(@RequestParam(value = "realName",required = false) String realName ,
-                                              @RequestParam(value = "studentNumber",required = false) String studentNumber);
+    String queryUserByRealNameOrStudentNumber(@RequestBody CommonPageInfo commonPageInfo);
 
 
 

@@ -37,7 +37,7 @@ public class DwAnScore extends CommonInfo {
 
     @TableField("answer_score")
     @ApiModelProperty(value = "答案成绩")
-    private String answer_score;
+    private String answerScore;
 
     @TableField("belong_answer_id")
     @ApiModelProperty(value = "对应的答卷信息表")

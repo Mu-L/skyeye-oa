@@ -35,6 +35,7 @@ public class ChatHistoryController {
     }
 
     @ApiOperation(id = "queryMyChatMessageList", value = "查询我的最近的聊天消息列表", method = "GET", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ChatHistoryController/queryMyChatMessageList")
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
         chatHistoryService.queryMyChatMessageList(inputObject, outputObject);

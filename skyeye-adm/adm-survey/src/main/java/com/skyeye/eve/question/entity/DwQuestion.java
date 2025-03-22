@@ -113,7 +113,7 @@ public class DwQuestion extends OperatorUserInfo {
     private String quNote;
 
     @TableField("qu_tag")
-    @ApiModelProperty(value = "是否是大小题    1默认题  2大题  3大题下面的小题", required = "required")
+    @ApiModelProperty(value = "是否是大小题    1默认题  2大题  3大题下面的小题")
     private Integer quTag;
 
     @TableField("qu_title")
@@ -133,7 +133,7 @@ public class DwQuestion extends OperatorUserInfo {
     private Integer tag;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示 0不显示   1显示", required = "required")
+    @Property(value = "是否显示 0不显示  1显示")
     private Integer visibility;
 
     @TableField("yesno_option")
@@ -149,11 +149,11 @@ public class DwQuestion extends OperatorUserInfo {
     private Integer isDelete;
 
     @TableField("file_type")
-    @ApiModelProperty(value = "试题类型，0.默认没有，1.视频，2.音频，3.图片", required = "required")
+    @ApiModelProperty(value = "试题类型，0.默认没有，1.视频，2.音频，3.图片")
     private Integer fileType;
 
     @TableField("whether_upload")
-    @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否", required = "required")
+    @ApiModelProperty(value = "是否允许拍照/上传图片选中，1.是，2.否")
     private Integer whetherUpload;
 
     @TableField("fraction")

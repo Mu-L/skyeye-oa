@@ -23,7 +23,9 @@ public interface MeasurementService extends SkyeyeBusinessService<Measurement> {
 
     Map<String, Double> queryTestByChapterId(Long classNum,String... id);
 
-    Long queryClassMeasurementNum(String id);
+    Long queryClassMeasurementNum(String id, String chapterId);
 
     List<String> queryMeasurementIdsBySubjectClassId(String id);
+
+    Long queryStuMeasurementNum(String id, String stuId, String chapterId);
 }

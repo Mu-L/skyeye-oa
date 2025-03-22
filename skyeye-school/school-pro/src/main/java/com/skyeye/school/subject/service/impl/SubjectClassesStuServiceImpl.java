@@ -29,14 +29,12 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectClassesTopService;
+import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +60,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
+    
+    @Autowired
+    private SubjectService subjectService;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -303,5 +304,14 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), SubClassLinkId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Long queryStuStarNum(String id, String studentNumber) {
+        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), studentNumber);
+        SubjectClassesStu one = getOne(queryWrapper);
+        return Long.valueOf(one.getReward());
     }
 }
