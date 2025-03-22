@@ -157,4 +157,18 @@ public class UserController {
     public void editWallPassword(InputObject inputObject, OutputObject outputObject) {
         userService.editWallPassword(inputObject, outputObject);
     }
+
+    /**
+     * 老师用户进入主页
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryTeacherUserById", value = "老师用户进入主页", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "用户id", required = "required")})
+    @RequestMapping("/post/UserController/queryTeacherUserById")
+    public void queryTeacherUserById(InputObject inputObject, OutputObject outputObject) {
+        userService.queryTeacherUserById(inputObject, outputObject);
+    }
 }

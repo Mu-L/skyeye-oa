@@ -15,6 +15,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.comment.entity.Comment;
 import com.skyeye.comment.service.CommentService;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -42,6 +43,7 @@ import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -186,6 +188,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (entity.getPictureList().size() > 20) {
             throw new CustomException("超过可上传的图片数量");
         }
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        if(StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())){
+            // 老师账号
+            iAuthUserService.setDataMation(entity, Post::getCreateId);
+        }
     }
 
     @Override
@@ -212,6 +219,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setLastUpdateId(StrUtil.EMPTY);
         } else {
             userService.setDataMation(post, Post::getCreateId);
+            if(CollectionUtil.isEmpty(post.getCreateMation())){
+                iAuthUserService.setDataMation(post, Post::getCreateId);
+            }
         }
         return post;
     }

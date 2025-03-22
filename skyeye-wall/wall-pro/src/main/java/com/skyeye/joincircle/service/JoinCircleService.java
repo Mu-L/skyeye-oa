@@ -28,4 +28,6 @@ public interface JoinCircleService extends SkyeyeBusinessService<JoinCircle> {
     Boolean checkIsJoinCircle(String circleId, String userId);
 
     List<JoinCircle> queryMyJoinCircle(String userId);
+
+    void deleteJoinCircleByCircleId(InputObject inputObject, OutputObject outputObject);
 }

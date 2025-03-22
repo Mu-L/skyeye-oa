@@ -17,6 +17,7 @@ import com.skyeye.certification.classenum.StateEnum;
 import com.skyeye.certification.entity.Certification;
 import com.skyeye.certification.service.CertificationService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.RequestType;
@@ -35,6 +36,7 @@ import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -260,5 +262,17 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
+    }
+
+    // 老师用户进入主页
+    @Override
+    public void queryTeacherUserById(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getParams().get("id").toString();
+        Map<String,Object> teacherUser = new HashMap<>();
+        teacherUser.put("createId",userId);
+        teacherUser.put("createMation",StrUtil.EMPTY);
+        iAuthUserService.setMationForMap(teacherUser,"createId","createMation");
+        outputObject.setBean(teacherUser);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }

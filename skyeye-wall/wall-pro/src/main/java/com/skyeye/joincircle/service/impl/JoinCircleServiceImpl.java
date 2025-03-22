@@ -49,7 +49,7 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     public String createEntity(JoinCircle joinCircle, String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), joinCircle.getCircleId())
-            .eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
+                .eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
         long count = count(queryWrapper);
         if (count > 0) {
             return StrUtil.EMPTY;
@@ -73,14 +73,6 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     }
 
     @Override
-    public void deletePreExecution(JoinCircle joinCircle) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        if (!userId.equals(joinCircle.getCreateId())) {
-            throw new CustomException("无权限!");
-        }
-    }
-
-    @Override
     public void deletePostpose(JoinCircle joinCircle) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), joinCircle.getCircleId());
@@ -94,7 +86,7 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
         JoinCircle joinCircle = getOne(queryWrapper);
-        return ObjectUtil.isEmpty(joinCircle) ? new JoinCircle(): joinCircle;
+        return ObjectUtil.isEmpty(joinCircle) ? new JoinCircle() : joinCircle;
     }
 
     @Override
@@ -120,7 +112,7 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
 
     /**
      * 检验当前登录人是否加入改圈子
-     * */
+     */
     @Override
     public Boolean checkIsJoinCircle(String circleId, String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
@@ -130,10 +122,24 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     }
 
     @Override
-    public List<JoinCircle> queryMyJoinCircle(String userId){
+    public List<JoinCircle> queryMyJoinCircle(String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(JoinCircle::getCreateTime));
         return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteJoinCircleByCircleId(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String circleId = inputObject.getParams().get("circleId").toString();
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
+        JoinCircle one = getOne(queryWrapper);
+        if(ObjectUtil.isEmpty(one)){
+            throw new CustomException("无权限");
+        }
+        remove(queryWrapper);
     }
 }
