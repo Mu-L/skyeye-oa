@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import lombok.Data;
@@ -20,7 +21,7 @@ import lombok.Data;
 @Data
 //@TableName(value = "exam_qu_radio")
 @ApiModel("单选题选项表实体类")
-public class ExamQuRadio extends OperatorUserInfo {
+public class ExamQuRadio extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

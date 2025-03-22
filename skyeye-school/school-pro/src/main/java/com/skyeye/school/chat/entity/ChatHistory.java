@@ -47,7 +47,7 @@ public class ChatHistory extends CommonInfo {
     private Integer readType;
 
     @TableField("chat_type")
-    @ApiModelProperty(value = "消息类型 1文字,2图片,3视频,4文件,5音频", required = "required")
+    @ApiModelProperty(value = "消息类型 ", required = "required")
     private Integer chatType;
 
     @TableField("create_time")

@@ -74,6 +74,6 @@ public class DwQuCheckbox extends OperatorUserInfo {
     private Integer visibility;
 
     @TableField("is_default_answer")
-    @ApiModelProperty(value = "是否是默认答案  1.是  2.否", required = "required")
+    @ApiModelProperty(value = "是否是默认答案  1.是  2.否")
     private Integer isDefaultAnswer;
 }

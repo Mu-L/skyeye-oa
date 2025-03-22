@@ -14,6 +14,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
@@ -32,9 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -58,14 +61,12 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     protected void createPrepose(TalkRequest entity) {
         try {
             String createTime = entity.getCreateTime();
-            if (createTime == null || createTime.trim().isEmpty()) {
+            if (StrUtil.isEmpty(createTime)) {
                 throw new CustomException("createTime不能为空");
             }
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDateTime dateTime = LocalDateTime.parse(createTime, formatter);
-            // 直接计算并设置 LocalDateTime
-            LocalDateTime newDateTime = dateTime.plusWeeks(1);
-            entity.setExpireTime(newDateTime);
+            Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(createTime);
+            String afDate = DateUtil.getAfDate(date, 7, "d").toString();
+            entity.setExpireTime(afDate);
         } catch (DateTimeParseException e) {
             throw new CustomException("时间格式不正确: " + e.getMessage());
         } catch (Exception e) {

@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
@@ -29,7 +30,7 @@ import java.util.Map;
 //@RedisCacheField(name = "Exam:answer")
 @TableName(value = "exam_survey_answer")
 @ApiModel("试卷回答信息表实体类")
-public class ExamSurveyAnswer extends CommonInfo {
+public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
