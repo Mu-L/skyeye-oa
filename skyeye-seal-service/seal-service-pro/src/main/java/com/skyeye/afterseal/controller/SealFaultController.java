@@ -32,12 +32,6 @@ public class SealFaultController {
     @Autowired
     private SealFaultService sealFaultService;
 
-    /**
-     * 获取故障信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySealFaultList", value = "获取故障信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SealFaultController/querySealFaultList")
@@ -45,12 +39,6 @@ public class SealFaultController {
         sealFaultService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑故障信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSealFault", value = "新增/编辑故障信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SealFault.class)
     @RequestMapping("/post/SealFaultController/writeSealFault")
@@ -58,12 +46,6 @@ public class SealFaultController {
         sealFaultService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除故障信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSealFaultById", value = "删除故障信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
