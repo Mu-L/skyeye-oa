@@ -24,4 +24,6 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
     String deleteByTypeId(String typeId);
 
     ScoreTypeChild queryById(String id);
+
+    ScoreTypeChild selectBySubjectIdClassIdAndNumberCode(String subjectId, String classesId, Integer numberCode);
 }

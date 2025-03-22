@@ -14,6 +14,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.school.chapter.entity.Chapter;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
 import lombok.Data;
 
 /**

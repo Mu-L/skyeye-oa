@@ -13,6 +13,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import lombok.Data;
 
@@ -44,5 +45,9 @@ public class Semester extends BaseGeneralInfo {
     @TableField(exist = false)
     @Property("学期对应的课程班级信息")
     private List<SubjectClasses> subjectClassesList;
+
+    @TableField(exist = false)
+    @Property("学期对应的科目信息")
+    private List<Subject> subjectList;
 
 }
