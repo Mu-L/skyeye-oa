@@ -256,9 +256,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
         realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
         endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
-        if (StrUtil.isEmpty(endTime)) {
-            endTime = null;
-        }
         entity.setEndTime(endTime);
         entity.setRealStartTime(realStartTime);
         entity.setRealEndTime(realEndTime);
@@ -279,7 +276,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String endTime = dwSurveyDirectory.getEndTime();
         realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
         realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
-        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
             LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3);
             LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3);
@@ -305,8 +301,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String realEndTime = entity.getRealEndTime();
         String realStartTime = entity.getRealStartTime();
         String endTime = entity.getEndTime();
-        if (StrUtil.isEmpty(endTime)){
-            endTime=null;
+        if (StrUtil.isEmpty(endTime)) {
+            endTime = null;
         }
         if (StrUtil.isEmpty(realStartTime)) {
             realStartTime = null;
@@ -418,6 +414,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             throw new CustomException("该问卷信息不存在!");
         }
     }
+
     @Override
     public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
