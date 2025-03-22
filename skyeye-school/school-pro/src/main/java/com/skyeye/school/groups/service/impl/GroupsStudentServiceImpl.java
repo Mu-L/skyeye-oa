@@ -40,13 +40,13 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     public void joinGroups(InputObject inputObject, OutputObject outputObject) {
         GroupsStudent groupsStudent = inputObject.getParams(GroupsStudent.class);
         Groups groups = groupsService.selectById(groupsStudent.getGroupId());
-        if(StrUtil.isEmpty(groups.getId())){
+        if (StrUtil.isEmpty(groups.getId())) {
             throw new CustomException("分组不存在");
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
         String studentNumber = certification.get("studentNumber").toString();
-        saveToGroupsStudent(groupsStudent,studentNumber,true);
+        saveToGroupsStudent(groupsStudent, studentNumber, true);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), studentNumber);
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsStudent.getGroupId());
         Groups groups = groupsService.selectById(groupsStudent.getGroupId());
-        if(groups.getState().equals("已解散")){
+        if (groups.getState().equals("已解散")) {
             throw new CustomException("该分组已解散");
         }
         long count = count(queryWrapper);
@@ -78,10 +78,11 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         groupsStudent.setStudentNumber(studentNumber);
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
         groupsStudent.setGroupId(groupsStudent.getGroupId());
-        createEntity(groupsStudent,StrUtil.EMPTY);
+        createEntity(groupsStudent, StrUtil.EMPTY);
     }
+
     @Override
-    public void deleteGroupsStudent(String GroupsId){
+    public void deleteGroupsStudent(String GroupsId) {
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), GroupsId);
         remove(queryWrapper);
