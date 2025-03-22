@@ -1,14 +1,9 @@
 package com.skyeye.school.topic.service;
 
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.topic.entity.Topic;
-import org.apache.poi.ss.formula.functions.T;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: TopicService
@@ -25,4 +20,8 @@ public interface TopicService extends SkyeyeBusinessService<Topic> {
     Long queryClassTopicNum(String id);
 
     List<String> queryTopicIdsBySubjectClassesId(String id);
+
+    Long queryStuTopicCommentNum(String id, String stuId);
+
+    Long queryStuTopicNum(String id, String stuId);
 }

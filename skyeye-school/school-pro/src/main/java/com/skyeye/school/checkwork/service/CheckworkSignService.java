@@ -35,4 +35,6 @@ public interface CheckworkSignService extends SkyeyeBusinessService<CheckworkSig
     void queryCheckworkWaitSignList(InputObject inputObject, OutputObject outputObject);
 
     void queryCheckworkAlreadySignList(InputObject inputObject, OutputObject outputObject);
+
+    Long queryStuCheckWorkSignNum(String checkWorkId, String stuId);
 }

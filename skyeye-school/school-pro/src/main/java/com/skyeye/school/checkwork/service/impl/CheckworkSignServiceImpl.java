@@ -200,4 +200,12 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         outputObject.settotal(pages.getTotal());
     }
 
+    @Override
+    public Long queryStuCheckWorkSignNum(String checkWorkId, String stuId) {
+        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), checkWorkId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuId);
+        return count(queryWrapper);
+    }
+
 }

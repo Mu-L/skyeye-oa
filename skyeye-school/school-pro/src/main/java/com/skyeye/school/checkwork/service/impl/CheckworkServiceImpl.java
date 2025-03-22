@@ -4,6 +4,7 @@
 
 package com.skyeye.school.checkwork.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: CheckworkServiceImpl
@@ -180,5 +182,30 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         result.put("unsignedCount", (int) unsignedCount);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    // 科目班级下的考勤数
+    @Override
+    public Long queryCheckWorkNum(String id) {
+        QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), id);
+        return count(queryWrapper);
+    }
+
+    @Override
+    public Long queryStuCheckWorkNum(String id, String stuId) {
+        Long sum = 0L;
+        QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), id);
+        List<Checkwork> beans = list(queryWrapper);
+        if(CollectionUtil.isEmpty(beans)){
+            return sum;
+        }
+        List<String> ids = beans.stream().map(Checkwork::getId).collect(Collectors.toList());
+        for (String checkWorkId : ids) {
+           Long temp =  checkworkSignService.queryStuCheckWorkSignNum(checkWorkId, stuId);
+           sum += temp;
+        }
+        return sum;
     }
 }

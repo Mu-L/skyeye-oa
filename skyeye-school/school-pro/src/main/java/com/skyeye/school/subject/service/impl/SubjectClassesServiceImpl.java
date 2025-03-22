@@ -27,6 +27,10 @@ import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.announcement.service.AnnouncementService;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
+import com.skyeye.school.chapter.entity.Chapter;
+import com.skyeye.school.chapter.service.ChapterService;
+import com.skyeye.school.checkwork.service.CheckworkService;
+import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.measurement.service.MeasurementService;
@@ -47,10 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -81,7 +82,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Autowired
     private ScoreTypeService scoreTypeService;
-    
+
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
@@ -108,6 +109,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Autowired
     private MeasurementSubService measurementSubService;
+
+    @Autowired
+    private ChapterService chapterService;
+
+    @Autowired
+    private CoursewareService coursewareService;
+
+    @Autowired
+    private CheckworkService checkworkService;
 
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -304,7 +314,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classesId);
-        return getOne(queryWrapper);}
+        return getOne(queryWrapper);
+    }
 
     @Override
     public void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject) {
@@ -315,7 +326,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long joinNum = subjectClassesStuService.queruClassStuNum(id);
         resultMap.put("joinNum", joinNum);
         // 资料个数
-        Long dataNum = datumService.queryClassDataNum(id);
+        Long dataNum = datumService.queryClassDataNum(id, null);
         resultMap.put("dataNum", dataNum);
         // 公告数
         Long noticeNum = announcementService.queryClassNoticeNum(id);
@@ -330,13 +341,13 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id);
         resultMap.put("topicJoinPersonNum", topicJoinPersonNum);
         // 作业数
-        Long assignmentNum = assignmentService.queryClassAssignmentNum(id);
+        Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
         resultMap.put("assignmentNum", assignmentNum);
         // 作业参数人数
         Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
         resultMap.put("assignmentJoinNum", assignmentJoinNum);
         // 测试数量
-        Long testNum = measurementService.queryClassMeasurementNum(id);
+        Long testNum = measurementService.queryClassMeasurementNum(id, null);
         resultMap.put("testNum", testNum);
         // 测试参与人数
         Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
@@ -344,5 +355,159 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString(); // 科目与班级的关系id
+        // 查询班级学生信息
+        List<Map<String, Object>> studentList = subjectClassesStuService.queryClassStuIds(id);
+        // 获取章节数据
+        List<Chapter> chapterList = chapterService.queryChaptersBySubjectClassesId(id);
+        // 获取科目班级下的话题数量
+        Long topicNum = topicService.queryClassTopicNum(id);
+        // 获取考勤数量
+        Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
+
+        Map<String,Object> tempMap = new HashMap<>();
+        Map<String,Object> resultMap = new HashMap<>();
+        List<Map<String, Object>> bean = new ArrayList<>();
+        List<Map<String, Object>> beans = new ArrayList<>();
+        for (Chapter chapter : chapterList) {
+            String name = "chapter" + chapter.getSection();
+            // 获取科目班级的章节下的资料数
+            Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
+            // 获取科目班级的章节下的测试数
+            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
+            // 获取科目班级的章节下的作业数
+            Long assignmentNum = assignmentService.queryClassAssignmentNum(id, chapter.getId());
+            // 获取科目班级下的章节互动课件数量
+            Long coursewareNum = coursewareService.queryClassCoursewareNum(id, chapter.getId());
+            for (Map<String, Object> student : studentList) {
+                String stuId = student.get("id").toString();
+                String studentNumber = student.get("studentNumber").toString();
+                String stuName = "student" + studentNumber;
+                // 获取学生上传的资料数
+                Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
+                // 获取学生的某章节测试数
+                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
+                // 获取学生的某章节作业数
+                Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, chapter.getId());
+                // 获取学生的某章节互动课件数量
+                Long stuCoursewareNum = coursewareService.queryStuCoursewareNum(id, stuId, chapter.getId());
+                // 获取学生的考勤数量
+                Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
+                // 获取学生的弹幕数量
+                Long stuTopicCommentNum = topicService.queryStuTopicCommentNum(id, stuId);
+                // 获取奖励星星数量
+                Long stuStarNum = subjectClassesStuService.queryStuStarNum(id, studentNumber);
+                // 获取学生的发话题数
+                Long stuTopicNum = topicService.queryStuTopicNum(id, stuId);
+                // 互动课件上传率
+                double courseRate = getRate(stuCoursewareNum, coursewareNum);
+                // 考勤率
+                double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
+                // 测试完成率
+                double testRate = getRate(stuTestNum, testNum);
+                // 作业完成率
+                double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
+                // 资料上传率
+                double dataRate = getRate(stuDataNum, dataNum);
+                // 整体完成率
+                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
+                student.put("stuDataNum", stuDataNum);
+                student.put("dataNum", dataNum);
+                student.put("stuTestNum", stuTestNum);
+                student.put("testNum", testNum);
+                student.put("stuAssignmentNum", stuAssignmentNum);
+                student.put("assignmentNum", assignmentNum);
+                student.put("stuCoursewareNum", stuCoursewareNum);
+                student.put("coursewareNum", coursewareNum);
+                student.put("stuCheckWorkNum", stuCheckWorkNum);
+                student.put("checkWorkNum", checkWorkNum);
+                student.put("stuTopicNum", stuTopicNum);
+                student.put("topicNum", topicNum);
+                student.put("stuTopicCommentNum", stuTopicCommentNum);
+                student.put("stuStarNum", stuStarNum);
+                student.put("overallRate", overallRate);
+                tempMap.put(stuName, student);
+                bean.add(tempMap);
+            }
+            resultMap.put(name, bean);
+            beans.add(resultMap);
+            resultMap = new HashMap<>();
+        }
+        // 全部数据
+        if (chapterList.size() > CommonNumConstants.NUM_ONE) {
+            bean = new ArrayList<>();
+            // 获取科目班级的互动课件数量
+            Long coursewareNum = coursewareService.queryClassCoursewareNum(id, null);
+            // 获取科目班级的作业数量
+            Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
+            // 获取科目班级的资料
+            Long dataNum = datumService.queryClassDataNum(id, null);
+            // 获取科目班级的测试数量
+            Long testNum = measurementService.queryClassMeasurementNum(id, null);
+            for (Map<String, Object> student : studentList) {
+                String stuId = student.get("id").toString();
+                String studentNumber = student.get("studentNumber").toString();
+                String stuName = "student" + studentNumber;
+                // 获取学生互动课件数量
+                Long stuCoursewareNum = coursewareService.queryStuCoursewareNum(id, stuId, null);
+                // 获取学生作业数量
+                Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, null);
+                // 获取学生资料数量
+                Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
+                // 获取学生测试数量
+                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
+                // 获取考勤数量
+                Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
+                // 获取奖励星星数量
+                Long stuStarNum = subjectClassesStuService.queryStuStarNum(id, studentNumber);
+                // 获取学生的弹幕数量
+                Long stuTopicCommentNum = topicService.queryStuTopicCommentNum(id, stuId);
+                // 获取学生的发话题数
+                Long stuTopicNum = topicService.queryStuTopicNum(id, stuId);
+                student.put("stuCoursewareNum", stuCoursewareNum);
+                student.put("coursewareNum", coursewareNum);
+                student.put("stuAssignmentNum", stuAssignmentNum);
+                student.put("assignmentNum", assignmentNum);
+                student.put("stuDataNum", stuDataNum);
+                student.put("dataNum", dataNum);
+                student.put("stuTestNum", stuTestNum);
+                student.put("testNum", testNum);
+                student.put("stuCheckWorkNum", stuCheckWorkNum);
+                student.put("checkWorkNum", checkWorkNum);
+                student.put("stuTopicNum", stuTopicNum);
+                student.put("topicNum", topicNum);
+                student.put("stuStarNum", stuStarNum);
+                student.put("stuTopicCommentNum", stuTopicCommentNum);
+                double courseRate = getRate(stuCoursewareNum, coursewareNum);
+                double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
+                double testRate = getRate(stuTestNum, testNum);
+                double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
+                double dataRate = getRate(stuDataNum, dataNum);
+                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
+                student.put("overallRate", overallRate);
+                tempMap.put(studentNumber, student);
+                bean.add(tempMap);
+            }
+            resultMap.put("all",bean);
+            beans.add(resultMap);
+        }
+        if(CollectionUtil.isNotEmpty(beans)){
+            resultMap.put("all",bean);
+            beans.add(resultMap);
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    private double getRate(Long num, Long totalNum) {
+        if (totalNum == 0) {
+            return 0.0;
+        }
+        return (double) num / totalNum * 100;
     }
 }

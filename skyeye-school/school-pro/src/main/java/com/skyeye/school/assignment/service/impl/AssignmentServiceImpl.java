@@ -166,9 +166,12 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
 
     // 查询科目班级id作业数量
     @Override
-    public Long queryClassAssignmentNum(String id) {
+    public Long queryClassAssignmentNum(String id, String chapterId) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
+        if(StrUtil.isNotEmpty(chapterId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),chapterId);
+        }
         return count(queryWrapper);
     }
 
@@ -178,6 +181,17 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
         List<Assignment> list = list(queryWrapper);
         return list.stream().map(Assignment::getId).collect(Collectors.toList());
+    }
+
+    @Override
+    public Long queryStuAssignmentNum(String id, String stuId, String chapterId) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
+        if(StrUtil.isNotEmpty(chapterId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),chapterId);
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getCreateId),stuId);
+        return count(queryWrapper);
     }
 
 }
