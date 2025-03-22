@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
@@ -151,7 +152,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer viewAnswer;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否被删除  1.未删除  0.已删除")
+    @Property(value = "是否被删除  1.未删除  0.已删除")
     private Integer visibility;
 
     @TableField("fraction")

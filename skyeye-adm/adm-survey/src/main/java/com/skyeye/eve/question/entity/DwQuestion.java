@@ -133,7 +133,7 @@ public class DwQuestion extends OperatorUserInfo {
     private Integer tag;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "是否显示 0不显示  1显示")
+    @Property(value = "是否显示 0不显示  1显示")
     private Integer visibility;
 
     @TableField("yesno_option")
