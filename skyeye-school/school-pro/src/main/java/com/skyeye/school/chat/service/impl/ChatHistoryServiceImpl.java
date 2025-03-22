@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -22,6 +23,8 @@ import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import com.skyeye.school.chat.service.CompanyChatGroupService;
+import com.skyeye.school.personnel.entity.SysEveUserStaff;
+import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +39,7 @@ import java.util.stream.Collectors;
 public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistoryDao, ChatHistory> implements ChatHistoryService {
 
     @Autowired
-    private CompanyChatGroupService companyChatGroupService;
+    private SysEveUserStaffService sysEveUserStaffService;
 
     @Autowired
     private ISysEveUserStaffService iSysEveUserService;
@@ -161,16 +164,46 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     @Override
     public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String chatType = map.get("chatType").toString();
-        if (StrUtil.equals(ChatType.PERSONAL_TO_PERSONAL.getChType(), chatType)) {//个人对个人
-            Map<String, Object> user = inputObject.getLogParams();
-            map.put("userId", user.get("id"));
-            Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-            List<Map<String, Object>> beans = companyChatGroupService.queryChatLogByPerToPer(map);
-            outputObject.setBeans(beans);
-            outputObject.settotal(pages.getTotal());
-        } else {
-            outputObject.setreturnMessage("参数错误");
+        Map<String, Object> user = inputObject.getLogParams();
+        map.put("userId", user.get("id"));
+        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
+        List<Map<String, Object>> beans = queryChatLogByPerToPer(map);
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
+    }
+    public List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map) {
+        QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
+                .and(wrapper -> wrapper
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
+                        .or()
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()));
+        List<ChatHistory> chatHistoryList = list(queryWrapper);
+        List<String> userIds = new ArrayList<>();
+        for (ChatHistory chatHistory : chatHistoryList) {
+            userIds.add(chatHistory.getSendId());
+            userIds.add(chatHistory.getReceiveId());
         }
+        List<SysEveUserStaff> userStaffList = sysEveUserStaffService.selectByUserIds(userIds);
+        Map<String, String> userMap = new HashMap<>();
+        for (SysEveUserStaff userStaff : userStaffList) {
+            userMap.put(userStaff.getUserId(), userStaff.getUserName());
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ChatHistory chatHistory : chatHistoryList) {
+            Map<String, Object> map1 = new HashMap<>();
+            map1.put("id", chatHistory.getId());
+            map1.put("sendId", chatHistory.getSendId());
+            map1.put("sendName", userMap.get(chatHistory.getSendId()));
+            map1.put("receiveName", userMap.get(chatHistory.getReceiveId()));
+            map1.put("content", chatHistory.getContent());
+            map1.put("userId", map.get("userId").toString());
+            map1.put("createTime", chatHistory.getCreateTime().toString());
+            result.add(map);
+        }
+        return result;
     }
 }

@@ -7,5 +7,4 @@ import java.util.List;
 import java.util.Map;
 
 public interface CompanyChatGroupService extends SkyeyeBusinessService<CompanyChatGroup> {
-    List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map);
 }

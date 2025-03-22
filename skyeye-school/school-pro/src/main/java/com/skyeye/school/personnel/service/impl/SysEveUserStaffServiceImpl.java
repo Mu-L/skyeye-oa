@@ -19,6 +19,7 @@ import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +84,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
 
     @Override
     public List<SysEveUserStaff> selectByUserIds(List<String> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyList();
+        }
         QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), userIds);
         return list(queryWrapper);
