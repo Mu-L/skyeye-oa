@@ -26,4 +26,8 @@ public interface CheckworkService extends SkyeyeBusinessService<Checkwork> {
     Checkwork queryCheckworkBySourceCode(String sourceCode);
 
    void queryCheckworkBySourceCodeAll(InputObject inputObject, OutputObject outputObject);
+
+    Long queryCheckWorkNum(String id);
+
+    Long queryStuCheckWorkNum(String id, String stuId);
 }

@@ -160,9 +160,12 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
 
     // 根据科目班级id获取测试的数量
     @Override
-    public Long queryClassMeasurementNum(String id) {
+    public Long queryClassMeasurementNum(String id, String chapterId) {
         QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
+        if (StrUtil.isNotEmpty(chapterId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getChapterId), chapterId);
+        }
         return count(queryWrapper);
     }
 
@@ -172,5 +175,16 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
         queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
         List<Measurement> list = list(queryWrapper);
         return list.stream().map(Measurement::getId).collect(Collectors.toList());
+    }
+
+    @Override
+    public Long queryStuMeasurementNum(String id, String stuId, String chapterId) {
+        QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
+        if (StrUtil.isNotEmpty(chapterId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getChapterId), chapterId);
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getCreateId), stuId);
+        return count(queryWrapper);
     }
 }

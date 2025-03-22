@@ -6,6 +6,7 @@ package com.skyeye.school.datum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -97,9 +98,24 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Long queryClassDataNum(String id) {
+    public Long queryClassDataNum(String id,String chapterId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
+        if(StrUtil.isNotEmpty(chapterId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
+        }
+        return count(queryWrapper);
+    }
+
+    // 获取学生上传的资料数
+    @Override
+    public Long queryStuDataNum(String id, String stuId, String chapterId) {
+        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
+        if(StrUtil.isNotEmpty(chapterId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
         return count(queryWrapper);
     }
 }

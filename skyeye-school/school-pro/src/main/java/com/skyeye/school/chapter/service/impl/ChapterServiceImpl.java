@@ -135,4 +135,12 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         outputObject.settotal(beans.size());
     }
 
+    @Override
+    public List<Chapter> queryChaptersBySubjectClassesId(String id) {
+        QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectClassesId), id)
+                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+        return list(queryWrapper);
+    }
+
 }

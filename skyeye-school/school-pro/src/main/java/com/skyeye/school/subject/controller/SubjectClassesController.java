@@ -173,4 +173,19 @@ public class SubjectClassesController {
         subjectClassesService.querySubjectClassesInfo(inputObject, outputObject);
     }
 
+    /**
+     * 获取学生分析
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryStudentAnalysis", value = "获取学生分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "科目表与班级表关系id",required = "require")})
+    @RequestMapping("/post/SubjectClassesController/queryStudentAnalysis")
+    public void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject) {
+        subjectClassesService.queryStudentAnalysis(inputObject, outputObject);
+    }
+
+
 }

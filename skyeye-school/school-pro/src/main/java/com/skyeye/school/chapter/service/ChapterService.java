@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chapter.entity.Chapter;
 
+import java.util.List;
+
 /**
  * @ClassName: ChapterService
  * @Description: 章节管理服务层接口
@@ -22,4 +24,6 @@ public interface ChapterService extends SkyeyeBusinessService<Chapter> {
     void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
 
     void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject);
+
+    List<Chapter> queryChaptersBySubjectClassesId(String id);
 }
