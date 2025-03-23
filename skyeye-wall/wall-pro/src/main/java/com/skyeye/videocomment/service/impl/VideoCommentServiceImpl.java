@@ -9,11 +9,13 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.notice.service.NoticeService;
@@ -22,6 +24,7 @@ import com.skyeye.picture.service.PictureService;
 import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.service.VideoService;
 import com.skyeye.videocomment.dao.VideoCommentDao;
@@ -79,6 +82,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
 
     @Override
     public void createPrepose(VideoComment entity) {
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        entity.setLoginIdentity(userIdentity);
         entity.setIp(IpUtil.getLocalAddress().toString());
     }
 
@@ -130,7 +135,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         Map<String, List<Picture>> pictureMapListByIds = pictureService.getPictureMapListByIds(ids);
         for (VideoComment videoComment : list) {
             List<Picture> pictures = pictureMapListByIds.get(videoComment.getId());
-            if(CollectionUtil.isNotEmpty(pictures)){
+            if (CollectionUtil.isNotEmpty(pictures)) {
                 videoComment.setPicture(pictures.get(CommonNumConstants.NUM_ZERO));
             }
         }
@@ -141,7 +146,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         String[] commentIds = ids.toArray(new String[0]);
         Map<String, Boolean> stringBooleanMap = upvoteService.checkUpvote(userId, commentIds);
         for (VideoComment videoComment : list) {
-            videoComment.setCheckUpvote(stringBooleanMap.get(videoComment.getId()));
+            videoComment.setCheckUpvote(stringBooleanMap.get(videoComment.getCreateId()));
         }
     }
 
@@ -159,16 +164,19 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
         List<VideoComment> videoCommentList = list(queryWrapper);
         if (CollectionUtil.isEmpty(videoCommentList)) {
-            throw new CustomException("该视频暂无评论");
+            return;
         }
         setCommentPicture(videoCommentList);
         checkUpvote(videoCommentList, userId);
-        try {
-            userService.setDataMation(videoCommentList, VideoComment::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(videoCommentList, VideoComment::getCreateId);
-        }
-        outputObject.setBeans(videoCommentList);
+        List<VideoComment> bean = videoCommentList.stream().map(videoComment -> {
+            if (LoginIdentity.STUDENT.getKey().equals(videoComment.getLoginIdentity())) {
+                userService.setDataMation(videoComment, VideoComment::getCreateId);
+            } else {
+                iAuthUserService.setDataMation(videoComment, VideoComment::getCreateId);
+            }
+            return videoComment;
+        }).collect(Collectors.toList());
+        outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }
 
@@ -197,7 +205,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             videoComment.setUpvoteNum(Integer.toString(supportNum));
             updateById(videoComment);
             // 删除点赞记录
-            upvoteService.deleteUpvoteByObjectId(userId,commentId);
+            upvoteService.deleteUpvoteByObjectId(userId, commentId);
         }
     }
 

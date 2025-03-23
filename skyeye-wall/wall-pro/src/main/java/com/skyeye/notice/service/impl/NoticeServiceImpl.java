@@ -52,6 +52,22 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    private Notice setUserMation(Notice notice) {
+        String sendId = notice.getSendId();
+        String receiveId = notice.getReceiveId();
+        if (ObjectUtil.isEmpty(userService.selectById(sendId))) {
+            iAuthUserService.setDataMation(notice, Notice::getSendId);
+        } else {
+            userService.setDataMation(notice, Notice::getSendId);
+        }
+        if (ObjectUtil.isEmpty(userService.selectById(receiveId))) {
+            iAuthUserService.setDataMation(notice, Notice::getReceiveId);
+        } else {
+            userService.setDataMation(notice, Notice::getReceiveId);
+        }
+        return notice;
+    }
+
     @Override
     protected void createPrepose(Notice entity) {
         entity.setState(ReadEnum.UNREAD.getKey());
@@ -80,17 +96,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public Notice selectById(String id) {
         Notice notice = super.selectById(id);
-        try {
-            userService.setDataMation(notice, Notice::getSendId);
-        }catch (Exception e) {
-            iAuthUserService.setDataMation(notice, Notice::getSendId);
-        }
-        try{
-            userService.setDataMation(notice, Notice::getReceiveId);
-        }catch (Exception e) {
-            iAuthUserService.setDataMation(notice, Notice::getReceiveId);
-        }
-        return notice;
+        return setUserMation(notice);
     }
 
     @Override
@@ -118,16 +124,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             if (notice.getType() == TypeEnum.COMMENT.getKey()) {
                 setCommentPicture(notice);
             }
-        }
-        try {
-            userService.setDataMation(bean, Notice::getSendId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(bean, Notice::getSendId);
-        }
-        try {
-            userService.setDataMation(bean, Notice::getReceiveId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(bean, Notice::getReceiveId);
+            setUserMation(notice);
         }
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());

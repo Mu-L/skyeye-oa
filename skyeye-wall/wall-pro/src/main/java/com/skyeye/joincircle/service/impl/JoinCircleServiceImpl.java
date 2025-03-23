@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: JoinCircleServiceImpl
@@ -109,12 +110,15 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(JoinCircle::getCreateTime));
         List<JoinCircle> joinCircleList = list(queryWrapper);
-        try {
-            userService.setDataMation(joinCircleList, JoinCircle::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(joinCircleList, JoinCircle::getCreateId);
-        }
-        outputObject.setBeans(joinCircleList);
+        List<JoinCircle> bean = joinCircleList.stream().map(joinCircle -> {
+            if (ObjectUtil.isEmpty(userService.selectById(joinCircle.getCreateId()))) {
+                userService.setDataMation(joinCircleList, JoinCircle::getCreateId);
+            } else {
+                iAuthUserService.setDataMation(joinCircleList, JoinCircle::getCreateId);
+            }
+            return joinCircle;
+        }).collect(Collectors.toList());
+        outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }
 

@@ -65,6 +65,10 @@ public class Comment extends OperatorUserInfo {
     @Property(value = "被回复人id")
     private String userId;
 
+    @TableField("login_identity")
+    @Property(value = "登录身份")
+    private String loginIdentity;
+
     @TableField(exist = false)
     @Property(value = "被回复人信息")
     private User userMation;

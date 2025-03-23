@@ -50,6 +50,10 @@ public class Circle extends OperatorUserInfo {
     @ApiModelProperty(value = "圈子人数")
     private Integer num;
 
+    @TableField("login_identity")
+    @Property(value = "登录身份")
+    private String loginIdentity;
+
     @TableField(exist = false)
     @Property(value="当前用户是否加入圈子")
     private Boolean isJoin;

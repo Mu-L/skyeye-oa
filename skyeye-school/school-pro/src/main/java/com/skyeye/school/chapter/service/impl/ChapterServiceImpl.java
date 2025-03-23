@@ -89,10 +89,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum, chapter.getId());
             temp.put("assAnalysis", assAnalysis);
 
-            // 测试分析--
-            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum, chapter.getId());
-            temp.put("testAnalysis", testAnalysis);
-
             // 资料分析--
             Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum, chapter.getId());
             temp.put("materialAnalysis", materialAnalysis);
@@ -108,14 +104,12 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         if (idsArray.length > CommonNumConstants.NUM_ONE) {
             // 全部作业分析
             Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum, idsArray);
-            // 全部测试分析
-            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum, idsArray);
             // 全部资料分析
             Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum, idsArray);
             // 全部互动课件分析
             Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum, idsArray);
             temp.put("assAnalysis", assAnalysis);
-            temp.put("testAnalysis", testAnalysis);
+//            temp.put("testAnalysis", testAnalysis);
             temp.put("materialAnalysis", materialAnalysis);
             temp.put("coursewareAnalysis", coursewareAnalysis);
             // TODO:全部互动答题分析--

@@ -55,6 +55,10 @@ public class VideoComment extends OperatorUserInfo {
     @ApiModelProperty(value = "视频id", required = "required")
     private String videoId;
 
+    @TableField("login_identity")
+    @Property(value = "登录身份")
+    private String loginIdentity;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "评论图片")
     private Picture picture;

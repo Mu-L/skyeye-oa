@@ -145,7 +145,11 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                     // 我接收的消息
                     user = userMap.get(talkChatHistory.getSendId());
                 }
+                if (user == null) {
+                    continue;
+                }
                 // 发送者信息
+                bean.put("userMation",iAuthUserService.queryDataMationById(user.get("id").toString()));
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
                 bean.put("staffId", user.get("staffId").toString());

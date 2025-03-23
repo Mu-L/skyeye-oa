@@ -339,8 +339,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
         resultMap.put("assignmentJoinNum", assignmentJoinNum);
         // 测试数量
-        Long testNum = measurementService.queryClassMeasurementNum(id, null);
-        resultMap.put("testNum", testNum);
+//        Long testNum = measurementService.queryClassMeasurementNum(id, null);
+//        resultMap.put("testNum", testNum);
         // 测试参与人数
         Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
         resultMap.put("testJoinNum", testJoinNum);
@@ -372,7 +372,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             // 获取科目班级的章节下的资料数
             Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
             // 获取科目班级的章节下的测试数
-            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
+//            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
             // 获取科目班级的章节下的作业数
             Long assignmentNum = assignmentService.queryClassAssignmentNum(id, chapter.getId());
             // 获取科目班级下的章节互动课件数量
@@ -384,7 +384,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 获取学生上传的资料数
                 Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
                 // 获取学生的某章节测试数
-                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
+//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
                 // 获取学生的某章节作业数
                 Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, chapter.getId());
                 // 获取学生的某章节互动课件数量
@@ -402,17 +402,17 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 考勤率
                 double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
                 // 测试完成率
-                double testRate = getRate(stuTestNum, testNum);
+//                double testRate = getRate(stuTestNum, testNum);
                 // 作业完成率
                 double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
                 // 资料上传率
                 double dataRate = getRate(stuDataNum, dataNum);
                 // 整体完成率
-                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
+                double overallRate = (courseRate + checkWorkRate  + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
                 student.put("stuDataNum", stuDataNum);
                 student.put("dataNum", dataNum);
-                student.put("stuTestNum", stuTestNum);
-                student.put("testNum", testNum);
+//                student.put("stuTestNum", stuTestNum);
+//                student.put("testNum", testNum);
                 student.put("stuAssignmentNum", stuAssignmentNum);
                 student.put("assignmentNum", assignmentNum);
                 student.put("stuCoursewareNum", stuCoursewareNum);
@@ -441,7 +441,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             // 获取科目班级的资料
             Long dataNum = datumService.queryClassDataNum(id, null);
             // 获取科目班级的测试数量
-            Long testNum = measurementService.queryClassMeasurementNum(id, null);
+//            Long testNum = measurementService.queryClassMeasurementNum(id, null);
             for (Map<String, Object> student : studentList) {
                 String stuId = student.get("id").toString();
                 String studentNumber = student.get("studentNumber").toString();
@@ -453,7 +453,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 获取学生资料数量
                 Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
                 // 获取学生测试数量
-                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
+//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
                 // 获取考勤数量
                 Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
                 // 获取奖励星星数量
@@ -468,8 +468,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 student.put("assignmentNum", assignmentNum);
                 student.put("stuDataNum", stuDataNum);
                 student.put("dataNum", dataNum);
-                student.put("stuTestNum", stuTestNum);
-                student.put("testNum", testNum);
+//                student.put("stuTestNum", stuTestNum);
+//                student.put("testNum", testNum);
                 student.put("stuCheckWorkNum", stuCheckWorkNum);
                 student.put("checkWorkNum", checkWorkNum);
                 student.put("stuTopicNum", stuTopicNum);
@@ -478,10 +478,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 student.put("stuTopicCommentNum", stuTopicCommentNum);
                 double courseRate = getRate(stuCoursewareNum, coursewareNum);
                 double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
-                double testRate = getRate(stuTestNum, testNum);
+//                double testRate = getRate(stuTestNum, testNum);
                 double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
                 double dataRate = getRate(stuDataNum, dataNum);
-                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
+                double overallRate = (courseRate + checkWorkRate  + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
                 student.put("overallRate", overallRate);
                 tempMap.put(stuName, student);
                 bean.add(tempMap);

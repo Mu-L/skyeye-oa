@@ -19,11 +19,12 @@ import com.skyeye.circle.dao.CircleDao;
 import com.skyeye.circle.entity.Circle;
 import com.skyeye.circle.service.CircleService;
 import com.skyeye.circleview.service.CircleViewService;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
@@ -32,6 +33,7 @@ import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.post.service.PostService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -86,6 +88,8 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Override
     public void createPrepose(Circle circle) {
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        circle.setLoginIdentity(userIdentity);
         circle.setViewNum(CommonNumConstants.NUM_ZERO);
         circle.setNum(CommonNumConstants.NUM_ZERO);
     }
@@ -106,16 +110,21 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         joinCircleService.deleteJoinByCircleId(id);
     }
 
+    private Circle setUserMation(Circle circle) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        circle.setIsJoin(joinCircleService.checkIsJoinCircle(circle.getId(), userId));
+        if (LoginIdentity.STUDENT.getKey().equals(circle.getLoginIdentity())) {
+            userService.setDataMation(circle, Circle::getCreateId);
+        } else {
+            iAuthUserService.setDataMation(circle, Circle::getCreateId);
+        }
+        return circle;
+    }
+
     @Override
     public Circle selectById(String id) {
         Circle circle = super.selectById(id);
-        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
-        circle.setIsJoin(joinCircleService.checkIsJoinCircle(id, userId));
-        try{
-            userService.setDataMation(circle, Circle::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(circle, Circle::getCreateId);
-        }
+        setUserMation(circle);
         return circle;
     }
 
@@ -137,22 +146,15 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = queryCircleList(inputObject);
-        try {
-            userService.setMationForMap(beans, "createId", "createMation");
-        }catch (Exception e){
-            iAuthUserService.setMationForMap(beans, "createId", "createMation");
-        }
-        return beans;
+        return queryCircleList(inputObject);
     }
 
     private List<Map<String, Object>> queryCircleList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
-        if(params.containsKey("keyword")&&StringUtils.isNotEmpty(params.get("keyword").toString())){
+        if (params.containsKey("keyword") && StringUtils.isNotEmpty(params.get("keyword").toString())) {
             queryWrapper.like(MybatisPlusUtil.toColumns(Circle::getTitle), params.get("keyword").toString());
         }
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
         List<Circle> bean = new ArrayList<>();
         if (params.containsKey("objectId") && StrUtil.isNotEmpty(params.get("objectId").toString())) {
@@ -163,20 +165,15 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
             List<JoinCircle> joinCircles = joinCircleService.queryMyJoinCircle(objectId);
             List<String> circleIds = joinCircles.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(circleIds)) {
-                for (String circleId : circleIds) {
-                    Circle circle = selectById(circleId);
-                    bean.add(circle);
-                }
+                List<Circle> circles = selectByIds(circleIds.toArray(new String[0]));
+                bean.addAll(circles);
             }
         }
         if (CollectionUtil.isEmpty(bean)) {
             bean = list(queryWrapper);
         }
-        for (Circle circle : bean) {
-            circle.setIsJoin(joinCircleService.checkIsJoinCircle(circle.getId(), userId));
-        }
-        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
-        return beans;
+        List<Circle> collect = bean.stream().map(this::setUserMation).collect(Collectors.toList());
+        return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
     }
 
     @Override
@@ -204,18 +201,11 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         // 按照值排序
         List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
         list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-        if(list.size() >=10){
-            list =  list.subList(0, 10);
+        if (list.size() >= 10) {
+            list = list.subList(0, 10);
         }
-        List<Circle> beans = new ArrayList<>();
-        for (Map.Entry<String, Double> entry : list) {
-            beans.add(selectById(entry.getKey()));
-        }
-        try {
-            userService.setDataMation(beans,Circle::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(beans,Circle::getCreateId);
-        }
+        List<Circle> circleList = selectByIds(list.stream().map(Map.Entry::getKey).toArray(String[]::new));
+        List<Circle> beans = circleList.stream().map(this::setUserMation).collect(Collectors.toList());
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
