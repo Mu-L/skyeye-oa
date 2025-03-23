@@ -99,16 +99,14 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     @Override
     public List<FriendRelationship> queryFriendList(String holderId, String friendId) {
         QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-        friendQueryWrapper
-            .and(wapper -> wapper
-                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
-                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId)
-            )
-            .or()
-            .and(wapper -> wapper
-                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
-                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)
-            );
+        friendQueryWrapper.and(wrapper ->
+                wrapper.or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId))
+                    .or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
+                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)))
+            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
         return list(friendQueryWrapper);
     }
 

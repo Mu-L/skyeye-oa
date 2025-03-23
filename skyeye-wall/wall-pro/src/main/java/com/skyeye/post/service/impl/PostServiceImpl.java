@@ -139,11 +139,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
         } else {
-            queryWrapper.and(wrapper -> {
-                        wrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
-                                .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
-                    })
-                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
         }
@@ -229,11 +225,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setCreateId(StrUtil.EMPTY);
             post.setLastUpdateId(StrUtil.EMPTY);
         } else {
-            try {
-                userService.setDataMation(post, Post::getCreateId);
-            }catch (Exception e) {
-                iAuthUserService.setDataMation(post, Post::getCreateId);
-            }
+           setUserMation(post);
         }
         return post;
     }
