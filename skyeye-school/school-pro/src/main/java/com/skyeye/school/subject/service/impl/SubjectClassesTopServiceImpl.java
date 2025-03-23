@@ -71,6 +71,9 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubjectId), entity.getSubjectId());
         } else {
+            if (StrUtil.isEmpty(entity.getSubClassLinkId())) {
+                throw new CustomException("请传入课程与班级的关联id！");
+            }
             queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), entity.getSubClassLinkId());
         }
         SubjectClassesTop subjectClassesTop = getOne(queryWrapper, false);

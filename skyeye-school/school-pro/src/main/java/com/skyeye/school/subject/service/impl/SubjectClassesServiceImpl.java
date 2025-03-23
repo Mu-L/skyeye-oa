@@ -257,38 +257,28 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
     }
 
-    public void updateEnabled(String SubjectClassesId, Integer isEnabled) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), isEnabled);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
-    public void updateQuit(String SubjectClassesId, Integer isQuit) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), isQuit);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
     public void changeEnabled(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
-        if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateEnabled(subjectClassesId, Integer.parseInt(enabled));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), enabled);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     public void changeQuit(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String quit = map.get("quit").toString();
-        if (quit.equals(CommonNumConstants.NUM_ONE.toString()) || quit.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateQuit(subjectClassesId, Integer.parseInt(quit));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), quit);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     @Override
