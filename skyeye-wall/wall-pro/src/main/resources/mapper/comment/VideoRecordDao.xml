@@ -14,6 +14,7 @@
         a.post_id postId,
         a.user_id userId,
         a.create_id createId,
+        a.login_identity loginIdentity,
         CONVERT(a.create_time, char) createTime,
         a.last_update_id lastUpdateId,
         CONVERT(a.last_update_time, char) lastUpdateTime
