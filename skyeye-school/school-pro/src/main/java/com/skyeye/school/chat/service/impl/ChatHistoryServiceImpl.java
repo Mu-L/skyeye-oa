@@ -171,6 +171,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
+
     public List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map) {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper
@@ -180,7 +181,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                         .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
                         .or()
                         .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()));
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
+                .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         List<String> userIds = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
@@ -202,7 +204,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             map1.put("content", chatHistory.getContent());
             map1.put("userId", map.get("userId").toString());
             map1.put("createTime", chatHistory.getCreateTime().toString());
-            result.add(map);
+            result.add(map1);
         }
         return result;
     }
