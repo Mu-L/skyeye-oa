@@ -22,4 +22,6 @@ public interface SubjectClassesTopService extends SkyeyeBusinessService<SubjectC
     void deleteSubjectClassesTop(InputObject inputObject, OutputObject outputObject);
 
     void deleteSubjectClassesTopBySubClassLinkId(String subClassLinkId);
+
+    void deleteSubjectClassesTopBySubjectId(String subjectId);
 }

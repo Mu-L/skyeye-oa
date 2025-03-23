@@ -41,8 +41,6 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
 
     void editSubjectClassesPeopleNum(String id, Boolean isAdd);
 
-    void updateEnabled(String SubjectClassesId, Integer isEnabled);
-
     void changeEnabled(InputObject inputObject, OutputObject outputObject);
 
     void changeQuit(InputObject inputObject, OutputObject outputObject);
@@ -57,4 +55,6 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
     void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject);
 
     void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject);
+
+    void deleteBySubjectId(String subjectId);
 }

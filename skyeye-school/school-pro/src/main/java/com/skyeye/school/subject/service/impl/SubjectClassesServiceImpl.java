@@ -166,6 +166,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void deletePostpose(SubjectClasses entity) {
         FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + entity.getSourceCode());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(Arrays.asList(entity.getId()));
     }
 
     @Override
@@ -255,38 +257,28 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
     }
 
-    public void updateEnabled(String SubjectClassesId, Integer isEnabled) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), isEnabled);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
-    public void updateQuit(String SubjectClassesId, Integer isQuit) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), isQuit);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
     public void changeEnabled(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
-        if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateEnabled(subjectClassesId, Integer.parseInt(enabled));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), enabled);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     public void changeQuit(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String quit = map.get("quit").toString();
-        if (quit.equals(CommonNumConstants.NUM_ONE.toString()) || quit.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateQuit(subjectClassesId, Integer.parseInt(quit));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), quit);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     @Override
@@ -370,8 +362,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 获取考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
 
-        Map<String,Object> tempMap = new HashMap<>();
-        Map<String,Object> resultMap = new HashMap<>();
+        Map<String, Object> tempMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
         List<Map<String, Object>> bean = new ArrayList<>();
         List<Map<String, Object>> beans = new ArrayList<>();
         for (Chapter chapter : chapterList) {
@@ -493,11 +485,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 tempMap.put(stuName, student);
                 bean.add(tempMap);
             }
-            resultMap.put("all",bean);
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
-        if(CollectionUtil.isNotEmpty(beans)){
-            resultMap.put("all",bean);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
         outputObject.setBeans(beans);
@@ -509,5 +501,20 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             return 0.0;
         }
         return (double) num / totalNum * 100;
+    }
+
+    @Override
+    public void deleteBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return;
+        }
+        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(ids);
+        // 删除班级科目关联表
+        remove(queryWrapper);
     }
 }

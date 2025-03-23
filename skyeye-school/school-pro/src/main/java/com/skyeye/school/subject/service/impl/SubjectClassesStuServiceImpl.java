@@ -29,12 +29,14 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectClassesTopService;
-import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +62,6 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
-    
-    @Autowired
-    private SubjectService subjectService;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -78,7 +77,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        if(userId.equals(subjectClasses.getCreateId())){
+        if (userId.equals(subjectClasses.getCreateId())) {
             throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
         }
         Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
@@ -164,7 +163,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             return CollectionUtil.newArrayList();
         }
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         return userList;
     }
 
@@ -179,6 +178,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), sno);
+        remove(updateWrapper);
+    }
+
+    @Override
+    public void deleteBySubClassLinkId(List<String> subClassLinkId) {
+        UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         remove(updateWrapper);
     }
 
