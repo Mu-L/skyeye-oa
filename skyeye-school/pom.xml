@@ -20,7 +20,6 @@
         <module>school-web</module>
         <module>school-pro</module>
         <module>school-exam</module>
-        <module>school-phone</module>
     </modules>
 
 </project>

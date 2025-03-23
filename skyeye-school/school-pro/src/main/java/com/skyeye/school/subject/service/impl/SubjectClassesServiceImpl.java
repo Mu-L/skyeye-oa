@@ -166,6 +166,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void deletePostpose(SubjectClasses entity) {
         FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + entity.getSourceCode());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(Arrays.asList(entity.getId()));
     }
 
     @Override
@@ -370,8 +372,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 获取考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
 
-        Map<String,Object> tempMap = new HashMap<>();
-        Map<String,Object> resultMap = new HashMap<>();
+        Map<String, Object> tempMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
         List<Map<String, Object>> bean = new ArrayList<>();
         List<Map<String, Object>> beans = new ArrayList<>();
         for (Chapter chapter : chapterList) {
@@ -493,11 +495,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 tempMap.put(stuName, student);
                 bean.add(tempMap);
             }
-            resultMap.put("all",bean);
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
-        if(CollectionUtil.isNotEmpty(beans)){
-            resultMap.put("all",bean);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
         outputObject.setBeans(beans);
@@ -509,5 +511,20 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             return 0.0;
         }
         return (double) num / totalNum * 100;
+    }
+
+    @Override
+    public void deleteBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return;
+        }
+        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(ids);
+        // 删除班级科目关联表
+        remove(queryWrapper);
     }
 }

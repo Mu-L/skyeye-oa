@@ -6,17 +6,21 @@ package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.subject.dao.SubjectClassesTopDao;
 import com.skyeye.school.subject.entity.SubjectClassesTop;
-import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesTopService;
+import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +42,7 @@ import java.util.stream.Collectors;
 public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<SubjectClassesTopDao, SubjectClassesTop> implements SubjectClassesTopService {
 
     @Autowired
-    private SubjectClassesService subjectClassesService;
+    private SubjectService subjectService;
 
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
@@ -52,9 +56,9 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             return CollectionUtil.newArrayList();
         }
         // 根据id列表获取科目信息
-        List<String> subClassLinkIdList = subjectClassesTopList.stream().map(SubjectClassesTop::getSubClassLinkId).collect(Collectors.toList());
-        List<Map<String, Object>> subjectClassesList = new ArrayList<>(subjectClassesService.selectValIsMapByIds(subClassLinkIdList).values());
-        return subjectClassesList;
+        List<String> subjectIdList = subjectClassesTopList.stream().map(SubjectClassesTop::getSubjectId).collect(Collectors.toList());
+        List<Map<String, Object>> subjectList = new ArrayList<>(subjectService.selectValIsMapByIds(subjectIdList).values());
+        return subjectList;
     }
 
     @Override
@@ -63,7 +67,12 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         // 校验当前用户是否已经置顶过该科目
         QueryWrapper<SubjectClassesTop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getCreateId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), entity.getSubClassLinkId());
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubjectId), entity.getSubjectId());
+        } else {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), entity.getSubClassLinkId());
+        }
         SubjectClassesTop subjectClassesTop = getOne(queryWrapper, false);
         if (ObjectUtil.isNotEmpty(subjectClassesTop)) {
             throw new CustomException("当前用户已经置顶过该科目，请勿重复置顶！");
@@ -74,10 +83,16 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     public void deleteSubjectClassesTop(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String userId = inputObject.getLogParams().get("id").toString();
-        String subClassLinkId = params.get("subClassLinkId").toString();
         QueryWrapper<SubjectClassesTop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getCreateId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), subClassLinkId);
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            String subjectId = params.get("subjectId").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubjectId), subjectId);
+        } else {
+            String subClassLinkId = params.get("subClassLinkId").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), subClassLinkId);
+        }
         remove(queryWrapper);
     }
 
@@ -85,6 +100,13 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     public void deleteSubjectClassesTopBySubClassLinkId(String subClassLinkId) {
         QueryWrapper<SubjectClassesTop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubClassLinkId), subClassLinkId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void deleteSubjectClassesTopBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClassesTop> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesTop::getSubjectId), subjectId);
         remove(queryWrapper);
     }
 }

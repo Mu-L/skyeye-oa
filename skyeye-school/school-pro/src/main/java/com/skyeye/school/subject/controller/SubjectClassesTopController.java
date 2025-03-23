@@ -31,24 +31,12 @@ public class SubjectClassesTopController {
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
 
-    /**
-     * 获取我的置顶科目列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySubjectClassesTopList", value = "获取我的置顶科目列表", method = "POST", allUse = "2")
     @RequestMapping("/post/SubjectClassesTopController/querySubjectClassesTopList")
     public void querySubjectClassesTopList(InputObject inputObject, OutputObject outputObject) {
         subjectClassesTopService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 置顶我的科目
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "createSubjectClassesTop", value = "置顶我的科目", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubjectClassesTop.class)
     @RequestMapping("/post/SubjectClassesTopController/createSubjectClassesTop")
@@ -56,15 +44,10 @@ public class SubjectClassesTopController {
         subjectClassesTopService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 取消置顶我的科目
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSubjectClassesTop", value = "取消置顶我的科目", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required")})
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目表id"),
+        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id")})
     @RequestMapping("/post/SubjectClassesController/deleteSubjectClassesTop")
     public void deleteSubjectClassesTop(InputObject inputObject, OutputObject outputObject) {
         subjectClassesTopService.deleteSubjectClassesTop(inputObject, outputObject);

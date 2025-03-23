@@ -32,12 +32,6 @@ public class SubjectClassesController {
     @Autowired
     private SubjectClassesService subjectClassesService;
 
-    /**
-     * 分页获取科目下的班级列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySubjectClassesList", value = "分页获取科目下的班级列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SubjectClassesController/querySubjectClassesList")
@@ -45,12 +39,6 @@ public class SubjectClassesController {
         subjectClassesService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 不分页获取科目下的班级列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNoPageSubjectClassesList", value = "不分页获取科目下的班级列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "objectId", name = "objectId", value = "科目Id", required = "required")})
@@ -60,12 +48,6 @@ public class SubjectClassesController {
     }
 
 
-    /**
-     * 添加或修改科目与班级的关系
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSubjectClasses", value = "添加或修改科目与班级的关系", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubjectClasses.class)
     @RequestMapping("/post/SubjectClassesController/writeSubjectClasses")
@@ -73,12 +55,6 @@ public class SubjectClassesController {
         subjectClassesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除科目与班级的关系
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSubjectClassesById", value = "根据ID删除科目与班级的关系", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class SubjectClassesController {
         subjectClassesService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据编码查询科目与班级的关系信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySubjectClassesBySourceCode", value = "根据编码查询科目与班级的关系信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "sourceCode", name = "sourceCode", value = "编码", required = "required")})
@@ -101,12 +71,6 @@ public class SubjectClassesController {
         subjectClassesService.querySubjectClassesBySourceCode(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询科目与班级的关系信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySubjectClassesById", value = "根据id查询科目与班级的关系信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "编码", required = "required")})
@@ -115,12 +79,6 @@ public class SubjectClassesController {
         subjectClassesService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 改变enabled的状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "changeEnabled",value = "改变enabled状态", method = "POST",allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "编码", required = "required"),
@@ -130,12 +88,6 @@ public class SubjectClassesController {
         subjectClassesService.changeEnabled(inputObject, outputObject);
     }
 
-    /**
-     * 改变quit的状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "changeQuit",value = "改变quit的状态", method = "POST",allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "编码", required = "required"),
@@ -145,12 +97,6 @@ public class SubjectClassesController {
         subjectClassesService.changeQuit(inputObject, outputObject);
     }
 
-    /**
-     * 获取创建老师信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTeacherMessage", value = "获取创建老师信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id",required = "require")})
@@ -159,12 +105,6 @@ public class SubjectClassesController {
         subjectClassesService.queryTeacherMessage(inputObject, outputObject);
     }
 
-    /**
-     * 获取课程申报数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySubjectClassesInfo", value = "获取课程申报数据", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "科目表与班级表关系id",required = "require")})
@@ -173,12 +113,6 @@ public class SubjectClassesController {
         subjectClassesService.querySubjectClassesInfo(inputObject, outputObject);
     }
 
-    /**
-     * 获取学生分析
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStudentAnalysis", value = "获取学生分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "科目表与班级表关系id",required = "require")})

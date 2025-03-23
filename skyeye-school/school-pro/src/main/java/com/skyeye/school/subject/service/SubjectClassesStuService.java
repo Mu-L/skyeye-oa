@@ -7,7 +7,6 @@ package com.skyeye.school.subject.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 
 import java.util.List;
@@ -53,6 +52,8 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
 
     void deleteBySno(String subClassLinkId, String sno);
 
+    void deleteBySubClassLinkId(List<String> subClassLinkId);
+
     void queryAllStudentById(InputObject inputObject, OutputObject outputObject);
 
     void deleteUserById(InputObject inputObject, OutputObject outputObject);
@@ -74,4 +75,5 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
     List<SubjectClassesStu> queryListBySubClassLinkId(String SubClassLinkId);
 
     Long queryStuStarNum(String id, String studentNumber);
+
 }

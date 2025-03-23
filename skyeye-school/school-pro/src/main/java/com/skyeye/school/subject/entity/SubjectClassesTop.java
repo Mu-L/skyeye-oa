@@ -29,8 +29,12 @@ public class SubjectClassesTop extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField("subject_id")
+    @ApiModelProperty(value = "科目表id", required = "required")
+    private String subjectId;
+
     @TableField("sub_class_link_id")
-    @ApiModelProperty(value = "科目表与班级表关系id", required = "required")
+    @ApiModelProperty(value = "科目表与班级表关系id")
     private String subClassLinkId;
 
 }
