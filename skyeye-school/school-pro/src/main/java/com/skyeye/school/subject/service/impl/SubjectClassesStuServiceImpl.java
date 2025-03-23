@@ -33,10 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -143,9 +140,14 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
     }
 
-    public Long queruClassStuNum(String subClassLinkId) {
+    public Long queruClassStuNum(String... subClassLinkId) {
+        List<String> idList = Arrays.asList(subClassLinkId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return 0L;
+        }
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), idList);
         return count(queryWrapper);
     }
 

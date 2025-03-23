@@ -21,9 +21,9 @@ import java.util.List;
  */
 public interface ChapterService extends SkyeyeBusinessService<Chapter> {
 
-    void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject);
+    void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject);
 
     void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject);
 
-    List<Chapter> queryChaptersBySubjectClassesId(String id);
+    List<Chapter> queryChaptersBySubjectId(String subjectId);
 }

@@ -18,7 +18,7 @@ import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.measurement.service.MeasurementService;
-import com.skyeye.school.subject.service.SubjectClassesStuService;
+import com.skyeye.school.subject.service.SubjectClassesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     private AssignmentService assignmentService;
 
     @Autowired
-    private SubjectClassesStuService subjectClassesStuService;
+    private SubjectClassesService subjectClassesService;
 
     @Autowired
     private MeasurementService measurementService;
@@ -52,18 +52,12 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     @Autowired
     private CoursewareService coursewareService;
 
-    /**
-     * 根据科目表与班级表的关系id获取章节列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    public void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
+    public void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String subjectClassesId = map.get("subjectClassesId").toString();
+        String subjectId = map.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId);
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
             chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
@@ -74,18 +68,15 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         outputObject.settotal(chapterList.size());
     }
 
-    /**
-     * 章节分析
-     */
     @Override
     public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String subjectClassesId = params.get("subjectClassesId").toString();
+        String subjectId = params.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectClassesId), subjectClassesId)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
-        // 查这个班的人数
-        Long classNum = subjectClassesStuService.queruClassStuNum(subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId)
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+        // 查这个科目下的人数
+        Long classNum = subjectClassesService.queryStuNumBySubjectId(subjectId);
         List<Map<String, Map<String, Map<String, Double>>>> beans = new ArrayList<>();
         List<Chapter> chapterList = list(queryWrapper);
         List<String> ids = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
@@ -93,36 +84,36 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         Map<String, Map<String, Double>> temp = new HashMap<>();
         Map<String, Map<String, Map<String, Double>>> map = new HashMap<>();
         for (Chapter chapter : chapterList) {
-            String name = "chapterAnalysis"+chapter.getSection();
+            String name = "chapterAnalysis" + chapter.getSection();
             // 作业分析--
             Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum, chapter.getId());
             temp.put("assAnalysis", assAnalysis);
 
             // 测试分析--
-            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum,chapter.getId());
+            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum, chapter.getId());
             temp.put("testAnalysis", testAnalysis);
 
             // 资料分析--
-            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum,chapter.getId());
+            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum, chapter.getId());
             temp.put("materialAnalysis", materialAnalysis);
 
             // 互动课件分析
-            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum,chapter.getId());
+            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum, chapter.getId());
             temp.put("coursewareAnalysis", coursewareAnalysis);
             // TODO:互动答题分析--
             map.put(name, temp);
             beans.add(map);
             map = new HashMap<>();
         }
-        if(idsArray.length > CommonNumConstants.NUM_ONE){
+        if (idsArray.length > CommonNumConstants.NUM_ONE) {
             // 全部作业分析
-            Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum,idsArray);
+            Map<String, Double> assAnalysis = assignmentService.queryAssigmentByChapterId(classNum, idsArray);
             // 全部测试分析
-            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum,idsArray);
+            Map<String, Double> testAnalysis = measurementService.queryTestByChapterId(classNum, idsArray);
             // 全部资料分析
-            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum,idsArray);
+            Map<String, Double> materialAnalysis = datumService.queryDatumByChapterId(classNum, idsArray);
             // 全部互动课件分析
-            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum,idsArray);
+            Map<String, Double> coursewareAnalysis = coursewareService.queryCoursewareByChapterId(classNum, idsArray);
             temp.put("assAnalysis", assAnalysis);
             temp.put("testAnalysis", testAnalysis);
             temp.put("materialAnalysis", materialAnalysis);
@@ -136,10 +127,10 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     }
 
     @Override
-    public List<Chapter> queryChaptersBySubjectClassesId(String id) {
+    public List<Chapter> queryChaptersBySubjectId(String subjectId) {
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectClassesId), id)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId)
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         return list(queryWrapper);
     }
 

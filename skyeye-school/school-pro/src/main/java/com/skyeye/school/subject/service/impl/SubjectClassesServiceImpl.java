@@ -353,10 +353,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     public void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString(); // 科目与班级的关系id
+        SubjectClasses subjectClasses = selectById(id);
         // 查询班级学生信息
         List<Map<String, Object>> studentList = subjectClassesStuService.queryClassStuIds(id);
         // 获取章节数据
-        List<Chapter> chapterList = chapterService.queryChaptersBySubjectClassesId(id);
+        List<Chapter> chapterList = chapterService.queryChaptersBySubjectId(subjectClasses.getObjectId());
         // 获取科目班级下的话题数量
         Long topicNum = topicService.queryClassTopicNum(id);
         // 获取考勤数量
@@ -516,5 +517,17 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         subjectClassesStuService.deleteBySubClassLinkId(ids);
         // 删除班级科目关联表
         remove(queryWrapper);
+    }
+
+    @Override
+    public Long queryStuNumBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return 0L;
+        }
+        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        return null;
     }
 }

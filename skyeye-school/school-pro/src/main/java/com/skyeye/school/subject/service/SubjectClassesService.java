@@ -52,9 +52,12 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
     void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject);
 
     SubjectClasses getSubjectClassesByObjectIdAndClassesId(String objectId, String classesId);
+
     void querySubjectClassesInfo(InputObject inputObject, OutputObject outputObject);
 
     void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject);
 
     void deleteBySubjectId(String subjectId);
+
+    Long queryStuNumBySubjectId(String subjectId);
 }
