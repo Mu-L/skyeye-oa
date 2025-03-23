@@ -1,6 +1,7 @@
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -18,6 +19,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.enums.ChatType;
@@ -106,6 +108,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         update(updateWrapper);
     }
 
+    @Autowired
+    private IUserService iUserService;
     @Override
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -148,8 +152,16 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                 if (user == null) {
                     continue;
                 }
+                String userOrTeacherId = user.get("id").toString();
+                List<Map<String, Object>> studentMationList = iUserService.queryEntityMationByIds(userOrTeacherId);
+                SysEveUserStaff teacherMation = sysEveUserStaffService.selectById(userOrTeacherId);
+                if (CollectionUtil.isNotEmpty(studentMationList)) {
+                    bean.put("userMation",studentMationList);
+                }
+                if (ObjectUtil.isNotEmpty(teacherMation)) {
+                    bean.put("teacherMation",teacherMation);
+                }
                 // 发送者信息
-                bean.put("userMation",iAuthUserService.queryDataMationById(user.get("id").toString()));
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
                 bean.put("staffId", user.get("staffId").toString());
