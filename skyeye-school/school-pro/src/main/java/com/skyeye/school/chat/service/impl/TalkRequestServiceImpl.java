@@ -65,8 +65,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
                 throw new CustomException("createTime不能为空");
             }
             Date date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(createTime);
-            String afDate = DateUtil.getAfDate(date, 7, "d").toString();
-            entity.setExpireTime(afDate);
+            Date afDate = DateUtil.getAfDate(date, 7, "d");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedAfDate = sdf.format(afDate); // 格式化为 MySQL 所需的格式
+            entity.setExpireTime(formattedAfDate);
         } catch (DateTimeParseException e) {
             throw new CustomException("时间格式不正确: " + e.getMessage());
         } catch (Exception e) {
