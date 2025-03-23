@@ -17,7 +17,6 @@ import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.datum.service.DatumService;
-import com.skyeye.school.measurement.service.MeasurementService;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,9 +41,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
 
     @Autowired
     private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private MeasurementService measurementService;
 
     @Autowired
     private DatumService datumService;

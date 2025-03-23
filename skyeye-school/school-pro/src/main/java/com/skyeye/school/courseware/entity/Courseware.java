@@ -38,10 +38,6 @@ public class Courseware extends BaseGeneralInfo {
     @ApiModelProperty(value = "科目数据的serviceClassName", required = "required")
     private String objectKey;
 
-    @TableField(value = "subject_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "科目表与班级表的关系id", required = "required")
-    private String subjectId;
-
     @TableField("chapter_id")
     @ApiModelProperty(value = "所属章节id", required = "required")
     private String chapterId;

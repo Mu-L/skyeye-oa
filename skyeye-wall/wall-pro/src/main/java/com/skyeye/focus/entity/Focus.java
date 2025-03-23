@@ -37,6 +37,10 @@ public class Focus extends OperatorUserInfo {
     private String userId;
 
     @TableField(exist = false)
+    @Property(value = "检验当前登录人是否关注用户")
+    private boolean checkFocus;
+
+    @TableField(exist = false)
     @Property(value = "关注用户信息")
     private Map<String, Object> userMation;
 }
