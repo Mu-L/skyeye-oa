@@ -370,8 +370,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 获取考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
 
-        Map<String,Object> tempMap = new HashMap<>();
-        Map<String,Object> resultMap = new HashMap<>();
+        Map<String, Object> tempMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
         List<Map<String, Object>> bean = new ArrayList<>();
         List<Map<String, Object>> beans = new ArrayList<>();
         for (Chapter chapter : chapterList) {
@@ -493,11 +493,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 tempMap.put(studentNumber, student);
                 bean.add(tempMap);
             }
-            resultMap.put("all",bean);
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
-        if(CollectionUtil.isNotEmpty(beans)){
-            resultMap.put("all",bean);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            resultMap.put("all", bean);
             beans.add(resultMap);
         }
         outputObject.setBeans(beans);

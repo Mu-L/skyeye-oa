@@ -20,7 +20,6 @@ import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.score.service.ScoreTypeService;
-import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -101,20 +100,34 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             scoreTypeChild.setParentId(parent.getId());
             scoreTypeChild.setScoreTypeId(scoreType.getId());
             scoreTypeChildService.createEntity(scoreTypeChild, userId);
-        }
-        // 给分成绩表增加空白数据
-        SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(scoreType.getSubjectId(), scoreType.getClassId());
-        if (ObjectUtil.isNotEmpty(subjectClasses)) {
-            List<Student> studentList = studentService.queryListByClassesId(subjectClasses.getId());
-            List<ScorePart> scorePartList = new ArrayList<>();
-            for (Student student : studentList) {
+            // 检查课程下的班级是否有人
+            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(parent.getId()));
+            if (StrUtil.isEmpty(scoreSums.get(CommonNumConstants.NUM_ZERO).getStuNo())) {// 没人
                 ScorePart scorePart = new ScorePart();
+                scorePart.setWorkId(scoreType.getName());
+                scorePart.setScore(CommonNumConstants.NUM_ZERO.toString());
                 scorePart.setProportion(scoreType.getProportion());
-                scorePart.setStuNo(student.getNo());
+                scorePart.setStuNo(StrUtil.EMPTY);
                 scorePart.setObjectId(scoreType.getId());
-                scorePartList.add(scorePart);
+                scorePartService.createEntity(scorePart, userId);
+            }else {// 有人
+                for (ScoreSum scoreSum : scoreSums) {// 课程下班级的所有人
+                    ScorePart scorePart = new ScorePart();
+                    scorePart.setWorkId(scoreType.getName());
+                    scorePart.setScore(CommonNumConstants.NUM_ZERO.toString());
+                    scorePart.setProportion(scoreType.getProportion());
+                    scorePart.setStuNo(scoreSum.getStuNo());
+                    scorePart.setObjectId(scoreType.getId());
+                    scorePartService.createEntity(scorePart, userId);
+                }
             }
-            scorePartService.createEntity(scorePartList, userId);
+        } else if (Objects.equals(scoreType.getIsDefault(), IsDefaultEnum.IS_DEFAULT.getKey())) {// 新增默认数据
+            ScoreSum scoreSum = new ScoreSum();
+            scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
+            scoreSum.setProportion("100");
+            scoreSum.setObjectId(scoreType.getId());
+            scoreSum.setStuNo(StrUtil.EMPTY);
+            scoreSumService.createEntity(scoreSum, userId);
         }
     }
 
@@ -266,5 +279,13 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public ScoreType queryDefaultInfo(String subjectId, String classId) {
+        QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId);
+        return getOne(queryWrapper);
     }
 }

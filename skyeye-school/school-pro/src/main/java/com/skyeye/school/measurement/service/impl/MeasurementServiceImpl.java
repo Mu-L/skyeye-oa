@@ -139,7 +139,7 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
         double finishRate = 0;
         map.put("activeNum", sumSize);
         map.put("finishRate", finishRate);
-        for (String id: ids){
+        for (String id : ids) {
             QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getChapterId), id);
             List<Measurement> list = list(queryWrapper);
@@ -151,7 +151,7 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
             double rate = measurementSubService.queryMeasurementFinshRate(mIds, classNum);
             finishRate = finishRate + rate;
         }
-        if(finishRate == 0 && ids.length > 1){
+        if (finishRate == 0 && ids.length > 1) {
             finishRate = finishRate / ids.length;
         }
         map.put("finishRate", finishRate);
@@ -186,5 +186,14 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getCreateId), stuId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public List<Measurement> queryListByObjectIdAndClassesId(String objectId, String subjectClassesId) {
+        QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), subjectClassesId);
+        List<Measurement> list = list(queryWrapper);
+        return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
 }

@@ -34,10 +34,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -195,9 +192,9 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     public Long queryClassAssignmentNum(String id, String chapterId) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
-        if(StrUtil.isNotEmpty(chapterId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),chapterId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
+        if (StrUtil.isNotEmpty(chapterId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
         }
         return count(queryWrapper);
     }
@@ -213,12 +210,21 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Override
     public Long queryStuAssignmentNum(String id, String stuId, String chapterId) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId),id);
-        if(StrUtil.isNotEmpty(chapterId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId),chapterId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
+        if (StrUtil.isNotEmpty(chapterId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getCreateId),stuId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getCreateId), stuId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public List<Assignment> queryListByObjectIdAndSubjectIdAndClassId(String objectId, String subjectClassesId) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getObjectId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
+        List<Assignment> assignmentList = list(queryWrapper);
+        return CollectionUtil.isEmpty(assignmentList) ? new ArrayList<>() : assignmentList;
     }
 
 }

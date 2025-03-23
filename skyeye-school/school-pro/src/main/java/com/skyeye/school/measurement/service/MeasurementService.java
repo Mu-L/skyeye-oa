@@ -28,4 +28,6 @@ public interface MeasurementService extends SkyeyeBusinessService<Measurement> {
     List<String> queryMeasurementIdsBySubjectClassId(String id);
 
     Long queryStuMeasurementNum(String id, String stuId, String chapterId);
+
+    List<Measurement> queryListByObjectIdAndClassesId(String objectId, String subjectClassesId);
 }

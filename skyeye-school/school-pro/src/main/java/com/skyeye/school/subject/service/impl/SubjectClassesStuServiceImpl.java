@@ -23,6 +23,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.subject.dao.SubjectClassesStuDao;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
@@ -34,7 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +64,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
-    
+
     @Autowired
     private SubjectService subjectService;
+
+    @Autowired
+    private ScorePartService scorePartService;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -78,7 +85,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        if(userId.equals(subjectClasses.getCreateId())){
+        if (userId.equals(subjectClasses.getCreateId())) {
             throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
         }
         Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
@@ -113,6 +120,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         subjectClassesStu.setJoinTime(DateUtil.getTimeAndToString());
         createEntity(subjectClassesStu, StrUtil.EMPTY);
         subjectClassesService.editSubjectClassesPeopleNum(subjectClassesStu.getSubClassLinkId(), true);
+    }
+
+    @Override
+    public void createPostpose(SubjectClassesStu subjectClassesStu, String UserId) {
+        // 同步所有的成绩数据
+        SubjectClasses subjectClasses = subjectClassesService.selectById(subjectClassesStu.getSubClassLinkId());
+        scorePartService.midCourse(subjectClassesStu.getStuNo(), subjectClasses.getObjectId(), subjectClasses.getClassesId());
     }
 
     @Override
@@ -164,7 +178,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             return CollectionUtil.newArrayList();
         }
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         return userList;
     }
 
