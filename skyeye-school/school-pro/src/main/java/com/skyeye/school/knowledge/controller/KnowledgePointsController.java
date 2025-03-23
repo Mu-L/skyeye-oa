@@ -32,12 +32,6 @@ public class KnowledgePointsController {
     @Autowired
     private KnowledgePointsService knowledgePointsService;
 
-    /**
-     * 获取知识点信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryKnowledgePointsList", value = "获取知识点信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KnowledgePointsController/queryKnowledgePointsList")
@@ -45,12 +39,6 @@ public class KnowledgePointsController {
         knowledgePointsService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 增加/修改知识点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeKnowledgePoints", value = "新增/编辑知识点信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = KnowledgePoints.class)
     @RequestMapping("/post/KnowledgePointsController/writeKnowledgePoints")
@@ -58,12 +46,6 @@ public class KnowledgePointsController {
         knowledgePointsService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询知识点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryKnowledgePointsById", value = "根据id查询知识点信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class KnowledgePointsController {
         knowledgePointsService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除知识点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteKnowledgePointsById", value = "根据ID删除知识点信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
