@@ -8,7 +8,6 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.datum.entity.Datum;
@@ -32,53 +31,32 @@ public class DatumController {
     @Autowired
     private DatumService datumService;
 
-    /**
-     * 根据科目表与班级表的关系id获取资料信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryDatumListBySubjectClassesId", value = "根据科目表与班级表的关系id获取资料信息列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryDatumListBySubjectId", value = "根据科目表id获取资料信息列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")})
-    @RequestMapping("/post/DatumController/queryDatumListBySubjectClassesId")
-    public void queryDatumListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
-        datumService.queryDatumListBySubjectClassesId(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目表id", required = "required")})
+    @RequestMapping("/post/DatumController/queryDatumListBySubjectId")
+    public void queryDatumListBySubjectId(InputObject inputObject, OutputObject outputObject) {
+        datumService.queryDatumListBySubjectId(inputObject, outputObject);
     }
 
-  /**
-     * 添加或修改资料
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDatum", value = "新增/编辑资料信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean =Datum.class)
+    @ApiImplicitParams(classBean = Datum.class)
     @RequestMapping("/post/DatumController/writeDatum")
     public void writeDatum(InputObject inputObject, OutputObject outputObject) {
         datumService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取资料信息详情
-     */
     @ApiOperation(id = "queryDatumById", value = "获取资料信息详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DatumController/queryDatumById")
     public void queryDatumById(InputObject inputObject, OutputObject outputObject) {
         datumService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除资料信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDatumById", value = "根据ID删除资料信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DatumController/deleteDatumById")
     public void deleteDatumById(InputObject inputObject, OutputObject outputObject) {
         datumService.deleteById(inputObject, outputObject);

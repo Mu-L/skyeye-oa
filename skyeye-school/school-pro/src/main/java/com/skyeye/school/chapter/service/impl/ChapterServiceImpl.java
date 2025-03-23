@@ -57,7 +57,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId);
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
             chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
@@ -73,7 +73,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         Map<String, Object> params = inputObject.getParams();
         String subjectId = params.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId)
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
             .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         // 查这个科目下的人数
         Long classNum = subjectClassesService.queryStuNumBySubjectId(subjectId);
@@ -123,7 +123,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     @Override
     public List<Chapter> queryChaptersBySubjectId(String subjectId) {
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getSubjectId), subjectId)
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
             .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         return list(queryWrapper);
     }
