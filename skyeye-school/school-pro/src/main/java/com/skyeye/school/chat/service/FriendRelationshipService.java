@@ -1,6 +1,9 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.chat.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -15,5 +18,7 @@ public interface FriendRelationshipService extends SkyeyeBusinessService<FriendR
 
     void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject);
 
-    List<FriendRelationship> queryFriendList(String holderId,String s);
+    List<FriendRelationship> queryFriendList(String holderId, String s);
+
+    void queryFriendByUserId(InputObject inputObject, OutputObject outputObject);
 }
