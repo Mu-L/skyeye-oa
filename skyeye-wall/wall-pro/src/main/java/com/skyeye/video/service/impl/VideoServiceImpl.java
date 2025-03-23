@@ -8,15 +8,18 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import com.skyeye.video.dao.VideoDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
@@ -72,23 +75,29 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Value("${IMAGES_PATH}")
     private String tPath;
 
-    @Override
-    public Video selectById(String id) {
-        Video video = super.selectById(id);
+    private Video setUserMation(Video video) {
         focusService.checkFocus(video);
         video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
         video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
         videoTagService.setTagMationForVideoList(video);
-        try {
+        if (LoginIdentity.STUDENT.getKey().equals(video.getLoginIdentity())) {
             userService.setDataMation(video, Video::getCreateId);
-        }catch (Exception e){
+        } else {
             iAuthUserService.setDataMation(video, Video::getCreateId);
         }
         return video;
     }
 
     @Override
+    public Video selectById(String id) {
+        Video video = super.selectById(id);;
+        return setUserMation(video);
+    }
+
+    @Override
     public void createPrepose(Video entity) {
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        entity.setLoginIdentity(userIdentity);
         String localVideoPath = tPath.replace("images", StrUtil.EMPTY) + entity.getVideoSrc();
         // 获取视频时长
         int duration = getVideoDuration(localVideoPath);
@@ -198,10 +207,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         List<String> videoIds = recommendVideos(currentUserId, userVideoScores, similarityMap, 10);
         List<Video> videos = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(videoIds)) {
-            for (String videoId : videoIds) {
-                Video video = selectById(videoId);
-                videos.add(video);
-            }
+            List<Video> bean = selectByIds(videoIds.toArray(new String[0]));
+            videos.addAll(bean);
             outputObject.setBeans(videos);
             outputObject.settotal(videos.size());
         } else {
@@ -237,17 +244,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             String[] videoIds = map.get("videoIds").toArray(new String[0]);
             String total = map.get("total").get(CommonNumConstants.NUM_ZERO);
             List<Video> videos = selectByIds(videoIds);
-            for (Video video : videos) {
-                video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
-                video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
-            }
-            videoTagService.setTagMationForVideoList(videos.toArray(new Video[0]));
-            try {
-                userService.setDataMation(videos, Video::getCreateId);
-            }catch (Exception e){
-                iAuthUserService.setDataMation(videos, Video::getCreateId);
-            }
-            outputObject.setBean(videos);
+            List<Video> bean = videos.stream().map(this::setUserMation).collect(Collectors.toList());
+            outputObject.setBean(bean);
             outputObject.settotal(Integer.parseInt(total));
         } else {
             Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
@@ -267,17 +265,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             if (CollectionUtil.isEmpty(beans)) {
                 return;
             }
-            for (Video video : beans) {
-                video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
-                video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
-            }
-            videoTagService.setTagMationForVideoList(beans.toArray(new Video[0]));
-            try{
-                userService.setDataMation(beans, Video::getCreateId);
-            }catch (Exception e){
-                iAuthUserService.setDataMation(beans, Video::getCreateId);
-            }
-            outputObject.setBeans(beans);
+            List<Video> bean = beans.stream().map(this::setUserMation).collect(Collectors.toList());
+            outputObject.setBeans(bean);
             outputObject.settotal(page.getTotal());
         }
     }
@@ -413,7 +402,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         int collectNum = Integer.parseInt(video.getCollectionNum());
         boolean isCollect = videoRecordService.checkSupportOrCollectByVideoId(videoId, CommonNumConstants.NUM_TWO);
         collectNum = isCollect ? collectNum - CommonNumConstants.NUM_ONE : collectNum + CommonNumConstants.NUM_ONE;
-        video.setTasnNum(String.valueOf(collectNum));
+        video.setCollectionNum(String.valueOf(collectNum));
         updateById(video);
     }
 

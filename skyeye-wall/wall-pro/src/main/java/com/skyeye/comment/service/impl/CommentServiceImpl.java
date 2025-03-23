@@ -17,11 +17,13 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.comment.dao.CommentDao;
 import com.skyeye.comment.entity.Comment;
 import com.skyeye.comment.service.CommentService;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
@@ -32,6 +34,7 @@ import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,17 +121,16 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             }
             // 设置点赞信息
             bean.put("checkUpvote", checkUpvoteMap.get(id));
+            // 设置用户信息
+            String loginIdentity = bean.get("loginIdentity").toString();
+            if(LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
+                userService.setMationForMap(bean, "createId", "createMation");
+                userService.setMationForMap(bean, "userId", "userMation");
+            }else {
+                iAuthUserService.setMationForMap(bean, "createId", "createMation");
+                iAuthUserService.setMationForMap(bean, "userId", "userMation");
+            }
         });
-        try {
-            userService.setMationForMap(beans, "createId", "createMation");
-        }catch (Exception e) {
-            iAuthUserService.setMationForMap(beans, "createId", "createMation");
-        }
-        try{
-            userService.setMationForMap(beans, "userId", "userMation");
-        }catch (Exception e){
-            iAuthUserService.setMationForMap(beans, "userId", "userMation");
-        }
         return beans;
     }
 
@@ -170,12 +172,15 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
                 comment.setPicture(JSONUtil.toBean(JSON.toJSONString(pictures.stream().findFirst().orElse(null)), null));
             }
         });
-        try {
-            userService.setDataMation(commentList, Comment::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(commentList, Comment::getCreateId);
-        }
-        Map<String, List<Comment>> commentMap = commentList.stream()
+        List<Comment> bean = commentList.stream().map(comment -> {
+            if (LoginIdentity.STUDENT.getKey().equals(comment.getLoginIdentity())) {
+                userService.setDataMation(commentList, Comment::getCreateId);
+            } else {
+                iAuthUserService.setDataMation(commentList, Comment::getCreateId);
+            }
+            return comment;
+        }).collect(Collectors.toList());
+        Map<String, List<Comment>> commentMap = bean.stream()
             .collect(Collectors.groupingBy(Comment::getPostId));
         return commentMap;
     }
@@ -236,6 +241,8 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
 
     @Override
     public void createPrepose(Comment entity) {
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        entity.setLoginIdentity(userIdentity);
         entity.setUpvoteNum(String.valueOf(CommonNumConstants.NUM_ZERO));
         if (StrUtil.isNotEmpty(entity.getCommentId())) {
             Comment comment = commentService.selectById(entity.getCommentId());
