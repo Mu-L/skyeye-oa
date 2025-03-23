@@ -31,12 +31,6 @@ public class ChapterController {
     @Autowired
     private ChapterService chapterService;
 
-    /**
-     * 添加或修改章节
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeChapter", value = "新增/编辑章节信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Chapter.class)
     @RequestMapping("/post/ChapterController/writeChapter")
@@ -44,12 +38,6 @@ public class ChapterController {
         chapterService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询章节信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryChapterById", value = "根据id查询章节信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class ChapterController {
         chapterService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除章节信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteChapterById", value = "根据ID删除章节信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,29 +54,17 @@ public class ChapterController {
         chapterService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表与班级表的关系id获取章节列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryChapterListBySubjectClassesId", value = "根据科目表与班级表的关系id获取章节列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryChapterListBySubjectId", value = "根据科目表id获取章节列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")})
-    @RequestMapping("/post/ChapterController/queryChapterListBySubjectClassesId")
-    public void queryChapterListBySubjectClassesId(InputObject inputObject, OutputObject outputObject) {
-        chapterService.queryChapterListBySubjectClassesId(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目表id", required = "required")})
+    @RequestMapping("/post/ChapterController/queryChapterListBySubjectId")
+    public void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject) {
+        chapterService.queryChapterListBySubjectId(inputObject, outputObject);
     }
 
-    /**
-     * 章节分析
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryChapterAnalysis", value = "章节分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")
+        @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")
     })
     @RequestMapping("/post/ChapterController/queryChapterAnalysis")
     public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {

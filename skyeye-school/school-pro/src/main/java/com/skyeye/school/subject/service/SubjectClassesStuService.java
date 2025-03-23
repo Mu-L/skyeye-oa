@@ -32,7 +32,7 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
      * @param subClassLinkId
      * @return
      */
-    Long queruClassStuNum(String subClassLinkId);
+    Long queruClassStuNum(String... subClassLinkId);
 
     /**
      * 查询科目与班级的关联数据下学生信息列表
@@ -51,6 +51,8 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
     List<String> querySubClassLinkIdByStuNo(String stuNo);
 
     void deleteBySno(String subClassLinkId, String sno);
+
+    void deleteBySubClassLinkId(List<String> subClassLinkId);
 
     void queryAllStudentById(InputObject inputObject, OutputObject outputObject);
 
@@ -73,4 +75,5 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
     List<SubjectClassesStu> queryListBySubClassLinkId(String SubClassLinkId);
 
     Long queryStuStarNum(String id, String studentNumber);
+
 }

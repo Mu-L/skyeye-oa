@@ -21,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
@@ -31,6 +32,7 @@ import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import com.skyeye.school.subject.service.SubjectClassesTopService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +69,9 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
 
     @Autowired
     private SchoolService schoolService;
+
+    @Autowired
+    private SubjectClassesTopService subjectClassesTopService;
 
     @Override
     public void validatorEntity(Subject entity) {
@@ -109,12 +115,22 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     @Override
     public Subject selectById(String id) {
         Subject subject = super.selectById(id);
+        schoolService.setDataMation(subject, Subject::getSchoolId);
         return subject;
+    }
+
+    @Override
+    public void deletePostpose(String id) {
+        // 删除所有人对该科目的置顶信息
+        subjectClassesTopService.deleteSubjectClassesTopBySubjectId(id);
+        // 删除所有班级对该科目的关联信息
+        subjectClassesService.deleteBySubjectId(id);
     }
 
     @Override
     public List<Subject> selectByIds(String... ids) {
         List<Subject> subjectList = super.selectByIds(ids);
+        schoolService.setDataMation(subjectList, Subject::getSchoolId);
         return subjectList;
     }
 
@@ -128,16 +144,29 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             // 教师身份信息
             // 查询当前用户创建的科目
             List<Subject> subjectList = querySubjectListByUserId(userId);
-            if (CollectionUtil.isNotEmpty(subjectList)) {
-                List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
-                subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
+            if (CollectionUtil.isEmpty(subjectList)) {
+                return;
             }
+            // 获取所有学校信息
+            List<School> schoolList = schoolService.queryAllData();
+            Map<String, School> schoolMap = schoolList.stream().collect(Collectors.toMap(School::getId, school -> school));
+            // 按学期分组
+            List<String> ids = subjectList.stream().map(Subject::getId).collect(Collectors.toList());
+            subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(ids.toArray(new String[]{}));
             Map<String, List<SubjectClasses>> collect = subjectClassesList.stream().collect(Collectors.groupingBy(SubjectClasses::getSemesterId));
             collect.forEach((key, value) -> {
                 Semester semester = new Semester();
                 semester.setId(key);
                 semester.setName(value.get(CommonNumConstants.NUM_ZERO).getSemesterMation().getName());
-                semester.setSubjectList(value.stream().map(SubjectClasses::getObjectMation).collect(Collectors.toList()));
+                List<Subject> subjects = value.stream().map(SubjectClasses::getObjectMation).collect(Collectors.toList());
+                // 根据id进行去重
+                subjects = new ArrayList<>(subjects.stream()
+                    .collect(Collectors.toMap(Subject::getId, Function.identity(), (existing, replacement) -> existing))
+                    .values());
+                subjects.forEach(subject -> {
+                    subject.setSchoolMation(schoolMap.get(subject.getSchoolId()));
+                });
+                semester.setSubjectList(subjects);
                 semesterList.add(semester);
             });
             outputObject.setBeans(semesterList);

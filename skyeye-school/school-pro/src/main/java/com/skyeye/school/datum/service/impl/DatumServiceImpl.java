@@ -20,7 +20,10 @@ import com.skyeye.school.datum.service.DatumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @ClassName: DatumServiceImpl
@@ -76,7 +79,7 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         double finishRate = 0;
         map.put("activeNum", sumSize);
         map.put("finishRate", finishRate);
-        if(classNum == 0){
+        if (classNum == 0) {
             return map;
         }
         for (String id : ids) {
@@ -90,7 +93,7 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
             double rate = (double) list.size() / classNum;
             finishRate = finishRate + rate;
         }
-        if(finishRate == 0 && ids.length > 1){
+        if (finishRate == 0 && ids.length > 1) {
             finishRate = finishRate / ids.length;
         }
         map.put("finishRate", finishRate);
@@ -98,24 +101,14 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Long queryClassDataNum(String id,String chapterId) {
+    public Long queryClassDataNum(String id, String stuId, String chapterId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
-        if(StrUtil.isNotEmpty(chapterId)){
+        if (StrUtil.isNotEmpty(chapterId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
         }
-        return count(queryWrapper);
-    }
-
-    // 获取学生上传的资料数
-    @Override
-    public Long queryStuDataNum(String id, String stuId, String chapterId) {
-        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getSubjectClassesId), id);
-        if(StrUtil.isNotEmpty(chapterId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
+        if (StrUtil.isNotEmpty(stuId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
         return count(queryWrapper);
     }
 }

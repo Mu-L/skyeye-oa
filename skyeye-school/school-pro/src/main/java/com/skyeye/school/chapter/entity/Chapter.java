@@ -42,9 +42,9 @@ public class Chapter extends BaseGeneralInfo {
     @ApiModelProperty(value = "科目数据的serviceClassName", required = "required")
     private String objectKey;
 
-    @TableField(value = "subject_classes_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "科目表与班级表的关系id", required = "required")
-    private String subjectClassesId;
+    @TableField(value = "subject_id", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "科目表id", required = "required")
+    private String subjectId;
 
     @TableField(value = "annex")
     @ApiModelProperty(value = "附件")

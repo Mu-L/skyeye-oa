@@ -166,6 +166,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void deletePostpose(SubjectClasses entity) {
         FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + entity.getSourceCode());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(Arrays.asList(entity.getId()));
     }
 
     @Override
@@ -255,38 +257,28 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
     }
 
-    public void updateEnabled(String SubjectClassesId, Integer isEnabled) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), isEnabled);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
-    public void updateQuit(String SubjectClassesId, Integer isQuit) {
-        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, SubjectClassesId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), isQuit);
-        update(updateWrapper);
-        refreshCache(SubjectClassesId);
-    }
-
     public void changeEnabled(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String enabled = map.get("enabled").toString();
-        if (enabled.equals(CommonNumConstants.NUM_ONE.toString()) || enabled.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateEnabled(subjectClassesId, Integer.parseInt(enabled));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getEnabled), enabled);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     public void changeQuit(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String quit = map.get("quit").toString();
-        if (quit.equals(CommonNumConstants.NUM_ONE.toString()) || quit.equals(CommonNumConstants.NUM_TWO.toString())) {
-            String subjectClassesId = map.get("id").toString();
-            updateQuit(subjectClassesId, Integer.parseInt(quit));
-        }
+        String subjectClassesId = map.get("id").toString();
+
+        UpdateWrapper<SubjectClasses> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, subjectClassesId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClasses::getQuit), quit);
+        update(updateWrapper);
+        refreshCache(subjectClassesId);
     }
 
     @Override
@@ -326,8 +318,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long joinNum = subjectClassesStuService.queruClassStuNum(id);
         resultMap.put("joinNum", joinNum);
         // 资料个数
-        Long dataNum = datumService.queryClassDataNum(id, null);
-        resultMap.put("dataNum", dataNum);
+//        Long dataNum = datumService.queryClassDataNum(id, null);
+//        resultMap.put("dataNum", dataNum);
         // 公告数
         Long noticeNum = announcementService.queryClassNoticeNum(id);
         resultMap.put("noticeNum", noticeNum);
@@ -347,8 +339,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
         resultMap.put("assignmentJoinNum", assignmentJoinNum);
         // 测试数量
-        Long testNum = measurementService.queryClassMeasurementNum(id, null);
-        resultMap.put("testNum", testNum);
+//        Long testNum = measurementService.queryClassMeasurementNum(id, null);
+//        resultMap.put("testNum", testNum);
         // 测试参与人数
         Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
         resultMap.put("testJoinNum", testJoinNum);
@@ -361,10 +353,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     public void queryStudentAnalysis(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString(); // 科目与班级的关系id
+        SubjectClasses subjectClasses = selectById(id);
         // 查询班级学生信息
         List<Map<String, Object>> studentList = subjectClassesStuService.queryClassStuIds(id);
         // 获取章节数据
-        List<Chapter> chapterList = chapterService.queryChaptersBySubjectClassesId(id);
+        List<Chapter> chapterList = chapterService.queryChaptersBySubjectId(subjectClasses.getObjectId());
         // 获取科目班级下的话题数量
         Long topicNum = topicService.queryClassTopicNum(id);
         // 获取考勤数量
@@ -377,9 +370,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         for (Chapter chapter : chapterList) {
             String name = "chapter" + chapter.getSection();
             // 获取科目班级的章节下的资料数
-            Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
+//            Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
             // 获取科目班级的章节下的测试数
-            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
+//            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
             // 获取科目班级的章节下的作业数
             Long assignmentNum = assignmentService.queryClassAssignmentNum(id, chapter.getId());
             // 获取科目班级下的章节互动课件数量
@@ -389,9 +382,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 String studentNumber = student.get("studentNumber").toString();
                 String stuName = "student" + studentNumber;
                 // 获取学生上传的资料数
-                Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
+//                Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
                 // 获取学生的某章节测试数
-                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
+//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
                 // 获取学生的某章节作业数
                 Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, chapter.getId());
                 // 获取学生的某章节互动课件数量
@@ -409,17 +402,17 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 考勤率
                 double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
                 // 测试完成率
-                double testRate = getRate(stuTestNum, testNum);
+//                double testRate = getRate(stuTestNum, testNum);
                 // 作业完成率
                 double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
                 // 资料上传率
-                double dataRate = getRate(stuDataNum, dataNum);
+//                double dataRate = getRate(stuDataNum, dataNum);
                 // 整体完成率
-                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
-                student.put("stuDataNum", stuDataNum);
-                student.put("dataNum", dataNum);
-                student.put("stuTestNum", stuTestNum);
-                student.put("testNum", testNum);
+                double overallRate = (courseRate + checkWorkRate  + assignmentRate ) / CommonNumConstants.NUM_FIVE;
+//                student.put("stuDataNum", stuDataNum);
+//                student.put("dataNum", dataNum);
+//                student.put("stuTestNum", stuTestNum);
+//                student.put("testNum", testNum);
                 student.put("stuAssignmentNum", stuAssignmentNum);
                 student.put("assignmentNum", assignmentNum);
                 student.put("stuCoursewareNum", stuCoursewareNum);
@@ -446,9 +439,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             // 获取科目班级的作业数量
             Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
             // 获取科目班级的资料
-            Long dataNum = datumService.queryClassDataNum(id, null);
+//            Long dataNum = datumService.queryClassDataNum(id, null);
             // 获取科目班级的测试数量
-            Long testNum = measurementService.queryClassMeasurementNum(id, null);
+//            Long testNum = measurementService.queryClassMeasurementNum(id, null);
             for (Map<String, Object> student : studentList) {
                 String stuId = student.get("id").toString();
                 String studentNumber = student.get("studentNumber").toString();
@@ -458,9 +451,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 获取学生作业数量
                 Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, null);
                 // 获取学生资料数量
-                Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
+//                Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
                 // 获取学生测试数量
-                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
+//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
                 // 获取考勤数量
                 Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
                 // 获取奖励星星数量
@@ -473,10 +466,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 student.put("coursewareNum", coursewareNum);
                 student.put("stuAssignmentNum", stuAssignmentNum);
                 student.put("assignmentNum", assignmentNum);
-                student.put("stuDataNum", stuDataNum);
-                student.put("dataNum", dataNum);
-                student.put("stuTestNum", stuTestNum);
-                student.put("testNum", testNum);
+//                student.put("stuDataNum", stuDataNum);
+//                student.put("dataNum", dataNum);
+//                student.put("stuTestNum", stuTestNum);
+//                student.put("testNum", testNum);
                 student.put("stuCheckWorkNum", stuCheckWorkNum);
                 student.put("checkWorkNum", checkWorkNum);
                 student.put("stuTopicNum", stuTopicNum);
@@ -485,12 +478,12 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 student.put("stuTopicCommentNum", stuTopicCommentNum);
                 double courseRate = getRate(stuCoursewareNum, coursewareNum);
                 double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
-                double testRate = getRate(stuTestNum, testNum);
+//                double testRate = getRate(stuTestNum, testNum);
                 double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
-                double dataRate = getRate(stuDataNum, dataNum);
-                double overallRate = (courseRate + checkWorkRate + testRate + assignmentRate + dataRate) / CommonNumConstants.NUM_FIVE;
+//                double dataRate = getRate(stuDataNum, dataNum);
+                double overallRate = (courseRate + checkWorkRate  + assignmentRate ) / CommonNumConstants.NUM_FIVE;
                 student.put("overallRate", overallRate);
-                tempMap.put(studentNumber, student);
+                tempMap.put(stuName, student);
                 bean.add(tempMap);
             }
             resultMap.put("all", bean);
@@ -509,5 +502,32 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             return 0.0;
         }
         return (double) num / totalNum * 100;
+    }
+
+    @Override
+    public void deleteBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return;
+        }
+        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        // 删除班级学生关联表
+        subjectClassesStuService.deleteBySubClassLinkId(ids);
+        // 删除班级科目关联表
+        remove(queryWrapper);
+    }
+
+    @Override
+    public Long queryStuNumBySubjectId(String subjectId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return 0L;
+        }
+        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        return null;
     }
 }

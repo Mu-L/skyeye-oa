@@ -30,15 +30,11 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectClassesTopService;
-import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,9 +60,6 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
-
-    @Autowired
-    private SubjectService subjectService;
 
     @Autowired
     private ScorePartService scorePartService;
@@ -158,9 +151,14 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
     }
 
-    public Long queruClassStuNum(String subClassLinkId) {
+    public Long queruClassStuNum(String... subClassLinkId) {
+        List<String> idList = Arrays.asList(subClassLinkId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return 0L;
+        }
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), idList);
         return count(queryWrapper);
     }
 
@@ -193,6 +191,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), sno);
+        remove(updateWrapper);
+    }
+
+    @Override
+    public void deleteBySubClassLinkId(List<String> subClassLinkId) {
+        UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         remove(updateWrapper);
     }
 

@@ -145,7 +145,11 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                     // 我接收的消息
                     user = userMap.get(talkChatHistory.getSendId());
                 }
+                if (user == null) {
+                    continue;
+                }
                 // 发送者信息
+                bean.put("userMation",iAuthUserService.queryDataMationById(user.get("id").toString()));
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
                 bean.put("staffId", user.get("staffId").toString());
@@ -171,6 +175,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
+
     public List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map) {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper
@@ -180,7 +185,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                         .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
                         .or()
                         .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()));
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
+                .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         List<String> userIds = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
@@ -202,7 +208,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             map1.put("content", chatHistory.getContent());
             map1.put("userId", map.get("userId").toString());
             map1.put("createTime", chatHistory.getCreateTime().toString());
-            result.add(map);
+            result.add(map1);
         }
         return result;
     }
