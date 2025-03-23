@@ -67,6 +67,10 @@ public class Video extends OperatorUserInfo {
     @ApiModelProperty(value = "标签，最多三个标签", required = "required")
     private String tagId;
 
+    @TableField("login_identity")
+    @Property(value = "登录身份")
+    private String loginIdentity;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "标签名列表")
     private List<VideoTag> tagMation;

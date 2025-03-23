@@ -98,22 +98,14 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Long queryClassDataNum(String id,String chapterId) {
+    public Long queryClassDataNum(String id, String stuId, String chapterId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
         if(StrUtil.isNotEmpty(chapterId)){
             queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
         }
-        return count(queryWrapper);
-    }
-
-    // 获取学生上传的资料数
-    @Override
-    public Long queryStuDataNum(String id, String stuId, String chapterId) {
-        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        if(StrUtil.isNotEmpty(chapterId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
         return count(queryWrapper);
     }
 }

@@ -326,7 +326,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long joinNum = subjectClassesStuService.queruClassStuNum(id);
         resultMap.put("joinNum", joinNum);
         // 资料个数
-        Long dataNum = datumService.queryClassDataNum(id, null);
+        Long dataNum = datumService.queryClassDataNum(id, null,null);
         resultMap.put("dataNum", dataNum);
         // 公告数
         Long noticeNum = announcementService.queryClassNoticeNum(id);
@@ -347,7 +347,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
         resultMap.put("assignmentJoinNum", assignmentJoinNum);
         // 测试数量
-        Long testNum = measurementService.queryClassMeasurementNum(id, null);
+        Long testNum = measurementService.queryClassMeasurementNum(id, null,null);
         resultMap.put("testNum", testNum);
         // 测试参与人数
         Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
@@ -377,9 +377,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         for (Chapter chapter : chapterList) {
             String name = "chapter" + chapter.getSection();
             // 获取科目班级的章节下的资料数
-            Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
+            Long dataNum = datumService.queryClassDataNum(id, null,chapter.getId());
             // 获取科目班级的章节下的测试数
-            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
+            Long testNum = measurementService.queryClassMeasurementNum(id,null, chapter.getId());
             // 获取科目班级的章节下的作业数
             Long assignmentNum = assignmentService.queryClassAssignmentNum(id, chapter.getId());
             // 获取科目班级下的章节互动课件数量
@@ -389,7 +389,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 String studentNumber = student.get("studentNumber").toString();
                 String stuName = "student" + studentNumber;
                 // 获取学生上传的资料数
-                Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
+                Long stuDataNum = datumService.queryClassDataNum(id, stuId, chapter.getId());
                 // 获取学生的某章节测试数
                 Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
                 // 获取学生的某章节作业数
@@ -446,9 +446,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             // 获取科目班级的作业数量
             Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
             // 获取科目班级的资料
-            Long dataNum = datumService.queryClassDataNum(id, null);
+            Long dataNum = datumService.queryClassDataNum(id, null,null);
             // 获取科目班级的测试数量
-            Long testNum = measurementService.queryClassMeasurementNum(id, null);
+            Long testNum = measurementService.queryClassMeasurementNum(id,null, null);
             for (Map<String, Object> student : studentList) {
                 String stuId = student.get("id").toString();
                 String studentNumber = student.get("studentNumber").toString();
@@ -458,7 +458,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 获取学生作业数量
                 Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, null);
                 // 获取学生资料数量
-                Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
+                Long stuDataNum = datumService.queryClassDataNum(id, stuId, null);
                 // 获取学生测试数量
                 Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
                 // 获取考勤数量

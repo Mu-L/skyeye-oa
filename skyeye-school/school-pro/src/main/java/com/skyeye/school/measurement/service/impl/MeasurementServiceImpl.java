@@ -160,11 +160,14 @@ public class MeasurementServiceImpl extends SkyeyeBusinessServiceImpl<Measuremen
 
     // 根据科目班级id获取测试的数量
     @Override
-    public Long queryClassMeasurementNum(String id, String chapterId) {
+    public Long queryClassMeasurementNum(String id, String stuId, String chapterId) {
         QueryWrapper<Measurement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getSubjectClassesId), id);
         if (StrUtil.isNotEmpty(chapterId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getChapterId), chapterId);
+        }
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Measurement::getCreateId), stuId);
         }
         return count(queryWrapper);
     }

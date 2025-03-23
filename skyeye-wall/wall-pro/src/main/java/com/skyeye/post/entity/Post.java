@@ -81,6 +81,10 @@ public class Post extends OperatorUserInfo {
     @ApiModelProperty(value = "圈子id")
     private String circleId;
 
+    @TableField("login_identity")
+    @Property(value = "登录身份")
+    private String loginIdentity;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "九宫格图片", required = "json")
     private List<Picture> pictureList;

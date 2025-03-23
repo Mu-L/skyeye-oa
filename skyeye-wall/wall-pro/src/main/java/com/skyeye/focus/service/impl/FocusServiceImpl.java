@@ -1,6 +1,7 @@
 package com.skyeye.focus.service.impl;
 
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -44,22 +46,29 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = queryFoucusList(inputObject);
-        try {
-            userService.setMationForMap(beans,"userId","userMation");
-        }catch (Exception e) {
-            iAuthUserService.setMationForMap(beans,"userId","userMation");
-        }
-        return beans;
+        return queryFoucusList(inputObject);
     }
 
-    private  List<Map<String, Object>> queryFoucusList(InputObject inputObject) {
+    private List<Map<String, Object>> queryFoucusList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = commonPageInfo.getObjectId();
         QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Focus::getCreateTime));
-        return JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
+        List<Focus> bean = list(queryWrapper).stream().map(focus -> {
+            if (ObjectUtil.isEmpty(userService.selectById(focus.getUserId()))) {
+                iAuthUserService.setDataMation(focus, Focus::getUserId);
+            } else {
+                userService.setDataMation(focus, Focus::getUserId);
+            }
+            if (ObjectUtil.isEmpty(userService.selectById(focus.getCreateId()))) {
+                iAuthUserService.setDataMation(focus, Focus::getCreateId);
+            } else {
+                userService.setDataMation(focus, Focus::getCreateId);
+            }
+            return focus;
+        }).collect(Collectors.toList());
+        return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
     }
 
 

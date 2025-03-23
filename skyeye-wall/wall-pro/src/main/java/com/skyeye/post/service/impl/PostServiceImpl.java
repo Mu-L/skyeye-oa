@@ -86,6 +86,25 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Autowired
     private JoinCircleService joinCircleService;
 
+    private Post setUserMation(Post post) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        Map<String, Boolean> checkUpvote = new HashMap<>();
+        if (StrUtil.isNotEmpty(userToken)) {
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            if (StrUtil.isNotEmpty(userId)) {
+                checkUpvote = upvoteService.checkUpvote(userId, post.getId());
+            }
+        }
+        if(CollectionUtil.isNotEmpty(checkUpvote)){
+            post.setCheckUpvote(checkUpvote.get(post.getId()));
+        }
+        if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())){
+            userService.setDataMation(post,Post::getCreateId);
+        }else {
+            iAuthUserService.setDataMation(post,Post::getCreateId);
+        }
+        return post;
+    }
 
     private List<Map<String, Object>> queryPostList(InputObject inputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -98,8 +117,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (params.containsKey("holderId") && StrUtil.isNotEmpty(params.get("holderId").toString())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), params.get("holderId").toString());
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-            List<Post> postList = list(queryWrapper);
-            List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(postList), null);
+            // 设置用户信息--和点赞信息
+            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+            List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             String circleId = params.get("holderId").toString();
@@ -116,16 +136,16 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                                 .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId);
                     })
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-            List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
-            return beans;
+            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
         } else {
             queryWrapper.and(wrapper -> {
                         wrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), null).or()
                                 .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
                     })
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-            List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
-            return beans;
+            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
         }
     }
 
@@ -138,16 +158,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Map<String, List<Comment>> commentMap = commentService.getCommentMapListByIds(postIds);
         // 获取帖子图片信息
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
-        // 获取点赞信息
-        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
-        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if (StrUtil.isNotEmpty(userToken)) {
-            String userId = inputObject.getLogParams().get("id").toString();
-            if (StrUtil.isNotEmpty(userId)) {
-                checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
-            }
-        }
-        Map<String, Boolean> finalCheckUpvoteMap = checkUpvoteMap;
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
             // 是否匿名
@@ -162,22 +172,15 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             // 设置图片信息
             bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
             bean.put("pictureSize", pictureMap.size());
-            // 设置点赞信息
-            if (CollectionUtil.isNotEmpty(finalCheckUpvoteMap)) {
-                bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
-            }
         });
-        try {
-            userService.setMationForMap(beans, "createId", "createMation");
-        }catch (Exception e) {
-            iAuthUserService.setMationForMap(beans, "createId", "createMation");
-        }
         return beans;
     }
 
     @Override
     public void createPrepose(Post entity) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        entity.setLoginIdentity(userIdentity);
         entity.setCreateId(userId);
         entity.setIp(IpUtil.getLocalAddress().toString());
         HttpServletRequest request = PutObject.getRequest();
@@ -220,9 +223,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Override
     public Post selectById(String id) {
         Post post = super.selectById(id);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        Map<String, Boolean> checkUpvote = upvoteService.checkUpvote(userId, post.getId());
-        post.setCheckUpvote(checkUpvote.get(post.getId()));
+        setUserMation(post);
         if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
             // 匿名
             post.setCreateId(StrUtil.EMPTY);
@@ -286,13 +287,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (CollectionUtil.isEmpty(upvoteList)) {
             return;
         }
-        Map<Integer, String> map = new HashMap<>();
-        for (int i = 0; i < upvoteList.size(); i++) {
-            map.put(i, upvoteList.get(i).getObjectId());
-        }
+        List<String> postIds = upvoteList.stream().map(Upvote::getObjectId).collect(Collectors.toList());
         //分页
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Post> list = commentAndUpvoteOperationPost(userId, map);
+        List<Post> list = commentAndUpvoteOperationPost(postIds);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
@@ -306,54 +304,34 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (CollectionUtil.isEmpty(myCommentList)) {
             return;
         }
-        Map<Integer, String> map = new HashMap<>();
-        for (int i = 0; i < myCommentList.size(); i++) {
-            map.put(i, myCommentList.get(i).getPostId());
-        }
+        List<String> postIds = myCommentList.stream().map(Comment::getPostId).collect(Collectors.toList());
         //分页
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Post> list = commentAndUpvoteOperationPost(userId, map);
+        List<Post> list = commentAndUpvoteOperationPost(postIds);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
 
-    public List<Post> commentAndUpvoteOperationPost(String userId, Map<Integer, String> map) {
-        List<String> postIds = new ArrayList<>();
-        map.forEach((key, value) -> postIds.add(value));
+    public List<Post> commentAndUpvoteOperationPost(List<String> postIds) {
         //查询post
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
-        List<Post> list = list(queryWrapper);
-        List<Post> sortPostList = new ArrayList<>();
-        map.forEach((key, value) -> {
-            for (Post post : list) {
-                if (value.equals(post.getId())) {
-                    sortPostList.add(post);
-                }
-            }
-        });
-        //查询PictureList、checkUpvote、commentList
+        List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+        //查询PictureList、commentList
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
-        Map<String, Boolean> booleanMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
         Map<String, List<Comment>> commentListMap = commentService.getCommentMapListByIds(postIds);
-        //设置PictureList、checkUpvote、commentList
-        sortPostList.forEach(post -> {
+        //设置PictureList、commentList
+        bean.forEach(post -> {
             if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
                 // 匿名
                 post.setCreateId(StrUtil.EMPTY);
                 post.setLastUpdateId(StrUtil.EMPTY);
             }
             post.setPictureList(pictureMap.get(post.getId()));
-            post.setCheckUpvote(booleanMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
                     CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
         });
-        try {
-            userService.setDataMation(list, Post::getCreateId);
-        }catch (Exception e){
-            iAuthUserService.setDataMation(list, Post::getCreateId);
-        }
-        return sortPostList;
+        return bean;
     }
 
     @Override
@@ -370,18 +348,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 .map(HistoryPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
-        List<Post> postList = list(queryWrapper);
-        //设置点赞信息
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
-        checkUpvoteMap.forEach((key, value) -> {
-            postList.forEach(post -> {
-                if (post.getId().equals(key)) {
-                    post.setCheckUpvote(value);
-                }
-            });
-        });
-        outputObject.setBeans(postList);
-        outputObject.settotal(pages.size());
+        //设置点赞信息--当前登陆人是否点赞
+        List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+        outputObject.setBeans(bean);
+        outputObject.settotal(bean.size());
     }
 
     @Override
@@ -428,27 +398,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         if (CollectionUtil.isEmpty(postIds)) {
-            throw new CustomException("暂无热门帖子");
+            return;
         }
         queryWrapper.in(CommonConstants.ID, postIds);
-        List<Post> postList = list(queryWrapper);
-        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        Map<String, Boolean> checkUpvoteMap = new HashMap<>();
-        if (StrUtil.isNotEmpty(userToken)) {
-            String userId = InputObject.getLogParamsStatic().get("id").toString();
-            checkUpvoteMap = upvoteService.checkUpvote(userId, postIds.toArray(new String[]{}));
-        }
-        //获取点赞信息
-        if (CollectionUtil.isNotEmpty(checkUpvoteMap)) {
-            checkUpvoteMap.forEach((key, value) -> {
-                postList.forEach(post -> {
-                    if (key.equals(post.getId())) {
-                        post.setCheckUpvote(value);
-                    }
-                });
-            });
-        }
-        outputObject.setBeans(postList);
+        List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+        outputObject.setBeans(bean);
         outputObject.settotal(popularPostList.size());
     }
 
