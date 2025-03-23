@@ -5,7 +5,6 @@
 package com.skyeye.school.knowledge.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -42,9 +41,7 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
     @Override
     public QueryWrapper<KnowledgePoints> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<KnowledgePoints> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(KnowledgePoints::getSubjectId), commonPageInfo.getObjectId());
-        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(KnowledgePoints::getObjectId), commonPageInfo.getObjectId());
         return queryWrapper;
     }
 

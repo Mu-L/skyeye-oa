@@ -38,10 +38,6 @@ public class KnowledgePoints extends BaseGeneralInfo {
     @ApiModelProperty(value = "科目数据的serviceClassName", required = "required")
     private String objectKey;
 
-    @TableField("subject_id")
-    @ApiModelProperty(value = "科目表id", required = "required")
-    private String subjectId;
-
     @TableField("chapter_id")
     @ApiModelProperty(value = "所属章节id", required = "required")
     private String chapterId;
