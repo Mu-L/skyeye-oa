@@ -21,8 +21,10 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.school.assignment.classenum.AssignmentTimeState;
 import com.skyeye.school.assignment.dao.AssignmentDao;
 import com.skyeye.school.assignment.entity.Assignment;
+import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
+import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.entity.ScoreTypeChild;
@@ -34,6 +36,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -161,30 +164,55 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         }
     }
 
+    /**
+     * type--传 all 计算全部的分析
+     * */
     @Override
-    public Map<String, Double> queryAssigmentByChapterId(long num, String... ids) {
-        Map<String, Double> map = new HashMap<>();
-        double sumSize = 0;
-        double finishRate = 0;
-        map.put("activeNum", sumSize);
-        map.put("finishRate", finishRate);
-        for (String id : ids) {
-            QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), id);
-            List<Assignment> list = list(queryWrapper);
-            if (CollectionUtil.isEmpty(list)) {
-                continue;
+    public Map<String, Object> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
+        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
+        List<Assignment> list = list(queryWrapper); // 所有章节下的作业
+        if (CollectionUtil.isEmpty(list)) {
+            return null;
+        }
+        // 按章节id分组
+        Map<String, List<Assignment>> map = list.stream().collect(Collectors.groupingBy(Assignment::getChapterId));
+        List<String> assIds = list.stream().map(Assignment::getId).collect(Collectors.toList()); // 所有作业id
+        // 获取所有完成作业情况
+        List<AssignmentSub> assignmentSubs = assignmentSubService.queryAssSubByAssignmentIds(assIds);
+        // 按作业id分组
+        Map<String, List<AssignmentSub>> assSubMap = assignmentSubs.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId));
+        // 作业分析
+        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, Object> temp = new HashMap<>();
+        if(StrUtil.isNotEmpty(type)){
+            double completeNum = assignmentSubs.size(); // 完成作业次数数
+            double totalNum = list.size(); // 总作业次数
+            temp.put("activeNum", totalNum);
+            // 计算完成率--16.8%
+            String completeRate = new DecimalFormat("0.0%").format(completeNum/(totalNum*classNum));
+            temp.put("completeRate", completeRate);
+            resultMap.put(type, temp);
+            return resultMap;
+        }
+        for (Chapter chapter : chapterList) {
+            String name = "chapter" + chapter.getSection();
+            List<Assignment> assignments = map.get(chapter.getId());
+            temp.put("activeNum", assignments.size());
+            double completeNum = 0;
+            for (Assignment assignment : assignments) {
+                List<AssignmentSub> assSub = assSubMap.get(assignment.getId());
+                if(CollectionUtil.isNotEmpty(assSub)){
+                    completeNum += assSub.size();
+                }
             }
-            sumSize += list.size();
-            List<String> assignmentIdList = list.stream().map(Assignment::getId).collect(Collectors.toList());
-            double rate = assignmentSubService.queryAssignmentFinshRate(assignmentIdList, num);
-            finishRate = finishRate + rate;
+            String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
+            temp.put("completeRate", completeRate);
+            resultMap.put(name, temp);
+            temp = new HashMap<>();
         }
-        if (finishRate == 0 && ids.length > 1) {
-            finishRate = finishRate / ids.length;
-        }
-        map.put("finishRate", finishRate);
-        return map;
+        return resultMap;
     }
 
     // 查询科目班级id作业数量

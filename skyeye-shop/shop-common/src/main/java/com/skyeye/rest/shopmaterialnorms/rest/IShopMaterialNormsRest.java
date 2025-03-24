@@ -46,6 +46,15 @@ public interface IShopMaterialNormsRest {
     String saveShopMaterialStore(@RequestParam("storeId") String storeId);
 
     /**
+     * 根据门店id删除商城商品信息
+     *
+     * @param storeIds 门店id，多个逗号隔开
+     * @return
+     */
+    @PostMapping("/deleteShopMaterialStoreByStoreIds")
+    String deleteShopMaterialStoreByStoreIds(@RequestParam("storeIds") String storeIds);
+
+    /**
      * 获取商城商品信息列表供选择
      *
      * @return

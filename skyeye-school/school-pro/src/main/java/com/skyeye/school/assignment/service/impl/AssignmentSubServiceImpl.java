@@ -8,7 +8,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -31,11 +30,8 @@ import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
-import com.skyeye.school.score.entity.ScorePart;
-import com.skyeye.school.score.entity.ScoreTypeChild;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreService;
-import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -266,29 +262,6 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         outputObject.settotal(ObjectUtil.isEmpty(assignmentSub) ? CommonNumConstants.NUM_ZERO : CommonNumConstants.NUM_ONE);
     }
 
-
-    @Override
-    public double queryAssignmentFinshRate(List<String> assignmentIdList, long num) {
-        double sum = 0;
-        if(CollectionUtil.isEmpty(assignmentIdList) || num ==0){
-            return sum;
-        }
-        for (String assignmentId : assignmentIdList) {
-            QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId);
-            long total = count(queryWrapper);
-            if(total == 0){
-                continue;
-            }
-            double temp = (double) total / num;
-            sum = sum + temp;
-        }
-        if(sum == 0){
-            return sum;
-        }
-        return sum / assignmentIdList.size();
-    }
-
     // 获取作业参数人数
     @Override
     public Long queryClassAssignmentJoinNum(String id) {
@@ -306,6 +279,17 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
             sum += total;
         }
         return sum;
+    }
+
+    @Override
+    public List<AssignmentSub> queryAssSubByAssignmentIds(List<String> assIds) {
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
+        List<AssignmentSub> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)){
+            return Collections.emptyList();
+        }
+        return list;
     }
 
 }

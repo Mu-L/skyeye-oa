@@ -17,18 +17,18 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.school.assignment.entity.Assignment;
+import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.dao.CoursewareDao;
 import com.skyeye.school.courseware.entity.Courseware;
+import com.skyeye.school.courseware.entity.CoursewareStudy;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -134,5 +134,53 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getCreateId), stuId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public Map<String, Object> queryInterAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
+        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
+        List<Courseware> list = list(queryWrapper); // 所有章节下的课件
+        if (CollectionUtil.isEmpty(list)) {
+            return null;
+        }
+        // 按章节id分组
+        Map<String, List<Courseware>> map = list.stream().collect(Collectors.groupingBy(Courseware::getChapterId));
+        List<String> coursewareIds = list.stream().map(Courseware::getId).collect(Collectors.toList()); // 所有课件id
+
+        // 获取所有完成作业情况
+        List<CoursewareStudy> coursewareSubs = coursewareStudyService.queryCoursewareSubByCoursewareIds(coursewareIds);
+        Map<String, List<CoursewareStudy>> coursewareSubMap = coursewareSubs.stream().collect(Collectors.groupingBy(CoursewareStudy::getCoursewareId));
+        // 互动课件分析
+
+        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, Object> temp = new HashMap<>();
+        if (StrUtil.isNotEmpty(type)) {
+            double completeNum = coursewareSubs.size(); // 完成互动课件次数数
+            double totalNum = list.size(); // 总互动课件次数
+            temp.put("activeNum", totalNum);
+            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
+            temp.put("completeRate", completeRate);
+            resultMap.put(type, temp);
+            return resultMap;
+        }
+        for (Chapter chapter : chapterList) {
+            String name = "chapter" + chapter.getSection();
+            List<Courseware> coursewares = map.get(chapter.getId());
+            temp.put("activeNum", coursewares.size());
+            double completeNum = 0;
+            for (Courseware courseware : coursewares) {
+                List<CoursewareStudy> coursewareStudies = coursewareSubMap.get(courseware.getId());
+                if (CollectionUtil.isNotEmpty(coursewareStudies)) {
+                    completeNum += coursewareStudies.size();
+                }
+            }
+            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
+            temp.put("completeRate", completeRate);
+            resultMap.put(name, temp);
+            temp = new HashMap<>();
+        }
+        return resultMap;
     }
 }
