@@ -45,11 +45,11 @@ public class GroupsInformation extends OperatorUserInfo {
     private Integer groupsNumber;
 
     @TableField("subject_id")
-    @ApiModelProperty(value = "科目ID", required = "required")
+    @ApiModelProperty(value = "科目ID")
     private String subjectId;
 
     @TableField("class_id")
-    @ApiModelProperty(value = "班级ID（可选字段，不按班级分组时为空）")
+    @ApiModelProperty(value = "班级ID")
     private String classId;
 
 }

@@ -13,16 +13,16 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.school.grade.entity.Classes;
+import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
-import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import com.skyeye.school.subject.service.SubjectService;
 import com.skyeye.school.subject.service.impl.SubjectClassesServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,19 +71,33 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         return beans;
     }
 
+    @Autowired
+    private ClassesService classesService;
     @Override
     public void createPostpose(GroupsInformation groupsInformation, String id) {
-        Integer status = groupsInformation.getStatus();
-        if (status.equals(CommonNumConstants.NUM_ZERO)) {
-            groupsService.insertList(groupsInformation);
+        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
+        String classId = groupsInformation.getClassId();
+        if (StrUtil.isNotEmpty(classId)){
+            List<Classes> classesList = classesService.queryClassListById(classId);
+            List<String> collect = classesList.stream().map(Classes::getId).collect(Collectors.toList());
+            List<List<SubjectClasses>> collect1 = collect.stream().map(id1 -> subjectClassesService.selectIdByClassId(id1)).collect(Collectors.toList());
+            
         }
+        List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        List<SubjectClassesStu> allStudents = collect.stream()
+                .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+                .flatMap(List::stream)
+                .collect(Collectors.toList());//获取所有科目下的学生
+        Integer status = groupsInformation.getStatus();
+        Integer groNumber = groupsInformation.getGroNumber();
+        if (status.equals(CommonNumConstants.NUM_ZERO)) {
+            if (allStudents.size() < groNumber) {
+                throw new CustomException("学生人数不足,无法创建分组");
+            }
+            groupsService.insertList(groupsInformation ,allStudents);
+        }
+        Integer groupsNum = groupsInformation.getGroupsNum();
         if (status.equals(CommonNumConstants.NUM_ONE)) {
-            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
-            List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-            List<SubjectClassesStu> allStudents = collect.stream()
-                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
             int size = allStudents.size();
             Integer groupsnun = groupsInformation.getGroupsNum();
             if (size < groupsnun) {
@@ -98,7 +112,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                     groupsInformation.setGroupsNumber(num2);
                 }
             }
-            groupsService.insertList(groupsInformation);
+            groupsService.insertList(groupsInformation, allStudents);
         }
     }
 

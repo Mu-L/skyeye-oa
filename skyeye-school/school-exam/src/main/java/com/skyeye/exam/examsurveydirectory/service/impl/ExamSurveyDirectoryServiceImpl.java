@@ -662,6 +662,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
+        bean.setFacultyMation(facultyService.selectById(bean.getFacultyId()));
+        bean.setMajorMation(majorService.selectById(bean.getMajorId()));
         bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
         List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.selectBySurveyId(bean.getId());
         if (CollectionUtil.isNotEmpty(examSurveyMarkExamList)) {

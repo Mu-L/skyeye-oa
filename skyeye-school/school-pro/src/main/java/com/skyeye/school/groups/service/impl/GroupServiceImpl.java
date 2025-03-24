@@ -15,10 +15,12 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.school.groups.dao.GroupsDao;
 import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsService;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +46,7 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     }
 
     @Override
-    public void insertList(GroupsInformation groupsInformation){
+    public void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents){
         //构造数据
         Integer status = groupsInformation.getStatus();
         List<Groups> groupsList = new ArrayList<>();

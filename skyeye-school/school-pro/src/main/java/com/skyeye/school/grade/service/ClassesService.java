@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.grade.entity.Classes;
 
+import java.util.List;
+
 /**
  * @ClassName: ClassesService
  * @Description: 班级管理服务接口层
@@ -21,4 +23,5 @@ public interface ClassesService extends SkyeyeBusinessService<Classes> {
 
     void queryClassListByMajorId(InputObject inputObject, OutputObject outputObject);
 
+    List<Classes> queryClassListById(String classId);
 }
