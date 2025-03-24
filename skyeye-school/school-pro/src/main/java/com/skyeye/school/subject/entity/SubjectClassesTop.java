@@ -34,7 +34,7 @@ public class SubjectClassesTop extends OperatorUserInfo {
     private String subjectId;
 
     @TableField("sub_class_link_id")
-    @ApiModelProperty(value = "科目表与班级表关系id")
+    @ApiModelProperty(value = "科目表与班级表关系id，学生置顶的话这个属性才有值")
     private String subClassLinkId;
 
 }

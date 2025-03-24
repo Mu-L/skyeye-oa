@@ -162,7 +162,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return count(queryWrapper);
     }
 
-    public List<Map<String, Object>> queryClassStuIds(String subClassLinkId) {
+    public List<Map<String, Object>> queryClassStuIds(String... subClassLinkId) {
+        List<String> idList = Arrays.asList(subClassLinkId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return new ArrayList<>();
+        }
         // 获取班级学生信息
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
@@ -203,10 +208,29 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     public void queryAllStudentById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String subjectId = map.get("subjectId").toString();
         String subClassLinkId = map.get("subClassLinkId").toString();
-        List<Map<String, Object>> maps = queryClassStuIds(subClassLinkId);
-        outputObject.setBeans(maps);
-        outputObject.settotal(maps.size());
+        if (StrUtil.isEmpty(subjectId) && StrUtil.isEmpty(subClassLinkId)) {
+            throw new CustomException("参数不能为空，请传入科目id或科目与班级的关联id");
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (StrUtil.isNotEmpty(subjectId)) {
+            // 查询这个科目下的所有学生
+            List<SubjectClasses> subjectClasses = subjectClassesService.querySubjectClassesByObjectId(subjectId);
+            if (CollectionUtil.isEmpty(subjectClasses)) {
+                return;
+            }
+            List<String> subClassLinkIds = subjectClasses.stream().map(SubjectClasses::getId).distinct().collect(Collectors.toList());
+            result = queryClassStuIds(subClassLinkIds.toArray(new String[]{}));
+        } else {
+            if (StrUtil.isNotEmpty(subClassLinkId)) {
+                // 查询这个班级下的所有学生
+                result = queryClassStuIds(subClassLinkId);
+            }
+        }
+
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
     }
 
     public void queryStudentSubjectClassesBySubClassLinkIdAndStuNo(InputObject inputObject, OutputObject outputObject) {
