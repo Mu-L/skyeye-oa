@@ -36,6 +36,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -189,7 +190,9 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             double completeNum = assignmentSubs.size(); // 完成作业次数数
             double totalNum = list.size(); // 总作业次数
             temp.put("activeNum", totalNum);
-            temp.put("completeRate", completeNum/(totalNum*classNum));
+            // 计算完成率--16.8%
+            String completeRate = new DecimalFormat("0.0%").format(completeNum/(totalNum*classNum));
+            temp.put("completeRate", completeRate);
             resultMap.put(type, temp);
             return resultMap;
         }
@@ -199,10 +202,12 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             temp.put("activeNum", assignments.size());
             double completeNum = 0;
             for (Assignment assignment : assignments) {
-                int size = assSubMap.get(assignment.getId()).size();
-                completeNum = completeNum + size;
+                List<AssignmentSub> assSub = assSubMap.get(assignment.getId());
+                if(CollectionUtil.isNotEmpty(assSub)){
+                    completeNum += assSub.size();
+                }
             }
-            double completeRate = completeNum / (assignments.size() * classNum);
+            String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
             temp.put("completeRate", completeRate);
             resultMap.put(name, temp);
             temp = new HashMap<>();

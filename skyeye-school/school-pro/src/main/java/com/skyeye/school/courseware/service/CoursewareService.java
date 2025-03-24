@@ -7,8 +7,10 @@ package com.skyeye.school.courseware.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.courseware.entity.Courseware;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,4 +30,6 @@ public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
     Long queryClassCoursewareNum(String id, String chapterId);
 
     Long queryStuCoursewareNum(String id, String stuId, String chapterId);
+
+    Map<String, Object> queryInterAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type);
 }

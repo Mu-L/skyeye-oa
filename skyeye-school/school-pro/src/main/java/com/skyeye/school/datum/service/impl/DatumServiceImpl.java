@@ -113,25 +113,4 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         }
         return count(queryWrapper);
     }
-
-    @Override
-    public void queryDatumAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
-        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
-        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterIds); // 所有章节下的资料
-        List<Datum> list = list(queryWrapper);
-        if(CollectionUtil.isEmpty(list)){
-            return;
-        }
-        // 按章节id分组
-        Map<String, List<Datum>> map = list.stream().collect(Collectors.groupingBy(Datum::getChapterId));
-        // 资料分析
-        Map<String, Object> resultMap = new HashMap<>();
-        Map<String, Object> temp = new HashMap<>();
-        if(StrUtil.isNotEmpty(type)){
-            double totalNum = list.size(); // 总资料次数
-            temp.put("activeNum",totalNum);
-            temp.put("completeRate",totalNum);
-        }
-    }
 }

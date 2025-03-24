@@ -18,6 +18,7 @@ import com.skyeye.school.courseware.entity.CoursewareStudy;
 import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -85,5 +86,16 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
             return sum;
         }
         return sum / ids.size();
+    }
+
+    @Override
+    public List<CoursewareStudy> queryCoursewareSubByCoursewareIds(List<String> coursewareIds) {
+        QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), coursewareIds);
+        List<CoursewareStudy> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list;
     }
 }
