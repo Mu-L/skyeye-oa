@@ -43,6 +43,10 @@ public class Circle extends OperatorUserInfo {
     @ApiModelProperty(value = "图片", required = "required")
     private String img;
 
+    @TableField("head_img")
+    @ApiModelProperty(value = "头像", required = "required")
+    private String headImg;
+
     @TableField("view_num")
     @ApiModelProperty(value = "浏览数量")
     private Integer viewNum;

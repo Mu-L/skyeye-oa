@@ -57,12 +57,12 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Focus::getCreateTime));
         List<Focus> bean = list(queryWrapper).stream().map(focus -> {
             focus.setCheckFocus(checkFocus(userId, focus.getUserId()));
-            if (ObjectUtil.isEmpty(userService.selectById(focus.getUserId()))) {
+            if (userService.checkCreateIdIsStudent(focus.getUserId())) {
                 iAuthUserService.setDataMation(focus, Focus::getUserId);
             } else {
                 userService.setDataMation(focus, Focus::getUserId);
             }
-            if (ObjectUtil.isEmpty(userService.selectById(focus.getCreateId()))) {
+            if (userService.checkCreateIdIsStudent(focus.getCreateId())) {
                 iAuthUserService.setDataMation(focus, Focus::getCreateId);
             } else {
                 userService.setDataMation(focus, Focus::getCreateId);
