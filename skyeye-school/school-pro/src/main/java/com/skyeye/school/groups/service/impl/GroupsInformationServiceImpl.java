@@ -13,8 +13,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
-import com.skyeye.school.grade.entity.Classes;
-import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
@@ -29,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,48 +70,55 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         return beans;
     }
 
-    @Autowired
-    private ClassesService classesService;
     @Override
-    public void createPostpose(GroupsInformation groupsInformation, String id) {
-        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
+    protected void createPrepose(GroupsInformation groupsInformation) {
+        List<SubjectClassesStu> subjectClassesStuList = new ArrayList<>();
         String classId = groupsInformation.getClassId();
-        if (StrUtil.isNotEmpty(classId)){
-            List<Classes> classesList = classesService.queryClassListById(classId);
-            List<String> collect = classesList.stream().map(Classes::getId).collect(Collectors.toList());
-            List<List<SubjectClasses>> collect1 = collect.stream().map(id1 -> subjectClassesService.selectIdByClassId(id1)).collect(Collectors.toList());
-            
+        if (StrUtil.isNotEmpty(classId)) {
+            List<SubjectClasses> subjectClassesList1 = subjectClassesService.selectIdByClassId(classId);
+            List<String> collect = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> collect1 = collect.stream()
+                    .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
+                    .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
+            subjectClassesStuList.addAll(collect1);
         }
-        List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        List<SubjectClassesStu> allStudents = collect.stream()
-                .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                .flatMap(List::stream)
-                .collect(Collectors.toList());//获取所有科目下的学生
+        String subjectId = groupsInformation.getSubjectId();
+        if (StrUtil.isNotEmpty(subjectId)) {
+            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
+            List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> allStudents = collect.stream()
+                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+                    .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
+            subjectClassesStuList.addAll(allStudents);
+        }
         Integer status = groupsInformation.getStatus();
         Integer groNumber = groupsInformation.getGroNumber();
         if (status.equals(CommonNumConstants.NUM_ZERO)) {
-            if (allStudents.size() < groNumber) {
+            if (subjectClassesStuList.size() < groNumber) {
                 throw new CustomException("学生人数不足,无法创建分组");
             }
-            groupsService.insertList(groupsInformation ,allStudents);
+            groupsService.insertList(groupsInformation, subjectClassesStuList);
         }
-        Integer groupsNum = groupsInformation.getGroupsNum();
         if (status.equals(CommonNumConstants.NUM_ONE)) {
-            int size = allStudents.size();
+            int size = subjectClassesStuList.size();
             Integer groupsnun = groupsInformation.getGroupsNum();
-            if (size < groupsnun) {
-                throw new RuntimeException("学生人数不足,无法创建分组");
-            } else {
-                Integer num = size % groupsnun;
-                if (num != 0) {
-                    Integer num1 = size / groupsnun + 1;
-                    groupsInformation.setGroupsNumber(num1);
-                } else {
-                    int num2 = size / groupsnun;
-                    groupsInformation.setGroupsNumber(num2);
-                }
+            if (groupsnun == null) {
+                throw new CustomException("分组数量未设置");
             }
-            groupsService.insertList(groupsInformation, allStudents);
+            int num;
+            int numGroups;
+            if (size > groupsnun) {
+                num = size % groupsnun;
+                if (num != 0) {
+                    numGroups = size / groupsnun + 1;
+                } else {
+                    numGroups = size / groupsnun;
+                }
+                groupsInformation.setGroupsNumber(numGroups);
+            } else {
+                throw new CustomException("学生人数不足,无法创建分组");
+            }
+            groupsService.insertList(groupsInformation, subjectClassesStuList);
         }
     }
 

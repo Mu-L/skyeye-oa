@@ -22,6 +22,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
@@ -74,6 +75,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         return Joiner.on(CommonCharConstants.HORIZONTAL_LINE_MARK).join(list);
     }
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
     @Override
     public void queryMyChatUnReadMessageList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -83,6 +86,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         queryWrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReadType), WhetherEnum.DISABLE_USING.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
+
         // 根据用户id查询员工数据
         List<String> userIds = chatHistoryList.stream().map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
         List<Map<String, Object>> staffList = iSysEveUserService.queryUserMationList(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds), null);

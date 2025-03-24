@@ -10,5 +10,5 @@ public interface ISysEveUserStaffService extends IService {
 
     List<Map<String, Object>> selectByName(String serviceClassName, String keyword, Integer limit, Integer pages);
 
-    Map<String, Object> selectByObjectId(String userId);
+    Map<String, Object> selectByObjectId(String objectId);
 }
