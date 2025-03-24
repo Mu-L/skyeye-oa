@@ -102,6 +102,13 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     }
 
     @Override
+    public void createPostpose(Circle entity, String userId) {
+        JoinCircle joinCircle = new JoinCircle();
+        joinCircle.setCircleId(entity.getId());
+        joinCircleService.createEntity(joinCircle, userId);
+    }
+
+    @Override
     public void deletePreExecution(Circle circle) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         if (!userId.equals(circle.getCreateId())) {

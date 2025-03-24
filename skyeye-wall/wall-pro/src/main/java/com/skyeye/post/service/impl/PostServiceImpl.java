@@ -157,13 +157,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
-            // 是否匿名
-            Integer anonymity = Integer.parseInt(bean.get("anonymity").toString());
-            if (anonymity == WhetherEnum.ENABLE_USING.getKey()) {
-                // 匿名
-                bean.put("createId", StrUtil.EMPTY);
-                bean.put("lastUpdateId", StrUtil.EMPTY);
-            }
             // 设置评论信息
             bean.put("commentList", CollectionUtil.sub(commentMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
             // 设置图片信息
@@ -221,13 +214,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public Post selectById(String id) {
         Post post = super.selectById(id);
         setUserMation(post);
-        if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
-            // 匿名
-            post.setCreateId(StrUtil.EMPTY);
-            post.setLastUpdateId(StrUtil.EMPTY);
-        } else {
-           setUserMation(post);
-        }
         return post;
     }
 
