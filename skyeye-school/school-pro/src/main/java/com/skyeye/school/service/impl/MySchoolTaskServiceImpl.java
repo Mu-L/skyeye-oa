@@ -31,24 +31,6 @@ public class MySchoolTaskServiceImpl implements MySchoolTaskService {
     private MySchoolTaskDao mySchoolTaskDao;
 
     /**
-     * 获取我当前带领的班级列表
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryMyNowLeadClassList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        // 获取当前用户拥有的学校的数据权限
-        map.put("schoolPowerId", inputObject.getLogParams().get("schoolPowerId"));
-        map.put("staffId", inputObject.getLogParams().get("staffId"));
-        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-        List<Map<String, Object>> beans = mySchoolTaskDao.queryMyNowLeadClassList(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(pages.getTotal());
-    }
-
-    /**
      * 获取我的待阅卷列表
      *
      * @param inputObject 入参以及用户信息等获取对象

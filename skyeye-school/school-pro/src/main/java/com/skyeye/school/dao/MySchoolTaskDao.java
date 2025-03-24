@@ -17,8 +17,6 @@ import java.util.Map;
  */
 public interface MySchoolTaskDao {
 
-    List<Map<String, Object>> queryMyNowLeadClassList(Map<String, Object> map);
-
     List<Map<String, Object>> queryMyWaitMarkingList(Map<String, Object> map);
 
     List<Map<String, Object>> queryMyEndMarkingList(Map<String, Object> map);

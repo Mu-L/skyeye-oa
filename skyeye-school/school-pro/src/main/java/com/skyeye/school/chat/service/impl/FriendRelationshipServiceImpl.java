@@ -4,6 +4,7 @@
 
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -14,6 +15,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.FriendRelationshipDao;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
@@ -72,11 +74,11 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         String id = map.get("id").toString();
         QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
         queryWrapper.and(wrapper -> wrapper
-            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-            .or()
-            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id));
+                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                .or()
+                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id));
         List<FriendRelationship> list = list(queryWrapper);
         for (FriendRelationship item : list) {
             String remainingId;
@@ -100,18 +102,31 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     public List<FriendRelationship> queryFriendList(String holderId, String friendId) {
         QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
         friendQueryWrapper.and(wrapper ->
-                wrapper.or(wrapperOr -> wrapperOr
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId))
-                    .or(wrapperOr -> wrapperOr
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)))
-            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
+                        wrapper.or(wrapperOr -> wrapperOr
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId))
+                                .or(wrapperOr -> wrapperOr
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)))
+                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
         return list(friendQueryWrapper);
     }
 
     @Override
     public void queryFriendByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        String friendId = inputObject.getParams().get("userId").toString();
 
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(friendId);
+        Map<String, Object> dataMation = userOrStudent.getDataMation();
+
+        List<FriendRelationship> friendRelationships = queryFriendList(userId, friendId);
+        if (CollectionUtil.isNotEmpty(friendRelationships)) {
+            dataMation.put("isFriend", true);
+        } else {
+            dataMation.put("isFriend", false);
+        }
+        outputObject.setBean(dataMation);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }

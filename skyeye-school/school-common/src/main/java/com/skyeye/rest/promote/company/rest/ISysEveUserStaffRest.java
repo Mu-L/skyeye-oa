@@ -11,4 +11,13 @@ public interface ISysEveUserStaffRest {
     @PostMapping("queryUserMationList")
     String queryUserMationList(@RequestParam(value = "userIds", required = false) String userIds,
                                @RequestParam(value = "staffIds", required = false) String staffIds);
+
+    @PostMapping("selectByName")
+    String selectByName(@RequestParam(value = "serviceClassName", required = false) String serviceClassName,
+                        @RequestParam(value = "keyword", required = false) String keyword,
+                        @RequestParam(value = "limit") Integer limit,
+                        @RequestParam(value = "pages") Integer pages);
+
+    @PostMapping("selectByObjectId")
+    String selectByObjectId(@RequestParam(value = "objectId") String objectId);
 }

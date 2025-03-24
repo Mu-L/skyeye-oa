@@ -38,7 +38,7 @@ public class FriendRelationshipController {
         friendRelationshipService.queryNoPageFriendsList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryFriendByUserId", value = "根据用户id查询好友消息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFriendByUserId", value = "根据用户id查询好友消息，并判断是否是好友", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userId", name = "userId", value = "用户id", required = "required")})
     @RequestMapping("/post/FriendRelationshipController/queryFriendByUserId")

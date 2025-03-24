@@ -2,36 +2,7 @@
 
 <controller>
 
-	<!-- 教师操作开始 -->
-	<url id="schoolteacher001" path="/post/SchoolTeacherController/querySchoolTeacherList" val="查看所有教师列表" allUse="1">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-		<property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-		<property id="userName" name="userName" ref="" var="教师姓名"/>
-		<property id="userIdCard" name="userIdCard" ref="" var="身份证"/>
-		<property id="userSex" name="userSex" ref="" var="教师性别"/>
-		<property id="schoolId" name="schoolId" ref="" var="学校"/>
-	</url>
-	<url id="schoolteacher006" path="/post/SchoolTeacherController/querySchoolTeacherToTableList" val="获取教师列表供table表格选择" allUse="2">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-		<property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-		<property id="userName" name="userName" ref="" var="教师姓名"/>
-		<property id="userSex" name="userSex" ref="" var="教师性别"/>
-		<property id="schoolId" name="schoolId" ref="" var="学校"/>
-		<property id="whetherIncludeMe" name="whetherIncludeMe" ref="required,num" var="是否包含当前登录用户：1.是；2.否"/>
-		<property id="whetherHasCode" name="whetherHasCode" ref="required,num" var="是否必须是已分配帐号的教师：1.是；2.否"/>
-	</url>
-	<url id="schoolteacher007" path="/post/SchoolTeacherController/querySchoolTeacherListByStaffIds" val="根据staffId串获取教师列表详情" allUse="2">
-		<property id="staffIds" name="staffIds" ref="" var="教师id串" />
-	</url>
-	<!-- 教师操作结束 -->
-	
 	<!-- 我的工作管理开始 -->
-	<url id="myschooltask001" path="/post/MySchoolTaskController/queryMyNowLeadClassList" val="获取我当前带领的班级列表" allUse="1">
-		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
-		<property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
-		<property id="schoolId" name="schoolId" ref="" var="学校id"/>
-		<property id="gradeId" name="gradeId" ref="" var="年级id"/>
-	</url>
 	<url id="myschooltask002" path="/post/MySchoolTaskController/queryMyWaitMarkingList" val="获取我的待阅卷列表" allUse="1">
 		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />
 		<property id="page" name="page" ref="required,num" var="分页参数,第几页"/>
