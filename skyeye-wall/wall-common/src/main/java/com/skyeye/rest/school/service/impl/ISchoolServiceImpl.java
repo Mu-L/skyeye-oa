@@ -17,8 +17,8 @@ public class ISchoolServiceImpl extends IServiceImpl implements ISchoolService {
     private ISchoolRest iSchoolRest;
 
     @Override
-    public List<Map<String,Object>>  querySchoolStudentMation(String no ,String id,String userId){
-        return ExecuteFeignClient.get(()-> iSchoolRest.querySchoolStudentListByNo(no,id,userId)).getRows();
+    public List<Map<String, Object>> querySchoolStudentMation(String no, String id, String userId) {
+        return ExecuteFeignClient.get(() -> iSchoolRest.querySchoolStudentListByNo(no, id, userId)).getRows();
     }
 
 
