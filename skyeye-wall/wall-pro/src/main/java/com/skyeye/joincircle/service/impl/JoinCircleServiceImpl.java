@@ -21,7 +21,9 @@ import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.joincircle.dao.JoinCircleDao;
 import com.skyeye.joincircle.entity.JoinCircle;
+import com.skyeye.joincircle.entity.JoinLimit;
 import com.skyeye.joincircle.service.JoinCircleService;
+import com.skyeye.joincircle.service.JoinLimitService;
 import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,6 +52,9 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private JoinLimitService joinLimitService;
+
     @Override
     public String createEntity(JoinCircle joinCircle, String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
@@ -70,6 +75,15 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     }
 
     @Override
+    public void createPrepose(JoinCircle entity) {
+        super.createPrepose(entity);
+        boolean isAllow = joinLimitService.checkIsAllowJoin(entity.getCircleId(), entity.getCreateId());
+        if (!isAllow) {
+            throw new CustomException("加入圈子失败，您已达到加入次数限制");
+        }
+    }
+
+    @Override
     public void createPostpose(JoinCircle joinCircle, String userId) {
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), joinCircle.getCircleId());
@@ -79,10 +93,15 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
 
     @Override
     public void deletePostpose(JoinCircle joinCircle) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), joinCircle.getCircleId());
         long count = count(queryWrapper);
         circleService.updateJoinNum(joinCircle.getCircleId(), (int) count);
+        JoinLimit joinLimit = new JoinLimit();
+        joinLimit.setObjectId(joinCircle.getCircleId());
+        joinLimit.setUserId(userId);
+        joinLimitService.createEntity(joinLimit, null);
     }
 
     @Override
@@ -149,9 +168,9 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
         JoinCircle one = getOne(queryWrapper);
-        if(ObjectUtil.isEmpty(one)){
+        if (ObjectUtil.isEmpty(one)) {
             throw new CustomException("无权限");
         }
-        remove(queryWrapper);
+        deleteById(one.getId());
     }
 }
