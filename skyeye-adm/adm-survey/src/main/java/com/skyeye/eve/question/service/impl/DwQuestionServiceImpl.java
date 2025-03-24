@@ -341,7 +341,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             }
             if (quType.equals(QuType.CHECKBOX.getIndex())) {
                 dwQuestion.setCheckboxTd(dwQuCheckboxService.selectQuChenbox(id));
-                dwQuestion.setCheckboxAn(dwAnCheckboxService.selectAnCheckBoxByQuId(id));
+                dwQuestion.setCheckboxAn(dwAnCheckboxService.selectAnCheck BoxByQuId(id));
             }
             if (quType.equals(QuType.SCORE.getIndex())) {
                 dwQuestion.setScoreTd(dwQuScoreService.selectQuScore(id));

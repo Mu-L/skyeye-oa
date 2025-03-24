@@ -121,8 +121,11 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     for (DwQuestion question : questions) {
                         int questionType = question.getQuType();
                         if (questionType != 16 && questionType != 17) {
-                            fraction += question.getFraction();
-                            questionNum++;
+                            Integer fraction1 = question.getFraction();
+                            if (fraction1!=null){
+                                fraction += question.getFraction();
+                                questionNum++;
+                            }
                         }
                     }
                     UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
@@ -241,7 +244,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             question.setRowTd(examQuChenRows);
             question.setBelongId(examSurveyDirectories.getId()); // 设置所属问卷ID
             dwQuestionService.createEntity(question, userId); // 创建新的题目
-            dwQuestionService.copyQuestionListMation(question); // 复制题目选项信息
+//            dwQuestionService.copyQuestionListMation(question); // 复制题目选项信息
             outputObject.setBean(examSurveyDirectories);
             outputObject.settotal(1);
         }

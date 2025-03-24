@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.chat.controller;
 
 import com.skyeye.annotation.api.Api;
@@ -19,12 +23,6 @@ public class FriendRelationshipController {
     @Autowired
     private FriendRelationshipService friendRelationshipService;
 
-    /**
-     * 查询好友管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFriendsList", value = "查询好友管理列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FriendRelationshipController/queryFriendsList")
@@ -32,43 +30,25 @@ public class FriendRelationshipController {
         friendRelationshipService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 不分页查询好友管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNoPageFriendsList", value = "不分页查询好友管理列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "所查询的Id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "所查询的Id", required = "required")})
     @RequestMapping("/post/FriendRelationshipController/queryNoPageFriendsList")
     public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
         friendRelationshipService.queryNoPageFriendsList(inputObject, outputObject);
     }
 
-    /**
-     * 查询好友消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryFriend", value = "查询好友消息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFriendByUserId", value = "根据用户id查询好友消息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/FriendRelationshipController/queryFriend")
-    public void queryFriend(InputObject inputObject, OutputObject outputObject) {
-        friendRelationshipService.selectById(inputObject, outputObject);
+        @ApiImplicitParam(id = "userId", name = "userId", value = "用户id", required = "required")})
+    @RequestMapping("/post/FriendRelationshipController/queryFriendByUserId")
+    public void queryFriendByUserId(InputObject inputObject, OutputObject outputObject) {
+        friendRelationshipService.queryFriendByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 删除好友消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFriend", value = "删除好友消息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/FriendRelationshipController/deleteFriend")
     public void deleteFriend(InputObject inputObject, OutputObject outputObject) {
         friendRelationshipService.deleteById(inputObject, outputObject);

@@ -1,7 +1,10 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -18,15 +21,13 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.service.ChatHistoryService;
-import com.skyeye.school.chat.service.CompanyChatGroupService;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
-import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,10 +42,10 @@ import java.util.stream.Collectors;
 public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistoryDao, ChatHistory> implements ChatHistoryService {
 
     @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
+    private ISysEveUserStaffService iSysEveUserService;
 
     @Autowired
-    private ISysEveUserStaffService iSysEveUserService;
+    private IUserService iUserService;
 
     @Override
     public String createEntity(JSONObject jsonObject, Integer chatType, Integer readType) {
@@ -108,16 +109,14 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         update(updateWrapper);
     }
 
-    @Autowired
-    private IUserService iUserService;
     @Override
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         // 分组查询我的最近的聊天消息列表(50条)
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrapper ->
-                wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
-                        .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
+            wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
+                .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId));
         queryWrapper.last("LIMIT 50");
@@ -127,21 +126,27 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         }
         // 根据用户id查询员工数据
         List<String> userIds = talkChatHistoryList.stream()
-                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-                .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
+            .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+            .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(userIds)) {
             List<String> receiveIds = talkChatHistoryList.stream()
-                    .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-                    .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
+                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+                .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
             userIds.addAll(receiveIds);
             userIds = userIds.stream().distinct().collect(Collectors.toList());
         }
+        // 教师信息
         Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
+        // 学生信息
+        String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
+        List<Map<String, Object>> studentList = iUserService.queryEntityMationByIds(userIdsStr);
+        Map<String, Map<String, Object>> studentMap = studentList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory talkChatHistory : talkChatHistoryList) {
             Map<String, Object> bean = new HashMap<>();
             if (talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey()) {
                 Map<String, Object> user;
+                // 1. 先判断是否是教师
                 if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
                     // 我发送的消息
                     user = userMap.get(talkChatHistory.getReceiveId());
@@ -149,18 +154,25 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                     // 我接收的消息
                     user = userMap.get(talkChatHistory.getSendId());
                 }
+                if (CollectionUtil.isNotEmpty(user)) {
+                    bean.put("type", LoginIdentity.TEACHER.getKey());
+                }
+
+                // 2. 判断是否是学生
+                if (user == null) {
+                    if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
+                        // 我发送的消息
+                        user = studentMap.get(talkChatHistory.getReceiveId());
+                    } else {
+                        // 我接收的消息
+                        user = studentMap.get(talkChatHistory.getSendId());
+                    }
+                    bean.put("type", LoginIdentity.STUDENT.getKey());
+                }
                 if (user == null) {
                     continue;
                 }
-                String userOrTeacherId = user.get("id").toString();
-                List<Map<String, Object>> studentMationList = iUserService.queryEntityMationByIds(userOrTeacherId);
-                SysEveUserStaff teacherMation = sysEveUserStaffService.selectById(userOrTeacherId);
-                if (CollectionUtil.isNotEmpty(studentMationList)) {
-                    bean.put("userMation",studentMationList);
-                }
-                if (ObjectUtil.isNotEmpty(teacherMation)) {
-                    bean.put("teacherMation",teacherMation);
-                }
+
                 // 发送者信息
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
@@ -191,25 +203,25 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     public List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map) {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
-                .and(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
-                        .or()
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
-                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
-                .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
+            .and(wrapper -> wrapper
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
+            .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         List<String> userIds = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
             userIds.add(chatHistory.getSendId());
             userIds.add(chatHistory.getReceiveId());
         }
-        List<SysEveUserStaff> userStaffList = sysEveUserStaffService.selectByUserIds(userIds);
-        Map<String, String> userMap = new HashMap<>();
-        for (SysEveUserStaff userStaff : userStaffList) {
-            userMap.put(userStaff.getUserId(), userStaff.getUserName());
-        }
+
+        String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
+        List<Map<String, Object>> userStaffList = iAuthUserService.queryDataMationByIds(userIdsStr);
+        Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(m -> m.get("userId").toString(),
+            n -> n.get("userName").toString()));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
             Map<String, Object> map1 = new HashMap<>();

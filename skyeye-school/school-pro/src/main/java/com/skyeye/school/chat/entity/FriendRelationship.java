@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.chat.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -5,11 +9,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -38,16 +41,15 @@ public class FriendRelationship extends OperatorUserInfo {
     private Integer status;
 
     @TableField(exist = false)
-    @ApiModelProperty(value ="好友信息")
-    private Map<String, Object> friendMation;
+    @ApiModelProperty(value = "学生信息")
+    private Map<String, Object> studentMation;
 
     @TableField(exist = false)
-    @ApiModelProperty(value ="学生信息")
-    private List<Map<String, Object>> studentMation;
+    @ApiModelProperty(value = "老师信息")
+    private Map<String, Object> teacherMation;
 
     @TableField(exist = false)
-    @ApiModelProperty(value ="老师信息")
-    private SysEveUserStaff teacherMation;
-
+    @Property(value = "是否是好友")
+    private Boolean isFriend;
 
 }
