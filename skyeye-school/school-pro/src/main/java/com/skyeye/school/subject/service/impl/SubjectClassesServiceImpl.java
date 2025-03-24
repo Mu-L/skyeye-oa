@@ -408,7 +408,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 资料上传率
 //                double dataRate = getRate(stuDataNum, dataNum);
                 // 整体完成率
-                double overallRate = (courseRate + checkWorkRate  + assignmentRate ) / CommonNumConstants.NUM_FIVE;
+                double overallRate = (courseRate + checkWorkRate + assignmentRate) / CommonNumConstants.NUM_FIVE;
 //                student.put("stuDataNum", stuDataNum);
 //                student.put("dataNum", dataNum);
 //                student.put("stuTestNum", stuTestNum);
@@ -481,7 +481,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 //                double testRate = getRate(stuTestNum, testNum);
                 double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
 //                double dataRate = getRate(stuDataNum, dataNum);
-                double overallRate = (courseRate + checkWorkRate  + assignmentRate ) / CommonNumConstants.NUM_FIVE;
+                double overallRate = (courseRate + checkWorkRate + assignmentRate) / CommonNumConstants.NUM_FIVE;
                 student.put("overallRate", overallRate);
                 tempMap.put(stuName, student);
                 bean.add(tempMap);
@@ -520,14 +520,14 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public Long queryStuNumBySubjectId(String subjectId) {
+    public Integer queryStuNumBySubjectId(String subjectId, String classId) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
-        List<SubjectClasses> subjectClassesList = list(queryWrapper);
-        if (CollectionUtil.isEmpty(subjectClassesList)) {
-            return 0L;
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
+                .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classId);
+        SubjectClasses one = getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(one)) {
+            return null;
         }
-        List<String> ids = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        return null;
+        return one.getPeopleNum();
     }
 }
