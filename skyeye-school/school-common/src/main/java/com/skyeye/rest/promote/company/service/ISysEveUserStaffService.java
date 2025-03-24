@@ -7,4 +7,8 @@ import java.util.Map;
 
 public interface ISysEveUserStaffService extends IService {
     List<Map<String, Object>> queryUserMationList(String userIds, String staffIds);
+
+    List<Map<String, Object>> selectByName(String serviceClassName, String keyword, Integer limit, Integer pages);
+
+    Map<String, Object> selectByObjectId(String userId);
 }

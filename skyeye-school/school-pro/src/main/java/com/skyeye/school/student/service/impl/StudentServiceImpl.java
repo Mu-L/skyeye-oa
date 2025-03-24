@@ -27,8 +27,7 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
-import com.skyeye.rest.wall.certification.rest.ICertificationRest;
-import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
@@ -39,8 +38,6 @@ import com.skyeye.school.grade.entity.YearSystem;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.grade.service.YearSystemService;
 import com.skyeye.school.major.service.MajorService;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
-import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import com.skyeye.school.student.dao.StudentDao;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentBodyMindService;
@@ -96,15 +93,6 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private YearSubjectService yearSubjectService;
-
-    @Autowired
-    private ICertificationRest iCertificationRest;
-
-    @Autowired
-    private ICertificationService iCertificationService;
-
-    @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
 
     @Autowired
     private IUserService iUserService;
@@ -230,11 +218,9 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
         String holderId = commonPageInfo.getHolderId();
-//        String name = map.get("name").toString();
-//        String no = map.get("no").toString();
-//        String id = map.get("id").toString();
+
         List<Map<String, Object>> mapList = new ArrayList<>();
-        List<Map<String, Object>> maps =new ArrayList<>();
+        List<Map<String, Object>> maps = new ArrayList<>();
         if (StrUtil.isNotEmpty(serviceClassName)) {
             maps = iUserService.queryUserByRealNameOrStudentNumber(commonPageInfo);
             if (CollectionUtil.isNotEmpty(maps)) {
@@ -274,21 +260,23 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         outputObject.settotal(maps.size());
     }
 
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
+
     @Override
     public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Integer limit = commonPageInfo.getLimit();
+        Integer pages = commonPageInfo.getPage();
+//        Page page = PageHelper.startPage(pages, limit);
         String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
         String holderId = commonPageInfo.getHolderId();
-//        String name = map.get("name").toString();
-//        String number = map.get("jobNumber").toString();
-//        String userId = map.get("id").toString();
+        List<Map<String, Object>> maps = iSysEveUserStaffService.selectByName(serviceClassName, keyword, limit, pages);
         // 查询教师列表
-        List<SysEveUserStaff> sysEveUserStaffList = sysEveUserStaffService.selectByName(serviceClassName, keyword);
-        if (CollectionUtil.isNotEmpty(sysEveUserStaffList)) {
-            for (SysEveUserStaff sysEveUserStaff : sysEveUserStaffList) {
-                String id = sysEveUserStaff.getId();
+        if (CollectionUtil.isNotEmpty(maps)) {
+            for (Map<String, Object> map : maps) {
+                String id = map.get("id").toString();
                 QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
                 friendQueryWrapper
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
@@ -297,12 +285,12 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId);
                 List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
-                sysEveUserStaff.setFriendMation(list);
+                map.put("friendMation", list);
             }
         }
         // 设置返回结果
-        outputObject.setBeans(sysEveUserStaffList);
-        outputObject.settotal(page);
+        outputObject.setBeans(maps);
+//        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -315,12 +303,10 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
         List<Student> studentList = list(queryWrapper);
         for (Student student : studentList) {
-            QueryWrapper<SysEveUserStaff> queryWrapper1 = new QueryWrapper<>();
-            queryWrapper1.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), userId);
-            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.getOne(queryWrapper1);
+            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(userId);
             QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-            if (ObjectUtil.isNotEmpty(sysEveUserStaff)) {
-                String sysEveUserStaffId = sysEveUserStaff.getId();
+            if (ObjectUtil.isNotEmpty(maps)) {
+                String sysEveUserStaffId = maps.get("id").toString();
                 friendQueryWrapper
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId)
@@ -370,7 +356,7 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     }
 
     @Override
-    public List<Student> queryListByClassesId(String classesId){
+    public List<Student> queryListByClassesId(String classesId) {
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
         return list(queryWrapper);
