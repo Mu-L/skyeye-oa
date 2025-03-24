@@ -79,10 +79,17 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Override
     public void validatorEntity(Circle circle) {
+        String title = circle.getTitle();
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Circle::getTitle), circle.getTitle());
-        if (ObjectUtil.isNotEmpty(getOne(queryWrapper))) {
+        Circle one = getOne(queryWrapper);
+        if(StrUtil.isEmpty(circle.getId()) && ObjectUtil.isNotEmpty(one)){
             throw new CustomException("标题重复");
+        }
+        if (StrUtil.isNotEmpty(circle.getId())) {
+            if(ObjectUtil.isNotEmpty(one) && title.equals(one.getTitle())){
+                throw new CustomException("标题重复");
+            }
         }
     }
 

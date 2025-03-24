@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -47,7 +48,7 @@ public class FloorInfo extends OperatorUserInfo {
     private Integer  level;
 
     @TableField("status")
-    @ApiModelProperty(value = "状态，1：正常，2：禁用")
+    @ApiModelProperty(value = "状态，1：正常，2：禁用",enumClass = EnableEnum.class)
     private Integer status;
 
     @TableField("sort_order")

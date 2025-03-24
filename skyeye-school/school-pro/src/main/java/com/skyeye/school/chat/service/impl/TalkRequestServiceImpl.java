@@ -10,23 +10,19 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.wall.certification.service.ICertificationService;
-import com.skyeye.rest.wall.user.rest.IUserRest;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
+import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.chat.service.TalkRequestService;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
-import com.skyeye.school.personnel.service.SysEveUserStaffService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.List;
@@ -44,9 +38,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "好友申请管理", groupName = "好友申请管理")
 public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkRequestDao, TalkRequest> implements TalkRequestService {
-
-    @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
 
     @Autowired
     private StudentService studentService;
@@ -74,7 +65,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         } catch (Exception e) {
             throw new CustomException("处理过期时间失败: " + e.getMessage());
         }
-        entity.setStatus(CommonNumConstants.NUM_ZERO);
+        entity.setStatus(ChatType.PENDING_REQUEST.getIndex());
         String recipientId = entity.getRecipientId();//被申请人Id
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
@@ -99,27 +90,30 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
 
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
+
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId),commonPageInfo.getHolderId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), commonPageInfo.getHolderId());
         String state = commonPageInfo.getState();
-        if (StrUtil.isNotEmpty(state)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus),state);
+        if (StrUtil.isNotEmpty(state)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), state);
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String applicantId = talkRequest.getApplicantId();
             List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(applicantId);
-            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(applicantId);
-            if (ObjectUtil.isNotEmpty(mapList)){
+            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(applicantId);
+            if (ObjectUtil.isNotEmpty(mapList)) {
                 talkRequest.setStudentApplicantMation(mapList);
             }
-            if (ObjectUtil.isNotEmpty(sysEveUserStaff)){
-                talkRequest.setTeacherApplicantMation(sysEveUserStaff);
+            if (ObjectUtil.isNotEmpty(maps)) {
+                talkRequest.setTeacherApplicantMation(maps);
             }
         }
         outputObject.setBeans(talkRequestList);
@@ -132,20 +126,20 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId),commonPageInfo.getHolderId());
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus),commonPageInfo.getState());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), commonPageInfo.getHolderId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), commonPageInfo.getState());
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();
             List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(recipientId);
-            SysEveUserStaff sysEveUserStaff = sysEveUserStaffService.selectById(recipientId);
-            if (ObjectUtil.isNotEmpty(mapList)){
+            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(recipientId);
+            if (ObjectUtil.isNotEmpty(mapList)) {
                 talkRequest.setStudentRecipientMation(mapList);
             }
-            if (ObjectUtil.isNotEmpty(sysEveUserStaff)) {
-                talkRequest.setTeacherRecipientMation(sysEveUserStaff);
+            if (ObjectUtil.isNotEmpty(maps)) {
+                talkRequest.setTeacherRecipientMation(maps);
             }
         }
         outputObject.setBeans(talkRequestList);

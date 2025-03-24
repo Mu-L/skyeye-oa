@@ -6,11 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
-import com.skyeye.school.student.entity.Student;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -45,17 +42,17 @@ public class TalkRequest extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生申请人信息")
-    private List<Map<String,Object>> studentApplicantMation;
+    private List<Map<String, Object>> studentApplicantMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生被申请人信息")
-    private List<Map<String,Object>> studentRecipientMation;
+    private List<Map<String, Object>> studentRecipientMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "老师申请人信息")
-    private SysEveUserStaff teacherApplicantMation;
+    private Map<String, Object> teacherApplicantMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "老师被申请人信息")
-    private SysEveUserStaff teacherRecipientMation;
+    private Map<String, Object> teacherRecipientMation;
 }
