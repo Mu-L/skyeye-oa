@@ -114,24 +114,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断问卷是否未发布
                 List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(id); // 根据问卷ID查询题目
                 if (CollectionUtil.isNotEmpty(questions)) { // 判断是否有题目
-                    // 总分数
-                    int fraction = 0;
-                    // 题目总数
-                    int questionNum = 0;
-                    for (DwQuestion question : questions) {
-                        int questionType = question.getQuType();
-                        if (questionType != 16 && questionType != 17) {
-                            Integer fraction1 = question.getFraction();
-                            if (fraction1!=null){
-                                fraction += question.getFraction();
-                                questionNum++;
-                            }
-                        }
-                    }
+                    Integer size = questions.size();
                     UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                     updateWrapper.eq(CommonConstants.ID, id);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getFraction), fraction);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyQuNum), questionNum);
+                    updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyQuNum), size);
                     updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     update(updateWrapper);
                 } else {
@@ -276,7 +262,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
         String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-        String endTime = dwSurveyDirectory.getEndTime();
         realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
         realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {

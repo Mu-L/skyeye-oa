@@ -13,8 +13,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.SchoolConstants;
@@ -268,7 +266,6 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Integer limit = commonPageInfo.getLimit();
         Integer pages = commonPageInfo.getPage();
-//        Page page = PageHelper.startPage(pages, limit);
         String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
         String holderId = commonPageInfo.getHolderId();
@@ -288,9 +285,7 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
                 map.put("friendMation", list);
             }
         }
-        // 设置返回结果
         outputObject.setBeans(maps);
-//        outputObject.settotal(page.getTotal());
     }
 
     @Override

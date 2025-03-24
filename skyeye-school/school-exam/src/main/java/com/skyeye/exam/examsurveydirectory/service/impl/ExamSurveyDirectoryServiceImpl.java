@@ -49,6 +49,7 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
@@ -309,6 +310,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
     /**
      * 创建/更新题目前的操作
      *
@@ -323,10 +326,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
             }
         }
-        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
-        if (!StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())){
-            throw new CustomException("当前用户不是教师，无法创建考试目录");
-        }
+//        String userId = InputObject.getLogParamsStatic().get("id").toString();
+//        Map<String, Object> map = iSysEveUserStaffService.selectByObjectId(userId);
+//        if (ObjUtil.isEmpty(map)) {
+//            throw new CustomException("当前用户不是教师");
+//        }
     }
 
     /**
