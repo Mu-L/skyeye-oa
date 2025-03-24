@@ -10,12 +10,27 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
+import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
+import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
+import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
+import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
+import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
+import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
+import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
+import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
+import com.skyeye.exam.examanorder.entity.ExamAnOrder;
+import com.skyeye.exam.examanradio.entity.ExamAnRadio;
+import com.skyeye.exam.examanscore.entity.ExamAnScore;
+import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.major.entity.Major;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +52,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private String id;
 
     @TableField("survey_id")
-    @ApiModelProperty(value = "问卷ID", required = "required")
+    @ApiModelProperty(value = "试卷ID", required = "required")
     private String surveyId;
 
     @TableField("bg_an_date")
@@ -151,5 +166,48 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     @TableField(exist = false)
     @Property(value = "学生信息")
     private Map<String, Object> stuMation;
+
+    @TableField(exist = false)
+    @Property(value = "单选题信息")
+    private List<ExamAnRadio> examAnRadioList;
+    @TableField(exist = false)
+    @Property(value = "评分题信息")
+    private List<ExamAnScore> examAnScoreList;
+    @TableField(exist = false)
+    @Property(value = "判断题信息")
+    private List<ExamAnYesno> examAnYesnoList;
+    @TableField(exist = false)
+    @Property(value = "问答题信息")
+    private List<ExamAnAnswer> examAnAnswerList;
+    @TableField(exist = false)
+    @Property(value = "多选题信息")
+    private List<ExamAnCheckbox> examAnCheckboxList;
+    @TableField(exist = false)
+    @Property(value = "矩阵多选题信息")
+    private List<ExamAnChenCheckbox> examAnChenCheckboxList;
+    @TableField(exist = false)
+    @Property(value = "矩阵填空题信息")
+    private List<ExamAnChenFbk> examAnChenFbkList;
+    @TableField(exist = false)
+    @Property(value = "矩阵单选题信息")
+    private List<ExamAnChenRadio> examAnChenRadioList;
+    @TableField(exist = false)
+    @Property(value = "矩阵评分题信息")
+    private List<ExamAnChenScore> examAnChenScoreList;
+    @TableField(exist = false)
+    @Property(value = "复合矩阵单选题信息")
+    private List<ExamAnCompChenRadio> examAnCompChenRadioList;
+    @TableField(exist = false)
+    @Property(value = "多行填空题信息")
+    private List<ExamAnDfillblank> examAnDfillblankList;
+    @TableField(exist = false)
+    @Property(value = "枚举题信息")
+    private List<ExamAnEnumqu> examAnEnumquList;
+    @TableField(exist = false)
+    @Property(value = "填空题信息")
+    private List<ExamAnFillblank> examAnFillblankList;
+    @TableField(exist = false)
+    @Property(value = "评分题信息")
+    private List<ExamAnOrder> examAnOrderList;
 
 }

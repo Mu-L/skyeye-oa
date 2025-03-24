@@ -334,4 +334,17 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    @Override
+    public void deleteShopMaterialStoreByStoreIds(InputObject inputObject, OutputObject outputObject) {
+        List<String> storeIdList = Arrays.asList(inputObject.getParams().get("storeIds").toString()
+                .split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(storeIdList)) {
+            return;
+        }
+        QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeIdList);
+        remove(queryWrapper);
+    }
+
 }

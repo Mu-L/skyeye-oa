@@ -92,7 +92,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
             Map<String, Object> staff = userIdToStaff.get(talkChatHistory.getSendId());
             talkChatHistory.setSendStaffMation(staff);
         });
-
         outputObject.setBeans(chatHistoryList);
         outputObject.settotal(chatHistoryList.size());
     }
@@ -172,7 +171,6 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                 if (user == null) {
                     continue;
                 }
-
                 // 发送者信息
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
@@ -193,7 +191,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
-        map.put("userId", user.get("id"));
+        map.put("userId", user.get("id").toString());
         Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
         List<Map<String, Object>> beans = queryChatLogByPerToPer(map);
         outputObject.setBeans(beans);
@@ -220,8 +218,12 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
 
         String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
         List<Map<String, Object>> userStaffList = iAuthUserService.queryDataMationByIds(userIdsStr);
-        Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(m -> m.get("userId").toString(),
-            n -> n.get("userName").toString()));
+
+        Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(
+                m -> m.get("userId").toString(),
+                n -> n.get("userName").toString(),
+                (existing, replacement) -> existing
+        ));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
             Map<String, Object> map1 = new HashMap<>();

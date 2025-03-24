@@ -14,8 +14,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.school.assignment.service.AssignmentService;
-import com.skyeye.school.measurement.service.MeasurementService;
 import com.skyeye.school.score.dao.ScorePartDao;
 import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
@@ -29,7 +27,6 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import org.apache.commons.math3.stat.descriptive.summary.Sum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,12 +55,6 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
 
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
-
-    @Autowired
-    private AssignmentService assignmentService;
-
-    @Autowired
-    private MeasurementService measurementService;
 
     @Override
     public List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList, String stuNo) {
@@ -107,6 +98,24 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         }
     }
 
+    @Override
+    public void updateScorePartProportion(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String workId = params.get("workId").toString();
+        String proportion = params.get("proportion").toString();
+        QueryWrapper<ScorePart> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getWorkId), workId);
+        List<ScorePart> scoreParts = list(queryWrapper);
+        for (ScorePart scorePart : scoreParts) {
+            scorePart.setScore(CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(proportion, "100"), CommonNumConstants.NUM_THREE));
+            scorePart.setProportion(proportion);
+        }
+        super.updateEntity(scoreParts, inputObject.getLogParams().get("id").toString());
+        for (ScorePart scorePart : scoreParts) {
+            updateOtherScoreSum(scorePart);
+        }
+    }
+
     /**
      * 根据学号、任务id和修改成绩
      * 此方法可用于教师打分
@@ -138,6 +147,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         // 成绩类型操作，与总成绩同级的数据
         ScoreType scoreType = scoreTypeService.queryDefaultInfo(subjectId, classId);
+        if (ObjectUtil.isEmpty(scoreType)){
+            throw new CustomException("你所在班级没有此科目");
+        }
         List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
 
         // 总成绩表
@@ -155,17 +167,17 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         List<ScoreSum> oldScoreSums = scoreSumService.queryByObjectIdList(allIdList);
         if (StrUtil.isEmpty(scoreSums.get(CommonNumConstants.NUM_ZERO).getStuNo())) {// 课程下该班级没人
             scoreParts.forEach(scorePart -> {
-                scorePart.setScore(stuNo);
+                scorePart.setStuNo(stuNo);
             });
             super.updateEntity(scoreParts, currentUserId);
             oldScoreSums.forEach(scoreSum -> {
-                scoreSum.setScore(stuNo);
+                scoreSum.setStuNo(stuNo);
             });
             scoreSumService.updateEntity(oldScoreSums, currentUserId);
         } else {// 课程下该班级有人
             // 使用stream流去除scoreParts中workId一样的数据
             List<ScorePart> partCollect = scoreParts.stream().collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScorePart::getStuNo))), ArrayList::new)
+                Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScorePart::getWorkId))), ArrayList::new)
             );
             for (ScorePart scorePart : partCollect) {
                 ScorePart newScorePart = new ScorePart();
@@ -176,15 +188,17 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 newScorePart.setObjectId(scorePart.getObjectId());
                 super.createEntity(newScorePart, currentUserId);
             }
-            List<ScoreSum> sumCollect = scoreSums.stream().collect(Collectors.collectingAndThen(
-                Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScoreSum::getStuNo))), ArrayList::new));
-            for (ScoreSum scoreSum : sumCollect) {
-                ScoreSum newScoreSum = new ScoreSum();
-                newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
-                newScoreSum.setProportion(scoreSum.getProportion());
-                newScoreSum.setObjectId(scoreSum.getObjectId());
-                newScoreSum.setStuNo(stuNo);
-                scoreSumService.createEntity(newScoreSum, currentUserId);
+            Map<String, List<ScoreSum>> groupAllSum = oldScoreSums.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
+            for (Map.Entry<String, List<ScoreSum>> stringListEntry : groupAllSum.entrySet()) {
+                for (ScoreSum scoreSum : stringListEntry.getValue()) {
+                    ScoreSum newScoreSum = new ScoreSum();
+                    newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
+                    newScoreSum.setProportion(scoreSum.getProportion());
+                    newScoreSum.setObjectId(scoreSum.getObjectId());
+                    newScoreSum.setStuNo(stuNo);
+                    scoreSumService.createEntity(newScoreSum, currentUserId);
+                }
+                break;
             }
         }
     }
@@ -218,11 +232,11 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         }
         // 取出该学生的”作业成绩信息“下的所有作业信息
         List<ScorePart> scorePartList = queryByObjectIdListAndStuNo(Arrays.asList(scoreTypeChild.getId()), scorePart.getStuNo());
-        int sumScore = CommonNumConstants.NUM_ZERO;
+        double sumScore = CommonNumConstants.NUM_ZERO;
         // 计算给学生的"作业成绩"总分
         for (ScorePart part : scorePartList) {
-            String flagScore = CalculationUtil.multiply(part.getScore(), part.getProportion(), CommonNumConstants.NUM_FOUR);
-            sumScore = Integer.parseInt(flagScore) + sumScore;
+            String flagScore = CalculationUtil.multiply(part.getScore(), part.getProportion(), CommonNumConstants.NUM_TWO);
+            sumScore = Double.parseDouble(flagScore) + sumScore;
         }
         // 更新该学生的"作业成绩"总分
         scoreSumService.updateScoreByObjectIdAndStuNo(scoreTypeChild.getId(), sumScore, scorePart.getStuNo());

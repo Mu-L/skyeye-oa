@@ -32,7 +32,7 @@ public class ScorePart extends OperatorUserInfo {
     private String score;
 
     @TableField("proportion")
-    @ApiModelProperty(value = "占比", required = "required")
+    @ApiModelProperty(value = "占比(80即占比80%)", required = "required")
     private String proportion;
 
     @TableField("stu_no")

@@ -24,7 +24,7 @@ public class ScorePartController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "score", name = "score", value = "成绩", required = "required")})
     @RequestMapping("/post/ScorePartController/updateScorePart")
-    public void updateScorePart(InputObject inputObject, OutputObject outputObject) {
+    public void updateScorePartScore(InputObject inputObject, OutputObject outputObject) {
         scorePartService.updateScorePart(inputObject, outputObject);
     }
 
@@ -33,5 +33,14 @@ public class ScorePartController {
     @RequestMapping("/post/ScorePartController/createScorePart")
     public void createScorePart(InputObject inputObject, OutputObject outputObject) {
         scorePartService.createScorePart(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "updateScorePartProportion", value = "修改修分数信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "workId", name = "workId", value = "任务id", required = "required"),
+        @ApiImplicitParam(id = "proportion", name = "proportion", value = "占比", required = "required")})
+    @RequestMapping("/post/ScorePartController/updateScorePartProportion")
+    public void updateScorePartProportion(InputObject inputObject, OutputObject outputObject) {
+        scorePartService.updateScorePartProportion(inputObject, outputObject);
     }
 }

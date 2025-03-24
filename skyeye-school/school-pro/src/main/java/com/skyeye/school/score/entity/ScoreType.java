@@ -39,7 +39,7 @@ public class ScoreType extends OperatorUserInfo {
     private String classId;
 
     @TableField("proportion")
-    @ApiModelProperty(value = "占比")
+    @ApiModelProperty(value = "占比(80即占比80%)", required = "required")
     private String proportion;
 
     @TableField(exist = false)

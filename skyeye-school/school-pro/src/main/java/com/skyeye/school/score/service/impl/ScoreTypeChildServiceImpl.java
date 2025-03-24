@@ -26,8 +26,6 @@ import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
-import com.skyeye.school.subject.service.SubjectClassesService;
-import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,26 +47,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     private ScoreTypeChildService scoreTypeChildServicec;
 
     @Autowired
-    private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private SubjectClassesStuService subjectClassesStuService;
-
-    @Autowired
     private StudentService studentService;
 
     @Autowired
     private ScoreTypeService scoreTypeService;
-
-    @Override
-    public void validatorEntity(ScoreTypeChild scoreTypeChild) {
-        if (StrUtil.isNotEmpty(scoreTypeChild.getProportion())) {
-            double proportion = Double.parseDouble(scoreTypeChild.getProportion());
-            if (proportion < 0 || proportion > 100) {
-                throw new CustomException("占比必须为0-100");
-            }
-        }
-    }
 
     @Override
     public void updatePostpose(ScoreTypeChild entity, String userId) {
@@ -80,7 +62,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public List<ScoreTypeChild> queryListByParentIdList(List<String> list) {
-        if (CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyList();
         }
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
@@ -156,18 +138,18 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
-    public void createPostpose(ScoreTypeChild entity, String userId){
-        if (StrUtil.isNotEmpty(entity.getName())){
+    public void createPostpose(ScoreTypeChild entity, String userId) {
+        if (StrUtil.isNotEmpty(entity.getName())) {
             ScoreType scoreType = scoreTypeService.queryDefaultInfo(entity.getSubjectId(), entity.getClassId());
             List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
-            if (scoreSums.size() == CommonNumConstants.NUM_ZERO){// 课程下班级没人
+            if (scoreSums.size() == CommonNumConstants.NUM_ZERO) {// 课程下班级没人
                 ScoreSum scoreSum = new ScoreSum();
                 scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
                 scoreSum.setProportion(entity.getProportion());
                 scoreSum.setObjectId(entity.getId());
                 scoreSum.setStuNo(StrUtil.EMPTY);
                 scoreSumService.createEntity(scoreSum, userId);
-            }else {// 有人
+            } else {// 有人
                 for (ScoreSum scoreSum : scoreSums) {
                     ScoreSum newScoreSum = new ScoreSum();
                     newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());

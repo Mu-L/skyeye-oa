@@ -121,6 +121,12 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
         return shopStores;
     }
 
+    @Override
+    public void deletePostpose(String id) {
+        // 删除门店下的商品
+        ExecuteFeignClient.get(() -> iShopMaterialNormsRest.deleteShopMaterialStoreByStoreIds(id));
+    }
+
     /**
      * 获取门店列表信息
      *

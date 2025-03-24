@@ -36,10 +36,6 @@ public class AssignmentSub extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField(value = "score_part_id")
-    @Property(value = "分成绩表主键id")
-    private String scorePartId;
-
     @TableField(value = "assignment_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "作业id", required = "required")
     private String assignmentId;

@@ -72,4 +72,12 @@ public class ShopMaterialStoreController {
         shopMaterialStoreService.queryShopMaterialMapByMaterialIdAndStoreId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "deleteShopMaterialStoreByStoreIds", value = "根据门店id删除商城商品信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "storeIds", name = "storeIds", value = "门店id，多个逗号隔开", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/deleteShopMaterialStoreByStoreIds")
+    public void deleteShopMaterialStoreByStoreIds(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.deleteShopMaterialStoreByStoreIds(inputObject, outputObject);
+    }
+
 }
