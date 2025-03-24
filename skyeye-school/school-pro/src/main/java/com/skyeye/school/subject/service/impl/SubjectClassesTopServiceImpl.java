@@ -45,7 +45,7 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     private SubjectService subjectService;
 
     @Override
-    public List<Map<String, Object>> queryDataList(InputObject inputObject) {// todo-wst
+    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         // 获取当前用户的置顶科目id列表
         QueryWrapper<SubjectClassesTop> queryWrapper = new QueryWrapper<>();
@@ -55,9 +55,20 @@ public class SubjectClassesTopServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         if (CollectionUtil.isEmpty(subjectClassesTopList)) {
             return CollectionUtil.newArrayList();
         }
+
         // 根据id列表获取科目信息
         List<String> subjectIdList = subjectClassesTopList.stream().map(SubjectClassesTop::getSubjectId).collect(Collectors.toList());
         List<Map<String, Object>> subjectList = new ArrayList<>(subjectService.selectValIsMapByIds(subjectIdList).values());
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生
+            Map<String, String> subjectLinkMap = subjectClassesTopList.stream().collect(Collectors.toMap(SubjectClassesTop::getSubjectId, SubjectClassesTop::getSubClassLinkId));
+            for (Map<String, Object> subject : subjectList) {
+                String subjectId = subject.get("id").toString();
+                String subClassLinkId = subjectLinkMap.get(subjectId);
+                subject.put("subClassLinkId", subClassLinkId);
+            }
+        }
         return subjectList;
     }
 
