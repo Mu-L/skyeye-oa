@@ -147,6 +147,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         // 成绩类型操作，与总成绩同级的数据
         ScoreType scoreType = scoreTypeService.queryDefaultInfo(subjectId, classId);
+        if (ObjectUtil.isEmpty(scoreType)){
+            throw new CustomException("你所在班级没有此科目");
+        }
         List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
 
         // 总成绩表
