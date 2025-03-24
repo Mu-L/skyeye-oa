@@ -60,4 +60,6 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
     void deleteBySubjectId(String subjectId);
 
     Long queryStuNumBySubjectId(String subjectId);
+
+    List<SubjectClasses> selectIdBySubJectId(String subjectId);
 }

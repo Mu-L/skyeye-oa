@@ -16,19 +16,33 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
+import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
+import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
+import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
+import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
+import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
+import com.skyeye.exam.examanenumqu.entity.ExamAnEnumqu;
 import com.skyeye.exam.examanenumqu.service.ExamAnEnumquService;
+import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
 import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
+import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
+import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
+import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
+import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import com.skyeye.exam.examsurveyanswer.dao.ExamSurveyAnswerDao;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
@@ -183,6 +197,41 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    public ExamSurveyAnswer selectById(String id) {
+        ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
+        String surveyId = examSurveyAnswer.getSurveyId();
+        List<ExamAnRadio> examAnRadioList = examAnRadioService.selectRadioBySurveyId(surveyId);
+        List<ExamAnScore> examAnScoreList = examAnScoreService.selectBySurveyId(surveyId);
+        List<ExamAnYesno> examAnYesnoList = examAnYesnoService.selectBySurveyId(surveyId);
+        List<ExamAnAnswer> examAnAnswerList = examAnAnswerService.selectBySurveyId(surveyId);
+        List<ExamAnCheckbox> examAnCheckboxList = examAnCheckboxService.slectBySurveyId(surveyId);
+        List<ExamAnChenCheckbox> examAnChenCheckboxList = examAnChenCheckboxService.selectBySurveyId(surveyId);
+        List<ExamAnChenFbk> examAnChenFbkList = examAnChenFbkService.selectBySurveyId(surveyId);
+        List<ExamAnChenRadio> examAnChenRadioList = examAnChenRadioService.selectBySurveyId(surveyId);
+        List<ExamAnChenScore> examAnChenScoreList = examAnChenScoreService.selectBySurveyId(surveyId);
+        List<ExamAnCompChenRadio> examAnCompChenRadioList = examAnCompChenRadioService.selectBySurveyId(surveyId);
+        List<ExamAnDfillblank> examAnDfillblankList = examAnDfilllankService.selectBySurveyId(surveyId);
+        List<ExamAnEnumqu> examAnEnumquList = examAnEnumquService.selectBySurveyId(surveyId);
+        List<ExamAnFillblank> examAnFillblankList = examAnFillblankService.selectBySurveyId(surveyId);
+        List<ExamAnOrder> examAnOrderList = examAnOrderService.selectBySurveyId(surveyId);
+        examSurveyAnswer.setExamAnRadioList(examAnRadioList);
+        examSurveyAnswer.setExamAnScoreList(examAnScoreList);
+        examSurveyAnswer.setExamAnYesnoList(examAnYesnoList);
+        examSurveyAnswer.setExamAnAnswerList(examAnAnswerList);
+        examSurveyAnswer.setExamAnCheckboxList(examAnCheckboxList);
+        examSurveyAnswer.setExamAnChenCheckboxList(examAnChenCheckboxList);
+        examSurveyAnswer.setExamAnChenFbkList(examAnChenFbkList);
+        examSurveyAnswer.setExamAnChenRadioList(examAnChenRadioList);
+        examSurveyAnswer.setExamAnChenScoreList(examAnChenScoreList);
+        examSurveyAnswer.setExamAnCompChenRadioList(examAnCompChenRadioList);
+        examSurveyAnswer.setExamAnDfillblankList(examAnDfillblankList);
+        examSurveyAnswer.setExamAnEnumquList(examAnEnumquList);
+        examSurveyAnswer.setExamAnFillblankList(examAnFillblankList);
+        examSurveyAnswer.setExamAnOrderList(examAnOrderList);
+        return examSurveyAnswer;
+    }
+
+    @Override
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         String createId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
@@ -326,6 +375,5 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         outputObject.setBeans(beans.subList(fromIndex, toIndex));
         outputObject.settotal(beans.size());
     }
-
 
 }

@@ -17,8 +17,12 @@ import com.skyeye.school.groups.dao.GroupsInformationDao;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
+import com.skyeye.school.subject.entity.Subject;
+import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import com.skyeye.school.subject.service.SubjectService;
 import com.skyeye.school.subject.service.impl.SubjectClassesServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "学生分组信息管理", groupName = "分组管理")
@@ -42,14 +47,19 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     @Autowired
     private IAuthUserService iAuthUserService;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
+    @Autowired
+    private SubjectClassesService subjectClassesService;
 
+    private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
     @Override
     public QueryWrapper<GroupsInformation> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<GroupsInformation> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubClassLinkId), commonPageInfo.getHolderId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubjectId), commonPageInfo.getHolderId());
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getClassId), commonPageInfo.getObjectId());
         }
         return queryWrapper;
     }
@@ -68,8 +78,13 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             groupsService.insertList(groupsInformation);
         }
         if (status.equals(CommonNumConstants.NUM_ONE)) {
-            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(groupsInformation.getSubClassLinkId());
-            int size = subjectClassesStuList.size();
+            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
+            List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> allStudents = collect.stream()
+                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+            int size = allStudents.size();
             Integer groupsnun = groupsInformation.getGroupsNum();
             if (size < groupsnun) {
                 throw new RuntimeException("学生人数不足,无法创建分组");
@@ -77,7 +92,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                 Integer num = size % groupsnun;
                 if (num != 0) {
                     Integer num1 = size / groupsnun + 1;
-                    groupsInformation.setGroupsNumber(num1);//放不进去
+                    groupsInformation.setGroupsNumber(num1);
                 } else {
                     int num2 = size / groupsnun;
                     groupsInformation.setGroupsNumber(num2);
