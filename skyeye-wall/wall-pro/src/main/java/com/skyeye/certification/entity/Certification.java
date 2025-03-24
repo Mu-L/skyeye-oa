@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.certification.classenum.StateEnum;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
@@ -62,6 +63,6 @@ public class Certification extends CommonInfo {
     private String studentIdPhoto;
 
     @TableField("state")
-    @ApiModelProperty(value = "状态，参考#StuteEnum")
+    @ApiModelProperty(value = "状态", enumClass = StateEnum.class)
     private Integer state;
 }

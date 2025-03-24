@@ -32,7 +32,7 @@ spring:
             refresh: false # 是否动态刷新，默认为false
 logging:
   level:
-    com.skyeye.eve.centerrest: debug
+    com.skyeye: debug
 #    com.skyeye.eve.dao: debug
 feign:
   client:
