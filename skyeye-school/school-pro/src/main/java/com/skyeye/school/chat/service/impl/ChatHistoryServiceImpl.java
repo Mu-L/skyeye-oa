@@ -172,9 +172,14 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                     continue;
                 }
                 // 发送者信息
-                bean.put("name", user.get("userName").toString());
-                bean.put("avatar", user.get("userPhoto").toString());
-                bean.put("staffId", user.get("staffId").toString());
+                if (StrUtil.equals(bean.get("type").toString(), LoginIdentity.TEACHER.getKey())) {
+                    bean.put("name", user.get("userName").toString());
+                    bean.put("avatar", user.get("userPhoto").toString());
+                    bean.put("staffId", user.get("staffId").toString());
+                } else {
+                    bean.put("name", user.get("name").toString());
+                    bean.put("avatar", user.get("img").toString());
+                }
                 bean.put("talkId", user.get("id").toString());
             }
             bean.put("sendId", talkChatHistory.getSendId());
@@ -220,9 +225,9 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         List<Map<String, Object>> userStaffList = iAuthUserService.queryDataMationByIds(userIdsStr);
 
         Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(
-                m -> m.get("userId").toString(),
-                n -> n.get("userName").toString(),
-                (existing, replacement) -> existing
+            m -> m.get("userId").toString(),
+            n -> n.get("userName").toString(),
+            (existing, replacement) -> existing
         ));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
