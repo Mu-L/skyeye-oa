@@ -4,6 +4,7 @@
 
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -112,6 +113,19 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
 
     @Override
     public void queryFriendByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        String friendId = inputObject.getParams().get("userId").toString();
 
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(friendId);
+        Map<String, Object> dataMation = userOrStudent.getDataMation();
+
+        List<FriendRelationship> friendRelationships = queryFriendList(userId, friendId);
+        if (CollectionUtil.isNotEmpty(friendRelationships)) {
+            dataMation.put("isFriend", true);
+        } else {
+            dataMation.put("isFriend", false);
+        }
+        outputObject.setBean(dataMation);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }

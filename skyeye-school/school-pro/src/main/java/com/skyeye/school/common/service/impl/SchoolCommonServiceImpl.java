@@ -5,6 +5,7 @@
 package com.skyeye.school.common.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
@@ -38,6 +39,7 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
         Map<String, Object> studentMation = iUserService.queryDataMationById(userId);
         if (CollectionUtil.isNotEmpty(studentMation)) {
             item.setUserOrStudent(true);
+            studentMation.put("userIdentity", LoginIdentity.STUDENT.getKey());
             item.setDataMation(studentMation);
             return item;
         }
@@ -45,6 +47,7 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
         Map<String, Object> teacherMation = iAuthUserService.queryDataMationById(userId);
         if (CollectionUtil.isNotEmpty(teacherMation)) {
             item.setUserOrStudent(false);
+            teacherMation.put("userIdentity", LoginIdentity.TEACHER.getKey());
             item.setDataMation(teacherMation);
         }
         return item;

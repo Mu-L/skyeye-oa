@@ -2,44 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.school.dao.MySchoolTaskDao">
 	
-	<select id="queryMyNowLeadClassList" parameterType="java.util.Map" resultType="java.util.Map">
-		SELECT
-			a.id,
-			a.`year` sessionYear,
-			a.class_name className,
-			a.limit_number limitNumber,
-			b.grade_name gradeName,
-			c.school_name schoolName,
-			d.`name` floorName,
-			COUNT(f.id) actualNumber
-		FROM
-			school_class_mation a
-			LEFT JOIN school_grade_mation b ON a.grade_id = b.id
-			LEFT JOIN school_mation c ON a.school_id = c.id
-			LEFT JOIN school_floor_mation d ON a.floor_id = d.id
-			LEFT JOIN school_student f ON a.id = f.now_class_id AND f.state = '1'
-		WHERE
-			a.master_staff_id = #{staffId}
-			AND a.state = '1'
-			<if test="gradeId != '' and gradeId != null">
-				AND a.grade_id = #{gradeId}
-			</if>
-			<choose>
-				<!-- 查询的不是所有的数据 -->
-	    		<when test="schoolPowerId != 'all'.toString()">
-	    			AND a.school_id = #{schoolPowerId}
-	    		</when>
-	    		<!-- 查询的是所有的数据 -->
-	    		<when test="schoolPowerId == 'all'.toString()">
-	    			<if test="schoolId != '' and schoolId != null">
-						AND a.school_id = #{schoolId}
-					</if>
-	    		</when>
-			</choose>
-			GROUP BY a.id
-			ORDER BY a.`year` DESC
-	</select>
-	
 	<select id="queryMyWaitMarkingList" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
 			ml.*
