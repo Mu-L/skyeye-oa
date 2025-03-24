@@ -46,16 +46,16 @@ public class CircleController {
     }
 
     /**
-     * 新增圈子信息
+     * 新增/编辑圈子信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertCircle", value = "新增圈子信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertCircle", value = "新增/编辑圈子信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Circle.class)
     @RequestMapping("/post/CircleController/insertCircle")
     public void insertCircle(InputObject inputObject, OutputObject outputObject) {
-        circleService.createEntity(inputObject, outputObject);
+        circleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**

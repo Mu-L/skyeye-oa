@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -41,6 +42,10 @@ public class Circle extends OperatorUserInfo {
     @TableField("img")
     @ApiModelProperty(value = "图片", required = "required")
     private String img;
+
+    @TableField("head_img")
+    @ApiModelProperty(value = "头像", required = "required")
+    private String headImg;
 
     @TableField("view_num")
     @ApiModelProperty(value = "浏览数量")

@@ -25,7 +25,10 @@ import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,7 +64,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getSubjectId), subjectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
         List<Courseware> coursewareList = list(queryWrapper);
 
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
@@ -89,7 +92,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     }
 
     @Override
-    public Map<String, Double> queryCoursewareByChapterId(Long classNum,String ... ids) {
+    public Map<String, Double> queryCoursewareByChapterId(Long classNum, String... ids) {
         Map<String, Double> map = new HashMap<>();
         double sumSize = 0;
         double finishRate = 0;
@@ -99,7 +102,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), id);
             List<Courseware> list = list(queryWrapper);
-            if(CollectionUtil.isEmpty(list)){
+            if (CollectionUtil.isEmpty(list)) {
                 continue;
             }
             sumSize += list.size();
@@ -107,17 +110,17 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             double rate = coursewareStudyService.queryCoursewareFinshRate(cIds, classNum);
             finishRate = finishRate + rate;
         }
-        if(finishRate == 0 && ids.length > 1){
+        if (finishRate == 0 && ids.length > 1) {
             finishRate = finishRate / ids.length;
         }
-        map.put("finishRate",finishRate);
+        map.put("finishRate", finishRate);
         return map;
     }
 
     @Override
     public Long queryClassCoursewareNum(String id, String chapterId) {
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        if(StrUtil.isNotEmpty(chapterId)){
+        if (StrUtil.isNotEmpty(chapterId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterId);
         }
         return count(queryWrapper);

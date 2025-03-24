@@ -18,17 +18,6 @@ public class MySchoolTaskController {
     private MySchoolTaskService mySchoolTaskService;
 
     /**
-     * 获取我当前带领的班级列表
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/MySchoolTaskController/queryMyNowLeadClassList")
-    public void queryMyNowLeadClassList(InputObject inputObject, OutputObject outputObject) {
-        mySchoolTaskService.queryMyNowLeadClassList(inputObject, outputObject);
-    }
-
-    /**
      * 获取我的待阅卷列表
      *
      * @param inputObject 入参以及用户信息等获取对象

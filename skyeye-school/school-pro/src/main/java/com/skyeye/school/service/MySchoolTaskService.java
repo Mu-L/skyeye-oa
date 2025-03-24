@@ -9,8 +9,6 @@ import com.skyeye.common.object.OutputObject;
 
 public interface MySchoolTaskService {
 
-    void queryMyNowLeadClassList(InputObject inputObject, OutputObject outputObject);
-
     void queryMyWaitMarkingList(InputObject inputObject, OutputObject outputObject);
 
     void queryMyEndMarkingList(InputObject inputObject, OutputObject outputObject);

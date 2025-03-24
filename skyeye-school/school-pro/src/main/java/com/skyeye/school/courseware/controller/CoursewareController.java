@@ -31,12 +31,6 @@ public class CoursewareController {
     @Autowired
     private CoursewareService coursewareService;
 
-    /**
-     * 添加或修改互动课件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCourseware", value = "新增/编辑互动课件信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Courseware.class)
     @RequestMapping("/post/CoursewareController/writeCourseware")
@@ -44,12 +38,6 @@ public class CoursewareController {
         coursewareService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询互动课件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCoursewareById", value = "根据id查询互动课件信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class CoursewareController {
         coursewareService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除互动课件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCoursewareById", value = "根据ID删除互动课件信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class CoursewareController {
         coursewareService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表id获取互动课件列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCoursewareListBySubjectId", value = "根据科目表id获取互动课件列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目表id", required = "required")})

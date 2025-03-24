@@ -55,12 +55,12 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     private Notice setUserMation(Notice notice) {
         String sendId = notice.getSendId();
         String receiveId = notice.getReceiveId();
-        if (ObjectUtil.isEmpty(userService.selectById(sendId))) {
+        if (userService.checkCreateIdIsStudent(sendId)) {
             iAuthUserService.setDataMation(notice, Notice::getSendId);
         } else {
             userService.setDataMation(notice, Notice::getSendId);
         }
-        if (ObjectUtil.isEmpty(userService.selectById(receiveId))) {
+        if (userService.checkCreateIdIsStudent(receiveId)) {
             iAuthUserService.setDataMation(notice, Notice::getReceiveId);
         } else {
             userService.setDataMation(notice, Notice::getReceiveId);

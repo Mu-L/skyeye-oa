@@ -264,15 +264,35 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         outputObject.settotal(page.getTotal());
     }
 
-    // 老师用户进入主页
     @Override
-    public void queryTeacherUserById(InputObject inputObject, OutputObject outputObject) {
+    public void queryUserById(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("id").toString();
-        Map<String,Object> teacherUser = new HashMap<>();
-        teacherUser.put("createId",userId);
-        teacherUser.put("createMation",StrUtil.EMPTY);
-        iAuthUserService.setMationForMap(teacherUser,"createId","createMation");
-        outputObject.setBean(teacherUser);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID,userId);
+        User user = getOne(queryWrapper);
+        if(ObjectUtil.isEmpty(user)){
+            Map<String,Object> teacherUser = new HashMap<>();
+            teacherUser.put("createId",userId);
+            teacherUser.put("createMation",StrUtil.EMPTY);
+            iAuthUserService.setMationForMap(teacherUser,"createId","createMation");
+            outputObject.setBean(teacherUser);
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+        }else {
+            user = selectById(userId);
+            outputObject.setBean(user);
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+        }
+    }
+   /**
+    *  检验createId 是老师id还是学生id
+    *  true -- 老师
+    *  false -- 学生
+    *  */
+   @Override
+    public boolean checkCreateIdIsStudent(String createId){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID,createId);
+        User user = getOne(queryWrapper);
+        return ObjectUtil.isEmpty(user);
     }
 }

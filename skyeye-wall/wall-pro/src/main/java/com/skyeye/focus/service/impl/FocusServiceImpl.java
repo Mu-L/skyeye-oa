@@ -56,12 +56,13 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
         queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Focus::getCreateTime));
         List<Focus> bean = list(queryWrapper).stream().map(focus -> {
-            if (ObjectUtil.isEmpty(userService.selectById(focus.getUserId()))) {
+            focus.setCheckFocus(checkFocus(userId, focus.getUserId()));
+            if (userService.checkCreateIdIsStudent(focus.getUserId())) {
                 iAuthUserService.setDataMation(focus, Focus::getUserId);
             } else {
                 userService.setDataMation(focus, Focus::getUserId);
             }
-            if (ObjectUtil.isEmpty(userService.selectById(focus.getCreateId()))) {
+            if (userService.checkCreateIdIsStudent(focus.getCreateId())) {
                 iAuthUserService.setDataMation(focus, Focus::getCreateId);
             } else {
                 userService.setDataMation(focus, Focus::getCreateId);
@@ -69,6 +70,13 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
             return focus;
         }).collect(Collectors.toList());
         return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+    }
+
+    private boolean checkFocus(String userId, String otherUserId) {
+        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId), otherUserId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
+        return count(queryWrapper) > 0;
     }
 
 

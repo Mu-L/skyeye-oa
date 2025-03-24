@@ -48,6 +48,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "题目", groupName = "题库管理")
@@ -182,32 +183,95 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         List<DwQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (CollectionUtils.isNotEmpty(radioTd)) {
+            List<String> collect = radioTd.stream().map(DwQuRadio::getOptionId).collect(Collectors.toList());
+            List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectQuRadio(dwQuId);
+            List<String> collect1 = dwQuRadioList.stream().map(DwQuRadio::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                dwQuRadioService.deleteById(id);
+            }
             dwQuRadioService.saveList(radioTd, quId, userId);
         }
         // 更新得分题
         List<DwQuScore> scoreTd = entity.getScoreTd();
         if (CollectionUtils.isNotEmpty(scoreTd)) {
+            List<String> collect = scoreTd.stream().map(DwQuScore::getOptionId).collect(Collectors.toList());
+            List<DwQuScore> dwQuScoreList = dwQuScoreService.selectQuScore(dwQuId);
+            List<String> collect1 = dwQuScoreList.stream().map(DwQuScore::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                dwQuScoreService.deleteById(id);
+            }
             dwQuScoreService.saveList(scoreTd, quId, userId);
         }
         // 更新多选题
         List<DwQuCheckbox> checkboxTd = entity.getCheckboxTd();
         if (CollectionUtils.isNotEmpty(checkboxTd)) {
+            List<String> collect = checkboxTd.stream().map(DwQuCheckbox::getOptionId).collect(Collectors.toList());
+            List<DwQuCheckbox> dwQuCheckboxList = dwQuCheckboxService.selectQuChenbox(dwQuId);
+            List<String> collect1 = dwQuCheckboxList.stream().map(DwQuCheckbox::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                dwQuCheckboxService.deleteById(id);
+            }
             dwQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 更新多行填空题
         List<DwQuMultiFillblank> multiFillblankTd = entity.getMultifillblankTd();
         if (CollectionUtils.isNotEmpty(multiFillblankTd)) {
+            List<String> collect = multiFillblankTd.stream().map(DwQuMultiFillblank::getOptionId).collect(Collectors.toList());
+            List<DwQuMultiFillblank> dwQuMultiFillblankList = dwQuMultiFillblankService.selectQuMultiFillblank(dwQuId);
+            List<String> collect1 = dwQuMultiFillblankList.stream().map(DwQuMultiFillblank::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                dwQuMultiFillblankService.deleteById(id);
+            }
             dwQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
         List<DwQuOrderby> orderbyTd = entity.getOrderByTd();
         if (CollectionUtils.isNotEmpty(orderbyTd)) {
+            List<String> collect = orderbyTd.stream().map(DwQuOrderby::getOptionId).collect(Collectors.toList());
+            List<DwQuOrderby> dwQuOrderbyList = dwQuOrderbyService.selectQuOrderby(dwQuId);
+            List<String> collect1 = dwQuOrderbyList.stream().map(DwQuOrderby::getId).collect(Collectors.toList());
+            List<String> collect2 = collect1.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect2) {
+                dwQuOrderbyService.deleteById(id);
+            }
             dwQuOrderbyService.saveList(orderbyTd, quId, userId);
         }
         // 更新矩阵题
         List<DwQuChenColumn> columnTd = entity.getColumnTd();
         List<DwQuChenRow> rowTd = entity.getRowTd();
         if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
+            List<String> collect = columnTd.stream().map(DwQuChenColumn::getOptionId).collect(Collectors.toList());
+            List<String> collect1 = rowTd.stream().map(DwQuChenRow::getOptionId).collect(Collectors.toList());
+            List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(dwQuId);
+            List<String> collect2 = dwQuChenColumnList.stream().map(DwQuChenColumn::getId).collect(Collectors.toList());
+            List<String> collect3 = collect2.stream().filter(
+                    optionId -> !collect.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect3) {
+                dwQuChenColumnService.deleteById(id);
+            }
+            List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(dwQuId);
+            List<String> collect4 = dwQuChenRowList.stream().map(DwQuChenRow::getId).collect(Collectors.toList());
+            List<String> collect5 = collect4.stream().filter(
+                    optionId -> !collect1.contains(optionId)
+            ).collect(Collectors.toList());
+            for (String id : collect5) {
+                dwQuChenRowService.deleteById(id);
+            }
             dwQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }

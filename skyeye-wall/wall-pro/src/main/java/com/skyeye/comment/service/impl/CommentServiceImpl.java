@@ -122,6 +122,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             // 设置点赞信息
             bean.put("checkUpvote", checkUpvoteMap.get(id));
             // 设置用户信息
+            // TODO 空指针异常
             String loginIdentity = bean.get("loginIdentity").toString();
             if(LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
                 userService.setMationForMap(bean, "createId", "createMation");

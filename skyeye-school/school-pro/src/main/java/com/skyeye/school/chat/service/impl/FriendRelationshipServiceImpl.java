@@ -1,6 +1,10 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.chat.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -11,14 +15,12 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.rest.wall.user.service.IUserService;
+import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.FriendRelationshipDao;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
-import com.skyeye.school.personnel.entity.SysEveUserStaff;
-import com.skyeye.school.personnel.service.SysEveUserStaffService;
-import com.skyeye.school.student.service.StudentService;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,16 +32,7 @@ import java.util.Map;
 public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<FriendRelationshipDao, FriendRelationship> implements FriendRelationshipService {
 
     @Autowired
-    private IAuthUserService iAuthUserService;
-
-    @Autowired
-    private SysEveUserStaffService sysEveUserStaffService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private IUserService iUserService;
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected QueryWrapper<FriendRelationship> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -81,7 +74,7 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         String id = map.get("id").toString();
         QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
         queryWrapper.and(wrapper -> wrapper
                 .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
                 .or()
@@ -94,13 +87,11 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
             } else {
                 remainingId = item.getUserId();
             }
-            List<Map<String, Object>> studentMationList = iUserService.queryEntityMationByIds(remainingId);
-            SysEveUserStaff teacherMation = sysEveUserStaffService.selectById(remainingId);
-            if (ObjectUtil.isNotEmpty(studentMationList)) {
-                item.setStudentMation(studentMationList);
-            }
-            if (ObjectUtil.isNotEmpty(teacherMation)) {
-                item.setTeacherMation(teacherMation);
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(remainingId);
+            if (userOrStudent.getUserOrStudent()) {
+                item.setStudentMation(userOrStudent.getDataMation());
+            } else {
+                item.setTeacherMation(userOrStudent.getDataMation());
             }
         }
         outputObject.setBeans(list);
@@ -108,18 +99,34 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     }
 
     @Override
-    public List<FriendRelationship> queryFriendList( String holderId, String friendId) {
+    public List<FriendRelationship> queryFriendList(String holderId, String friendId) {
         QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-        friendQueryWrapper
-                .and(wapper -> wapper
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId)
-                )
-                .or()
-                .and(wapper -> wapper
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)
-                );
+        friendQueryWrapper.and(wrapper ->
+                        wrapper.or(wrapperOr -> wrapperOr
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), friendId))
+                                .or(wrapperOr -> wrapperOr
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
+                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)))
+                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
         return list(friendQueryWrapper);
+    }
+
+    @Override
+    public void queryFriendByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        String friendId = inputObject.getParams().get("userId").toString();
+
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(friendId);
+        Map<String, Object> dataMation = userOrStudent.getDataMation();
+
+        List<FriendRelationship> friendRelationships = queryFriendList(userId, friendId);
+        if (CollectionUtil.isNotEmpty(friendRelationships)) {
+            dataMation.put("isFriend", true);
+        } else {
+            dataMation.put("isFriend", false);
+        }
+        outputObject.setBean(dataMation);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }
