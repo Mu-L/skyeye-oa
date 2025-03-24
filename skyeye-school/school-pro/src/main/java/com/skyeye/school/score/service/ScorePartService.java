@@ -22,4 +22,6 @@ public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
     void midCourse(String stuNo, String subjectId, String classId);
 
     void createScorePartByWorkId(String objectId, String workId);
+
+    void updateScorePartProportion(InputObject inputObject, OutputObject outputObject);
 }

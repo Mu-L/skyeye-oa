@@ -6,6 +6,7 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.school.score.entity.ScoreTypeChild;
 import com.skyeye.school.score.entity.ScoreTypeChildList;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,9 @@ public class ScoreTypeChildController {
     @Autowired
     private ScoreTypeChildService scoreTypeChildService;
 
-
+    @ApiOperation(id = "writeScoreTypeChild", value = "新增成绩类型子表信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ScoreTypeChild.class)
+    @RequestMapping("/post/ScoreTypeChildController/writeScoreTypeChild")
     public void writeScoreTypeChild(InputObject inputObject, OutputObject outputObject) {
         scoreTypeChildService.saveOrUpdateEntity(inputObject, outputObject);
     }

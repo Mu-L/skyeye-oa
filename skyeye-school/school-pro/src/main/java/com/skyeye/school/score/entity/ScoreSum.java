@@ -25,7 +25,7 @@ public class ScoreSum extends OperatorUserInfo {
     private String score;
 
     @TableField("proportion")
-    @ApiModelProperty(value = "占比")
+    @ApiModelProperty(value = "占比(80即占比80%)")
     private String proportion;
 
     @TableField("object_id")

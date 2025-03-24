@@ -6,7 +6,7 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.score.entity.ScoreTypeList;
+import com.skyeye.school.score.entity.ScoreType;
 import com.skyeye.school.score.service.ScoreTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,11 +19,11 @@ public class ScoreTypeController {
     @Autowired
     private ScoreTypeService scoreTypeService;
 
-    @ApiOperation(id = "updateScoreTypeList", value = "新增成绩类型信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ScoreTypeList.class)
-    @RequestMapping("/post/ScoreTypeController/updateScoreTypeList")
-    public void updateScoreTypeList(InputObject inputObject, OutputObject outputObject) {
-        scoreTypeService.writeScoreTypeList(inputObject, outputObject);
+    @ApiOperation(id = "writeScoreTypeList", value = "新增成绩类型信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ScoreType.class)
+    @RequestMapping("/post/ScoreTypeController/writeScoreTypeList")
+    public void writeScoreTypeList(InputObject inputObject, OutputObject outputObject) {
+        scoreTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     @ApiOperation(id = "querySameTableDateList", value = "获取同表成绩类型信息", method = "POST", allUse = "2")

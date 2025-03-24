@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
@@ -20,10 +21,7 @@ import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.score.service.ScoreTypeService;
-import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
-import com.skyeye.school.subject.service.SubjectClassesService;
-import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,43 +44,31 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
     @Autowired
     private ScoreSumService scoreSumService;
 
-    @Autowired
-    private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private SubjectClassesStuService subjectClassesStuService;
-
-    @Override
-    public void validatorEntity(ScoreType scoreType) {
-        if (StrUtil.isNotEmpty(scoreType.getProportion())) {
-            double proportion = Double.parseDouble(scoreType.getProportion());
-            if (proportion < 0 || proportion > 100) {
-                throw new CustomException("占比必须为1-100");
-            }
-            QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), scoreType.getClassId())
-                .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), scoreType.getSubjectId())
-                .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
-            List<ScoreType> scoreTypeList = list(queryWrapper);
-            if (CollectionUtil.isNotEmpty(scoreTypeList)) {
-                double sumProportion = scoreTypeList.stream().map(ScoreType::getProportion).mapToDouble(Double::parseDouble).sum();
-                if (sumProportion + proportion > 100 || proportion + sumProportion < 0) {
-                    throw new CustomException("占比总和非法");
-                }
-            }
-        }
-    }
+//    @Override
+//    public void validatorEntity(ScoreType scoreType) {
+//        if (StrUtil.isNotEmpty(scoreType.getProportion())) {
+//            double proportion = Double.parseDouble(scoreType.getProportion());
+//            if (proportion < 0 || proportion > 100) {
+//                throw new CustomException("占比必须为1-100");
+//            }
+//            QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+//            queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), scoreType.getClassId())
+//                .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), scoreType.getSubjectId())
+//                .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
+//            List<ScoreType> scoreTypeList = list(queryWrapper);
+//            if (CollectionUtil.isNotEmpty(scoreTypeList)) {
+//                double sumProportion = scoreTypeList.stream().map(ScoreType::getProportion).mapToDouble(Double::parseDouble).sum();
+//                if (sumProportion + proportion > 100 || proportion + sumProportion < 0) {
+//                    throw new CustomException("占比总和非法");
+//                }
+//            }
+//        }
+//    }
 
     @Override
     public void createPrepose(ScoreType scoreType) {
-        // 默认占比为0
-        scoreType.setProportion(StrUtil.isEmpty(scoreType.getProportion()) ? CommonNumConstants.NUM_ZERO.toString() : scoreType.getProportion());
-        // 默认为非默认
         scoreType.setIsDefault(ObjectUtil.isEmpty(scoreType.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreType.getIsDefault());
     }
-
-    @Autowired
-    private StudentService studentService;
 
     @Override
     public void createPostpose(ScoreType scoreType, String userId) {
@@ -110,7 +96,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
                 scorePart.setStuNo(StrUtil.EMPTY);
                 scorePart.setObjectId(scoreType.getId());
                 scorePartService.createEntity(scorePart, userId);
-            }else {// 有人
+            } else {// 有人
                 for (ScoreSum scoreSum : scoreSums) {// 课程下班级的所有人
                     ScorePart scorePart = new ScorePart();
                     scorePart.setWorkId(scoreType.getName());
@@ -133,9 +119,41 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
 
     @Override
     public void updatePostpose(ScoreType scoreType, String userId) {
-        ScoreTypeChild scoreTypeChild = scoreTypeChildService.queryByTypeId(scoreType.getId());
-        scoreTypeChild.setProportion(scoreType.getProportion());
-        scoreTypeChildService.updateEntity(scoreTypeChild, userId);
+        ScoreType oldScoreType = selectById(scoreType.getId());
+        if (!oldScoreType.getProportion().equals(scoreType.getProportion())) {
+            ScoreTypeChild scoreTypeChild = scoreTypeChildService.queryByTypeId(scoreType.getId());
+            scoreTypeChild.setProportion(scoreType.getProportion());
+            scoreTypeChildService.updateEntity(scoreTypeChild, userId);
+            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(Arrays.asList(scoreType.getId()), null);
+            scoreParts.forEach(scorePart -> {
+                scorePart.setScore(CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scoreType.getProportion(), "100"), CommonNumConstants.NUM_THREE));
+            });
+            scorePartService.updateEntity(scoreParts, userId);
+
+            QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), scoreType.getClassId())
+                .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), scoreType.getSubjectId())
+                .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey())
+                .select(CommonConstants.ID);
+            List<ScoreType> list = list(queryWrapper);
+            if (CollectionUtil.isEmpty(list)) {
+                return;
+            }
+            List<String> idList = list.stream().map(ScoreType::getId).collect(Collectors.toList());
+            List<ScorePart> scoreParts1 = scorePartService.queryByObjectIdList(idList, null);
+            Map<String, List<ScorePart>> mapList = scoreParts1.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
+            ScoreType zong = queryDefaultInfo(scoreType.getClassId(), scoreType.getSubjectId());
+            mapList.forEach((stuNo, ScorePartList) -> {
+                final double[] sum = {CommonNumConstants.NUM_ZERO};
+                for (ScorePart scorePart : ScorePartList) {
+                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), scorePart.getProportion(), CommonNumConstants.NUM_FOUR);
+                    sum[CommonNumConstants.NUM_ZERO] = sum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
+                }
+                // 更新总分
+                scoreSumService.updateScoreByObjectIdAndStuNo(zong.getId(), sum[CommonNumConstants.NUM_ZERO], stuNo);
+            });
+        }
+
     }
 
     @Override
