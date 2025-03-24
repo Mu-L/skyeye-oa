@@ -98,7 +98,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if(CollectionUtil.isNotEmpty(checkUpvote)){
             post.setCheckUpvote(checkUpvote.get(post.getId()));
         }
-        if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())){
+        if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())&& post.getAnonymity() == CommonNumConstants.NUM_ZERO){
             userService.setDataMation(post,Post::getCreateId);
         }else {
             iAuthUserService.setDataMation(post,Post::getCreateId);
@@ -232,9 +232,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     }
 
     @Override
-    public void deletePreExecution(Post post) {
+    public void deletePreExecution(String id) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        if (!userId.equals(post.getCreateId())) {
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        Post one = getOne(queryWrapper);
+        if (!userId.equals(one.getCreateId())) {
             throw new CustomException("无权限");
         }
     }
