@@ -242,17 +242,14 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     @Override
     public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Integer limit = commonPageInfo.getLimit();
-        Integer pages = commonPageInfo.getPage();
-        String serviceClassName = commonPageInfo.getServiceClassName();
-        String keyword = commonPageInfo.getKeyword();
-        String holderId = commonPageInfo.getHolderId();
-        List<Map<String, Object>> maps = iSysEveUserStaffService.selectByName(serviceClassName, keyword, limit, pages);
+        List<Map<String, Object>> maps = iSysEveUserStaffService.querySysUserStaffList(commonPageInfo);
         // 查询教师列表
         if (CollectionUtil.isNotEmpty(maps)) {
+            String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+
             for (Map<String, Object> map : maps) {
                 String userId = map.get("userId").toString();
-                FriendRelationship friendShip = friendRelationshipService.queryFriendRelationShip(holderId, userId);
+                FriendRelationship friendShip = friendRelationshipService.queryFriendRelationShip(currentUserId, userId);
                 map.put("friendMation", friendShip);
             }
         }

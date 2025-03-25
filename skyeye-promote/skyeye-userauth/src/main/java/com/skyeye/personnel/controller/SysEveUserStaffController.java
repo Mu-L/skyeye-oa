@@ -182,21 +182,4 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.editSysUserStaffActMoneyById(inputObject, outputObject);
     }
 
-    /**
-     * 根据姓名和工号查询员工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "selectByName", value = "根据姓名和工号查询员工", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "员工姓名"),
-            @ApiImplicitParam(id = "keyword", name = "keyword", value = "员工工号"),
-            @ApiImplicitParam(id = "limit", name = "limit", value = "限制次数"),
-            @ApiImplicitParam(id = "pages", name = "pages", value = "限制页数")})
-    @RequestMapping("/post/SysEveUserStaffController/selectByName")
-    public void selectByName(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserStaffService.selectByName(inputObject, outputObject);
-    }
-
 }
