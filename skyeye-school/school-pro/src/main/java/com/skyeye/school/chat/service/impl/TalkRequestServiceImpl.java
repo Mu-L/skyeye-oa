@@ -16,8 +16,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
-import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
@@ -45,10 +43,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     private StudentService studentService;
 
     @Autowired
-    private IUserService iUserService;
+    private FriendRelationshipService friendRelationshipService;
 
     @Autowired
-    private FriendRelationshipService friendRelationshipService;
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected void createPrepose(TalkRequest entity) {
@@ -91,12 +89,6 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         Integer status = entity.getStatus();
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
-
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
-    @Autowired
-    private SchoolCommonService schoolCommonService;
 
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
