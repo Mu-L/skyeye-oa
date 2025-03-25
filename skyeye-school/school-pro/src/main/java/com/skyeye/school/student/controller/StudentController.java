@@ -127,9 +127,9 @@ public class StudentController {
      */
     @ApiOperation(id = "querySchoolStudentListByNo", value = "根据学号获取学生的学校等信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required"),
-            @ApiImplicitParam(id = "id", name = "id", value = "所要查询的id"),
-            @ApiImplicitParam(id = "userId", name = "userId", value = "账户id")})
+        @ApiImplicitParam(id = "no", name = "no", value = "学号", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "所要查询的id"),
+        @ApiImplicitParam(id = "userId", name = "userId", value = "账户id")})
     @RequestMapping("/post/StudentController/querySchoolStudentListByNo")
     public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
         studentService.querySchoolStudentListByNo(inputObject, outputObject);

@@ -11,15 +11,12 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -154,27 +151,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (ObjUtil.isNotEmpty(examSurveyDirectory)) { // 判断试卷信息是否存在
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断试卷是否未发布
                 String belongId = examSurveyDirectory.getId(); // 获取试卷ID
-                List<Question> questions = questionService.QueryQuestionByBelongId(belongId); // 根据试卷ID查询题目
-                if (CollectionUtil.isNotEmpty(questions)) { // 判断是否有题目
-                    // 总分数
-                    int fraction = 0;
-                    // 题目总数
-                    int questionNum = 0;
-                    for (Question question : questions) {
-                        int questionType = question.getQuType();
-                        if (questionType != 16 && questionType != 17) {
-                            fraction += question.getFraction();
-                            questionNum++;
-                        }
-                    }
-                    UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                    updateWrapper.eq(CommonConstants.ID, id);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                    update(updateWrapper);
-                } else {
-                    throw new CustomException("该试卷没有调查项，无法发布试卷。");
+                Integer fractionNumber = getFractionNumber(belongId);
+                if (fractionNumber == 0) {
+                    throw new CustomException("该试卷没有调查项");
                 }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
@@ -182,6 +161,32 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         } else {
             throw new CustomException("该试卷信息不存在。");
         }
+    }
+
+    @NotNull
+    private Integer getFractionNumber(String belongId) {
+        List<Question> questions = questionService.QueryQuestionByBelongId(belongId); // 根据试卷ID查询题目
+        // 判断是否有题目
+        int fraction = 0;
+        // 题目总数
+        int questionNum = 0;
+        if (CollectionUtil.isNotEmpty(questions)) {
+            for (Question question : questions) {
+                int questionType = question.getQuType();
+                if (questionType != 16 && questionType != 17) {
+                    fraction += question.getFraction();
+                    questionNum++;
+                }
+            }
+        }
+        // 总分数
+        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, belongId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+        update(updateWrapper);
+        return fraction;
     }
 
     /**
@@ -312,6 +317,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private ISysEveUserStaffService iSysEveUserStaffService;
+
     /**
      * 创建/更新题目前的操作
      *
@@ -359,6 +365,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 questionService.createEntity(question, userId); // 创建新的题目
             }
         }
+
     }
 
     @Override
@@ -596,10 +603,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             //设置学期信息
             item.setSemesterMation(semesterService.selectById(item.getSemesterId()));
             String classId = item.getClassId();
-            if(StrUtil.isNotEmpty(classId)){
-                String[] idArray  = classId.split(",");
+            if (StrUtil.isNotEmpty(classId)) {
+                String[] idArray = classId.split(",");
                 List<Classes> classesList = new ArrayList<>();
-                for (String idItem  : idArray) {
+                for (String idItem : idArray) {
                     idItem = idItem.trim();
                     if (StrUtil.isNotEmpty(idItem)) {
                         Classes classes = classesService.selectById(idItem);
@@ -608,7 +615,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                         }
                     }
                 }
-                item.setClassesMation(classesList );
+                item.setClassesMation(classesList);
             }
             return item;
         }).collect(Collectors.toList());
@@ -622,11 +629,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public ExamSurveyDirectory selectById(String id) {
         ExamSurveyDirectory bean = getExamSurveyDirectory(id);
+        Integer fractionNumber = getFractionNumber(id);
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isEmpty(questionList)) {
             return bean;
         }
         bean.setQuestionMation(questionList);
+        bean.setFraction(fractionNumber);
         return bean;
     }
 
@@ -634,6 +643,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ExamSurveyDirectory bean = getExamSurveyDirectory(id);
+        Integer fractionNumber = getFractionNumber(id);
+        bean.setFraction(fractionNumber);
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isEmpty(questionList)) {
             outputObject.setBean(bean);
@@ -646,10 +657,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     private ExamSurveyDirectory getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
         String classId = bean.getClassId();
-        if(StrUtil.isNotEmpty(classId)){
-            String[] idArray  = classId.split(",");
+        if (StrUtil.isNotEmpty(classId)) {
+            String[] idArray = classId.split(",");
             List<Classes> classesList = new ArrayList<>();
-            for (String idItem  : idArray) {
+            for (String idItem : idArray) {
                 idItem = idItem.trim();
                 if (StrUtil.isNotEmpty(idItem)) {
                     Classes classes = classesService.selectById(idItem);

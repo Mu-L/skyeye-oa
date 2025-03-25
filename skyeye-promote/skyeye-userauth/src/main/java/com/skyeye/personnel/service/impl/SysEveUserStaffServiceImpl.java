@@ -545,11 +545,4 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         outputObject.settotal(page1.getTotal());
     }
 
-    @Override
-    public void selectByObjectId(InputObject inputObject, OutputObject outputObject) {
-        String objectId = inputObject.getParams().get("objectId").toString();
-        SysEveUserStaff sysEveUserStaff = selectById(objectId);
-        outputObject.setBean(sysEveUserStaff);
-    }
-
 }

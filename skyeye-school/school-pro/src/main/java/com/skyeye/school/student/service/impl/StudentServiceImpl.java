@@ -26,10 +26,13 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.entity.SchoolStudentExcelModel;
 import com.skyeye.school.entity.SchoolStudentGlobalExcelDictHandler;
 import com.skyeye.school.faculty.service.FacultyService;
@@ -113,11 +116,26 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Override
     public void createPrepose(Student entity) {
+        String idCard = entity.getIdCard();
+        if (ObjectUtil.isNotEmpty(idCard)) {
+            QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), idCard);
+            Student student = this.getOne(queryWrapper);
+            if (ObjectUtil.isNotEmpty(student)) {
+                throw new CustomException("证件号码已存在，请重新输入");
+            }
+        }
         setBirthday(entity);
     }
 
     @Override
     public void updatePrepose(Student entity) {
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), entity.getIdCard());
+        Student student = this.getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(student)) {
+            throw new CustomException("证件号码不存在，请重新输入");
+        }
         setBirthday(entity);
     }
 
@@ -234,16 +252,16 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         }
 
         List<String> idList = mapList.stream()
-                .filter(map3 -> map3.get("id") != null)
-                .map(map4 -> map4.get("id").toString())
-                .distinct()
-                .collect(Collectors.toList());
+            .filter(map3 -> map3.get("id") != null)
+            .map(map4 -> map4.get("id").toString())
+            .distinct()
+            .collect(Collectors.toList());
 
         List<Map<String, Object>> finalMapList = new ArrayList<>();
         for (String s : idList) {
             List<Map<String, Object>> userMaps = mapList.stream()
-                    .filter(map -> s.equals(map.get("id").toString()))
-                    .collect(Collectors.toList());
+                .filter(map -> s.equals(map.get("id").toString()))
+                .collect(Collectors.toList());
             if (!userMaps.isEmpty()) {
                 Map<String, Object> userMap = userMaps.get(0);
                 List<FriendRelationship> friendList = friendRelationshipService.queryFriendList(holderId, s);
@@ -277,20 +295,24 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         // 查询教师列表
         if (CollectionUtil.isNotEmpty(maps)) {
             for (Map<String, Object> map : maps) {
-                String id = map.get("id").toString();
+                String userId = map.get("userId").toString();
                 QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-                friendQueryWrapper
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
-                        .or()
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId);
+                friendQueryWrapper.and(wrapper ->
+                    wrapper.or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId))
+                        .or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)));
                 List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
                 map.put("friendMation", list);
             }
         }
         outputObject.setBeans(maps);
     }
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
 
     @Override
     public void querySchoolStudentListByNo(InputObject inputObject, OutputObject outputObject) {
@@ -302,28 +324,35 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
         List<Student> studentList = list(queryWrapper);
         for (Student student : studentList) {
-            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(userId);
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
             QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
-            if (ObjectUtil.isNotEmpty(maps)) {
-                String sysEveUserStaffId = maps.get("id").toString();
-                friendQueryWrapper
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId)
-                        .or()
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), sysEveUserStaffId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
-            } else {
-                friendQueryWrapper
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
-                        .or()
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
-                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id);
+            if (userOrStudent.getUserOrStudent().equals(false)) {
+                Map<String, Object> dataMation = userOrStudent.getDataMation();
+                if (ObjectUtil.isNotEmpty(dataMation)) {
+                    String sysEveUserStaffId = dataMation.get("userId").toString();
+                    friendQueryWrapper.and(wrapper ->
+                        wrapper.or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId))
+                            .or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), sysEveUserStaffId)
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
+                }
+            }
+            if (userOrStudent.getUserOrStudent().equals(true)) {
+                friendQueryWrapper.and(wrapper ->
+                    wrapper.or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId))
+                        .or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
             }
             List<FriendRelationship> friendRelationshipList = friendRelationshipService.list(friendQueryWrapper);
             if (CollectionUtil.isNotEmpty(friendRelationshipList)) {
                 student.setFriendMation(friendRelationshipList);
             }
+
         }
         schoolService.setDataMation(studentList, Student::getSchoolId);
         facultyService.setDataMation(studentList, Student::getFacultyId);
