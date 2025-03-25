@@ -71,15 +71,15 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     }
 
     @Override
-    protected void createPrepose(GroupsInformation groupsInformation) {
+    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
         List<SubjectClassesStu> subjectClassesStuList = new ArrayList<>();
         String classId = groupsInformation.getClassId();
         if (StrUtil.isNotEmpty(classId)) {
             List<SubjectClasses> subjectClassesList1 = subjectClassesService.selectIdByClassId(classId);
             List<String> collect = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
             List<SubjectClassesStu> collect1 = collect.stream()
-                .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
-                .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
+                    .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
+                    .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
             subjectClassesStuList.addAll(collect1);
         }
         String subjectId = groupsInformation.getSubjectId();
@@ -87,8 +87,8 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
             List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
             List<SubjectClassesStu> allStudents = collect.stream()
-                .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
+                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+                    .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
             subjectClassesStuList.addAll(allStudents);
         }
         Integer status = groupsInformation.getStatus();
@@ -114,11 +114,15 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                 } else {
                     numGroups = size / groupsnun;
                 }
-                groupsInformation.setGroupsNumber(numGroups);
+                UpdateWrapper<GroupsInformation>  updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
+                updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
+                update(updateWrapper);
             } else {
                 throw new CustomException("学生人数不足,无法创建分组");
             }
-            groupsService.insertList(groupsInformation, subjectClassesStuList);
+            GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
+            groupsService.insertList(groupsInformation1, subjectClassesStuList);
         }
     }
 
