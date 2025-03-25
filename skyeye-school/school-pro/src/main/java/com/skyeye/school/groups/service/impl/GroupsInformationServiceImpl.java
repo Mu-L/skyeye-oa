@@ -10,9 +10,9 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "学生分组信息管理", groupName = "分组管理")
 public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<GroupsInformationDao, GroupsInformation> implements GroupsInformationService {
 
-
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
@@ -44,10 +43,10 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     private GroupsService groupsService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private SubjectClassesService subjectClassesService;
 
     @Autowired
-    private SubjectClassesService subjectClassesService;
+    private ClassesService classesService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
@@ -67,11 +66,12 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        classesService.setMationForMap(beans, "classId", "classMation");
         return beans;
     }
 
     @Override
-    protected void createPrepose(GroupsInformation groupsInformation) {
+    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
         List<SubjectClassesStu> subjectClassesStuList = new ArrayList<>();
         String classId = groupsInformation.getClassId();
         if (StrUtil.isNotEmpty(classId)) {
@@ -114,11 +114,15 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                 } else {
                     numGroups = size / groupsnun;
                 }
-                groupsInformation.setGroupsNumber(numGroups);
+                UpdateWrapper<GroupsInformation>  updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
+                updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
+                update(updateWrapper);
             } else {
                 throw new CustomException("学生人数不足,无法创建分组");
             }
-            groupsService.insertList(groupsInformation, subjectClassesStuList);
+            GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
+            groupsService.insertList(groupsInformation1, subjectClassesStuList);
         }
     }
 
@@ -163,4 +167,5 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         }
 
     }
+
 }

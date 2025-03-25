@@ -83,7 +83,4 @@ public class User extends CommonInfo {
     @Property(value = "认证状态")
     private Integer state;
 
-    @TableField(exist = false)
-    @Property(value = "学校学生的基本信息")
-    private List<Map<String,Object>> schoolStudentMation;
 }

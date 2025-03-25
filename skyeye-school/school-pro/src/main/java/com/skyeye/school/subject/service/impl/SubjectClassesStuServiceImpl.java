@@ -24,6 +24,8 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.service.ScorePartService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.dao.SubjectClassesStuDao;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
@@ -63,6 +65,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private ScorePartService scorePartService;
+
+    @Autowired
+    private StudentService studentService;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -182,6 +187,22 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
             iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        if (CollectionUtil.isEmpty(userList)) {
+            return CollectionUtil.newArrayList();
+        }
+        List<String> studentNumberList = userList.stream()
+            .filter(user -> StrUtil.isNotEmpty(user.getOrDefault("studentNumber", StrUtil.EMPTY).toString()))
+            .map(user -> user.get("studentNumber").toString()).distinct().collect(Collectors.toList());
+        List<Student> students = studentService.getStudents(studentNumberList);
+        Map<String, Student> collect = students.stream().collect(Collectors.toMap(Student::getNo, bb -> bb));
+        userList.forEach(user -> {
+            String studentNumber = user.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            if (StrUtil.isEmpty(studentNumber)) {
+                return;
+            }
+            Student student = collect.get(studentNumber);
+            user.put("studentMation", student);
+        });
         return userList;
     }
 

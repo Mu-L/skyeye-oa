@@ -118,8 +118,8 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         // 分组查询我的最近的聊天消息列表(50条)
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrapper ->
-                wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
-                        .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
+            wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
+                .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId));
         queryWrapper.last("LIMIT 50");
@@ -129,12 +129,12 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         }
         // 根据用户id查询员工数据
         List<String> userIds = talkChatHistoryList.stream()
-                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-                .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
+            .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+            .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(userIds)) {
             List<String> receiveIds = talkChatHistoryList.stream()
-                    .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-                    .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
+                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+                .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
             userIds.addAll(receiveIds);
             userIds = userIds.stream().distinct().collect(Collectors.toList());
         }
@@ -210,15 +210,15 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     public List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map) {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
-                .and(wrapper ->
-                        wrapper.or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
-                                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString()))
-                                .or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
-                                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
-                                .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime)));
+            .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
+            .and(wrapper ->
+                wrapper.or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString()))
+                    .or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString())))
+            .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         List<String> userIds = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
@@ -230,9 +230,9 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         List<Map<String, Object>> userStaffList = iAuthUserService.queryDataMationByIds(userIdsStr);
 
         Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(
-                m -> m.get("userId").toString(),
-                n -> n.get("userName").toString(),
-                (existing, replacement) -> existing
+            m -> m.get("userId").toString(),
+            n -> n.get("userName").toString(),
+            (existing, replacement) -> existing
         ));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
