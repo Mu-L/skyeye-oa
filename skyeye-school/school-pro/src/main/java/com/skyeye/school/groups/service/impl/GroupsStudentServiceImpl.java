@@ -87,7 +87,6 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         } else {
             throw new CustomException("学生不在该分组范围内");
         }
-
     }
 
     @Override
@@ -96,9 +95,11 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         String stuNumber = map.get("studentNumber").toString();
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), stuNumber);
-        List<GroupsStudent> list = list(queryWrapper);
-        outputObject.setBean(list);
-        outputObject.settotal(list.size());
+        GroupsStudent groupsStudent = getOne(queryWrapper);
+        Groups groups = groupsService.selectById(groupsStudent.getGroupId());
+        groupsStudent.setGroupsMation(groups);
+        outputObject.setBean(groupsStudent);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     public void saveToGroupsStudent(GroupsStudent groupsStudent, String studentNumber, boolean throwException) {
@@ -128,6 +129,5 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), GroupsId);
         remove(queryWrapper);
     }
-
 
 }
