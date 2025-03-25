@@ -199,18 +199,4 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.selectByName(inputObject, outputObject);
     }
 
-    /**
-     * 根据Id查询员工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "selectByObjectId", value = "根据Id查询员工", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "objectId", name = "objectId", value = "员工Id")})
-    @RequestMapping("/post/SysEveUserStaffController/selectByObjectId")
-    public void selectByObjectId(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserStaffService.selectByObjectId(inputObject, outputObject);
-    }
-
 }

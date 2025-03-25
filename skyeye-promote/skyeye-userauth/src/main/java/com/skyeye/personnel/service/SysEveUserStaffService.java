@@ -65,5 +65,4 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
 
     void selectByName(InputObject inputObject, OutputObject outputObject);
 
-    void selectByObjectId(InputObject inputObject, OutputObject outputObject);
 }

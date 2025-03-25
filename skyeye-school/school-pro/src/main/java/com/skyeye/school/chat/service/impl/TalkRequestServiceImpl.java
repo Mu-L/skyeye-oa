@@ -23,6 +23,8 @@ import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.chat.service.TalkRequestService;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,13 +71,13 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         String recipientId = entity.getRecipientId();//被申请人Id
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
-        queryWrapper
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
+        queryWrapper.and(wrapper ->
+                wrapper.or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                        .or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
@@ -93,6 +95,9 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     @Autowired
     private ISysEveUserStaffService iSysEveUserStaffService;
 
+    @Autowired
+    private SchoolCommonService schoolCommonService;
+
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -107,13 +112,18 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String applicantId = talkRequest.getApplicantId();
-            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(applicantId);
-            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(applicantId);
-            if (ObjectUtil.isNotEmpty(mapList)) {
-                talkRequest.setStudentApplicantMation(mapList);
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(applicantId);
+            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
+            Map<String, Object> maps = userOrStudent.getDataMation();
+            if (userOrStudent1) {
+                if (ObjectUtil.isNotEmpty(maps)) {
+                    talkRequest.setStudentApplicantMation(maps);
+                }
             }
-            if (ObjectUtil.isNotEmpty(maps)) {
-                talkRequest.setTeacherApplicantMation(maps);
+            if (!userOrStudent1) {
+                if (ObjectUtil.isNotEmpty(maps)) {
+                    talkRequest.setTeacherApplicantMation(maps);
+                }
             }
         }
         outputObject.setBeans(talkRequestList);
@@ -133,13 +143,18 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
             String recipientId = talkRequest.getRecipientId();
-            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(recipientId);
-            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(recipientId);
-            if (ObjectUtil.isNotEmpty(mapList)) {
-                talkRequest.setStudentRecipientMation(mapList);
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(recipientId);
+            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
+            Map<String, Object> dataMation = userOrStudent.getDataMation();
+            if (userOrStudent1) {
+                if (ObjectUtil.isNotEmpty(dataMation)) {
+                    talkRequest.setStudentRecipientMation(dataMation);
+                }
             }
-            if (ObjectUtil.isNotEmpty(maps)) {
-                talkRequest.setTeacherRecipientMation(maps);
+            if (!userOrStudent1) {
+                if (ObjectUtil.isNotEmpty(dataMation)) {
+                    talkRequest.setTeacherRecipientMation(dataMation);
+                }
             }
         }
         outputObject.setBeans(talkRequestList);

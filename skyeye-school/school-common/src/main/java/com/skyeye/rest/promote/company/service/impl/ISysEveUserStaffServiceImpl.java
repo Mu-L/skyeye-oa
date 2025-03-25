@@ -17,19 +17,7 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     private ISysEveUserStaffRest iSysEveUserStaffRest;
 
     @Override
-    public List<Map<String, Object>> queryUserMationList(String userIds, String staffIds) {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.queryUserMationList(userIds, staffIds)).getRows();
-    }
-
-    @Override
     public List<Map<String, Object>> selectByName(String serviceClassName, String keyword, Integer limit, Integer pages) {
         return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.selectByName(serviceClassName, keyword ,limit, pages)).getRows();
     }
-
-    @Override
-    public Map<String, Object> selectByObjectId(String objectId) {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.selectByObjectId(objectId)).getBean();
-
-    }
-
 }
