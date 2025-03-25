@@ -72,12 +72,12 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrapper ->
-                wrapper.or(wrapperOr -> wrapperOr
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-                        .or(wrapperOr -> wrapperOr
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
+            wrapper.or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                .or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
@@ -142,19 +142,11 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
-            String recipientId = talkRequest.getRecipientId();
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(recipientId);
-            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
-            Map<String, Object> dataMation = userOrStudent.getDataMation();
-            if (userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(dataMation)) {
-                    talkRequest.setStudentRecipientMation(dataMation);
-                }
-            }
-            if (!userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(dataMation)) {
-                    talkRequest.setTeacherRecipientMation(dataMation);
-                }
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(talkRequest.getRecipientId());
+            if (userOrStudent.getUserOrStudent()) {
+                talkRequest.setStudentRecipientMation(userOrStudent.getDataMation());
+            } else {
+                talkRequest.setTeacherRecipientMation(userOrStudent.getDataMation());
             }
         }
         outputObject.setBeans(talkRequestList);

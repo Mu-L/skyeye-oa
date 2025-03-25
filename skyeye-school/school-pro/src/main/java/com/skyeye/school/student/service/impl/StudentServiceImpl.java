@@ -252,16 +252,16 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         }
 
         List<String> idList = mapList.stream()
-                .filter(map3 -> map3.get("id") != null)
-                .map(map4 -> map4.get("id").toString())
-                .distinct()
-                .collect(Collectors.toList());
+            .filter(map3 -> map3.get("id") != null)
+            .map(map4 -> map4.get("id").toString())
+            .distinct()
+            .collect(Collectors.toList());
 
         List<Map<String, Object>> finalMapList = new ArrayList<>();
         for (String s : idList) {
             List<Map<String, Object>> userMaps = mapList.stream()
-                    .filter(map -> s.equals(map.get("id").toString()))
-                    .collect(Collectors.toList());
+                .filter(map -> s.equals(map.get("id").toString()))
+                .collect(Collectors.toList());
             if (!userMaps.isEmpty()) {
                 Map<String, Object> userMap = userMaps.get(0);
                 List<FriendRelationship> friendList = friendRelationshipService.queryFriendList(holderId, s);
@@ -298,12 +298,12 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
                 String userId = map.get("userId").toString();
                 QueryWrapper<FriendRelationship> friendQueryWrapper = new QueryWrapper<>();
                 friendQueryWrapper.and(wrapper ->
-                        wrapper.or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId))
-                                .or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)));
+                    wrapper.or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId))
+                        .or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), holderId)));
                 List<FriendRelationship> list = friendRelationshipService.list(friendQueryWrapper);
                 map.put("friendMation", list);
             }
@@ -331,22 +331,22 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
                 if (ObjectUtil.isNotEmpty(dataMation)) {
                     String sysEveUserStaffId = dataMation.get("userId").toString();
                     friendQueryWrapper.and(wrapper ->
-                            wrapper.or(wrapperOr -> wrapperOr
-                                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId))
-                                    .or(wrapperOr -> wrapperOr
-                                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), sysEveUserStaffId)
-                                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
+                        wrapper.or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), sysEveUserStaffId))
+                            .or(wrapperOr -> wrapperOr
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), sysEveUserStaffId)
+                                .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
                 }
             }
             if (userOrStudent.getUserOrStudent().equals(true)) {
                 friendQueryWrapper.and(wrapper ->
-                        wrapper.or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId))
-                                .or(wrapperOr -> wrapperOr
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
-                                        .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
+                    wrapper.or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), userId))
+                        .or(wrapperOr -> wrapperOr
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), userId)
+                            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id)));
             }
             List<FriendRelationship> friendRelationshipList = friendRelationshipService.list(friendQueryWrapper);
             if (CollectionUtil.isNotEmpty(friendRelationshipList)) {

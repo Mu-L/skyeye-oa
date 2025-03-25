@@ -18,6 +18,6 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
 
     @Override
     public List<Map<String, Object>> selectByName(String serviceClassName, String keyword, Integer limit, Integer pages) {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.selectByName(serviceClassName, keyword ,limit, pages)).getRows();
+        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.selectByName(serviceClassName, keyword, limit, pages)).getRows();
     }
 }
