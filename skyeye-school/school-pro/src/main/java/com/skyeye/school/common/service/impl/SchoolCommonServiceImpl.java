@@ -5,11 +5,14 @@
 package com.skyeye.school.common.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +35,9 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
     @Autowired
     protected IAuthUserService iAuthUserService;
 
+    @Autowired
+    private StudentService studentService;
+
     @Override
     public UserOrStudent queryUserOrStudent(String userId) {
         UserOrStudent item = new UserOrStudent();
@@ -40,6 +46,12 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
         if (CollectionUtil.isNotEmpty(studentMation)) {
             item.setUserOrStudent(true);
             studentMation.put("userIdentity", LoginIdentity.STUDENT.getKey());
+            studentMation.put("password", StrUtil.EMPTY);
+            String studentNumber = studentMation.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            if (StrUtil.isNotEmpty(studentNumber)) {
+                Student students = studentService.getStudents(studentNumber);
+                studentMation.put("studentMation", students);
+            }
             item.setDataMation(studentMation);
             return item;
         }

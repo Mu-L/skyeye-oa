@@ -9,8 +9,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -250,8 +248,8 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         List<Map<String, Object>> timeDayMation = sysEveUserStaffDao.queryCheckTimeDaysMationByTimeIds(timeIds);
         timeMation.forEach(bean -> {
             List<Map<String, Object>> thisDayMation = timeDayMation.stream()
-                    .filter(item -> item.get("timeId").toString().equals(bean.get("timeId").toString()))
-                    .collect(Collectors.toList());
+                .filter(item -> item.get("timeId").toString().equals(bean.get("timeId").toString()))
+                .collect(Collectors.toList());
             bean.put("days", thisDayMation);
         });
         // 3.校验工作日是否冲突
@@ -264,25 +262,25 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 for (int j = (i + 1); j < timeMation.size(); j++) {
                     List<String> times = new ArrayList<>();
                     times.add(timeMation.get(i).get("startTime").toString() + "-"
-                            + timeMation.get(i).get("endTime").toString());
+                        + timeMation.get(i).get("endTime").toString());
                     times.add(timeMation.get(j).get("startTime").toString() + "-"
-                            + timeMation.get(j).get("endTime").toString());
+                        + timeMation.get(j).get("endTime").toString());
                     // 1.首先判断每天的工作日的开始时间和结束时间是否有重复
                     boolean flag = DateUtil.checkOverlap(times);
                     if (flag) {
                         // 开始时间和结束时间是否有重复
                         List<Map<String, Object>> iDayMation = (List<Map<String, Object>>) timeMation.get(i)
-                                .get("days");
+                            .get("days");
                         List<Map<String, Object>> jDayMation = (List<Map<String, Object>>) timeMation.get(j)
-                                .get("days");
+                            .get("days");
                         // 求这两个班次的工作日冲突的天数，根据类型和工作日(周几)判断
                         int size = iDayMation.stream()
-                                .map(t -> jDayMation.stream()
-                                        .filter(s -> (Objects.equals(t.get("type").toString(), s.get("type").toString())
-                                                || Objects.equals(t.get("type").toString(), "1")
-                                                || Objects.equals(s.get("type").toString(), "1"))
-                                                && Objects.equals(t.get("day").toString(), s.get("day").toString()))
-                                        .findAny().orElse(null)).filter(Objects::nonNull).collect(Collectors.toList()).size();
+                            .map(t -> jDayMation.stream()
+                                .filter(s -> (Objects.equals(t.get("type").toString(), s.get("type").toString())
+                                    || Objects.equals(t.get("type").toString(), "1")
+                                    || Objects.equals(s.get("type").toString(), "1"))
+                                    && Objects.equals(t.get("day").toString(), s.get("day").toString()))
+                                .findAny().orElse(null)).filter(Objects::nonNull).collect(Collectors.toList()).size();
                         if (size > 0) {
                             return true;
                         }
@@ -481,13 +479,13 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         queryWrapper.isNotNull(userIdKey).ne(userIdKey, StrUtil.EMPTY);
         List<SysEveUserStaff> userStaffList = list(queryWrapper);
         List<Map<String, Object>> mapList = userStaffList.stream()
-                .map(userStaff -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", userStaff.getUserId());
-                    map.put("name", userStaff.getUserName());
-                    map.put("email", userStaff.getEmail());
-                    return map;
-                }).collect(Collectors.toList());
+            .map(userStaff -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", userStaff.getUserId());
+                map.put("name", userStaff.getUserName());
+                map.put("email", userStaff.getEmail());
+                return map;
+            }).collect(Collectors.toList());
         outputObject.setBeans(mapList);
         outputObject.settotal(mapList.size());
     }
@@ -523,26 +521,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             outputObject.setBean(sysEveUserStaff);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         }
-    }
-
-    @Override
-    public void selectByName(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String serviceClassName = map.get("serviceClassName").toString();
-        String keyword = map.get("keyword").toString();
-        Integer limit = Integer.valueOf(map.get("limit").toString());
-        Integer page = Integer.valueOf(map.get("pages").toString());
-        Page page1 = PageHelper.startPage(page, limit);
-        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(serviceClassName)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), serviceClassName);
-        }
-        if (StrUtil.isNotEmpty(keyword)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getJobNumber), keyword);
-        }
-        List<SysEveUserStaff> sysEveUserStaffList = list(queryWrapper);
-        outputObject.setBeans(sysEveUserStaffList);
-        outputObject.settotal(page1.getTotal());
     }
 
 }

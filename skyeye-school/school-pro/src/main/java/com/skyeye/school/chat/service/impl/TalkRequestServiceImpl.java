@@ -1,7 +1,6 @@
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -16,8 +15,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
-import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
@@ -45,10 +42,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     private StudentService studentService;
 
     @Autowired
-    private IUserService iUserService;
+    private FriendRelationshipService friendRelationshipService;
 
     @Autowired
-    private FriendRelationshipService friendRelationshipService;
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected void createPrepose(TalkRequest entity) {
@@ -72,12 +69,12 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrapper ->
-                wrapper.or(wrapperOr -> wrapperOr
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-                        .or(wrapperOr -> wrapperOr
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                                .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
+            wrapper.or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                .or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
@@ -92,12 +89,6 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
 
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
-    @Autowired
-    private SchoolCommonService schoolCommonService;
-
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -105,29 +96,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), commonPageInfo.getHolderId());
-        String state = commonPageInfo.getState();
-        if (StrUtil.isNotEmpty(state)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), state);
-        }
-        List<TalkRequest> talkRequestList = list(queryWrapper);
-        for (TalkRequest talkRequest : talkRequestList) {
-            String applicantId = talkRequest.getApplicantId();
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(applicantId);
-            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
-            Map<String, Object> maps = userOrStudent.getDataMation();
-            if (userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(maps)) {
-                    talkRequest.setStudentApplicantMation(maps);
-                }
-            }
-            if (!userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(maps)) {
-                    talkRequest.setTeacherApplicantMation(maps);
-                }
-            }
-        }
-        outputObject.setBeans(talkRequestList);
-        outputObject.settotal(page.getTotal());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
     }
 
     @Override
@@ -137,24 +106,20 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), commonPageInfo.getHolderId());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
+    }
+
+    private void queryList(OutputObject outputObject, CommonPageInfo commonPageInfo, Page page, QueryWrapper<TalkRequest> queryWrapper) {
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), commonPageInfo.getState());
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
-            String recipientId = talkRequest.getRecipientId();
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(recipientId);
-            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
-            Map<String, Object> dataMation = userOrStudent.getDataMation();
-            if (userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(dataMation)) {
-                    talkRequest.setStudentRecipientMation(dataMation);
-                }
-            }
-            if (!userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(dataMation)) {
-                    talkRequest.setTeacherRecipientMation(dataMation);
-                }
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(talkRequest.getRecipientId());
+            if (userOrStudent.getUserOrStudent()) {
+                talkRequest.setStudentRecipientMation(userOrStudent.getDataMation());
+            } else {
+                talkRequest.setTeacherRecipientMation(userOrStudent.getDataMation());
             }
         }
         outputObject.setBeans(talkRequestList);

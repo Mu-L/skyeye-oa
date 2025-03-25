@@ -29,7 +29,6 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.school.service.ISchoolService;
 import com.skyeye.user.dao.UserDao;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
@@ -55,9 +54,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private CertificationService certificationService;
-
-    @Autowired
-    private ISchoolService iSchoolService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -119,11 +115,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     @Override
     public User selectById(String id) {
         //当前学生账户Id
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         User user = super.selectById(id);
-        String studentNumber = user.getStudentNumber();
-        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber, id, userId);
-        user.setSchoolStudentMation(schoolStudentMation);
         Certification certification = certificationService.selectById(id);
         if (certification == null) {
             user.setState(StateEnum.UNVERIFIED.getKey());
@@ -251,13 +243,10 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
-        if (StrUtil.isNotEmpty(serviceClassName)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), serviceClassName);
-        }
         if (StrUtil.isNotEmpty(keyword)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword);
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword)
+                .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);

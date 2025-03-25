@@ -131,7 +131,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             if (StrUtil.isEmpty(userId) || !typeId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
             }
-            queryWrapper.and(wrapper -> {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
+                    .and(wrapper -> {
                         wrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
                                 .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId);
                     })

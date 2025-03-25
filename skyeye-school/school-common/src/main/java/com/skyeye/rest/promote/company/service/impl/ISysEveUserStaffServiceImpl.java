@@ -2,6 +2,7 @@ package com.skyeye.rest.promote.company.service.impl;
 
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.rest.promote.company.rest.ISysEveUserStaffRest;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     private ISysEveUserStaffRest iSysEveUserStaffRest;
 
     @Override
-    public List<Map<String, Object>> selectByName(String serviceClassName, String keyword, Integer limit, Integer pages) {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.selectByName(serviceClassName, keyword ,limit, pages)).getRows();
+    public List<Map<String, Object>> querySysUserStaffList(CommonPageInfo commonPageInfo) {
+        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.querySysUserStaffList(commonPageInfo)).getRows();
     }
 }

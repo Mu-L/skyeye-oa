@@ -242,7 +242,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(CouponUse::getCouponId));
         List<Map<String, Object>> mapList = listMaps(queryWrapper);
         return CollectionUtil.isEmpty(mapList) ? new HashMap<>()
-                : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
+            : mapList.stream().collect(Collectors.toMap(map -> map.get("coupon_id").toString(), map -> Integer.parseInt(map.get("total").toString())));
     }
 
     /**
