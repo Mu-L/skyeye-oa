@@ -87,16 +87,6 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         return groupsInformation;
     }
 
-    private static class Result {
-        public final Groups groups1;
-        public final GroupsInformation groupsInformation;
-
-        public Result(Groups groups1, GroupsInformation groupsInformation) {
-            this.groups1 = groups1;
-            this.groupsInformation = groupsInformation;
-        }
-    }
-
     private boolean isaBoolean(List<SubjectClasses> subjectClassesList, boolean isExist, String studentNumber1) {
         List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
         List<SubjectClassesStu> allStudents = collect.stream()
@@ -147,13 +137,6 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     protected void deletePreExecution(GroupsStudent entity) {
         GroupsInformation groupsInformation = getGroupsInformation(entity.getGroupId());
         groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(),false);
-    }
-
-    @Override
-    public void deleteGroupsStudent(String GroupsId) {
-        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), GroupsId);
-        remove(queryWrapper);
     }
 
 }
