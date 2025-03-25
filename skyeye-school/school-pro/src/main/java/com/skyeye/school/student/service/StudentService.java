@@ -25,15 +25,13 @@ public interface StudentService extends SkyeyeBusinessService<Student> {
 
     void queryCurrentUserSubject(InputObject inputObject, OutputObject outputObject);
 
-    List<Student> getStudentListByClassesId(String classesId);
-
     void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject);
 
     void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject);
 
     Student getStudents(String studentNumber);
 
-    List<Student> queryListByStuNoList(List<String> stuNoList);
+    List<Student> getStudents(List<String> studentNumber);
 
-    List<Student> queryListByClassesId(String classesId);
+    List<Student> queryListByStuNoList(List<String> stuNoList);
 }

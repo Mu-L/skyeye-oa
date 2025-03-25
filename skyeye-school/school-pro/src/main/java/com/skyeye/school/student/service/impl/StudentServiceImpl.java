@@ -211,13 +211,6 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     }
 
     @Override
-    public List<Student> getStudentListByClassesId(String classesId) {
-        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
-        return list(queryWrapper);
-    }
-
-    @Override
     public void queryStudentListByNameOrNo(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String keyword = commonPageInfo.getKeyword();
@@ -268,6 +261,17 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     }
 
     @Override
+    public List<Student> getStudents(List<String> studentNumber) {
+        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
+        List<Student> studentList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(studentList)) {
+            return CollectionUtil.newArrayList();
+        }
+        return selectByIds(studentList.stream().map(Student::getId).toArray(String[]::new));
+    }
+
+    @Override
     public List<Student> queryListByStuNoList(List<String> stuNoList) {
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Student::getNo), stuNoList);
@@ -288,10 +292,4 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         return JSONUtil.toList(JSON.toJSONString(yearSystemList), null);
     }
 
-    @Override
-    public List<Student> queryListByClassesId(String classesId) {
-        QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getClassId), classesId);
-        return list(queryWrapper);
-    }
 }
