@@ -115,11 +115,11 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(talkRequest.getRecipientId());
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(talkRequest.getApplicantId());
             if (userOrStudent.getUserOrStudent()) {
-                talkRequest.setStudentRecipientMation(userOrStudent.getDataMation());
+                talkRequest.setStudentApplicantMation(userOrStudent.getDataMation());
             } else {
-                talkRequest.setTeacherRecipientMation(userOrStudent.getDataMation());
+                talkRequest.setTeacherApplicantMation(userOrStudent.getDataMation());
             }
         }
         outputObject.setBeans(talkRequestList);

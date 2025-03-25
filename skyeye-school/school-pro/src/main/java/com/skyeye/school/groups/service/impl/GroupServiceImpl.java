@@ -19,8 +19,10 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.school.groups.dao.GroupsDao;
 import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
+import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,9 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
 
     @Value("${IMAGES_PATH}")
     private String tPath;
+
+    @Autowired
+    private GroupsInformationService groupsInformationService;
 
     @Override
     public QueryWrapper<Groups> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -121,5 +126,13 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         updateWrapper.eq(CommonConstants.ID,id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Groups::getState),state);
         update(updateWrapper);
+    }
+
+    @Override
+    public Groups selectById(String id) {
+        Groups groups = super.selectById(id);
+        GroupsInformation groupsInformation = groupsInformationService.selectById(groups.getGroupsInformationId());
+        groups.setGroupsInformationMation(groupsInformation);
+        return groups;
     }
 }

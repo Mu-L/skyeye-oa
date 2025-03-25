@@ -11,5 +11,4 @@ public interface GroupsStudentService extends SkyeyeBusinessService<GroupsStuden
 
     void selectGroupsByStuNumber(InputObject inputObject, OutputObject outputObject);
 
-    void deleteGroupsStudent(String GroupsId);
 }
