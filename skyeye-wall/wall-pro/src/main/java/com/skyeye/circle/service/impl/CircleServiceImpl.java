@@ -87,7 +87,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
             throw new CustomException("标题重复");
         }
         if (StrUtil.isNotEmpty(circle.getId())) {
-            if(ObjectUtil.isNotEmpty(one) && title.equals(one.getTitle())){
+            if(ObjectUtil.isNotEmpty(one) && !title.equals(one.getTitle())){
                 throw new CustomException("标题重复");
             }
         }
@@ -198,7 +198,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         if (ObjectUtil.isEmpty(circle)) {
             throw new CustomException("圈子id有误");
         }
-        List<Circle> bean = queryAllData();
+        QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID, circleId);
+        List<Circle> bean = list(queryWrapper);
         Map<String, Double> map = new HashMap<>();
         for (Circle item : bean) {
             String topicName = item.getTitle();
@@ -222,6 +224,16 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         List<Circle> beans = circleList.stream().map(this::setUserMation).collect(Collectors.toList());
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public void deleteCircle(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String circleId = params.get("circleId").toString();
+        QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, circleId);
+        remove(queryWrapper);
+        deletePostpose(circleId);
     }
 
     // 过滤字符

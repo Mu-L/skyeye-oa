@@ -21,4 +21,6 @@ public interface VideoCommentService extends SkyeyeBusinessService<VideoComment>
     void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject);
 
     void supportOrNotComment(InputObject inputObject, OutputObject outputObject);
+
+    void deleteByVideoId(String id);
 }

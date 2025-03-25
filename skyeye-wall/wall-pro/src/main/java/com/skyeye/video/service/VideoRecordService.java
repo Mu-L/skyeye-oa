@@ -25,4 +25,6 @@ public interface VideoRecordService extends SkyeyeBusinessService<VideoRecord> {
     boolean checkSupportOrCollectByVideoId(String videoId, int type);
 
     List<VideoRecord> queryAllSupportOrCollect(int type);
+
+    void deleteByVideoId(String id);
 }

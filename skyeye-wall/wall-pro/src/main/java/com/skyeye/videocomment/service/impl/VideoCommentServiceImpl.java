@@ -104,23 +104,18 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         }
     }
 
-    @Transactional
     @Override
-    public void deleteById(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String id = params.get("id").toString();
+    protected void deletePostpose(VideoComment entity) {
+        super.deletePostpose(entity);
+        String id = entity.getId();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        VideoComment videoComment = selectById(id);
-        //查询子数据并删除
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId), id);
         List<VideoComment> videoComments = list(queryWrapper);
-        List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
-        ids.add(id);
         remove(queryWrapper);
-        deleteById(id);
+        List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
         pictureService.deleteByCommentIds(ids);
-        String videoId = videoComment.getVideoId();
+        String videoId = entity.getVideoId();
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
         Integer videoRemarkNum = Integer.parseInt(video.getRemarkNum());
@@ -207,6 +202,16 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             // 删除点赞记录
             upvoteService.deleteUpvoteByObjectId(userId, commentId);
         }
+    }
+
+    @Override
+    public void deleteByVideoId(String id) {
+        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), id);
+        List<VideoComment> list = list(queryWrapper);
+        remove(queryWrapper);
+        List<String> ids = list.stream().map(VideoComment::getId).collect(Collectors.toList());
+        pictureService.deleteByCommentIds(ids);
     }
 
     @Override
