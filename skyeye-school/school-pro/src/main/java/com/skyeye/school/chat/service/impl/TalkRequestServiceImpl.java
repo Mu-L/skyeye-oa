@@ -1,7 +1,6 @@
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -97,29 +96,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), commonPageInfo.getHolderId());
-        String state = commonPageInfo.getState();
-        if (StrUtil.isNotEmpty(state)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), state);
-        }
-        List<TalkRequest> talkRequestList = list(queryWrapper);
-        for (TalkRequest talkRequest : talkRequestList) {
-            String applicantId = talkRequest.getApplicantId();
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(applicantId);
-            Boolean userOrStudent1 = userOrStudent.getUserOrStudent();
-            Map<String, Object> maps = userOrStudent.getDataMation();
-            if (userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(maps)) {
-                    talkRequest.setStudentApplicantMation(maps);
-                }
-            }
-            if (!userOrStudent1) {
-                if (ObjectUtil.isNotEmpty(maps)) {
-                    talkRequest.setTeacherApplicantMation(maps);
-                }
-            }
-        }
-        outputObject.setBeans(talkRequestList);
-        outputObject.settotal(page.getTotal());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
     }
 
     @Override
@@ -129,6 +106,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), commonPageInfo.getHolderId());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
+    }
+
+    private void queryList(OutputObject outputObject, CommonPageInfo commonPageInfo, Page page, QueryWrapper<TalkRequest> queryWrapper) {
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), commonPageInfo.getState());
         }

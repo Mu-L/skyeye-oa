@@ -115,26 +115,14 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     }
 
     @Override
-    public void createPrepose(Student entity) {
+    public void validatorEntity(Student entity) {
+        super.validatorEntity(entity);
         String idCard = entity.getIdCard();
-        if (ObjectUtil.isNotEmpty(idCard)) {
-            QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), idCard);
-            Student student = this.getOne(queryWrapper);
-            if (ObjectUtil.isNotEmpty(student)) {
-                throw new CustomException("证件号码已存在，请重新输入");
-            }
-        }
-        setBirthday(entity);
-    }
-
-    @Override
-    public void updatePrepose(Student entity) {
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), entity.getIdCard());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), idCard);
         Student student = this.getOne(queryWrapper);
-        if (ObjectUtil.isEmpty(student)) {
-            throw new CustomException("证件号码不存在，请重新输入");
+        if (ObjectUtil.isNotEmpty(student)) {
+            throw new CustomException("证件号码已存在，请重新输入");
         }
         setBirthday(entity);
     }
