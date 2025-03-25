@@ -10,9 +10,9 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "学生分组信息管理", groupName = "分组管理")
 public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<GroupsInformationDao, GroupsInformation> implements GroupsInformationService {
 
-
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
@@ -44,10 +43,10 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     private GroupsService groupsService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private SubjectClassesService subjectClassesService;
 
     @Autowired
-    private SubjectClassesService subjectClassesService;
+    private ClassesService classesService;
 
     private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
@@ -67,6 +66,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "createId", "createMation");
+        classesService.setMationForMap(beans, "classId", "classMation");
         return beans;
     }
 
@@ -78,8 +78,8 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             List<SubjectClasses> subjectClassesList1 = subjectClassesService.selectIdByClassId(classId);
             List<String> collect = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
             List<SubjectClassesStu> collect1 = collect.stream()
-                    .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
-                    .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
+                .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
+                .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
             subjectClassesStuList.addAll(collect1);
         }
         String subjectId = groupsInformation.getSubjectId();
@@ -87,8 +87,8 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
             List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
             List<SubjectClassesStu> allStudents = collect.stream()
-                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                    .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
+                .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+                .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
             subjectClassesStuList.addAll(allStudents);
         }
         Integer status = groupsInformation.getStatus();
