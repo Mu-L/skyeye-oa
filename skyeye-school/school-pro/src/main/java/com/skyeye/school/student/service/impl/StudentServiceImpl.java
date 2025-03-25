@@ -23,6 +23,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.ExcelUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;

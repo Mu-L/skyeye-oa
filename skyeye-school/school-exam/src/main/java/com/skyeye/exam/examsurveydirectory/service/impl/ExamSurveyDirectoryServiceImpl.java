@@ -288,28 +288,28 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             throw new CustomException("没有找到题目");
         }
         for (Question question : questionList) { // 遍历题目
-            question.setCopyFromId(question.getId()); // 设置复制来源ID
-            List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(question.getId());
+            String id = question.getId();
+            question.setCopyFromId(id); // 设置复制来源ID
+            List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(id);
             question.setQuestionLogic(examQuestionLogics);
-            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(question.getId());
+            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(id);
             question.setRadioTd(examQuRadioList);
-            List<ExamQuScore> examQuScoreList = examquScoreService.selectQuScore(question.getId());
+            List<ExamQuScore> examQuScoreList = examquScoreService.selectQuScore(id);
             question.setScoreTd(examQuScoreList);
-            List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(question.getId());
+            List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(id);
             question.setCheckboxTd(examQuCheckboxList);
-            List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(question.getId());
+            List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(id);
             question.setMultifillblankTd(multiFillblanks);
-            List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(question.getId());
+            List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(id);
             question.setOrderByTd(examQuOrderbyList);
-            List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
+            List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(id);
             question.setColumnTd(examQuChenColumnList);
-            List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(question.getId());
+            List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(id);
             question.setRowTd(examQuChenRows);
-            List<ExamQuScore> examQuScoreList1 = examQuScoreService.selectQuScore(question.getId());
+            List<ExamQuScore> examQuScoreList1 = examQuScoreService.selectQuScore(id);
             question.setScoreTd(examQuScoreList1);
             question.setBelongId(examSurveyDirectories.getId()); // 设置所属试卷ID
             questionService.createEntity(question, userId); // 创建新的题目
-            questionService.copyQuestionListMation(question); // 复制题目选项信息
             outputObject.setBean(examSurveyDirectories);
             outputObject.settotal(1);
         }
