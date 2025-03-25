@@ -179,16 +179,15 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             dwQuOrderbyService.removeByQuId(dwQuId);
             dwQuChenColumnService.removeByQuId(dwQuId);
         }
-
         List<DwQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
         if (CollectionUtils.isNotEmpty(radioTd)) {
-            List<String> collect = radioTd.stream().map(DwQuRadio::getOptionId).collect(Collectors.toList());
-            List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectQuRadio(dwQuId);
-            List<String> collect1 = dwQuRadioList.stream().map(DwQuRadio::getId).collect(Collectors.toList());
+            List<String> collect = radioTd.stream().map(DwQuRadio::getOptionId).collect(Collectors.toList());//获取前端传过来的选项id
+            List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectQuRadio(dwQuId);//获取数据库中该题目的选项
+            List<String> collect1 = dwQuRadioList.stream().map(DwQuRadio::getId).collect(Collectors.toList());//获取数据库中该题目的选项id
             List<String> collect2 = collect1.stream().filter(
                     optionId -> !collect.contains(optionId)
-            ).collect(Collectors.toList());
+            ).collect(Collectors.toList());//获取数据库中该题目的选项id，但不在前端传过来的选项id中
             for (String id : collect2) {
                 dwQuRadioService.deleteById(id);
             }
