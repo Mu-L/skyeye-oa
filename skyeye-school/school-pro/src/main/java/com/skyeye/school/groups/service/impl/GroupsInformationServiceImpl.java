@@ -14,9 +14,11 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
+import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
+import com.skyeye.school.groups.service.GroupsStudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -62,9 +64,26 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         return queryWrapper;
     }
 
+    @Autowired
+    private GroupsStudentService groupsStudentService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        List<Map<String, Object>> groupsStudents = groupsStudentService.selectAllStudent();
+        Map<String, List<Map<String, Object>>> studentMap = groupsStudents.stream()
+                .collect(Collectors.groupingBy(student -> student.get("groupId").toString()));
+        for (Map<String, Object> bean : beans) {
+            String id = bean.get("id").toString();
+            List<Groups> groupsList = groupsService.selectByGroupsInformationId(id);
+            bean.put("groupsList", groupsList);
+            List<String> groupIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
+            List<Map<String, Object>> studentMation = groupIds.stream()
+                    .filter(studentMap::containsKey)
+                    .flatMap(groupId -> studentMap.get(groupId).stream())
+                    .collect(Collectors.toList());
+            bean.put("studentMation", studentMation);
+        }
         iAuthUserService.setMationForMap(beans, "createId", "createMation");
         classesService.setMationForMap(beans, "classId", "classMation");
         return beans;
@@ -114,7 +133,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
                 } else {
                     numGroups = size / groupsnun;
                 }
-                UpdateWrapper<GroupsInformation>  updateWrapper = new UpdateWrapper<>();
+                UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
                 updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
                 updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
                 update(updateWrapper);

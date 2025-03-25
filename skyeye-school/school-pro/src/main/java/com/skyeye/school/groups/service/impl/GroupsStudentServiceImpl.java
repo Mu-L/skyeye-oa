@@ -1,8 +1,8 @@
 package com.skyeye.school.groups.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -24,6 +24,7 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.jetbrains.annotations.NotNull;
+import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -108,6 +109,14 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         groupsStudent.setGroupsMation(groups);
         outputObject.setBean(groupsStudent);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public List<Map<String ,Object>> selectAllStudent() {
+        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
+        List<GroupsStudent> groupsStudentList = list(queryWrapper);
+        List<Map<String,Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(groupsStudentList), null);
+        return list;
     }
 
     public void saveToGroupsStudent(GroupsStudent groupsStudent, String studentNumber, boolean throwException) {

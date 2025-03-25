@@ -1,6 +1,5 @@
 package com.skyeye.school.groups.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -15,7 +14,7 @@ public interface GroupsService extends SkyeyeBusinessService<Groups> {
 
     void deleteGroups(String groupsInformationId);
 
-    QueryWrapper<Groups> selectByGroupsInformationId(String groupsInformationId);
+    List<Groups> selectByGroupsInformationId(String groupsInformationId);
 
     void deleteGroupsById(InputObject inputObject, OutputObject outputObject);
 

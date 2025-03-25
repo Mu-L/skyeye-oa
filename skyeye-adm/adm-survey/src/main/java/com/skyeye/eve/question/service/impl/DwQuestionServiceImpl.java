@@ -389,7 +389,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     public List<DwQuestion> QueryQuestionByBelongId(String belongId) {
         QueryWrapper<DwQuestion> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestion::getBelongId), belongId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwQuestion::getCreateTime));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getCreateTime));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getOrderById));
         List<DwQuestion> dwQuestionList = list(queryWrapper);
         for (DwQuestion dwQuestion : dwQuestionList) {
             Integer quType = dwQuestion.getQuType();
