@@ -33,5 +33,5 @@ public interface AssignmentService extends SkyeyeBusinessService<Assignment> {
 
     List<Assignment> queryListByObjectIdAndSubjectIdAndClassId(String objectId, String subjectClassesId);
 
-    Map<String, Object> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type);
+    Map<String, Map<String, Object>> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type);
 }
