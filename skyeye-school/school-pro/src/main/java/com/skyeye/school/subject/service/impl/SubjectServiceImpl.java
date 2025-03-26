@@ -253,14 +253,16 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
             queryWrapper.in(CommonConstants.ID, subjectIdList)
                 .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
+            if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+                queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), commonPageInfo.getKeyword());
+            }
             List<Subject> list = list(queryWrapper);
             Map<String, Subject> idSubjectMap = list.stream().collect(Collectors.toMap(Subject::getId, subject -> subject));
-            for (SubjectClasses subjectClasse : subjectClasses) {
-                if (idSubjectMap.containsKey(subjectClasse.getObjectId())) {
-                    subjectClasse.setObjectMation(idSubjectMap.get(subjectClasse.getObjectId()));
-                }
+            List<SubjectClasses> flagBeans = subjectClasses.stream().filter(subjectClasses1 -> idSubjectMap.containsKey(subjectClasses1.getObjectId())).collect(Collectors.toList());
+            for (SubjectClasses flagBean : flagBeans) {
+                flagBean.setObjectMation(idSubjectMap.get(flagBean.getObjectId()));
             }
-            beans = JSONUtil.toList(JSONUtil.toJsonStr(subjectClasses), null);
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(flagBeans), null);
         }
         if (CollectionUtil.isEmpty(beans)) {
             return;
