@@ -20,7 +20,7 @@ public class ScoreTypeChildController {
     @Autowired
     private ScoreTypeChildService scoreTypeChildService;
 
-    @ApiOperation(id = "writeScoreTypeChild", value = "新增成绩类型子表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeScoreTypeChild", value = "新增/编辑成绩类型子表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ScoreTypeChild.class)
     @RequestMapping("/post/ScoreTypeChildController/writeScoreTypeChild")
     public void writeScoreTypeChild(InputObject inputObject, OutputObject outputObject) {
@@ -62,7 +62,9 @@ public class ScoreTypeChildController {
     }
 
     @ApiOperation(id = "changeProportion", value = "修改成绩类型子表信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ScoreTypeChildList.class)
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "proportion", name = "proportion", value = "占比(80即占比80%)",required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "子数据id", required = "required")})
     @RequestMapping("/post/ScoreTypeChildController/changeProportion")
     public void changeProportion(InputObject inputObject, OutputObject outputObject) {
         scoreTypeChildService.changeProportion(inputObject, outputObject);

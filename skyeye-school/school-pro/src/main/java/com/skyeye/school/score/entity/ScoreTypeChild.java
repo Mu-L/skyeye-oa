@@ -43,15 +43,15 @@ public class ScoreTypeChild extends OperatorUserInfo {
     private String name;
 
     @TableField("proportion")
-    @ApiModelProperty(value = "占比(80即占比80%)",required = "required")
+    @Property(value = "占比(80即占比80%)")
     private String proportion;
 
     @TableField("score_type_id")
-    @ApiModelProperty(value = "成绩类型id")
+    @Property(value = "成绩类型id")
     private String scoreTypeId;
 
     @TableField("parent_id")
-    @ApiModelProperty(value = "父级id(成绩类型主表id)")
+    @Property(value = "父级id(成绩类型主表id)")
     private String parentId;
 
     @TableField(exist = false)

@@ -18,7 +18,10 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
-import com.skyeye.school.score.entity.*;
+import com.skyeye.school.score.entity.ScorePart;
+import com.skyeye.school.score.entity.ScoreSum;
+import com.skyeye.school.score.entity.ScoreType;
+import com.skyeye.school.score.entity.ScoreTypeChild;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreSumService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
@@ -53,11 +56,12 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     private ScoreTypeService scoreTypeService;
 
     @Override
-    public void updatePostpose(ScoreTypeChild entity, String userId) {
-        if (StrUtil.isNotEmpty(entity.getProportion())) {
-            // 修改作业成绩、测试成绩等时(修改占比)，给总成表修改数据(占比)
-            scoreSumService.updateProportionByObjectId(entity.getId(), entity.getProportion());
-        }
+    public void validatorEntity(ScoreTypeChild scoreTypeChild) {
+        // 新增/编辑不操作占比和parentId，通过另外的接口修改
+        scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+//        scoreTypeChild.setParentId(StrUtil.EMPTY);
+        scoreTypeChild.setNumberCode(ObjectUtil.isEmpty(scoreTypeChild.getNumberCode()) ? NumberCodeEnum.CUSTOM.getKey() : scoreTypeChild.getNumberCode());
+        scoreTypeChild.setIsDefault(ObjectUtil.isEmpty(scoreTypeChild.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreTypeChild.getIsDefault());
     }
 
     @Override
@@ -73,7 +77,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Override
     public ScoreTypeChild queryByTypeId(String typeId) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getId), typeId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getScoreTypeId), typeId);
         return getOne(queryWrapper);
     }
 
@@ -156,7 +160,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                     newScoreSum.setProportion(entity.getProportion());
                     newScoreSum.setObjectId(entity.getId());
                     newScoreSum.setStuNo(scoreSum.getStuNo());
-                    scoreSumService.createEntity(newScoreSum, userId);// todo---new
+                    scoreSumService.createEntity(newScoreSum, userId);
                 }
             }
         }
@@ -176,7 +180,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void boundDataOrNot(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = inputObject.getLogParams().get("id").toString();
         Map<String, Object> params = inputObject.getParams();
         String parentId = params.get("parentId").toString();
         String id = params.get("id").toString();
@@ -186,31 +192,40 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), StrUtil.EMPTY)
                 .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getProportion), CommonNumConstants.NUM_ZERO.toString());
             ScoreTypeChild one = getOne(updateWrapper);
-            update(updateWrapper);
             // 更新成绩
             if (Double.parseDouble(one.getProportion()) > CommonNumConstants.NUM_ZERO) {// 占比大于0，则更新该学生的”平时成绩“
-                // 统计绑定平时成绩的子成绩列表
-                QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), one.getParentId());
-                List<ScoreTypeChild> list = list(queryWrapper);
-                // 取出主键id
-                List<String> chiuldIdlist = list.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
-                // 求出实验成绩、期末成绩的总分
-                List<ScoreSum> scorePartList = scoreSumService.queryByObjectIdList(chiuldIdlist);
-                // 取出该科目下的班级的总成绩
-                String sumScoreId = queryByTypeId(one.getParentId()).getParentId();
-                // 根据学号分组
-                Map<String, List<ScoreSum>> stunoScorePartListMap = scorePartList.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
-                stunoScorePartListMap.forEach((stuNo, scoreSumList) -> {
-                    // 重新计算每一个学生的总成绩，并更新总成绩
-                    final double[] sum = {CommonNumConstants.NUM_ZERO};
-                    for (ScoreSum scoreSum : scoreSumList) {
-                        String flagSum = CalculationUtil.multiply(scoreSum.getScore(), one.getProportion(), CommonNumConstants.NUM_FOUR);
-                        sum[CommonNumConstants.NUM_ZERO] = sum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                    }
-                    scoreSumService.updateScoreByObjectIdAndStuNo(sumScoreId, sum[CommonNumConstants.NUM_ZERO], stuNo);
-                });
+                ScoreType scoreType = scoreTypeService.queryDefaultInfo(one.getSubjectId(), one.getClassId());
+                List<ScoreSum> scoreList = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
+                if (CollectionUtil.isEmpty(scoreList) || (StrUtil.isEmpty(scoreList.get(CommonNumConstants.NUM_ZERO).getStuNo()))) {// 课程下该班级没有学生
+                    update(updateWrapper);
+                    return;
+                }
+                List<ScorePart> updateScorePartList = new ArrayList<>();
+                List<ScoreSum> updateScoreSumList = new ArrayList<>();
+                List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(one.getId()));
+                Map<String, String> map = new HashMap<>();
+                for (ScoreSum scoreSum : scoreSums) {
+                    String subtractNum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
+                    map.put(scoreSum.getStuNo(), subtractNum);
+                }
+                List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(Arrays.asList(one.getParentId()), null);
+                for (ScorePart scorePart : scoreParts) {
+                    String newScore = CalculationUtil.subtract(scorePart.getScore(), map.get(scorePart.getStuNo()), CommonNumConstants.NUM_TWO);
+                    scorePart.setScore(newScore);
+                    updateScorePartList.add(scorePart);
+                }
+                List<ScoreSum> scoreTypeSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
+                for (ScoreSum scoreSum : scoreTypeSums) {
+                    String newScore = CalculationUtil.subtract(map.get(scoreSum.getStuNo()), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
+                    scoreSum.setScore(newScore);
+                    updateScoreSumList.add(scoreSum);
+                }
+                scoreSumService.updateEntity(updateScoreSumList, currentUserId);
+                scorePartService.updateEntity(updateScorePartList, currentUserId);
+                update(updateWrapper);
             }
+            update(updateWrapper);
+            return;
         }
         // 绑定操作
         UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
@@ -231,62 +246,83 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void changeProportion(InputObject inputObject, OutputObject outputObject) {
         String currentUserId = inputObject.getLogParams().get("id").toString();
-        ScoreTypeChildList params = inputObject.getParams(ScoreTypeChildList.class);
-        List<ScoreTypeChild> scoreTypeChildList = params.getScoreTypeChildList();
-        if (CollectionUtil.isEmpty(scoreTypeChildList)) {
-            return;
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String proportion = params.get("proportion").toString();
+        ScoreTypeChild scoreTypeChild = queryById(id);
+        if (ObjectUtil.isEmpty(scoreTypeChild)) {
+            throw new CustomException("成绩类型子表信息不存在");
         }
-        List<String> proportionList = scoreTypeChildList.stream().map(ScoreTypeChild::getProportion).collect(Collectors.toList());
-        // 使用stream流计算占比总和是否小于100大于0
-        double sum = proportionList.stream().mapToDouble(Double::parseDouble).sum();
-        if (sum <= CommonNumConstants.NUM_ZERO || sum >= 100) {
-            throw new CustomException("占比总和需要大于0小于100");
-        }
-        // 修改占比
-        super.updateEntity(scoreTypeChildList, inputObject.getLogParams().get("id").toString());
-        Map<String, String> idProportionMap = scoreTypeChildList.stream().collect(Collectors.toMap(ScoreTypeChild::getId, ScoreTypeChild::getProportion));
-        //重新计算平时成绩、期末成绩
-        List<String> chiuldSumIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
-        List<ScoreSum> oldChildSumList = scoreSumService.queryByObjectIdList(chiuldSumIdList);
-        for (ScoreSum scoreSum : oldChildSumList) {
-            // 设置新的占比
-            scoreSum.setProportion(idProportionMap.get(scoreSum.getObjectId()));
-            // 计算新的成绩
-            scoreSum.setScore(CalculationUtil.multiply(scoreSum.getScore(), scoreSum.getProportion(), CommonNumConstants.NUM_FOUR));
-            scoreSumService.updateEntity(scoreSum, currentUserId);
-        }
-        // 取出同表父级数据
-        ScoreTypeChild sameTableParen = scoreTypeChildServicec.queryByTypeId(scoreTypeChildList.get(CommonNumConstants.NUM_ZERO).getParentId());
-        if (ObjectUtil.isNotEmpty(sameTableParen)) {// 绑定了平时成绩
-            List<ScoreSum> newChildSumList = scoreSumService.queryByObjectIdList(chiuldSumIdList);
-            Map<String, List<ScoreSum>> stuNoSumListMap = newChildSumList.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
-            stuNoSumListMap.forEach((stuNo, scoreSumList) -> {
+        UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id)
+            .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getProportion), proportion);
+        if (StrUtil.isNotEmpty(scoreTypeChild.getParentId())) { // 绑定了scoreType表
+            ScoreType scoreType = scoreTypeService.queryDefaultInfo(scoreTypeChild.getSubjectId(), scoreTypeChild.getClassId());
+            List<ScoreSum> scoreList = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
+            if (CollectionUtil.isEmpty(scoreList) || (StrUtil.isEmpty(scoreList.get(CommonNumConstants.NUM_ZERO).getStuNo()))) {// 课程下该班级没有学生
+                update(updateWrapper);
+                return;
+            }
+            List<ScorePart> updateScorePartList = new ArrayList<>();
+            List<ScoreSum> updateScoreSumList = new ArrayList<>();
+            ScoreTypeChild flagScoreChild = queryByTypeId(scoreTypeChild.getParentId());
+            List<ScoreTypeChild> flagScoreTypeChildList = queryListByParentIdList(Arrays.asList(flagScoreChild.getParentId()));
+            // 取出期末成绩、期中成绩等信息的主键id
+            List<String> flagScoreTypeTypeIdList = flagScoreTypeChildList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
+            // 取出作业成绩、测试成绩的成绩的信息
+            List<ScoreTypeChild> scoreTypeChildList = queryListByParentIdList(flagScoreTypeTypeIdList);
+            // 取出作业成绩、测试成绩的主键id
+            List<String> scoreTypeChildIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+            // 更新被修改占比的所有学生的作业成绩总分
+            List<ScoreSum> scoreChildSums = scoreSumService.queryByObjectIdList(scoreTypeChildIdList);
+            for (ScoreSum scoreChildSum : scoreChildSums) {// 修改占比
+                if (scoreChildSum.getObjectId().equals(scoreTypeChild.getId())) {
+                    scoreChildSum.setProportion(proportion);
+                    updateScoreSumList.add(scoreChildSum);// 放进更新列表中
+                }
+            }
+            // 计算作业成绩绑定的平时成绩
+            List<String> idListByParentId = scoreTypeChildList.stream().filter(scoreTypeChild1 -> scoreTypeChild1.getParentId().equals(scoreTypeChild.getParentId()))
+                .map(ScoreTypeChild::getId).collect(Collectors.toList());
+            List<ScoreSum> collect = scoreChildSums.stream().filter(scoreSum -> idListByParentId.contains(scoreSum.getObjectId())).collect(Collectors.toList());
+            Map<String, List<ScoreSum>> map = collect.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
+            Map<String, String> mapStuNoScore = new HashMap<>();
+            map.forEach((stuNo, scoreSumList) -> {
                 final double[] newSum = {CommonNumConstants.NUM_ZERO};
                 for (ScoreSum scoreSum : scoreSumList) {
-                    String flagSum = CalculationUtil.multiply(scoreSum.getScore(), scoreSum.getProportion(), CommonNumConstants.NUM_FOUR);
+                    String flagSum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
                     newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
                 }
-                // 更新平时成绩
-                scorePartService.updateScoreByObjectIdAndStuNo(sameTableParen.getParentId(), newSum[CommonNumConstants.NUM_ZERO], stuNo);
+                mapStuNoScore.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
             });
-            // 开始操作总成绩
-            List<ScoreTypeChild> sameTableDateList = scoreTypeChildServicec.queryListByParentIdList(Arrays.asList(sameTableParen.getParentId()));
-            // 取出平时成绩、期末成绩的主键id
-            List<String> sameTableScoreTypeIdList = sameTableDateList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
-            // 取出所有学生的成绩
-            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(sameTableScoreTypeIdList, null);
-            // 根据学号分组
-            Map<String, List<ScorePart>> stuNoScorePartListMap = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            // 循环分组重新计算所有学生的总成绩
-            stuNoScorePartListMap.forEach((stuNo, scorePartList) -> {
+            List<ScorePart> flagScoreParts = scorePartService.queryByObjectIdList(flagScoreTypeTypeIdList, null);
+            for (ScorePart flagScorePart : flagScoreParts) {
+                if (flagScorePart.getObjectId().equals(scoreTypeChild.getParentId())) {// 是平时成绩，修改分数
+                    flagScorePart.setScore(mapStuNoScore.get(flagScorePart.getStuNo()));
+                    updateScorePartList.add(flagScorePart);
+                }
+            }
+            Map<String, List<ScorePart>> collect1 = flagScoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
+            Map<String, String> mapStuNoScore1 = new HashMap<>();
+            collect1.forEach((stuNo, scorePartList) -> {
                 final double[] newSum = {CommonNumConstants.NUM_ZERO};
                 for (ScorePart scorePart : scorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), scorePart.getProportion(), CommonNumConstants.NUM_FOUR);
+                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
                     newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
                 }
-                scoreSumService.updateScoreByObjectIdAndStuNo(sameTableParen.getParentId(), newSum[CommonNumConstants.NUM_ZERO], stuNo);
+                mapStuNoScore1.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
             });
+            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(flagScoreChild.getParentId()));
+            for (ScoreSum scoreSum : scoreSums) {
+                scoreSum.setScore(mapStuNoScore1.get(scoreSum.getStuNo()));
+                updateScoreSumList.add(scoreSum);
+            }
+            scorePartService.updateEntity(updateScorePartList, currentUserId);
+            scoreSumService.updateEntity(updateScoreSumList, currentUserId);
         }
+        update(updateWrapper);
+        outputObject.setBean(scoreTypeChild);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override

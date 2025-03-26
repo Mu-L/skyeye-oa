@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -28,7 +29,7 @@ public class ScorePart extends OperatorUserInfo {
     private Map<String, Object> workMation;
 
     @TableField("score")
-    @ApiModelProperty(value = "成绩")
+    @ApiModelProperty(value = "成绩",defaultValue = "0")
     private String score;
 
     @TableField("proportion")
@@ -36,7 +37,7 @@ public class ScorePart extends OperatorUserInfo {
     private String proportion;
 
     @TableField("stu_no")
-    @ApiModelProperty(value = "学号", required = "required")
+    @ApiModelProperty(value = "学号")
     private String stuNo;
 
     @TableField("object_id")
