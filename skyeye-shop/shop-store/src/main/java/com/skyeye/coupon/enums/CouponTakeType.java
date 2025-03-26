@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public enum CouponTakeType implements SkyeyeEnumClass {
 
     USER(1, "直接领取", "用户可在首页、每日领劵直接领取", true, true),
-    ADMIN(2, "指定发放", "后台指定会员赠送优惠劵", true, false),
+//    ADMIN(2, "指定发放", "后台指定会员赠送优惠劵", true, false),
     REGISTER(3, "新人券", "注册时自动领取", true, false);
 
     private Integer key;
