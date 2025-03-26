@@ -88,7 +88,14 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
     public void validatorEntity(Certification certification) {
         String id = certification.getId();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String stuNo = certification.getStudentNumber();
+        QueryWrapper<Certification> queryStuNo = new QueryWrapper<>();
+        queryStuNo.eq(MybatisPlusUtil.toColumns(Certification::getStudentNumber), stuNo);
+        long count = count(queryStuNo);
         if (StrUtil.isEmpty(id)) {
+            if (count > CommonNumConstants.NUM_ZERO) {
+                throw new CustomException("提交认证信息失败，学号已存在");
+            }
             QueryWrapper<Certification> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Certification::getUserId), userId);
             Certification certificationFlag = getOne(queryWrapper);
@@ -99,6 +106,9 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
             Certification certificationFlag = certificationService.selectById(id);
             if (!userId.equals(certificationFlag.getUserId())) {
                 throw new CustomException("无权限，不可修改!!");
+            }
+            if(count>CommonNumConstants.NUM_ZERO && !stuNo.equals(certificationFlag.getStudentNumber())){
+                throw new CustomException("修改认证信息失败，学号已存在");
             }
             if (certificationFlag.getState() == StateEnum.CERTIFIEDING.getKey()) {
                 throw new CustomException("管理员正在审核，暂时无法修改认证信息编辑");
