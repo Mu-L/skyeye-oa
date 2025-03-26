@@ -30,9 +30,9 @@
 
 ## 🐶 沟通交流
 
-| |   知识星球   | 微信公众号(Skyeye智能制造云办公) | QQ交流群 |
-|:---------------------:|:---------------------:|:--------------------------------:|:--------------------------------:|
-| 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.png) |
+| |   知识星球   | 微信公众号(Skyeye智能制造云办公)已接入Skyeye AI，可在公众号留言咨询，或者提Issues。 |
+|:---------------------:|:---------------------:|:--------------------------------:|
+| 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | 
 
 ## 项目框架介绍
 
