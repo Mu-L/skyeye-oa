@@ -91,13 +91,13 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         }
     }
 
-    @Override
-    protected void deletePreExecution(DwQuCheckbox entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility == 1){
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
+//    @Override
+//    protected void deletePreExecution(DwQuCheckbox entity) {
+//        Integer visibility = entity.getVisibility();
+//        if (visibility == 1){
+//            throw new CustomException("该选项已显示，请先隐藏再删除");
+//        }
+//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {

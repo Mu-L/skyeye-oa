@@ -44,4 +44,11 @@ public class DwAnEnumquServiceImpl extends SkyeyeBusinessServiceImpl<DwAnEnumquD
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnEnumqu::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<DwAnEnumqu> selectAnEnumByQuId(String id) {
+        QueryWrapper<DwAnEnumqu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnEnumqu::getQuId), id);
+        return list(queryWrapper);
+    }
 }

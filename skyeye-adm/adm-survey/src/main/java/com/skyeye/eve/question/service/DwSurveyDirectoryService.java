@@ -19,4 +19,6 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
     void queryFilterDwLists(InputObject inputObject, OutputObject outputObject);
 
     void queryMyDwurvey(InputObject inputObject, OutputObject outputObject);
+
+    void queryDwurveyMationById(InputObject inputObject, OutputObject outputObject);
 }

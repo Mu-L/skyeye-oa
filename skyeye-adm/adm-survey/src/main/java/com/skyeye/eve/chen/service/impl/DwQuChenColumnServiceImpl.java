@@ -115,10 +115,10 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         String createId = entity.getCreateId();
         String quId = entity.getQuId();
         Integer queryvisibility = dwQuChenRowService.QueryvisibilityInRow(quId, createId);
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
+//        Integer visibility = entity.getVisibility();
+//        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
+//            throw new CustomException("该选项已显示，请先隐藏再删除");
+//        }
     }
 
     @Override

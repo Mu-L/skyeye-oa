@@ -20,4 +20,11 @@ public class DwAnAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwAnAnswerD
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnAnswer::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<DwAnAnswer> selectAnAnswerByQuId(String id) {
+        QueryWrapper<DwAnAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnAnswer::getQuId), id);
+        return list(queryWrapper);
+    }
 }

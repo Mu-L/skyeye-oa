@@ -55,4 +55,11 @@ public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnC
         outputObject.setBean(dwAnChenCheckboxList);
         outputObject.settotal(dwAnChenCheckboxList.size());
     }
+
+    @Override
+    public List<DwAnChenCheckbox> selectByQuId(String id) {
+        QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), id);
+        return list(queryWrapper);
+    }
 }

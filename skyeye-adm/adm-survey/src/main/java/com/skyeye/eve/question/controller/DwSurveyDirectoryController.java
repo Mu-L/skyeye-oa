@@ -41,7 +41,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "setUpDwDirectory", value = "发布问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/setUpDwDirectory")
     public void setUpDwDirectory(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.setUpDwDirectory(inputObject, outputObject);
@@ -55,8 +55,8 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "copyDwDirectory", value = "复制问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required"),
-            @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "问卷名称")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required"),
+        @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "问卷名称")})
     @RequestMapping("/post/DwSurveyDirectoryController/copyDwDirectory")
     public void copyDwDirectory(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.copyDwDirectory(inputObject, outputObject);
@@ -70,7 +70,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "queryDirectoryById", value = "根据id获取问卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/queryDirectoryById")
     public void queryDirectoryById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.selectById(inputObject, outputObject);
@@ -84,7 +84,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "changeWhetherDeleteById", value = "删除问卷信息,及改变whether_delete字段为2", method = "POST", allUse = "1")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/changeWhetherDeleteById")
     public void changeWhetherDeleteById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.changeWhetherDeleteById(inputObject, outputObject);
@@ -98,7 +98,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "deleteSurvey", value = "物理删除问卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/deleteSurvey")
     public void deleteSurvey(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.deleteById(inputObject, outputObject);
@@ -112,7 +112,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "takeExam", value = "是否可以参加考试", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/takeExam")
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.takeExam(inputObject, outputObject);
@@ -126,7 +126,7 @@ public class DwSurveyDirectoryController {
      */
     @ApiOperation(id = "updateDwMationEndById", value = "手动结束问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/updateDwMationEndById")
     public void updateDwMationEndById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyDirectoryService.updateDwMationEndById(inputObject, outputObject);
@@ -158,5 +158,18 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryMyDwurvey(inputObject, outputObject);
     }
 
+    /**
+     * 分析报告问卷
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryDwurveyMationById", value = "分析报告试卷", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+    @RequestMapping("/post/DwSurveyDirectoryController/queryDwurveyMationById")
+    public void queryDwurveyMationById(InputObject inputObject, OutputObject outputObject) {
+        dwSurveyDirectoryService.queryDwurveyMationById(inputObject, outputObject);
+    }
 
 }

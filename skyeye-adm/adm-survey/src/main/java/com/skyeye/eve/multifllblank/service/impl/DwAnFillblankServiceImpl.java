@@ -36,4 +36,11 @@ public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFill
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public List<DwAnFillblank> selectAnFillblankQuId(String id) {
+        QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getQuId), id);
+        return list(queryWrapper);
+    }
 }

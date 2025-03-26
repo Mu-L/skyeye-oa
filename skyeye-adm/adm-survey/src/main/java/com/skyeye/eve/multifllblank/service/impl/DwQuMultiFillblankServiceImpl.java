@@ -72,13 +72,13 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
         }
     }
 
-    @Override
-    protected void deletePreExecution(DwQuMultiFillblank entity) {
-        Integer visibility = entity.getVisibility();
-        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-            throw new CustomException("该选项已显示，请先隐藏再删除");
-        }
-    }
+//    @Override
+//    protected void deletePreExecution(DwQuMultiFillblank entity) {
+//        Integer visibility = entity.getVisibility();
+//        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
+//            throw new CustomException("该选项已显示，请先隐藏再删除");
+//        }
+//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {

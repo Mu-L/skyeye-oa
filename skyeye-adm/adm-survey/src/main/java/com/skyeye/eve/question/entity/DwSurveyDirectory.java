@@ -73,7 +73,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
 
     @TableField("effective")
     @ApiModelProperty(value = "问卷有效性限制 ---1不限制,2使用Cookie技术,3使用来源IP检测,4 每台电脑或手机只能答一次 ")
-    private Integer ceffective;
+    private Integer effective;
 
     @TableField("effective_ip")
     @ApiModelProperty(value = "每个IP只能答一次 1是 0否")
