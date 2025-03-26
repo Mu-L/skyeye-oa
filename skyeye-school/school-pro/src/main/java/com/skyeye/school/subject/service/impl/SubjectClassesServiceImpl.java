@@ -127,8 +127,12 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Override
     public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
+        String subjectId = inputObject.getParams().get("objectId").toString();
+        if (StrUtil.isBlank(subjectId)) {
+            return;
+        }
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), inputObject.getParams().get("objectId").toString());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
         List<SubjectClasses> list = list(queryWrapper);
         classesService.setDataMation(list, SubjectClasses::getClassesId);
         outputObject.setBeans(list);

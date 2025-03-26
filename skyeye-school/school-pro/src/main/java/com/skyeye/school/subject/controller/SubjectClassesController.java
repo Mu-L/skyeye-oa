@@ -41,7 +41,7 @@ public class SubjectClassesController {
 
     @ApiOperation(id = "queryNoPageSubjectClassesList", value = "不分页获取科目下的班级列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "objectId", name = "objectId", value = "科目Id", required = "required")})
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "科目Id")})
     @RequestMapping("/post/SubjectClassesController/queryNoPageSubjectClassesList")
     public void queryNoPageSubjectClassesList(InputObject inputObject, OutputObject outputObject) {
         subjectClassesService.queryNoPageSubjectClassesList(inputObject, outputObject);
