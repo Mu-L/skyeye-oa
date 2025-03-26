@@ -26,15 +26,18 @@ import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
 import com.skyeye.coupon.entity.CouponUse;
 import com.skyeye.coupon.entity.CouponUseMaterial;
+import com.skyeye.coupon.enums.CouponTakeType;
 import com.skyeye.coupon.enums.CouponUseState;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
+import com.skyeye.entity.Member;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.service.MemberService;
 import com.skyeye.xxljob.ShopXxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,11 +70,21 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     @Autowired
     private IQuartzService iQuartzService;
 
+    @Autowired
+    private MemberService memberService;
+
     private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     private void check(Coupon coupon) {
         if (ObjectUtil.isEmpty(coupon)) {
             throw new CustomException("优惠券不存在");
+        }
+        if (coupon.getTakeType() == CouponTakeType.REGISTER.getKey()) {
+            String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+            Member member = memberService.selectById(currentUserId);
+            if (DateUtil.getDistanceDay(DateUtil.getTimeAndToString(), member.getCreateTime()) > 30) {
+                throw new CustomException("您已经不是新用户，无法领取新人券");
+            }
         }
         if (Objects.equals(coupon.getEnabled(), WhetherEnum.DISABLE_USING.getKey())) {
             throw new CustomException("优惠券已过期");

@@ -32,7 +32,6 @@ import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.checkwork.service.CheckworkService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.grade.service.ClassesService;
-import com.skyeye.school.measurement.service.MeasurementSubService;
 import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
@@ -98,9 +97,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Autowired
     private AssignmentSubService assignmentSubService;
-
-    @Autowired
-    private MeasurementSubService measurementSubService;
 
     @Autowired
     private ChapterService chapterService;
@@ -338,8 +334,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 //        Long testNum = measurementService.queryClassMeasurementNum(id, null);
 //        resultMap.put("testNum", testNum);
         // 测试参与人数
-        Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
-        resultMap.put("testJoinNum", testJoinNum);
+//        Long testJoinNum = measurementSubService.queryClassMeasurementJoinNum(id);
+//        resultMap.put("testJoinNum", testJoinNum);
 
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
