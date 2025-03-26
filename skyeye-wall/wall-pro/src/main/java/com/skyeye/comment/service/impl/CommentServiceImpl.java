@@ -86,10 +86,6 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         List<Map<String, Object>> mapList = JSONUtil.toList(JSONUtil.toJsonStr(child), null);
         beans.addAll(mapList);
 
-        // 获取评论的匿名信息
-        Map<String, Integer> anonymityMap = beans.stream()
-            .collect(Collectors.toMap(bean -> bean.get("id").toString(), bean -> Integer.parseInt(bean.get("anonymity").toString())));
-
         // 获取评论图片
         ids = beans.stream()
             .map(bean -> bean.get("id").toString()).collect(Collectors.toList());

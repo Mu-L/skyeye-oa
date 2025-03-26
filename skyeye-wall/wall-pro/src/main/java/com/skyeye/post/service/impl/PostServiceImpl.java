@@ -112,6 +112,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Map<String, Object> params = inputObject.getParams();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String keyword = commonPageInfo.getKeyword();
+        String objectId = commonPageInfo.getObjectId();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(Post::getTitle), keyword);
@@ -123,21 +125,27 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
-            String userId = InputObject.getLogParamsStatic().get("id").toString();
             String circleId = params.get("holderId").toString();
             String createId = joinCircleService.selectByCircleId(circleId, userId).getCreateId();
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
-                    .and(wrapper -> {
-                        wrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
-                                .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId);
-                    })
+                    .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId)
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
-        } else {
+        }else if(StrUtil.isNotEmpty(objectId)){
+            if(!objectId.equals(userId)){
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
+            }
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
+                    .eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId)
+                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+        }
+        else {
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime))
                     .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
