@@ -98,10 +98,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if(CollectionUtil.isNotEmpty(checkUpvote)){
             post.setCheckUpvote(checkUpvote.get(post.getId()));
         }
-        if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())&& post.getAnonymity() == CommonNumConstants.NUM_ZERO){
-            userService.setDataMation(post,Post::getCreateId);
-        }else {
-            iAuthUserService.setDataMation(post,Post::getCreateId);
+        if(post.getAnonymity()== CommonNumConstants.NUM_ZERO){
+            if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())){
+                userService.setDataMation(post,Post::getCreateId);
+            }else {
+                iAuthUserService.setDataMation(post,Post::getCreateId);
+            }
         }
         return post;
     }

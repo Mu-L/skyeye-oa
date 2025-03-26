@@ -21,6 +21,7 @@ import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.PutObject;
@@ -99,21 +100,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
 
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
-            // 被回复评论id
-            String commentId = bean.get("commentId").toString();
-            // 是否匿名
             Integer anonymity = Integer.parseInt(bean.get("anonymity").toString());
-            if (anonymity == WhetherEnum.ENABLE_USING.getKey()) {
-                // 匿名
-                bean.put("createId", StrUtil.EMPTY);
-                bean.put("lastUpdateId", StrUtil.EMPTY);
-            }
-            if (StrUtil.isNotEmpty(commentId)) {
-                if (anonymityMap.get(commentId) == WhetherEnum.ENABLE_USING.getKey()) {
-                    // 匿名
-                    bean.put("userId", StrUtil.EMPTY);
-                }
-            }
             // 设置图片信息
             List<Picture> pictures = picturetMap.get(id);
             if (CollectionUtil.isNotEmpty(pictures)) {
@@ -122,14 +109,15 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             // 设置点赞信息
             bean.put("checkUpvote", checkUpvoteMap.get(id));
             // 设置用户信息
-            // TODO 空指针异常
             String loginIdentity = bean.get("loginIdentity").toString();
-            if(LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
-                userService.setMationForMap(bean, "createId", "createMation");
-                userService.setMationForMap(bean, "userId", "userMation");
-            }else {
-                iAuthUserService.setMationForMap(bean, "createId", "createMation");
-                iAuthUserService.setMationForMap(bean, "userId", "userMation");
+            if(anonymity == WhetherEnum.DISABLE_USING.getKey()){ // 非匿名
+                if(LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
+                    userService.setMationForMap(bean, "createId", "createMation");
+                    userService.setMationForMap(bean, "userId", "userMation");
+                }else {
+                    iAuthUserService.setMationForMap(bean, "createId", "createMation");
+                    iAuthUserService.setMationForMap(bean, "userId", "userMation");
+                }
             }
         });
         return beans;
@@ -163,21 +151,18 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         Map<String, List<Picture>> picturetMap = pictureService.getPictureMapListByIds(ids);
         commentList.forEach(comment -> {
             String id = comment.getId();
-            if (comment.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
-                // 匿名
-                comment.setCreateId(StrUtil.EMPTY);
-                comment.setLastUpdateId(StrUtil.EMPTY);
-            }
             List<Picture> pictures = picturetMap.get(id);
             if (CollectionUtil.isNotEmpty(pictures)) {
                 comment.setPicture(JSONUtil.toBean(JSON.toJSONString(pictures.stream().findFirst().orElse(null)), null));
             }
         });
         List<Comment> bean = commentList.stream().map(comment -> {
-            if (LoginIdentity.STUDENT.getKey().equals(comment.getLoginIdentity())) {
-                userService.setDataMation(commentList, Comment::getCreateId);
-            } else {
-                iAuthUserService.setDataMation(commentList, Comment::getCreateId);
+            if(comment.getAnonymity() == WhetherEnum.DISABLE_USING.getKey()){
+                if (LoginIdentity.STUDENT.getKey().equals(comment.getLoginIdentity())) {
+                    userService.setDataMation(commentList, Comment::getCreateId);
+                } else {
+                    iAuthUserService.setDataMation(commentList, Comment::getCreateId);
+                }
             }
             return comment;
         }).collect(Collectors.toList());

@@ -67,7 +67,7 @@ public class VideoTagController {
             @ApiImplicitParam(id = "id", name = "id", value = "标签id", required = "required")})
     @RequestMapping("/post/VideoTagController/deleteVideoTagById")
     public void deleteVideoTagById(InputObject inputObject, OutputObject outputObject) {
-        videoTagService.deleteVideoTagById(inputObject, outputObject);
+        videoTagService.deleteById(inputObject, outputObject);
     }
 
     /**
@@ -82,19 +82,6 @@ public class VideoTagController {
     @RequestMapping("/post/VideoTagController/queryVideoTagById")
     public void queryVideoTagById(InputObject inputObject, OutputObject outputObject) {
         videoTagService.selectById(inputObject, outputObject);
-    }
-
-    /**
-     * 获取已经上线的视频标签列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryVideoTagUpStateList", value = "获取已经上线的视频标签列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoTagController/queryVideoTagUpStateList")
-    public void queryVideoTagUpStateList(InputObject inputObject, OutputObject outputObject) {
-        videoTagService.queryVideoTagUpStateList(inputObject, outputObject);
     }
 
 }

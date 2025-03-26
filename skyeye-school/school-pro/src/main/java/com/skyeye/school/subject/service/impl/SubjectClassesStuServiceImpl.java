@@ -21,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.service.ScorePartService;
@@ -83,6 +84,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        Map<String, Object> map = iAuthUserService.queryDataMationById(userId);
+        if(CollectionUtil.isNotEmpty(map)){
+            String jobNumber = map.get("jobNumber").toString();
+            saveToClassStu(subjectClassesStu, jobNumber, true);
+            return;
+        }
         if (userId.equals(subjectClasses.getCreateId())) {
             throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
         }
@@ -110,7 +117,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         long count = count(queryWrapper);
         if (count > 0) {
             if (throwException) {
-                throw new CustomException("该学生已经加入该课程班级");
+                throw new CustomException("该学生/老师已经加入该课程班级");
             }
             return;
         }

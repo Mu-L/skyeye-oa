@@ -35,10 +35,6 @@ public class VideoTag extends OperatorUserInfo {
     @ApiModelProperty(value = "标签名称", required = "required", fuzzyLike = true)
     private String tagName;
 
-    @TableField("state")
-    @ApiModelProperty(value = "状态:1.启用  2.禁用", enumClass = EnableEnum.class)
-    private Integer state;
-
     @TableField("order_by")
     @ApiModelProperty(value = "排序:值越大越往后")
     private Integer orderBy;
