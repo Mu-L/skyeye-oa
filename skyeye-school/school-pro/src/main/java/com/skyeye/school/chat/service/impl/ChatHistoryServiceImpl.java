@@ -182,7 +182,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                     bean.put("staffId", user.get("staffId").toString());
                 } else {
                     bean.put("name", user.get("name").toString());
-                    bean.put("avatar", user.get("img").toString());
+                    bean.put("avatar", user.getOrDefault("img", StrUtil.EMPTY).toString());
                 }
                 bean.put("talkId", user.get("id").toString());
             }
