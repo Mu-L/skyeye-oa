@@ -134,7 +134,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoController/queryRecommendVideoList")
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
@@ -147,7 +147,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteVideo", value = "管理员删除视频", method = "POST", allUse = "0")
+    @ApiOperation(id = "deleteVideo", value = "管理员删除视频", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "videoId", name = "videoId", value = "视频id", required = "required")
     })

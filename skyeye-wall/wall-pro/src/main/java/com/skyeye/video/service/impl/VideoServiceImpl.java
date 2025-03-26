@@ -236,7 +236,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Override
     public void deleteVideo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String videoId = params.get("id").toString();
+        String videoId = params.get("videoId").toString();
         QueryWrapper<Video> queryVideo = new QueryWrapper<>();
         queryVideo.eq(CommonConstants.ID, videoId);
         remove(queryVideo);

@@ -229,7 +229,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     @Override
     public void deleteCircle(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String circleId = params.get("circleId").toString();
+        String circleId = params.get("id").toString();
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, circleId);
         remove(queryWrapper);
