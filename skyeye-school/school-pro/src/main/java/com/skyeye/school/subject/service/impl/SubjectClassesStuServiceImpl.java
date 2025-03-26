@@ -101,6 +101,10 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             throw new CustomException("认证信息未通过审核，不允许加入课程班级");
         }
         String studentNumber = certification.get("studentNumber").toString();
+        String classId = studentService.getStudents(studentNumber).getClassId();
+        if(!classId.equals(subjectClasses.getClassesId())){
+            throw new CustomException("您不属于这个班级，不允许加入课程班级");
+        }
         if (CollectionUtil.isNotEmpty(certification) && StrUtil.isNotEmpty(studentNumber)) {
             // 认证信息不为空，并且认证的学号信息存在
             saveToClassStu(subjectClassesStu, studentNumber, true);

@@ -26,4 +26,6 @@ public interface DwAnChenCheckboxService extends SkyeyeBusinessService<DwAnChenC
     List<DwAnChenCheckbox> selectBySurveyId(String surveyId);
 
     void queryDwAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject);
+
+    List<DwAnChenCheckbox> selectByQuId(String id);
 }

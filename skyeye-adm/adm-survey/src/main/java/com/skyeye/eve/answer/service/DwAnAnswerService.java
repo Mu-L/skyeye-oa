@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface DwAnAnswerService extends SkyeyeBusinessService<DwAnAnswer> {
     List<DwAnAnswer> selectBySurveyId(String surveyId);
+
+    List<DwAnAnswer> selectAnAnswerByQuId(String id);
 }

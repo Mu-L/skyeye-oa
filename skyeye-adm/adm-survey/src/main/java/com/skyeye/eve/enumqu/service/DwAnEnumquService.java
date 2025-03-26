@@ -20,4 +20,6 @@ public interface DwAnEnumquService extends SkyeyeBusinessService<DwAnEnumqu> {
     void queryDwAnEnumquListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnEnumqu> selectBySurveyId(String surveyId);
+
+    List<DwAnEnumqu> selectAnEnumByQuId(String id);
 }

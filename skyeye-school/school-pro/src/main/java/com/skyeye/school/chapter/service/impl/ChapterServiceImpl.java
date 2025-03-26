@@ -82,18 +82,36 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         if (classNum == CommonNumConstants.NUM_ZERO) {
             return;
         }
-        List<Map<String, Object>> resultMap = new ArrayList<>();
+        List<Object> beans = new ArrayList<>();
+
 
         // 按章节分开的作业分析--
-        Map<String, Object> assAnaMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, null);
+        Map<String, Map<String, Object>> assAnaMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, null);
         // 全部作业分析
-        Map<String, Object> assAnaAllMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, "all");
+        Map<String, Map<String, Object>> assAnaAllMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, "all");
 
         // 互动课件分析
-        Map<String, Object> coursewareAnaMap = coursewareService.queryInterAnalysisByChapters(classNum, chapterList, null);
+        Map<String, Map<String, Object>> coursewareAnaMap = coursewareService.queryInterAnalysisByChapters(classNum, chapterList, null);
         // 全部互动课件分析
-        Map<String, Object> coursewareAnaAllMap = coursewareService.queryInterAnalysisByChapters(classNum, chapterList, "all");
-
+        Map<String, Map<String, Object>> coursewareAnaAllMap = coursewareService.queryInterAnalysisByChapters(classNum, chapterList, "all");
+        Map<String, List<Map<String, Object>>> temp = new HashMap<>();
+        Map<String, List<Map<String, Object>>> allTemp = new HashMap<>();
+        for (Map.Entry<String, Map<String, Object>> entry : assAnaMap.entrySet()) {
+            temp.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+        }
+        for (Map.Entry<String, Map<String, Object>> entry : coursewareAnaMap.entrySet()) {
+            temp.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+        }
+        for (Map.Entry<String, Map<String, Object>> entry : assAnaAllMap.entrySet()) {
+            allTemp.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+        }
+        for (Map.Entry<String, Map<String, Object>> entry : coursewareAnaAllMap.entrySet()) {
+            allTemp.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue());
+        }
+        beans.add(temp);
+        beans.add(allTemp);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
     @Override

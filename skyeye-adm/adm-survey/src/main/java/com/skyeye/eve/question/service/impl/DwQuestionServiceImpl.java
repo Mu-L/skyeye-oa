@@ -397,7 +397,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             String id = dwQuestion.getId();
             if (quType.equals(QuType.RADIO.getIndex())) {
                 dwQuestion.setRadioTd(dwQuRadioService.selectQuRadio(id));
-                dwQuestion.setRadioAn(dwAnRadioService.selectRadioByQuId(id));
+                List<DwAnRadio> dwAnRadios = dwAnRadioService.selectRadioByQuId(id);
+                dwQuestion.setRadioAn(dwAnRadios);
             }
             if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
                 dwQuestion.setMultifillblankTd(dwQuMultiFillblankService.selectQuMultiFillblank(id));

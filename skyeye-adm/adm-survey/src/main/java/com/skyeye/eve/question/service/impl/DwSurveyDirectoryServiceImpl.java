@@ -3,6 +3,7 @@ package com.skyeye.eve.question.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -17,17 +18,23 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.answer.entity.DwAnAnswer;
+import com.skyeye.eve.answer.service.DwAnAnswerService;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
-import com.skyeye.eve.chen.entity.DwQuChenColumn;
-import com.skyeye.eve.chen.entity.DwQuChenRow;
-import com.skyeye.eve.chen.service.DwAnChenCheckboxService;
-import com.skyeye.eve.chen.service.DwAnChenRadioService;
-import com.skyeye.eve.chen.service.DwQuChenColumnService;
-import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.chen.entity.*;
+import com.skyeye.eve.chen.service.*;
+import com.skyeye.eve.enumqu.entity.DwAnEnumqu;
+import com.skyeye.eve.enumqu.service.DwAnEnumquService;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
+import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
+import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
+import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
+import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
@@ -40,9 +47,11 @@ import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwQuestionService;
 import com.skyeye.eve.question.service.DwSurveyAnswerService;
 import com.skyeye.eve.question.service.DwSurveyDirectoryService;
+import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwAnRadioService;
 import com.skyeye.eve.radio.service.DwQuRadioService;
+import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.score.entity.DwQuScore;
 import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.score.service.DwQuScoreService;
@@ -54,10 +63,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,6 +74,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     private DwSurveyDirectoryService dwSurveyDirectoryService;
     @Autowired
     private DwQuestionService dwQuestionService;
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
     @Autowired
     private DwQuRadioService dwQuRadioService;
     @Autowired
@@ -95,9 +103,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     @Autowired
     private DwAnChenCheckboxService dwAnChenCheckboxService;
     @Autowired
+    private DwAnDfillblankService dwAnDfillblankService;
+    @Autowired
+    private DwAnChenFbkService dwAnChenFbkService;
+    @Autowired
+    private DwAnChenScoreService dwAnChenScoreService;
+    @Autowired
     private DwSurveyAnswerService dwSurveyAnswerService;
     @Autowired
-    private DwQuestionLogicService dwQuestionLogicService;
+    private DwAnFillblankService dwAnFillblankService;
+    @Autowired
+    private DwAnAnswerService dwAnAnswerService;
+    @Autowired
+    private DwAnEnumquService dwAnEnumquService;
 
     /**
      * 设置问卷目录的方法
@@ -308,16 +326,16 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
         List<String> collect = dwQuestions.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<Boolean, List<DwQuestion>> partitionedQuestions = dwQuestionMation.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));// 根据ID是否为空进行分区
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));// 根据ID是否为空进行分区
         List<DwQuestion> questionsWithId = partitionedQuestions.get(true);// 获取ID不为空的题目列表
         List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);// 获取ID为空的题目列表
         List<String> submittedIds = questionsWithId.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = collect.stream()
-                .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());// 获取需要删除的题目ID列表
+            .filter(id -> !submittedIdSet.contains(id))
+            .collect(Collectors.toList());// 获取需要删除的题目ID列表
         for (String idToDelete : idsToDelete) {
             dwQuestionService.deleteById(idToDelete);
         }
@@ -429,7 +447,305 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         outputDwList(outputObject, commonPageInfo, queryWrapper, page);
     }
 
-    private void outputDwList(OutputObject outputObject, CommonPageInfo commonPageInfo, QueryWrapper<DwSurveyDirectory> queryWrapper, Page page) {
+    @Override
+    public void queryDwurveyMationById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        DwSurveyDirectory dwSurveyDirectory = selectById(id);
+        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
+            List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(dwSurveyDirectory.getId());
+            List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(questionList), null);
+            for (Map<String, Object> question : list) {
+                question.put("quTypeName ", QuType.getCName(Integer.parseInt(question.get("quType").toString())));
+                getQuestionOptionReportListMation(question);
+            }
+            outputObject.setBean(dwSurveyDirectory);
+            outputObject.setBeans(list);
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+        } else {
+            outputObject.setreturnMessage("该试卷信息不存在。");
+        }
+
+
+    }
+
+    public Map<String, Object> getQuestionOptionReportListMation(Map<String, Object> question) {
+        Integer quType = Integer.parseInt(question.get("quType").toString());
+        String id = question.get("id").toString();
+        if (quType.equals(QuType.RADIO.getIndex())) {
+            List<DwAnRadio> dwAnRadioList = dwAnRadioService.selectRadioByQuId(id);
+            List<Map<String, Object>> radios = (List<Map<String, Object>>) question.get("radioAn");
+            Map<String, Long> countMap = dwAnRadioList.stream()
+                .collect(Collectors.groupingBy(DwAnRadio::getQuItemId, Collectors.counting()));
+            int count = 0;
+            for (Map<String, Object> radio : radios) {
+                radio.put("anCount", 0);
+                String radioId = radio.get("id").toString();
+                for (DwAnRadio dwAnRadio : dwAnRadioList) {
+                    if (dwAnRadio.getQuItemId().equals(radio.get("id").toString())) {
+                        Long count1 = countMap.get(radioId);
+                        radio.put("anCount", count1 != null ? count1 : 0);
+                    }
+                }
+                count += Integer.parseInt(radio.get("anCount").toString());
+                for (Map<String, Object> map : radios) {
+                    map.put("anAllCount", count);
+                }
+            }
+        }
+        if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
+            List<DwAnDfillblank> dwAnDfillblankList = dwAnDfillblankService.selectAnDfillblankQuId(id);
+            List<Map<String, Object>> checkBoxs = (List<Map<String, Object>>) question.get("dfillblankAn");
+            Map<String, Long> countMap = dwAnDfillblankList.stream().collect(Collectors.groupingBy(DwAnDfillblank::getQuItemId, Collectors.counting()));
+            int count = 0;
+            for (Map<String, Object> checkBox : checkBoxs) {
+                checkBox.put("anCount", 0);
+                String checkBoxId = checkBox.get("id").toString();
+                for (DwAnDfillblank dwAnDfillblank : dwAnDfillblankList) {
+                    if (dwAnDfillblank.getQuItemId().equals(checkBox.get("id").toString())) {
+                        Long count1 = countMap.get(checkBoxId);
+                        checkBox.put("anCount", count1 != null ? count1 : 0);
+                    }
+                }
+                count += Integer.parseInt(checkBox.get("anCount").toString());
+                for (Map<String, Object> map : checkBoxs) {
+                    map.put("anAllCount", count);
+                }
+            }
+        }
+        if (quType.equals(QuType.FILLBLANK.getIndex())) {
+            List<DwAnFillblank> dwAnFillblankList = dwAnFillblankService.selectAnFillblankQuId(id);
+            long emptyCount = 0;
+            long blankCount = 0;
+            for (DwAnFillblank dwAnFillblank : dwAnFillblankList) {
+                if (dwAnFillblank.getAnswer() == null || dwAnFillblank.getAnswer().trim().isEmpty()) {
+                    emptyCount++;
+                } else {
+                    blankCount++;
+                }
+            }
+            question.put("rowContent", emptyCount);
+            question.put("optionContent", blankCount);
+            question.put("anCount", blankCount);
+        }
+        if (quType.equals(QuType.ANSWER.getIndex())) {
+            List<DwAnAnswer> dwAnAnswerList = dwAnAnswerService.selectAnAnswerByQuId(id);
+            long emptyCount = 0;
+            long blankCount = 0;
+            for (DwAnAnswer dwAnAnswer : dwAnAnswerList) {
+                if (dwAnAnswer.getAnswer() == null || dwAnAnswer.getAnswer().trim().isEmpty()) {
+                    emptyCount++;
+                } else {
+                    blankCount++;
+                }
+            }
+            question.put("rowContent", emptyCount);
+            question.put("optionContent", blankCount);
+            question.put("anCount", blankCount);
+        }
+        if (quType.equals(QuType.ENUMQU.getIndex())) {
+            List<DwAnEnumqu> dwAnEnumquList = dwAnEnumquService.selectAnEnumByQuId(id);
+            Map<String, Long> answerCountMap = dwAnEnumquList.stream()
+                .collect(Collectors.groupingBy(DwAnEnumqu::getAnswer, Collectors.counting()));
+            if (answerCountMap.isEmpty()) {
+                question.put("anCount", 0);
+            } else {
+                question.put("anCount", answerCountMap.size());
+            }
+        }
+        if (quType.equals(QuType.CHENRADIO.getIndex())) {
+            List<DwAnChenRadio> beans = dwAnChenRadioService.selectByQuId(id);
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenRadioAn");
+            int count = 0;
+            Map<String, Map<String, Integer>> statMap = new HashMap<>();
+            for (DwAnChenRadio bean : beans) {
+                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
+                    String quRowId = bean.getQuRowId();
+                    String quColId = bean.getQuColId();
+                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
+                        .merge(quColId, 1, Integer::sum);
+                }
+            }
+            List<Map<String, Object>> statBeans = new ArrayList<>();
+            statMap.forEach((quRowId, colCounts) ->
+                colCounts.forEach((quColId, cnt) -> {
+                    Map<String, Object> statBean = new HashMap<>();
+                    statBean.put("quRowId", quRowId);
+                    statBean.put("quColId", quColId);
+                    statBean.put("count", cnt);
+                    statBeans.add(statBean);
+                })
+            );
+            for (Map<String, Object> row : rows) {
+                row.put("anCount", 0);
+                String rowId = row.get("id").toString();
+                for (Map<String, Object> statBean : statBeans) {
+                    if (rowId.equals(statBean.get("quRowId").toString())) {
+                        int currentCount = (int) row.get("anCount");
+                        currentCount += (int) statBean.get("count");
+                        row.put("anCount", currentCount);
+                    }
+                }
+                count += (int) row.get("anCount");
+            }
+
+            for (Map<String, Object> statBean : statBeans) {
+                statBean.put("anAllCount", count); // 全局总答案数
+                String quRowId = statBean.get("quRowId").toString();
+                // 匹配行并设置当前行的总答案数
+                for (Map<String, Object> row : rows) {
+                    if (quRowId.equals(row.get("id").toString())) {
+                        statBean.put("anCount", row.get("anCount").toString());
+                        break;
+                    }
+                }
+            }
+            question.put("anChenRadios", statBeans);
+        }
+        if (quType.equals(QuType.CHENFBK.getIndex())) {
+            List<DwAnChenFbk> beans = dwAnChenFbkService.selectByQuId(id);
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenFbkAn");
+            int count = 0;
+            Map<String, Map<String, Integer>> statMap = new HashMap<>();
+            for (DwAnChenFbk bean : beans) {
+                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
+                    String quRowId = bean.getQuRowId();
+                    String quColId = bean.getQuColId();
+                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
+                        .merge(quColId, 1, Integer::sum);
+                }
+            }
+            List<Map<String, Object>> statBeans = new ArrayList<>();
+            statMap.forEach((quRowId, colCounts) ->
+                colCounts.forEach((quColId, cnt) -> {
+                    Map<String, Object> statBean = new HashMap<>();
+                    statBean.put("quRowId", quRowId);
+                    statBean.put("quColId", quColId);
+                    statBean.put("count", cnt);
+                    statBeans.add(statBean);
+                })
+            );
+            for (Map<String, Object> row : rows) {
+                row.put("anCount", 0);
+                String rowId = row.get("id").toString();
+                for (Map<String, Object> statBean : statBeans) {
+                    if (rowId.equals(statBean.get("quRowId").toString())) {
+                        int currentCount = (int) row.get("anCount");
+                        currentCount += (int) statBean.get("count");
+                        row.put("anCount", currentCount);
+                    }
+                }
+                count += (int) row.get("anCount");
+            }
+            for (Map<String, Object> statBean : statBeans) {
+                statBean.put("anAllCount", count); // 全局总答案数
+                String quRowId = statBean.get("quRowId").toString();
+                // 匹配行并设置当前行的总答案数
+                for (Map<String, Object> row : rows) {
+                    if (quRowId.equals(row.get("id").toString())) {
+                        statBean.put("anCount", row.get("anCount").toString());
+                        break;
+                    }
+                }
+            }
+            question.put("anChenFbks", statBeans);
+        }
+        if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
+            List<DwAnChenCheckbox> beans = dwAnChenCheckboxService.selectByQuId(id);
+            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenCheckboxAn");
+            int count = 0;
+            Map<String, Map<String, Integer>> statMap = new HashMap<>();
+            for (DwAnChenCheckbox bean : beans) {
+                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
+                    String quRowId = bean.getQuRowId();
+                    String quColId = bean.getQuColId();
+                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
+                        .merge(quColId, 1, Integer::sum);
+                }
+            }
+            List<Map<String, Object>> statBeans = new ArrayList<>();
+            statMap.forEach((quRowId, colCounts) ->
+                colCounts.forEach((quColId, cnt) -> {
+                    Map<String, Object> statBean = new HashMap<>();
+                    statBean.put("quRowId", quRowId);
+                    statBean.put("quColId", quColId);
+                    statBean.put("count", cnt);
+                    statBeans.add(statBean);
+                })
+            );
+            for (Map<String, Object> row : rows) {
+                row.put("anCount", 0);
+                String rowId = row.get("id").toString();
+                for (Map<String, Object> statBean : statBeans) {
+                    if (rowId.equals(statBean.get("quRowId").toString())) {
+                        int currentCount = (int) row.get("anCount");
+                        currentCount += (int) statBean.get("count");
+                        row.put("anCount", currentCount);
+                    }
+                }
+                count += (int) row.get("anCount");
+            }
+            for (Map<String, Object> statBean : statBeans) {
+                statBean.put("anAllCount", count); // 全局总答案数
+                String quRowId = statBean.get("quRowId").toString();
+                // 匹配行并设置当前行的总答案数
+                for (Map<String, Object> row : rows) {
+                    if (quRowId.equals(row.get("id").toString())) {
+                        statBean.put("anCount", row.get("anCount").toString());
+                        break;
+                    }
+                }
+            }
+            question.put("anChenFbks", statBeans);
+        }
+        if (quType.equals(QuType.CHENSCORE.getIndex())) {
+            List<DwAnChenScore> beans = dwAnChenScoreService.slectByQuId(id);
+            question.put("anChenScore", beans);
+        }
+        if (quType.equals(QuType.SCORE.getIndex())) {
+            List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
+            List<Map<String, Object>> scores = (List<Map<String, Object>>) question.get("scoreAn");
+            Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getQuRowId, Collectors.counting()));
+            int count = 0;
+            for (Map<String, Object> score : scores) {
+                score.put("anCount", CommonNumConstants.NUM_ZERO);
+                String quRowId = score.get("id").toString();
+                for (DwAnScore dwAnScore : dwAnScoreList) {
+                    if (dwAnScore.getQuRowId().equals(score.get("id").toString())) {
+                        Long count1 = collectMap.get(quRowId);
+                        score.put("anCount", count1 != null ? count1 : CommonNumConstants.NUM_ZERO);
+                    }
+                }
+                count += Integer.valueOf(score.get("anCount").toString());
+                for (Map<String, Object> map : scores) {
+                    map.put("anAllCount", count);
+                }
+            }
+        }
+        if (quType.equals(QuType.ORDERQU.getIndex())) {
+            List<DwAnOrder> dwAnOrderList = dwAnOrderService.selectAnOrderByQuId(id);
+            List<Map<String, Object>> orders = (List<Map<String, Object>>) question.get("orderByTd");
+            Map<String, Long> orderCountMap = dwAnOrderList.stream()
+                .filter(order ->
+                    order.getVisibility() == 1 &&
+                        order.getQuId().equals(id)
+                )
+                .collect(Collectors.groupingBy(
+                    DwAnOrder::getQuRowId,
+                    Collectors.counting()
+                ));
+            for (Map<String, Object> order : orders) {
+                String rowId = order.get("id").toString();
+                order.put("anOrderSum", orderCountMap.getOrDefault(rowId, 0L));
+            }
+            orders.sort(Comparator.comparingLong(
+                o -> (long) o.getOrDefault("anOrderSum", 0L)
+            ));
+        }
+        return question;
+    }
+
+    private void outputDwList(OutputObject outputObject, CommonPageInfo
+        commonPageInfo, QueryWrapper<DwSurveyDirectory> queryWrapper, Page page) {
         // 试卷名称
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             queryWrapper.like(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyName), commonPageInfo.getKeyword());
@@ -466,8 +782,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String id = inputObject.getParams().get("id").toString();
         DwSurveyDirectory bean = super.selectById(id);
         List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(bean.getId());
-        if (CollectionUtil.isNotEmpty(questionList)){
-           outputObject.setBeans(questionList);
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            outputObject.setBeans(questionList);
         }
         outputObject.setBean(bean);
         outputObject.settotal(questionList.size());

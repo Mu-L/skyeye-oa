@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -166,15 +167,34 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
 
     /**
      * type--传 all 计算全部的分析
-     * */
+     */
     @Override
-    public Map<String, Object> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
+    public Map<String, Map<String, Object>> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
         List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
         List<Assignment> list = list(queryWrapper); // 所有章节下的作业
+        Map<String, Map<String, Object>> resultMap = new HashMap<>();
+        Map<String,Map<String, Object>> temp = new HashMap<>();
+        for (Chapter chapter: chapterList){
+            Map<String, Object> map = new HashMap<>();
+            map.put("type","作业");
+            map.put("name", chapter.getName());
+            map.put("activeNum", CommonNumConstants.NUM_ZERO);
+            map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            temp.put(chapter.getId(), map);
+        }
+        Map<String, Object> temp1 = new HashMap<>();
+        if(StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)){
+            temp1.put("type", "作业");
+            temp1.put("name",type);
+            temp1.put("activeNum", CommonNumConstants.NUM_ZERO);
+            temp1.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            resultMap.put(type, temp1);
+            return resultMap;
+        }
         if (CollectionUtil.isEmpty(list)) {
-            return null;
+            return temp;
         }
         // 按章节id分组
         Map<String, List<Assignment>> map = list.stream().collect(Collectors.groupingBy(Assignment::getChapterId));
@@ -184,22 +204,25 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         // 按作业id分组
         Map<String, List<AssignmentSub>> assSubMap = assignmentSubs.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId));
         // 作业分析
-        Map<String, Object> resultMap = new HashMap<>();
-        Map<String, Object> temp = new HashMap<>();
+
         if(StrUtil.isNotEmpty(type)){
             double completeNum = assignmentSubs.size(); // 完成作业次数数
             double totalNum = list.size(); // 总作业次数
-            temp.put("activeNum", totalNum);
+            temp1.put("type", "作业");
+            temp1.put("name",type);
+            temp1.put("activeNum", totalNum);
             // 计算完成率--16.8%
             String completeRate = new DecimalFormat("0.0%").format(completeNum/(totalNum*classNum));
-            temp.put("completeRate", completeRate);
-            resultMap.put(type, temp);
+            temp1.put("completeRate", completeRate);
+            resultMap.put(type, temp1);
             return resultMap;
         }
-        for (Chapter chapter : chapterList) {
-            String name = "chapter" + chapter.getSection();
+        for(Chapter chapter:chapterList){
+            Map<String, Object> t = new HashMap<>();
+            t.put("type","作业");
+            t.put("name",chapter.getName());
             List<Assignment> assignments = map.get(chapter.getId());
-            temp.put("activeNum", assignments.size());
+            t.put("activeNum", assignments.size());
             double completeNum = 0;
             for (Assignment assignment : assignments) {
                 List<AssignmentSub> assSub = assSubMap.get(assignment.getId());
@@ -208,9 +231,8 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
                 }
             }
             String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
-            temp.put("completeRate", completeRate);
-            resultMap.put(name, temp);
-            temp = new HashMap<>();
+            t.put("completeRate", completeRate);
+            resultMap.put(chapter.getId(), t);
         }
         return resultMap;
     }

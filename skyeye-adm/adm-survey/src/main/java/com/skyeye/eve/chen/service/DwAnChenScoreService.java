@@ -27,4 +27,5 @@ public interface DwAnChenScoreService extends SkyeyeBusinessService<DwAnChenScor
     List<DwAnChenScore> selectBySurveyId(String surveyId);
 
     List<DwAnChenScore> slectByQuId(String id);
+
 }
