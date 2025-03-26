@@ -523,4 +523,17 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         }
     }
 
+    @Override
+    public void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = InputObject.getLogParamsStatic().get("staffId").toString();
+        UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), params.get("userName").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserPhoto), params.get("userPhoto").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserSex), params.get("userSex").toString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserSign), params.get("userSign").toString());
+        update(updateWrapper);
+    }
+
 }

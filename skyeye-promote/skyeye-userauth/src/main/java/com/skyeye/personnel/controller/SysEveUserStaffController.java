@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.personnel.entity.SysEveUserStaff;
@@ -78,12 +79,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.querySysUserStaffLogin(inputObject, outputObject);
     }
 
-    /**
-     * 根据用户ids/员工ids获取员工信息集合
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserMationList", value = "根据用户ids/员工ids获取员工信息集合", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userIds", name = "userIds", value = "用户id，多个逗号隔离(两个参数传一个即可，默认优先以userIds查询为主)"),
@@ -93,12 +88,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.queryUserMationList(inputObject, outputObject);
     }
 
-    /**
-     * 修改员工剩余年假信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editSysUserStaffAnnualLeaveById", value = "修改员工剩余年假信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -109,12 +98,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.editSysUserStaffAnnualLeaveById(inputObject, outputObject);
     }
 
-    /**
-     * 修改员工的补休池剩余补休信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateSysUserStaffHolidayNumberById", value = "修改员工的补休池剩余补休信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -125,12 +108,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.updateSysUserStaffHolidayNumberById(inputObject, outputObject);
     }
 
-    /**
-     * 修改员工的补休池已休补休信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateSysUserStaffRetiredHolidayNumberById", value = "修改员工的补休池已休补休信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -141,12 +118,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.updateSysUserStaffRetiredHolidayNumberById(inputObject, outputObject);
     }
 
-    /**
-     * 根据员工id获取该员工的考勤时间段
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStaffCheckWorkTimeRelationNameByStaffId", value = "根据员工id获取该员工的考勤时间段", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
@@ -155,24 +126,12 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.queryStaffCheckWorkTimeRelationNameByStaffId(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有在职的，拥有账号的员工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople007", value = "获取所有在职的，拥有账号的员工", method = "POST", allUse = "2")
     @RequestMapping("/post/SysEveUserStaffController/queryAllSysUserIsIncumbency")
     public void queryAllSysUserIsIncumbency(InputObject inputObject, OutputObject outputObject) {
         sysEveUserStaffService.queryAllSysUserIsIncumbency(inputObject, outputObject);
     }
 
-    /**
-     * 修改员工薪资设定信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editSysUserStaffActMoneyById", value = "修改员工薪资设定信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -180,6 +139,17 @@ public class SysEveUserStaffController {
     @RequestMapping("/post/SysEveUserStaffController/editSysUserStaffActMoneyById")
     public void editSysUserStaffActMoneyById(InputObject inputObject, OutputObject outputObject) {
         sysEveUserStaffService.editSysUserStaffActMoneyById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "updateCurrentUserStaff", value = "修改当前登录员工的信息", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
+        @ApiImplicitParam(id = "userPhoto", name = "userPhoto", value = "员工头像", required = "required"),
+        @ApiImplicitParam(id = "userSex", name = "userSex", value = "员工性别", required = "required,num", enumClass = SexEnum.class),
+        @ApiImplicitParam(id = "userSign", name = "userSign", value = "个性签名")})
+    @RequestMapping("/post/SysEveUserStaffController/updateCurrentUserStaff")
+    public void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserStaffService.updateCurrentUserStaff(inputObject, outputObject);
     }
 
 }
