@@ -296,7 +296,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         List<Map<String, Object>> result = shopMaterials.stream().map(bean -> {
             Map<String, Object> item = new HashMap<>();
             item.put("id", bean.getMaterialId());
-            item.put("name", bean.getMaterialMation().getName());
+            item.put("name", ObjectUtil.isEmpty(bean.getMaterialMation()) ? "": StrUtil.isEmpty(bean.getMaterialMation().getName()) ? "" : bean.getMaterialMation().getName());
             return item;
         }).collect(Collectors.toList());
         outputObject.setBeans(result);
