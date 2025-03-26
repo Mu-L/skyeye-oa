@@ -127,10 +127,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
-            String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
-            if (StrUtil.isEmpty(userId) || !typeId.equals(userId)) {
-                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
-            }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
                     .and(wrapper -> {
                         wrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), typeId).or()
