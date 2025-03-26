@@ -56,25 +56,25 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         List<Groups> groupsList = new ArrayList<>();
         if (status.equals(CommonNumConstants.NUM_ZERO)) {
             Integer groNumber = groupsInformation.getGroNumber();
-            // 生成分组
-            for (int i = 1; i <= groNumber; i++) {
-                Groups entity = getGroups(groupsInformation, i);
-                groupsList.add(entity);
-            }
+            getGroupList(groupsInformation, groNumber, groupsList);
             super.createEntity(groupsList, groupsInformation.getCreateId());
             List<String> groupsIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
             refreshCache(groupsIds);
         }
         if (status.equals(CommonNumConstants.NUM_ONE)) {
             Integer groupsNumber = groupsInformation.getGroupsNumber();
-            for (int i = 1; i <= groupsNumber; i++) {
-                Groups entity = getGroups(groupsInformation, i);
-                entity.setGroupsInformationId(groupsInformation.getId());
-                groupsList.add(entity);
-            }
+            getGroupList(groupsInformation, groupsNumber, groupsList);
             super.createEntity(groupsList, groupsInformation.getCreateId());
             List<String> groupsIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
             refreshCache(groupsIds);
+        }
+    }
+
+    private void getGroupList(GroupsInformation groupsInformation, Integer groupsNumber, List<Groups> groupsList) {
+        for (int i = 1; i <= groupsNumber; i++) {
+            Groups entity = getGroups(groupsInformation, i);
+            entity.setGroupsInformationId(groupsInformation.getId());
+            groupsList.add(entity);
         }
     }
 
@@ -101,10 +101,10 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     }
 
     @Override
-    public QueryWrapper<Groups> selectByGroupsInformationId(String groupsInformationId) {
+    public List<Groups> selectByGroupsInformationId(String groupsInformationId) {
         QueryWrapper<Groups> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), groupsInformationId);
-        return queryWrapper;
+        return list(queryWrapper);
     }
 
     @Override

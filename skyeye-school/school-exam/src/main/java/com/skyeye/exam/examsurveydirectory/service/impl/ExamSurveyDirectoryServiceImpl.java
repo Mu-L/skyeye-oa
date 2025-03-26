@@ -152,6 +152,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断试卷是否未发布
                 String belongId = examSurveyDirectory.getId(); // 获取试卷ID
                 Integer fractionNumber = getFractionNumber(belongId);
+                UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, belongId);
+                updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+                update(updateWrapper);
                 if (fractionNumber == 0) {
                     throw new CustomException("该试卷没有调查项");
                 }
@@ -184,7 +188,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         updateWrapper.eq(CommonConstants.ID, belongId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+//        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         update(updateWrapper);
         return fraction;
     }
@@ -365,7 +369,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 questionService.createEntity(question, userId); // 创建新的题目
             }
         }
-
     }
 
     @Override
