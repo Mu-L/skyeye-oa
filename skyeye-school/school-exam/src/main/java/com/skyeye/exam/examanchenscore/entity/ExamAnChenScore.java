@@ -19,7 +19,7 @@ import lombok.Data;
  */
 @Data
 @TableName(value = "exam_an_chen_score")
-@ApiModel("答卷 矩阵多选题")
+@ApiModel("答卷 矩阵评分题")
 public class ExamAnChenScore extends CommonInfo {
 
     @TableId("id")

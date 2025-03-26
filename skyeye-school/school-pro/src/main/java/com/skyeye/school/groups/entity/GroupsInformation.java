@@ -44,8 +44,12 @@ public class GroupsInformation extends OperatorUserInfo {
     @ApiModelProperty(value = "最终得到人数分组数量")
     private Integer groupsNumber;
 
-    @TableField("sub_class_link_id")
-    @ApiModelProperty(value = "课程与班级关系id", required = "required")
-    private String subClassLinkId;
+    @TableField("subject_id")
+    @ApiModelProperty(value = "科目ID")
+    private String subjectId;
+
+    @TableField("class_id")
+    @ApiModelProperty(value = "班级ID")
+    private String classId;
 
 }

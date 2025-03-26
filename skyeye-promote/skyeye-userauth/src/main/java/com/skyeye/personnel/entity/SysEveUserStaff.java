@@ -12,10 +12,14 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.SexEnum;
+import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
+import com.skyeye.personnel.classenum.StaffWagesStateEnum;
+import com.skyeye.personnel.classenum.UserStaffType;
 import lombok.Data;
 
 import java.util.List;
@@ -60,7 +64,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userIdCard;
 
     @TableField("user_sex")
-    @ApiModelProperty(value = "员工性别，参考#SexEnum", required = "required,num")
+    @ApiModelProperty(value = "员工性别", enumClass = SexEnum.class, required = "required,num")
     private Integer userSex;
 
     @TableField("email")
@@ -84,7 +88,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userSign;
 
     @TableField("state")
-    @ApiModelProperty(value = "员工在职状态，参考#UserStaffState", required = "required,num")
+    @ApiModelProperty(value = "员工在职状态", enumClass = UserStaffState.class, required = "required,num")
     private Integer state;
 
     @TableField(exist = false)
@@ -168,7 +172,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String becomeWorkerTime;
 
     @TableField("type")
-    @ApiModelProperty(value = "员工类型，参考#UserStaffType", required = "required,num", defaultValue = "1")
+    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, required = "required,num", defaultValue = "1")
     private Integer type;
 
     @TableField("native_place")
@@ -188,7 +192,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String highestEducation;
 
     @TableField("design_wages")
-    @ApiModelProperty(value = "薪资设定情况，参考#StaffWagesStateEnum", required = "num", defaultValue = "1")
+    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, required = "num", defaultValue = "1")
     private Integer designWages;
 
     @TableField("act_wages")

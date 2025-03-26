@@ -225,6 +225,24 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     }
 
+    @Override
+    protected void deletePostpose(String id) {
+        super.deletePostpose(id);
+        videoCommentService.deleteByVideoId(id);
+        videoRecordService.deleteByVideoId(id);
+        videoViewService.deleteByVideoId(id);
+    }
+
+    @Override
+    public void deleteVideo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String videoId = params.get("id").toString();
+        QueryWrapper<Video> queryVideo = new QueryWrapper<>();
+        queryVideo.eq(CommonConstants.ID, videoId);
+        remove(queryVideo);
+        deletePostpose(videoId);
+    }
+
     /**
      * 获取全部视频
      * 获取我，他点赞的视频 userId type=1
@@ -418,7 +436,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     @Override
-    protected void deletePreExecution(Video entity) {
+    public void deletePreExecution(Video entity) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         if (!userId.equals(entity.getCreateId())) {
             throw new CustomException("无权限");

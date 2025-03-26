@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @ClassName: SysEveUserStaffController
+ * @ClassName: SysEveUserStaffTeacherController
  * @Description: 员工所属学校关系控制层
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/12 23:28

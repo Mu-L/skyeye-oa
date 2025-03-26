@@ -23,4 +23,6 @@ public interface VideoService extends SkyeyeBusinessService<Video> {
     void refreshVisitVideo(InputObject inputObject, OutputObject outputObject);
 
     void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject);
+
+    void deleteVideo(InputObject inputObject, OutputObject outputObject);
 }

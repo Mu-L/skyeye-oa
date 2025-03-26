@@ -63,7 +63,5 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
 
     void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject);
 
-    void selectByName(InputObject inputObject, OutputObject outputObject);
-
-    void selectByObjectId(InputObject inputObject, OutputObject outputObject);
+    void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject);
 }

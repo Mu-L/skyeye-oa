@@ -112,48 +112,6 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
     }
 
     /**
-     * 删除视频标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void deleteVideoTagById(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        String id = inputObject.getParams().get("id").toString();
-        VideoTag videoTag = selectById(id);
-        int state = videoTag.getState();
-        if (state == EnableEnum.ENABLE_USING.getKey()) {
-            // 新建或者下线可以删除----逻辑删除
-            videoTag.setState(EnableEnum.DISABLE_USING.getKey());
-            updateEntity(videoTag, userId);
-        } else {
-            outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");
-        }
-    }
-
-    /**
-     * 获取启用的视频标签列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryVideoTagUpStateList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<VideoTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoTag::getState), EnableEnum.ENABLE_USING.getKey());
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoTag::getOrderBy));
-        List<VideoTag> beans = list(queryWrapper);
-        iAuthUserService.setName(beans, "createId", "createName");
-        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
-        outputObject.setBean(beans);
-        outputObject.settotal(page.getTotal());
-    }
-
-    /**
      * 为视频中设置标签信息
      */
     @Override

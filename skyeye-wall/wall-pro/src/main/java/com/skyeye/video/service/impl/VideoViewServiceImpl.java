@@ -80,4 +80,11 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getCreateTime));
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteByVideoId(String id) {
+        QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getVideoId), id);
+        remove(queryWrapper);
+    }
 }

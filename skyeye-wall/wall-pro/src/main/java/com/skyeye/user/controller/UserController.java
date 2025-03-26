@@ -32,12 +32,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    /**
-     * 分页获取用户列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserList", value = "分页获取用户信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/UserController/queryUserList")
@@ -45,12 +39,6 @@ public class UserController {
         userService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserById", value = "根据ID查询用户信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -59,12 +47,6 @@ public class UserController {
         userService.queryUserById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID批量查询用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserByIds", value = "根据ID批量查询用户信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class UserController {
         userService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据姓名或者学号获取用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserByRealNameOrStudentNumber", value = "根据姓名或者学号获取用户信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/UserController/queryUserByRealNameOrStudentNumber")
@@ -86,12 +62,6 @@ public class UserController {
         userService.queryUserByRealNameOrStudentNumber(inputObject, outputObject);
     }
 
-    /**
-     * 更新用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateUserById", value = "编辑用户信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = User.class)
     @RequestMapping("/post/UserController/updateUserById")
@@ -99,12 +69,6 @@ public class UserController {
         userService.updateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 用户登录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wallUserLogin", value = "用户登录", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "accountNumber", name = "accountNumber", value = "账号", required = "required"),
@@ -115,12 +79,6 @@ public class UserController {
         userService.wallUserLogin(inputObject, outputObject);
     }
 
-    /**
-     * 用户注册
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wallUserRegister", value = "用户注册", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "name", name = "name", value = "姓名", required = "required"),
@@ -131,24 +89,12 @@ public class UserController {
         userService.wallUserRegister(inputObject, outputObject);
     }
 
-    /**
-     * 注销登录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wallUserExit", value = "注销登录", method = "POST", allUse = "2")
     @RequestMapping("/post/UserController/wallUserExit")
     public void wallUserExit(InputObject inputObject, OutputObject outputObject) {
         userService.wallUserExit(inputObject, outputObject);
     }
 
-    /**
-     * 修改密码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editWallPassword", value = "修改密码", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "newPassword", name = "newPassword", value = "新密码", required = "required"),

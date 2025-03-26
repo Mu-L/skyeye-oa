@@ -42,11 +42,11 @@ public class TalkRequest extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生申请人信息")
-    private List<Map<String, Object>> studentApplicantMation;
+    private Map<String, Object> studentApplicantMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "学生被申请人信息")
-    private List<Map<String, Object>> studentRecipientMation;
+    private Map<String, Object> studentRecipientMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "老师申请人信息")

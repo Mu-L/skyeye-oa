@@ -25,7 +25,6 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
-import com.skyeye.rest.school.service.ISchoolService;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -55,9 +54,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private CertificationService certificationService;
-
-    @Autowired
-    private ISchoolService iSchoolService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -119,11 +115,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     @Override
     public User selectById(String id) {
         //当前学生账户Id
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
         User user = super.selectById(id);
-        String studentNumber = user.getStudentNumber();
-        List<Map<String, Object>> schoolStudentMation = iSchoolService.querySchoolStudentMation(studentNumber,id,userId);
-        user.setSchoolStudentMation(schoolStudentMation);
         Certification certification = certificationService.selectById(id);
         if (certification == null) {
             user.setState(StateEnum.UNVERIFIED.getKey());
@@ -251,13 +243,10 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        String serviceClassName = commonPageInfo.getServiceClassName();
         String keyword = commonPageInfo.getKeyword();
-        if (StrUtil.isNotEmpty(serviceClassName)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getRealName), serviceClassName);
-        }
-        if (StrUtil.isNotEmpty(keyword)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword);
+        if (StrUtil.isNotEmpty(keyword)) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword)
+                .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);
@@ -268,30 +257,31 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     public void queryUserById(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("id").toString();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,userId);
+        queryWrapper.eq(CommonConstants.ID, userId);
         User user = getOne(queryWrapper);
-        if(ObjectUtil.isEmpty(user)){
-            Map<String,Object> teacherUser = new HashMap<>();
-            teacherUser.put("createId",userId);
-            teacherUser.put("createMation",StrUtil.EMPTY);
-            iAuthUserService.setMationForMap(teacherUser,"createId","createMation");
+        if (ObjectUtil.isEmpty(user)) {
+            Map<String, Object> teacherUser = new HashMap<>();
+            teacherUser.put("createId", userId);
+            teacherUser.put("createMation", StrUtil.EMPTY);
+            iAuthUserService.setMationForMap(teacherUser, "createId", "createMation");
             outputObject.setBean(teacherUser);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
-        }else {
+        } else {
             user = selectById(userId);
             outputObject.setBean(user);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         }
     }
-   /**
-    *  检验createId 是老师id还是学生id
-    *  true -- 老师
-    *  false -- 学生
-    *  */
-   @Override
-    public boolean checkCreateIdIsStudent(String createId){
+
+    /**
+     * 检验createId 是老师id还是学生id
+     * true -- 老师
+     * false -- 学生
+     */
+    @Override
+    public boolean checkCreateIdIsStudent(String createId) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,createId);
+        queryWrapper.eq(CommonConstants.ID, createId);
         User user = getOne(queryWrapper);
         return ObjectUtil.isEmpty(user);
     }

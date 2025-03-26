@@ -9,7 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chat.entity.FriendRelationship;
 
-import java.util.List;
+import java.util.Map;
 
 public interface FriendRelationshipService extends SkyeyeBusinessService<FriendRelationship> {
     void addFriendRelationship(String id, String applicantId, String recipientId, Integer status, String createId);
@@ -18,7 +18,9 @@ public interface FriendRelationshipService extends SkyeyeBusinessService<FriendR
 
     void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject);
 
-    List<FriendRelationship> queryFriendList(String holderId, String s);
+    FriendRelationship queryFriendRelationShip(String holderId, String s);
 
     void queryFriendByUserId(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, Object> getAndCheckFriendShip(String userId, String friendId);
 }

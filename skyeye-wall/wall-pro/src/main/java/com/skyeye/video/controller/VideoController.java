@@ -140,4 +140,19 @@ public class VideoController {
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
         videoService.queryRecommendVideoList(inputObject, outputObject);
     }
+
+    /**
+     * 管理员删除视频
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "deleteVideo", value = "管理员删除视频", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "videoId", name = "videoId", value = "视频id", required = "required")
+    })
+    @RequestMapping("/post/VideoController/deleteVideo")
+    public void deleteVideo(InputObject inputObject, OutputObject outputObject) {
+        videoService.deleteVideo(inputObject, outputObject);
+    }
 }

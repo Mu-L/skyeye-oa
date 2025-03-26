@@ -1,7 +1,6 @@
 package com.skyeye.school.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -16,13 +15,13 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
-import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.classenum.ChatType;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.chat.service.TalkRequestService;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +42,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
     private StudentService studentService;
 
     @Autowired
-    private IUserService iUserService;
+    private FriendRelationshipService friendRelationshipService;
 
     @Autowired
-    private FriendRelationshipService friendRelationshipService;
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected void createPrepose(TalkRequest entity) {
@@ -69,13 +68,13 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         String recipientId = entity.getRecipientId();//被申请人Id
         String applicantId = entity.getApplicantId();//申请人Id
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
-        queryWrapper
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
-                .or(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                        .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId));
+        queryWrapper.and(wrapper ->
+            wrapper.or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), recipientId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
+                .or(wrapperOr -> wrapperOr
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
@@ -90,9 +89,6 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         friendRelationshipService.addFriendRelationship(entity.getId(), applicantId, recipientId, status, entity.getCreateId());
     }
 
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
     @Override
     public void queryTalkRequestByRecipient(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -100,24 +96,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), commonPageInfo.getHolderId());
-        String state = commonPageInfo.getState();
-        if (StrUtil.isNotEmpty(state)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), state);
-        }
-        List<TalkRequest> talkRequestList = list(queryWrapper);
-        for (TalkRequest talkRequest : talkRequestList) {
-            String applicantId = talkRequest.getApplicantId();
-            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(applicantId);
-            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(applicantId);
-            if (ObjectUtil.isNotEmpty(mapList)) {
-                talkRequest.setStudentApplicantMation(mapList);
-            }
-            if (ObjectUtil.isNotEmpty(maps)) {
-                talkRequest.setTeacherApplicantMation(maps);
-            }
-        }
-        outputObject.setBeans(talkRequestList);
-        outputObject.settotal(page.getTotal());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
     }
 
     @Override
@@ -127,19 +106,20 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(TalkRequest::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), commonPageInfo.getHolderId());
+        queryList(outputObject, commonPageInfo, page, queryWrapper);
+    }
+
+    private void queryList(OutputObject outputObject, CommonPageInfo commonPageInfo, Page page, QueryWrapper<TalkRequest> queryWrapper) {
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), commonPageInfo.getState());
         }
         List<TalkRequest> talkRequestList = list(queryWrapper);
         for (TalkRequest talkRequest : talkRequestList) {
-            String recipientId = talkRequest.getRecipientId();
-            List<Map<String, Object>> mapList = iUserService.queryEntityMationByIds(recipientId);
-            Map<String, Object> maps = iSysEveUserStaffService.selectByObjectId(recipientId);
-            if (ObjectUtil.isNotEmpty(mapList)) {
-                talkRequest.setStudentRecipientMation(mapList);
-            }
-            if (ObjectUtil.isNotEmpty(maps)) {
-                talkRequest.setTeacherRecipientMation(maps);
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(talkRequest.getApplicantId());
+            if (userOrStudent.getUserOrStudent()) {
+                talkRequest.setStudentApplicantMation(userOrStudent.getDataMation());
+            } else {
+                talkRequest.setTeacherApplicantMation(userOrStudent.getDataMation());
             }
         }
         outputObject.setBeans(talkRequestList);

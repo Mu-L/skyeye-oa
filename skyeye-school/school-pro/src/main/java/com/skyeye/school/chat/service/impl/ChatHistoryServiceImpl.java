@@ -22,6 +22,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
@@ -74,6 +75,9 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         return Joiner.on(CommonCharConstants.HORIZONTAL_LINE_MARK).join(list);
     }
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public void queryMyChatUnReadMessageList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -85,14 +89,13 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         // 根据用户id查询员工数据
         List<String> userIds = chatHistoryList.stream().map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
-        List<Map<String, Object>> staffList = iSysEveUserService.queryUserMationList(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds), null);
+        List<Map<String, Object>> staffList = iAuthUserService.queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
         Map<String, Map<String, Object>> userIdToStaff = staffList.stream().collect(Collectors.toMap(m -> m.get("userId").toString(), m -> m));
         // 给聊天记录添加员工信息
         chatHistoryList.forEach(talkChatHistory -> {
             Map<String, Object> staff = userIdToStaff.get(talkChatHistory.getSendId());
             talkChatHistory.setSendStaffMation(staff);
         });
-
         outputObject.setBeans(chatHistoryList);
         outputObject.settotal(chatHistoryList.size());
     }
@@ -172,11 +175,15 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
                 if (user == null) {
                     continue;
                 }
-
                 // 发送者信息
-                bean.put("name", user.get("userName").toString());
-                bean.put("avatar", user.get("userPhoto").toString());
-                bean.put("staffId", user.get("staffId").toString());
+                if (StrUtil.equals(bean.get("type").toString(), LoginIdentity.TEACHER.getKey())) {
+                    bean.put("name", user.get("userName").toString());
+                    bean.put("avatar", user.get("userPhoto").toString());
+                    bean.put("staffId", user.get("staffId").toString());
+                } else {
+                    bean.put("name", user.get("name").toString());
+                    bean.put("avatar", user.getOrDefault("img", StrUtil.EMPTY).toString());
+                }
                 bean.put("talkId", user.get("id").toString());
             }
             bean.put("sendId", talkChatHistory.getSendId());
@@ -193,7 +200,7 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
-        map.put("userId", user.get("id"));
+        map.put("userId", user.get("id").toString());
         Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
         List<Map<String, Object>> beans = queryChatLogByPerToPer(map);
         outputObject.setBeans(beans);
@@ -204,12 +211,13 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper
             .eq(MybatisPlusUtil.toColumns(ChatHistory::getChatType), CommonNumConstants.NUM_ONE)
-            .and(wrapper -> wrapper
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString())
-                .or()
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString()))
+            .and(wrapper ->
+                wrapper.or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("userId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("receiveId").toString()))
+                    .or(wrapperOr -> wrapperOr
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), map.get("receiveId").toString())
+                        .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), map.get("userId").toString())))
             .orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
         List<ChatHistory> chatHistoryList = list(queryWrapper);
         List<String> userIds = new ArrayList<>();
@@ -220,8 +228,12 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
 
         String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
         List<Map<String, Object>> userStaffList = iAuthUserService.queryDataMationByIds(userIdsStr);
-        Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(m -> m.get("userId").toString(),
-            n -> n.get("userName").toString()));
+
+        Map<String, String> userMap = userStaffList.stream().collect(Collectors.toMap(
+            m -> m.get("userId").toString(),
+            n -> n.get("userName").toString(),
+            (existing, replacement) -> existing
+        ));
         List<Map<String, Object>> result = new ArrayList<>();
         for (ChatHistory chatHistory : chatHistoryList) {
             Map<String, Object> map1 = new HashMap<>();

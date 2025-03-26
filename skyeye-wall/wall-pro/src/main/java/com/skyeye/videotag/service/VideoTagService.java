@@ -18,9 +18,5 @@ import java.util.List;
  */
 
 public interface VideoTagService extends SkyeyeBusinessService<VideoTag> {
-    void deleteVideoTagById(InputObject inputObject, OutputObject outputObject);
-
-    void queryVideoTagUpStateList(InputObject inputObject, OutputObject outputObject);
-
     void setTagMationForVideoList(Video... beans);
 }

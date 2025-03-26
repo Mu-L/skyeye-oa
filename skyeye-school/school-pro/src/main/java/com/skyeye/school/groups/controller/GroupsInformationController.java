@@ -20,12 +20,6 @@ public class GroupsInformationController {
     @Autowired
     private GroupsInformationService groupsInformationService;
 
-    /**
-     * 获取学生分组信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryGroupsInformationList", value = "获取学生分组信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/GroupsInformationController/queryGroupsInformationList")
@@ -33,12 +27,6 @@ public class GroupsInformationController {
         groupsInformationService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改分组信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeGroupsInformation", value = "添加或修改分组信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = GroupsInformation.class)
     @RequestMapping("/post/GroupsInformationController/writeGroupsInformation")
@@ -46,12 +34,6 @@ public class GroupsInformationController {
         groupsInformationService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除学生分组表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteGroupsInformationById", value = "根据ID删除学生分组表", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

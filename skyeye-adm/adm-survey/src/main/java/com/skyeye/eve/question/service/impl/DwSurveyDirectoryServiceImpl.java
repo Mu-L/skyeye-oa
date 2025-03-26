@@ -230,7 +230,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             question.setRowTd(examQuChenRows);
             question.setBelongId(examSurveyDirectories.getId()); // 设置所属问卷ID
             dwQuestionService.createEntity(question, userId); // 创建新的题目
-//            dwQuestionService.copyQuestionListMation(question); // 复制题目选项信息
             outputObject.setBean(examSurveyDirectories);
             outputObject.settotal(1);
         }
@@ -304,21 +303,21 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
-    protected void updatePostpose(DwSurveyDirectory entity, String userId) {
+    public void updatePostpose(DwSurveyDirectory entity, String userId) {
         List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
         List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
         List<String> collect = dwQuestions.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<Boolean, List<DwQuestion>> partitionedQuestions = dwQuestionMation.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
-        List<DwQuestion> questionsWithId = partitionedQuestions.get(true);
-        List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);
+                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));// 根据ID是否为空进行分区
+        List<DwQuestion> questionsWithId = partitionedQuestions.get(true);// 获取ID不为空的题目列表
+        List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);// 获取ID为空的题目列表
         List<String> submittedIds = questionsWithId.stream()
                 .map(DwQuestion::getId)
                 .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = collect.stream()
                 .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());// 获取需要删除的题目ID列表
         for (String idToDelete : idsToDelete) {
             dwQuestionService.deleteById(idToDelete);
         }

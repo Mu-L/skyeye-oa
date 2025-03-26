@@ -21,9 +21,12 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.service.ScorePartService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.dao.SubjectClassesStuDao;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
@@ -64,6 +67,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     @Autowired
     private ScorePartService scorePartService;
 
+    @Autowired
+    private StudentService studentService;
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinSubjectClasses(InputObject inputObject, OutputObject outputObject) {
@@ -78,6 +84,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        Map<String, Object> map = iAuthUserService.queryDataMationById(userId);
+        if(CollectionUtil.isNotEmpty(map)){
+            String jobNumber = map.get("jobNumber").toString();
+            saveToClassStu(subjectClassesStu, jobNumber, true);
+            return;
+        }
         if (userId.equals(subjectClasses.getCreateId())) {
             throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
         }
@@ -105,7 +117,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         long count = count(queryWrapper);
         if (count > 0) {
             if (throwException) {
-                throw new CustomException("该学生已经加入该课程班级");
+                throw new CustomException("该学生/老师已经加入该课程班级");
             }
             return;
         }
@@ -162,7 +174,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return count(queryWrapper);
     }
 
-    public List<Map<String, Object>> queryClassStuIds(String subClassLinkId) {
+    public List<Map<String, Object>> queryClassStuIds(String... subClassLinkId) {
+        List<String> idList = Arrays.asList(subClassLinkId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return new ArrayList<>();
+        }
         // 获取班级学生信息
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
@@ -177,6 +194,22 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
             iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        if (CollectionUtil.isEmpty(userList)) {
+            return CollectionUtil.newArrayList();
+        }
+        List<String> studentNumberList = userList.stream()
+            .filter(user -> StrUtil.isNotEmpty(user.getOrDefault("studentNumber", StrUtil.EMPTY).toString()))
+            .map(user -> user.get("studentNumber").toString()).distinct().collect(Collectors.toList());
+        List<Student> students = studentService.getStudents(studentNumberList);
+        Map<String, Student> collect = students.stream().collect(Collectors.toMap(Student::getNo, bb -> bb));
+        userList.forEach(user -> {
+            String studentNumber = user.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            if (StrUtil.isEmpty(studentNumber)) {
+                return;
+            }
+            Student student = collect.get(studentNumber);
+            user.put("studentMation", student);
+        });
         return userList;
     }
 
@@ -203,10 +236,29 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     public void queryAllStudentById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String subjectId = map.get("subjectId").toString();
         String subClassLinkId = map.get("subClassLinkId").toString();
-        List<Map<String, Object>> maps = queryClassStuIds(subClassLinkId);
-        outputObject.setBeans(maps);
-        outputObject.settotal(maps.size());
+        if (StrUtil.isEmpty(subjectId) && StrUtil.isEmpty(subClassLinkId)) {
+            throw new CustomException("参数不能为空，请传入科目id或科目与班级的关联id");
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (StrUtil.isNotEmpty(subjectId)) {
+            // 查询这个科目下的所有学生
+            List<SubjectClasses> subjectClasses = subjectClassesService.querySubjectClassesByObjectId(subjectId);
+            if (CollectionUtil.isEmpty(subjectClasses)) {
+                return;
+            }
+            List<String> subClassLinkIds = subjectClasses.stream().map(SubjectClasses::getId).distinct().collect(Collectors.toList());
+            result = queryClassStuIds(subClassLinkIds.toArray(new String[]{}));
+        } else {
+            if (StrUtil.isNotEmpty(subClassLinkId)) {
+                // 查询这个班级下的所有学生
+                result = queryClassStuIds(subClassLinkId);
+            }
+        }
+
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
     }
 
     public void queryStudentSubjectClassesBySubClassLinkIdAndStuNo(InputObject inputObject, OutputObject outputObject) {

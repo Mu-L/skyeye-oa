@@ -41,5 +41,7 @@ public class Groups extends OperatorUserInfo {
     @ApiModelProperty(value = "学生分组信息id", required = "required")
     private String groupsInformationId;
 
-
+    @TableField(exist = false)
+    @ApiModelProperty(value = "学生分组信息")
+    private GroupsInformation groupsInformationMation;
 }

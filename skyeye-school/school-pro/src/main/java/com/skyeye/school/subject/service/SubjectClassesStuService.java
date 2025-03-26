@@ -40,7 +40,7 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
      * @param subClassLinkId 科目与班级的关联id
      * @return
      */
-    List<Map<String, Object>> queryClassStuIds(String subClassLinkId);
+    List<Map<String, Object>> queryClassStuIds(String... subClassLinkId);
 
     /**
      * 查询学生所属的科目与班级的关联数据

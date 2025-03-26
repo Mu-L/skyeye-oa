@@ -110,5 +110,12 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), type);
         return list(queryWrapper);
-    };
+    }
+
+    @Override
+    public void deleteByVideoId(String id) {
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), id);
+        remove(queryWrapper);
+    }
 }

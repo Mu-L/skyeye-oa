@@ -36,7 +36,7 @@ public class Circle extends OperatorUserInfo {
     private String title;
 
     @TableField("`describe`")
-    @ApiModelProperty(value = "描述")
+    @ApiModelProperty(value = "描述", required = "required")
     private String describe;
 
     @TableField("img")
