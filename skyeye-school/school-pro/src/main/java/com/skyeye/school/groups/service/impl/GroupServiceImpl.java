@@ -43,8 +43,8 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     @Override
     public QueryWrapper<Groups> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Groups> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 我创建的
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        // 学生分组信息下的所有分组
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), commonPageInfo.getObjectId());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Groups::getCreateTime));
         return queryWrapper;
     }
