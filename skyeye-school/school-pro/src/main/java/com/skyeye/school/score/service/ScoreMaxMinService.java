@@ -6,5 +6,7 @@ import com.skyeye.school.score.entity.ScoreMaxMin;
 public interface ScoreMaxMinService extends SkyeyeBusinessService<ScoreMaxMin> {
     void createDeFaultInfo(String subjectId, String classId, String currentUserId);
 
-    ScoreMaxMin getScoreMaxMinBySubjectIdAndClassId(String subjectId, String classId);
+    void updateScoreById(String id, String scoreMax, String scoreMin, String currentUserId);
+
+    void updateScoreById(String id, String score, String currentUserId);
 }
