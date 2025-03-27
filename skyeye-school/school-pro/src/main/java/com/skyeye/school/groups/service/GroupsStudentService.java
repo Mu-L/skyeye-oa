@@ -13,5 +13,7 @@ public interface GroupsStudentService extends SkyeyeBusinessService<GroupsStuden
 
     void selectGroupsByStuNumber(InputObject inputObject, OutputObject outputObject);
 
-    List<Map<String ,Object>> selectAllStudent();
+    List<Map<String, Object>> selectAllStudent();
+
+    Map<String, Boolean> checkStudentIsJoined(List<String> groupsIds, String studentNumber);
 }
