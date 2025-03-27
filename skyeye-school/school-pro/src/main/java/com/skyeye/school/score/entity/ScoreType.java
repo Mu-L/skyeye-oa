@@ -11,7 +11,6 @@ import com.skyeye.common.enumeration.IsDefaultEnum;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @TableName("school_score_type")
@@ -37,6 +36,14 @@ public class ScoreType extends OperatorUserInfo {
     @TableField("class_id")
     @ApiModelProperty(value = "班级id", required = "required")
     private String classId;
+
+    @TableField("max_min_id")
+    @Property(value = "最高分最低分信息id")
+    private String maxMinId;
+
+    @TableField(exist = false)
+    @Property(value = "最高分最低分信息")
+    private ScoreMaxMin scoreMaxMin;
 
     @TableField("proportion")
     @ApiModelProperty(value = "占比(80即占比80%)", required = "required")

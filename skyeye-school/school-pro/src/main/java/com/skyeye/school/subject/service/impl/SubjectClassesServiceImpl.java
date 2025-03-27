@@ -32,6 +32,8 @@ import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.checkwork.service.CheckworkService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.score.entity.ScoreMaxMin;
+import com.skyeye.school.score.service.ScoreMaxMinService;
 import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
@@ -107,6 +109,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Autowired
     private CheckworkService checkworkService;
 
+    @Autowired
+    private ScoreMaxMinService scoreMaxMinService;
+
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SubjectClasses> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -153,6 +158,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void createPostpose(SubjectClasses entity, String userId) {
         scoreTypeService.createDeFaultInfo(entity, userId);
+        scoreMaxMinService.createDeFaultInfo(entity.getObjectId(), entity.getId(), userId);
     }
 
     @Override

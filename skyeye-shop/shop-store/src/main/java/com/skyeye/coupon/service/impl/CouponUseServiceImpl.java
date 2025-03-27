@@ -82,7 +82,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         if (coupon.getTakeType() == CouponTakeType.REGISTER.getKey()) {
             String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
             Member member = memberService.selectById(currentUserId);
-            if (DateUtil.getDistanceDay(DateUtil.getTimeAndToString(), member.getCreateTime()) > 30) {
+            int distanceDay = DateUtil.getDistanceDay(member.getCreateTime(),DateUtil.getTimeAndToString());
+            if ( distanceDay > 30) {
                 throw new CustomException("您已经不是新用户，无法领取新人券");
             }
         }
@@ -121,6 +122,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             couponUseMaterial.setMaterialId(couponMaterial.getMaterialId());
             couponUseMaterialList.add(couponUseMaterial);
         }
+        // 设置领取方式
+        couponUse.setTaskType(coupon.getTakeType());
         // 状态
         couponUse.setState(CouponUseState.UNUSED.getKey());
         //满减

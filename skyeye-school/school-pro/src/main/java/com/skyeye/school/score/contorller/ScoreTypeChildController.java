@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.score.entity.ScoreTypeChildList;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;

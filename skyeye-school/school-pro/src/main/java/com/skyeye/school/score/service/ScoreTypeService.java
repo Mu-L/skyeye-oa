@@ -16,8 +16,6 @@ public interface ScoreTypeService extends SkyeyeBusinessService<ScoreType> {
 
     void createDeFaultInfo(SubjectClasses subjectClasses, String userId);
 
-    void writeScoreTypeList(InputObject inputObject, OutputObject outputObject);
-
     List<ScoreType> queryList(String subjectId,String ClassId);
 
     ScoreType queryDefaultInfo(String subjectId, String classId);
