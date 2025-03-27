@@ -24,7 +24,6 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.jetbrains.annotations.NotNull;
-import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,13 +43,14 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
 
     @Autowired
     private ICertificationService iCertificationService;
+
     @Autowired
     private SubjectClassesService subjectClassesService;
+
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
     @Override
-//    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinGroups(InputObject inputObject, OutputObject outputObject) {
         GroupsStudent groupsStudent = inputObject.getParams(GroupsStudent.class);
         String groupId = groupsStudent.getGroupId();
@@ -91,8 +91,8 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     private boolean isaBoolean(List<SubjectClasses> subjectClassesList, boolean isExist, String studentNumber1) {
         List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
         List<SubjectClassesStu> allStudents = collect.stream()
-                .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                .flatMap(List::stream).collect(Collectors.toList());
+            .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
+            .flatMap(List::stream).collect(Collectors.toList());
         List<String> collect1 = allStudents.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
         isExist = collect1.contains(studentNumber1);
         return isExist;
@@ -112,10 +112,10 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     }
 
     @Override
-    public List<Map<String ,Object>> selectAllStudent() {
+    public List<Map<String, Object>> selectAllStudent() {
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
         List<GroupsStudent> groupsStudentList = list(queryWrapper);
-        List<Map<String,Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(groupsStudentList), null);
+        List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(groupsStudentList), null);
         return list;
     }
 
@@ -139,13 +139,13 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         groupsStudent.setGroupId(groupsStudent.getGroupId());
         createEntity(groupsStudent, StrUtil.EMPTY);
         GroupsInformation groupsInformation = getGroupsInformation(groupsStudent.getGroupId());
-        groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(),true);
+        groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), true);
     }
 
     @Override
     protected void deletePreExecution(GroupsStudent entity) {
         GroupsInformation groupsInformation = getGroupsInformation(entity.getGroupId());
-        groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(),false);
+        groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), false);
     }
 
 }

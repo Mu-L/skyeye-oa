@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -23,7 +24,6 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.ExcelUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
@@ -121,6 +121,9 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         String idCard = entity.getIdCard();
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getIdCard), idCard);
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
         Student student = this.getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(student)) {
             throw new CustomException("证件号码已存在，请重新输入");
