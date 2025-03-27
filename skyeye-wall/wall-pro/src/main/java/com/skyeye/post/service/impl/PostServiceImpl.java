@@ -95,14 +95,14 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 checkUpvote = upvoteService.checkUpvote(userId, post.getId());
             }
         }
-        if(CollectionUtil.isNotEmpty(checkUpvote)){
+        if (CollectionUtil.isNotEmpty(checkUpvote)) {
             post.setCheckUpvote(checkUpvote.get(post.getId()));
         }
-        if(post.getAnonymity()== CommonNumConstants.NUM_ZERO){
-            if(LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())){
-                userService.setDataMation(post,Post::getCreateId);
-            }else {
-                iAuthUserService.setDataMation(post,Post::getCreateId);
+        if (post.getAnonymity() == CommonNumConstants.NUM_ZERO) {
+            if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
+                userService.setDataMation(post, Post::getCreateId);
+            } else {
+                iAuthUserService.setDataMation(post, Post::getCreateId);
             }
         }
         return post;
@@ -131,12 +131,15 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
             String typeId = params.get("type").toString();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
-                    .eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId)
+                    .and(wrapper ->
+                            wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId).or()
+                                   .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
+                    )
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
-        }else if(StrUtil.isNotEmpty(objectId)){
-            if(!objectId.equals(userId)){
+        } else if (StrUtil.isNotEmpty(objectId)) {
+            if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
             }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
@@ -144,8 +147,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
-        }
-        else {
+        } else {
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime))
                     .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
@@ -194,9 +196,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
         // 发圈子帖子的校验
         String circleId = entity.getCircleId();
-        if(StrUtil.isNotEmpty(circleId)){
+        if (StrUtil.isNotEmpty(circleId)) {
             boolean isJoin = joinCircleService.checkIsJoinCircle(circleId, userId);
-            if(!isJoin){
+            if (!isJoin) {
                 throw new CustomException("您还没有加入该圈子，不能发帖");
             }
         }
