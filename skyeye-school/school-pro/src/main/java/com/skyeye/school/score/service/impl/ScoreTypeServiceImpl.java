@@ -17,10 +17,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.score.dao.ScoreTypeDao;
 import com.skyeye.school.score.entity.*;
-import com.skyeye.school.score.service.ScorePartService;
-import com.skyeye.school.score.service.ScoreSumService;
-import com.skyeye.school.score.service.ScoreTypeChildService;
-import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.score.service.*;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,13 +33,13 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
     private ScoreTypeChildService scoreTypeChildService;
 
     @Autowired
-    private ScoreTypeService scoreTypeService;
-
-    @Autowired
     private ScorePartService scorePartService;
 
     @Autowired
     private ScoreSumService scoreSumService;
+
+    @Autowired
+    private ScoreMaxMinService scoreMaxMinService;
 
     @Override
     public void createPrepose(ScoreType scoreType) {
@@ -139,6 +136,9 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
                 scoreTypeSum.setScore(newScore);
                 updateScoreSumList.add(scoreTypeSum);
             }
+            List<ScoreSum> sortByScoreList = scoreTypeSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
+            scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
+                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), userId);
             scorePartService.updateEntity(updateScorePartList, userId);
             scoreSumService.updateEntity(updateScoreSumList, userId);
         }
@@ -171,6 +171,10 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             }
         }
         bean.setSameTableChildDateList(sameTableChildDateList);
+        if (StrUtil.isNotEmpty(bean.getMaxMinId())){
+            ScoreMaxMin scoreMaxMin = scoreMaxMinService.selectById(bean.getMaxMinId());
+            bean.setScoreMaxMin(scoreMaxMin);
+        }
         bean.setScoreSumAndChildList(scoreSumList);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -236,46 +240,6 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         scoreType.setProportion("100");
         super.createEntity(scoreType, userId);
         scoreTypeChildService.createDeFaultInfo(subjectClasses);
-    }
-
-    @Override
-    public void writeScoreTypeList(InputObject inputObject, OutputObject outputObject) {
-        ScoreTypeList params = inputObject.getParams(ScoreTypeList.class);
-        List<ScoreType> scoreTypeChildList = params.getScoreTypeList();
-        scoreTypeChildList.forEach(scoreTypeChild -> {// 若执行新增操作，则将占比设置为0
-            if (StrUtil.isEmpty(scoreTypeChild.getProportion())) {
-                scoreTypeChild.setProportion("0");
-            }
-        });
-        // 校验每一个占比都要合法
-        boolean b = scoreTypeChildList.stream().map(ScoreType::getProportion)
-            .anyMatch(s -> Double.parseDouble(s) > 100 || Double.parseDouble(s) < 0);
-        if (b) {
-            throw new CustomException("存在非法的占比");
-        }
-        // 验证占比总和
-        double sumProportion = scoreTypeChildList.stream().map(ScoreType::getProportion).filter(StrUtil::isNotEmpty)
-            .mapToDouble(Double::parseDouble).sum();
-        if (sumProportion > 100 || sumProportion < 0) {
-            throw new CustomException("占比总和非法");
-        }
-
-        List<ScoreType> updataScoreList = new ArrayList<>();
-        List<ScoreType> addScoreTypeList = new ArrayList<>();
-        scoreTypeChildList.forEach(scoreTypeChild -> {
-            if (ObjectUtil.isNotEmpty(scoreTypeChild.getId())) {
-                updataScoreList.add(scoreTypeChild);
-            } else {
-                addScoreTypeList.add(scoreTypeChild);
-            }
-        });
-        String currentUserId = inputObject.getLogParams().get("id").toString();
-        if (CollectionUtil.isNotEmpty(updataScoreList)) {
-            scoreTypeService.updateEntity(updataScoreList, currentUserId);
-        }
-        if (CollectionUtil.isNotEmpty(addScoreTypeList)) {
-            scoreTypeService.createEntity(addScoreTypeList, currentUserId);
-        }
     }
 
     @Override

@@ -19,12 +19,6 @@ public class GroupsStudentController {
     @Autowired
     private GroupsStudentService groupsStudentService;
 
-    /**
-     * 加入分组
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "joinGroups", value = "加入分组", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = GroupsStudent.class)
     @RequestMapping("/post/GroupsStudentController/joinGroups")
@@ -32,29 +26,17 @@ public class GroupsStudentController {
         groupsStudentService.joinGroups(inputObject, outputObject);
     }
 
-    /**
-     * 退出分组
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "exitGroups", value = "退出分组", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/GroupsStudentController/exitGroups")
     public void exitGroups(InputObject inputObject, OutputObject outputObject) {
         groupsStudentService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取学生所在分组
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectGroupsByStuNumber", value = "获取学生所在分组", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "studentNumber", name = "studentNumber", value = "学号", required = "required")})
+        @ApiImplicitParam(id = "studentNumber", name = "studentNumber", value = "学号", required = "required")})
     @RequestMapping("/post/GroupsStudentController/selectGroupsByStuNumber")
     public void selectGroupsByStuNumber(InputObject inputObject, OutputObject outputObject) {
         groupsStudentService.selectGroupsByStuNumber(inputObject, outputObject);

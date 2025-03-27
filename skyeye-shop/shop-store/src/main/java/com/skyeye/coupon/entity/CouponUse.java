@@ -49,7 +49,7 @@ public class CouponUse extends OperatorUserInfo {
     private Integer state;
 
     @TableField(value = "task_type")
-    @ApiModelProperty(value = "领取类型", required = "required", enumClass = CouponTakeType.class)
+    @Property(value = "领取类型", enumClass = CouponTakeType.class)
     private Integer taskType;
 
     @TableField(value = "use_price")

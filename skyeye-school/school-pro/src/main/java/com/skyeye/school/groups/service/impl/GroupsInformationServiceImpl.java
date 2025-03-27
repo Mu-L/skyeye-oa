@@ -50,6 +50,9 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     @Autowired
     private ClassesService classesService;
 
+    @Autowired
+    private GroupsStudentService groupsStudentService;
+
     private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
     @Override
@@ -64,24 +67,21 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         return queryWrapper;
     }
 
-    @Autowired
-    private GroupsStudentService groupsStudentService;
-
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<Map<String, Object>> groupsStudents = groupsStudentService.selectAllStudent();
         Map<String, List<Map<String, Object>>> studentMap = groupsStudents.stream()
-                .collect(Collectors.groupingBy(student -> student.get("groupId").toString()));
+            .collect(Collectors.groupingBy(student -> student.get("groupId").toString()));
         for (Map<String, Object> bean : beans) {
             String id = bean.get("id").toString();
             List<Groups> groupsList = groupsService.selectByGroupsInformationId(id);
             bean.put("groupsList", groupsList);
             List<String> groupIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
             List<Map<String, Object>> studentMation = groupIds.stream()
-                    .filter(studentMap::containsKey)
-                    .flatMap(groupId -> studentMap.get(groupId).stream())
-                    .collect(Collectors.toList());
+                .filter(studentMap::containsKey)
+                .flatMap(groupId -> studentMap.get(groupId).stream())
+                .collect(Collectors.toList());
             bean.put("studentMation", studentMation);
         }
         iAuthUserService.setMationForMap(beans, "createId", "createMation");
@@ -95,19 +95,15 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         String classId = groupsInformation.getClassId();
         if (StrUtil.isNotEmpty(classId)) {
             List<SubjectClasses> subjectClassesList1 = subjectClassesService.selectIdByClassId(classId);
-            List<String> collect = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-            List<SubjectClassesStu> collect1 = collect.stream()
-                    .map(id2 -> subjectClassesStuService.queryListBySubClassLinkId(id2))
-                    .flatMap(List::stream).collect(Collectors.toList());//获取所有班级下的学生
+            List<String> subClassIds = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> collect1 = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
             subjectClassesStuList.addAll(collect1);
         }
         String subjectId = groupsInformation.getSubjectId();
         if (StrUtil.isNotEmpty(subjectId)) {
             List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
-            List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-            List<SubjectClassesStu> allStudents = collect.stream()
-                    .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-                    .flatMap(List::stream).collect(Collectors.toList());//获取所有科目下的学生
+            List<String> subClassIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> allStudents = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
             subjectClassesStuList.addAll(allStudents);
         }
         Integer status = groupsInformation.getStatus();
