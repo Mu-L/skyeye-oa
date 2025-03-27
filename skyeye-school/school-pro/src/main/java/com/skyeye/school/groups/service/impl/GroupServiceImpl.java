@@ -50,6 +50,13 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     }
 
     @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+
+        return beans;
+    }
+
+    @Override
     public void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents) {
         //构造数据
         Integer status = groupsInformation.getStatus();

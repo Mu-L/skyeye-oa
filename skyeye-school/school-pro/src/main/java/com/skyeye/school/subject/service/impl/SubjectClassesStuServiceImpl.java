@@ -21,7 +21,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.service.ScorePartService;
@@ -85,7 +84,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         // 获取认证信息
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         Map<String, Object> map = iAuthUserService.queryDataMationById(userId);
-        if(CollectionUtil.isNotEmpty(map)){
+        if (CollectionUtil.isNotEmpty(map)) {
             String jobNumber = map.get("jobNumber").toString();
             saveToClassStu(subjectClassesStu, jobNumber, true);
             return;
@@ -102,7 +101,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         String studentNumber = certification.get("studentNumber").toString();
         String classId = studentService.getStudents(studentNumber).getClassId();
-        if(!classId.equals(subjectClasses.getClassesId())){
+        if (!classId.equals(subjectClasses.getClassesId())) {
             throw new CustomException("您不属于这个班级，不允许加入课程班级");
         }
         if (CollectionUtil.isNotEmpty(certification) && StrUtil.isNotEmpty(studentNumber)) {
@@ -375,9 +374,14 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     }
 
     @Override
-    public List<SubjectClassesStu> queryListBySubClassLinkId(String SubClassLinkId) {
+    public List<SubjectClassesStu> queryListBySubClassLinkId(String... subClassLinkId) {
+        List<String> idList = Arrays.asList(subClassLinkId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), SubClassLinkId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), idList);
         return list(queryWrapper);
     }
 

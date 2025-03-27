@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,22 +55,14 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     public void joinGroups(InputObject inputObject, OutputObject outputObject) {
         GroupsStudent groupsStudent = inputObject.getParams(GroupsStudent.class);
         String groupId = groupsStudent.getGroupId();
-        if (StrUtil.isEmpty(groupId)) {
-            throw new CustomException("分组不存在");
-        }
         String studentNumber1 = groupsStudent.getStudentNumber();
         GroupsInformation groupsInformation = getGroupsInformation(groupId);
-        String subjectId = groupsInformation.getSubjectId();
         String classId = groupsInformation.getClassId();
-        boolean isExist = false;
-        if (StrUtil.isNotEmpty(subjectId)) {
-            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(subjectId);
-            isExist = isaBoolean(subjectClassesList, isExist, studentNumber1);
+        if (StrUtil.isEmpty(classId)) {
+            throw new CustomException("分组所属班级不存在");
         }
-        if (StrUtil.isNotEmpty(classId)) {
-            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdByClassId(groupsInformation.getSubjectId());
-            isExist = isaBoolean(subjectClassesList, isExist, studentNumber1);
-        }
+        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdByClassId(groupsInformation.getSubjectId());
+        boolean isExist = isaBoolean(subjectClassesList, studentNumber1);
         if (isExist) {
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
@@ -88,14 +81,11 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         return groupsInformation;
     }
 
-    private boolean isaBoolean(List<SubjectClasses> subjectClassesList, boolean isExist, String studentNumber1) {
-        List<String> collect = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        List<SubjectClassesStu> allStudents = collect.stream()
-            .map(id1 -> subjectClassesStuService.queryListBySubClassLinkId(id1))
-            .flatMap(List::stream).collect(Collectors.toList());
+    private boolean isaBoolean(List<SubjectClasses> subjectClassesList, String studentNumber1) {
+        List<String> subClassIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        List<SubjectClassesStu> allStudents = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
         List<String> collect1 = allStudents.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
-        isExist = collect1.contains(studentNumber1);
-        return isExist;
+        return collect1.contains(studentNumber1);
     }
 
     @Override
@@ -121,13 +111,14 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     }
 
     public void saveToGroupsStudent(GroupsStudent groupsStudent, String studentNumber, boolean throwException) {
-        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), studentNumber);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsStudent.getGroupId());
         Groups groups = groupsService.selectById(groupsStudent.getGroupId());
         if (groups.getState().equals(CommonNumConstants.NUM_ONE)) {
             throw new CustomException("该分组已解散");
         }
+
+        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), studentNumber);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsStudent.getGroupId());
         long count = count(queryWrapper);
         if (count > 0) {
             if (throwException) {
@@ -135,6 +126,7 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             }
             return;
         }
+
         groupsStudent.setStudentNumber(studentNumber);
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
         groupsStudent.setGroupId(groupsStudent.getGroupId());
@@ -147,6 +139,26 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     protected void deletePreExecution(GroupsStudent entity) {
         GroupsInformation groupsInformation = getGroupsInformation(entity.getGroupId());
         groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), false);
+    }
+
+    @Override
+    public Map<String, Boolean> checkStudentIsJoined(List<String> groupsIds, String studentNumber) {
+        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), studentNumber);
+        queryWrapper.in(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsIds);
+        List<GroupsStudent> groupsStudentList = list(queryWrapper);
+        List<String> collect = groupsStudentList.stream().map(GroupsStudent::getGroupId).collect(Collectors.toList());
+        Map<String, Boolean> map = new HashMap<>();
+        if (collect.size() > 0) {
+            for (String groupId : groupsIds) {
+                map.put(groupId, collect.contains(groupId));
+            }
+            return map;
+        }
+        groupsIds.forEach(groupId -> {
+            map.put(groupId, false);
+        });
+        return map;
     }
 
 }
