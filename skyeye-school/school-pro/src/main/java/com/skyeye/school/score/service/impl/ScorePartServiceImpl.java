@@ -197,8 +197,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 scoreSum.setScore(mapStuNoScore2.get(scoreSum.getStuNo()));
                 updateScoreSumList.add(scoreSum);
             }
-            scorePartService.updateEntity(updateScorePartList, currentUserId);
-            scoreSumService.updateEntity(updateScoreSumList, currentUserId);
+            List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
+            scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
+                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
         }
         super.updateEntity(updateScorePartList, currentUserId);
         scoreSumService.updateEntity(updateScoreSumList, currentUserId);
