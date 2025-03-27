@@ -141,9 +141,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             }
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
-                    .eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId)
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId)
                     .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
             List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
             return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);

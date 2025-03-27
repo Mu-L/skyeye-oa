@@ -7,6 +7,7 @@ package com.skyeye.certification.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -23,13 +24,17 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.school.student.rest.IStudentRest;
+import com.skyeye.rest.school.student.service.IStudentService;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +54,9 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IStudentService iStudentService;
 
     @Override
     protected QueryWrapper<Certification> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -124,6 +132,17 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         certification.setUserId(userId);
         certification.setState(StateEnum.CERTIFIEDING.getKey());
+    }
+
+    @Override
+    public void createPostpose(Certification entity, String userId) {
+        super.createPostpose(entity, userId);
+        Map<String, Object> map = JSONUtil.toBean(JSONUtil.toJsonStr(entity), null);
+        map.remove("id");
+        map.put("no", entity.getStudentNumber());
+        map.put("state", entity.getStatus());
+        map.put("schoolId", entity.getCampus());
+        iStudentService.addStudent(map);
     }
 
     @Override

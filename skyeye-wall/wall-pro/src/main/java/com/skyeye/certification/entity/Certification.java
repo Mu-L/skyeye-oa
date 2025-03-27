@@ -47,6 +47,47 @@ public class Certification extends CommonInfo {
     @ApiModelProperty(value = "校区", required = "required")
     private String campus;
 
+    @TableField("faculty_id")
+    @ApiModelProperty(value = "学院", required = "required")
+    private String facultyId;
+
+    @TableField("major_id")
+    @ApiModelProperty(value = "专业", required = "required")
+    private String majorId;
+
+    @TableField("class_id")
+    @ApiModelProperty(value = "班级", required = "required")
+    private String classId;
+
+    @TableField("join_time")
+    @ApiModelProperty(value = "入学时间", required = "required")
+    private String joinTime;
+
+    @TableField("year")
+    @ApiModelProperty(value = "那一届", required = "required")
+    private String year;
+
+    @TableField("sex")
+    @ApiModelProperty(value = "性别", required = "required")
+    private Integer sex;
+
+    @TableField("idcard")
+    @ApiModelProperty(value = "身份证号", required = "required")
+    private String idCard;
+
+    @TableField("idcard_type")
+    @ApiModelProperty(value = "身份证类型，证件类型，参考#IDCardType", required = "required")
+    private Integer idcardType;
+
+    @TableField("type")
+    @ApiModelProperty(value = "学生类别，参考#StudentType", required = "required")
+    private Integer type;
+
+    @TableField("status")
+    @ApiModelProperty(value = "学生状态，参考#StudentState", required = "required")
+    private Integer status;
+
+
     @TableField("student_number")
     @ApiModelProperty(value = "学号", required = "required")
     private String studentNumber;
