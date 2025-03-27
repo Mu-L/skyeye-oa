@@ -114,6 +114,7 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     @Override
     public List<Map<String, Object>> selectAllStudent() {
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
+        //TODO 查询指定学生
         List<GroupsStudent> groupsStudentList = list(queryWrapper);
         List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(groupsStudentList), null);
         return list;

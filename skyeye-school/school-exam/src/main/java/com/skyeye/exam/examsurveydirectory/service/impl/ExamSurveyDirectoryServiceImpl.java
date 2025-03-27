@@ -385,19 +385,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<Question> questionList = entity.getQuestionMation();
         List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
         List<String> existingIds = existingQuestions.stream()
-                .map(Question::getId)
-                .collect(Collectors.toList());
+            .map(Question::getId)
+            .collect(Collectors.toList());
         Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         List<Question> questionsWithId = partitionedQuestions.get(true);
         List<Question> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
-                .map(Question::getId)
-                .collect(Collectors.toList());
+            .map(Question::getId)
+            .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = existingIds.stream()
-                .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());
+            .filter(id -> !submittedIdSet.contains(id))
+            .collect(Collectors.toList());
         for (String idToDelete : idsToDelete) {
             questionService.deleteById(idToDelete);
         }

@@ -25,7 +25,7 @@ public class GroupsInformation extends OperatorUserInfo {
     private String name;
 
     @TableField("status")
-    @ApiModelProperty(value = "0(按组分组) 1(按人数分组)",required = "required")
+    @ApiModelProperty(value = "0(按组分组) 1(按人数分组)",required = "required")//枚举
     private Integer status;
 
     @TableField("join_groups_stu")
