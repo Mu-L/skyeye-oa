@@ -30,6 +30,7 @@ import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -135,22 +136,12 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
     }
 
     @Override
-    public void createPostpose(Certification entity, String userId) {
-        super.createPostpose(entity, userId);
-        Map<String, Object> map = JSONUtil.toBean(JSONUtil.toJsonStr(entity), null);
-        map.remove("id");
-        map.put("no", entity.getStudentNumber());
-        map.put("state", entity.getStatus());
-        map.put("schoolId", entity.getCampus());
-        iStudentService.addStudent(map);
-    }
-
-    @Override
     public void updatePrepose(Certification certification) {
         certification.setState(StateEnum.CERTIFIEDING.getKey());
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void reviewInformation(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         Integer state = Integer.parseInt(inputObject.getParams().get("state").toString());
@@ -161,6 +152,12 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
         if (state == StateEnum.CERTIFIEDSUCCESS.getKey()) {
             Certification certification = certificationService.selectById(id);
             userService.setCertification(certification.getUserId(), certification.getStudentNumber(), certification.getName());
+            Map<String, Object> map = JSONUtil.toBean(JSONUtil.toJsonStr(certification), null);
+            map.remove("id");
+            map.put("no", certification.getStudentNumber());
+            map.put("state", certification.getStatus());
+            map.put("schoolId", certification.getCampus());
+            iStudentService.addStudent(map);
         }
         refreshCache(id);
     }
