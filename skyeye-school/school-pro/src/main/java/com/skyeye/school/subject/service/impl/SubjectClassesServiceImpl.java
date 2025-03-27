@@ -39,6 +39,7 @@ import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import com.skyeye.school.subject.service.SubjectClassesTopService;
 import com.skyeye.school.subject.service.SubjectService;
 import com.skyeye.school.topic.service.TopicService;
 import com.skyeye.school.topiccomment.service.TopicCommentService;
@@ -107,6 +108,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Autowired
     private CheckworkService checkworkService;
 
+    @Autowired
+    private SubjectClassesTopService subjectClassesTopService;
+
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SubjectClasses> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -160,6 +164,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + entity.getSourceCode());
         // 删除班级学生关联表
         subjectClassesStuService.deleteBySubClassLinkId(Arrays.asList(entity.getId()));
+        // 删除班级学生置顶课程
+        subjectClassesTopService.deleteSubjectClassesTopBySubClassLinkId(entity.getId());
     }
 
     @Override
