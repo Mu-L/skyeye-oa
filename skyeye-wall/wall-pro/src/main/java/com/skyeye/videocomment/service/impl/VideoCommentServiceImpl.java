@@ -137,11 +137,11 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     }
 
     private void checkUpvote(List<VideoComment> list, String userId) {
-        List<String> ids = list.stream().map(VideoComment::getCreateId).collect(Collectors.toList());
+        List<String> ids = list.stream().map(VideoComment::getId).collect(Collectors.toList());
         String[] commentIds = ids.toArray(new String[0]);
         Map<String, Boolean> stringBooleanMap = upvoteService.checkUpvote(userId, commentIds);
         for (VideoComment videoComment : list) {
-            videoComment.setCheckUpvote(stringBooleanMap.get(videoComment.getCreateId()));
+            videoComment.setCheckUpvote(stringBooleanMap.get(videoComment.getId()));
         }
     }
 
