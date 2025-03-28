@@ -19,4 +19,6 @@ public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQ
     List<ExamQuMultiFillblank> selectQuMultiFillblank(String copyFromId);
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+
+    Map<String, List<ExamQuMultiFillblank>> selectByQuestionIds(List<String> questionIdList);
 }

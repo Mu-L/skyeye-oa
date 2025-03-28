@@ -89,6 +89,26 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         }
     }
 
+    /**
+     * stuNoScorePartMap -> stuNoScoreMap
+     *
+     * @param collect
+     * @return
+     */
+    @Override
+    public Map<String, String> getStuNoScorePartMap(Map<String, List<ScorePart>> collect){
+        Map<String, String> map = new HashMap<>();
+        collect.forEach((stuNo, scorePartList) -> {
+            final double[] newSum = {CommonNumConstants.NUM_ZERO};
+            for (ScorePart scorePart : scorePartList) {
+                String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
+                newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
+            }
+            map.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
+        });
+        return map;
+    }
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void updateScorePartProportion(InputObject inputObject, OutputObject outputObject) {
@@ -112,15 +132,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 }
             }
             Map<String, List<ScorePart>> stuNoMap = scoreParts1.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            Map<String, String> map = new HashMap<>();
-            stuNoMap.forEach((stuNo, scorePartList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScorePart scorePart : scorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                map.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> map = getStuNoScorePartMap(stuNoMap);
             List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(objectId));
             for (ScoreSum scoreSum : scoreSums) {
                 scoreSum.setScore(map.get(scoreSum.getStuNo()));
@@ -144,15 +156,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             }
             Map<String, List<ScorePart>> collect2 = scoreChildParts.stream().filter(scorePart -> scorePart.getObjectId().equals(scoreTypeChild.getId()))
                 .collect(Collectors.groupingBy(ScorePart::getStuNo));
-            Map<String, String> mapStuNoScore = new HashMap<>();
-            collect2.forEach((stuNo, scorePartList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScorePart scorePart : scorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                mapStuNoScore.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> mapStuNoScore = getStuNoScorePartMap(collect2);
             // 更新被修改占比的所有学生的作业成绩总分
             List<ScoreSum> scoreChildSums = scoreSumService.queryByObjectIdList(scoreTypeChildIdList);
             for (ScoreSum scoreChildSum : scoreChildSums) {// 修改占比
@@ -166,15 +170,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 .map(ScoreTypeChild::getId).collect(Collectors.toList());
             List<ScoreSum> collect = scoreChildSums.stream().filter(scoreSum -> idListByParentId.contains(scoreSum.getObjectId())).collect(Collectors.toList());
             Map<String, List<ScoreSum>> map = collect.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
-            Map<String, String> mapStuNoScore1 = new HashMap<>();
-            map.forEach((stuNo, scoreSumList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScoreSum scoreSum : scoreSumList) {
-                    String flagSum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                mapStuNoScore1.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> mapStuNoScore1 = scoreSumService.getStuNoScoreSumMap(map);
             List<ScorePart> flagScoreParts = scorePartService.queryByObjectIdList(flagScoreTypeTypeIdList, null);
             for (ScorePart flagScorePart : flagScoreParts) {
                 if (flagScorePart.getObjectId().equals(scoreTypeChild.getParentId())) {// 是平时成绩，修改分数
@@ -183,15 +179,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 }
             }
             Map<String, List<ScorePart>> collect1 = flagScoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            Map<String, String> mapStuNoScore2 = new HashMap<>();
-            collect1.forEach((stuNo, scorePartList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScorePart scorePart : scorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                mapStuNoScore2.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> mapStuNoScore2 = getStuNoScorePartMap(collect1);
             List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(flagScoreChild.getParentId()));
             for (ScoreSum scoreSum : scoreSums) {
                 scoreSum.setScore(mapStuNoScore2.get(scoreSum.getStuNo()));
@@ -199,7 +187,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             }
             List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
             scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
+                sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
         }
         super.updateEntity(updateScorePartList, currentUserId);
         scoreSumService.updateEntity(updateScoreSumList, currentUserId);

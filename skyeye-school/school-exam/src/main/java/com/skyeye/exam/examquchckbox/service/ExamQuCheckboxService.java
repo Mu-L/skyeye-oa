@@ -19,5 +19,7 @@ public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheck
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 
+    Map<String, List<ExamQuCheckbox>> selectByQuestionIds(List<String> questionIdList);
+
 //    void queryExamQuCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

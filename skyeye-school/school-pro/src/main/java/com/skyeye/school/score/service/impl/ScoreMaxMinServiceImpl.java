@@ -37,7 +37,7 @@ public class ScoreMaxMinServiceImpl extends SkyeyeBusinessServiceImpl<ScoreMaxMi
         if (Double.parseDouble(CalculationUtil.subtract(score, scoreMaxMin.getMaxScore())) > 0) {
             scoreMaxMin.setMaxScore(score);
         }
-        if (Double.parseDouble(CalculationUtil.subtract(scoreMaxMin.getMinScore(),score)) > 0) {
+        if (Double.parseDouble(CalculationUtil.subtract(scoreMaxMin.getMinScore(), score)) > 0) {
             scoreMaxMin.setMinScore(score);
         }
         super.updateEntity(scoreMaxMin, currentUserId);

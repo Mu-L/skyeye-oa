@@ -19,4 +19,6 @@ public interface ExamQuOrderbyService extends SkyeyeBusinessService<ExamQuOrderb
     List<ExamQuOrderby> selectQuOrderby(String copyFromId);
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+
+    Map<String, List<ExamQuOrderby>> selectByQuestionIds(List<String> questionIdList);
 }

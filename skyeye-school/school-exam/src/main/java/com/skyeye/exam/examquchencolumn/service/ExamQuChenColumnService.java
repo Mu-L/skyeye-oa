@@ -20,4 +20,6 @@ public interface ExamQuChenColumnService extends SkyeyeBusinessService<ExamQuChe
     List<ExamQuChenColumn> selectQuChenColumn(String copyFromId);
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+
+    Map<String, List<ExamQuChenColumn>> selectByQuestionIds(List<String> questionIdList);
 }

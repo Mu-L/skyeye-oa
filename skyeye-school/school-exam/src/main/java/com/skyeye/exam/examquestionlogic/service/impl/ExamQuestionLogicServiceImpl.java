@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamQuestionLogicServiceImpl
@@ -80,25 +81,14 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds) {
+    public Map<String, List<ExamQuestionLogic>> selectByQuestionIds(List<String> questionIds) {
         if (questionIds.isEmpty()) {
             return new HashMap<>();
         }
         QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), questionIds);
-//        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getVisibility), 1);
         List<ExamQuestionLogic> list = list(queryWrapper);
-        Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
-            String ckQuId = item.getCkQuId();
-            if(result.containsKey(ckQuId)){
-                result.get(ckQuId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
-                List<Map<String, Object>> tmp = new ArrayList<>();
-                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(ckQuId,tmp);
-            }
-        });
-        return result;
+        Map<String, List<ExamQuestionLogic>> collect = list.stream().collect(Collectors.groupingBy(ExamQuestionLogic::getCkQuId));
+        return collect;
     }
 }

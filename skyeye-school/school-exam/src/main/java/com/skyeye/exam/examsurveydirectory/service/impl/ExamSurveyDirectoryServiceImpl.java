@@ -13,16 +13,13 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
-import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -161,9 +158,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
                 String belongId = examSurveyDirectory.getId();
                 Integer fractionNumber = getFractionNumber(belongId);
+                if (fractionNumber ==null){
+                    throw new CustomException("该试卷没有题目，请添加题目。");
+                }
                 if (fractionNumber != 0) {
                     UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                    updateWrapper.eq(CommonConstants.ID, belongId);
+                    updateWrapper.eq(CommonConstants.ID, id);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     update(updateWrapper);
                 }
@@ -268,32 +268,39 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isEmpty(questionList)) {
             throw new CustomException("没有找到题目");
         }
+        List<String> questionIdList = questionList.stream().map(Question::getId).collect(Collectors.toList());
+        Map<String, List<ExamQuestionLogic>> stringListMap = examQuestionLogicService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuRadio>> stringListMap1 = examQuRadioService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuScore>> stringListMap2 = examquScoreService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuCheckbox>> stringListMap3 = examQuCheckboxService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuMultiFillblank>> stringListMap4 = examQuMultiFillblankService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuOrderby>> stringListMap5 = examQuOrderbyService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuChenColumn>> stringListMap6 = examQuChenColumnService.selectByQuestionIds(questionIdList);
+        Map<String, List<ExamQuChenRow>> stringListMap7 = examQuChenRowService.selectByQuestionIds(questionIdList);
         for (Question question : questionList) {
             String id = question.getId();
             question.setCopyFromId(id);
-            List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(id);
+            List<ExamQuestionLogic> examQuestionLogics = stringListMap.get(id);
             question.setQuestionLogic(examQuestionLogics);
-            List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(id);
+            List<ExamQuRadio> examQuRadioList = stringListMap1.get(id);
             question.setRadioTd(examQuRadioList);
-            List<ExamQuScore> examQuScoreList = examquScoreService.selectQuScore(id);
+            List<ExamQuScore> examQuScoreList = stringListMap2.get(id);
             question.setScoreTd(examQuScoreList);
-            List<ExamQuCheckbox> examQuCheckboxList = examQuCheckboxService.selectQuChenbox(id);
+            List<ExamQuCheckbox> examQuCheckboxList = stringListMap3.get(id);
             question.setCheckboxTd(examQuCheckboxList);
-            List<ExamQuMultiFillblank> multiFillblanks = examQuMultiFillblankService.selectQuMultiFillblank(id);
+            List<ExamQuMultiFillblank> multiFillblanks = stringListMap4.get(id);
             question.setMultifillblankTd(multiFillblanks);
-            List<ExamQuOrderby> examQuOrderbyList = examQuOrderbyService.selectQuOrderby(id);
+            List<ExamQuOrderby> examQuOrderbyList = stringListMap5.get(id);
             question.setOrderByTd(examQuOrderbyList);
-            List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(id);
+            List<ExamQuChenColumn> examQuChenColumnList = stringListMap6.get(id);
             question.setColumnTd(examQuChenColumnList);
-            List<ExamQuChenRow> examQuChenRows = examQuChenRowService.selectQuChenRow(id);
+            List<ExamQuChenRow> examQuChenRows = stringListMap7.get(id);
             question.setRowTd(examQuChenRows);
-            List<ExamQuScore> examQuScoreList1 = examQuScoreService.selectQuScore(id);
-            question.setScoreTd(examQuScoreList1);
             question.setBelongId(examSurveyDirectory.getId());
             questionService.createEntity(question, userId);
-            outputObject.setBean(examSurveyDirectory);
-            outputObject.settotal(1);
         }
+        outputObject.setBean(examSurveyDirectory);
+        outputObject.settotal(1);
     }
 
     /**
@@ -305,15 +312,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
         LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
         LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
-        if (ObjUtil.isEmpty(realStartTime) || ObjUtil.isEmpty(realEndTime)) {
-            throw new CustomException("实际开始时间和实际结束时间不能为空");
-        }
-        if (realStartTime.isAfter(realEndTime)) {
-            throw new CustomException("实际开始时间不能晚于实际结束时间");
-        }
-        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
-        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
-            throw new CustomException("学生不能创建考试目录");
+        if (ObjUtil.isNotEmpty(realStartTime) || ObjUtil.isNotEmpty(realEndTime)) {
+            if (realStartTime.isAfter(realEndTime)) {
+                throw new CustomException("实际开始时间不能晚于实际结束时间");
+            }
         }
     }
 
@@ -379,7 +381,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             questionService.updateEntity(collect1, userId);
         }
-        questionService.createEntity(questionsWithoutId, userId);
+        for (Question question : questionsWithoutId) {
+            questionService.createEntity(question, userId);
+        }
+
     }
 
     /**
@@ -506,11 +511,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void validatorEntity(List<ExamSurveyDirectory> entity) {
         ExamSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
-        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
-        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-            if (realStartTime.isAfter(realEndTime)) { // 判断开始时间是否在结束时间之后
-                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
+        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
+        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
+        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) {
+            if (realStartTime.isAfter(realEndTime)) {
+                throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
         }
     }

@@ -22,4 +22,6 @@ public interface ExamQuChenRowService extends SkyeyeBusinessService<ExamQuChenRo
     List<ExamQuChenRow> selectQuChenRow(String copyFromId);
 
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+
+    Map<String, List<ExamQuChenRow>> selectByQuestionIds(List<String> questionIdList);
 }

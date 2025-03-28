@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.ScorePart;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
     List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList, String stuNo);
@@ -22,6 +23,8 @@ public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
     void midCourse(String stuNo, String subjectId, String classId);
 
     void createScorePartByWorkId(String objectId, String workId);
+
+    Map<String, String> getStuNoScorePartMap(Map<String, List<ScorePart>> collect);
 
     void updateScorePartProportion(InputObject inputObject, OutputObject outputObject);
 }

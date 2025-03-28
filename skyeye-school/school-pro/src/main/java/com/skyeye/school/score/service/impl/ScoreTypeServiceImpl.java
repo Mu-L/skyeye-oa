@@ -3,7 +3,6 @@ package com.skyeye.school.score.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -14,7 +13,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exception.CustomException;
 import com.skyeye.school.score.dao.ScoreTypeDao;
 import com.skyeye.school.score.entity.*;
 import com.skyeye.school.score.service.*;
@@ -138,7 +136,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             }
             List<ScoreSum> sortByScoreList = scoreTypeSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
             scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), userId);
+                sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), userId);
             scorePartService.updateEntity(updateScorePartList, userId);
             scoreSumService.updateEntity(updateScoreSumList, userId);
         }
@@ -171,7 +169,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             }
         }
         bean.setSameTableChildDateList(sameTableChildDateList);
-        if (StrUtil.isNotEmpty(bean.getMaxMinId())){
+        if (StrUtil.isNotEmpty(bean.getMaxMinId())) {
             ScoreMaxMin scoreMaxMin = scoreMaxMinService.selectById(bean.getMaxMinId());
             bean.setScoreMaxMin(scoreMaxMin);
         }
@@ -211,6 +209,11 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         // 查询总成绩下的平时成绩，期末成绩等
         List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryListByParentIdList(Arrays.asList(parentId));
         if (CollectionUtil.isNotEmpty(scoreTypeChildList)) {
+            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(parentId));
+            // 判断科目下该班级是否有人
+            if (StrUtil.isEmpty(scoreSums.get(CommonNumConstants.NUM_ZERO).getStuNo())) {
+                return;
+            }
             // 获取平时成绩，期末成绩的主键id
             List<String> scoreTypeIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
             // 查询平时成绩，期末成绩下的分成绩
@@ -218,15 +221,11 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             // 根据学号分组
             Map<String, List<ScorePart>> mapScorePart = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
             // 重新计算每一个学生的总成绩，并更新总成绩
-            mapScorePart.forEach((stuNo, ScorePartList) -> {
-                final double[] sum = {CommonNumConstants.NUM_ZERO};
-                for (ScorePart scorePart : ScorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), scorePart.getProportion(), CommonNumConstants.NUM_FOUR);
-                    sum[CommonNumConstants.NUM_ZERO] = sum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                // 更新总分
-                scoreSumService.updateScoreByObjectIdAndStuNo(parentId, sum[CommonNumConstants.NUM_ZERO], stuNo);
-            });
+            Map<String, String> stuNoScoreMap = scorePartService.getStuNoScorePartMap(mapScorePart);
+            for (ScoreSum scoreSum : scoreSums) {
+                scoreSum.setScore(stuNoScoreMap.get(scoreSum.getStuNo()));
+            }
+            scoreSumService.updateEntity(scoreSums, InputObject.getLogParamsStatic().get("id").toString());
         }
     }
 
@@ -266,32 +265,5 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
         return list(queryWrapper);
-    }
-
-    @Override
-    public void queryBySubjectIdAndClassesId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String subjectId = params.get("subjectId").toString();
-        String classesId = params.get("classesId").toString();
-        QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId);
-        if (StrUtil.isEmpty(classesId)) {
-            List<ScoreType> list = list(queryWrapper);
-        } else {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId),classesId);
-            List<ScoreType> list = list(queryWrapper);
-            Map<Integer, List<ScoreType>> defaultMap = list.stream().collect(Collectors.groupingBy(ScoreType::getIsDefault));
-            List<String> defaultIdList = defaultMap.get(IsDefaultEnum.IS_DEFAULT.getKey()).stream().map(ScoreType::getId).collect(Collectors.toList());
-            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(defaultIdList);
-            List<String> notDefaultIdList = defaultMap.get(IsDefaultEnum.NOT_DEFAULT.getKey()).stream().map(ScoreType::getId).collect(Collectors.toList());
-            List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(notDefaultIdList, null);
-            Map<String, List<ScorePart>> stuNoPart = scoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            for (ScoreSum scoreSum : scoreSums) {
-                scoreSum.setScorePartList(stuNoPart.get(scoreSum.getStuNo()));
-            }
-//            for (ScoreType scoreType : list) {
-//            }
-
-        }
     }
 }

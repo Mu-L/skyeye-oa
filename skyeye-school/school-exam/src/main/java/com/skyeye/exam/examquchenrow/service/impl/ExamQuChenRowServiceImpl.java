@@ -8,7 +8,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
@@ -19,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "矩陈题-行选项管理", groupName = "矩陈题-行选项管理")
@@ -88,5 +88,17 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
             }
         });
         return result;
+    }
+
+    @Override
+    public Map<String, List<ExamQuChenRow>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), questionIdList);
+        List<ExamQuChenRow> list = list(queryWrapper);
+        Map<String, List<ExamQuChenRow>> collect = list.stream().collect(Collectors.groupingBy(ExamQuChenRow::getQuId));
+        return collect;
     }
 }

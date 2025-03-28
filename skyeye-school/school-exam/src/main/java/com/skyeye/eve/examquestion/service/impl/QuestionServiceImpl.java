@@ -488,45 +488,47 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
         List<Question> questionList = list(queryWrapper);
-        List<String> radioIds = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex()))
-            .map(Question::getId).collect(Collectors.toList());
-        // TODO 先拿出所有数据
-        for (Question question : questionList) {
-            // 根据题目类型获取题目选项
-            Integer quType = question.getQuType();
-            String id = question.getId();
-            if (quType.equals(QuType.RADIO.getIndex())) {
-                question.setRadioTd(examQuRadioService.selectQuRadio(id));
-                question.setRadioAn(examAnRadioService.selectByQuid(id));
-            }
-            if (quType.equals(QuType.CHECKBOX.getIndex())) {
-                question.setCheckboxTd(examQuCheckboxService.selectQuChenbox(id));
-                question.setCheckboxAn(examAnCheckboxService.selectAnCheckBoxByQuId(id));
-            }
-            if (quType.equals(QuType.SCORE.getIndex())) {
-                question.setScoreTd(examQuScoreService.selectQuScore(id));
-                question.setScoreAn(examAnScoreService.selectAnScoreByQuId(id));
-            }
-            if (quType.equals(QuType.ORDERQU.getIndex())) {
-                question.setOrderByTd(examQuOrderbyService.selectQuOrderby(id));
-                question.setOrderByAn(examAnOrderService.selectAnOrderByQuId(id));
-            }
-            if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
-                question.setMultifillblankTd(examQuMultiFillblankService.selectQuMultiFillblank(id));
-                question.setDFillblankAn(examAnDfilllankService.selectAnMultiFillblankQuId(id));
-            }
-            if (quType.equals(QuType.CHENRADIO.getIndex()) ||
-                quType.equals(QuType.CHENFBK.getIndex()) ||
-                quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                quType.equals(QuType.CHENSCORE.getIndex())) {
-                question.setColumnTd(examQuChenColumnService.selectQuChenColumn(id));
-                question.setChenRadioAn(examAnChenRadioService.selectAnChenRadioByQuId(id));
-                question.setChenFbkAn(examAnChenFbkService.selectByQuId(id));
-                question.setChenScoreAn(examAnChenScoreService.selectByQuId(id));
-                question.setCompChenRadioAn(examAnCompChenRadioService.selectByQuId(id));
-                question.setRowTd(examQuChenRowService.selectQuChenRow(id));
-                question.setChenCheckboxAn(examAnChenCheckboxService.selectAnChenCheckboxByQuId(id));
-            }
+        List<Question> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex()))
+            .collect(Collectors.toList());
+        for (Question question : radioList) {
+            question.setRadioTd(examQuRadioService.selectQuRadio(question.getId()));
+            question.setRadioAn(examAnRadioService.selectByQuid(question.getId()));
+        }
+        List<Question> cheankboxList = questionList.stream().filter(question -> question.getQuType().equals(QuType.CHECKBOX.getIndex())).collect(Collectors.toList());
+        for (Question question : cheankboxList) {
+            question.setCheckboxTd(examQuCheckboxService.selectQuChenbox(question.getId()));
+            question.setCheckboxAn(examAnCheckboxService.selectAnCheckBoxByQuId(question.getId()));
+        }
+        List<Question> scoreList = questionList.stream().filter(question -> question.getQuType().equals(QuType.SCORE.getIndex())).collect(Collectors.toList());
+        for (Question question : scoreList) {
+            question.setScoreTd(examQuScoreService.selectQuScore(question.getId()));
+            question.setScoreAn(examAnScoreService.selectAnScoreByQuId(question.getId()));
+        }
+        List<Question> orderQuList = questionList.stream().filter(question -> question.getQuType().equals(QuType.ORDERQU.getIndex())).collect(Collectors.toList());
+        for (Question question : orderQuList) {
+            question.setOrderByTd(examQuOrderbyService.selectQuOrderby(question.getId()));
+            question.setOrderByAn(examAnOrderService.selectAnOrderByQuId(question.getId()));
+        }
+        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())).collect(Collectors.toList());
+        for (Question question : multifillblankList) {
+            question.setMultifillblankTd(examQuMultiFillblankService.selectQuMultiFillblank(question.getId()));
+            question.setDFillblankAn(examAnDfilllankService.selectAnMultiFillblankQuId(question.getId()));
+        }
+        List<Question> chenList = questionList.stream().filter(question ->
+            question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
+                question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
+                question.getQuType().equals(QuType.CHENCHECKBOX.getIndex()) ||
+                question.getQuType().equals(QuType.CHENSCORE.getIndex())
+        ).collect(Collectors.toList());
+        for (Question question : chenList) {
+            String questionId = question.getId();
+            question.setColumnTd(examQuChenColumnService.selectQuChenColumn(questionId));
+            question.setChenRadioAn(examAnChenRadioService.selectAnChenRadioByQuId(questionId));
+            question.setChenFbkAn(examAnChenFbkService.selectByQuId(questionId));
+            question.setChenScoreAn(examAnChenScoreService.selectByQuId(questionId));
+            question.setCompChenRadioAn(examAnCompChenRadioService.selectByQuId(questionId));
+            question.setRowTd(examQuChenRowService.selectQuChenRow(questionId));
+            question.setChenCheckboxAn(examAnChenCheckboxService.selectAnChenCheckboxByQuId(questionId));
         }
         return questionList;
     }

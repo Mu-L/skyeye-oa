@@ -143,9 +143,6 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
             // 设置优惠券的开始和结束时间
             couponUse.setValidStartTime(df.format(validStartTime));
             couponUse.setValidEndTime(df.format(validEndTime));
-//            DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
-//            couponUse.setValidStartTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedStartTime(), "d")));
-//            couponUse.setValidEndTime(df.format(DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD_HH_MM_SS), coupon.getFixedEndTime(), "d")));
         }
         // 领取非固定类型优惠券时，借助couponMation成员变量存储优惠券信息，便于后置执行新增定时任务
         couponUse.setCouponMation(coupon);

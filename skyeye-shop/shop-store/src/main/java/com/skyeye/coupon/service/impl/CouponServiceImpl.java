@@ -19,6 +19,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
@@ -87,18 +88,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             if (StrUtil.isEmpty(coupon.getValidStartTime()) || StrUtil.isEmpty(coupon.getValidEndTime())) {
                 throw new CustomException("固定日期类型优惠券，有效期不能为空");
             }
-            try {
-                // 创建SimpleDateFormat对象，并设置日期格式
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                // 将字符串转换为Date对象
-                Date parse = sdf.parse(coupon.getValidEndTime());
-                Date now = new Date();
-                // 判断ValidEndTime是否早于当前时间
-                if (parse.before(now)) {
-                    throw new CustomException("优惠券结束时间不能早于当前时间");
-                }
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
+            if (DateUtil.compare(coupon.getValidStartTime(), coupon.getValidEndTime())) {
+                throw new CustomException("固定日期类型优惠券，开始时间不能早于结束时间");
             }
         }
         if (Objects.equals(coupon.getValidityType(), CouponValidityType.TERM.getKey())) {

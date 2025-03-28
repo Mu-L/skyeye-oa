@@ -14,17 +14,16 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquscore.dao.ExamQuScoreDao;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamQuScoreServiceImpl
@@ -123,6 +122,18 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         UpdateWrapper<ExamQuScore> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), entityId);
         remove(updateWrapper);
+    }
+
+    @Override
+    public Map<String, List<ExamQuScore>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), questionIdList);
+        List<ExamQuScore> list = list(queryWrapper);
+        Map<String, List<ExamQuScore>> collect = list.stream().collect(Collectors.groupingBy(ExamQuScore::getQuId));
+        return collect;
     }
 
 }
