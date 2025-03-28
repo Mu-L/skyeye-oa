@@ -14,15 +14,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.common.util.question.QuType;
-import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchencolumn.dao.ExamQuChenColumnDao;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
-import com.skyeye.exception.CustomException;
-import com.skyeye.school.grade.entity.YearSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "矩陈题-列选项管理", groupName = "矩陈题-列选项管理")
@@ -155,5 +152,17 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
             }
         });
         return result;
+    }
+
+    @Override
+    public Map<String, List<ExamQuChenColumn>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), questionIdList);
+        List<ExamQuChenColumn> list = list(queryWrapper);
+        Map<String, List<ExamQuChenColumn>> collect = list.stream().collect(Collectors.groupingBy(ExamQuChenColumn::getQuId));
+        return collect;
     }
 }

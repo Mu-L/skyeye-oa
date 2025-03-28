@@ -19,5 +19,5 @@ public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQues
 
     List<ExamQuestionLogic> selectByQuestionId(String ckQuId);
 
-    Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds);
+    Map<String, List<ExamQuestionLogic>> selectByQuestionIds(List<String> questionIds);
 }

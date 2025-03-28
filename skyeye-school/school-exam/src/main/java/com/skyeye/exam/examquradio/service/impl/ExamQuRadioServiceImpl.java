@@ -15,17 +15,16 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.exam.examquradio.dao.ExamQuRadioDao;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquradio.service.ExamQuRadioService;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamQuRadioServiceImpl
@@ -140,5 +139,17 @@ public class ExamQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuRadi
         UpdateWrapper<ExamQuRadio> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), entityId);
         remove(updateWrapper);
+    }
+
+    @Override
+    public Map<String, List<ExamQuRadio>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuRadio::getQuId), questionIdList);
+        List<ExamQuRadio> list = list(queryWrapper);
+        Map<String, List<ExamQuRadio>> collect = list.stream().collect(Collectors.groupingBy(ExamQuRadio::getQuId));
+        return collect;
     }
 }

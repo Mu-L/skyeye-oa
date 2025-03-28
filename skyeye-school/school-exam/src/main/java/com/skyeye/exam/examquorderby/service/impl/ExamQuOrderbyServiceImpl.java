@@ -2,7 +2,6 @@ package com.skyeye.exam.examquorderby.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Mysql;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -18,13 +17,13 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examquorderby.dao.ExamQuOrderbyDao;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquorderby.service.ExamQuOrderbyService;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "排序题行选项管理", groupName = "排序题行选项管理")
@@ -115,5 +114,17 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
             }
         });
         return result;
+    }
+
+    @Override
+    public Map<String, List<ExamQuOrderby>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), questionIdList);
+        List<ExamQuOrderby> list = list(queryWrapper);
+        Map<String, List<ExamQuOrderby>> collect = list.stream().collect(Collectors.groupingBy(ExamQuOrderby::getQuId));
+        return collect;
     }
 }

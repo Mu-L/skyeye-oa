@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "多选题选项表管理", groupName = "多选题选项表管理")
@@ -129,5 +130,17 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
             }
         });
         return result;
+    }
+
+    @Override
+    public Map<String, List<ExamQuCheckbox>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), questionIdList);
+        List<ExamQuCheckbox> list = list(queryWrapper);
+        Map<String, List<ExamQuCheckbox>> collect = list.stream().collect(Collectors.groupingBy(ExamQuCheckbox::getQuId));
+        return collect;
     }
 }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "多行填空题管理", groupName = "多行填空题管理")
@@ -112,5 +113,17 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
             }
         });
         return result;
+    }
+
+    @Override
+    public Map<String, List<ExamQuMultiFillblank>> selectByQuestionIds(List<String> questionIdList) {
+        if (questionIdList.isEmpty()) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamQuMultiFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getQuId), questionIdList);
+        List<ExamQuMultiFillblank> list = list(queryWrapper);
+        Map<String, List<ExamQuMultiFillblank>> collect = list.stream().collect(Collectors.groupingBy(ExamQuMultiFillblank::getQuId));
+        return collect;
     }
 }

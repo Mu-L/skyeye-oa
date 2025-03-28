@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.question.entity.DwQuestionBank;
 import com.skyeye.eve.question.service.DwQuestionBankService;
 import org.springframework.beans.factory.annotation.Autowired;
