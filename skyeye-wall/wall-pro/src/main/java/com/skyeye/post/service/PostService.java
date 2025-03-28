@@ -41,7 +41,5 @@ public interface PostService extends SkyeyeBusinessService<Post> {
 
     void queryUserPostCount(InputObject inputObject, OutputObject outputObject);
 
-    void queryPostVisitor(InputObject inputObject, OutputObject outputObject);
-
     void deletePost(InputObject inputObject, OutputObject outputObject);
 }

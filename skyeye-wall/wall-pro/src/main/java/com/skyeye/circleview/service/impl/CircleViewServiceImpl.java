@@ -5,6 +5,7 @@
 package com.skyeye.circleview.service.impl;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: CircleServiceImpl
@@ -50,7 +52,12 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
         QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCreateId), userId);
         List<CircleView> circleViewList = list(queryWrapper);
-        outputObject.setBeans(circleViewList);
+        if(CollectionUtil.isEmpty(circleViewList)){
+            return;
+        }
+        List<String> circleIds = circleViewList.stream().map(CircleView::getCircleId).collect(Collectors.toList());
+        List<Circle> circleList = circleService.selectByIds(circleIds.toArray(new String[]{}));
+        outputObject.setBeans(circleList);
         outputObject.settotal(page.getTotal());
     }
 
@@ -87,7 +94,7 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
     @Override
     public void deletePreExecution(CircleView circleView) {
         Circle circle = circleService.selectById(circleView.getCircleId());
-        if (ObjectUtil.isEmpty(circle)) {
+        if (StrUtil.isEmpty(circle.getId())) {
             throw new CustomException("圈子不存在");
         }
     }

@@ -22,6 +22,7 @@ import com.skyeye.circleview.service.CircleViewService;
 import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -63,9 +64,6 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     private PostService postService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private MaterialService materialService;
 
     @Autowired
@@ -73,25 +71,6 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Autowired
     private JoinCircleService joinCircleService;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
-    @Override
-    public void validatorEntity(Circle circle) {
-        String title = circle.getTitle();
-        QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Circle::getTitle), circle.getTitle());
-        Circle one = getOne(queryWrapper);
-        if(StrUtil.isEmpty(circle.getId()) && ObjectUtil.isNotEmpty(one)){
-            throw new CustomException("标题重复");
-        }
-        if (StrUtil.isNotEmpty(circle.getId())) {
-            if(ObjectUtil.isNotEmpty(one) && !title.equals(one.getTitle())){
-                throw new CustomException("标题重复");
-            }
-        }
-    }
 
     @Override
     public void createPrepose(Circle circle) {
@@ -124,21 +103,22 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         joinCircleService.deleteJoinByCircleId(id);
     }
 
-    private Circle setUserMation(Circle circle) {
+    private List<Circle> setUserIsJoin(List<Circle> circles) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        circle.setIsJoin(joinCircleService.checkIsJoinCircle(circle.getId(), userId));
-        if (LoginIdentity.STUDENT.getKey().equals(circle.getLoginIdentity())) {
-            userService.setDataMation(circle, Circle::getCreateId);
-        } else {
-            iAuthUserService.setDataMation(circle, Circle::getCreateId);
-        }
-        return circle;
+        List<String> circleIds = circles.stream().map(Circle::getId).collect(Collectors.toList());
+        Map<String,Boolean> checkMap =  joinCircleService.checkIsJoinCircle(circleIds, userId);
+        List<Circle> bean = circles.stream().map((item) -> {
+            item.setIsJoin(checkMap.get(item.getId()));
+            return item;
+        }).collect(Collectors.toList());
+        return bean;
     }
 
     @Override
     public Circle selectById(String id) {
         Circle circle = super.selectById(id);
-        setUserMation(circle);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        circle.setIsJoin(joinCircleService.checkIsJoinCircle(id, userId));
         return circle;
     }
 
@@ -164,15 +144,15 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     }
 
     private List<Map<String, Object>> queryCircleList(InputObject inputObject) {
-        Map<String, Object> params = inputObject.getParams();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
-        if (params.containsKey("keyword") && StringUtils.isNotEmpty(params.get("keyword").toString())) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(Circle::getTitle), params.get("keyword").toString());
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(Circle::getTitle), commonPageInfo.getKeyword());
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
         List<Circle> bean = new ArrayList<>();
-        if (params.containsKey("objectId") && StrUtil.isNotEmpty(params.get("objectId").toString())) {
-            String objectId = params.get("objectId").toString();
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            String objectId = commonPageInfo.getObjectId();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Circle::getCreateId), objectId);
             bean = list(queryWrapper);
             // 获取我加入的圈子记录
@@ -186,8 +166,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         if (CollectionUtil.isEmpty(bean)) {
             bean = list(queryWrapper);
         }
-        List<Circle> collect = bean.stream().map(this::setUserMation).collect(Collectors.toList());
-        return JSONUtil.toList(JSONUtil.toJsonStr(collect), null);
+        // 设置是否加入
+        List<Circle> circleList = setUserIsJoin(bean);
+        return JSONUtil.toList(JSONUtil.toJsonStr(circleList), null);
     }
 
     @Override
@@ -201,6 +182,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
         queryWrapper.ne(CommonConstants.ID, circleId);
         List<Circle> bean = list(queryWrapper);
+        if (CollectionUtil.isEmpty(bean)) {
+            return;
+        }
         Map<String, Double> map = new HashMap<>();
         for (Circle item : bean) {
             String topicName = item.getTitle();
@@ -221,7 +205,8 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
             list = list.subList(0, 10);
         }
         List<Circle> circleList = selectByIds(list.stream().map(Map.Entry::getKey).toArray(String[]::new));
-        List<Circle> beans = circleList.stream().map(this::setUserMation).collect(Collectors.toList());
+        // 设置是否加入圈子
+        List<Circle> beans = setUserIsJoin(circleList);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

@@ -9,6 +9,7 @@ import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,11 +25,15 @@ import java.util.List;
 public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyMarkExamDao, ExamSurveyMarkExam> implements ExamSurveyMarkExamService {
 
     @Override
-    public void createExamSurveyMarkExam(String id,String readerId,String userId) {
-        ExamSurveyMarkExam examSurveyMarkExam = new ExamSurveyMarkExam();
-        examSurveyMarkExam.setSurveyId(id);
-        examSurveyMarkExam.setUserId(readerId);
-        createEntity(examSurveyMarkExam,userId);
+    public void createExamSurveyMarkExam(String id, List<String> readerIds, String userId) {
+        List<ExamSurveyMarkExam> examSurveyMarkExamList = new ArrayList<>();
+        for (String readerId : readerIds) {
+            ExamSurveyMarkExam examSurveyMarkExam = new ExamSurveyMarkExam();
+            examSurveyMarkExam.setSurveyId(id);
+            examSurveyMarkExam.setUserId(readerId);
+            examSurveyMarkExamList.add(examSurveyMarkExam);
+        }
+        createEntity(examSurveyMarkExamList,userId);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.skyeye.school.groups.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -8,19 +9,23 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.QRCodeLinkType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.groups.dao.GroupsDao;
 import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
-import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.groups.service.GroupsStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +45,12 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     @Autowired
     private GroupsInformationService groupsInformationService;
 
+    @Autowired
+    private GroupsStudentService groupsStudentService;
+
+    @Autowired
+    private ICertificationService iCertificationService;
+
     @Override
     public QueryWrapper<Groups> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Groups> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -52,12 +63,29 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-
+        if (CollectionUtil.isEmpty(beans)) {
+            return beans;
+        }
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生身份采取判断是否已经加入分组
+            List<String> groupsIds = beans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
+            String studentNumber = certification.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            if (StrUtil.isNotBlank(studentNumber)) {
+                Map<String, Boolean> isJoined = groupsStudentService.checkStudentIsJoined(groupsIds, studentNumber);
+                beans.forEach(item -> {
+                    String groupId = item.get("id").toString();
+                    item.put("isJoined", isJoined.getOrDefault(groupId, false));
+                });
+            }
+        }
         return beans;
     }
 
     @Override
-    public void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents) {
+    public void insertList(GroupsInformation groupsInformation) {
         //构造数据
         Integer status = groupsInformation.getStatus();
         List<Groups> groupsList = new ArrayList<>();

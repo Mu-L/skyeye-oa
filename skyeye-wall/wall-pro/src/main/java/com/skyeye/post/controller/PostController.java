@@ -153,21 +153,6 @@ public class PostController {
     }
 
     /**
-     * 获取帖子的最近访客
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryPostVisitor", value = "获取帖子的最近访客", method = "POST", allUse = "0")
-    @ApiImplicitParams(
-        @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "required")
-    )
-    @RequestMapping("/post/PostController/queryPostVisitor")
-    public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
-        postService.queryPostVisitor(inputObject, outputObject);
-    }
-
-    /**
      * 管理员删除帖子
      *
      * @param inputObject  入参以及用户信息等获取对象

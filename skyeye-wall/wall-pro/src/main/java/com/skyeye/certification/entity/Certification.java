@@ -68,7 +68,7 @@ public class Certification extends CommonInfo {
     private String year;
 
     @TableField("sex")
-    @ApiModelProperty(value = "性别", required = "required")
+    @ApiModelProperty(value = "性别0，1，2", required = "required")
     private Integer sex;
 
     @TableField("idcard")
@@ -77,16 +77,15 @@ public class Certification extends CommonInfo {
 
     @TableField("idcard_type")
     @ApiModelProperty(value = "身份证类型，证件类型，参考#IDCardType", required = "required")
-    private Integer idcardType;
+    private Integer idCardType;
 
     @TableField("type")
-    @ApiModelProperty(value = "学生类别，参考#StudentType", required = "required")
+    @ApiModelProperty(value = "学生类别，1普通学生,2转校生,参考#StudentType", required = "required")
     private Integer type;
 
     @TableField("status")
-    @ApiModelProperty(value = "学生状态，参考#StudentState", required = "required")
+    @ApiModelProperty(value = "学生状态，1在校，2毕业，3休学，参考#StudentState", required = "required")
     private Integer status;
-
 
     @TableField("student_number")
     @ApiModelProperty(value = "学号", required = "required")

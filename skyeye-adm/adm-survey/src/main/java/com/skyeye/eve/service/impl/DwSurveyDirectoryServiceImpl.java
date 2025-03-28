@@ -775,13 +775,13 @@
 //        sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.END_SURVEY_MATION.getTaskType());
 //        iQuartzService.startUpTaskQuartz(sysQuartzMation);
 //    }
-//
-//    /**
-//     * 获取调查问卷题目信息用来生成html页面
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
+
+    /**
+     * 获取调查问卷题目信息用来生成html页面
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
 //    @Override
 //    public void queryDwSurveyDirectoryMationByIdToHTML(InputObject inputObject, OutputObject outputObject) {
 //        Map<String, Object> map = inputObject.getParams();

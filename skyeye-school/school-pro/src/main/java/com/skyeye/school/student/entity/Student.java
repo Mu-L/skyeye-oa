@@ -91,7 +91,7 @@ public class Student extends OperatorUserInfo {
     @TableField("idcard_type")
     @ApiModelProperty(value = "证件类型，参考#IDCardType", required = "required")
     @Excel(name = "证件类型", width = 30, isImportField = "true_st", orderNum = "6")
-    private Integer idcardType;
+    private Integer idCardType;
 
     @TableField("idcard")
     @ApiModelProperty(value = "身份证", required = "required")

@@ -19,8 +19,8 @@ import lombok.NoArgsConstructor;
 public enum NoticeTypeEnum implements SkyeyeEnumClass {
 
     TYPE_CIRCLE(0, "圈子", true, true),
-    TYPE_VIDEO(1, "视频", true, true),
-    TYPE_WALL(2, "表白墙", true, true);
+    TYPE_VIDEO(1, "视频", true, false),
+    TYPE_WALL(2, "表白墙", true, false);
 
     private Integer key;
 

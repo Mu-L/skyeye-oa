@@ -3,6 +3,8 @@ package com.skyeye.exam.examsurveyclass.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamSurveyClassService
  * @Description: 试卷与班级关系表管理服务接口层
@@ -13,7 +15,7 @@ import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
  */
 public interface ExamSurveyClassService extends SkyeyeBusinessService<ExamSurveyClass> {
 
-    void createExamSurveyClass(String id,String classId, String userId);
+    void createExamSurveyClass(String id, List<String> classIds, String userId);
 
     void deleteSurveyClassBySurveyId(String id);
 }

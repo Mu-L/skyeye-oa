@@ -133,7 +133,7 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     private void setBirthday(Student entity) {
         // 根据证件号码获取出生日期
-        if (entity.getIdcardType() == 1) {
+        if (entity.getIdCardType() == 1) {
             // 居民身份证
             Map<String, String> stu = ToolUtil.getBirAgeSex(entity.getIdCard());
             entity.setBirthday(stu.get("birthday"));

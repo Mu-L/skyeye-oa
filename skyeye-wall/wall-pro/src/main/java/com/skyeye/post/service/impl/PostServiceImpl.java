@@ -421,22 +421,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    @Override
-    public void queryPostVisitor(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String postId = params.get("postId").toString();
-        List<String> visitors = historyPostService.queryRecordUserIdByPostId(postId);
-        if (CollectionUtil.isEmpty(visitors)) {
-            return;
-        }
-        // 转为数组
-        // TODO 需要远程调用老师的信息--sys-eve-user
-        String[] userIs = visitors.toArray(new String[0]);
-        List<User> beans = userService.selectByIds(userIs);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
-    }
-
     // 管理员删除
     @Override
     public void deletePost(InputObject inputObject, OutputObject outputObject) {

@@ -112,14 +112,4 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         outputObject.setBeans(idList);
         outputObject.settotal(idList.size());
     }
-
-    @Override
-    public List<String> queryRecordUserIdByPostId(String postId) {
-        QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getPostId), postId)
-                .select(MybatisPlusUtil.toColumns(HistoryPost::getCreateId))
-                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime));
-        List<HistoryPost> historyPostList = list(queryWrapper);
-        return historyPostList.stream().map(HistoryPost::getCreateId).collect(Collectors.toList());
-    }
 }

@@ -10,7 +10,7 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import java.util.List;
 
 public interface GroupsService extends SkyeyeBusinessService<Groups> {
-    void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents);
+    void insertList(GroupsInformation groupsInformation);
 
     void deleteGroups(String groupsInformationId);
 

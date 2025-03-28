@@ -1,7 +1,7 @@
 package com.skyeye.school.groups.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -19,13 +19,12 @@ import com.skyeye.school.groups.entity.GroupsStudent;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
 import com.skyeye.school.groups.service.GroupsStudentService;
-import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
-import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,23 +45,21 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
     private ICertificationService iCertificationService;
 
     @Autowired
-    private SubjectClassesService subjectClassesService;
-
-    @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinGroups(InputObject inputObject, OutputObject outputObject) {
         GroupsStudent groupsStudent = inputObject.getParams(GroupsStudent.class);
         String groupId = groupsStudent.getGroupId();
-        String studentNumber1 = groupsStudent.getStudentNumber();
         GroupsInformation groupsInformation = getGroupsInformation(groupId);
-        String classId = groupsInformation.getClassId();
-        if (StrUtil.isEmpty(classId)) {
-            throw new CustomException("分组所属班级不存在");
+        if (ObjectUtil.isEmpty(groupsInformation)) {
+            throw new CustomException("分组信息不存在");
         }
-        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdByClassId(groupsInformation.getSubjectId());
-        boolean isExist = isaBoolean(subjectClassesList, studentNumber1);
+        String studentNumber1 = groupsStudent.getStudentNumber();
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(groupsInformation.getSubjectClassId());
+        List<String> collect = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+        boolean isExist = collect.contains(studentNumber1);
         if (isExist) {
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
@@ -81,32 +78,17 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
         return groupsInformation;
     }
 
-    private boolean isaBoolean(List<SubjectClasses> subjectClassesList, String studentNumber1) {
-        List<String> subClassIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        List<SubjectClassesStu> allStudents = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
-        List<String> collect1 = allStudents.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
-        return collect1.contains(studentNumber1);
-    }
-
     @Override
     public void selectGroupsByStuNumber(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String stuNumber = map.get("studentNumber").toString();
         QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), stuNumber);
-        GroupsStudent groupsStudent = getOne(queryWrapper);
+        GroupsStudent groupsStudent = this.getOne(queryWrapper);
         Groups groups = groupsService.selectById(groupsStudent.getGroupId());
         groupsStudent.setGroupsMation(groups);
         outputObject.setBean(groupsStudent);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
-    }
-
-    @Override
-    public List<Map<String, Object>> selectAllStudent() {
-        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
-        List<GroupsStudent> groupsStudentList = list(queryWrapper);
-        List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(groupsStudentList), null);
-        return list;
     }
 
     public void saveToGroupsStudent(GroupsStudent groupsStudent, String studentNumber, boolean throwException) {
@@ -126,9 +108,9 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             return;
         }
 
-        groupsStudent.setStudentNumber(studentNumber);
+//        groupsStudent.setStudentNumber(studentNumber);
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
-        groupsStudent.setGroupId(groupsStudent.getGroupId());
+//        groupsStudent.setGroupId(groupsStudent.getGroupId());
         createEntity(groupsStudent, StrUtil.EMPTY);
         GroupsInformation groupsInformation = getGroupsInformation(groupsStudent.getGroupId());
         groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), true);
@@ -158,6 +140,13 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             map.put(groupId, false);
         });
         return map;
+    }
+
+    @Override
+    public void deleteByGroupsIds(List<String> groupsIds) {
+        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsIds);
+        remove(queryWrapper);
     }
 
 }

@@ -7,21 +7,18 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
-import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.groups.dao.GroupsInformationDao;
-import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
-import com.skyeye.school.groups.service.GroupsStudentService;
-import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
-import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.impl.SubjectClassesServiceImpl;
 import org.slf4j.Logger;
@@ -29,10 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "学生分组信息管理", groupName = "分组管理")
@@ -44,101 +38,71 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     @Autowired
     private GroupsService groupsService;
 
-    @Autowired
-    private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private ClassesService classesService;
-
-    @Autowired
-    private GroupsStudentService groupsStudentService;
-
     private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
     @Override
     public QueryWrapper<GroupsInformation> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<GroupsInformation> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.isEmpty(commonPageInfo.getHolderId())) {
+            throw new CustomException("请先选择科目");
+        }
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubjectId), commonPageInfo.getHolderId());
         }
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getClassId), commonPageInfo.getObjectId());
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubjectClassId), commonPageInfo.getObjectId());
         }
         return queryWrapper;
     }
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        List<Map<String, Object>> groupsStudents = groupsStudentService.selectAllStudent();
-        Map<String, List<Map<String, Object>>> studentMap = groupsStudents.stream()
-            .collect(Collectors.groupingBy(student -> student.get("groupId").toString()));
-        for (Map<String, Object> bean : beans) {
-            String id = bean.get("id").toString();
-            List<Groups> groupsList = groupsService.selectByGroupsInformationId(id);
-            bean.put("groupsList", groupsList);
-            List<String> groupIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
-            List<Map<String, Object>> studentMation = groupIds.stream()
-                .filter(studentMap::containsKey)
-                .flatMap(groupId -> studentMap.get(groupId).stream())
-                .collect(Collectors.toList());
-            bean.put("studentMation", studentMation);
+    protected void createPrepose(GroupsInformation groupsInformation) {
+        String subjectClassId = groupsInformation.getSubjectClassId();
+        if (StrUtil.isEmpty(subjectClassId)) {
+            throw new CustomException("请先选择班级");
         }
-        iAuthUserService.setMationForMap(beans, "createId", "createMation");
-        classesService.setMationForMap(beans, "classId", "classMation");
-        return beans;
-    }
-
-    @Override
-    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
-        List<SubjectClassesStu> subjectClassesStuList = new ArrayList<>();
-        String classId = groupsInformation.getClassId();
-        if (StrUtil.isNotEmpty(classId)) {
-            List<SubjectClasses> subjectClassesList1 = subjectClassesService.selectIdByClassId(classId);
-            List<String> subClassIds = subjectClassesList1.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-            List<SubjectClassesStu> collect1 = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
-            subjectClassesStuList.addAll(collect1);
-        }
-        String subjectId = groupsInformation.getSubjectId();
-        if (StrUtil.isNotEmpty(subjectId)) {
-            List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubJectId(groupsInformation.getSubjectId());
-            List<String> subClassIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-            List<SubjectClassesStu> allStudents = subjectClassesStuService.queryListBySubClassLinkId(subClassIds.toArray(new String[subClassIds.size()]));
-            subjectClassesStuList.addAll(allStudents);
-        }
+        List<SubjectClassesStu> allStuNum = subjectClassesStuService.selectNumBySubClassLinkId(subjectClassId);
+        int size = allStuNum.size();
         Integer status = groupsInformation.getStatus();
         Integer groNumber = groupsInformation.getGroNumber();
         if (status.equals(CommonNumConstants.NUM_ZERO)) {
-            if (subjectClassesStuList.size() < groNumber) {
+            if (size < groNumber) {
                 throw new CustomException("学生人数不足,无法创建分组");
             }
-            groupsService.insertList(groupsInformation, subjectClassesStuList);
+            groupsService.insertList(groupsInformation);
         }
         if (status.equals(CommonNumConstants.NUM_ONE)) {
-            int size = subjectClassesStuList.size();
             Integer groupsnun = groupsInformation.getGroupsNum();
             if (groupsnun == null) {
                 throw new CustomException("分组数量未设置");
             }
-            int num;
-            int numGroups;
-            if (size > groupsnun) {
-                num = size % groupsnun;
-                if (num != 0) {
-                    numGroups = size / groupsnun + 1;
-                } else {
-                    numGroups = size / groupsnun;
-                }
-                UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
-                updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
-                update(updateWrapper);
-            } else {
-                throw new CustomException("学生人数不足,无法创建分组");
-            }
-            GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
-            groupsService.insertList(groupsInformation1, subjectClassesStuList);
         }
+    }
+
+    @Override
+    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
+        List<SubjectClassesStu> allStuNum = subjectClassesStuService.selectNumBySubClassLinkId(groupsInformation.getSubjectClassId());
+        int size = allStuNum.size();
+        Integer groupsnun = groupsInformation.getGroupsNum();
+        int num;
+        int numGroups;
+        if (size > groupsnun) {
+            num = size % groupsnun;
+            if (num != 0) {
+                numGroups = size / groupsnun + 1;
+            } else {
+                numGroups = size / groupsnun;
+            }
+            UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
+            updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
+            update(updateWrapper);
+        } else {
+            throw new CustomException("学生人数不足,无法创建分组");
+        }
+        GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
+        groupsService.insertList(groupsInformation1);
     }
 
     @Override
@@ -148,7 +112,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
 
     @Override
     public void editGroupsInformationStuNum(String id, Boolean isAdd) {
-        String lockKey = String.format("editGroupsInformationStuNum_/%s", id);
+        String lockKey = String.format("editGroupsInformationStuNum_%s", id);
         RedisLock lock = new RedisLock(lockKey);
         try {
             if (!lock.lock()) {
@@ -180,7 +144,6 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         } finally {
             lock.unlock();
         }
-
     }
 
 }
