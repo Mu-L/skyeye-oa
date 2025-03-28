@@ -137,7 +137,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         String keyword = commonPageInfo.getKeyword();
         String objectId = commonPageInfo.getObjectId();
         String holderId = commonPageInfo.getHolderId();
-        String typeId = commonPageInfo.getTypeId();
+        String type = commonPageInfo.getType();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<Post> bean;
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
@@ -154,11 +154,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             //  传holderId时，判断是否已加入该圈子
             String createId = joinCircleService.selectByCircleId(holderId, userId).getCreateId();
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
-        } else if (StrUtil.isNotEmpty(typeId)) {
+        } else if (StrUtil.isNotEmpty(type)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
                     .ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
                     .and(wrapper ->
-                            wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId).or()
+                            wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), type).or()
                                    .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
                     );
             bean = list(queryWrapper);
