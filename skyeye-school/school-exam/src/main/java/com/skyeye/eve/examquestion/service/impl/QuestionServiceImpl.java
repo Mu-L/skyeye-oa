@@ -488,6 +488,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
         List<Question> questionList = list(queryWrapper);
+        List<String> radioIds = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex()))
+            .map(Question::getId).collect(Collectors.toList());
         // TODO 先拿出所有数据
         for (Question question : questionList) {
             // 根据题目类型获取题目选项
