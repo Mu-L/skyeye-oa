@@ -26,7 +26,6 @@ import com.skyeye.school.groups.entity.GroupsInformation;
 import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
 import com.skyeye.school.groups.service.GroupsStudentService;
-import com.skyeye.school.subject.entity.SubjectClassesStu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -82,12 +81,11 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
                 });
             }
         }
-
         return beans;
     }
 
     @Override
-    public void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents) {
+    public void insertList(GroupsInformation groupsInformation) {
         //构造数据
         Integer status = groupsInformation.getStatus();
         List<Groups> groupsList = new ArrayList<>();

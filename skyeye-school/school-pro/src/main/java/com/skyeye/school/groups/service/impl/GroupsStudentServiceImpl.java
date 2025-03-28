@@ -108,9 +108,9 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             return;
         }
 
-        groupsStudent.setStudentNumber(studentNumber);
+//        groupsStudent.setStudentNumber(studentNumber);
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
-        groupsStudent.setGroupId(groupsStudent.getGroupId());
+//        groupsStudent.setGroupId(groupsStudent.getGroupId());
         createEntity(groupsStudent, StrUtil.EMPTY);
         GroupsInformation groupsInformation = getGroupsInformation(groupsStudent.getGroupId());
         groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), true);

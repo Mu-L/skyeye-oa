@@ -23,9 +23,9 @@ import java.util.Map;
 @Mapper
 public interface DwSurveyDirectoryDao extends SkyeyeBaseMapper<DwSurveyDirectory> {
 
-//    Map<String, Object> querySurveyMationById(@Param("id") String id);
+    Map<String, Object> querySurveyMationById(@Param("id") String id);
 //
-//    int editSurveyStateToEndNumZdById(Map<String, Object> map);
+    int editSurveyStateToEndNumZdById(Map<String, Object> map);
 
 }
 

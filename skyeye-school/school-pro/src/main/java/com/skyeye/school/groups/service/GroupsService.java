@@ -5,11 +5,16 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
+
+import java.util.List;
 
 public interface GroupsService extends SkyeyeBusinessService<Groups> {
     void insertList(GroupsInformation groupsInformation);
 
     void deleteGroups(String groupsInformationId);
+
+    List<Groups> selectByGroupsInformationId(String groupsInformationId);
 
     void deleteGroupsById(InputObject inputObject, OutputObject outputObject);
 
