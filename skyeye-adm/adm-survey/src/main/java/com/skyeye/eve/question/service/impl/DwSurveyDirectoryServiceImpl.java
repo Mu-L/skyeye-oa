@@ -2,6 +2,7 @@ package com.skyeye.eve.question.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -466,6 +467,32 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
 
 
+    }
+
+    @Override
+    public void queryDwSurveyDirectoryMationByIdToHTML(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        DwSurveyDirectory dwSurveyDirectory = selectById(id);
+        if (ObjectUtil.isNotEmpty(dwSurveyDirectory)) {
+            List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(id);
+            int pageNo = 1;
+            for (DwQuestion dwQuestion : dwQuestions) {
+                if (dwQuestion.getQuType().equals(QuType.PAGETAG.getIndex())) {
+                    pageNo++;
+                }
+            }
+            List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(dwQuestions), null);
+            for (Map<String, Object> map : list) {
+                map.put("pageNo", pageNo);
+                getQuestionOptionReportListMation(map);
+            }
+            dwSurveyDirectory.setPageNo(pageNo);
+            outputObject.setBean(dwSurveyDirectory);
+            outputObject.setBeans(list);
+            outputObject.settotal(1);
+        } else {
+            outputObject.setreturnMessage("该试卷信息不存在。");
+        }
     }
 
     public Map<String, Object> getQuestionOptionReportListMation(Map<String, Object> question) {

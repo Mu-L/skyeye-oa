@@ -172,4 +172,18 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryDwurveyMationById(inputObject, outputObject);
     }
 
+    /**
+     * 获取调查问卷题目信息用来生成html页面
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryDwSurveyDirectoryMationByIdToHTML", value = "获取调查问卷题目信息用来生成html页面", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
+    @RequestMapping("/post/DwSurveyDirectoryController/queryDwSurveyDirectoryMationByIdToHTML")
+    public void queryDwSurveyDirectoryMationByIdToHTML(InputObject inputObject, OutputObject outputObject) {
+        dwSurveyDirectoryService.queryDwSurveyDirectoryMationByIdToHTML(inputObject, outputObject);
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveyclass.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -8,6 +9,9 @@ import com.skyeye.exam.examsurveyclass.dao.ExamSurveyClassDao;
 import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @ClassName: ExamSurveyClassServiceImpl
@@ -22,17 +26,21 @@ import org.springframework.stereotype.Service;
 public class ExamSurveyClassServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyClassDao, ExamSurveyClass> implements ExamSurveyClassService {
 
     @Override
-    public void createExamSurveyClass(String id,String classId, String userId) {
-        ExamSurveyClass examSurveyClass = new ExamSurveyClass();
-        examSurveyClass.setExamSurveyId(id);
-        examSurveyClass.setClassId(classId);
-        createEntity(examSurveyClass, userId);
+    public void createExamSurveyClass(String id, List<String> classIds, String userId) {
+        List<ExamSurveyClass> examSurveyClassesList = new ArrayList<>();
+        for (String classId : classIds) {
+            ExamSurveyClass examSurveyClass = new ExamSurveyClass();
+            examSurveyClass.setExamSurveyId(id);
+            examSurveyClass.setClassId(classId);
+            examSurveyClassesList.add(examSurveyClass);
+        }
+        createEntity(examSurveyClassesList, userId);
     }
 
     @Override
     public void deleteSurveyClassBySurveyId(String id) {
-        UpdateWrapper<ExamSurveyClass> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyClass::getExamSurveyId), id);
-        remove(updateWrapper);
+        QueryWrapper<ExamSurveyClass> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyClass::getExamSurveyId), id);
+        remove(queryWrapper);
     }
 }

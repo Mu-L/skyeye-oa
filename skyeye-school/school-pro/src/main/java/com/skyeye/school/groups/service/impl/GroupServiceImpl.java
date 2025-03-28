@@ -18,9 +18,8 @@ import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.school.groups.dao.GroupsDao;
 import com.skyeye.school.groups.entity.Groups;
 import com.skyeye.school.groups.entity.GroupsInformation;
-import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
-import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.groups.service.GroupsStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,9 +35,6 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
 
     @Value("${IMAGES_PATH}")
     private String tPath;
-
-    @Autowired
-    private GroupsInformationService groupsInformationService;
 
     @Override
     public QueryWrapper<Groups> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -57,8 +53,7 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     }
 
     @Override
-    public void insertList(GroupsInformation groupsInformation, List<SubjectClassesStu> allStudents) {
-        //构造数据
+    public void insertList(GroupsInformation groupsInformation) {
         Integer status = groupsInformation.getStatus();
         List<Groups> groupsList = new ArrayList<>();
         if (status.equals(CommonNumConstants.NUM_ZERO)) {
@@ -100,18 +95,18 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         return entity;
     }
 
+    @Autowired
+    private GroupsService groupsService;
+    @Autowired
+    private GroupsStudentService groupsStudentService;
     @Override
     public void deleteGroups(String groupsInformationId) {
         QueryWrapper<Groups> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), groupsInformationId);
+        List<Groups> groupsList = list(queryWrapper);
+        List<String> groupsIds = groupsList.stream().map(Groups::getId).collect(Collectors.toList());
+        groupsStudentService.deleteByGroupsIds(groupsIds);
         remove(queryWrapper);
-    }
-
-    @Override
-    public List<Groups> selectByGroupsInformationId(String groupsInformationId) {
-        QueryWrapper<Groups> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), groupsInformationId);
-        return list(queryWrapper);
     }
 
     @Override
@@ -134,11 +129,4 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         update(updateWrapper);
     }
 
-    @Override
-    public Groups selectById(String id) {
-        Groups groups = super.selectById(id);
-        GroupsInformation groupsInformation = groupsInformationService.selectById(groups.getGroupsInformationId());
-        groups.setGroupsInformationMation(groupsInformation);
-        return groups;
-    }
 }

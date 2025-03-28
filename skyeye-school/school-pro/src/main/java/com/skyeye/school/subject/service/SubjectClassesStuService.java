@@ -76,4 +76,5 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
 
     Long queryStuStarNum(String id, String studentNumber);
 
+    List<SubjectClassesStu> selectNumBySubClassLinkId(String subjectClassId);
 }

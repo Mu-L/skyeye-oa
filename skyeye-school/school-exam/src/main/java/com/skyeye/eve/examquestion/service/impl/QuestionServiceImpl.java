@@ -14,8 +14,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.examquestion.dao.QuestionDao;
@@ -244,7 +242,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(entityId);
             List<String> collect1 = examQuRadioList.stream().map(ExamQuRadio::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(
-                    optionId -> !collect.contains(optionId)
+                optionId -> !collect.contains(optionId)
             ).collect(Collectors.toList());
             for (String id : collect2) {
                 examQuRadioService.deleteById(id);
@@ -332,9 +330,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), id);
         List<Question> list = list(queryWrapper);
-        for (Question question : list) {
-            deleteById(question.getId());
-        }
+        deleteById(list.stream().map(Question::getId).collect(Collectors.toList()));
         remove(queryWrapper);
     }
 
@@ -433,9 +429,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             }
             // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE
             if (question.getQuType() == QuType.CHENRADIO.getIndex() ||
-                    question.getQuType() == QuType.CHENFBK.getIndex() ||
-                    question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
-                    question.getQuType() == QuType.CHENSCORE.getIndex()) {
+                question.getQuType() == QuType.CHENFBK.getIndex() ||
+                question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
+                question.getQuType() == QuType.CHENSCORE.getIndex()) {
                 List<ExamQuChenColumn> examQuChenColumnList = examQuChenColumnService.selectQuChenColumn(question.getId());
                 List<ExamQuChenRow> examQuChenRowList = examQuChenRowService.selectQuChenRow(question.getId());
                 List<ExamAnChenRadio> examAnChenRadioList = examAnChenRadioService.selectAnChenRadioByQuId(question.getId());
@@ -471,10 +467,10 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         } else if (quType.equals(QuType.ORDERQU.getIndex())) {
             examQuOrderbyService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||
-                quType.equals(QuType.CHENFBK.getIndex()) ||
-                quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                quType.equals(QuType.COMPCHENRADIO.getIndex()) ||
-                quType.equals(QuType.CHENSCORE.getIndex())
+            quType.equals(QuType.CHENFBK.getIndex()) ||
+            quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+            quType.equals(QuType.COMPCHENRADIO.getIndex()) ||
+            quType.equals(QuType.CHENSCORE.getIndex())
         ) {
             examQuChenColumnService.removeByQuId(quId);
         }
@@ -492,6 +488,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), belongId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
         List<Question> questionList = list(queryWrapper);
+        // TODO 先拿出所有数据
         for (Question question : questionList) {
             // 根据题目类型获取题目选项
             Integer quType = question.getQuType();
@@ -517,9 +514,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 question.setDFillblankAn(examAnDfilllankService.selectAnMultiFillblankQuId(id));
             }
             if (quType.equals(QuType.CHENRADIO.getIndex()) ||
-                    quType.equals(QuType.CHENFBK.getIndex()) ||
-                    quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                    quType.equals(QuType.CHENSCORE.getIndex())) {
+                quType.equals(QuType.CHENFBK.getIndex()) ||
+                quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+                quType.equals(QuType.CHENSCORE.getIndex())) {
                 question.setColumnTd(examQuChenColumnService.selectQuChenColumn(id));
                 question.setChenRadioAn(examAnChenRadioService.selectAnChenRadioByQuId(id));
                 question.setChenFbkAn(examAnChenFbkService.selectByQuId(id));
@@ -616,17 +613,17 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {
         List<Question> questionList = list(queryWrapper)
-                .stream().map(item -> {
-                    //设置学校信息
-                    item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-                    //设置学院信息
-                    item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
-                    //设置专业信息
-                    item.setMajorMation(majorService.selectById(item.getMajorId()));
-                    //设置科目信息
-                    item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-                    return item;
-                }).collect(Collectors.toList());
+            .stream().map(item -> {
+                //设置学校信息
+                item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
+                //设置学院信息
+                item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
+                //设置专业信息
+                item.setMajorMation(majorService.selectById(item.getMajorId()));
+                //设置科目信息
+                item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+                return item;
+            }).collect(Collectors.toList());
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         return questionList;

@@ -166,5 +166,9 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "题目信息", required = "json")
     private List<DwQuestion> dwQuestionMation;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "分页数量")
+    private int pageNo;
 }
 

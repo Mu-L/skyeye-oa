@@ -49,7 +49,7 @@ public class GroupsInformation extends OperatorUserInfo {
     private String subjectId;
 
     @TableField("class_id")
-    @ApiModelProperty(value = "班级ID")
-    private String classId;
+    @ApiModelProperty(value = "科目与班级ID")
+    private String subjectClassId;
 
 }
