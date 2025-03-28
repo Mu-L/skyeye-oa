@@ -234,6 +234,7 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
             queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), currentUserId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Subject::getCreateTime));
             List<Subject> list = list(queryWrapper);
+            schoolService.setDataMation(list, Subject::getSchoolId);
             beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         } else if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份信息

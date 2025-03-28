@@ -20,10 +20,7 @@ import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
 import com.skyeye.school.score.entity.ScoreType;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.score.service.ScorePartService;
-import com.skyeye.school.score.service.ScoreSumService;
-import com.skyeye.school.score.service.ScoreTypeChildService;
-import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.score.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +43,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
 
     @Autowired
     private ScoreTypeService scoreTypeService;
+
+    @Autowired
+    private ScoreMaxMinService scoreMaxMinService;
 
     @Override
     public List<ScorePart> queryByObjectIdList(List<String> scoreTypeIdList, String stuNo) {
@@ -197,8 +197,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 scoreSum.setScore(mapStuNoScore2.get(scoreSum.getStuNo()));
                 updateScoreSumList.add(scoreSum);
             }
-            scorePartService.updateEntity(updateScorePartList, currentUserId);
-            scoreSumService.updateEntity(updateScoreSumList, currentUserId);
+            List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
+            scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
+                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
         }
         super.updateEntity(updateScorePartList, currentUserId);
         scoreSumService.updateEntity(updateScoreSumList, currentUserId);
@@ -382,6 +383,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         }
         // 更新该学生的”总成绩“
         scoreSumService.updateScoreByObjectIdAndStuNo(parentScoreType.getParentId(), lastScore, scorePart.getStuNo());
+        scoreMaxMinService.updateScoreById(parentScoreType.getParentId(), String.valueOf(lastScore), InputObject.getLogParamsStatic().get("id").toString());
     }
 
     public List<ScorePart> queryByObjectIdListAndStuNo(List<String> objectIdList, String stuNo) {

@@ -1,10 +1,9 @@
 package com.skyeye.school.score.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.school.score.dao.ScoreMaxMinDao;
 import com.skyeye.school.score.entity.ScoreMaxMin;
 import com.skyeye.school.score.service.ScoreMaxMinService;
@@ -25,10 +24,22 @@ public class ScoreMaxMinServiceImpl extends SkyeyeBusinessServiceImpl<ScoreMaxMi
     }
 
     @Override
-    public ScoreMaxMin getScoreMaxMinBySubjectIdAndClassId(String subjectId, String classId) {
-        QueryWrapper<ScoreMaxMin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreMaxMin::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreMaxMin::getClassId), classId);
-        return getOne(queryWrapper);
+    public void updateScoreById(String id, String scoreMax, String scoreMin, String currentUserId) {
+        ScoreMaxMin scoreMaxMin = super.selectById(id);
+        scoreMaxMin.setMaxScore(scoreMax);
+        scoreMaxMin.setMinScore(scoreMin);
+        super.updateEntity(scoreMaxMin, currentUserId);
+    }
+
+    @Override
+    public void updateScoreById(String id, String score, String currentUserId) {
+        ScoreMaxMin scoreMaxMin = super.selectById(id);
+        if (Double.parseDouble(CalculationUtil.subtract(score, scoreMaxMin.getMaxScore())) > 0) {
+            scoreMaxMin.setMaxScore(score);
+        }
+        if (Double.parseDouble(CalculationUtil.subtract(scoreMaxMin.getMinScore(),score)) > 0) {
+            scoreMaxMin.setMinScore(score);
+        }
+        super.updateEntity(scoreMaxMin, currentUserId);
     }
 }

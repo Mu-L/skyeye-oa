@@ -22,10 +22,7 @@ import com.skyeye.school.score.entity.ScorePart;
 import com.skyeye.school.score.entity.ScoreSum;
 import com.skyeye.school.score.entity.ScoreType;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.score.service.ScorePartService;
-import com.skyeye.school.score.service.ScoreSumService;
-import com.skyeye.school.score.service.ScoreTypeChildService;
-import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.score.service.*;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
@@ -55,11 +52,13 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Autowired
     private ScoreTypeService scoreTypeService;
 
+    @Autowired
+    private ScoreMaxMinService scoreMaxMinService;
+
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
         scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-//        scoreTypeChild.setParentId(StrUtil.EMPTY);
         scoreTypeChild.setNumberCode(ObjectUtil.isEmpty(scoreTypeChild.getNumberCode()) ? NumberCodeEnum.CUSTOM.getKey() : scoreTypeChild.getNumberCode());
         scoreTypeChild.setIsDefault(ObjectUtil.isEmpty(scoreTypeChild.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreTypeChild.getIsDefault());
     }
@@ -220,6 +219,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                     scoreSum.setScore(newScore);
                     updateScoreSumList.add(scoreSum);
                 }
+                List<ScoreSum> sortByScoreList = scoreTypeSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
+                scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
+                    sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
                 scoreSumService.updateEntity(updateScoreSumList, currentUserId);
                 scorePartService.updateEntity(updateScorePartList, currentUserId);
                 update(updateWrapper);
@@ -317,6 +319,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 scoreSum.setScore(mapStuNoScore1.get(scoreSum.getStuNo()));
                 updateScoreSumList.add(scoreSum);
             }
+            List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
+            scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
+                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
             scorePartService.updateEntity(updateScorePartList, currentUserId);
             scoreSumService.updateEntity(updateScoreSumList, currentUserId);
         }
