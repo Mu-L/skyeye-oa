@@ -161,13 +161,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
                 String belongId = examSurveyDirectory.getId();
                 Integer fractionNumber = getFractionNumber(belongId);
-                if (fractionNumber == 0) {
-                    throw new CustomException("该试卷没有调查项");
+                if (fractionNumber != 0) {
+                    UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+                    updateWrapper.eq(CommonConstants.ID, belongId);
+                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+                    update(updateWrapper);
                 }
-                UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(CommonConstants.ID, belongId);
-                updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                update(updateWrapper);
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
             }
@@ -183,14 +182,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         int fraction = 0;
         // 题目总数
         int questionNum = 0;
-        if (CollectionUtil.isEmpty(questions)) {
-            throw new CustomException("该试卷没有调查项");
-        }
-        for (Question question : questions) {
-            int questionType = question.getQuType();
-            if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
-                fraction += question.getFraction();
-                questionNum++;
+        if (CollectionUtil.isNotEmpty(questions)) {
+            for (Question question : questions) {
+                int questionType = question.getQuType();
+                if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                    fraction += question.getFraction();
+                    questionNum++;
+                }
             }
         }
         // 总分数
