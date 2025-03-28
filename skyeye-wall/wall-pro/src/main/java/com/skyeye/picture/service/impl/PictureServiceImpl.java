@@ -2,6 +2,7 @@ package com.skyeye.picture.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -66,6 +67,13 @@ public class PictureServiceImpl extends SkyeyeBusinessServiceImpl<PictureDao, Pi
         QueryWrapper<Picture> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Picture::getObjectId), ids);
         remove(queryWrapper);
+    }
+
+    @Override
+    public Picture getPictureByObjectId(String objectId) {
+        QueryWrapper<Picture> queryPicture = new QueryWrapper<>();
+        queryPicture.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), objectId);
+        return getOne(queryPicture);
     }
 
     @Override

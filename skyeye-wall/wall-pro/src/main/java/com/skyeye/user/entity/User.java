@@ -83,4 +83,8 @@ public class User extends CommonInfo {
     @Property(value = "认证状态")
     private Integer state;
 
+    @TableField(exist = false)
+    @Property(value = "检验当前用户是否被当前登录人关注")
+    private boolean checkFocus;
+
 }

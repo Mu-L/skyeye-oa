@@ -20,6 +20,8 @@ public interface VideoRecordService extends SkyeyeBusinessService<VideoRecord> {
     // 检验当前登录人是否对视频点赞 或 收藏
     boolean checkUpvoteOrCollectByUserId(Video video,int type);
 
+    Map<String,Boolean> checkUpvoteOrCollect(List<String> videoIds, int type);
+
     Map<String, List<String>> queryAllCollectSupportVideoIds(InputObject inputObject);
 
     boolean checkSupportOrCollectByVideoId(String videoId, int type);

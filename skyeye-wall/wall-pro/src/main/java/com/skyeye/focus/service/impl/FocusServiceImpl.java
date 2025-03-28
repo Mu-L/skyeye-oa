@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,12 +74,28 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
     }
 
     @Override
-    public void checkFocus(Video video) {
+    public boolean checkFocus(String createId) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId), video.getCreateId())
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId),createId )
                 .eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
-        video.setCheckFocus(count(queryWrapper) > 0);
+        return count(queryWrapper) > 0;
+    }
+
+    @Override
+    public Map<String,Boolean> checkFocus(List<String> videoCreateIds) {
+        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Focus::getUserId), videoCreateIds)
+                .eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
+        // 关注用户的记录
+        List<Focus> focusList = list(queryWrapper);
+        List<String> focusCreateIds = focusList.stream().map(Focus::getUserId).collect(Collectors.toList());
+        Map<String,Boolean> map = new HashMap<>();
+        for(String createId : videoCreateIds){
+            map.put(createId,focusCreateIds.contains(createId));
+        }
+        return map;
     }
 
     @Override

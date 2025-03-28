@@ -55,7 +55,8 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     private Notice setUserMation(Notice notice) {
         if (notice.getType() == TypeEnum.COMMENT.getKey()) {
-            setCommentPicture(notice);
+            Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
+            notice.setPicture(picture);
         }
         String sendId = notice.getSendId();
         String receiveId = notice.getReceiveId();
@@ -130,16 +131,6 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         List<Notice> beans = bean.stream().map(this::setUserMation).collect(Collectors.toList());
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
-    }
-
-    // TODO 写在图片管理内
-    private void setCommentPicture(Notice notice) {
-        QueryWrapper<Picture> queryPicture = new QueryWrapper<>();
-        queryPicture.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), notice.getCommentId());
-        Picture one = pictureService.getOne(queryPicture);
-        if (ObjectUtil.isNotEmpty(one)) {
-            notice.setPicture(one);
-        }
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.skyeye.video.entity.VideoView;
 import com.skyeye.video.service.VideoRecordService;
 import com.skyeye.video.service.VideoService;
 import com.skyeye.video.service.VideoViewService;
+import com.skyeye.video.videoenum.VideoTypeEnum;
 import com.skyeye.videocomment.entity.VideoComment;
 import com.skyeye.videocomment.service.VideoCommentService;
 import com.skyeye.videotag.service.VideoTagService;
@@ -76,10 +77,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     private String tPath;
 
     private Video setUserMation(Video video) {
-        focusService.checkFocus(video);
-        video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_ONE));
-        video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, CommonNumConstants.NUM_TWO));
-        videoTagService.setTagMationForVideoList(video);
         if (LoginIdentity.STUDENT.getKey().equals(video.getLoginIdentity())) {
             userService.setDataMation(video, Video::getCreateId);
         } else {
@@ -88,9 +85,28 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         return video;
     }
 
+    private void setUserMations(List<Video> videos) {
+        videoTagService.setTagMationForVideoList(videos.toArray(new Video[0]));
+        List<String> videoIds = videos.stream().map(Video::getId).collect(Collectors.toList());
+        List<String> videoCreateIds = videos.stream().map(Video::getCreateId).collect(Collectors.toList());
+        Map<String, Boolean> likeMap = videoRecordService.checkUpvoteOrCollect(videoIds, VideoTypeEnum.LIKE.getKey());
+        Map<String, Boolean> collectMap = videoRecordService.checkUpvoteOrCollect(videoIds, VideoTypeEnum.COLLECT.getKey());
+        Map<String,Boolean> foucsMap = focusService.checkFocus(videoCreateIds);
+        for (Video video : videos) {
+            video.setCheckUpvote(likeMap.get(video.getId()));
+            video.setCheckCollection(collectMap.get(video.getId()));
+            video.setCheckFocus(foucsMap.get(video.getCreateId()));
+            setUserMation(video);
+        }
+    }
+
     @Override
     public Video selectById(String id) {
-        Video video = super.selectById(id);;
+        Video video = super.selectById(id);
+        video.setCheckFocus(focusService.checkFocus(id));
+        videoTagService.setTagMationForVideoList(video);
+        video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, VideoTypeEnum.LIKE.getKey()));
+        video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, VideoTypeEnum.COLLECT.getKey()));
         return setUserMation(video);
     }
 
@@ -179,10 +195,10 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String currentUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         Map<String, Map<String, Double>> userVideoScores = new HashMap<>();
         // 获取所有用户的点赞的视频
-        List<VideoRecord> supportVideos = videoRecordService.queryAllSupportOrCollect(CommonNumConstants.NUM_ONE);
+        List<VideoRecord> supportVideos = videoRecordService.queryAllSupportOrCollect(VideoTypeEnum.LIKE.getKey());
         setUserVideoScores(supportVideos, userVideoScores, LIKE_SCORE);
         // 获取所有用户的收藏的视频
-        List<VideoRecord> collectVideos = videoRecordService.queryAllSupportOrCollect(CommonNumConstants.NUM_TWO);
+        List<VideoRecord> collectVideos = videoRecordService.queryAllSupportOrCollect(VideoTypeEnum.COLLECT.getKey());
         setUserVideoScores(collectVideos, userVideoScores, COLLECT_SCORE);
         // 获取所有用户的评论
         List<VideoComment> commentVideos = videoCommentService.queryAllData();
@@ -209,6 +225,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         if (CollectionUtil.isNotEmpty(videoIds)) {
             List<Video> bean = selectByIds(videoIds.toArray(new String[0]));
             videos.addAll(bean);
+            setUserMations(videos);
             outputObject.setBeans(videos);
             outputObject.settotal(videos.size());
         } else {
@@ -219,6 +236,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                     .orderByDesc(MybatisPlusUtil.toColumns(Video::getTasnNum))
                     .orderByDesc(MybatisPlusUtil.toColumns(Video::getVisitNum));
             videos = list(queryVideo);
+            setUserMations(videos);
             outputObject.setBeans(videos);
             outputObject.settotal(page.getTotal());
         }
@@ -262,8 +280,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             String[] videoIds = map.get("videoIds").toArray(new String[0]);
             String total = map.get("total").get(CommonNumConstants.NUM_ZERO);
             List<Video> videos = selectByIds(videoIds);
-            List<Video> bean = videos.stream().map(this::setUserMation).collect(Collectors.toList());
-            outputObject.setBean(bean);
+            setUserMations(videos);
+            outputObject.setBean(videos);
             outputObject.settotal(Integer.parseInt(total));
         } else {
             Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
@@ -283,8 +301,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             if (CollectionUtil.isEmpty(beans)) {
                 return;
             }
-            List<Video> bean = beans.stream().map(this::setUserMation).collect(Collectors.toList());
-            outputObject.setBeans(bean);
+            setUserMations(beans);
+            outputObject.setBeans(beans);
             outputObject.settotal(page.getTotal());
         }
     }
@@ -346,16 +364,16 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
                 Map<String, Double> scores1 = userVideoScores.values().stream()
                         .filter(scores -> scores.containsKey(videoId1))
                         .collect(Collectors.toMap(
-                                map -> map.keySet().iterator().next(), // 键
-                                map -> map.values().iterator().next(), // 值
-                                (existingValue, newValue) -> existingValue // 合并函数：保留第一个值
+                                map -> map.keySet().iterator().next(),
+                                map -> map.values().iterator().next(),
+                                (existingValue, newValue) -> existingValue
                         ));
                 Map<String, Double> scores2 = userVideoScores.values().stream()
                         .filter(scores -> scores.containsKey(videoId2))
                         .collect(Collectors.toMap(
-                                map -> map.keySet().iterator().next(), // 键
-                                map -> map.values().iterator().next(), // 值
-                                (existingValue, newValue) -> existingValue // 合并函数：保留第一个值
+                                map -> map.keySet().iterator().next(),
+                                map -> map.values().iterator().next(),
+                                (existingValue, newValue) -> existingValue
                         ));
 
                 double similarity = cosineSimilarity(scores1, scores2);
@@ -375,7 +393,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         // 获取用户对视频的评分
         Map<String, Double> userScores = userVideoScores.get(userId);
         if (CollectionUtil.isEmpty(userScores)) {
-            return Collections.emptyList(); // 如果用户没有评分记录，返回空列表
+            return Collections.emptyList();
         }
 
         // 找到用户评分最高的视频
@@ -384,7 +402,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         // 获取与该视频相似度最高的其他视频
         Map<String, Double> similarities = similarityMatrix.get(mostLikedVideo);
         if (CollectionUtil.isEmpty(similarities)) {
-            return Collections.emptyList(); // 如果没有相似视频，返回空列表
+            return Collections.emptyList();
         }
 
         // 按相似度排序并推荐
@@ -405,7 +423,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);
         int supportNum = Integer.parseInt(video.getTasnNum());
-        boolean isSupport = videoRecordService.checkSupportOrCollectByVideoId(videoId, CommonNumConstants.NUM_ONE);
+        boolean isSupport = videoRecordService.checkSupportOrCollectByVideoId(videoId, VideoTypeEnum.LIKE.getKey());
         supportNum = isSupport ? supportNum - CommonNumConstants.NUM_ONE : supportNum + CommonNumConstants.NUM_ONE;
         video.setTasnNum(String.valueOf(supportNum));
         updateById(video);
@@ -418,7 +436,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);
         int collectNum = Integer.parseInt(video.getCollectionNum());
-        boolean isCollect = videoRecordService.checkSupportOrCollectByVideoId(videoId, CommonNumConstants.NUM_TWO);
+        boolean isCollect = videoRecordService.checkSupportOrCollectByVideoId(videoId, VideoTypeEnum.COLLECT.getKey());
         collectNum = isCollect ? collectNum - CommonNumConstants.NUM_ONE : collectNum + CommonNumConstants.NUM_ONE;
         video.setCollectionNum(String.valueOf(collectNum));
         updateById(video);

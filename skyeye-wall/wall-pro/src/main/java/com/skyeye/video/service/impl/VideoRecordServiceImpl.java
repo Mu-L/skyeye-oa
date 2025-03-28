@@ -18,6 +18,7 @@ import com.skyeye.video.entity.VideoRecord;
 import com.skyeye.video.service.VideoRecordService;
 import org.joda.time.LocalDateTime;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +46,25 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), type);
         return count(queryWrapper) > 0;
+    }
+
+    /**
+     * 检验当前登录人是否对视频点赞 或 收藏
+     */
+    @Override
+    public Map<String, Boolean> checkUpvoteOrCollect(List<String> videoIds, int type){
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getCtFlag), type);
+        List<VideoRecord> list = list(queryWrapper);
+        List<String> recordVideoIds = list.stream().map(VideoRecord::getVideoId).collect(Collectors.toList());
+        Map<String,Boolean> map = new HashMap<>();
+        for(String videoId : videoIds){
+            map.put(videoId, recordVideoIds.contains(videoId));
+        }
+        return map;
     }
 
     /**
@@ -84,6 +104,7 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
     *  点赞/收藏
     * */
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public boolean checkSupportOrCollectByVideoId(String videoId, int type) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();

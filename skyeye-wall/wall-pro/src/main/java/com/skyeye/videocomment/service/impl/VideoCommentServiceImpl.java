@@ -71,25 +71,14 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     private NoticeService noticeService;
 
     @Override
-    public void validatorEntity(VideoComment entity) {
-        String parentId = entity.getParentId();
-        // 判断传入的parentId是否为空
-        VideoComment videoComment = videoCommentService.selectById(parentId);
-        if (StrUtil.isNotEmpty(videoComment.getParentId())) {
-            throw new CustomException("不可评论");
-        }
-    }
-
-    @Override
     public void createPrepose(VideoComment entity) {
         String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
         entity.setLoginIdentity(userIdentity);
         entity.setIp(IpUtil.getLocalAddress().toString());
     }
 
-    // 新增评论 事务 评论+1
-    @Transactional
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void createPostpose(VideoComment entity, String userId) {
         String videoId = entity.getVideoId();
         Video video = videoService.selectById(videoId);
@@ -176,6 +165,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void supportOrNotComment(InputObject inputObject, OutputObject outputObject) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         String commentId = inputObject.getParams().get("commentId").toString();
@@ -205,6 +195,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteByVideoId(String id) {
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), id);

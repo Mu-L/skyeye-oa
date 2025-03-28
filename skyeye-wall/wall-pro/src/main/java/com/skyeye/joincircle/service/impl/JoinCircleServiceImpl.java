@@ -86,7 +86,7 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
     public void deletePostpose(JoinCircle joinCircle) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), joinCircle.getCircleId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), joinCircle.getCircleId());
         long count = count(queryWrapper);
         circleService.updateJoinNum(joinCircle.getCircleId(), (int) count);
         JoinLimit joinLimit = new JoinLimit();

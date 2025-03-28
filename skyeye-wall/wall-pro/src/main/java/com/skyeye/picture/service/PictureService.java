@@ -25,4 +25,6 @@ public interface PictureService extends SkyeyeBusinessService<Picture> {
     void deleteByPostIds(List<String> postIds);
 
     void deleteByCommentIds(List<String> ids);
+
+    Picture getPictureByObjectId(String commentId);
 }

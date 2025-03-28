@@ -92,25 +92,6 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
         return videoTag;
     }
 
-    @Override
-    public void validatorEntity(VideoTag entity) {
-        super.validatorEntity(entity);
-        String tagName = entity.getTagName();
-        QueryWrapper<VideoTag> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoTag::getTagName), tagName);
-        long count = count(queryWrapper);
-        // 新增，tagName不能重复
-        if (count > 0 && StrUtil.isEmpty(entity.getId())) {
-            throw new CustomException("标签名已存在");
-        }
-        // 编辑时的校验
-        VideoTag forumTag = selectById(entity.getId());
-        if (count > 0 && !forumTag.getTagName().equals(tagName)) {
-            // 如果编辑时修改了tagName，并且数据库中已经存在该tagName，则抛出异常
-            throw new CustomException("标签名已存在");
-        }
-    }
-
     /**
      * 为视频中设置标签信息
      */

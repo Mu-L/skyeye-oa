@@ -45,6 +45,7 @@ import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
+import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -98,7 +99,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (CollectionUtil.isNotEmpty(checkUpvote)) {
             post.setCheckUpvote(checkUpvote.get(post.getId()));
         }
-        if (post.getAnonymity() == CommonNumConstants.NUM_ZERO) {
+        if (post.getAnonymity() == WhetherEnum.DISABLE_USING.getKey()) {
             if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
                 userService.setDataMation(post, Post::getCreateId);
             } else {
@@ -108,51 +109,76 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         return post;
     }
 
+    private void setUserMations(List<Post> posts) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        List<String> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
+        Map<String, Boolean> checkUpvote = new HashMap<>();
+        if (StrUtil.isNotEmpty(userToken)) {
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            if (StrUtil.isNotEmpty(userId)) {
+                checkUpvote = upvoteService.checkUpvote(userId, postIds.toArray(new String[0]));
+            }
+        }
+        for (Post post : posts) {
+            post.setCheckUpvote(checkUpvote.get(post.getId()));
+            if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
+               continue;
+            }
+            if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
+                userService.setDataMation(post, Post::getCreateId);
+            } else {
+                iAuthUserService.setDataMation(post, Post::getCreateId);
+            }
+        }
+    }
+
     private List<Map<String, Object>> queryPostList(InputObject inputObject) {
-        Map<String, Object> params = inputObject.getParams();
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String keyword = commonPageInfo.getKeyword();
         String objectId = commonPageInfo.getObjectId();
+        String holderId = commonPageInfo.getHolderId();
+        String typeId = commonPageInfo.getTypeId();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        List<Post> bean;
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(Post::getTitle), keyword);
         }
-        if (params.containsKey("holderId") && StrUtil.isNotEmpty(params.get("holderId").toString())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), params.get("holderId").toString());
-            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+        if (StrUtil.isNotEmpty(holderId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), holderId);
             // 设置用户信息--和点赞信息
-            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
+            bean = list(queryWrapper);
+            setUserMations(bean);
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
-            String circleId = params.get("holderId").toString();
-            String createId = joinCircleService.selectByCircleId(circleId, userId).getCreateId();
+            String createId = joinCircleService.selectByCircleId(holderId, userId).getCreateId();
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
-        } else if (params.containsKey("type") && StrUtil.isNotEmpty(params.get("type").toString())) {
-            String typeId = params.get("type").toString();
+        } else if (StrUtil.isNotEmpty(typeId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
+                    .ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
                     .and(wrapper ->
                             wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), typeId).or()
                                    .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
-                    )
-                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
-            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+                    );
+            bean = list(queryWrapper);
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             }
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId)
-                    .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
-            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
+            bean = list(queryWrapper);
         } else {
-            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime))
-                    .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
-            List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
-            return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            bean = list(queryWrapper);
         }
+        if(CollectionUtil.isEmpty(bean)){
+            return new ArrayList<>();
+        }
+        setUserMations(bean);
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
+        return beans;
     }
 
     @Override
@@ -342,7 +368,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         //设置点赞信息--当前登陆人是否点赞
         List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
         outputObject.setBeans(bean);
-        outputObject.settotal(bean.size());
+        outputObject.settotal(pages.getTotal());
     }
 
     @Override

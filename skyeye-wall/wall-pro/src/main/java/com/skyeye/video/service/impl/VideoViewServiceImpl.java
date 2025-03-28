@@ -35,7 +35,6 @@ import java.util.List;
 public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao, VideoView> implements VideoViewService {
 
     @Override
-    @Transactional
     public String createEntity(VideoView entity, String userId) {
         QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getVideoId), entity.getVideoId())

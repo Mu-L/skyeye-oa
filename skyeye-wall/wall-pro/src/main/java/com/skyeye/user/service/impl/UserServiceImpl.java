@@ -29,6 +29,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.dao.UserDao;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
@@ -54,6 +55,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private CertificationService certificationService;
+
+    @Autowired
+    private FocusService focusService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -256,6 +260,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     @Override
     public void queryUserById(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("id").toString();
+        boolean isCheck = focusService.checkFocus(userId);
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, userId);
         User user = getOne(queryWrapper);
@@ -263,11 +268,13 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
             Map<String, Object> teacherUser = new HashMap<>();
             teacherUser.put("createId", userId);
             teacherUser.put("createMation", StrUtil.EMPTY);
+            teacherUser.put("checkFocus", isCheck);
             iAuthUserService.setMationForMap(teacherUser, "createId", "createMation");
             outputObject.setBean(teacherUser);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         } else {
             user = selectById(userId);
+            user.setCheckFocus(isCheck);
             outputObject.setBean(user);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         }

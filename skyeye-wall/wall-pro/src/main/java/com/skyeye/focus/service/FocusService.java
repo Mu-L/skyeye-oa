@@ -6,6 +6,9 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.focus.entity.Focus;
 import com.skyeye.video.entity.Video;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: FocusService
  * @Description: 视频关注服务接口
@@ -17,7 +20,9 @@ import com.skyeye.video.entity.Video;
 
 public interface FocusService extends SkyeyeBusinessService<Focus> {
 
-    void checkFocus(Video video);
+    boolean checkFocus(String userId);
+
+    Map<String,Boolean> checkFocus(List<String> videoCreateIds);
 
     void deleteFocusByUserId(InputObject inputObject, OutputObject outputObject);
 }

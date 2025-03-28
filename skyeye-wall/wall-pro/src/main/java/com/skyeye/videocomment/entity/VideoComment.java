@@ -32,7 +32,7 @@ public class VideoComment extends OperatorUserInfo {
     private String id;
 
     @TableField("content")
-    @ApiModelProperty(value = "评论内容",required = "required")
+    @ApiModelProperty(value = "评论内容")
     private String content;
 
     @TableField("ip")

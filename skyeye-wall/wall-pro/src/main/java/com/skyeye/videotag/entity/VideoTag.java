@@ -22,7 +22,7 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField(value = "tagName")
+@UniqueField("tagName")
 @TableName(value = "wall_video_tag")
 @ApiModel(value = "视频标签实体类")
 public class VideoTag extends OperatorUserInfo {
