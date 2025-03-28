@@ -1,5 +1,6 @@
 package com.skyeye.notice.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -53,6 +54,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     private IAuthUserService iAuthUserService;
 
     private Notice setUserMation(Notice notice) {
+        if (notice.getType() == TypeEnum.COMMENT.getKey()) {
+            setCommentPicture(notice);
+        }
         String sendId = notice.getSendId();
         String receiveId = notice.getReceiveId();
         if (userService.checkCreateIdIsStudent(sendId)) {
@@ -120,16 +124,15 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
         List<Notice> bean = list(queryWrapper);
-        for (Notice notice : bean) {
-            if (notice.getType() == TypeEnum.COMMENT.getKey()) {
-                setCommentPicture(notice);
-            }
-            setUserMation(notice);
+        if(CollectionUtil.isEmpty(bean)){
+            return;
         }
-        outputObject.setBeans(bean);
+        List<Notice> beans = bean.stream().map(this::setUserMation).collect(Collectors.toList());
+        outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
 
+    // TODO 写在图片管理内
     private void setCommentPicture(Notice notice) {
         QueryWrapper<Picture> queryPicture = new QueryWrapper<>();
         queryPicture.eq(MybatisPlusUtil.toColumns(Picture::getObjectId), notice.getCommentId());
@@ -168,11 +171,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
      */
     @Override
     public void deleteVideoNoticeByCommentIds(List<String> commentIds) {
-        for (String commentId : commentIds) {
-            QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getCommentId), commentId);
-            remove(queryWrapper);
-        }
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Notice::getCommentId), commentIds);
+        remove(queryWrapper);
     }
 
 }

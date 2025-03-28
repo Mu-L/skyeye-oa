@@ -58,17 +58,4 @@ public class JoinCircleController {
     public void deleteJoinCircleByCircleId(InputObject inputObject, OutputObject outputObject) {
         joinCircleService.deleteJoinCircleByCircleId(inputObject, outputObject);
     }
-
-    /**
-     * 根据圈子id查询加入记录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryJoinUserByCircleId", value = "根据圈子id(objectId)查询加入记录", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/CircleCollectController/queryJoinUserByCircleId")
-    public void queryJoinUserByCircleId(InputObject inputObject, OutputObject outputObject) {
-        joinCircleService.queryJoinUserByCircleId(inputObject, outputObject);
-    }
 }

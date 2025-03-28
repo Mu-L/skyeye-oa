@@ -20,6 +20,7 @@ import com.skyeye.video.entity.Video;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,30 +56,21 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
         QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Focus::getCreateTime));
-        List<Focus> bean = list(queryWrapper).stream().map(focus -> {
-            focus.setCheckFocus(checkFocus(userId, focus.getUserId()));
+        List<Focus> list = list(queryWrapper);
+        if(ObjectUtil.isEmpty(list)){
+            return Collections.emptyList();
+        }
+        List<Focus> bean = list.stream().map(focus -> {
+            focus.setCheckFocus(true);
             if (userService.checkCreateIdIsStudent(focus.getUserId())) {
                 iAuthUserService.setDataMation(focus, Focus::getUserId);
             } else {
                 userService.setDataMation(focus, Focus::getUserId);
             }
-            if (userService.checkCreateIdIsStudent(focus.getCreateId())) {
-                iAuthUserService.setDataMation(focus, Focus::getCreateId);
-            } else {
-                userService.setDataMation(focus, Focus::getCreateId);
-            }
             return focus;
         }).collect(Collectors.toList());
         return JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
     }
-
-    private boolean checkFocus(String userId, String otherUserId) {
-        QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId), otherUserId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);
-        return count(queryWrapper) > 0;
-    }
-
 
     @Override
     public void checkFocus(Video video) {

@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public enum ReadEnum implements SkyeyeEnumClass {
 
     UNREAD(0, "未读", true, true),
-    READ(1, "已读", true, true);
+    READ(1, "已读", true, false);
 
     private Integer key;
 

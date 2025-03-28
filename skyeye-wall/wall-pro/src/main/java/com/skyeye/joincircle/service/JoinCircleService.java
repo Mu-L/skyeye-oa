@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.joincircle.entity.JoinCircle;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: JoinCircleService
@@ -21,13 +22,14 @@ import java.util.List;
  */
 public interface JoinCircleService extends SkyeyeBusinessService<JoinCircle> {
     JoinCircle selectByCircleId(String circleId, String userId);
-    void deleteJoinByCircleId(String circleId);
 
-    void queryJoinUserByCircleId(InputObject inputObject, OutputObject outputObject);
+    void deleteJoinByCircleId(String circleId);
 
     Boolean checkIsJoinCircle(String circleId, String userId);
 
     List<JoinCircle> queryMyJoinCircle(String userId);
 
     void deleteJoinCircleByCircleId(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, Boolean> checkIsJoinCircle(List<String> circleIds, String userId);
 }
