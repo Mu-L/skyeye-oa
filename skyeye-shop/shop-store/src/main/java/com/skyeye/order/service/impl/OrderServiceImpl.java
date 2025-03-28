@@ -121,10 +121,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         order.setOddNumber(oddNumber);
         order.setCount(CommonNumConstants.NUM_ZERO);// 商品总数
         order.setCommentState(ShopOrderCommentState.UNFINISHED.getKey());// 评价状态
-        order.setTotalPrice("0");
-        order.setDiscountPrice("0");
-        order.setDeliveryPrice("0");
-        order.setPayPrice("0");
+        order.setTotalPrice(CommonNumConstants.NUM_ZERO.toString());
+        order.setDiscountPrice(CommonNumConstants.NUM_ZERO.toString());
+        order.setDeliveryPrice(CommonNumConstants.NUM_ZERO.toString());
+        order.setPayPrice(CommonNumConstants.NUM_ZERO.toString());
         // 收货人信息
         ShopAddress shopAddress = shopAddressService.selectById(order.getAddressId());
         order.setReceiverName(shopAddress.getName());
@@ -359,7 +359,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Integer> stateList = new ArrayList<>();
-        switch (StrUtil.isEmpty(commonPageInfo.getType()) ? "0" : commonPageInfo.getType()) {
+        switch (StrUtil.isEmpty(commonPageInfo.getType()) ? CommonNumConstants.NUM_ZERO.toString() : commonPageInfo.getType()) {
             // todo 未提交、已提交和支付失败三个枚举未现
             case "1": // 未支付
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.UNPAID.getKey()});

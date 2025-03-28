@@ -151,7 +151,6 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
         String idsStr = params.get("ids").toString();
         List<String> ids = Arrays.stream(idsStr.split(CommonCharConstants.COMMA_MARK)).filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
         Integer selected = Integer.parseInt(params.get("selected").toString());
-
         UpdateWrapper<ShopTradeCart> updateWrapper = new UpdateWrapper<>();
         updateWrapper.in(CommonConstants.ID, ids);
         updateWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getCreateId), userId);
