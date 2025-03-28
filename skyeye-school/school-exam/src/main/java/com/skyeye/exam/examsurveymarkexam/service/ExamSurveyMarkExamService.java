@@ -14,7 +14,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ExamSurveyMarkExamService extends SkyeyeBusinessService<ExamSurveyMarkExam> {
-    void createExamSurveyMarkExam(String id,String readerId,String userId);
+    void createExamSurveyMarkExam(String id, List<String> readerIds, String userId);
 
     List<ExamSurveyMarkExam> selectBySurveyId(String id);
 

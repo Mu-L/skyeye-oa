@@ -7,16 +7,22 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -46,7 +52,6 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
@@ -145,20 +150,24 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void setUpExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString(); // 获取试卷ID
-        ExamSurveyDirectory examSurveyDirectory = selectById(id); // 根据ID查询试卷信息
-        if (ObjUtil.isNotEmpty(examSurveyDirectory)) { // 判断试卷信息是否存在
-            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断试卷是否未发布
-                String belongId = examSurveyDirectory.getId(); // 获取试卷ID
+        ExamSurveyDirectory examSurveyDirectory = selectById(id);
+        if (StrUtil.isEmpty(examSurveyDirectory.getId())) {
+            throw new CustomException("该试卷信息不存在。");
+        }
+        if (ObjUtil.isNotEmpty(examSurveyDirectory)) {
+            // 判断试卷是否未发布
+            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
+                String belongId = examSurveyDirectory.getId();
                 Integer fractionNumber = getFractionNumber(belongId);
+                if (fractionNumber == 0) {
+                    throw new CustomException("该试卷没有调查项");
+                }
                 UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                 updateWrapper.eq(CommonConstants.ID, belongId);
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                 update(updateWrapper);
-                if (fractionNumber == 0) {
-                    throw new CustomException("该试卷没有调查项");
-                }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
             }
@@ -169,18 +178,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @NotNull
     private Integer getFractionNumber(String belongId) {
-        List<Question> questions = questionService.QueryQuestionByBelongId(belongId); // 根据试卷ID查询题目
+        List<Question> questions = questionService.QueryQuestionByBelongId(belongId);
         // 判断是否有题目
         int fraction = 0;
         // 题目总数
         int questionNum = 0;
-        if (CollectionUtil.isNotEmpty(questions)) {
-            for (Question question : questions) {
-                int questionType = question.getQuType();
-                if (questionType != 16 && questionType != 17) {
-                    fraction += question.getFraction();
-                    questionNum++;
-                }
+        if (CollectionUtil.isEmpty(questions)) {
+            throw new CustomException("该试卷没有调查项");
+        }
+        for (Question question : questions) {
+            int questionType = question.getQuType();
+            if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                fraction += question.getFraction();
+                questionNum++;
             }
         }
         // 总分数
@@ -188,7 +198,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         updateWrapper.eq(CommonConstants.ID, belongId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
-//        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         update(updateWrapper);
         return fraction;
     }
@@ -202,29 +211,29 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public ExamSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        Map<String, Object> map = inputObject.getParams();
         // 是否可以参加考试，true：可以；false：不可以
         boolean yesOrNo = false;
-        String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
-        String id = map.get("id").toString(); // 获取试卷ID
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(id); // 根据ID查询试卷信息
-        if (ObjUtil.isNotEmpty(examSurveyDirectory)) { // 判断试卷是否存在
-            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) { // 判断试卷是否发布
-                if (!ToolUtil.isBlank(userId)) { // 判断用户是否登录
-                    ExamSurveyAnswer examSurveyAnswer = examSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该考试
-                    if (ObjUtil.isNotEmpty(examSurveyAnswer)) { // 用户已经参加过考试
-                        throw new CustomException("您已参加过该考试");
-                    } else {
-                        yesOrNo = true;
-                    }
-                } else {
-                    throw new CustomException("您不具备该考试权限");
-                }
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String id = map.get("id").toString();
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(id);
+        if (StrUtil.isEmpty(examSurveyDirectory.getId())) {
+            throw new CustomException("该试卷信息不存在。");
+        }
+        // 判断试卷是否存在
+        if (ObjUtil.isEmpty(examSurveyDirectory)) {
+            throw new CustomException("该试卷不存在");
+        }
+        // 判断试卷是否发布
+        if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+            ExamSurveyAnswer examSurveyAnswer = examSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该考试
+            if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
+                throw new CustomException("您已参加过该考试");
             } else {
-                throw new CustomException("该试卷未发布");
+                yesOrNo = true;
             }
         } else {
-            throw new CustomException("该试卷不存在");
+            throw new CustomException("该试卷未发布");
         }
         if (yesOrNo) {
             return examSurveyDirectory;
@@ -241,59 +250,29 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        ExamSurveyDirectory examSurveyDirectories = new ExamSurveyDirectory(); // 创建新的考试目录对象
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
-        String examDirectoryId = map.get("id").toString(); // 获取试卷ID
+        Map<String, Object> map = inputObject.getParams();
+        String examDirectoryId = map.get("id").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String surveyName = map.get("surveyName").toString(); // 获取试卷名称
-        ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);// 根据ID查询试卷信息
+        String surveyName = map.get("surveyName").toString();
+        ExamSurveyDirectory examSurveyDirectory = selectById(examDirectoryId);
         List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.getExamSurveyMarkExamList(examDirectoryId);
-        StringBuilder readerList = new StringBuilder();
-        for (ExamSurveyMarkExam examSurveyMarkExam : examSurveyMarkExamList) {
-            String readerId = examSurveyMarkExam.getUserId();
-            readerList.append(readerId).append(",");
+        String userIdJoin = Joiner.on(CommonCharConstants.COMMA_MARK).join(examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList()));
+        examSurveyDirectory.setSurveyModel(CommonNumConstants.NUM_ONE);
+        examSurveyDirectory.setCreateId(userId);
+        examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
+        examSurveyDirectory.setReaderList(userIdJoin);
+        examSurveyDirectory.setId(ToolUtil.randomStr(6, 12));
+        if (StrUtil.isEmpty(surveyName)) {
+            examSurveyDirectory.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本");
         }
-        String readerIds;
-        if (readerList.length() > 1) {
-            readerIds = readerList.substring(0, readerList.length() - 1);
-        } else {
-            readerIds = "";
-        }
-        examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
-        examSurveyDirectories.setSurveyModel(1); // 设置调查模型
-        examSurveyDirectories.setCreateId(userId); // 设置创建者ID
-        examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
-        if (StrUtil.isNotEmpty(surveyName)) {
-            examSurveyDirectories.setSurveyName(surveyName); // 设置试卷名称
-        } else {
-            examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
-        }
-        examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
-        examSurveyDirectories.setSurveyQuNum(examSurveyDirectory.getSurveyQuNum()); // 设置题目数量
-        examSurveyDirectories.setRealStartTime(examSurveyDirectory.getRealStartTime());
-        examSurveyDirectories.setRealEndTime(examSurveyDirectory.getRealEndTime());
-        examSurveyDirectories.setSurveyModel(examSurveyDirectory.getSurveyModel()); // 设置调查模型
-        examSurveyDirectories.setEndType(examSurveyDirectory.getEndType()); // 设置结束方式
-        examSurveyDirectories.setViewAnswer(examSurveyDirectory.getViewAnswer()); // 设置是否公开结果
-        examSurveyDirectories.setSchoolId(examSurveyDirectory.getSchoolId()); // 设置所属学校
-        examSurveyDirectories.setGradeId(examSurveyDirectory.getGradeId()); // 设置所属年级
-        examSurveyDirectories.setSemesterId(examSurveyDirectory.getSemesterId()); // 设置所属学期
-        examSurveyDirectories.setSubjectId(examSurveyDirectory.getSubjectId()); // 设置所属科目
-        examSurveyDirectories.setFacultyId(examSurveyDirectory.getFacultyId()); // 设置所属院系
-        examSurveyDirectories.setMajorId(examSurveyDirectory.getMajorId()); // 设置所属专业
-        examSurveyDirectories.setFraction(examSurveyDirectory.getFraction());
-        examSurveyDirectories.setSurveyState(examSurveyDirectory.getSurveyState()); // 设置调查状态
-        examSurveyDirectories.setWhetherDelete(examSurveyDirectory.getWhetherDelete()); // 设置是否删除
-        examSurveyDirectories.setClassId(examSurveyDirectory.getClassId()); // 设置班级ID
-        examSurveyDirectories.setReaderList(readerIds); // 设置阅读人列表
-        createEntity(examSurveyDirectories, userId); // 创建新的试卷
-        List<Question> questionList = questionService.queryQuestionMationCopyById(examDirectoryId); // 根据试卷ID查询题目
+        createEntity(examSurveyDirectory, userId);
+        List<Question> questionList = questionService.QueryQuestionByBelongId(examDirectoryId);
         if (CollectionUtil.isEmpty(questionList)) {
             throw new CustomException("没有找到题目");
         }
-        for (Question question : questionList) { // 遍历题目
+        for (Question question : questionList) {
             String id = question.getId();
-            question.setCopyFromId(id); // 设置复制来源ID
+            question.setCopyFromId(id);
             List<ExamQuestionLogic> examQuestionLogics = examQuestionLogicService.selectByQuestionId(id);
             question.setQuestionLogic(examQuestionLogics);
             List<ExamQuRadio> examQuRadioList = examQuRadioService.selectQuRadio(id);
@@ -312,15 +291,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             question.setRowTd(examQuChenRows);
             List<ExamQuScore> examQuScoreList1 = examQuScoreService.selectQuScore(id);
             question.setScoreTd(examQuScoreList1);
-            question.setBelongId(examSurveyDirectories.getId()); // 设置所属试卷ID
-            questionService.createEntity(question, userId); // 创建新的题目
-            outputObject.setBean(examSurveyDirectories);
+            question.setBelongId(examSurveyDirectory.getId());
+            questionService.createEntity(question, userId);
+            outputObject.setBean(examSurveyDirectory);
             outputObject.settotal(1);
         }
     }
-
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
 
     /**
      * 创建/更新题目前的操作
@@ -329,18 +305,18 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
-        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
-        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-            if (realStartTime.isAfter(realEndTime)) { // 判断开始时间是否在结束时间之后
-                throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
-            }
+        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
+        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
+        if (ObjUtil.isEmpty(realStartTime) || ObjUtil.isEmpty(realEndTime)) {
+            throw new CustomException("实际开始时间和实际结束时间不能为空");
         }
-//        String userId = InputObject.getLogParamsStatic().get("id").toString();
-//        Map<String, Object> map = iSysEveUserStaffService.selectByObjectId(userId);
-//        if (ObjUtil.isEmpty(map)) {
-//            throw new CustomException("当前用户不是教师");
-//        }
+        if (realStartTime.isAfter(realEndTime)) {
+            throw new CustomException("实际开始时间不能晚于实际结束时间");
+        }
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            throw new CustomException("学生不能创建考试目录");
+        }
     }
 
     /**
@@ -351,70 +327,61 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void createPostpose(ExamSurveyDirectory entity, String userId) {
-        String id = entity.getId(); // 获取考试目录ID
-        String reader = entity.getReaderList(); // 阅卷人
-        String[] readerList = reader.split(","); // 将阅卷人转换为列表
-        String classId = entity.getClassId(); // 获取班级ID
-        String[] classIdList = classId.split(","); // 将班级ID转换为列表
-        for (String classIdItem : classIdList) {
-            examSurveyClassService.createExamSurveyClass(id, classIdItem, userId); // 创建考试班级
-        }
-        for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
-        }
+        String id = entity.getId();
+        String reader = entity.getReaderList();
+        List<String> readerIds = Arrays.asList(reader.split(","));
+        String classId = entity.getClassId();
+        List<String> classIds = Arrays.asList(classId.split(","));
+        examSurveyClassService.createExamSurveyClass(id, classIds, userId);
+        examSurveyMarkExamService.createExamSurveyMarkExam(id, readerIds, userId);
         List<Question> questionList = entity.getQuestionMation();
         if (CollectionUtil.isNotEmpty(questionList)) {
             for (Question question : questionList) {
-                question.setBelongId(id); // 设置所属试卷ID
-                questionService.createEntity(question, userId); // 创建新的题目
+                question.setBelongId(id);
             }
+            questionService.createEntity(questionList, userId);
         }
     }
 
     @Override
     public void updatePostpose(ExamSurveyDirectory entity, String userId) {
-        String surveId = entity.getId(); // 获取考试id
+        String surveId = entity.getId();
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
-        examSurveyMarkExamService.remove(queryWrapper); // 删除阅卷人与卷子关系
-        String reader = entity.getReaderList(); // 阅卷人
-        String[] readerList = reader.split(","); // 将阅卷人转换为列表
-        for (String readerItem : readerList) {
-            examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerItem, userId); // 创建阅卷人关系
-        }
+        examSurveyMarkExamService.remove(queryWrapper);
+        String reader = entity.getReaderList();
+        List<String> readerIds = Arrays.asList(reader.split(","));
+        examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
         List<Question> questionList = entity.getQuestionMation();
         List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
         List<String> existingIds = existingQuestions.stream()
-                .map(Question::getId)
-                .collect(Collectors.toList());
+            .map(Question::getId)
+            .collect(Collectors.toList());
         Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         List<Question> questionsWithId = partitionedQuestions.get(true);
         List<Question> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
-                .map(Question::getId)
-                .collect(Collectors.toList());
+            .map(Question::getId)
+            .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = existingIds.stream()
-                .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());
-        for (String idToDelete : idsToDelete) {
-            questionService.deleteById(idToDelete);
-        }
+            .filter(id -> !submittedIdSet.contains(id))
+            .collect(Collectors.toList());
+        questionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
-            for (Question question : questionsWithId) {
-                String questionId = question.getId();
-                String belongId = question.getBelongId();
-                if (StrUtil.isNotEmpty(questionId) && StrUtil.isEmpty(belongId)) {
-                    question.setBelongId(surveId);
-                } else {
-                    questionService.updateEntity(question, userId); // 更新题目
-                }
+            List<Question> collect = questionsWithId.stream()
+                .filter(question -> StrUtil.isNotEmpty(question.getId()) && StrUtil.isEmpty(question.getBelongId()))
+                .collect(Collectors.toList());
+            List<Question> collect1 = questionsWithId.stream()
+                .filter(question -> !(StrUtil.isNotEmpty(question.getId()) && StrUtil.isEmpty(question.getBelongId())))
+                .collect(Collectors.toList());
+            for (Question question : collect) {
+                question.setBelongId(surveId);
             }
+            questionService.updateEntity(collect1, userId);
         }
-        for (Question question : questionsWithoutId) {
-            questionService.createEntity(question, userId);
-        }
+        questionService.createEntity(questionsWithoutId, userId);
     }
 
     /**
@@ -567,12 +534,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         ExamSurveyDirectory examSurveyDirectory = inputObject.getParams(ExamSurveyDirectory.class);
         String classIds = examSurveyDirectory.getClassId();
-        String[] classIdArray = classIds.split(",");
+        List<String> classsIds = Arrays.asList(classIds.split(","));
         List<ExamSurveyDirectory> examSurveyDirectoryList = new ArrayList<>();
-        for (String classId : classIdArray) {
-            ExamSurveyDirectory exam = inputObject.getParams(ExamSurveyDirectory.class);
-            exam.setClassId(classId);
-            examSurveyDirectoryList.add(exam);
+        for (String classId : classsIds) {
+            examSurveyDirectory.setClassId(classId);
+            examSurveyDirectoryList.add(examSurveyDirectory);
         }
         createEntity(examSurveyDirectoryList, userId);
     }
@@ -580,13 +546,16 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
         for (ExamSurveyDirectory entity : examSurveyDirectory) {
-            String id = entity.getId(); // 获取考试目录ID
-            String reader = entity.getReaderList(); // 阅卷人
-            String[] readerList = reader.split(","); // 将阅卷人转换为列表
-            examSurveyClassService.createExamSurveyClass(id, entity.getClassId(), userId); // 创建考试班级
-            for (String readerItem : readerList) {
-                examSurveyMarkExamService.createExamSurveyMarkExam(id, readerItem, userId); // 创建阅卷人关系
-            }
+            String id = entity.getId();
+            String reader = entity.getReaderList();
+            List<String> readerIds = Arrays.asList(reader.split(","));
+            // 创建考试班级
+            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerIds, userId);
+            String classId = entity.getClassId();
+            List<String> classIds = Arrays.asList(classId.split(","));
+            // 创建考试试卷
+            examSurveyClassService.createExamSurveyClass(id, classIds, userId);
+
         }
 
     }
@@ -606,20 +575,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             //设置学期信息
             item.setSemesterMation(semesterService.selectById(item.getSemesterId()));
             String classId = item.getClassId();
-            if (StrUtil.isNotEmpty(classId)) {
-                String[] idArray = classId.split(",");
-                List<Classes> classesList = new ArrayList<>();
-                for (String idItem : idArray) {
-                    idItem = idItem.trim();
-                    if (StrUtil.isNotEmpty(idItem)) {
-                        Classes classes = classesService.selectById(idItem);
-                        if (classes != null) {
-                            classesList.add(classes);
-                        }
-                    }
-                }
-                item.setClassesMation(classesList);
+            if (StrUtil.isEmpty(classId)) {
+                return item;
             }
+            List<Classes> classesList = new ArrayList<>();
+            if (StrUtil.isNotEmpty(classId)) {
+                classesList = classesService.selectByIds(classId);
+            }
+            item.setClassesMation(classesList);
             return item;
         }).collect(Collectors.toList());
         iAuthUserService.setName(beans, "createId", "createName");
@@ -661,18 +624,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory bean = super.selectById(id);
         String classId = bean.getClassId();
         if (StrUtil.isNotEmpty(classId)) {
-            String[] idArray = classId.split(",");
-            List<Classes> classesList = new ArrayList<>();
-            for (String idItem : idArray) {
-                idItem = idItem.trim();
-                if (StrUtil.isNotEmpty(idItem)) {
-                    Classes classes = classesService.selectById(idItem);
-                    if (classes != null) {
-                        classesList.add(classes);
-                    }
-                }
+            List<Classes> classesList = classesService.selectByIds(classId);
+            if (CollectionUtil.isNotEmpty(classesList)) {
+                bean.setClassesMation(classesList);
             }
-            bean.setClassesMation(classesList);
         }
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
@@ -682,12 +637,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.selectBySurveyId(bean.getId());
         if (CollectionUtil.isNotEmpty(examSurveyMarkExamList)) {
             List<String> markIds = examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList());
-            String[] string = markIds.toString().substring(1, markIds.toString().length() - 1).split(" ");
-            StringBuffer sb = new StringBuffer();
-            for (String s : string) {
-                sb.append(s);
-            }
-            List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(sb.toString());
+            String markIdsString = String.join(",", markIds);
+            List<Map<String, Object>> userMationList = iAuthUserService.queryDataMationByIds(markIdsString);
             bean.setReaderMationList(userMationList);
         }
         return bean;

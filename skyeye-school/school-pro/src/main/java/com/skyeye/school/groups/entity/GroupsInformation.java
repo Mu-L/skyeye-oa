@@ -25,7 +25,7 @@ public class GroupsInformation extends OperatorUserInfo {
     private String name;
 
     @TableField("status")
-    @ApiModelProperty(value = "0(按组分组) 1(按人数分组)",required = "required")
+    @ApiModelProperty(value = "0(按组分组) 1(按人数分组)",required = "required")//枚举
     private Integer status;
 
     @TableField("join_groups_stu")
@@ -49,7 +49,7 @@ public class GroupsInformation extends OperatorUserInfo {
     private String subjectId;
 
     @TableField("class_id")
-    @ApiModelProperty(value = "班级ID")
-    private String classId;
+    @ApiModelProperty(value = "科目与班级ID")
+    private String subjectClassId;
 
 }

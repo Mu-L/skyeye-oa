@@ -195,7 +195,7 @@ public class ExamServiceImpl implements ExamService {
             }
             question.put("option", childQuestions);
         } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
+            || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
             List<Map<String, Object>> questionChenRow = examDao.queryQuestionChenRowListByQuestionId(question);//获取行选项
             List<Map<String, Object>> questionChenColumn = examDao.queryQuestionChenColumnListByQuestionId(question);//获取列选项
             for (Map<String, Object> bean : questionChenRow) {
@@ -1284,7 +1284,7 @@ public class ExamServiceImpl implements ExamService {
             }
         } else if (quType.equals(QuType.BIGQU.getActionName())) {
         } else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) || quType.equals(QuType.CHENSCORE.getActionName())
-                || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
+            || quType.equals(QuType.CHENFBK.getActionName()) || quType.equals(QuType.COMPCHENRADIO.getActionName())) {// 矩阵单选，矩阵多选，矩阵填空题，复合矩阵单选
             List<Map<String, Object>> questionChenRows = examDao.queryQuestionChenRowListByCopyId(question);//获取行选项
             List<Map<String, Object>> questionChenColumns = examDao.queryQuestionChenColumnListByCopyId(question);//获取列选项
             for (Map<String, Object> questionChenRow : questionChenRows) {
@@ -2338,7 +2338,7 @@ public class ExamServiceImpl implements ExamService {
         }
     }
 
-   /**
+    /**
      * 获取答卷详情信息
      *
      * @param inputObject  入参以及用户信息等获取对象
