@@ -16,6 +16,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.assignment.entity.Assignment;
+import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.ScorePart;
@@ -44,9 +46,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     private ScoreSumService scoreSumService;
 
     @Autowired
-    private ScoreTypeChildService scoreTypeChildServicec;
-
-    @Autowired
     private StudentService studentService;
 
     @Autowired
@@ -54,6 +53,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private ScoreMaxMinService scoreMaxMinService;
+
+    @Autowired
+    private AssignmentService assignmentService;
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
@@ -89,6 +91,15 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         Map<String, Map<String, Object>> stuNoStudentMap = studentList.stream()
             .collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
         List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
+        // 查询作业成绩
+        if (Objects.equals(bean.getNumberCode(), NumberCodeEnum.WORK.getKey())) {
+            List<String> workIdList = scorePartList.stream().map(ScorePart::getWorkId).collect(Collectors.toList());
+            List<Assignment> assignments = assignmentService.selectByIds(workIdList.toArray(new String[]{}));
+            Map<String, Map<String, Object>> assignmentMap = assignments.stream().collect(Collectors.toMap(Assignment::getId, assignment -> JSONUtil.toBean(JSONUtil.toJsonStr(assignment), null)));
+            for (ScorePart scorePart : scorePartList) {
+                scorePart.setWorkMation(assignmentMap.get(scorePart.getWorkId()));
+            }
+        }
         // 将成绩列表根据创建时间排序饭后根据学号分组
         Map<String, List<ScorePart>> stuPartListMap = scorePartList.stream()
             .sorted(Comparator.comparing(ScorePart::getCreateTime))
@@ -166,19 +177,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
-    public void getQueryWrapper(InputObject inputObject, QueryWrapper<ScoreTypeChild> wrapper) {
-        Map<String, Object> params = inputObject.getParams();
-        String subjectId = params.get("subjectId").toString();
-        String classId = params.get("classId").toString();
-        wrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getClassId), classId)
-            .and(w -> {
-                w.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getScoreTypeId), StrUtil.EMPTY)
-                    .or().isNull(MybatisPlusUtil.toColumns(ScoreTypeChild::getScoreTypeId));
-            });
-    }
-
-    @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void boundDataOrNot(InputObject inputObject, OutputObject outputObject) {
         String currentUserId = inputObject.getLogParams().get("id").toString();
@@ -221,7 +219,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 }
                 List<ScoreSum> sortByScoreList = scoreTypeSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
                 scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                    sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
+                    sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
                 scoreSumService.updateEntity(updateScoreSumList, currentUserId);
                 scorePartService.updateEntity(updateScorePartList, currentUserId);
                 update(updateWrapper);
@@ -288,15 +286,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 .map(ScoreTypeChild::getId).collect(Collectors.toList());
             List<ScoreSum> collect = scoreChildSums.stream().filter(scoreSum -> idListByParentId.contains(scoreSum.getObjectId())).collect(Collectors.toList());
             Map<String, List<ScoreSum>> map = collect.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
-            Map<String, String> mapStuNoScore = new HashMap<>();
-            map.forEach((stuNo, scoreSumList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScoreSum scoreSum : scoreSumList) {
-                    String flagSum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                mapStuNoScore.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> mapStuNoScore = scoreSumService.getStuNoScoreSumMap(map);
             List<ScorePart> flagScoreParts = scorePartService.queryByObjectIdList(flagScoreTypeTypeIdList, null);
             for (ScorePart flagScorePart : flagScoreParts) {
                 if (flagScorePart.getObjectId().equals(scoreTypeChild.getParentId())) {// 是平时成绩，修改分数
@@ -305,15 +295,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 }
             }
             Map<String, List<ScorePart>> collect1 = flagScoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            Map<String, String> mapStuNoScore1 = new HashMap<>();
-            collect1.forEach((stuNo, scorePartList) -> {
-                final double[] newSum = {CommonNumConstants.NUM_ZERO};
-                for (ScorePart scorePart : scorePartList) {
-                    String flagSum = CalculationUtil.multiply(scorePart.getScore(), CalculationUtil.divide(scorePart.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
-                }
-                mapStuNoScore1.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
-            });
+            Map<String, String> mapStuNoScore1 = scorePartService.getStuNoScorePartMap(collect1);
             List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(flagScoreChild.getParentId()));
             for (ScoreSum scoreSum : scoreSums) {
                 scoreSum.setScore(mapStuNoScore1.get(scoreSum.getStuNo()));
@@ -321,7 +303,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             }
             List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
             scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                sortByScoreList.get(sortByScoreList.size()).getScore(),sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
+                sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
             scorePartService.updateEntity(updateScorePartList, currentUserId);
             scoreSumService.updateEntity(updateScoreSumList, currentUserId);
         }

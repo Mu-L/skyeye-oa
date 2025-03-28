@@ -32,6 +32,10 @@ public class ScoreSum extends OperatorUserInfo {
     @ApiModelProperty(value = "第三方业务数据id(成绩类型主表id或成绩类型子表id)", required = "required")
     private String objectId;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "第三方业务数据信息")
+    private Map<String, Object> objectMation;
+
     @TableField("stu_no")
     @ApiModelProperty(value = "学号", required = "required")
     private String stuNo;

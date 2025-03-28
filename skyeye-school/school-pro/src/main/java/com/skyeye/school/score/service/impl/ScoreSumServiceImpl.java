@@ -5,13 +5,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.score.dao.ScoreSumDao;
 import com.skyeye.school.score.entity.ScoreSum;
 import com.skyeye.school.score.service.ScoreSumService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @SkyeyeService(name = "总成绩管理", groupName = "总成绩管理")
@@ -56,5 +60,19 @@ public class ScoreSumServiceImpl extends SkyeyeBusinessServiceImpl<ScoreSumDao, 
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), objectId)
             .set(MybatisPlusUtil.toColumns(ScoreSum::getProportion), proportion);
         update(updateWrapper);
+    }
+
+    @Override
+    public Map<String, String> getStuNoScoreSumMap(Map<String, List<ScoreSum>> collect){
+        Map<String, String> map = new HashMap<>();
+        collect.forEach((stuNo, scoreSumList) -> {
+            final double[] newSum = {CommonNumConstants.NUM_ZERO};
+            for (ScoreSum scoreSum : scoreSumList) {
+                String flagSum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
+                newSum[CommonNumConstants.NUM_ZERO] = newSum[CommonNumConstants.NUM_ZERO] + Double.parseDouble(flagSum);
+            }
+            map.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
+        });
+        return map;
     }
 }

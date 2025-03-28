@@ -51,13 +51,4 @@ public class ScoreTypeController {
     public void deleteScoreTypeById(InputObject inputObject, OutputObject outputObject) {
         scoreTypeService.deleteById(inputObject, outputObject);
     }
-
-    @ApiOperation(id = "queryBySubjectIdAndClassesId", value = "根据科目id和班级id查询成绩类型信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"),
-        @ApiImplicitParam(id = "classesId", name = "classesId", value = "班级", required = "required")})
-    @RequestMapping("/post/ScoreTypeChildController/queryBySubjectIdAndClassesId")
-    public void queryBySubjectIdAndClassesId(InputObject inputObject, OutputObject outputObject){
-        scoreTypeService.queryBySubjectIdAndClassesId(inputObject,outputObject);
-    }
 }
