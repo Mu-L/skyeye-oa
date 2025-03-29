@@ -106,4 +106,8 @@ public class Certification extends CommonInfo {
     @TableField("state")
     @ApiModelProperty(value = "状态", enumClass = StateEnum.class)
     private Integer state;
+
+    @TableField(exist = false)
+    @Property("检验当前登录人是否认证")
+    private boolean checkCertification;
 }

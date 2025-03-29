@@ -103,7 +103,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Override
     public Video selectById(String id) {
         Video video = super.selectById(id);
-        video.setCheckFocus(focusService.checkFocus(id));
+        video.setCheckFocus(focusService.checkFocus(video.getCreateId()));
         videoTagService.setTagMationForVideoList(video);
         video.setCheckUpvote(videoRecordService.checkUpvoteOrCollectByUserId(video, VideoTypeEnum.LIKE.getKey()));
         video.setCheckCollection(videoRecordService.checkUpvoteOrCollectByUserId(video, VideoTypeEnum.COLLECT.getKey()));

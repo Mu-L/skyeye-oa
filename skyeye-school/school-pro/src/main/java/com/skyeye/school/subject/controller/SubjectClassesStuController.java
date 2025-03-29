@@ -120,8 +120,9 @@ public class SubjectClassesStuController {
      */
     @ApiOperation(id = "updateRewardNumberById", value = "学生奖励学生星星", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "reward", name = "reward", value = "奖励星星", required = "required")})
+        @ApiImplicitParam(id = "stuNo", name = "stuNo", value = "学号", required = "required"),
+        @ApiImplicitParam(id = "reward", name = "reward", value = "奖励星星", required = "required"),
+        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "班级与科目关系id", required = "required")})
     @RequestMapping("/post/SubjectClassesStuController/updateRewardNumberById")
     public void updateRewardNumberById(InputObject inputObject, OutputObject outputObject) {
         subjectClassesStuService.updateRewardNumberById(inputObject, outputObject);

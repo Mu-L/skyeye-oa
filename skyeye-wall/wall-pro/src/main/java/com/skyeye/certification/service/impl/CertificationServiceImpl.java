@@ -86,6 +86,11 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         if (id.equals(userId)) {
             Certification certification = selectById(userId);
+            if(StrUtil.isNotEmpty(certification.getId()) && certification.getState() == StateEnum.CERTIFIEDSUCCESS.getKey()){
+                certification.setCheckCertification(true);
+            }else {
+                certification.setCheckCertification(false);
+            }
             outputObject.setBean(certification);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         } else {

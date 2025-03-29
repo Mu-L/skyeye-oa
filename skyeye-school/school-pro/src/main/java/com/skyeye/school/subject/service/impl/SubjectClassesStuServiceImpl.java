@@ -166,6 +166,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
     }
 
+    @Override
     public Long queruClassStuNum(String... subClassLinkId) {
         List<String> idList = Arrays.asList(subClassLinkId).stream()
             .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
@@ -177,6 +178,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return count(queryWrapper);
     }
 
+    @Override
     public List<Map<String, Object>> queryClassStuIds(String... subClassLinkId) {
         List<String> idList = Arrays.asList(subClassLinkId).stream()
             .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
@@ -216,6 +218,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return userList;
     }
 
+    @Override
     public List<String> querySubClassLinkIdByStuNo(String stuNo) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNo);
@@ -223,6 +226,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return subjectClassesStuList.stream().map(SubjectClassesStu::getSubClassLinkId).distinct().collect(Collectors.toList());
     }
 
+    @Override
     public void deleteBySno(String subClassLinkId, String sno) {
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
@@ -237,6 +241,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         remove(updateWrapper);
     }
 
+    @Override
     public void queryAllStudentById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
@@ -264,6 +269,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         outputObject.settotal(result.size());
     }
 
+    @Override
     public void queryStudentSubjectClassesBySubClassLinkIdAndStuNo(InputObject inputObject, OutputObject outputObject) {
         String subClassLinkId = inputObject.getParams().get("subClassLinkId").toString();
         String stuNo = inputObject.getParams().get("stuNo").toString();
@@ -279,6 +285,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
     }
 
+    @Override
     public void deleteUserById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
@@ -290,6 +297,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         subjectClassesService.updatePeopleNum(subClassLinkId, (int) count);
     }
 
+    @Override
     public void selectRewardList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
@@ -297,6 +305,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         outputObject.settotal(selectReward(subClassLinkId).size());
     }
 
+    @Override
     public List<SubjectClassesStu> selectReward(String subClassLinkId) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
@@ -316,6 +325,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     }
 
+    @Override
     public void queryIdBysubClassLinkIdAndstuNo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
@@ -327,6 +337,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    @Override
     public void updateReward(String subClassesStuId, String Reward) {
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, subClassesStuId);
@@ -342,13 +353,23 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
     }
 
+    @Override
     public void updateRewardNumberById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String subjectClassesStuId = params.get("id").toString();
+        String stuNo = params.get("stuNo").toString();
         String reward = params.get("reward").toString();
-        updateReward(subjectClassesStuId, reward);
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNo)
+                .eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), reward);
+        SubjectClassesStu one = getOne(updateWrapper);
+        Integer rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), String.valueOf(rewardNumber));
+        update(updateWrapper);
     }
 
+    @Override
     public void selectStudentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String subClassLinkId = map.get("subClassLinkId").toString();
