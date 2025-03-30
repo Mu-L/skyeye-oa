@@ -80,4 +80,12 @@ public class StudentController {
         studentService.queryCurrentUserSubject(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryStudentByStudentNumbers", value = "根据学号列表查询出所有的学生信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "studentNumbers", name = "studentNumbers", value = "学号列表，逗号隔开", required = "required")})
+    @RequestMapping("/post/StudentController/queryStudentByStudentNumbers")
+    public void queryStudentByStudentNumbers(InputObject inputObject, OutputObject outputObject) {
+        studentService.queryStudentByStudentNumbers(inputObject, outputObject);
+    }
+
 }

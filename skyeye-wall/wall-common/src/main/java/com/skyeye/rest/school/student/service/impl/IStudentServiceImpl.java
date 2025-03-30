@@ -7,6 +7,7 @@ import com.skyeye.rest.school.student.service.IStudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -27,5 +28,10 @@ public class IStudentServiceImpl extends IServiceImpl implements IStudentService
     @Override
     public void addStudent(Map<String, Object> map) {
         ExecuteFeignClient.get(()-> iStudentRest.addStudent(map));
+    }
+
+    @Override
+    public List<Map<String, Object>> queryStudentByStudentNumbers(String studentNumbers) {
+        return ExecuteFeignClient.get(()-> iStudentRest.queryStudentByStudentNumbers(studentNumbers)).getRows();
     }
 }

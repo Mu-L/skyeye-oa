@@ -17,6 +17,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.StringUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
@@ -158,7 +159,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
                 String belongId = examSurveyDirectory.getId();
                 Integer fractionNumber = getFractionNumber(belongId);
-                if (fractionNumber ==null){
+                if (fractionNumber == null || fractionNumber == 0) {
                     throw new CustomException("该试卷没有题目，请添加题目。");
                 }
                 if (fractionNumber != 0) {
@@ -260,44 +261,46 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
         examSurveyDirectory.setReaderList(userIdJoin);
         examSurveyDirectory.setId(ToolUtil.randomStr(6, 12));
+        examSurveyDirectory.setQuestionMation(new ArrayList<>());
         if (StrUtil.isEmpty(surveyName)) {
             examSurveyDirectory.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本");
+        }else {
+            examSurveyDirectory.setSurveyName(surveyName);
         }
         createEntity(examSurveyDirectory, userId);
         List<Question> questionList = questionService.QueryQuestionByBelongId(examDirectoryId);
-        if (CollectionUtil.isEmpty(questionList)) {
-            throw new CustomException("没有找到题目");
-        }
-        List<String> questionIdList = questionList.stream().map(Question::getId).collect(Collectors.toList());
-        Map<String, List<ExamQuestionLogic>> stringListMap = examQuestionLogicService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuRadio>> stringListMap1 = examQuRadioService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuScore>> stringListMap2 = examquScoreService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuCheckbox>> stringListMap3 = examQuCheckboxService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuMultiFillblank>> stringListMap4 = examQuMultiFillblankService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuOrderby>> stringListMap5 = examQuOrderbyService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuChenColumn>> stringListMap6 = examQuChenColumnService.selectByQuestionIds(questionIdList);
-        Map<String, List<ExamQuChenRow>> stringListMap7 = examQuChenRowService.selectByQuestionIds(questionIdList);
-        for (Question question : questionList) {
-            String id = question.getId();
-            question.setCopyFromId(id);
-            List<ExamQuestionLogic> examQuestionLogics = stringListMap.get(id);
-            question.setQuestionLogic(examQuestionLogics);
-            List<ExamQuRadio> examQuRadioList = stringListMap1.get(id);
-            question.setRadioTd(examQuRadioList);
-            List<ExamQuScore> examQuScoreList = stringListMap2.get(id);
-            question.setScoreTd(examQuScoreList);
-            List<ExamQuCheckbox> examQuCheckboxList = stringListMap3.get(id);
-            question.setCheckboxTd(examQuCheckboxList);
-            List<ExamQuMultiFillblank> multiFillblanks = stringListMap4.get(id);
-            question.setMultifillblankTd(multiFillblanks);
-            List<ExamQuOrderby> examQuOrderbyList = stringListMap5.get(id);
-            question.setOrderByTd(examQuOrderbyList);
-            List<ExamQuChenColumn> examQuChenColumnList = stringListMap6.get(id);
-            question.setColumnTd(examQuChenColumnList);
-            List<ExamQuChenRow> examQuChenRows = stringListMap7.get(id);
-            question.setRowTd(examQuChenRows);
-            question.setBelongId(examSurveyDirectory.getId());
-            questionService.createEntity(question, userId);
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            List<String> questionIdList = questionList.stream().map(Question::getId).collect(Collectors.toList());
+            Map<String, List<ExamQuestionLogic>> stringListMap = examQuestionLogicService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuRadio>> stringListMap1 = examQuRadioService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuScore>> stringListMap2 = examquScoreService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuCheckbox>> stringListMap3 = examQuCheckboxService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuMultiFillblank>> stringListMap4 = examQuMultiFillblankService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuOrderby>> stringListMap5 = examQuOrderbyService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuChenColumn>> stringListMap6 = examQuChenColumnService.selectByQuestionIds(questionIdList);
+            Map<String, List<ExamQuChenRow>> stringListMap7 = examQuChenRowService.selectByQuestionIds(questionIdList);
+            for (Question question : questionList) {
+                String id = question.getId();
+                question.setCopyFromId(id);
+                List<ExamQuestionLogic> examQuestionLogics = stringListMap.get(id);
+                question.setQuestionLogic(examQuestionLogics);
+                List<ExamQuRadio> examQuRadioList = stringListMap1.get(id);
+                question.setRadioTd(examQuRadioList);
+                List<ExamQuScore> examQuScoreList = stringListMap2.get(id);
+                question.setScoreTd(examQuScoreList);
+                List<ExamQuCheckbox> examQuCheckboxList = stringListMap3.get(id);
+                question.setCheckboxTd(examQuCheckboxList);
+                List<ExamQuMultiFillblank> multiFillblanks = stringListMap4.get(id);
+                question.setMultifillblankTd(multiFillblanks);
+                List<ExamQuOrderby> examQuOrderbyList = stringListMap5.get(id);
+                question.setOrderByTd(examQuOrderbyList);
+                List<ExamQuChenColumn> examQuChenColumnList = stringListMap6.get(id);
+                question.setColumnTd(examQuChenColumnList);
+                List<ExamQuChenRow> examQuChenRows = stringListMap7.get(id);
+                question.setRowTd(examQuChenRows);
+                question.setBelongId(examSurveyDirectory.getId());
+                questionService.createEntity(question, userId);
+            }
         }
         outputObject.setBean(examSurveyDirectory);
         outputObject.settotal(1);

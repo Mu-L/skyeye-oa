@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certification.classenum.StateEnum;
@@ -24,7 +25,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.school.student.rest.IStudentRest;
 import com.skyeye.rest.school.student.service.IStudentService;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
@@ -32,8 +32,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -70,6 +70,35 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
         return queryWrapper;
     }
 
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
+        List<String> studentNumber = maps.stream().map(map -> map.get("studentNumber").toString()).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(studentNumber)) {
+            return new ArrayList<>();
+        }
+        String studentNumbers = Joiner.on(CommonCharConstants.COMMA_MARK).join(studentNumber);
+        List<Map<String, Object>> maps1 = iStudentService.queryStudentByStudentNumbers(studentNumbers);
+        Map<String, Map<String, Object>> studentNumberMap = maps1.stream()
+            .collect(Collectors.toMap(map -> map.get("no").toString(), map -> map));
+        for (Map<String, Object> map : maps) {
+            String studentNumber1 = map.get("studentNumber").toString();
+            if (studentNumberMap.containsKey(studentNumber1)) {
+                Map<String, Object> matchedMap = studentNumberMap.get(studentNumber1);
+                Map<String,Object>  schoolMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("schoolMation")),null);
+                Map<String,Object>  facultyMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("facultyMation")),null);
+                Map<String,Object>  majorMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("majorMation")),null);
+                Map<String,Object>  classMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("classMation")),null);
+                map.put("schoolMation", schoolMation);
+                map.put("facultyMation", facultyMation);
+                map.put("majorMation", majorMation);
+                map.put("classMation", classMation);
+            }
+        }
+        return maps;
+    }
+
     public List<Certification> getCertificationListByIds(List<String> ids) {
         if (CollectionUtil.isEmpty(ids)) {
             return CollectionUtil.newArrayList();
@@ -86,9 +115,9 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         if (id.equals(userId)) {
             Certification certification = selectById(userId);
-            if(StrUtil.isNotEmpty(certification.getId()) && certification.getState() == StateEnum.CERTIFIEDSUCCESS.getKey()){
+            if (StrUtil.isNotEmpty(certification.getId()) && certification.getState() == StateEnum.CERTIFIEDSUCCESS.getKey()) {
                 certification.setCheckCertification(true);
-            }else {
+            } else {
                 certification.setCheckCertification(false);
             }
             outputObject.setBean(certification);
@@ -121,7 +150,7 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
             if (!userId.equals(certificationFlag.getUserId())) {
                 throw new CustomException("无权限，不可修改!!");
             }
-            if(count>CommonNumConstants.NUM_ZERO && !stuNo.equals(certificationFlag.getStudentNumber())){
+            if (count > CommonNumConstants.NUM_ZERO && !stuNo.equals(certificationFlag.getStudentNumber())) {
                 throw new CustomException("修改认证信息失败，学号已存在");
             }
             if (certificationFlag.getState() == StateEnum.CERTIFIEDING.getKey()) {

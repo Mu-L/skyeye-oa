@@ -22,8 +22,6 @@ import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.checkbox.dao.DwQuCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
-import com.skyeye.eve.radio.entity.DwQuRadio;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -64,10 +62,14 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
             bean.setOptionTitle(object.getOptionTitle());
             bean.setIsNote(object.getIsNote());
             bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
-            if (!ToolUtil.isNumeric(object.getCheckType().toString())) {
-                bean.setCheckType( CheckType.valueOf(object.getCheckType().toString()).getIndex());
+            if (object.getCheckType() != null) {
+                if (!ToolUtil.isNumeric(object.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(object.getCheckType().toString()).getIndex());
+                } else {
+                    bean.setCheckType(object.getCheckType());
+                }
             } else {
-                bean.setCheckType(object.getCheckType());
+                bean.setCheckType(null);
             }
             bean.setIsRequiredFill(object.getIsRequiredFill());
             if (ToolUtil.isBlank(object.getOptionId())) {
@@ -104,7 +106,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         UpdateWrapper<DwQuCheckbox> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID,id);
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(DwQuCheckbox::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
     }
@@ -112,14 +114,14 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
     @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<DwQuCheckbox> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId),quId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), quId);
         remove(updateWrapper);
     }
 
     @Override
     public List<DwQuCheckbox> selectQuChenbox(String copyFromId) {
         QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId),copyFromId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), copyFromId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuCheckbox::getOrderById));
 //        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuCheckbox::getVisibility),CommonNumConstants.NUM_ONE);
         return list(queryWrapper);
@@ -131,17 +133,17 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
             return new HashMap<>();
         }
         QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getBelongId), id);
         List<DwQuCheckbox> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;

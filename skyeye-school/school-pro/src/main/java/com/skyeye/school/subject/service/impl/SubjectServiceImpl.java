@@ -200,6 +200,9 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
                 }
             }
         }
+        if (CollectionUtil.isEmpty(semesterList)){
+            throw new CustomException("当前学期没有数据");
+        }
         outputObject.setBeans(semesterList);
         outputObject.settotal(semesterList.size());
     }

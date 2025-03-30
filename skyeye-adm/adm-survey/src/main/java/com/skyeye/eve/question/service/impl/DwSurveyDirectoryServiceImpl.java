@@ -72,8 +72,6 @@ import java.util.stream.Collectors;
 public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSurveyDirectoryDao, DwSurveyDirectory> implements DwSurveyDirectoryService {
 
     @Autowired
-    private DwSurveyDirectoryService dwSurveyDirectoryService;
-    @Autowired
     private DwQuestionService dwQuestionService;
     @Autowired
     private DwQuestionLogicService dwQuestionLogicService;
@@ -158,34 +156,30 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      * @return 允许参加问卷时返回问卷目录信息
      */
     @Override
-    public DwSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject) {
+    public void takeExam(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
         // 是否可以参加问卷，true：可以；false：不可以
         boolean yesOrNo = false;
         String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
         String id = map.get("id").toString(); // 获取问卷ID
-        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectById(id); // 根据ID查询问卷信息
+        DwSurveyDirectory dwSurveyDirectory = selectById(id); // 根据ID查询问卷信息
         if (dwSurveyDirectory == null || dwSurveyDirectory.getId() == null) {
             throw new CustomException("该问卷不存在");
         }
-        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) { // 判断问卷是否存在
-            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) { // 判断问卷是否发布
-                if (!ToolUtil.isBlank(userId)) { // 判断用户是否登录
-                    DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
-                    if (ObjUtil.isNotEmpty(examSurveyAnswer)) { // 用户已经参加过问卷
-                        throw new CustomException("您已参加过该问卷");
-                    } else {
-                        yesOrNo = true;
-                    }
+        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
+            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+                DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
+                if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
+                    throw new CustomException("您已参加过该问卷");
                 } else {
-                    throw new CustomException("您不具备该问卷权限");
+                    yesOrNo = true;
                 }
             } else {
                 throw new CustomException("该问卷未发布");
             }
         }
         if (yesOrNo) {
-            return dwSurveyDirectory;
+            outputObject.setBean(dwSurveyDirectory);
         } else {
             throw new CustomException("您不具备该问卷权限");
         }
@@ -802,6 +796,16 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 throw new CustomException("时间格式错误，请检查时间格式是否正确：" + e.getMessage());
             }
         }
+    }
+
+    @Override
+    public DwSurveyDirectory selectById(String id) {
+        DwSurveyDirectory bean = super.selectById(id);
+        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(id);
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            bean.setDwQuestionMation(questionList);
+        }
+        return bean;
     }
 
     @Override

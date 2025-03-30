@@ -51,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -280,6 +281,16 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Student::getNo), stuNoList);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryStudentByStudentNumbers(InputObject inputObject, OutputObject outputObject) {
+        String studentNumbers = inputObject.getParams().get("studentNumbers").toString();
+        String[] split = studentNumbers.split(",");
+        List<String> studentNumberList = Arrays.asList(split);
+        List<Student> students = getStudents(studentNumberList);
+        outputObject.setBeans(students);
+        outputObject.settotal(students.size());
     }
 
     private List<Map<String, Object>> getStudentSubject(Map<String, Object> studentMap) {

@@ -8,7 +8,7 @@ import com.skyeye.eve.question.entity.DwSurveyDirectory;
 public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurveyDirectory> {
     void setUpDwDirectory(InputObject inputObject, OutputObject outputObject);
 
-    DwSurveyDirectory takeExam(InputObject inputObject, OutputObject outputObject);
+    void takeExam(InputObject inputObject, OutputObject outputObject);
 
     void copyDwDirectory(InputObject inputObject, OutputObject outputObject);
 

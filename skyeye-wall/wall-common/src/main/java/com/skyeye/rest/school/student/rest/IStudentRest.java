@@ -4,6 +4,7 @@ import com.skyeye.common.client.ClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
@@ -26,4 +27,13 @@ public interface IStudentRest {
      * */
     @PostMapping("/writeStudent")
     String addStudent(@RequestBody Map<String, Object> map);
+
+    /**
+     * 查询学生信息
+     *
+     * @Param: Map<String, Object> map
+     * @Param: @return
+     * */
+    @PostMapping("/queryStudentByStudentNumbers")
+    String queryStudentByStudentNumbers(@RequestParam(value = "studentNumbers") String studentNumbers);
 }

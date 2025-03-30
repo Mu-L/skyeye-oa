@@ -80,7 +80,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer effectiveIp;
 
     @TableField("effective_time")
-    @ApiModelProperty(value = "如果每个IP能答多次，每隔多长时间可以答一次(分钟)", required = "required")
+    @ApiModelProperty(value = "如果每个IP能答多次，每隔多长时间可以答一次(分钟)")
     private Integer effectiveTime;
 
     @TableField("yn_end_num")
