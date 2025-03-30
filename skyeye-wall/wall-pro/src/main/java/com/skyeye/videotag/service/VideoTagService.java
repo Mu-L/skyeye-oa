@@ -19,4 +19,6 @@ import java.util.List;
 
 public interface VideoTagService extends SkyeyeBusinessService<VideoTag> {
     void setTagMationForVideoList(Video... beans);
+
+    void queryAllVideoTagList(InputObject inputObject, OutputObject outputObject);
 }

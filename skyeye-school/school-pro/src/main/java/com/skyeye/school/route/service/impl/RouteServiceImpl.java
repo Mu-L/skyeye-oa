@@ -60,7 +60,14 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     private SchoolService schoolService;
 
     @Override
-    @Transactional
+    public void validatorEntity(Routes entity) {
+        super.validatorEntity(entity);
+        if(entity.getStartId().equals(entity.getEndId())) {
+            throw new CustomException("起始地点和终点地点不能相同");
+        }
+    }
+
+    @Override
     public void deleteById(String id) {
         super.deleteById(id);
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
@@ -131,7 +138,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
+                .orderByDesc(MybatisPlusUtil.toColumns(Routes::getCreateTime));
         List<Routes> routes = setBaseMation(queryWrapper);
         if(StrUtil.isNotEmpty(keyword)){
             routes = routes.stream()
