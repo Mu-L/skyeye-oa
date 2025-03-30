@@ -76,6 +76,8 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         forumReport.setReportId(user.get("id").toString());
         forumReport.setReportTime(DateUtil.getTimeAndToString());
         forumReport.setExamineState(ExamineStateEnum.NOT_EXAMINE.getKey());
+        // examine_time字段为datetime类型，将其设置为null，否则数据库报错
+        forumReport.setExamineTime(null);
     }
 
     @Override
