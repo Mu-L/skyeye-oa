@@ -187,6 +187,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Override
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        // 视频id
+        String objectId = commonPageInfo.getObjectId();
         // 定义行为的评分权重
         double VIEW_SCORE = 0.1; // 浏览
         double LIKE_SCORE = 3.0; // 点赞
@@ -220,7 +222,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         }
         // 2，计算视频之间的相似度
         Map<String, Map<String, Double>> similarityMap = buildSimilarityMatrix(userVideoScores);
-        List<String> videoIds = recommendVideos(currentUserId, userVideoScores, similarityMap, 10);
+        List<String> videoIds = recommendVideos(objectId,currentUserId, userVideoScores, similarityMap, 10);
         List<Video> videos = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(videoIds)) {
             List<Video> bean = selectByIds(videoIds.toArray(new String[0]));
@@ -386,7 +388,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     // 为用户生成推荐列表
-    private List<String> recommendVideos(String userId,
+    private List<String> recommendVideos(String videoId,String userId,
                                          Map<String, Map<String, Double>> userVideoScores,
                                          Map<String, Map<String, Double>> similarityMatrix,
                                          int topN) {
@@ -405,9 +407,10 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             return Collections.emptyList();
         }
 
-        // 按相似度排序并推荐
+        // 按相似度排序并推荐并去掉本身视频
         return similarities.entrySet().stream()
                 .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .filter(entry -> !entry.getKey().equals(videoId))
                 .limit(topN)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());

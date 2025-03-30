@@ -116,4 +116,16 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
             video.setTagMation(videoTags);
         }
     }
+
+    @Override
+    public void queryAllVideoTagList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<VideoTag> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoTag::getCreateTime))
+                .orderByDesc(MybatisPlusUtil.toColumns(VideoTag::getOrderBy));
+        List<VideoTag> videoTags = list(queryWrapper);
+        iAuthUserService.setName(videoTags, "createId", "createName");
+        iAuthUserService.setName(videoTags, "lastUpdateId", "lastUpdateName");
+        outputObject.setBeans(videoTags);
+        outputObject.settotal(videoTags.size());
+    }
 }

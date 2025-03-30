@@ -84,4 +84,16 @@ public class VideoTagController {
         videoTagService.selectById(inputObject, outputObject);
     }
 
+    /**
+     * 获取所有视频标签列表-不分页
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllVideoTagList", value = "获取所有视频标签列表-不分页", method = "GET", allUse = "2")
+    @RequestMapping("/post/VideoTagController/queryAllVideoTagList")
+    public void queryAllVideoTagList(InputObject inputObject, OutputObject outputObject) {
+        videoTagService.queryAllVideoTagList(inputObject, outputObject);
+    }
+
 }

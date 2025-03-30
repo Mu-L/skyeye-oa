@@ -347,6 +347,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             post.setPictureList(pictureMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
                     CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
+            String serviceClassName = getServiceClassName();
+            post.setObjectKey(serviceClassName);
         });
         return bean;
     }

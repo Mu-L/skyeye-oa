@@ -96,4 +96,8 @@ public class Post extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "当前登陆人是否点赞")
     private Boolean checkUpvote;
+
+    @TableField(exist = false)
+    @Property(value = "业务逻辑对象")
+    private String objectKey;
 }
