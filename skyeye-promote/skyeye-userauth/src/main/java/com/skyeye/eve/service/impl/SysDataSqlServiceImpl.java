@@ -8,7 +8,10 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.*;
+import com.skyeye.common.util.BytesUtil;
+import com.skyeye.common.util.DataCommonUtil;
+import com.skyeye.common.util.FileUtil;
+import com.skyeye.common.util.IdWorker;
 import com.skyeye.eve.dao.SysDataSqlDao;
 import com.skyeye.eve.service.SysDataSqlService;
 import com.skyeye.exception.CustomException;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,9 +36,6 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
 
     @Value("${IMAGES_PATH}")
     private String tPath;
-
-    @Value("${MYSQL_DUMP}")
-    private String mysqlDump;
 
     @Value("${jdbc.database.username}")
     private String userName;
@@ -98,30 +99,60 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
         Map<String, Object> version = sysDataSqlDao.queryDataSqlVersion(map);
         String basePath = tPath + "\\upload\\datasql";
         FileUtil.createDirs(basePath);
-        String newFileName = String.valueOf(System.currentTimeMillis()) + ".sql";
-        String path = basePath + "\\" + newFileName;//文件存储地址
-        //拼接命令行的命令
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(mysqlDump + "/mysqldump").append(" --opt").append(" -h").append(address);
-        stringBuilder.append(" --user=").append(userName).append(" --password=").append(password).append(" --lock-all-tables=true");
-        stringBuilder.append(" --result-file=").append(path).append(" --default-character-set=utf8 ").append(databaseName);
-        // 调用外部执行exe文件的javaAPI
+        String newFileName = System.currentTimeMillis() + ".sql";
+        String path = basePath + "\\" + newFileName;
+
         try {
-            Process process = Runtime.getRuntime().exec(stringBuilder.toString());
-            if (process.waitFor() == 0) {// 0 表示线程正常终止。
-                System.out.println("执行完毕");
-                //保存到数据库
+            // 使用which/where命令查找mysqldump
+            String osName = System.getProperty("os.name").toLowerCase();
+            String findCommand = osName.contains("windows") ? "where mysqldump" : "which mysqldump";
+            Process findProcess = Runtime.getRuntime().exec(findCommand);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(findProcess.getInputStream()));
+            String mysqldumpPath = reader.readLine();
+
+            if (mysqldumpPath == null || mysqldumpPath.isEmpty()) {
+                throw new CustomException("找不到mysqldump命令，请确保MySQL客户端工具在系统PATH中");
+            }
+
+            // 构建备份命令
+            List<String> command = new ArrayList<>();
+            command.add(mysqldumpPath);
+            command.add("--opt");
+            command.add("-h" + address);
+            command.add("-u" + userName);
+            command.add("-p" + password);
+            command.add("--lock-all-tables=true");
+            command.add("--result-file=" + path);
+            command.add("--default-character-set=utf8");
+            command.add(databaseName);
+
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            Process process = processBuilder.start();
+
+            // 读取错误流，避免进程阻塞
+            StringBuilder errorMsg = new StringBuilder();
+            try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                String line;
+                while ((line = errorReader.readLine()) != null) {
+                    errorMsg.append(line).append("\n");
+                }
+            }
+
+            if (process.waitFor() == 0) {
+                // 备份成功，保存到数据库
                 DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
-                map.put("mysqlVersion", version.get("version"));//数据库版本
+                map.put("mysqlVersion", version.get("version")); // 数据库版本
                 String filePath = "/images/upload/datasql/" + newFileName;
-                map.put("filePath", filePath);//文件存储地址
+                map.put("filePath", filePath); // 文件存储地址
                 IdWorker id = new IdWorker();
                 String sqlVersion = String.valueOf(id.nextId());
-                map.put("sqlVersion", sqlVersion);//备份版本
-                map.put("sqlTitle", "数据库备份_" + sqlVersion);//备份标题
+                map.put("sqlVersion", sqlVersion); // 备份版本
+                map.put("sqlTitle", "数据库备份_" + sqlVersion); // 备份标题
                 File sqlFile = new File(path);
                 map.put("fileSize", sqlFile.length());
                 sysDataSqlDao.insertTableBackUps(map);
+            } else {
+                throw new CustomException("数据库备份失败: " + errorMsg.toString());
             }
         } catch (Exception ex) {
             throw new CustomException(ex);
@@ -144,29 +175,61 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
             File file = new File(basePath + filePath);
             // 数据库备份文件存在
             if (file.exists()) {
-                OutputStream outputStream = null;
-                BufferedReader br = null;
-                OutputStreamWriter writer = null;
                 try {
-                    Runtime runtime = Runtime.getRuntime();
-                    Process process = runtime.exec(mysqlDump + "mysql.exe -h" + address + " -u" + userName + " -p" + password + " --default-character-set=utf8 " + databaseName);
-                    outputStream = process.getOutputStream();
-                    br = new BufferedReader(new InputStreamReader(new FileInputStream(basePath + filePath), "utf-8"));
-                    String str = null;
-                    StringBuffer sb = new StringBuffer();
-                    while ((str = br.readLine()) != null) {
-                        sb.append(str + "\r\n");
+                    // 使用which/where命令查找mysql命令
+                    String osName = System.getProperty("os.name").toLowerCase();
+                    String findCommand = osName.contains("windows") ? "where mysql" : "which mysql";
+                    Process findProcess = Runtime.getRuntime().exec(findCommand);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(findProcess.getInputStream()));
+                    String mysqlPath = reader.readLine();
+
+                    if (mysqlPath == null || mysqlPath.isEmpty()) {
+                        throw new CustomException("找不到mysql命令，请确保MySQL客户端工具在系统PATH中");
                     }
-                    str = sb.toString();
-                    writer = new OutputStreamWriter(outputStream, "utf-8");
-                    writer.write(str);
-                    writer.flush();
-                } catch (IOException ex) {
-                    throw new CustomException(ex);
-                } finally {
-                    FileUtil.close(outputStream);
-                    FileUtil.close(br);
-                    FileUtil.close(writer);
+
+                    // 构建还原命令
+                    List<String> command = new ArrayList<>();
+                    command.add(mysqlPath);
+                    command.add("-h" + address);
+                    command.add("-u" + userName);
+                    command.add("-p" + password);
+                    command.add("--default-character-set=utf8");
+                    command.add(databaseName);
+
+                    ProcessBuilder processBuilder = new ProcessBuilder(command);
+                    Process process = processBuilder.start();
+
+                    // 从备份文件读取SQL并写入mysql进程的输入流
+                    try (OutputStream outputStream = process.getOutputStream();
+                         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+                         OutputStreamWriter writer = new OutputStreamWriter(outputStream, "utf-8")) {
+
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            writer.write(line + "\n");
+                        }
+                        writer.flush();
+                    }
+
+                    // 关闭输入流，告诉mysql进程输入结束
+                    process.getOutputStream().close();
+
+                    // 读取错误流，避免进程阻塞
+                    StringBuilder errorMsg = new StringBuilder();
+                    try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                        String line;
+                        while ((line = errorReader.readLine()) != null) {
+                            errorMsg.append(line).append("\n");
+                        }
+                    }
+
+                    int exitCode = process.waitFor();
+                    if (exitCode != 0) {
+                        throw new CustomException("数据库还原失败: " + errorMsg.toString());
+                    }
+
+                } catch (Exception ex) {
+                    throw new CustomException("数据库还原失败: " + ex.getMessage());
                 }
             } else {
                 outputObject.setreturnMessage("该备份文件已不存在。");
