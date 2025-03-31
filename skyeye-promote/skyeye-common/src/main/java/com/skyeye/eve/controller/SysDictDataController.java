@@ -108,7 +108,7 @@ public class SysDictDataController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDictDataListByDictTypeCode", value = "根据所属类型Code获取数据字典列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryDictDataListByDictTypeCode", value = "根据所属类型Code获取数据字典列表", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "dictTypeCode", name = "dictTypeCode", value = "所属类型Code", required = "required")})
     @RequestMapping("/post/SysDictDataController/queryDictDataListByDictTypeCode")
