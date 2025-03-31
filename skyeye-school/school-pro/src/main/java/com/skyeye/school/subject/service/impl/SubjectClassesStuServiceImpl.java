@@ -16,6 +16,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -161,7 +162,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         queryWrapper.eq(CommonConstants.ID, id);
         SubjectClassesStu subjectClassesStu = getOne(queryWrapper);
         SubjectClasses subjectClasses = subjectClassesService.selectById(subjectClassesStu.getSubClassLinkId());
-        if (subjectClasses.getQuit() == CommonNumConstants.NUM_TWO) {
+        if (subjectClasses.getQuit() == WhetherEnum.DISABLE_USING.getKey()) {
             throw new CustomException("对不起，现在不能退课");
         }
     }
@@ -361,7 +362,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         String subClassLinkId = params.get("subClassLinkId").toString();
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNo)
-                .eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
+            .eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
         updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), reward);
         SubjectClassesStu one = getOne(updateWrapper);
         Integer rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
