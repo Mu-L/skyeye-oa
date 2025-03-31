@@ -170,12 +170,16 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             String createId = joinCircleService.selectByCircleId(holderId, userId).getCreateId();
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
         } else if (StrUtil.isNotEmpty(type)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY)
-                    .ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
-                    .and(wrapper ->
-                            wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), type).or()
-                                   .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
-                    );
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            if(type.equals(userId)){
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), type);
+            }else {
+                queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
+                        .and(wrapper ->
+                                wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), type).or()
+                                        .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
+                        );
+            }
             bean = list(queryWrapper);
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
