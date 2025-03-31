@@ -175,10 +175,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), type);
             }else {
                 queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
-                        .and(wrapper ->
-                                wrapper.eq(MybatisPlusUtil.toColumns(Post::getTypeId), type).or()
-                                        .eq(MybatisPlusUtil.toColumns(Post::getCreateId), userId)
-                        );
+                        .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
             }
             bean = list(queryWrapper);
         } else if (StrUtil.isNotEmpty(objectId)) {

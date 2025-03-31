@@ -119,7 +119,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "refreshVisitVideo", value = "刷新浏览量", method = "POST", allUse = "2")
+    @ApiOperation(id = "refreshVisitVideo", value = "刷新浏览量", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "videoId", name = "videoId", value = "视频id", required = "required")
     })
