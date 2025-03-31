@@ -26,9 +26,7 @@ public enum AiPlatformEnum implements SkyeyeEnumClass {
 
     YI_YAN("YiYan", "文心一言", "百度", true, false),
     XUN_FEI("XunFei", "讯飞星火", "讯飞", true, false),
-    DEEP_SEEK("DeepSeek","DeepSeek","豆包", true, false),
-    TONG_YI("TongYi","通义千问","阿里", true, false),
-    ZHI_PU("ZhiPu","智普","智普AI", true, false),;
+    TONG_YI("TongYi", "通义千问", "阿里", true, false);
 
     private String key;
 

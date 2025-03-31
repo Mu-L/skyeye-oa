@@ -39,16 +39,8 @@ spring:
       appId: e7777701
       apiKey: 6bb0647ad9508d0519c4e406d939e856
       secretKey: MGQ2YWExYjcyOTM3NDc1NDk0MDlkOWVi
-    deepseek:
-      apiKey: sk-63b02a6b78d4417aaa21353eab86cd9f
-      url: https://api.deepseek.com
     tongyi:
       apiKey: sk-f26299b6cda34370abfc2b5b1bb2699d
-    zhipu:
-      apiKey: 933c75485db6abbcb5182bce914e3ec1
-      secretKey: DBobhCDndViaDtWH
-      url: https://open.bigmodel.cn/api/paas/
-
 
 logging:
   level:
