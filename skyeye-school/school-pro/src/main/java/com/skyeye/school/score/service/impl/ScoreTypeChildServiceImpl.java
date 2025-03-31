@@ -151,6 +151,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         for (int i = 0; i < nameList.size(); i++) {
             map.put(nameList.get(i), numberCodeList.get(i));
         }
+        List<ScoreTypeChild> scoreTypeChildList = new ArrayList<>();
         map.forEach((name, numberCode) -> {
             ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
             scoreTypeChild.setIsDefault(IsDefaultEnum.IS_DEFAULT.getKey());
@@ -159,8 +160,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             scoreTypeChild.setSubjectId(subjectClasses.getObjectId());
             scoreTypeChild.setClassId(subjectClasses.getClassesId());
             scoreTypeChild.setNumberCode(numberCode);
-            super.createEntity(scoreTypeChild, subjectClasses.getCreateId());
+            scoreTypeChildList.add(scoreTypeChild);
         });
+        super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
     }
 
     @Override
@@ -168,13 +170,14 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         if (StrUtil.isNotEmpty(entity.getName())) {
             ScoreType scoreType = scoreTypeService.queryDefaultInfo(entity.getSubjectId(), entity.getClassId());
             List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
+            List<ScoreSum> scoreSumList = new ArrayList<>();
             if (scoreSums.size() == CommonNumConstants.NUM_ZERO) {// 课程下班级没人
                 ScoreSum scoreSum = new ScoreSum();
                 scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
                 scoreSum.setProportion(entity.getProportion());
                 scoreSum.setObjectId(entity.getId());
                 scoreSum.setStuNo(StrUtil.EMPTY);
-                scoreSumService.createEntity(scoreSum, userId);
+                scoreSumList.add(scoreSum);
             } else {// 有人
                 for (ScoreSum scoreSum : scoreSums) {
                     ScoreSum newScoreSum = new ScoreSum();
@@ -182,9 +185,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                     newScoreSum.setProportion(entity.getProportion());
                     newScoreSum.setObjectId(entity.getId());
                     newScoreSum.setStuNo(scoreSum.getStuNo());
-                    scoreSumService.createEntity(newScoreSum, userId);
+                    scoreSumList.add(newScoreSum);
                 }
             }
+            scoreSumService.createEntity(scoreSumList, userId);
         }
     }
 

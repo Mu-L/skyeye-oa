@@ -89,6 +89,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             scorePart.setObjectId(objectId);
             super.createEntity(scorePart, currentUserId);
         } else {// 课程下该班级有人
+            List<ScorePart> createScorePartList = new ArrayList<>();
             for (ScoreSum scoreSum : scoreSums) {
                 ScorePart scorePart = new ScorePart();
                 scorePart.setWorkId(workId);
@@ -96,8 +97,9 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 scorePart.setProportion(CommonNumConstants.NUM_ZERO.toString());
                 scorePart.setStuNo(scoreSum.getStuNo());
                 scorePart.setObjectId(objectId);
-                super.createEntity(scorePart, currentUserId);
+                createScorePartList.add(scorePart);
             }
+            super.createEntity(createScorePartList, currentUserId);
         }
     }
 
@@ -269,6 +271,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
             List<ScorePart> partCollect = scoreParts.stream().collect(Collectors.collectingAndThen(
                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ScorePart::getWorkId))), ArrayList::new)
             );
+            List<ScorePart> scorePartList = new ArrayList<>();
             for (ScorePart scorePart : partCollect) {
                 ScorePart newScorePart = new ScorePart();
                 newScorePart.setWorkId(scorePart.getWorkId());
@@ -276,18 +279,21 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
                 newScorePart.setProportion(scorePart.getProportion());
                 newScorePart.setStuNo(stuNo);
                 newScorePart.setObjectId(scorePart.getObjectId());
-                super.createEntity(newScorePart, currentUserId);
+                scorePartList.add(newScorePart);
             }
+            super.createEntity(scorePartList, currentUserId);
             Map<String, List<ScoreSum>> groupAllSum = oldScoreSums.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
             for (Map.Entry<String, List<ScoreSum>> stringListEntry : groupAllSum.entrySet()) {
+                List<ScoreSum> scoreSumList = new ArrayList<>();
                 for (ScoreSum scoreSum : stringListEntry.getValue()) {
                     ScoreSum newScoreSum = new ScoreSum();
                     newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
                     newScoreSum.setProportion(scoreSum.getProportion());
                     newScoreSum.setObjectId(scoreSum.getObjectId());
                     newScoreSum.setStuNo(stuNo);
-                    scoreSumService.createEntity(newScoreSum, currentUserId);
+                    scoreSumList.add(newScoreSum);
                 }
+                scoreSumService.createEntity(scoreSumList, currentUserId);
                 break;
             }
         }
