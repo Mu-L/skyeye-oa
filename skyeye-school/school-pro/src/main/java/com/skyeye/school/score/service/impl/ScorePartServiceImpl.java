@@ -110,7 +110,7 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
      * @return
      */
     @Override
-    public Map<String, String> getStuNoScorePartMap(Map<String, List<ScorePart>> collect){
+    public Map<String, String> getStuNoScorePartMap(Map<String, List<ScorePart>> collect) {
         Map<String, String> map = new HashMap<>();
         collect.forEach((stuNo, scorePartList) -> {
             final double[] newSum = {CommonNumConstants.NUM_ZERO};
@@ -416,6 +416,17 @@ public class ScorePartServiceImpl extends SkyeyeBusinessServiceImpl<ScorePartDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScorePart::getObjectId), objectId);
         remove(queryWrapper);
     }
+
+    @Override
+    public void deleteByObjectIdList(List<String> objectIdList) {
+        if (CollectionUtil.isEmpty(objectIdList)) {
+            return;
+        }
+        QueryWrapper<ScorePart> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScorePart::getObjectId), objectIdList);
+        remove(queryWrapper);
+    }
+
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)

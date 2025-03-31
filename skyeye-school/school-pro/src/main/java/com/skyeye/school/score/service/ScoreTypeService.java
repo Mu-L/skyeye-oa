@@ -34,4 +34,5 @@ public interface ScoreTypeService extends SkyeyeBusinessService<ScoreType> {
 
     List<ScoreType> queryNotDefaultInfo(String subjectId, String classId);
 
+    void deleteBysubjectyIdAndClassId(String subjectId, String classesId);
 }

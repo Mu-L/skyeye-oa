@@ -278,4 +278,20 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteBysubjectyIdAndClassId(String subjectId, String classesId) {
+        QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classesId);
+        List<ScoreType> list = list(queryWrapper);
+        List<String> typeIdList = list.stream().map(ScoreType::getId).collect(Collectors.toList());
+        List<ScoreTypeChild> scoreTypeChildList = scoreTypeChildService.queryByObjectIdAndClassId(subjectId, classesId);
+        List<String> typeChildIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        typeIdList.addAll(typeChildIdList);
+        scoreSumService.deleteByObjectIdList(typeIdList);
+        scorePartService.deleteByObjectIdList(typeIdList);
+        scoreTypeChildService.deleteByIdList(typeChildIdList);
+        remove(queryWrapper);
+    }
 }

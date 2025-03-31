@@ -172,6 +172,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         subjectClassesStuService.deleteBySubClassLinkId(Arrays.asList(entity.getId()));
         // 删除班级学生置顶课程
         subjectClassesTopService.deleteSubjectClassesTopBySubClassLinkId(entity.getId());
+        // 删除成绩信息
+        scoreTypeService.deleteBysubjectyIdAndClassId(entity.getObjectId(), entity.getClassesId());
     }
 
     @Override

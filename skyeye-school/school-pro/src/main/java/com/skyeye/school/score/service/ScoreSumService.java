@@ -31,4 +31,6 @@ public interface ScoreSumService extends SkyeyeBusinessService<ScoreSum> {
     void updateProportionByObjectId(String objectId, String proportion);
 
     Map<String, String> getStuNoScoreSumMap(Map<String, List<ScoreSum>> collect);
+
+    void deleteByObjectIdList(List<String> objectIdList);
 }
