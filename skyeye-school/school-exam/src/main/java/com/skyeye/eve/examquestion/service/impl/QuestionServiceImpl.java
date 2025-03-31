@@ -372,13 +372,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         }
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
-        questionList = questionList.stream().map(item -> {
-            item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-            item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
-            item.setMajorMation(majorService.selectById(item.getMajorId()));
-            item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-            return item;
-        }).collect(Collectors.toList());
+        schoolService.setDataMation(questionList, Question::getSchoolId);
+        facultyService.setDataMation(questionList, Question::getFacultyId);
+        majorService.setDataMation(questionList, Question::getMajorId);
+        subjectService.setDataMation(questionList, Question::getSubjectId);
+
         for (Question question : questionList) {
             String knowledgeIds = question.getKnowledgeIds();
             String[] split = knowledgeIds.split(",");

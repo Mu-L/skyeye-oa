@@ -13,6 +13,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.school.faculty.entity.Faculty;
+import com.skyeye.school.major.entity.Major;
 import lombok.Data;
 
 import java.util.Map;
@@ -55,9 +57,17 @@ public class Subject extends BaseGeneralInfo {
     @ApiModelProperty("院系id")
     private String facultyId;
 
+    @TableField(exist = false)
+    @Property(value = "所属院系信息")
+    private Faculty facultyMation;
+
     @TableField(value = "major_id")
     @ApiModelProperty("专业id")
     private String majorId;
+
+    @TableField(exist = false)
+    @Property(value = "专业信息")
+    private Major majorMation;
 
     @TableField(exist = false)
     @Property(value = "拥有者信息")
