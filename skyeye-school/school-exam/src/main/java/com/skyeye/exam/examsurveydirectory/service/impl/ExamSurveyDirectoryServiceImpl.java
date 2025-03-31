@@ -2,6 +2,7 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -256,6 +257,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<ExamSurveyMarkExam> examSurveyMarkExamList = examSurveyMarkExamService.getExamSurveyMarkExamList(examDirectoryId);
         String userIdJoin = Joiner.on(CommonCharConstants.COMMA_MARK).join(examSurveyMarkExamList.stream().map(ExamSurveyMarkExam::getUserId).collect(Collectors.toList()));
         examSurveyDirectory.setSurveyModel(CommonNumConstants.NUM_ONE);
+        examSurveyDirectory.setSurveyState(CommonNumConstants.NUM_ZERO);
         examSurveyDirectory.setCreateId(userId);
         examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
         examSurveyDirectory.setReaderList(userIdJoin);
@@ -314,7 +316,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
         LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
         LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
-        if (ObjUtil.isNotEmpty(realStartTime) || ObjUtil.isNotEmpty(realEndTime)) {
+        if (ObjectUtil.isNotEmpty(realStartTime) && ObjectUtil.isNotEmpty(realEndTime)) {
             if (realStartTime.isAfter(realEndTime)) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
