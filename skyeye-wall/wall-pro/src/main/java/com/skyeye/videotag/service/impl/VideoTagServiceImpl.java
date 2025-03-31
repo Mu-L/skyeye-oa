@@ -114,6 +114,7 @@ public class VideoTagServiceImpl extends SkyeyeBusinessServiceImpl<VideoTagDao, 
                     .orderByDesc(MybatisPlusUtil.toColumns(VideoTag::getOrderBy));
             List<VideoTag> videoTags = list(queryWrapper);
             video.setTagMation(videoTags);
+            tagIdList = new ArrayList<>();
         }
     }
 
