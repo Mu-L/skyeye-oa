@@ -223,7 +223,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     }
 
     @Override
-    protected void updatePostpose(Question entity, String userId) {
+    public void updatePostpose(Question entity, String userId) {
         String entityId = entity.getId();
         // 更新单选题
         String belongId = entity.getBelongId();
@@ -319,6 +319,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(Question::getBelongId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
         List<Question> questionList = getBaseInfo(queryWrapper);
         outputObject.setBeans(questionList);
@@ -555,6 +556,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         }
         QueryWrapper<Question> queryWrapper = getQueryWrapper(commonPageInfo);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(Question::getBelongId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));// 按创建时间降序
         List<Question> questionList = list(queryWrapper);
         outputObject.setBeans(questionList);
@@ -639,6 +641,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete), CommonNumConstants.NUM_ONE);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(Question::getBelongId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
         List<Question> questionList = getBaseInfo(queryWrapper);
         outputObject.setBeans(questionList);
@@ -652,6 +655,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Question::getCreateTime));
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(Question::getBelongId));
         // 学校
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSchoolId), commonPageInfo.getHolderKey());

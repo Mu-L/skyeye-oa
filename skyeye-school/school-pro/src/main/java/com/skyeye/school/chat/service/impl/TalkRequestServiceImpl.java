@@ -65,8 +65,10 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
             throw new CustomException("处理过期时间失败: " + e.getMessage());
         }
         entity.setStatus(ChatType.PENDING_REQUEST.getIndex());
-        String recipientId = entity.getRecipientId();//被申请人Id
-        String applicantId = entity.getApplicantId();//申请人Id
+        //被申请人Id
+        String recipientId = entity.getRecipientId();
+        //申请人Id
+        String applicantId = entity.getApplicantId();
         QueryWrapper<TalkRequest> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrapper ->
             wrapper.or(wrapperOr -> wrapperOr
@@ -74,7 +76,11 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
                     .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), applicantId))
                 .or(wrapperOr -> wrapperOr
                     .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
-                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)));
+                    .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)))
+            .and(wrapper -> wrapper
+                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatType.PENDING_REQUEST.getIndex())
+                .or()
+                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatType.ACCEPTED.getIndex()));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
