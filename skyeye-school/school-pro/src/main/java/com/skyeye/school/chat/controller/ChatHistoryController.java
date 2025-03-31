@@ -48,4 +48,11 @@ public class ChatHistoryController {
         chatHistoryService.queryChatLogByType(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "deleteMyChatMessageList", value = "删除我的聊天消息列表", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "uniqueId", name = "uniqueId", value = "唯一会话Id", required = "required")})
+    @RequestMapping("/post/ChatHistoryController/deleteMyChatMessageList")
+    public void deleteMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
+        chatHistoryService.deleteMyChatMessageList(inputObject, outputObject);
+    }
 }

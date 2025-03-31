@@ -78,6 +78,10 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
 
     @Override
     public void validatorEntity(Checkwork entity) {
+        Integer maintainTime = entity.getMaintainTime();
+        if (maintainTime >30 ||  maintainTime <0 ){
+            throw new CustomException("持续时间必须大于0小于30分钟");
+        }
         if (entity.getType() == CheckworkType.DIGIT.getKey()) {
             // 数字考勤
             if (StrUtil.isEmpty(entity.getCodeNumber())) {

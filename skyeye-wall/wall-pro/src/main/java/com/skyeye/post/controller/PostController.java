@@ -92,7 +92,7 @@ public class PostController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryPostListByUpvote", value = "通过点赞获取帖子信息列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryPostListByUpvote", value = "通过点赞获取帖子信息列表", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PostController/queryPostListByUpvote")
     public void queryPostListByUpvote(InputObject inputObject, OutputObject outputObject) {
@@ -105,7 +105,7 @@ public class PostController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryPostListByComment", value = "通过评论获取帖子信息列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryPostListByComment", value = "通过评论获取帖子信息列表", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PostController/queryPostListByComment")
     public void queryPostListByComment(InputObject inputObject, OutputObject outputObject) {
