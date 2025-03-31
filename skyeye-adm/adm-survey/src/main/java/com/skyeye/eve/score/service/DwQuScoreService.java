@@ -24,7 +24,7 @@ public interface DwQuScoreService extends SkyeyeBusinessService<DwQuScore> {
 
     List<DwQuScore> selectQuScore(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuScore>> selectByBelongId(List<String> id);
 
     void removeByQuId(String quId);
 }

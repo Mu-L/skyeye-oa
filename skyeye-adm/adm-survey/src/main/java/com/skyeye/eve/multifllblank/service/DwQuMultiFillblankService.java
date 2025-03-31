@@ -17,5 +17,5 @@ public interface DwQuMultiFillblankService extends SkyeyeBusinessService<DwQuMul
 
     List<DwQuMultiFillblank> selectQuMultiFillblank(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuMultiFillblank>> selectByBelongId(List<String> id);
 }

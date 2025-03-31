@@ -219,6 +219,13 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
+    @Override
+    public List<DwSurveyAnswer> querySurveyAnswerByBelongId(String dwDirectoryId) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), dwDirectoryId);
+        return list(queryWrapper);
+    }
+
     private void extracted(OutputObject outputObject, QueryWrapper<DwSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {
         List<DwSurveyAnswer> beans = list(queryWrapper); // 获取所有的已批阅信息
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {

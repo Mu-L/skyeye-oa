@@ -13,7 +13,7 @@ public interface DwQuestionLogicService extends SkyeyeBusinessService<DwQuestion
 
     List<DwQuestionLogic> selectByQuestionId(String ckQuId);
 
-    Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds);
+    Map<String, List<DwQuestionLogic>> selectByQuestionIds(List<String> questionIds);
 
     void queryDwQuestionLogicList(InputObject inputObject, OutputObject outputObject);
 

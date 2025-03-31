@@ -267,6 +267,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
+        List<ScoreType> list = list(queryWrapper);
         return getOne(queryWrapper);
     }
 

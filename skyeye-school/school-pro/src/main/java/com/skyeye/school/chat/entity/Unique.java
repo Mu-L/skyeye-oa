@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 @TableName(value = "school_talk_unique")
 @ApiModel(value = "聊天会话实体类")
@@ -32,4 +34,21 @@ public class Unique extends CommonInfo {
     @TableField("create_time")
     @ApiModelProperty(value = "发送时间", required = "required")
     private String createTime;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "发送老师信息")
+    private Map<String, Object> sendTeacher;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "发送学生信息")
+    private Map<String, Object> sendStudent;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "接受老师信息")
+    private Map<String, Object> receiveTeacher;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "接受学生信息")
+    private Map<String, Object> receiveStudent;
+
 }

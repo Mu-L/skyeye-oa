@@ -1,7 +1,7 @@
 package com.skyeye.eve.question.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "题目逻辑设置管理", groupName = "题目逻辑设置管理")
@@ -76,25 +77,14 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> selectByQuestionIds(List<String> questionIds) {
-        if (questionIds.isEmpty()) {
+    public Map<String, List<DwQuestionLogic>> selectByQuestionIds(List<String> questionIds) {
+        if (CollectionUtil.isEmpty(questionIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), questionIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getVisibility), 1);
         List<DwQuestionLogic> list = list(queryWrapper);
-        Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item -> {
-            String ckQuId = item.getCkQuId();
-            if (result.containsKey(ckQuId)) {
-                result.get(ckQuId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            } else {
-                List<Map<String, Object>> tmp = new ArrayList<>();
-                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(ckQuId, tmp);
-            }
-        });
+        Map<String, List<DwQuestionLogic>> result = list.stream().collect(Collectors.groupingBy(DwQuestionLogic::getCkQuId));
         return result;
     }
 

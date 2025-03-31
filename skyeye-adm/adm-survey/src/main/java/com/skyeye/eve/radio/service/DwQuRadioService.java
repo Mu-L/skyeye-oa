@@ -25,5 +25,6 @@ public interface DwQuRadioService extends SkyeyeBusinessService<DwQuRadio> {
 
     List<DwQuRadio> selectQuRadio(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuRadio>> selectByBelongId(List<String> id);
+
 }

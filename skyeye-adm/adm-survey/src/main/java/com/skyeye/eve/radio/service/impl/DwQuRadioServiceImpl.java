@@ -1,7 +1,7 @@
 package com.skyeye.eve.radio.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -18,7 +18,6 @@ import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.radio.dao.DwQuRadioDao;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwQuRadioService;
-import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DwQuRadioServiceImpl
@@ -125,24 +125,14 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
-        if (StrUtil.isEmpty(id)) {
+    public Map<String, List<DwQuRadio>> selectByBelongId(List<String> id) {
+        if (CollectionUtil.isEmpty(id)) {
             return new HashMap<>();
         }
         QueryWrapper<DwQuRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuRadio::getBelongId), id);
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuRadio::getQuId), id);
         List<DwQuRadio> list = list(queryWrapper);
-        Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item -> {
-            String quId = item.getQuId();
-            if (result.containsKey(quId)) {
-                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            } else {
-                List<Map<String, Object>> tmp = new ArrayList<>();
-                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId, tmp);
-            }
-        });
+        Map<String, List<DwQuRadio>> result = list.stream().collect(Collectors.groupingBy(DwQuRadio::getQuId));
         return result;
     }
 

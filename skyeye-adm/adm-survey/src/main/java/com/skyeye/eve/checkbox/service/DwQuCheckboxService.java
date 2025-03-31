@@ -30,7 +30,7 @@ public interface DwQuCheckboxService extends SkyeyeBusinessService<DwQuCheckbox>
 
     List<DwQuCheckbox> selectQuChenbox(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuCheckbox>> selectByBelongId(List<String> id);
 }
 
 

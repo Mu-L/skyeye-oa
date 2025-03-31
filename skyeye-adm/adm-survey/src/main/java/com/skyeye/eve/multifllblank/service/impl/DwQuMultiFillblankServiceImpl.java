@@ -1,7 +1,7 @@
 package com.skyeye.eve.multifllblank.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -17,14 +17,13 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.multifllblank.dao.DwQuMultiFillblankDao;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
-import com.skyeye.eve.radio.entity.DwQuRadio;
-import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "多行填空题管理", groupName = "多行填空题管理")
@@ -106,24 +105,14 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
-        if (StrUtil.isEmpty(id)) {
+    public Map<String, List<DwQuMultiFillblank>> selectByBelongId(List<String> id) {
+        if (CollectionUtil.isEmpty(id)) {
             return new HashMap<>();
         }
         QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getBelongId), id);
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), id);
         List<DwQuMultiFillblank> list = list(queryWrapper);
-        Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item -> {
-            String quId = item.getQuId();
-            if (result.containsKey(quId)) {
-                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            } else {
-                List<Map<String, Object>> tmp = new ArrayList<>();
-                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId, tmp);
-            }
-        });
+        Map<String, List<DwQuMultiFillblank>> result = list.stream().collect(Collectors.groupingBy(DwQuMultiFillblank::getQuId));
         return result;
     }
 

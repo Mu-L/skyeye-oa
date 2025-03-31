@@ -135,12 +135,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
                 String dwSurveyDirectoryId = dwSurveyDirectory.getId();
                 Integer fractionNumber = getFractionNumber(dwSurveyDirectoryId);
-                List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(id);
-                if (CollectionUtil.isNotEmpty(questions)) {
-                    Integer size = questions.size();
+                if (fractionNumber == null || fractionNumber == CommonNumConstants.NUM_ZERO) {
+                    throw new CustomException("该试卷没有题目，请添加题目。");
+                }
+                if (fractionNumber != CommonNumConstants.NUM_ZERO) {
                     UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                     updateWrapper.eq(CommonConstants.ID, id);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyQuNum), size);
                     updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     update(updateWrapper);
                 } else {
@@ -162,9 +162,20 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         int questionNum = 0;
         if (CollectionUtil.isNotEmpty(questions)) {
             for (DwQuestion dwQuestion : questions) {
-
+                int questionType = dwQuestion.getQuType();
+                if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                    fraction += dwQuestion.getFraction();
+                    questionNum++;
+                }
             }
         }
+        //总分数
+        UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, dwSurveyDirectoryId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getFraction), fraction);
+        updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyQuNum), questionNum);
+        update(updateWrapper);
+        return fraction;
     }
 
     /**
@@ -176,26 +187,27 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
+        Map<String, Object> map = inputObject.getParams();
         // 是否可以参加问卷，true：可以；false：不可以
         boolean yesOrNo = false;
-        String userId = InputObject.getLogParamsStatic().get("id").toString(); // 获取当前登录用户ID
-        String id = map.get("id").toString(); // 获取问卷ID
-        DwSurveyDirectory dwSurveyDirectory = selectById(id); // 根据ID查询问卷信息
-        if (dwSurveyDirectory == null || dwSurveyDirectory.getId() == null) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String id = map.get("id").toString();
+        DwSurveyDirectory dwSurveyDirectory = selectById(id);
+        if (StrUtil.isEmpty(dwSurveyDirectory.getId())) {
             throw new CustomException("该问卷不存在");
         }
-        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
-            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
-                DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
-                if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
-                    throw new CustomException("您已参加过该问卷");
-                } else {
-                    yesOrNo = true;
-                }
+        if (ObjUtil.isEmpty(dwSurveyDirectory)) {
+            throw new CustomException("该试卷不存在");
+        }
+        if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+            DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
+            if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
+                throw new CustomException("您已参加过该问卷");
             } else {
-                throw new CustomException("该问卷未发布");
+                yesOrNo = true;
             }
+        } else {
+            throw new CustomException("该问卷未发布");
         }
         if (yesOrNo) {
             outputObject.setBean(dwSurveyDirectory);
@@ -212,73 +224,60 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void copyDwDirectory(InputObject inputObject, OutputObject outputObject) {
-        DwSurveyDirectory examSurveyDirectories = new DwSurveyDirectory(); // 创建新的问卷目录对象
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
-        String dwDirectoryId = map.get("id").toString(); // 获取问卷ID
+        Map<String, Object> map = inputObject.getParams();
+        String dwDirectoryId = map.get("id").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String surveyName = map.get("surveyName").toString(); // 获取问卷名称
-        DwSurveyDirectory examSurveyDirectory = selectById(dwDirectoryId);// 根据ID查询问卷信息
-        examSurveyDirectories.setSid(ToolUtil.randomStr(6, 12)); // 设置调查ID
-        examSurveyDirectories.setSurveyModel(1); // 设置调查模型
-        examSurveyDirectories.setCreateId(userId); // 设置创建者ID
-        examSurveyDirectories.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
+        String surveyName = map.get("surveyName").toString();
+        DwSurveyDirectory examSurveyDirectory = selectById(dwDirectoryId);
+        examSurveyDirectory.setSurveyModel(CommonNumConstants.NUM_ONE);
+        examSurveyDirectory.setSurveyState(CommonNumConstants.NUM_ZERO);
+        examSurveyDirectory.setCreateId(userId);
+        examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
+        examSurveyDirectory.setId(ToolUtil.randomStr(6, 12));
+        examSurveyDirectory.setDwQuestionMation(new ArrayList<>());
         if (StrUtil.isNotEmpty(surveyName)) {
-            examSurveyDirectories.setSurveyName(surveyName); // 设置问卷名称
+            examSurveyDirectory.setSurveyName(surveyName);
         } else {
-            examSurveyDirectories.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本"); // 设置调查名称
+            examSurveyDirectory.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本");
         }
-        examSurveyDirectories.setSurveyNote(examSurveyDirectory.getSurveyNote()); // 设置调查说明
-        examSurveyDirectories.setSurveyQuNum(examSurveyDirectory.getSurveyQuNum()); // 设置题目数量
-        examSurveyDirectories.setRealStartTime(examSurveyDirectory.getRealStartTime());
-        examSurveyDirectories.setRealEndTime(examSurveyDirectory.getRealEndTime());
-        examSurveyDirectories.setSurveyModel(examSurveyDirectory.getSurveyModel()); // 设置调查模型
-        examSurveyDirectories.setEndType(examSurveyDirectory.getEndType()); // 设置结束方式
-        examSurveyDirectories.setViewAnswer(examSurveyDirectory.getViewAnswer()); // 设置是否公开结果
-        examSurveyDirectories.setFraction(examSurveyDirectory.getFraction());
-        examSurveyDirectories.setSurveyState(examSurveyDirectory.getSurveyState()); // 设置调查状态
-        examSurveyDirectories.setWhetherDelete(examSurveyDirectory.getWhetherDelete()); // 设置是否删除
-        createEntity(examSurveyDirectories, userId); // 创建新的问卷
-        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(dwDirectoryId); // 根据问卷ID查询题目
-        if (CollectionUtil.isEmpty(questionList)) {
-            throw new CustomException("没有找到题目");
-        }
-        for (DwQuestion question : questionList) { // 遍历题目
-            question.setCopyFromId(question.getId()); // 设置复制来源ID
-            List<DwQuestionLogic> examQuestionLogics = dwQuestionLogicService.selectByQuestionId(question.getId());
-            question.setQuestionLogic(examQuestionLogics);
-            List<DwQuRadio> examQuRadioList = dwQuRadioService.selectQuRadio(question.getId());
-            question.setRadioTd(examQuRadioList);
-            List<DwQuScore> examQuScoreList = dwQuScoreService.selectQuScore(question.getId());
-            question.setScoreTd(examQuScoreList);
-            List<DwQuCheckbox> examQuCheckboxList = dwQuCheckboxService.selectQuChenbox(question.getId());
-            question.setCheckboxTd(examQuCheckboxList);
-            List<DwQuMultiFillblank> multiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(question.getId());
-            question.setMultifillblankTd(multiFillblanks);
-            List<DwQuOrderby> examQuOrderbyList = dwQuOrderbyService.selectQuOrderby(question.getId());
-            question.setOrderByTd(examQuOrderbyList);
-            List<DwQuChenColumn> examQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(question.getId());
-            question.setColumnTd(examQuChenColumnList);
-            List<DwQuChenRow> examQuChenRows = dwQuChenRowService.selectQuChenRow(question.getId());
-            question.setRowTd(examQuChenRows);
-            question.setBelongId(examSurveyDirectories.getId()); // 设置所属问卷ID
-            dwQuestionService.createEntity(question, userId); // 创建新的题目
-            outputObject.setBean(examSurveyDirectories);
+        createEntity(examSurveyDirectory, userId);
+        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(dwDirectoryId);
+        if (CollectionUtil.isNotEmpty(questionList)) {
+            List<String> questionIdList = questionList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+            Map<String, List<DwQuestionLogic>> stringListMap = dwQuestionLogicService.selectByQuestionIds(questionIdList);
+            Map<String, List<DwQuRadio>> stringListMap1 = dwQuRadioService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuScore>> stringListMap2 = dwQuScoreService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuCheckbox>> stringListMap3 = dwQuCheckboxService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuMultiFillblank>> stringListMap4 = dwQuMultiFillblankService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuOrderby>> stringListMap5 = dwQuOrderbyService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuChenColumn>> stringListMap6 = dwQuChenColumnService.selectByBelongId(questionIdList);
+            Map<String, List<DwQuChenRow>> stringListMap7 = dwQuChenRowService.selectByBelongId(questionIdList);
+            for (DwQuestion question : questionList) {
+                String id = question.getId();
+                question.setCopyFromId(id);
+                stringListMap.get(id);
+                List<DwQuestionLogic> dwQuestionLogics = stringListMap.get(id);
+                question.setQuestionLogic(dwQuestionLogics);
+                List<DwQuRadio> dwQuRadioList = stringListMap1.get(id);
+                question.setRadioTd(dwQuRadioList);
+                List<DwQuScore> dwQuScoreList = stringListMap2.get(id);
+                question.setScoreTd(dwQuScoreList);
+                List<DwQuCheckbox> dwQuCheckboxList = stringListMap3.get(id);
+                question.setCheckboxTd(dwQuCheckboxList);
+                List<DwQuMultiFillblank> dwQuMultiFillblankList = stringListMap4.get(id);
+                question.setMultifillblankTd(dwQuMultiFillblankList);
+                List<DwQuOrderby> dwQuOrderbyList = stringListMap5.get(id);
+                question.setOrderByTd(dwQuOrderbyList);
+                List<DwQuChenColumn> dwQuChenColumnList = stringListMap6.get(id);
+                question.setColumnTd(dwQuChenColumnList);
+                List<DwQuChenRow> dwQuChenRowList = stringListMap7.get(id);
+                question.setRowTd(dwQuChenRowList);
+                question.setBelongId(examSurveyDirectory.getId());
+                dwQuestionService.createEntity(question, userId);
+            }
+            outputObject.setBean(examSurveyDirectory);
             outputObject.settotal(1);
         }
-    }
-
-
-    @Override
-    protected void createPrepose(DwSurveyDirectory entity) {
-        String endTime = entity.getEndTime();
-        String realStartTime = entity.getRealStartTime(); // 获取实际开始时间
-        String realEndTime = entity.getRealEndTime(); // 获取实际结束时间
-        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
-        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
-        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
-        entity.setEndTime(endTime);
-        entity.setRealStartTime(realStartTime);
-        entity.setRealEndTime(realEndTime);
     }
 
     /**
@@ -288,19 +287,20 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
-        DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        DateTimeFormatter formatter3 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String realStartTime = dwSurveyDirectory.getRealStartTime(); // 获取实际开始时间
-        String realEndTime = dwSurveyDirectory.getRealEndTime(); // 获取实际结束时间
+        String endTime = dwSurveyDirectory.getEndTime();
+        String realStartTime = dwSurveyDirectory.getRealStartTime();
+        String realEndTime = dwSurveyDirectory.getRealEndTime();
         realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
         realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
+        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
-            LocalDateTime start = parseDateTime(realStartTime, formatter1, formatter2, formatter3);
-            LocalDateTime end = parseDateTime(realEndTime, formatter1, formatter2, formatter3);
-            if (start.isAfter(end)) {
+            boolean compare = DateUtil.compare(realStartTime, realEndTime);
+            if (compare) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
+            dwSurveyDirectory.setEndTime(endTime);
+            dwSurveyDirectory.setRealStartTime(realStartTime);
+            dwSurveyDirectory.setRealEndTime(realEndTime);
         }
     }
 
@@ -309,29 +309,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
         if (CollectionUtil.isNotEmpty(dwQuestionMation)) {
             for (DwQuestion dwQuestion : dwQuestionMation) {
-                dwQuestion.setBelongId(entity.getId()); // 设置所属试卷ID
-                dwQuestionService.createEntity(dwQuestion, userId); // 创建新的题目
+                dwQuestion.setBelongId(entity.getId());
+                dwQuestionService.createEntity(dwQuestion, userId);
             }
         }
-    }
-
-    @Override
-    protected void updatePrepose(DwSurveyDirectory entity) {
-        String realEndTime = entity.getRealEndTime();
-        String realStartTime = entity.getRealStartTime();
-        String endTime = entity.getEndTime();
-        if (StrUtil.isEmpty(endTime)) {
-            endTime = null;
-        }
-        if (StrUtil.isEmpty(realStartTime)) {
-            realStartTime = null;
-        }
-        if (StrUtil.isEmpty(realEndTime)) {
-            realEndTime = null;
-        }
-        entity.setRealStartTime(realStartTime);
-        entity.setRealEndTime(realEndTime);
-        entity.setEndTime(endTime);
     }
 
     @Override
@@ -340,47 +321,34 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
         List<String> collect = dwQuestions.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<Boolean, List<DwQuestion>> partitionedQuestions = dwQuestionMation.stream()
-            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));// 根据ID是否为空进行分区
-        List<DwQuestion> questionsWithId = partitionedQuestions.get(true);// 获取ID不为空的题目列表
-        List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);// 获取ID为空的题目列表
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+        // 获取ID不为空的题目列表
+        List<DwQuestion> questionsWithId = partitionedQuestions.get(true);
+        // 获取ID为空的题目列表
+        List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
             .map(DwQuestion::getId)
             .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = collect.stream()
             .filter(id -> !submittedIdSet.contains(id))
-            .collect(Collectors.toList());// 获取需要删除的题目ID列表
-        for (String idToDelete : idsToDelete) {
-            dwQuestionService.deleteById(idToDelete);
-        }
+            .collect(Collectors.toList());
+        dwQuestionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
+            List<DwQuestion> dwQuestionList = questionsWithId.stream()
+                .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
+                    StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
+            for (DwQuestion dwQuestion : dwQuestionList) {
+                dwQuestion.setBelongId(entity.getId());
+                dwQuestionService.createEntity(dwQuestion, userId);
+            }
             for (DwQuestion question : questionsWithId) {
-                String questionId = question.getId();
-                String belongId = question.getBelongId();
-                if (StrUtil.isNotEmpty(questionId) && StrUtil.isEmpty(belongId)) {
-                    question.setBelongId(entity.getId());
-                } else {
-                    dwQuestionService.updateEntity(question, userId); // 更新题目
-                }
+                dwQuestionService.updateEntity(question, userId);
             }
         }
         for (DwQuestion question : questionsWithoutId) {
             dwQuestionService.createEntity(question, userId);
         }
-    }
-
-    private LocalDateTime parseDateTime(String dateTimeStr, DateTimeFormatter... formatters) {
-        for (DateTimeFormatter formatter : formatters) {
-            try {
-                if (dateTimeStr.length() == 10) {
-                    LocalDate date = LocalDate.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                    return date.atStartOfDay(); // 将日期转换为当天的起始时间
-                }
-                return LocalDateTime.parse(dateTimeStr, formatter);
-            } catch (DateTimeParseException e) {
-            }
-        }
-        throw new DateTimeParseException("无法解析时间字符串: " + dateTimeStr, dateTimeStr, 0);
     }
 
     /**

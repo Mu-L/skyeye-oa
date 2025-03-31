@@ -4,8 +4,7 @@
 
 package com.skyeye.eve.chen.service.impl;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -15,14 +14,13 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwQuChenRowDao;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
-import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DwQuChenRowServiceImpl
@@ -90,24 +88,14 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     }
 
     @Override
-    public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
-        if (StrUtil.isEmpty(id)) {
+    public Map<String, List<DwQuChenRow>> selectByBelongId(List<String> id) {
+        if (CollectionUtil.isEmpty(id)) {
             return new HashMap<>();
         }
         QueryWrapper<DwQuChenRow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenRow::getBelongId), id);
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuChenRow::getQuId), id);
         List<DwQuChenRow> list = list(queryWrapper);
-        Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item -> {
-            String quId = item.getQuId();
-            if (result.containsKey(quId)) {
-                result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            } else {
-                List<Map<String, Object>> tmp = new ArrayList<>();
-                tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId, tmp);
-            }
-        });
+        Map<String, List<DwQuChenRow>> result = list.stream().collect(Collectors.groupingBy(DwQuChenRow::getQuId));
         return result;
     }
 

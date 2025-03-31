@@ -31,5 +31,5 @@ public interface DwQuChenColumnService extends SkyeyeBusinessService<DwQuChenCol
 
     List<DwQuChenColumn> selectQuChenColumn(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuChenColumn>> selectByBelongId(List<String> id);
 }

@@ -18,5 +18,5 @@ public interface DwQuOrderbyService extends SkyeyeBusinessService<DwQuOrderby> {
 
     List<DwQuOrderby> selectQuOrderby(String copyFromId);
 
-    Map<String, List<Map<String, Object>>> selectByBelongId(String id);
+    Map<String, List<DwQuOrderby>> selectByBelongId(List<String> id);
 }

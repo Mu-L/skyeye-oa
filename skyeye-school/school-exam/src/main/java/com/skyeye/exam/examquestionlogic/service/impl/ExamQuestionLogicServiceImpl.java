@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquestionlogic.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -82,7 +83,7 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
 
     @Override
     public Map<String, List<ExamQuestionLogic>> selectByQuestionIds(List<String> questionIds) {
-        if (questionIds.isEmpty()) {
+        if (CollectionUtil.isEmpty(questionIds)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();

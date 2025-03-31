@@ -215,7 +215,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         boolean yesOrNo = false;
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String id = map.get("id").toString();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(id);
+        ExamSurveyDirectory examSurveyDirectory = selectById(id);
         if (StrUtil.isEmpty(examSurveyDirectory.getId())) {
             throw new CustomException("该试卷信息不存在。");
         }
@@ -379,8 +379,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
             for (Question question : collect) {
                 question.setBelongId(surveId);
-            }
-            for (Question question : collect) {
                 questionService.createEntity(question, question.getCreateId());
             }
             for (Question question : questionsWithId) {
