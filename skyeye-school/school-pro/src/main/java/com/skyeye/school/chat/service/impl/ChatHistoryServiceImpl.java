@@ -112,108 +112,94 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
         update(updateWrapper);
     }
 
-    @Override
-    public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        // 分组查询我的最近的聊天消息列表(50条)
-        QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.and(wrapper ->
-            wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
-                .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
-        queryWrapper.groupBy(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId));
-        queryWrapper.last("LIMIT 50");
-        List<ChatHistory> talkChatHistoryList = list(queryWrapper);
-        if (CollectionUtil.isEmpty(talkChatHistoryList)) {
-            return;
-        }
-        // 根据用户id查询员工数据
-        List<String> userIds = talkChatHistoryList.stream()
-            .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-            .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(userIds)) {
-            List<String> receiveIds = talkChatHistoryList.stream()
-                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
-                .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
-            userIds.addAll(receiveIds);
-            userIds = userIds.stream().distinct().collect(Collectors.toList());
-        }
-        // 教师信息
-        Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
-        // 学生信息
-        String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
-        List<Map<String, Object>> studentList = iUserService.queryEntityMationByIds(userIdsStr);
-        Map<String, Map<String, Object>> studentMap = studentList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (ChatHistory talkChatHistory : talkChatHistoryList) {
-            Map<String, Object> bean = new HashMap<>();
-            if (talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey()) {
-                Map<String, Object> user;
-                // 1. 先判断是否是教师
-                if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
-                    // 我发送的消息
-                    user = userMap.get(talkChatHistory.getReceiveId());
-                } else {
-                    // 我接收的消息
-                    user = userMap.get(talkChatHistory.getSendId());
-                }
-                if (CollectionUtil.isNotEmpty(user)) {
-                    bean.put("type", LoginIdentity.TEACHER.getKey());
-                }
+//    @Override
+//    public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
+//        String userId = inputObject.getLogParams().get("id").toString();
+//        // 分组查询我的最近的聊天消息列表(50条)
+//        QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.and(wrapper ->
+//            wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId)
+//                .or().eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId));
+//        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
+//        queryWrapper.groupBy(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId));
+//        queryWrapper.last("LIMIT 50");
+//        List<ChatHistory> talkChatHistoryList = list(queryWrapper);
+//        if (CollectionUtil.isEmpty(talkChatHistoryList)) {
+//            return;
+//        }
+//        // 根据用户id查询员工数据
+//        List<String> userIds = talkChatHistoryList.stream()
+//            .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+//            .map(ChatHistory::getSendId).distinct().collect(Collectors.toList());
+//        if (CollectionUtil.isNotEmpty(userIds)) {
+//            List<String> receiveIds = talkChatHistoryList.stream()
+//                .filter(talkChatHistory -> talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey())
+//                .map(ChatHistory::getReceiveId).distinct().collect(Collectors.toList());
+//            userIds.addAll(receiveIds);
+//            userIds = userIds.stream().distinct().collect(Collectors.toList());
+//        }
+//        // 教师信息
+//        Map<String, Map<String, Object>> userMap = iAuthUserService.queryUserNameList(userIds);
+//        // 学生信息
+//        String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds);
+//        List<Map<String, Object>> studentList = iUserService.queryEntityMationByIds(userIdsStr);
+//        Map<String, Map<String, Object>> studentMap = studentList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+//        List<Map<String, Object>> result = new ArrayList<>();
+//        for (ChatHistory talkChatHistory : talkChatHistoryList) {
+//            Map<String, Object> bean = new HashMap<>();
+//            if (talkChatHistory.getChatType() == ChatType.PERSONAL_TO_PERSONAL.getKey()) {
+//                Map<String, Object> user;
+//                // 1. 先判断是否是教师
+//                if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
+//                    // 我发送的消息
+//                    user = userMap.get(talkChatHistory.getReceiveId());
+//                } else {
+//                    // 我接收的消息
+//                    user = userMap.get(talkChatHistory.getSendId());
+//                }
+//                if (CollectionUtil.isNotEmpty(user)) {
+//                    bean.put("type", LoginIdentity.TEACHER.getKey());
+//                }
+//
+//                // 2. 判断是否是学生
+//                if (user == null) {
+//                    if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
+//                        // 我发送的消息
+//                        user = studentMap.get(talkChatHistory.getReceiveId());
+//                    } else {
+//                        // 我接收的消息
+//                        user = studentMap.get(talkChatHistory.getSendId());
+//                    }
+//                    bean.put("type", LoginIdentity.STUDENT.getKey());
+//                }
+//                if (user == null) {
+//                    continue;
+//                }
+//                // 发送者信息
+//                if (StrUtil.equals(bean.get("type").toString(), LoginIdentity.TEACHER.getKey())) {
+//                    bean.put("name", user.get("userName").toString());
+//                    bean.put("avatar", user.get("userPhoto").toString());
+//                    bean.put("staffId", user.get("staffId").toString());
+//                } else {
+//                    bean.put("name", user.get("name").toString());
+//                    bean.put("avatar", user.getOrDefault("img", StrUtil.EMPTY).toString());
+//                }
+//                bean.put("talkId", user.get("id").toString());
+//            }
+//            bean.put("sendId", talkChatHistory.getSendId());
+//            bean.put("content", talkChatHistory.getContent());
+//            bean.put("createTime", talkChatHistory.getCreateTime());
+//            bean.put("chatType", talkChatHistory.getChatType());
+//            result.add(bean);
+//        }
+//        outputObject.setBeans(result);
+//        outputObject.settotal(result.size());
+//    }
 
-                // 2. 判断是否是学生
-                if (user == null) {
-                    if (StrUtil.equals(userId, talkChatHistory.getSendId())) {
-                        // 我发送的消息
-                        user = studentMap.get(talkChatHistory.getReceiveId());
-                    } else {
-                        // 我接收的消息
-                        user = studentMap.get(talkChatHistory.getSendId());
-                    }
-                    bean.put("type", LoginIdentity.STUDENT.getKey());
-                }
-                if (user == null) {
-                    continue;
-                }
-                // 发送者信息
-                if (StrUtil.equals(bean.get("type").toString(), LoginIdentity.TEACHER.getKey())) {
-                    bean.put("name", user.get("userName").toString());
-                    bean.put("avatar", user.get("userPhoto").toString());
-                    bean.put("staffId", user.get("staffId").toString());
-                } else {
-                    bean.put("name", user.get("name").toString());
-                    bean.put("avatar", user.getOrDefault("img", StrUtil.EMPTY).toString());
-                }
-                bean.put("talkId", user.get("id").toString());
-            }
-            bean.put("sendId", talkChatHistory.getSendId());
-            bean.put("content", talkChatHistory.getContent());
-            bean.put("createTime", talkChatHistory.getCreateTime());
-            bean.put("chatType", talkChatHistory.getChatType());
-            result.add(bean);
-        }
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
-    }
-
     @Override
-    public void deleteMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
-        // 获取当前用户ID
-        String userId = inputObject.getLogParams().get("id").toString();
-        // 获取要删除的会话唯一标识（
-        Map<String, Object> map = inputObject.getParams();
-        String uniqueId = map.get("uniqueId").toString();
+    public void queryUniqueAndIdList() {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId), uniqueId)
-            .and(wrapper -> wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId)
-                .or()
-                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId));
-        boolean success = remove(queryWrapper);
-        if (success) {
-            outputObject.setreturnMessage("会话删除成功");
-        } else {
-            outputObject.setreturnMessage("会话删除失败");
-        }
+
     }
 
     @Override

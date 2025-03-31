@@ -1,5 +1,7 @@
 package com.skyeye.school.chat.entity;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.WebSocketConstants;
@@ -11,8 +13,10 @@ import com.skyeye.eve.classenum.CompanyChatGroupState;
 import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import com.skyeye.school.chat.service.CompanyChatGroupService;
+import com.skyeye.school.chat.service.UniqueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -237,6 +241,8 @@ public class ChatWebSocket {
         }
     }
 
+    @Autowired
+    private UniqueService uniqueService;
     /**
      * 收到客户端的消息
      *
@@ -280,8 +286,20 @@ public class ChatWebSocket {
                     try {
                         // 插入消息记录
                         ChatHistoryService chatHistoryService = SpringUtils.getBean(ChatHistoryService.class);
-
+                        UniqueService uniqueService = SpringUtils.getBean(UniqueService.class);
                         String toUserId = jsonObject.getStr("to");
+                        String sendId = this.userId;
+                        String receiveId = toUserId;
+                        String uniqueId = generateUniqueId(sendId, receiveId);
+                        Unique isExist = uniqueService.quesyUniqueIsExist(uniqueId);
+                        if (ObjectUtil.isEmpty(isExist)) {
+                            Unique unique = new Unique();
+                            unique.setUniqueId(uniqueId);
+                            unique.setSendId(sendId);
+                            unique.setReceiveId(receiveId);
+                            unique.setCreateTime(DateUtil.getTimeAndToString());
+                            uniqueService.createEntity(unique,userId);
+                        }
                         // 判断接收者是否在线，如果在线就发送
                         if (isUserOnline(toUserId)) {
                             String id = chatHistoryService.createEntity(jsonObject, ChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.ENABLE_USING.getKey());
@@ -382,6 +400,12 @@ public class ChatWebSocket {
                 LOGGER.error("发送错误通知失败: {}", ex.getMessage());
             }
         }
+    }
+
+    private String generateUniqueId(String id1, String id2) {
+        String[] ids = {id1, id2};
+        Arrays.sort(ids);
+        return ids[0] + "_" + ids[1];
     }
 
     /**

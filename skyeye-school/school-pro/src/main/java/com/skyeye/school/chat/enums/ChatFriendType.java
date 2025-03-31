@@ -1,4 +1,4 @@
-package com.skyeye.school.chat.classenum;
+package com.skyeye.school.chat.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum ChatType {
+public enum ChatFriendType {
 
     PENDING_REQUEST("pendingRequest",0, "请求中", true, false),
     ACCEPTED("accepted", 1,"已接受", true, false),

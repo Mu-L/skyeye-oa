@@ -15,7 +15,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.school.chat.classenum.ChatType;
+import com.skyeye.school.chat.enums.ChatFriendType;
 import com.skyeye.school.chat.dao.TalkRequestDao;
 import com.skyeye.school.chat.entity.TalkRequest;
 import com.skyeye.school.chat.service.FriendRelationshipService;
@@ -64,7 +64,7 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
         } catch (Exception e) {
             throw new CustomException("处理过期时间失败: " + e.getMessage());
         }
-        entity.setStatus(ChatType.PENDING_REQUEST.getIndex());
+        entity.setStatus(ChatFriendType.PENDING_REQUEST.getIndex());
         //被申请人Id
         String recipientId = entity.getRecipientId();
         //申请人Id
@@ -78,9 +78,9 @@ public class TalkRequestServiceImpl extends SkyeyeBusinessServiceImpl<TalkReques
                     .eq(MybatisPlusUtil.toColumns(TalkRequest::getRecipientId), applicantId)
                     .eq(MybatisPlusUtil.toColumns(TalkRequest::getApplicantId), recipientId)))
             .and(wrapper -> wrapper
-                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatType.PENDING_REQUEST.getIndex())
+                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatFriendType.PENDING_REQUEST.getIndex())
                 .or()
-                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatType.ACCEPTED.getIndex()));
+                .eq(MybatisPlusUtil.toColumns(TalkRequest::getStatus), ChatFriendType.ACCEPTED.getIndex()));
         List<TalkRequest> talkRequestList = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(talkRequestList)) {
             throw new CustomException("禁止重新添加好友");
