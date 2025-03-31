@@ -15,7 +15,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.school.chat.classenum.ChatType;
+import com.skyeye.school.chat.enums.ChatFriendType;
 import com.skyeye.school.chat.dao.FriendRelationshipDao;
 import com.skyeye.school.chat.entity.FriendRelationship;
 import com.skyeye.school.chat.service.FriendRelationshipService;
@@ -74,7 +74,7 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         String id = map.get("id").toString();
         QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatFriendType.ACCEPTED.getIndex());
         queryWrapper.and(wrapper -> wrapper
             .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), id)
             .or()
@@ -108,7 +108,7 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
                     .or(wrapperOr -> wrapperOr
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), holderId)
                         .eq(MybatisPlusUtil.toColumns(FriendRelationship::getUserId), friendId)))
-            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatType.ACCEPTED.getIndex());
+            .eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatFriendType.ACCEPTED.getIndex());
         return getOne(friendQueryWrapper, false);
     }
 

@@ -16,9 +16,9 @@ public interface ChatHistoryService extends SkyeyeBusinessService<ChatHistory> {
 
     void editChatHistoryToRead(InputObject inputObject, OutputObject outputObject);
 
-    void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject);
+//    void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject);
 
     void queryChatLogByType(InputObject inputObject, OutputObject outputObject);
 
-    void deleteMyChatMessageList(InputObject inputObject, OutputObject outputObject);
+    void queryUniqueAndIdList();
 }

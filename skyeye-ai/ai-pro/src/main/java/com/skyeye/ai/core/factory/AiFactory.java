@@ -5,6 +5,7 @@
 package com.skyeye.ai.core.factory;
 
 import com.skyeye.ai.core.enums.AiPlatformEnum;
+import com.skyeye.key.entity.AiApiKey;
 
 /**
  * @ClassName: AiFactory
@@ -22,11 +23,12 @@ public interface AiFactory {
      * 如果不存在，则进行创建
      *
      * @param platform 平台
+     * @param appId    APP ID
      * @param apiKey   API KEY
      * @param url      API URL
      * @return ChatModel 对象
      */
-    Object getOrCreateChatModel(AiPlatformEnum platform, String apiKey, String secretKey, String url);
+    Object getOrCreateChatModel(AiPlatformEnum platform, String appId, String apiKey, String secretKey, String url);
 
     /**
      * 基于默认配置，获得 ChatModel 对象
@@ -34,9 +36,10 @@ public interface AiFactory {
      * 默认配置，指的是在 application.yaml 配置文件中的 spring.ai 相关的配置
      *
      * @param platform 平台
+     * @param aiApiKey
      * @return ChatModel 对象
      */
-    Object getDefaultChatModel(AiPlatformEnum platform);
+    Object getDefaultChatModel(AiPlatformEnum platform, AiApiKey aiApiKey);
 
     /**
      * 基于默认配置，获得 ImageModel 对象
