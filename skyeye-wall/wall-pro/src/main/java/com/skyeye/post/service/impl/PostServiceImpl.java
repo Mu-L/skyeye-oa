@@ -138,7 +138,13 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         String objectId = commonPageInfo.getObjectId();
         String holderId = commonPageInfo.getHolderId();
         String type = commonPageInfo.getType();
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        String userId;
+        if(StrUtil.isEmpty(userToken)){
+            userId = null;
+        }else {
+            userId = InputObject.getLogParamsStatic().get("id").toString();
+        }
         List<Post> bean;
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
