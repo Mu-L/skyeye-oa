@@ -121,7 +121,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
-        noticeService.deleteVideoNoticeByCommentIds(ids);
+        // TODO 通知管理
+//        noticeService.deleteVideoNoticeByCommentIds(ids);
     }
 
     private void setCommentPicture(List<VideoComment> list) {
