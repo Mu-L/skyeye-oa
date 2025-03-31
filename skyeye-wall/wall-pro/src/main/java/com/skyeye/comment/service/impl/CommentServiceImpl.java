@@ -23,6 +23,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -40,6 +41,8 @@ import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,9 +94,13 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         Map<String, List<Picture>> picturetMap = pictureService.getPictureMapListByIds(ids);
         // 获取点赞信息
-        String userId = inputObject.getLogParams().get("id").toString();
-        Map<String, Boolean> checkUpvoteMap = upvoteService.checkUpvote(userId, ids.toArray(new String[]{}));
-
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        Map<String, Boolean> checkUpvoteMap = Collections.emptyMap();
+        if(StrUtil.isNotEmpty(userToken)) {
+            String userId = inputObject.getLogParams().get("id").toString();
+            checkUpvoteMap = upvoteService.checkUpvote(userId, ids.toArray(new String[]{}));
+        }
+        Map<String, Boolean> finalCheckUpvoteMap = checkUpvoteMap;
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
             Integer anonymity = Integer.parseInt(bean.get("anonymity").toString());
@@ -103,7 +110,9 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
                 bean.put("picture", pictures.stream().findFirst().orElse(null));
             }
             // 设置点赞信息
-            bean.put("checkUpvote", checkUpvoteMap.get(id));
+            if (CollectionUtil.isNotEmpty(finalCheckUpvoteMap)){
+                bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
+            }
             // 设置用户信息
             String loginIdentity = bean.get("loginIdentity").toString();
             if(anonymity == WhetherEnum.DISABLE_USING.getKey()){ // 非匿名
@@ -265,6 +274,10 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     @Override
     public void validatorEntity(Comment comment) {
         super.validatorEntity(comment);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
         Post post = postService.selectById(comment.getPostId());
         if (ObjectUtil.isEmpty(post) && StrUtil.isEmpty(post.getId())) {
             throw new CustomException("无此帖子，不可评论！");

@@ -10,8 +10,10 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.video.dao.VideoRecordDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoRecord;
@@ -40,6 +42,10 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
      */
     @Override
     public boolean checkUpvoteOrCollectByUserId(Video video, int type) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            return false;
+        }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), video.getId());
@@ -53,7 +59,13 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
      */
     @Override
     public Map<String, Boolean> checkUpvoteOrCollect(List<String> videoIds, int type){
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        String userId;
+        if(StrUtil.isEmpty(userToken)){
+            userId = StrUtil.EMPTY;
+        }else {
+            userId = InputObject.getLogParamsStatic().get("id").toString();
+        }
         QueryWrapper<VideoRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(VideoRecord::getVideoId), videoIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoRecord::getUserId), userId);

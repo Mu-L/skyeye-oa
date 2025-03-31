@@ -2,12 +2,14 @@ package com.skyeye.focus.service.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -75,6 +77,10 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
 
     @Override
     public boolean checkFocus(String createId) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            return false;
+        }
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Focus::getUserId),createId )
@@ -84,7 +90,13 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
 
     @Override
     public Map<String,Boolean> checkFocus(List<String> videoCreateIds) {
-        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        String userId;
+        if(StrUtil.isEmpty(userToken)){
+            userId = StrUtil.EMPTY;
+        }else {
+            userId = InputObject.getLogParamsStatic().get("id").toString();
+        }
         QueryWrapper<Focus> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Focus::getUserId), videoCreateIds)
                 .eq(MybatisPlusUtil.toColumns(Focus::getCreateId), userId);

@@ -87,6 +87,15 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Autowired
     private JoinCircleService joinCircleService;
 
+    @Override
+    public void validatorEntity(Post entity) {
+        super.validatorEntity(entity);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
+    }
+
     private Post setUserMation(Post post) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         Map<String, Boolean> checkUpvote = new HashMap<>();

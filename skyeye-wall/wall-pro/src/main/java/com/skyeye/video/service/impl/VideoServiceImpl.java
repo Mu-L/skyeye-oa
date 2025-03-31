@@ -12,6 +12,7 @@ import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -111,6 +112,15 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     @Override
+    public void validatorEntity(Video entity) {
+        super.validatorEntity(entity);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
+    }
+
+    @Override
     public void createPrepose(Video entity) {
         String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
         entity.setLoginIdentity(userIdentity);
@@ -189,12 +199,12 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // 视频id
         String objectId = commonPageInfo.getObjectId();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         // 定义行为的评分权重
         double VIEW_SCORE = 0.1; // 浏览
         double LIKE_SCORE = 3.0; // 点赞
         double COLLECT_SCORE = 5.0; // 收藏
         double COMMENT_SCORE = 2.0; // 评论
-        String currentUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         Map<String, Map<String, Double>> userVideoScores = new HashMap<>();
         // 获取所有用户的点赞的视频
         List<VideoRecord> supportVideos = videoRecordService.queryAllSupportOrCollect(VideoTypeEnum.LIKE.getKey());
@@ -222,7 +232,11 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         }
         // 2，计算视频之间的相似度
         Map<String, Map<String, Double>> similarityMap = buildSimilarityMatrix(userVideoScores);
-        List<String> videoIds = recommendVideos(objectId,currentUserId, userVideoScores, similarityMap, 10);
+        List<String> videoIds = new ArrayList<>();
+       if(StrUtil.isNotEmpty(userToken)){
+           String currentUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+           videoIds = recommendVideos(objectId,currentUserId, userVideoScores, similarityMap, 10);
+       }
         List<Video> videos = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(videoIds)) {
             List<Video> bean = selectByIds(videoIds.toArray(new String[0]));
@@ -422,6 +436,10 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void supportOrNotVideo(InputObject inputObject, OutputObject outputObject) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);
@@ -435,6 +453,10 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void collectOrNotVideo(InputObject inputObject, OutputObject outputObject) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);

@@ -34,7 +34,7 @@ public class VideoCommentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertVideoComment", value = "新增视频评论信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertVideoComment", value = "新增视频评论信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = VideoComment.class)
     @RequestMapping("/post/VideoCommentController/insertVideoComment")
     public void insertVideoComment(InputObject inputObject, OutputObject outputObject) {
@@ -61,7 +61,7 @@ public class VideoCommentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryCommentListByVideoId", value = "根据视频id获取评论信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryCommentListByVideoId", value = "根据视频id获取评论信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoCommentController/queryCommentListByVideoId")
     public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
@@ -74,7 +74,7 @@ public class VideoCommentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "supportOrNotComment", value = "点赞或取消点赞评论", method = "POST", allUse = "2")
+    @ApiOperation(id = "supportOrNotComment", value = "点赞或取消点赞评论", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id", required = "required")
     })

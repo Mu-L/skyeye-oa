@@ -65,7 +65,7 @@ public class PostController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertPost", value = "新增帖子信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertPost", value = "新增帖子信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = Post.class)
     @RequestMapping("/post/PostController/insertPost")
     public void insertPost(InputObject inputObject, OutputObject outputObject) {
