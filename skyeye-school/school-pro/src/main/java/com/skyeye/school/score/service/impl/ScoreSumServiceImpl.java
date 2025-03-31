@@ -4,6 +4,7 @@
 
 package com.skyeye.school.score.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -86,5 +87,15 @@ public class ScoreSumServiceImpl extends SkyeyeBusinessServiceImpl<ScoreSumDao, 
             map.put(stuNo, String.valueOf(newSum[CommonNumConstants.NUM_ZERO]));
         });
         return map;
+    }
+
+    @Override
+    public void deleteByObjectIdList(List<String> objectIdList) {
+        if (CollectionUtil.isEmpty(objectIdList)){
+            return;
+        }
+        QueryWrapper<ScoreSum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreSum::getObjectId), objectIdList);
+        remove(queryWrapper);
     }
 }

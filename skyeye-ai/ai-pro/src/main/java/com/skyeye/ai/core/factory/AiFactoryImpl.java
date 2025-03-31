@@ -8,17 +8,13 @@ import cn.hutool.core.lang.Singleton;
 import cn.hutool.core.lang.func.Func0;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.dashscope.aigc.generation.Generation;
 import com.baidubce.qianfan.Qianfan;
 import com.baidubce.qianfan.core.auth.Auth;
-import com.skyeye.ai.core.config.SkyeyeAiProperties;
 import com.skyeye.ai.core.enums.AiPlatformEnum;
 import com.skyeye.exception.CustomException;
-import com.zhipu.oapi.ClientV4;
+import com.skyeye.key.entity.AiApiKey;
 import io.github.briqt.spark4j.SparkClient;
-import org.springframework.beans.factory.annotation.Autowired;
-
 
 /**
  * @ClassName: AiFactoryImpl
@@ -30,28 +26,17 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class AiFactoryImpl implements AiFactory {
 
-    @Autowired
-    private SkyeyeAiProperties skyeyeAiProperties;
-
     @Override
-    public Object getOrCreateChatModel(AiPlatformEnum platform, String apiKey, String secretKey, String url) {
+    public Object getOrCreateChatModel(AiPlatformEnum platform, String appId, String apiKey, String secretKey, String url) {
         String cacheKey = buildClientCacheKey(platform, apiKey, url);
         return Singleton.get(cacheKey, (Func0<Object>) () -> {
             switch (platform) {
                 case YI_YAN:
                     return buildYiYanChatModel(apiKey, secretKey);
                 case XUN_FEI:
-                    return buildXunFeiClient(
-                            skyeyeAiProperties.getXunfei().getAppId(),apiKey,secretKey);
-                case DEEP_SEEK:
-                    // todo deepseek AI
-                    return null;
+                    return buildXunFeiClient(appId, apiKey, secretKey);
                 case TONG_YI:
                     return buildTongYiChatClient();
-                case ZHI_PU:
-                    // todo ZhiPu AI
-                    return buildZhiPuChatClient(skyeyeAiProperties.getZhiPu().getApiKey(),
-                            skyeyeAiProperties.getZhiPu().getSecretKey());
                 default:
                     throw new IllegalArgumentException(StrUtil.format("未知平台({})", platform));
             }
@@ -59,37 +44,12 @@ public class AiFactoryImpl implements AiFactory {
     }
 
     @Override
-    public Object getDefaultChatModel(AiPlatformEnum platform) {
-        switch (platform) {
-            case YI_YAN:
-                return getOrCreateChatModel(platform,
-                        skyeyeAiProperties.getQianfan().getApiKey(),
-                        skyeyeAiProperties.getQianfan().getSecretKey(),
-                        null);
-            case XUN_FEI:
-                return getOrCreateChatModel(platform,
-                        skyeyeAiProperties.getXunfei().getApiKey(),
-                        skyeyeAiProperties.getXunfei().getSecretKey(),
-                        null);
-            case DEEP_SEEK:
-                return getOrCreateChatModel(platform,
-                        skyeyeAiProperties.getDeepSeek().getApiKey(),
-                        skyeyeAiProperties.getDeepSeek().getSecretKey(),
-                        skyeyeAiProperties.getDeepSeek().getUrl());
-            case TONG_YI:
-                return  getOrCreateChatModel(platform,
-                        skyeyeAiProperties.getTongYi().getApiKey(),
-                        skyeyeAiProperties.getTongYi().getSecretKey(),
-                        null);
-            case ZHI_PU:
-                return getOrCreateChatModel(platform,
-                        skyeyeAiProperties.getZhiPu().getApiKey(),
-                        skyeyeAiProperties.getZhiPu().getSecretKey(),
-                        skyeyeAiProperties.getZhiPu().getUrl());
-            default:
-                return null;
-        }
-//        return getOrCreateChatModel(platform, skyeyeAiProperties.getQianfan().getApiKey(), skyeyeAiProperties.getQianfan().getSecretKey(), null);
+    public Object getDefaultChatModel(AiPlatformEnum platform, AiApiKey aiApiKey) {
+        return getOrCreateChatModel(platform,
+            aiApiKey.getApiAppId(),
+            aiApiKey.getApiKey(),
+            aiApiKey.getSecretKey(),
+            null);
     }
 
     @Override
@@ -138,7 +98,4 @@ public class AiFactoryImpl implements AiFactory {
         return new Generation();
     }
 
-    private static ClientV4 buildZhiPuChatClient(String apiKey,String secretKey) {
-        return new ClientV4.Builder(apiKey,secretKey).build();
-    }
 }

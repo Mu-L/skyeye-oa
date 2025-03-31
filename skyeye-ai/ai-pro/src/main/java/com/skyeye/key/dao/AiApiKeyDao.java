@@ -4,9 +4,9 @@
 
 package com.skyeye.key.dao;
 
-
-import com.skyeye.key.entity.AiApiKey;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
+import com.skyeye.key.entity.AiApiKey;
+
 /**
  * @ClassName: ShopDeliveryCompanyController
  * @Description: ai配置数据接口层

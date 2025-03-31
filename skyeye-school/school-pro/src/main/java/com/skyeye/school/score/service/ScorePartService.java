@@ -31,6 +31,8 @@ public interface ScorePartService extends SkyeyeBusinessService<ScorePart> {
 
     void deleteByObjectId(String objectId);
 
+    void deleteByObjectIdList(List<String> objectIdList);
+
     void createScorePart(InputObject inputObject, OutputObject outputObject);
     void midCourse(String stuNo, String subjectId, String classId);
 

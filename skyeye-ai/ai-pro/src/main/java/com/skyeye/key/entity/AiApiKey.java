@@ -7,6 +7,7 @@ package com.skyeye.key.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.ai.core.enums.AiPlatformEnum;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -41,6 +42,10 @@ public class AiApiKey extends OperatorUserInfo {
     @ApiModelProperty(value = "备注")
     private String remark;
 
+    @TableField(value = "api_app_id")
+    @ApiModelProperty(value = "appId")
+    private String apiAppId;
+
     @TableField(value = "`api_key`")
     @ApiModelProperty(value = "密钥")
     private String apiKey;
@@ -50,11 +55,11 @@ public class AiApiKey extends OperatorUserInfo {
     private String secretKey;
 
     @TableField(value = "`enabled`")
-    @ApiModelProperty(value = "状态",required = "required")
+    @ApiModelProperty(value = "状态", required = "required")
     private String enabled;
 
     @TableField(value = "`platform`")
-    @ApiModelProperty(value = "ai平台",required = "required")
+    @ApiModelProperty(value = "ai平台", enumClass = AiPlatformEnum.class, required = "required")
     private String platform;
 
     @TableField(value = "`url`")

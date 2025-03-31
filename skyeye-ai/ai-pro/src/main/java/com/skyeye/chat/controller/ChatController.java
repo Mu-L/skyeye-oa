@@ -1,6 +1,5 @@
 package com.skyeye.chat.controller;
 
-
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
@@ -31,8 +30,7 @@ public class ChatController {
     @ApiOperation(id = "sendChatMessage", value = "发送消息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "content", name = "content", value = "消息", required = "required"),
-        @ApiImplicitParam(id = "apiKeyId", name = "apiKeyId", value = "AI配置id", required = "required")
-    })
+        @ApiImplicitParam(id = "apiKeyId", name = "apiKeyId", value = "AI配置id", required = "required")})
     @RequestMapping("/post/ChatController/sendChatMessage")
     public void sendChatMessage(InputObject inputObject, OutputObject outputObject) {
         chatService.sendChatMessage(inputObject, outputObject);
@@ -47,17 +45,15 @@ public class ChatController {
 
     @ApiOperation(id = "deleteChatMessageByIds", value = "批量删除聊天记录", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
     @RequestMapping("/post/ChatController/deleteChatMessageByIds")
     public void deleteChatMessageByIds(InputObject inputObject, OutputObject outputObject) {
         chatService.deleteByIds(inputObject, outputObject);
     }
 
-
     @ApiOperation(id = "deleteAllByApiKeyId", value = "根据apiKeyId一键删除记录", method = "POST", allUse = "2")
     @ApiImplicitParams(
-        @ApiImplicitParam(id = "apiKeyId", name = "apiKeyId", value = "ai配置id", required = "required")
-    )
+        @ApiImplicitParam(id = "apiKeyId", name = "apiKeyId", value = "ai配置id", required = "required"))
     @RequestMapping("/post/ChatController/deleteAllByApiKeyId")
     public void deleteAllByApiKeyId(InputObject inputObject, OutputObject outputObject) {
         chatService.deleteAllByApiKeyId(inputObject, outputObject);
