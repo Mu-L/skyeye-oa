@@ -17,7 +17,6 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.StringUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
@@ -264,7 +263,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectory.setQuestionMation(new ArrayList<>());
         if (StrUtil.isEmpty(surveyName)) {
             examSurveyDirectory.setSurveyName(examSurveyDirectory.getSurveyName() + "_副本");
-        }else {
+        } else {
             examSurveyDirectory.setSurveyName(surveyName);
         }
         createEntity(examSurveyDirectory, userId);
@@ -341,8 +340,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isNotEmpty(questionList)) {
             for (Question question : questionList) {
                 question.setBelongId(id);
+                questionService.createEntity(question, userId);
             }
-            questionService.createEntity(questionList, userId);
         }
     }
 
@@ -374,15 +373,17 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         questionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
             List<Question> collect = questionsWithId.stream()
-                .filter(question -> StrUtil.isNotEmpty(question.getId()) && StrUtil.isEmpty(question.getBelongId()))
-                .collect(Collectors.toList());
-            List<Question> collect1 = questionsWithId.stream()
-                .filter(question -> !(StrUtil.isNotEmpty(question.getId()) && StrUtil.isEmpty(question.getBelongId())))
-                .collect(Collectors.toList());
+                .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
+                    StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
             for (Question question : collect) {
                 question.setBelongId(surveId);
             }
-            questionService.updateEntity(collect1, userId);
+            for (Question question : collect) {
+                questionService.createEntity(question, question.getCreateId());
+            }
+            for (Question question : questionsWithId) {
+                questionService.updateEntity(question, userId);
+            }
         }
         for (Question question : questionsWithoutId) {
             questionService.createEntity(question, userId);

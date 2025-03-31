@@ -26,6 +26,8 @@ import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.dao.SubjectDao;
 import com.skyeye.school.subject.entity.Subject;
@@ -69,6 +71,12 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
 
     @Autowired
     private SchoolService schoolService;
+
+    @Autowired
+    private FacultyService facultyService;
+
+    @Autowired
+    private MajorService majorService;
 
     @Autowired
     private SubjectClassesTopService subjectClassesTopService;
@@ -116,6 +124,8 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     public Subject selectById(String id) {
         Subject subject = super.selectById(id);
         schoolService.setDataMation(subject, Subject::getSchoolId);
+        facultyService.setDataMation(subject, Subject::getFacultyId);
+        majorService.setDataMation(subject, Subject::getMajorId);
         return subject;
     }
 
@@ -131,6 +141,8 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     public List<Subject> selectByIds(String... ids) {
         List<Subject> subjectList = super.selectByIds(ids);
         schoolService.setDataMation(subjectList, Subject::getSchoolId);
+        facultyService.setDataMation(subjectList, Subject::getFacultyId);
+        majorService.setDataMation(subjectList, Subject::getMajorId);
         return subjectList;
     }
 
@@ -200,8 +212,8 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
                 }
             }
         }
-        if (CollectionUtil.isEmpty(semesterList)){
-            throw new CustomException("当前学期没有数据");
+        if (CollectionUtil.isEmpty(semesterList)) {
+            outputObject.setBean(new ArrayList<>());
         }
         outputObject.setBeans(semesterList);
         outputObject.settotal(semesterList.size());

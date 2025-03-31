@@ -20,7 +20,9 @@ import com.skyeye.video.service.VideoViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: VideoViewServiceImpl

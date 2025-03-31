@@ -15,6 +15,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.semester.entity.Semester;
 import lombok.Data;
@@ -83,7 +84,7 @@ public class SubjectClasses extends OperatorUserInfo {
     private Integer enabled;
 
     @TableField(value = "quit")
-    @ApiModelProperty(value = "是否允许退出课程", required = "required,num", enumClass = EnableEnum.class)
+    @ApiModelProperty(value = "是否允许退出课程", required = "required,num", enumClass = WhetherEnum.class)
     private Integer quit;
 
 }

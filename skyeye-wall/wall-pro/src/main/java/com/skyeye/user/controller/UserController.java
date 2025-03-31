@@ -39,7 +39,7 @@ public class UserController {
         userService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryUserById", value = "根据ID查询用户信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryUserById", value = "根据ID查询用户信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/UserController/queryUserById")

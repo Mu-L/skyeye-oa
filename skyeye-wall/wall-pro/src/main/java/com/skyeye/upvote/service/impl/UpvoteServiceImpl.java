@@ -9,10 +9,12 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.dao.UpvoteDao;
 import com.skyeye.upvote.entity.Upvote;
@@ -45,6 +47,15 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
 
     @Autowired
     private CommentService commentService;
+
+    @Override
+    public void validatorEntity(Upvote entity) {
+        super.validatorEntity(entity);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
+    }
 
     public void addOrCancelUpvote(InputObject inputObject, OutputObject outputObject) {
         Upvote upvote = inputObject.getParams(clazz);

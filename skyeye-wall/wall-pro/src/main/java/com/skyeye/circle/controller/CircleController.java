@@ -51,7 +51,7 @@ public class CircleController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertCircle", value = "新增/编辑圈子信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertCircle", value = "新增/编辑圈子信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = Circle.class)
     @RequestMapping("/post/CircleController/insertCircle")
     public void insertCircle(InputObject inputObject, OutputObject outputObject) {
@@ -78,7 +78,7 @@ public class CircleController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "selectCircleById", value = "根据ID查询圈子信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "selectCircleById", value = "根据ID查询圈子信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/CircleController/selectCircleById")
@@ -92,7 +92,7 @@ public class CircleController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryRelateCircles", value = "获取相关圈子", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryRelateCircles", value = "获取相关圈子", method = "POST", allUse = "0")
     @ApiImplicitParams(
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     )

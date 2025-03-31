@@ -35,7 +35,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeVideo", value = "新增/编辑视频", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeVideo", value = "新增/编辑视频", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = Video.class)
     @RequestMapping("/post/VideoController/writeVideo")
     public void writeVideo(InputObject inputObject, OutputObject outputObject) {
@@ -48,7 +48,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryVideoById", value = "根据id查询视频信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryVideoById", value = "根据id查询视频信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/VideoController/queryVideoById")
@@ -76,7 +76,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "supportOrNotVideo", value = "点赞或取消点赞", method = "POST", allUse = "2")
+    @ApiOperation(id = "supportOrNotVideo", value = "点赞或取消点赞", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "videoId", name = "videoId", value = "视频id", required = "required")
     })
@@ -91,7 +91,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "collectOrNotVideo", value = "收藏或取消收藏", method = "POST", allUse = "2")
+    @ApiOperation(id = "collectOrNotVideo", value = "收藏或取消收藏", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "videoId", name = "videoId", value = "视频id", required = "required")
     })
@@ -106,7 +106,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllCollectSupportVideo", value = "分页获取我的、他的点赞/收藏的视频（用户id,objectId）type(1点赞，2收藏)", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllCollectSupportVideo", value = "分页获取我的、他的点赞/收藏的视频（用户id,objectId）type(1点赞，2收藏)", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoController/queryAllCollectSupportVideo")
     public void queryAllCollectSupportVideo(InputObject inputObject, OutputObject outputObject) {
@@ -134,7 +134,7 @@ public class VideoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryRecommendVideoList", value = "推荐视频算法ItemCF算法", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VideoController/queryRecommendVideoList")
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {

@@ -13,6 +13,7 @@ import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -69,6 +70,15 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
 
     @Autowired
     private NoticeService noticeService;
+
+    @Override
+    public void validatorEntity(VideoComment entity) {
+        super.validatorEntity(entity);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isEmpty(userToken)) {
+            throw new CustomException("请先完成登录！");
+        }
+    }
 
     @Override
     public void createPrepose(VideoComment entity) {
@@ -138,7 +148,13 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     public void queryCommentListByVideoId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String videoId = commonPageInfo.getObjectId();
-        String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        String userId;
+        if(StrUtil.isEmpty(userToken)){
+            userId = null;
+        }else {
+            userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+        }
         if (StrUtil.isEmpty(videoId)) {
             throw new CustomException("视频id(objectId)不能为空");
         }
@@ -167,6 +183,10 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void supportOrNotComment(InputObject inputObject, OutputObject outputObject) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isEmpty(userToken)) {
+            throw new CustomException("请先完成登录！");
+        }
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         String commentId = inputObject.getParams().get("commentId").toString();
         Map<String, Boolean> stringBooleanMap = upvoteService.checkUpvote(userId, commentId);
