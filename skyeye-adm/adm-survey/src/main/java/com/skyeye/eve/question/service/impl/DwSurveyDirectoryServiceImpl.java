@@ -124,13 +124,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void setUpDwDirectory(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams(); // 获取请求参数Map
-        String id = map.get("id").toString(); // 获取问卷ID
-        DwSurveyDirectory dwSurveyDirectory = selectById(id); // 根据ID查询问卷信息
-        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) { // 判断问卷信息是否存在
-            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) { // 判断问卷是否未发布
-                List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(id); // 根据问卷ID查询题目
-                if (CollectionUtil.isNotEmpty(questions)) { // 判断是否有题目
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        DwSurveyDirectory dwSurveyDirectory = selectById(id);
+        if (StrUtil.isEmpty(dwSurveyDirectory.getId())) {
+            throw new CustomException("该问卷不存在");
+        }
+        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
+            // 判断试卷是否未发布
+            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
+                String dwSurveyDirectoryId = dwSurveyDirectory.getId();
+                Integer fractionNumber = getFractionNumber(dwSurveyDirectoryId);
+                List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(id);
+                if (CollectionUtil.isNotEmpty(questions)) {
                     Integer size = questions.size();
                     UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                     updateWrapper.eq(CommonConstants.ID, id);
@@ -145,6 +151,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             }
         } else {
             throw new CustomException("该问卷信息不存在。");
+        }
+    }
+
+    private Integer getFractionNumber(String dwSurveyDirectoryId) {
+        List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(dwSurveyDirectoryId);
+        //判断是否有题目
+        int fraction = 0;
+        // 题目总数
+        int questionNum = 0;
+        if (CollectionUtil.isNotEmpty(questions)) {
+            for (DwQuestion dwQuestion : questions) {
+
+            }
         }
     }
 

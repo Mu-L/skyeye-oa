@@ -197,6 +197,26 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
     }
 
     @Override
+    public void deleteMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
+        // 获取当前用户ID
+        String userId = inputObject.getLogParams().get("id").toString();
+        // 获取要删除的会话唯一标识（
+        Map<String, Object> map = inputObject.getParams();
+        String uniqueId = map.get("uniqueId").toString();
+        QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId), uniqueId)
+            .and(wrapper -> wrapper.eq(MybatisPlusUtil.toColumns(ChatHistory::getSendId), userId)
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ChatHistory::getReceiveId), userId));
+        boolean success = remove(queryWrapper);
+        if (success) {
+            outputObject.setreturnMessage("会话删除成功");
+        } else {
+            outputObject.setreturnMessage("会话删除失败");
+        }
+    }
+
+    @Override
     public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
