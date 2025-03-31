@@ -9,6 +9,14 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 
+/**
+ * @ClassName: ForumSensitiveWordsService
+ * @Description: 论坛敏感词信息管理
+ * @author: skyeye云系列--卫志强
+ * @date: 2024/3/9 14:31
+ * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 public interface ForumSensitiveWordsService extends SkyeyeBusinessService<ForumSensitiveWords> {
 
     void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject);
