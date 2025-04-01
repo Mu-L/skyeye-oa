@@ -91,7 +91,7 @@ public class ChatServiceImpl extends SkyeyeBusinessServiceImpl<ChatDao, Chat> im
         AiApiKey aiApiKey = aiApiKeyService.selectById(apiKeyId);
         String platform = aiApiKey.getPlatform();
         // 获取到具有的ai模型
-        AiPlatformEnum aiModel = AiPlatformEnum.getValue(platform);
+        AiPlatformEnum aiModel = AiPlatformEnum.getName(platform);
         // 获取role实例
         com.skyeye.role.entity.Role role = roleService.selectById(aiApiKey.getRoleId());
         // 创建AI实例
