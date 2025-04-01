@@ -26,7 +26,7 @@ public class UpvoteController {
     @Autowired
     private UpvoteService upvoteService;
 
-    @ApiOperation(id = "addOrCancelUpvote", value = "新增/删除点赞信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "addOrCancelUpvote", value = "新增/删除点赞信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "第三方业务数据id", required = "required"),
         @ApiImplicitParam(id = "objectKey", name = "objectKey", value = "第三方业务数据key", required = "required"),})

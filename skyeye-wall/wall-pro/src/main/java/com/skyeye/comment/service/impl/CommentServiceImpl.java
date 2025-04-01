@@ -25,6 +25,7 @@ import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -231,6 +232,15 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     }
 
     @Override
+    public void createEntity(InputObject inputObject, OutputObject outputObject) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            throw new CustomException("请先完成登录！");
+        }
+        super.createEntity(inputObject, outputObject);
+    }
+
+    @Override
     public void createPrepose(Comment entity) {
         String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
         entity.setLoginIdentity(userIdentity);
@@ -274,10 +284,6 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     @Override
     public void validatorEntity(Comment comment) {
         super.validatorEntity(comment);
-        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if(StrUtil.isEmpty(userToken)){
-            throw new CustomException("请先完成登录！");
-        }
         Post post = postService.selectById(comment.getPostId());
         if (ObjectUtil.isEmpty(post) && StrUtil.isEmpty(post.getId())) {
             throw new CustomException("无此帖子，不可评论！");
