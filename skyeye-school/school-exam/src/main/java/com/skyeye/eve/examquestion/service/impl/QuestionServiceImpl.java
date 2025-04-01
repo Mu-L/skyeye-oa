@@ -546,6 +546,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<Question> questionList = QueryQuestionByBelongId(surveyId);
             surveyQuestionMap.put(surveyId, questionList);
         }
+        System.out.println(surveyQuestionMap);
         return surveyQuestionMap;
     }
 
