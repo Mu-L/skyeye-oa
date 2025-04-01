@@ -72,12 +72,12 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     private NoticeService noticeService;
 
     @Override
-    public void validatorEntity(VideoComment entity) {
-        super.validatorEntity(entity);
+    public void createEntity(InputObject inputObject, OutputObject outputObject) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         if (StrUtil.isEmpty(userToken)) {
             throw new CustomException("请先完成登录！");
         }
+        super.createEntity(inputObject, outputObject);
     }
 
     @Override
