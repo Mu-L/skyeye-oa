@@ -14,6 +14,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
@@ -49,6 +50,8 @@ import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
+import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
+import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
@@ -57,8 +60,6 @@ import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -138,36 +139,25 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
-        LocalDateTime bgAnDate = entity.getBgAnDate();
-        //进行空指针判断
-        if (bgAnDate == null) {
-            throw new CustomException("开始时间不能为空");
-        }
-        if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
-            throw new CustomException("开始时间不能大于结束时间");
+        String bgAnDate = entity.getBgAnDate();
+        String endAnDate = entity.getEndAnDate();
+        if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
+            boolean compare = DateUtil.compare(bgAnDate, endAnDate);
+            if (compare) {
+                throw new CustomException("开始时间不能大于结束时间");
+            }
         }
     }
 
     @Override
     protected void updatePrepose(ExamSurveyAnswer entity) {
-        LocalDateTime bgAnDate = entity.getBgAnDate();
-        LocalDateTime endAnDate = entity.getEndAnDate();
-        LocalDateTime markStartTime = entity.getMarkStartTime();
-        LocalDateTime markEndTime = entity.getMarkEndTime();
-        //进行空指针判断
+        String bgAnDate = entity.getBgAnDate();
+        String endAnDate = entity.getEndAnDate();
         if (endAnDate == null) {
             throw new CustomException("结束时间不能为空");
         }
-        if (markStartTime == null || markEndTime == null) {
-            throw new CustomException("批阅开始时间或结束时间不能为空");
-        }
-        Duration duration = Duration.between(bgAnDate, endAnDate); // 计算时间差
-        if (duration.isNegative()) {
-            throw new CustomException("开始时间不能大于结束时间");
-        }
-        // 将时间差转换为总小时数（浮点数）
-        float totalHours = (float) duration.toHours() + (float) duration.toMinutes() / 60.0f + (float) duration.toMillis() / 3600000.0f;
-        entity.setTotalTime(totalHours); // 设置时间差到totalTime属性
+        String distanceHMS = DateUtil.getDistanceHMS(bgAnDate, endAnDate);
+        entity.setTotalTime(distanceHMS);
         String surveyId = entity.getSurveyId();
         Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
         Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
@@ -258,13 +248,19 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         return list(queryWrapper);
     }
 
+    @Autowired
+    private ExamSurveyMarkExamService examSurveyMarkExamService;
+
     @Override
-    public List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String state = map.get("state").toString();
-        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
-        return list(queryWrapper);
+    public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        String userId = inputObject.getLogParams().get("id").toString();
+        List<ExamSurveyMarkExam> examSurveyMarkExams = examSurveyMarkExamService.selectByUserId(userId);
+        List<String> surveyIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
+        List<ExamSurveyDirectory> examSurveyDirectories = examSurveyDirectoryService.querySurveyListByIds(surveyIds);
+        outputObject.setBeans(examSurveyDirectories);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -277,7 +273,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         //根据学号分别设置到对应的试卷回答信息中
         for (ExamSurveyAnswer examSurveyAnswer : list) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
@@ -320,7 +316,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         // 设置信息：
         List<String> stuNoList = beans.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         for (ExamSurveyAnswer examSurveyAnswer : beans) {
             examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
             examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));

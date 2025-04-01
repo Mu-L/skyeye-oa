@@ -60,10 +60,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -446,8 +442,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         } else {
             outputObject.setreturnMessage("该试卷信息不存在。");
         }
-
-
     }
 
     @Override
@@ -765,25 +759,25 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         outputNoDelete(outputObject, queryWrapper, page);
     }
 
-    @Override
-    public void validatorEntity(List<DwSurveyDirectory> entity) {
-        DwSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
-        String realStartTime = examSurveyDirectory.getRealStartTime(); // 获取实际开始时间
-        String realEndTime = examSurveyDirectory.getRealEndTime(); // 获取实际结束时间
-        // 假设时间格式为 yyyy-MM-dd HH:mm:ss，根据实际情况调整格式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-            try {
-                LocalDateTime startTime = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
-                LocalDateTime endTime = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
-                if (startTime.isAfter(endTime)) { // 判断开始时间是否在结束时间之后
-                    throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
-                }
-            } catch (Exception e) {
-                throw new CustomException("时间格式错误，请检查时间格式是否正确：" + e.getMessage());
-            }
-        }
-    }
+//    @Override
+//    public void validatorEntity(List<DwSurveyDirectory> entity) {
+//        DwSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
+//        String realStartTime = examSurveyDirectory.getRealStartTime();
+//        String realEndTime = examSurveyDirectory.getRealEndTime();
+//        // 假设时间格式为 yyyy-MM-dd HH:mm:ss，根据实际情况调整格式
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
+//            try {
+//                LocalDateTime startTime = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
+//                LocalDateTime endTime = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
+//                if (startTime.isAfter(endTime)) { // 判断开始时间是否在结束时间之后
+//                    throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
+//                }
+//            } catch (Exception e) {
+//                throw new CustomException("时间格式错误，请检查时间格式是否正确：" + e.getMessage());
+//            }
+//        }
+//    }
 
     @Override
     public DwSurveyDirectory selectById(String id) {

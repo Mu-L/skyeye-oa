@@ -6,6 +6,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chat.entity.ChatHistory;
 
+import java.util.List;
+import java.util.Map;
+
 public interface ChatHistoryService extends SkyeyeBusinessService<ChatHistory> {
     
     String createEntity(JSONObject jsonObject, Integer chatType, Integer readType);
@@ -20,5 +23,5 @@ public interface ChatHistoryService extends SkyeyeBusinessService<ChatHistory> {
 
     void queryChatLogByType(InputObject inputObject, OutputObject outputObject);
 
-    void queryUniqueAndIdList();
+    Map<String, List<ChatHistory>> queryLastChatHistory(List<String> uniqueIds);
 }

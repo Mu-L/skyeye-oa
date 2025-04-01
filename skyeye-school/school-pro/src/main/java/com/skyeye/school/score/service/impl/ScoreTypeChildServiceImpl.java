@@ -165,6 +165,19 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
     }
 
+    public void createPostpose(List<ScoreTypeChild> entity,String userId){
+        List<ScoreSum> scoreSumList = new ArrayList<>();
+        for (ScoreTypeChild scoreTypeChild : entity) {
+            ScoreSum newScoreSum = new ScoreSum();
+            newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
+            newScoreSum.setProportion(scoreTypeChild.getProportion());
+            newScoreSum.setObjectId(scoreTypeChild.getId());
+            newScoreSum.setStuNo(StrUtil.EMPTY);
+            scoreSumList.add(newScoreSum);
+        }
+        scoreSumService.createEntity(scoreSumList, userId);
+    }
+
     @Override
     public void createPostpose(ScoreTypeChild entity, String userId) {
         if (StrUtil.isNotEmpty(entity.getName())) {

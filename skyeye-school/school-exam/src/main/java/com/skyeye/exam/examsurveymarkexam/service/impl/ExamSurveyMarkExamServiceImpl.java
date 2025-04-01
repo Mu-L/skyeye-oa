@@ -51,8 +51,13 @@ public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), examDirectoryId);
         return list(queryWrapper);
+    }
 
-
+    @Override
+    public List<ExamSurveyMarkExam> selectByUserId(String userId) {
+        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getUserId), userId);
+        return list(queryWrapper);
     }
 
 

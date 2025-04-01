@@ -4,7 +4,6 @@
 
 package com.skyeye.school.chat.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -21,13 +20,11 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
-import com.skyeye.school.chat.enums.ChatType;
 import com.skyeye.school.chat.service.ChatHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -197,9 +194,14 @@ public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistor
 //    }
 
     @Override
-    public void queryUniqueAndIdList() {
+    public Map<String, List<ChatHistory>> queryLastChatHistory(List<String> uniqueIds) {
         QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<>();
-
+        queryWrapper.in(MybatisPlusUtil.toColumns(ChatHistory::getUniqueId),uniqueIds);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChatHistory::getCreateTime));
+        queryWrapper.last("limit 1");
+        List<ChatHistory> chatHistoryList = list(queryWrapper);
+        Map<String, List<ChatHistory>> stringListMap = chatHistoryList.stream().collect(Collectors.groupingBy(ChatHistory::getUniqueId));
+        return stringListMap;
     }
 
     @Override

@@ -22,7 +22,7 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
 
-    List<ExamSurveyAnswer> queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
+    void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
 

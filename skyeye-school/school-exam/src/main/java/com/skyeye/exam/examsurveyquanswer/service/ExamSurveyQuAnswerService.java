@@ -17,4 +17,5 @@ public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSur
     void queryExamSurveyQuAnswerListById(InputObject inputObject, OutputObject outputObject);
 
     Integer selectFractionBySurveyId(String surveyId);
+
 }

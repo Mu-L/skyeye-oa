@@ -64,7 +64,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -535,6 +537,16 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             question.setChenCheckboxAn(examAnChenCheckboxService.selectAnChenCheckboxByQuId(questionId));
         }
         return questionList;
+    }
+
+    @Override
+    public Map<String, List<Question>> queryQuestionListBySurveyIds(List<String> surveyIds) {
+        Map<String, List<Question>> surveyQuestionMap = new HashMap<>();
+        for (String surveyId : surveyIds) {
+            List<Question> questionList = QueryQuestionByBelongId(surveyId);
+            surveyQuestionMap.put(surveyId, questionList);
+        }
+        return surveyQuestionMap;
     }
 
     /**

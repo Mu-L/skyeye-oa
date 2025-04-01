@@ -57,11 +57,11 @@ public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFa
 
     @TableField("real_start_time")
     @ApiModelProperty(value = "实际开始时间")
-    private LocalDateTime realStartTime;
+    private String realStartTime;
 
     @TableField("real_end_time")
     @ApiModelProperty(value = "实际结束时间")
-    private LocalDateTime realEndTime;
+    private String realEndTime;
 
     @TableField("survey_model")
     @ApiModelProperty(value = "试卷所属的问卷模块   1.试卷模块  2.作业模块", required = "required")

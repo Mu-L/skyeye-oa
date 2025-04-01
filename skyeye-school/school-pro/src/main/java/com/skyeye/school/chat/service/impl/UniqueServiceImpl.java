@@ -12,7 +12,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.UniqueDao;
+import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.entity.Unique;
+import com.skyeye.school.chat.service.ChatHistoryService;
 import com.skyeye.school.chat.service.UniqueService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,9 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
     @Autowired
     private IUserService iUserService;
 
+    @Autowired
+    private ChatHistoryService chatHistoryService;
+
     @Override
     public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -39,6 +44,7 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(Unique::getUniqueId));
         queryWrapper.last("LIMIT 50");
         List<Unique> uniqueList = list(queryWrapper);
+        List<String> uniqueIds = uniqueList.stream().map(Unique::getUniqueId).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(uniqueList)) {
             throw new CustomException("没有聊天信息列表");
         }
@@ -59,6 +65,7 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
                 student -> student,
                 (existing, replacement) -> existing
             ));
+        Map<String, List<ChatHistory>> queryLastChatHistory = chatHistoryService.queryLastChatHistory(uniqueIds);
         for (Unique unique : uniqueList) {
             // 获取发送者信息
             Map<String, Object> sendTeacherInfo = userMap.get(unique.getSendId());
@@ -71,6 +78,7 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
             unique.setSendStudent(sendStudentInfo);
             unique.setReceiveTeacher(receiveTeacherInfo);
             unique.setReceiveStudent(receiveStudentInfo);
+            unique.setLastChatHistory(queryLastChatHistory.get(unique.getUniqueId()));
         }
         outputObject.setBeans(uniqueList);
         outputObject.settotal(uniqueList.size());
