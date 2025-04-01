@@ -111,6 +111,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (post.getAnonymity() == WhetherEnum.DISABLE_USING.getKey()) {
             if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
                 userService.setDataMation(post, Post::getCreateId);
+                String username = post.getCreateMation().getOrDefault("name", "").toString();
+                post.getCreateMation().put("username", username);
             } else {
                 iAuthUserService.setDataMation(post, Post::getCreateId);
             }
@@ -135,6 +137,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             }
             if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
                 userService.setDataMation(post, Post::getCreateId);
+                String username = post.getCreateMation().getOrDefault("name", "").toString();
+                post.getCreateMation().put("username", username);
             } else {
                 iAuthUserService.setDataMation(post, Post::getCreateId);
             }
