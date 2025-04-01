@@ -359,11 +359,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         Map<String, List<Comment>> commentListMap = commentService.getCommentMapListByIds(postIds);
         //设置PictureList、commentList
         bean.forEach(post -> {
-            if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
-                // 匿名
-                post.setCreateId(StrUtil.EMPTY);
-                post.setLastUpdateId(StrUtil.EMPTY);
-            }
             post.setPictureList(pictureMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
                     CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
