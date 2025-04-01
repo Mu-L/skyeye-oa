@@ -180,6 +180,9 @@ public class SysEveMenuServiceImpl extends SkyeyeBusinessServiceImpl<SysEveMenuD
     @Override
     public SysMenu selectById(String id) {
         SysMenu sysMenu = super.selectById(id);
+        if (StrUtil.isEmpty(sysMenu.getId())) {
+            return null;
+        }
 
         sysEveDesktopService.setDataMation(sysMenu, SysMenu::getDesktopId);
         sysEveWinService.setDataMation(sysMenu, SysMenu::getSysWinId);
