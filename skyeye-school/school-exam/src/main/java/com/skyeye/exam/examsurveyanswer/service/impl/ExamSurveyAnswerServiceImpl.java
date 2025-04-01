@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveyanswer.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -315,16 +316,18 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<ExamSurveyAnswer> beans = list(queryWrapper); // 获取所有的已批阅信息
         // 设置信息：
         List<String> stuNoList = beans.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
-        List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
-        for (ExamSurveyAnswer examSurveyAnswer : beans) {
-            examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
-            examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
-            examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
-            examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
-            for (Map<String, Object> user : userList) {
-                if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
-                    examSurveyAnswer.setStuMation(user);
+        if (CollectionUtil.isNotEmpty(stuNoList)) {
+            List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            for (ExamSurveyAnswer examSurveyAnswer : beans) {
+                examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
+                examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
+                examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
+                examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
+                for (Map<String, Object> user : userList) {
+                    if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
+                        examSurveyAnswer.setStuMation(user);
+                    }
                 }
             }
         }

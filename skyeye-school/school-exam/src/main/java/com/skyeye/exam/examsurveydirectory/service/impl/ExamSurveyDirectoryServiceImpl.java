@@ -525,7 +525,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
             examSurveyDirectory.setQuestionMation(questionList);
         }
-        outputObject.setBean(examSurveyDirectoryList);
+        outputObject.setBeans(examSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
 
     }
