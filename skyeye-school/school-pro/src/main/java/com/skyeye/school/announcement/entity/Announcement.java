@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
@@ -25,7 +27,7 @@ import lombok.Data;
 @RedisCacheField(name = "school:announcement", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "school_announcement")
 @ApiModel(value = "公告管理实体类")
-public class Announcement extends OperatorUserInfo {
+public class Announcement extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -51,9 +53,9 @@ public class Announcement extends OperatorUserInfo {
     @ApiModelProperty(value = "公告内容",required = "required")
     private String content;
 
-    @TableField("annex")
-    @ApiModelProperty(value = "公告附件")
-    private String annex;
+    @TableField(exist = false)
+    @ApiModelProperty(value = "附件", required = "json")
+    private Enclosure enclosureInfo;
 
     @TableField("is_confirm")
     @ApiModelProperty(value = "公告是否需要确认，参考#EnableEnum", required = "required,num")

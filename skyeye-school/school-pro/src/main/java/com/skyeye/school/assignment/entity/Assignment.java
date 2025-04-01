@@ -11,6 +11,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.school.chapter.entity.Chapter;
@@ -29,7 +31,7 @@ import lombok.Data;
 @RedisCacheField(name = "school:assignment", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "school_assignment")
 @ApiModel(value = "作业管理实体类")
-public class Assignment extends BaseGeneralInfo {
+public class Assignment extends BaseGeneralInfo implements EnclosureFace {
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "科目数据的id", required = "required")
@@ -103,7 +105,7 @@ public class Assignment extends BaseGeneralInfo {
     @Property(value = "未批改作业的人数")
     private Long noCorrectNum;
 
-    @TableField("annex")
-    @ApiModelProperty(value = "附件")
-    private String annex;
+    @TableField(exist = false)
+    @ApiModelProperty(value = "附件", required = "json")
+    private Enclosure enclosureInfo;
 }

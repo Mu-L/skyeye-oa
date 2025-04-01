@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.school.chapter.entity.Chapter;
@@ -27,7 +29,7 @@ import java.util.Map;
 @RedisCacheField(name = "school:datum", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @TableName(value = "school_datum")
 @ApiModel(value = "资料实体类")
-public class Datum extends OperatorUserInfo {
+public class Datum extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -37,9 +39,9 @@ public class Datum extends OperatorUserInfo {
     @ApiModelProperty(value = "资料名称", required = "required")
     private String name;
 
-    @TableField("annex")
+    @TableField(exist = false)
     @ApiModelProperty(value = "附件", required = "json")
-    private String annex;
+    private Enclosure enclosureInfo;
 
     @TableField("`remark`")
     @ApiModelProperty(value = "描述")

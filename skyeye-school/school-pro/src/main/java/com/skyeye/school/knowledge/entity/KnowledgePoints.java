@@ -11,6 +11,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
+import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.school.chapter.entity.Chapter;
 import lombok.Data;
@@ -28,7 +30,7 @@ import lombok.Data;
 @RedisCacheField(name = "school:knowledge")
 @TableName(value = "school_knowledge_points")
 @ApiModel(value = "知识点实体类")
-public class KnowledgePoints extends BaseGeneralInfo {
+public class KnowledgePoints extends BaseGeneralInfo implements EnclosureFace {
 
     @TableField("object_id")
     @ApiModelProperty(value = "科目数据的id", required = "required")
@@ -50,8 +52,8 @@ public class KnowledgePoints extends BaseGeneralInfo {
     @ApiModelProperty(value = "内容", required = "required")
     private String content;
 
-    @TableField("annex")
-    @ApiModelProperty(value = "附件")
-    private String annex;
+    @TableField(exist = false)
+    @ApiModelProperty(value = "附件", required = "json")
+    private Enclosure enclosureInfo;
 
 }
