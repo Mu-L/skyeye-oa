@@ -119,10 +119,8 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
                 .or()
                 .eq(MybatisPlusUtil.toColumns(Unique::getReceiveId), userId));
         boolean success = remove(queryWrapper);
-        if (success) {
-            outputObject.setreturnMessage("会话删除成功");
-        } else {
-            outputObject.setreturnMessage("会话删除失败");
+        if (!success) {
+            throw new CustomException("删除失败");
         }
     }
 
