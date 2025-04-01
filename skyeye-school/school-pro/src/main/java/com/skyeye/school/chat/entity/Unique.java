@@ -38,24 +38,12 @@ public class Unique extends CommonInfo {
     private String createTime;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "发送老师信息")
-    private Map<String, Object> sendTeacher;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "发送学生信息")
-    private Map<String, Object> sendStudent;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "接受老师信息")
-    private Map<String, Object> receiveTeacher;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "接受学生信息")
-    private Map<String, Object> receiveStudent;
+    @ApiModelProperty(value = "其他人具体信息")
+    private Map<String, Object> OtherUserMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "最后一条聊天")
-    private List<ChatHistory> LastChatHistory;
+    private ChatHistory LastMessage;
 
 
 }

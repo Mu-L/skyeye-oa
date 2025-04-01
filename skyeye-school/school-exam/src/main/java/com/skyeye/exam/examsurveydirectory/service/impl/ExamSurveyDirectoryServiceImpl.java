@@ -2,7 +2,6 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -526,7 +525,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
             examSurveyDirectory.setQuestionMation(questionList);
         }
-        outputObject.setBean(examSurveyDirectoryList);
+        outputObject.setBeans(examSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
 
     }
@@ -541,12 +540,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public List<ExamSurveyDirectory> querySurveyListByIds(List<String> surveyIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), surveyIds);
+        queryWrapper.in(CommonConstants.ID, surveyIds);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds);
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
             examSurveyDirectory.setQuestionMation(stringListMap.get(examSurveyDirectory.getId()));
         }
+        System.out.println(examSurveyDirectoryList);
         return examSurveyDirectoryList;
     }
 
