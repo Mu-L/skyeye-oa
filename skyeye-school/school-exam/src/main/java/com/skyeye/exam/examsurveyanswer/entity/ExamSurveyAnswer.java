@@ -57,11 +57,11 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
 
     @TableField("bg_an_date")
     @ApiModelProperty(value = "回答开始时间")
-    private LocalDateTime bgAnDate;
+    private String bgAnDate;
 
     @TableField("end_an_date")
     @ApiModelProperty(value = "回答结束时间")
-    private LocalDateTime endAnDate;
+    private String endAnDate;
 
     @TableField("complete_num")
     @ApiModelProperty(value = "回答的题数")
@@ -100,12 +100,12 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private Integer isEffective;
 
     @TableField("qu_num")
-    @ApiModelProperty(value = "回答的题数", required = "required")
+    @ApiModelProperty(value = "回答的题数",required = "required")
     private Integer quNum;
 
     @TableField("total_time")
     @ApiModelProperty(value = "用时")
-    private Float totalTime;
+    private String totalTime;
 
     @TableField("create_id")
     @ApiModelProperty(value = "学生ID", required = "required")
@@ -125,11 +125,11 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
 
     @TableField("mark_start_time")
     @ApiModelProperty(value = "开始阅卷时间")
-    private LocalDateTime markStartTime;
+    private String markStartTime;
 
     @TableField("mark_end_time")
     @ApiModelProperty(value = "结束阅卷时间")
-    private LocalDateTime markEndTime;
+    private String markEndTime;
 
     @TableField("student_number")
     @ApiModelProperty(value = "学号",required = "required")
@@ -170,42 +170,55 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     @TableField(exist = false)
     @Property(value = "单选题信息")
     private List<ExamAnRadio> examAnRadioList;
+
     @TableField(exist = false)
     @Property(value = "评分题信息")
     private List<ExamAnScore> examAnScoreList;
+
     @TableField(exist = false)
     @Property(value = "判断题信息")
     private List<ExamAnYesno> examAnYesnoList;
+
     @TableField(exist = false)
     @Property(value = "问答题信息")
     private List<ExamAnAnswer> examAnAnswerList;
+
     @TableField(exist = false)
     @Property(value = "多选题信息")
     private List<ExamAnCheckbox> examAnCheckboxList;
+
     @TableField(exist = false)
     @Property(value = "矩阵多选题信息")
     private List<ExamAnChenCheckbox> examAnChenCheckboxList;
+
     @TableField(exist = false)
     @Property(value = "矩阵填空题信息")
     private List<ExamAnChenFbk> examAnChenFbkList;
+
     @TableField(exist = false)
     @Property(value = "矩阵单选题信息")
     private List<ExamAnChenRadio> examAnChenRadioList;
+
     @TableField(exist = false)
     @Property(value = "矩阵评分题信息")
     private List<ExamAnChenScore> examAnChenScoreList;
+
     @TableField(exist = false)
     @Property(value = "复合矩阵单选题信息")
     private List<ExamAnCompChenRadio> examAnCompChenRadioList;
+
     @TableField(exist = false)
     @Property(value = "多行填空题信息")
     private List<ExamAnDfillblank> examAnDfillblankList;
+
     @TableField(exist = false)
     @Property(value = "枚举题信息")
     private List<ExamAnEnumqu> examAnEnumquList;
+
     @TableField(exist = false)
     @Property(value = "填空题信息")
     private List<ExamAnFillblank> examAnFillblankList;
+
     @TableField(exist = false)
     @Property(value = "评分题信息")
     private List<ExamAnOrder> examAnOrderList;

@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -50,5 +52,10 @@ public class Unique extends CommonInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "接受学生信息")
     private Map<String, Object> receiveStudent;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "最后一条聊天")
+    private List<ChatHistory> LastChatHistory;
+
 
 }

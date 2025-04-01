@@ -405,7 +405,7 @@ public class ChatWebSocket {
     private String generateUniqueId(String id1, String id2) {
         String[] ids = {id1, id2};
         Arrays.sort(ids);
-        return ids[0] + "_" + ids[1];
+        return ids[0] + "-" + ids[1];
     }
 
     /**

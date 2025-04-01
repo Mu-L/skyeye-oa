@@ -205,6 +205,20 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryMySurvey(inputObject, outputObject);
     }
 
+
+    /**
+     * 筛选科目和班级Id以及发布的试卷列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySurveyListBySubjectLinkId", value = "筛选科目和班级Id以及发布的试卷列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/querySurveyListBySubjectLinkId")
+    public void querySurveyListBySubjectLinkId(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.querySurveyListBySubjectLinkId(inputObject, outputObject);
+    }
+
 //    /**
 //     * 分析报告试卷
 //     *

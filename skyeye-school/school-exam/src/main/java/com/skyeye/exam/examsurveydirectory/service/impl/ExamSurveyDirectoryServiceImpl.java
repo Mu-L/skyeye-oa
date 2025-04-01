@@ -60,7 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -314,10 +313,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
-        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
-        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
-        if (ObjectUtil.isNotEmpty(realStartTime) && ObjectUtil.isNotEmpty(realEndTime)) {
-            if (realStartTime.isAfter(realEndTime)) {
+        String realStartTime = examSurveyDirectory.getRealStartTime();
+        String realEndTime = examSurveyDirectory.getRealEndTime();
+        if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
+            boolean compareTime = DateUtil.compareTime(realStartTime, realEndTime);
+            if (compareTime) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
         }
@@ -513,12 +513,51 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
+    public void querySurveyListBySubjectLinkId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        String holderId = commonPageInfo.getHolderId();//班级
+        String objectId = commonPageInfo.getObjectId();//科目id
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
+        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+            List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
+            examSurveyDirectory.setQuestionMation(questionList);
+        }
+        outputObject.setBean(examSurveyDirectoryList);
+        outputObject.settotal(page.getTotal());
+
+    }
+
+    @Override
+    public void querySurveyListByNoOrYesState(Integer state) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), state);
+        List<ExamSurveyDirectory> list = list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamSurveyDirectory> querySurveyListByIds(List<String> surveyIds) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getId), surveyIds);
+        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds);
+        for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+            examSurveyDirectory.setQuestionMation(stringListMap.get(examSurveyDirectory.getId()));
+        }
+        return examSurveyDirectoryList;
+    }
+
+    @Override
     public void validatorEntity(List<ExamSurveyDirectory> entity) {
         ExamSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
-        LocalDateTime realStartTime = examSurveyDirectory.getRealStartTime();
-        LocalDateTime realEndTime = examSurveyDirectory.getRealEndTime();
+        String realStartTime = examSurveyDirectory.getRealStartTime();
+        String realEndTime = examSurveyDirectory.getRealEndTime();
         if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) {
-            if (realStartTime.isAfter(realEndTime)) {
+            boolean compareTime = DateUtil.compareTime(realStartTime, realEndTime);
+            if (compareTime) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
         }
