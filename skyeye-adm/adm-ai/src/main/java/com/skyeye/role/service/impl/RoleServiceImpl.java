@@ -4,18 +4,12 @@
 
 package com.skyeye.role.service.impl;
 
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.object.InputObject;
 import com.skyeye.role.dao.RoleDao;
 import com.skyeye.role.entity.Role;
 import com.skyeye.role.service.RoleService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryCompanyController
@@ -29,10 +23,4 @@ import java.util.Map;
 @SkyeyeService(name = "AI角色", groupName = "AI角色")
 public class RoleServiceImpl extends SkyeyeBusinessServiceImpl<RoleDao, Role> implements RoleService {
 
-    @Override
-    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
-        QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
-        List<Role> beans = list(queryWrapper);
-        return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
-    }
 }

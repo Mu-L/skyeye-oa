@@ -32,24 +32,24 @@ public class AiApiKeyController {
     @Autowired
     private AiApiKeyService aiApiKeyService;
 
-    @ApiOperation(id = "writeAiApiKey", value = "新增/编辑API配置", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeAiApiKey", value = "新增/编辑API配置", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AiApiKey.class)
     @RequestMapping("/post/aiApiKeyController/writeAiApiKey")
     public void writeAiApiKey(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAiApiKey", value = "分页查询API配置", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAiApiKey", value = "分页查询API配置", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/aiApiKeyController/queryAiApiKey")
     public void queryAiApiKey(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteAiApiKeyByIds", value = "批量删除API配置", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteAiApiKeyById", value = "删除API配置", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
-    @RequestMapping("/post/aiApiKeyController/deleteAiApiKeyByIds")
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/aiApiKeyController/deleteAiApiKeyById")
     public void deleteAiApiKeyByIds(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.deleteById(inputObject, outputObject);
     }
@@ -62,7 +62,7 @@ public class AiApiKeyController {
         aiApiKeyService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAiApiKeyList", value = "获取API配置管理信息", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryAiApiKeyList", value = "获取API配置管理信息", method = "POST", allUse = "2")
     @RequestMapping("/post/aiApiKeyController/queryAiApiKeyList")
     public void queryAiApiKeyList(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.queryList(inputObject, outputObject);

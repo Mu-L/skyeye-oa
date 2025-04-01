@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum AiPlatformEnum implements SkyeyeEnumClass {
 
-    YI_YAN("YiYan", "文心一言", "百度", true, false),
+    YI_YAN("YiYan", "文心一言", "百度", true, true),
     XUN_FEI("XunFei", "讯飞星火", "讯飞", true, false),
     TONG_YI("TongYi", "通义千问", "阿里", true, false);
 

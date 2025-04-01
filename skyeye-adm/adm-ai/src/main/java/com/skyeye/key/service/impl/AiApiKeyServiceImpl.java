@@ -4,24 +4,17 @@
 
 package com.skyeye.key.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.exception.CustomException;
 import com.skyeye.key.dao.AiApiKeyDao;
 import com.skyeye.key.entity.AiApiKey;
 import com.skyeye.key.service.AiApiKeyService;
 import com.skyeye.role.entity.Role;
 import com.skyeye.role.service.RoleService;
-import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryCompanyController
@@ -38,9 +31,6 @@ public class AiApiKeyServiceImpl extends SkyeyeBusinessServiceImpl<AiApiKeyDao, 
     @Autowired
     private RoleService roleService;
 
-    /**
-     * 重写新增编辑前置条件API配置
-     */
     @Override
     public void validatorEntity(AiApiKey aiApiKey) {
         super.validatorEntity(aiApiKey);
@@ -54,16 +44,10 @@ public class AiApiKeyServiceImpl extends SkyeyeBusinessServiceImpl<AiApiKeyDao, 
         }
     }
 
-    /**
-     * 获取全部API配置
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     * @return
-     */
     @Override
-    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
-        QueryWrapper<AiApiKey> queryWrapper = new QueryWrapper<>();
-        List<AiApiKey> beans = list(queryWrapper);
-        return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
+    public AiApiKey selectById(String id) {
+        AiApiKey aiApiKey = super.selectById(id);
+        roleService.setDataMation(aiApiKey, AiApiKey::getRoleId);
+        return aiApiKey;
     }
 }
