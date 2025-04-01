@@ -52,6 +52,7 @@ public class PayAppServiceImpl extends SkyeyeBusinessServiceImpl<PayAppDao, PayA
 
     @Override
     protected void writePostpose(PayApp entity, String userId) {
+        super.writePostpose(entity, userId);
         if (entity.getEnabled().equals(EnableEnum.ENABLE_USING.getKey())) {
             // 如果将当前数据修改为启动数据，则需要修改之前的数据为禁用
             UpdateWrapper<PayApp> updateWrapper = new UpdateWrapper<>();
