@@ -31,16 +31,6 @@ spring:
           - data-id: skyeye-common.yml # 配置文件名-Data Id
             group: DEFAULT_GROUP # 默认为DEFAULT_GROUP
             refresh: false # 是否动态刷新，默认为false
-  ai:
-    qianfan: # 文心一言 https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application/v1
-      apiKey: EVdFG9fbFMmwtjQ57Efwftox
-      secretKey: XJ8jcR6jK06S5BCrPRYFoWqqlqbwyCXx
-    xunfei: # 讯飞星火 https://xinghuo.xfyun.cn/sparkapi
-      appId: e7777701
-      apiKey: 6bb0647ad9508d0519c4e406d939e856
-      secretKey: MGQ2YWExYjcyOTM3NDc1NDk0MDlkOWVi
-    tongyi:
-      apiKey: sk-f26299b6cda34370abfc2b5b1bb2699d
 logging:
   level:
     com.skyeye: debug

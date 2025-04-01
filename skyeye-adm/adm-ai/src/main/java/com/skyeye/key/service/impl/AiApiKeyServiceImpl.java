@@ -5,8 +5,13 @@
 package com.skyeye.key.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.TableSelectInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.key.dao.AiApiKeyDao;
 import com.skyeye.key.entity.AiApiKey;
@@ -15,6 +20,9 @@ import com.skyeye.role.entity.Role;
 import com.skyeye.role.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryCompanyController
@@ -49,5 +57,19 @@ public class AiApiKeyServiceImpl extends SkyeyeBusinessServiceImpl<AiApiKeyDao, 
         AiApiKey aiApiKey = super.selectById(id);
         roleService.setDataMation(aiApiKey, AiApiKey::getRoleId);
         return aiApiKey;
+    }
+
+    @Override
+    public QueryWrapper<AiApiKey> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<AiApiKey> queryWrapper = super.getQueryWrapper(tableSelectInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AiApiKey::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        return queryWrapper;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryDataList(inputObject);
+        roleService.setMationForMap(beans, "roleId", "roleMation");
+        return beans;
     }
 }
