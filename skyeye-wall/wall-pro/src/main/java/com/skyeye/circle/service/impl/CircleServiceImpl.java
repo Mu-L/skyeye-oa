@@ -114,6 +114,13 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     }
 
     private List<Circle> setUserIsJoin(List<Circle> circles) {
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if(StrUtil.isEmpty(userToken)){
+            return circles.stream().map(circle -> {
+                circle.setIsJoin(false);
+                return circle;
+            }).collect(Collectors.toList());
+        }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         List<String> circleIds = circles.stream().map(Circle::getId).collect(Collectors.toList());
         Map<String,Boolean> checkMap =  joinCircleService.checkIsJoinCircle(circleIds, userId);
