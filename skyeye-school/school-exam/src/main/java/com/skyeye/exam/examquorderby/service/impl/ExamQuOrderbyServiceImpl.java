@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquorderby.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -14,15 +15,14 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquorderby.dao.ExamQuOrderbyDao;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquorderby.service.ExamQuOrderbyService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -100,17 +100,17 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
             return new HashMap<>();
         }
         QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuOrderby::getBelongId), id);
         List<ExamQuOrderby> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;
@@ -126,5 +126,121 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
         List<ExamQuOrderby> list = list(queryWrapper);
         Map<String, List<ExamQuOrderby>> collect = list.stream().collect(Collectors.groupingBy(ExamQuOrderby::getQuId));
         return collect;
+    }
+
+    @Override
+    public void createOrderbys(List<Question> questionList, String userId) {
+        List<ExamQuOrderby> insertList = new ArrayList<>();
+        List<ExamQuOrderby> updateList = new ArrayList<>();
+        Map<String, List<ExamQuOrderby>> quRadioMap = new HashMap<>();
+
+        for (Question question : questionList) {
+            String quId = question.getId();
+            List<ExamQuOrderby> radios = question.getOrderByTd();
+            if (CollectionUtils.isEmpty(radios)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
+
+            for (ExamQuOrderby radio : radios) {
+                ExamQuOrderby bean = new ExamQuOrderby();
+                BeanUtil.copyProperties(radio, bean);
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            createEntity(insertList, userId);
+        }
+        if (!updateList.isEmpty()) {
+            updateEntity(updateList, userId);
+        }
+    }
+
+    @Override
+    public void removeByQuIds(List<String> questionIds) {
+        QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), questionIds);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateOrderbys(List<Question> questionList, String userId) {
+        List<ExamQuOrderby> insertList = new ArrayList<>();
+        List<ExamQuOrderby> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<ExamQuOrderby>> existingRadiosMap = loadExistingRadios(questionList);
+
+        for (Question question : questionList) {
+            List<ExamQuOrderby> radios = question.getOrderByTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = question.getId();
+            List<ExamQuOrderby> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                .map(ExamQuOrderby::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                .map(ExamQuOrderby::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createOrderbys(questionList, userId);
+    }
+
+    private Map<String, List<ExamQuOrderby>> loadExistingRadios(List<Question> questions) {
+        List<String> quIds = questions.stream()
+            .map(Question::getId)
+            .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+            .collect(Collectors.groupingBy(ExamQuOrderby::getQuId));
+    }
+
+    private List<ExamQuOrderby> selectByQuIds(List<String> quIds) {
+        QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<ExamQuOrderby> radios, String quId,
+                                     String userId, List<ExamQuOrderby> insertList,
+                                     List<ExamQuOrderby> updateList) {
+        for (ExamQuOrderby radio : radios) {
+            ExamQuOrderby bean = new ExamQuOrderby();
+            BeanUtil.copyProperties(radio, bean);
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
     }
 }

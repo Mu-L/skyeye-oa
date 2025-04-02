@@ -3,6 +3,7 @@ package com.skyeye.exam.examqumultfillblank.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 
 import java.util.List;
@@ -21,4 +22,10 @@ public interface ExamQuMultiFillblankService extends SkyeyeBusinessService<ExamQ
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 
     Map<String, List<ExamQuMultiFillblank>> selectByQuestionIds(List<String> questionIdList);
+
+    void createMultiFillblanks(List<Question> questionList, String userId);
+
+    void removeByQuIds(List<String> questionIds);
+
+    void updateMultiFillblanks(List<Question> questionList, String userId);
 }

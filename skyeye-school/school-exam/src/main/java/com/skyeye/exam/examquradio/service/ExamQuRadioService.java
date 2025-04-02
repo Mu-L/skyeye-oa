@@ -3,6 +3,7 @@ package com.skyeye.exam.examquradio.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 
 import java.util.List;
@@ -30,4 +31,10 @@ public interface ExamQuRadioService extends SkyeyeBusinessService<ExamQuRadio> {
     void deleteByQuestionId(String entityId);
 
     Map<String, List<ExamQuRadio>> selectByQuestionIds(List<String> questionIdList);
+
+    void createRadios(List<Question> questionList, String userId);
+
+    void removeByQuIds(List<String> questionIds);
+
+    void updateRadios(List<Question> questionList, String userId);
 }

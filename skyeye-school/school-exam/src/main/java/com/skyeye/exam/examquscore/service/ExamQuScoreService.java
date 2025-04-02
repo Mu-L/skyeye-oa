@@ -3,6 +3,7 @@ package com.skyeye.exam.examquscore.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 
 import java.util.List;
@@ -28,5 +29,11 @@ public interface ExamQuScoreService extends SkyeyeBusinessService<ExamQuScore> {
     void removeByquId(String entityId);
 
     Map<String, List<ExamQuScore>> selectByQuestionIds(List<String> questionIdList);
+
+    void createScores(List<Question> questionList, String userId);
+
+    void removeByQuIds(List<String> questionIds);
+
+    void updateScores(List<Question> questionList, String userId);
 }
 
