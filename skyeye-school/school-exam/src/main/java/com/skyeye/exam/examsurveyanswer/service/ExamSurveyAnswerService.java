@@ -29,4 +29,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
 
     void  queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject);
+
+    void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject);
 }

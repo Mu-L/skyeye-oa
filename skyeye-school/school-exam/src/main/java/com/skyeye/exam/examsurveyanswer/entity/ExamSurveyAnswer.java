@@ -10,6 +10,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
@@ -76,7 +77,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private Integer dataSource;
 
     @TableField("handle_state")
-    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过",defaultValue = "0")
+    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过", defaultValue = "0")
     private Integer handleState;
 
     @TableField("ip_addr")
@@ -100,7 +101,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private Integer isEffective;
 
     @TableField("qu_num")
-    @ApiModelProperty(value = "回答的题数",required = "required")
+    @ApiModelProperty(value = "回答的题数", required = "required")
     private Integer quNum;
 
     @TableField("total_time")
@@ -132,7 +133,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private String markEndTime;
 
     @TableField("student_number")
-    @ApiModelProperty(value = "学号",required = "required")
+    @ApiModelProperty(value = "学号", required = "required")
     private String studentNumber;
 
     @TableField("school_id")
@@ -222,5 +223,4 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     @TableField(exist = false)
     @Property(value = "评分题信息")
     private List<ExamAnOrder> examAnOrderList;
-
 }
