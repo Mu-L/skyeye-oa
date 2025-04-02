@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquscore.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -14,15 +15,14 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquscore.dao.ExamQuScoreDao;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -97,21 +97,21 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
 
     @Override
     public Map<String, List<Map<String, Object>>> selectByBelongId(String id) {
-        if(StrUtil.isEmpty(id)){
+        if (StrUtil.isEmpty(id)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuScore::getBelongId), id);
         List<ExamQuScore> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;
@@ -136,4 +136,118 @@ public class ExamQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuScor
         return collect;
     }
 
+    @Override
+    public void createScores(List<Question> questionList, String userId) {
+        List<ExamQuScore> insertList = new ArrayList<>();
+        List<ExamQuScore> updateList = new ArrayList<>();
+        Map<String, List<ExamQuScore>> quRadioMap = new HashMap<>();
+
+        for (Question question : questionList) {
+            String quId = question.getId();
+            List<ExamQuScore> scores = question.getScoreTd();
+            if (CollectionUtils.isEmpty(scores)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(scores);
+
+            for (ExamQuScore radio : scores) {
+                ExamQuScore bean = new ExamQuScore();
+                BeanUtil.copyProperties(radio, bean);
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            createEntity(insertList, userId);
+        }
+        if (!updateList.isEmpty()) {
+            updateEntity(updateList, userId);
+        }
+    }
+
+    @Override
+    public void removeByQuIds(List<String> questionIds) {
+        QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), questionIds);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateScores(List<Question> questionList, String userId) {
+        List<ExamQuScore> insertList = new ArrayList<>();
+        List<ExamQuScore> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<ExamQuScore>> existingRadiosMap = loadExistingRadios(questionList);
+
+        for (Question question : questionList) {
+            List<ExamQuScore> radios = question.getScoreTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = question.getId();
+            List<ExamQuScore> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                .map(ExamQuScore::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                .map(ExamQuScore::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createScores(questionList, userId);
+    }
+
+    private Map<String, List<ExamQuScore>> loadExistingRadios(List<Question> questions) {
+        List<String> quIds = questions.stream()
+            .map(Question::getId)
+            .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+            .collect(Collectors.groupingBy(ExamQuScore::getQuId));
+    }
+
+    private List<ExamQuScore> selectByQuIds(List<String> quIds) {
+        QueryWrapper<ExamQuScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuScore::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<ExamQuScore> radios, String quId,
+                                     String userId, List<ExamQuScore> insertList,
+                                     List<ExamQuScore> updateList) {
+        for (ExamQuScore radio : radios) {
+            ExamQuScore bean = new ExamQuScore();
+            BeanUtil.copyProperties(radio, bean);
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
+    }
 }

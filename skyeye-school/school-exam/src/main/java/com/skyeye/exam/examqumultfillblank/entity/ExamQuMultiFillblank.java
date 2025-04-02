@@ -48,7 +48,7 @@ public class ExamQuMultiFillblank extends OperatorUserInfo implements EnclosureF
 
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
-    private String visibility;
+    private Integer visibility;
 
     @TableField("is_default_answer")
     @ApiModelProperty(value = "是否是默认答案  1.是  2.否")

@@ -3,6 +3,7 @@ package com.skyeye.exam.examquchckbox.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 
 import java.util.List;
@@ -20,6 +21,12 @@ public interface ExamQuCheckboxService extends SkyeyeBusinessService<ExamQuCheck
     Map<String, List<Map<String, Object>>> selectByBelongId(String id);
 
     Map<String, List<ExamQuCheckbox>> selectByQuestionIds(List<String> questionIdList);
+
+    void createCheckboxs(List<Question> questionList, String userId);
+
+    void removeByQuIds(List<String> questionIds);
+
+    void updateCheckboxs(List<Question> questionList, String userId);
 
 //    void queryExamQuCheckboxListById(InputObject inputObject, OutputObject outputObject);
 }

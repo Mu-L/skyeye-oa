@@ -1,5 +1,6 @@
 package com.skyeye.exam.examquchckbox.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -15,17 +16,16 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -142,5 +142,129 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
         List<ExamQuCheckbox> list = list(queryWrapper);
         Map<String, List<ExamQuCheckbox>> collect = list.stream().collect(Collectors.groupingBy(ExamQuCheckbox::getQuId));
         return collect;
+    }
+
+    @Override
+    public void createCheckboxs(List<Question> questionList, String userId) {
+        List<ExamQuCheckbox> insertList = new ArrayList<>();
+        List<ExamQuCheckbox> updateList = new ArrayList<>();
+        Map<String, List<ExamQuCheckbox>> quRadioMap = new HashMap<>();
+
+        for (Question question : questionList) {
+            String quId = question.getId();
+            List<ExamQuCheckbox> radios = question.getCheckboxTd();
+            if (CollectionUtils.isEmpty(radios)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
+
+            for (ExamQuCheckbox radio : radios) {
+                ExamQuCheckbox bean = new ExamQuCheckbox();
+                BeanUtil.copyProperties(radio, bean);
+                if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+                }
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            createEntity(insertList, userId);
+        }
+        if (!updateList.isEmpty()) {
+            updateEntity(updateList, userId);
+        }
+    }
+
+    @Override
+    public void removeByQuIds(List<String> questionIds) {
+        QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), questionIds);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateCheckboxs(List<Question> questionList, String userId) {
+        List<ExamQuCheckbox> insertList = new ArrayList<>();
+        List<ExamQuCheckbox> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<ExamQuCheckbox>> existingRadiosMap = loadExistingRadios(questionList);
+
+        for (Question question : questionList) {
+            List<ExamQuCheckbox> radios = question.getCheckboxTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = question.getId();
+            List<ExamQuCheckbox> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                .map(ExamQuCheckbox::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                .map(ExamQuCheckbox::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createCheckboxs(questionList, userId);
+    }
+
+    private Map<String, List<ExamQuCheckbox>> loadExistingRadios(List<Question> questions) {
+        List<String> quIds = questions.stream()
+            .map(Question::getId)
+            .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+            .collect(Collectors.groupingBy(ExamQuCheckbox::getQuId));
+    }
+
+    private List<ExamQuCheckbox> selectByQuIds(List<String> quIds) {
+        QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<ExamQuCheckbox> radios, String quId,
+                                     String userId, List<ExamQuCheckbox> insertList,
+                                     List<ExamQuCheckbox> updateList) {
+        for (ExamQuCheckbox radio : radios) {
+            ExamQuCheckbox bean = new ExamQuCheckbox();
+            BeanUtil.copyProperties(radio, bean);
+
+            // CheckType转换逻辑
+            if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+            }
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
     }
 }

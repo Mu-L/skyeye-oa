@@ -1,5 +1,7 @@
 package com.skyeye.exam.examquchenrow.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -7,17 +9,18 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,17 +77,17 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
             return new HashMap<>();
         }
         QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getBelongId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuChenRow::getBelongId), id);
         List<ExamQuChenRow> list = list(queryWrapper);
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
-        list.forEach(item->{
+        list.forEach(item -> {
             String quId = item.getQuId();
-            if(result.containsKey(quId)){
+            if (result.containsKey(quId)) {
                 result.get(quId).add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-            }else {
+            } else {
                 List<Map<String, Object>> tmp = new ArrayList<>();
                 tmp.add(JSONUtil.toBean(JSONUtil.toJsonStr(item), null));
-                result.put(quId,tmp);
+                result.put(quId, tmp);
             }
         });
         return result;
@@ -100,5 +103,118 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
         List<ExamQuChenRow> list = list(queryWrapper);
         Map<String, List<ExamQuChenRow>> collect = list.stream().collect(Collectors.groupingBy(ExamQuChenRow::getQuId));
         return collect;
+    }
+
+    @Override
+    public void removeByQuIds(List<String> questionIds) {
+        QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), questionIds);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void updateChenRow(List<Question> questionList, String userId) {
+        List<ExamQuChenRow> insertList = new ArrayList<>();
+        List<ExamQuChenRow> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<ExamQuChenRow>> existingRadiosMap = loadExistingRadios(questionList);
+
+        for (Question question : questionList) {
+            List<ExamQuChenRow> radios = question.getRowTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = question.getId();
+            List<ExamQuChenRow> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                .map(ExamQuChenRow::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                .map(ExamQuChenRow::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createChenRows(questionList, userId);
+    }
+
+    @Override
+    public void createChenRows(List<Question> questionList, String userId) {
+        List<ExamQuChenRow> insertList1 = new ArrayList<>();
+        List<ExamQuChenRow> updateList1 = new ArrayList<>();
+        Map<String, List<ExamQuChenRow>> quRadioMap1 = new HashMap<>();
+
+        for (Question question : questionList) {
+            String quId = question.getId();
+            List<ExamQuChenRow> rowTd = question.getRowTd();
+            if (CollectionUtils.isEmpty(rowTd)) continue;
+            quRadioMap1.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(rowTd);
+            for (ExamQuChenRow radio : rowTd) {
+                ExamQuChenRow bean = new ExamQuChenRow();
+                BeanUtil.copyProperties(radio, bean);
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList1.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList1.add(bean);
+                }
+            }
+        }
+
+        if (CollectionUtil.isNotEmpty(insertList1)) {
+            super.createEntity(insertList1, userId);
+        }
+        if (CollectionUtil.isNotEmpty(updateList1)) {
+            super.updateEntity(updateList1, userId);
+        }
+    }
+
+    private Map<String, List<ExamQuChenRow>> loadExistingRadios(List<Question> questions) {
+        List<String> quIds = questions.stream()
+            .map(Question::getId)
+            .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+            .collect(Collectors.groupingBy(ExamQuChenRow::getQuId));
+    }
+
+    private List<ExamQuChenRow> selectByQuIds(List<String> quIds) {
+        QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<ExamQuChenRow> radios, String quId,
+                                     String userId, List<ExamQuChenRow> insertList,
+                                     List<ExamQuChenRow> updateList) {
+        for (ExamQuChenRow radio : radios) {
+            ExamQuChenRow bean = new ExamQuChenRow();
+            BeanUtil.copyProperties(radio, bean);
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                updateList.add(bean);
+            }
+        }
     }
 }

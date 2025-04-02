@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.examquestion.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -154,16 +155,38 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     private KnowledgePointsService knowledgePointsService;
 
     @Override
-    protected void createPrepose(Question entity) {
-        // 设置题目的标签和可见性
-        entity.setQuTag(1);
-        // 设置文件类型，默认为0
-        Integer fileType = entity.getFileType() != null ? entity.getFileType() : 0;
-        entity.setFileType(fileType);
-        // 设置是否上传，默认为2
-        Integer whetherUpload = entity.getWhetherUpload() != null ? entity.getWhetherUpload() : 2;
-        entity.setWhetherUpload(whetherUpload);
+    public void createPrepose(List<Question> entity) {
+        for (Question question : entity) {
+            // 设置题目的标签和可见性
+            question.setQuTag(1);
+            // 设置文件类型，默认为0
+            Integer fileType = question.getFileType() != null ? question.getFileType() : 0;
+            question.setFileType(fileType);
+            // 设置是否上传，默认为2
+            Integer whetherUpload = question.getWhetherUpload() != null ? question.getWhetherUpload() : 2;
+            question.setWhetherUpload(whetherUpload);
+        }
     }
+
+    @Override
+    public void createPostpose(List<Question> questionList, String userId) {
+        for (Question entity : questionList) {
+            Integer tag = entity.getTag();
+            if (tag == null) {
+                throw new CustomException("请设置题目标记");
+            } else if (!tag.equals(CommonNumConstants.NUM_ONE) && !tag.equals(CommonNumConstants.NUM_TWO)) {
+                throw new CustomException("题目标记值不正确");
+            }
+        }
+        examQuestionLogicService.createLogics(questionList, userId);
+        examQuRadioService.createRadios(questionList, userId);
+        examquScoreService.createScores(questionList, userId);
+        examQuCheckboxService.createCheckboxs(questionList, userId);
+        examQuMultiFillblankService.createMultiFillblanks(questionList, userId);
+        examQuOrderbyService.createOrderbys(questionList, userId);
+        examQuChenColumnService.createChenColumns(questionList, userId);
+    }
+
 
     /**
      * 创建题目后的后置处理
@@ -225,6 +248,33 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     }
 
     @Override
+    protected void updatePostpose(List<Question> questionList, String userId) {
+        deleteNoBelongQuestions(questionList);
+        // 批量更新各题型数据
+        examQuRadioService.updateRadios(questionList, userId);
+        examquScoreService.updateScores(questionList, userId);
+        examQuCheckboxService.updateCheckboxs(questionList, userId);
+        examQuMultiFillblankService.updateMultiFillblanks(questionList, userId);
+        examQuOrderbyService.updateOrderbys(questionList, userId);
+        examQuChenColumnService.updateChenColumn(questionList, userId);
+    }
+
+    private void deleteNoBelongQuestions(List<Question> questions) {
+        List<String> questionIds = questions.stream()
+            .filter(q -> StrUtil.isEmpty(q.getBelongId()))
+            .map(Question::getId)
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(questionIds)) {
+            examQuRadioService.removeByQuIds(questionIds);
+            examquScoreService.removeByQuIds(questionIds);
+            examQuCheckboxService.removeByQuIds(questionIds);
+            examQuMultiFillblankService.removeByQuIds(questionIds);
+            examQuOrderbyService.removeByQuIds(questionIds);
+            examQuChenColumnService.removeByQuIds(questionIds);
+        }
+    }
+
+    @Override
     public void updatePostpose(Question entity, String userId) {
         String entityId = entity.getId();
         // 更新单选题
@@ -246,9 +296,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect2 = collect1.stream().filter(
                 optionId -> !collect.contains(optionId)
             ).collect(Collectors.toList());
-            for (String id : collect2) {
-                examQuRadioService.deleteById(id);
-            }
+            examQuRadioService.deleteById(collect2);
             examQuRadioService.saveList(radioTd, quId, userId);
         }
         // 更新得分题
@@ -257,9 +305,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect = scoreTd.stream().map(ExamQuScore::getOptionId).collect(Collectors.toList());
             List<String> collect1 = examquScoreService.selectQuScore(entityId).stream().map(ExamQuScore::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect2) {
-                examquScoreService.deleteById(id);
-            }
+            examquScoreService.deleteById(collect2);
             examquScoreService.saveList(scoreTd, quId, userId);
         }
         // 更新多选题
@@ -268,9 +314,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect = checkboxTd.stream().map(ExamQuCheckbox::getOptionId).collect(Collectors.toList());
             List<String> collect1 = examQuCheckboxService.selectQuChenbox(entityId).stream().map(ExamQuCheckbox::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect2) {
-                examQuCheckboxService.deleteById(id);
-            }
+            examQuCheckboxService.deleteById(collect2);
             examQuCheckboxService.saveList(checkboxTd, quId, userId);
         }
         // 更新多空填空题
@@ -279,9 +323,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect = multiFillblankTd.stream().map(ExamQuMultiFillblank::getOptionId).collect(Collectors.toList());
             List<String> collect1 = examQuMultiFillblankService.selectQuMultiFillblank(entityId).stream().map(ExamQuMultiFillblank::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect2) {
-                examQuMultiFillblankService.deleteById(id);
-            }
+            examQuMultiFillblankService.deleteById(collect2);
             examQuMultiFillblankService.saveList(multiFillblankTd, quId, userId);
         }
         // 更新排序题
@@ -290,9 +332,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect = orderByTd.stream().map(ExamQuOrderby::getOptionId).collect(Collectors.toList());
             List<String> collect1 = examQuOrderbyService.selectQuOrderby(entityId).stream().map(ExamQuOrderby::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect2) {
-                examQuOrderbyService.deleteById(id);
-            }
+            examQuOrderbyService.deleteById(collect2);
             examQuOrderbyService.saveList(orderByTd, quId, userId);
         }
         // 更新陈列题
@@ -302,15 +342,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             List<String> collect = columnTd.stream().map(ExamQuChenColumn::getOptionId).collect(Collectors.toList());
             List<String> collect1 = examQuChenColumnService.selectQuChenColumn(entityId).stream().map(ExamQuChenColumn::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(optionId -> !collect.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect2) {
-                examQuChenColumnService.deleteById(id);
-            }
+            examQuChenColumnService.deleteById(collect2);
             List<String> collect3 = rowTd.stream().map(ExamQuChenRow::getOptionId).collect(Collectors.toList());
             List<String> collect4 = examQuChenRowService.selectQuChenRow(entityId).stream().map(ExamQuChenRow::getId).collect(Collectors.toList());
             List<String> collect5 = collect4.stream().filter(optionId -> !collect3.contains(optionId)).collect(Collectors.toList());
-            for (String id : collect5) {
-                examQuChenRowService.deleteById(id);
-            }
+            examQuChenRowService.deleteById(collect5);
             examQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
     }
@@ -480,6 +516,16 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         ) {
             examQuChenColumnService.removeByQuId(quId);
         }
+    }
+
+    @Override
+    protected void deletePostpose(List<String> ids) {
+        examQuRadioService.removeByQuIds(ids);
+        examQuMultiFillblankService.removeByQuIds(ids);
+        examQuCheckboxService.removeByQuIds(ids);
+        examQuScoreService.removeByQuIds(ids);
+        examQuOrderbyService.removeByQuIds(ids);
+        examQuChenColumnService.removeByQuIds(ids);
     }
 
     /**

@@ -74,12 +74,6 @@ public class SysEveUserController {
         sysEveUserService.editSysUserLockStateToUnLockById(inputObject, outputObject);
     }
 
-    /**
-     * 创建账号
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysAdd005", value = "创建账号", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysEveUser.class)
     @RequestMapping("/post/SysEveUserController/insertSysUserMationById")
@@ -87,12 +81,6 @@ public class SysEveUserController {
         sysEveUserService.insertSysUserMationById(inputObject, outputObject);
     }
 
-    /**
-     * 重置密码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys005", value = "重置密码", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "账号ID", required = "required"),
@@ -102,12 +90,6 @@ public class SysEveUserController {
         sysEveUserService.editSysUserPasswordMationById(inputObject, outputObject);
     }
 
-    /**
-     * 从session中获取用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "login002", value = "从session中获取用户信息", method = "POST", allUse = "2")
     @RequestMapping("/post/SysEveUserController/queryUserMationBySession")
     public void queryUserMationBySession(InputObject inputObject, OutputObject outputObject) {
@@ -125,12 +107,6 @@ public class SysEveUserController {
         sysEveUserService.queryRoleAndBindRoleByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 编辑用户绑定的角色
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys020", value = "编辑用户绑定的角色", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "rowId", name = "id", value = "账号ID", required = "required"),
@@ -140,12 +116,6 @@ public class SysEveUserController {
         sysEveUserService.editRoleIdsByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登录用户的桌面菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "login004", value = "获取当前登录用户的桌面菜单列表", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveUserController/queryDeskTopMenuBySession")
     public void queryDeskTopMenuBySession(InputObject inputObject, OutputObject outputObject) {
@@ -183,24 +153,12 @@ public class SysEveUserController {
         sysEveUserService.editUserDetailsMationByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取该用户拥有的桌面
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "login009", value = "获取该用户拥有的桌面", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveUserController/querySysDeskTopByUserId")
     public void querySysDeskTopByUserId(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.querySysDeskTopByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 根据用户id获取桌面菜单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDeskTopsMenuByUserId", value = "根据用户id获取桌面菜单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userId", name = "userId", value = "用户id(账号ID)", required = "required")})
@@ -209,26 +167,13 @@ public class SysEveUserController {
         sysEveUserService.queryDeskTopsMenuByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 人员选择获取所有公司和人
-     * --公司为空的不显示
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "commonselpeople001", value = "人员选择获取所有公司和人", method = "GET", allUse = "2")
+    @ApiOperation(id = "commonselpeople001", value = "人员选择获取所有公司和人--公司为空的不显示", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/queryAllPeopleToTree")
     public void queryAllPeopleToTree(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.queryAllPeopleToTree(inputObject, outputObject);
     }
 
-    /**
-     * 人员选择根据当前用户所属公司获取这个公司的人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople002", value = "人员选择根据当前用户所属公司获取这个公司的人", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/queryCompanyPeopleToTreeByUserBelongCompany")
@@ -236,12 +181,6 @@ public class SysEveUserController {
         sysEveUserService.queryCompanyPeopleToTreeByUserBelongCompany(inputObject, outputObject);
     }
 
-    /**
-     * 人员选择根据当前用户所属公司获取这个公司部门展示的人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople003", value = "人员选择根据当前用户所属公司获取这个公司部门展示的人", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/queryDepartmentPeopleToTreeByUserBelongDepartment")
@@ -249,12 +188,6 @@ public class SysEveUserController {
         sysEveUserService.queryDepartmentPeopleToTreeByUserBelongDepartment(inputObject, outputObject);
     }
 
-    /**
-     * 人员选择根据当前用户所属公司获取这个公司岗位展示的人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople004", value = "人员选择根据当前用户所属公司获取这个公司岗位展示的人", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/queryJobPeopleToTreeByUserBelongJob")
@@ -262,12 +195,6 @@ public class SysEveUserController {
         sysEveUserService.queryJobPeopleToTreeByUserBelongJob(inputObject, outputObject);
     }
 
-    /**
-     * 人员选择根据当前用户所属公司获取这个公司同级部门展示的人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople005", value = "人员选择根据当前用户所属公司获取这个公司同级部门展示的人", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/querySimpleDepPeopleToTreeByUserBelongSimpleDep")
@@ -275,12 +202,6 @@ public class SysEveUserController {
         sysEveUserService.querySimpleDepPeopleToTreeByUserBelongSimpleDep(inputObject, outputObject);
     }
 
-    /**
-     * 根据聊天组展示用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "commonselpeople006", value = "根据聊天组展示用户", method = "GET", allUse = "2")
     @ApiImplicitParams(classBean = UserTreeQueryDo.class)
     @RequestMapping("/post/SysEveUserController/queryTalkGroupUserListByUserId")
@@ -288,12 +209,6 @@ public class SysEveUserController {
         sysEveUserService.queryTalkGroupUserListByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 根据openId获取用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "userphone004", value = "根据openId获取用户信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "openId", name = "openId", value = "用户openId", required = "required")})
@@ -302,12 +217,6 @@ public class SysEveUserController {
         sysEveUserService.queryUserMationByOpenId(inputObject, outputObject);
     }
 
-    /**
-     * openId绑定用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "userphone005", value = "openId绑定用户信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userCode", name = "userCode", value = "账号", required = "required"),
@@ -318,12 +227,6 @@ public class SysEveUserController {
         sysEveUserService.insertUserMationByOpenId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysEveUserById", value = "根据id查询用户信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "用户ID", required = "required")})
@@ -332,12 +235,6 @@ public class SysEveUserController {
         sysEveUserService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 重置用户有效期
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "resetUserEffectiveDate", value = "重置用户有效期", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "用户ID", required = "required"),

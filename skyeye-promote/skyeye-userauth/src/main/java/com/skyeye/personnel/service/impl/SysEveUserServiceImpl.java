@@ -401,7 +401,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editRoleIdsByUserId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         sysEveUserDao.editRoleIdsByUserId(map);
@@ -442,7 +442,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editUserPassword(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
@@ -514,7 +514,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
