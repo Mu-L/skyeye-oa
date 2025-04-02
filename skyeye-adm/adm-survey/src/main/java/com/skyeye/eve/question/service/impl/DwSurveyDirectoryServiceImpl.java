@@ -283,20 +283,13 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
-        String endTime = dwSurveyDirectory.getEndTime();
-        String realStartTime = dwSurveyDirectory.getRealStartTime();
-        String realEndTime = dwSurveyDirectory.getRealEndTime();
-        realStartTime = (realStartTime == null || realStartTime.trim().isEmpty()) ? null : realStartTime;
-        realEndTime = (realEndTime == null || realEndTime.trim().isEmpty()) ? null : realEndTime;
-        endTime = (endTime == null || endTime.trim().isEmpty()) ? null : endTime;
-        if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
-            boolean compare = DateUtil.compare(realStartTime, realEndTime);
-            if (compare) {
+        dwSurveyDirectory.setEndTime(StrUtil.isEmpty(dwSurveyDirectory.getEndTime()) ? null : dwSurveyDirectory.getEndTime());
+        dwSurveyDirectory.setRealStartTime(StrUtil.isEmpty(dwSurveyDirectory.getRealStartTime()) ? null : dwSurveyDirectory.getRealStartTime());
+        dwSurveyDirectory.setRealEndTime(StrUtil.isEmpty(dwSurveyDirectory.getRealEndTime()) ? null : dwSurveyDirectory.getRealEndTime());
+        if (StrUtil.isNotEmpty(dwSurveyDirectory.getRealStartTime()) && StrUtil.isNotEmpty(dwSurveyDirectory.getRealEndTime())) {
+            if (DateUtil.compare(dwSurveyDirectory.getRealStartTime(), dwSurveyDirectory.getRealEndTime())) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
-            dwSurveyDirectory.setEndTime(endTime);
-            dwSurveyDirectory.setRealStartTime(realStartTime);
-            dwSurveyDirectory.setRealEndTime(realEndTime);
         }
     }
 
