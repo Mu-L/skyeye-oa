@@ -534,6 +534,12 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserSex), params.get("userSex").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserSign), params.get("userSign").toString());
         update(updateWrapper);
+
+        Map<String, Object> user = inputObject.getLogParams();
+        String userId = user.get("id").toString();
+        user.put("userName", params.get("userName").toString());
+        user.put("userPhoto", params.get("userPhoto").toString());
+        sysEveUserService.setUserLoginRedisMation(userId, user);
     }
 
 }
