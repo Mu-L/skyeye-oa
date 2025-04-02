@@ -151,4 +151,16 @@ public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFa
     @ApiModelProperty(value = "题目信息", required = "json")
     private List<Question> questionMation;
 
+    @TableField(exist = false)
+    @Property(value = "已批阅数量")
+    private Integer readNum;
+
+    @TableField(exist = false)
+    @Property(value = "未批阅数量")
+    private Integer unreadNum;
+
+    @TableField(exist = false)
+    @Property(value = "未交数量")
+    private Integer unSubmitNum;
+
 }

@@ -1,7 +1,6 @@
 package com.skyeye.exam.examsurveyanswer.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -18,8 +17,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.examquestion.entity.Question;
-import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
@@ -64,9 +61,7 @@ import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -315,22 +310,20 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
-    @Autowired
-    private QuestionService questionService;
     @Override
-    public void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        String surveyId = inputObject.getParams().get("surveyId").toString();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
+    public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId)
-                .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
-        ExamSurveyAnswer examSurveyAnswer = getOne(queryWrapper);
-        if (ObjectUtil.isNotEmpty(examSurveyAnswer)){
-            examSurveyAnswer.setSurveyMation(examSurveyDirectory);
-            outputObject.setBean(examSurveyAnswer);
-            outputObject.settotal(1);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        List<ExamSurveyAnswer> list = list(queryWrapper);
+        Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, List<ExamSurveyAnswer>> entry : collect.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().size());
         }
+        if(CollectionUtil.isEmpty(map)){
+            return Collections.emptyMap();
+        }
+        return map;
     }
 
     private void extracted(OutputObject outputObject, QueryWrapper<ExamSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {
