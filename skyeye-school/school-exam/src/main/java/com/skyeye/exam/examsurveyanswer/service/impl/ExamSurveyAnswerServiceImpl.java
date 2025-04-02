@@ -328,8 +328,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         return map;
     }
-    @Autowired
-    private QuestionService questionService;
 
     @Override
     public void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject) {

@@ -359,6 +359,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper);
         String reader = entity.getReaderList();
+        String classId = entity.getClassId();
         List<String> readerIds = Arrays.asList(reader.split(","));
         examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
         List<Question> questionList = entity.getQuestionMation();
@@ -675,6 +676,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public ExamSurveyDirectory selectById(String id) {
         ExamSurveyDirectory bean = getExamSurveyDirectory(id);
         Integer fractionNumber = getFractionNumber(id);
+
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isEmpty(questionList)) {
             return bean;
@@ -699,17 +701,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @NotNull
-    private ExamSurveyDirectory getExamSurveyDirectory(String id) {
+    private ExamSurveyDirectory  getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
-        String classId = bean.getClassId();
-        if (StrUtil.isNotEmpty(classId)) {
-            List<Classes> classesList = classesService.selectByIds(classId);
-            if (CollectionUtil.isNotEmpty(classesList)) {
-                bean.setClassesMation(classesList);
-            }
-        }
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
+        bean.setClassesMation(classesService.selectByIds(bean.getClassId()));
         bean.setFacultyMation(facultyService.selectById(bean.getFacultyId()));
         bean.setMajorMation(majorService.selectById(bean.getMajorId()));
         bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));
