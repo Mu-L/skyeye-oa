@@ -4,25 +4,25 @@
 
 **郑重声明：** 
 
-**1. Skyeye云【源代码】针对 {星球用户} 开源。拿到源码后可进行学习、毕设、企业等使用。**
+**1. Skyeye云用户拿到源码后可进行学习、毕设、企业等使用。**
 
-**2. [开发文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [视频教程](https://space.bilibili.com/87396008/channel/series)    [业务操作教程](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)**
+**2. [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)    [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)**
 
 **3. [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)，优先看这个。《《《《《《《《《《《《《《这个文件必看，有`移动端`的详细说明。**
 
-**4. 我们的功能多达500个功能点，包含PC和移动端。本着`姜太公钓鱼愿者上钩`的心态来开放星球用户。`Skyeye云的功能是全网最全，价格最低的一款软件，没有之一`。如果你买了之后觉得不划算，那么进入星球后`七天内`你可以找一套具备相同功能的软件源码提供给作者，并给作者提供一年的免费更新和维护，作者会原价退还给您。**
-
-**5. 和其他开源软件相比较而言，Skyeye云的功能是全网最全，价格最低，并且是一个20+人的小团队，包括前端、后端、测试。每次发版都是经过全量测试的，保证产品的质量。**
+**4. Skyeye云是一个20+人的小团队，包括前端、后端、测试。每次发版都是经过全量测试的，保证产品的质量。**
 
 **为什么推荐使用本项目？**
 
-① 无论你是学生、个人与企业，进入星球后皆可 100% 免费使用，不用保留类作者、Copyright 信息。
+① 无论你是学生、个人与企业，使用时，都可以不保留作者、Copyright 信息。
 
 ② 代码全部开放，让你可以了解整个项目的架构设计。
 
 ③ 具备低代码、功能全面、快速便捷开发、无需重复的CRUD等优点，短时间内可完成一款系统的开发。
 
-④ [国产开源项目对比--以及Skyeye云功能点](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)。
+④ 为什么使用`Skyeye云`，请参考：https://mp.weixin.qq.com/s/l5xPR8tVMFzQlfaQZ2xEpw
+
+⑤ [国产开源项目对比--以及Skyeye云功能点](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)。
 
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/compare.png)
 
