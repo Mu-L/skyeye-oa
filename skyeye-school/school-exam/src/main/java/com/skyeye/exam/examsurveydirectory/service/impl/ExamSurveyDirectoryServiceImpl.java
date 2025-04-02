@@ -459,14 +459,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String holderKey = commonPageInfo.getHolderKey();
         String userId = inputObject.getLogParams().get("id").toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
-        if(StrUtil.isNotEmpty(holderKey)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSchoolId), holderKey);
-        }
+        extracted(commonPageInfo,queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }
 
