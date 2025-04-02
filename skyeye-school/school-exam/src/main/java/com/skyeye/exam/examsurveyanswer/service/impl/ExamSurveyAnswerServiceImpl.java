@@ -61,9 +61,7 @@ import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -310,6 +308,22 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
+    }
+
+    @Override
+    public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        List<ExamSurveyAnswer> list = list(queryWrapper);
+        Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, List<ExamSurveyAnswer>> entry : collect.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().size());
+        }
+        if(CollectionUtil.isEmpty(map)){
+            return Collections.emptyMap();
+        }
+        return map;
     }
 
     private void extracted(OutputObject outputObject, QueryWrapper<ExamSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {

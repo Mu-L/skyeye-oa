@@ -54,6 +54,7 @@ import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
+import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,6 +138,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private MajorService majorService;
+
+    @Autowired
+    private SubjectClassesService subjectClassesService;
 
     /**
      * 设置考试目录的方法
@@ -450,10 +454,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String holderKey = commonPageInfo.getHolderKey();
         String userId = inputObject.getLogParams().get("id").toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
+        if(StrUtil.isNotEmpty(holderKey)) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSchoolId), holderKey);
+        }
         outputResult(outputObject, page, queryWrapper);
     }
 
@@ -516,18 +524,38 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        String holderId = commonPageInfo.getHolderId();//班级
-        String objectId = commonPageInfo.getObjectId();//科目id
+        // 班级
+        String holderId = commonPageInfo.getHolderId();
+        // 科目
+        String objectId = commonPageInfo.getObjectId();
+        Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        if(CollectionUtil.isEmpty(examSurveyDirectoryList)){
+            return;
+        }
+        List<String> directoryIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+        // 获取已批阅的试卷数
+        Map<String,Integer> map = examSurveyMarkExamService.queryMarkedExamNum(directoryIds);
+        // 获取已经回答的人数
+        Map<String,Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
             List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
             examSurveyDirectory.setQuestionMation(questionList);
+            // 获取已批阅
+            int readNum = map.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : map.get(examSurveyDirectory.getId());
+            examSurveyDirectory.setReadNum(readNum);
+            int answerNum = answerNumMap.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : answerNumMap.get(examSurveyDirectory.getId());
+            // 获取未回答的人数
+            int unSubmitNum = stuNum - answerNum;
+            examSurveyDirectory.setUnSubmitNum(unSubmitNum);
+            // 未批阅
+            int unReadNum = answerNum - readNum;
+            examSurveyDirectory.setUnreadNum(unReadNum);
         }
         outputObject.setBeans(examSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
-
     }
 
     @Override
