@@ -70,6 +70,7 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
             }
         });
         iAuthUserService.setDataMation(datumList, Datum::getCreateId);
+        iAuthUserService.setName(datumList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(datumList);
         outputObject.settotal(datumList.size());
     }

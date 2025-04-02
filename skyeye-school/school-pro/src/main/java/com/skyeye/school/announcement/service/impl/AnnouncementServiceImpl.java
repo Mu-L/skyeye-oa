@@ -116,6 +116,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         for (Announcement announcement : announcementList) {
             setCheckIsConfirm(announcement);
         }
+        iAuthUserService.setName(announcementList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(announcementList);
         outputObject.settotal(announcementList.size());
     }

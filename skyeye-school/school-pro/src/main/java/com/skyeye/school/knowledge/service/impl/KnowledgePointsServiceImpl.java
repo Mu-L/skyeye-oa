@@ -54,6 +54,15 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
         chapterService.setMationForMap(beans, "chapterId", "chapterMation");
         return beans;
     }
+    
+    @Override
+    protected void validatorEntity(KnowledgePoints entity) {
+        String remark = entity.getRemark();
+        if (remark != null && remark.length() > 200) {
+            // 截取前200个字符
+            remark = remark.substring(0, 200);
+        }
+    }
 
     @Override
     public KnowledgePoints selectById(String id) {
