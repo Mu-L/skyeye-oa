@@ -540,6 +540,8 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         user.put("userName", params.get("userName").toString());
         user.put("userPhoto", params.get("userPhoto").toString());
         sysEveUserService.setUserLoginRedisMation(userId, user);
+
+        iAuthUserService.removeCacheById(userId);
     }
 
 }
