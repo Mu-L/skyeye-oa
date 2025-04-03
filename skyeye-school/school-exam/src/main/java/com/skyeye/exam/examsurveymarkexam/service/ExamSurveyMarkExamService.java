@@ -4,6 +4,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamSurveyMarkExamService
@@ -23,4 +24,6 @@ public interface ExamSurveyMarkExamService extends SkyeyeBusinessService<ExamSur
     List<ExamSurveyMarkExam> getExamSurveyMarkExamList(String examDirectoryId);
 
     List<ExamSurveyMarkExam> selectByUserId(String userId);
+
+    Map<String, Integer> queryMarkedExamNum(List<String> directoryIds);
 }

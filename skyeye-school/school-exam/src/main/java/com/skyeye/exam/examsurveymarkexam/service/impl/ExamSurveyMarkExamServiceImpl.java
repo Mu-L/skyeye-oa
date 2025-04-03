@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveymarkexam.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -9,8 +10,8 @@ import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamSurveyMarkExamServiceImpl
@@ -58,6 +59,22 @@ public class ExamSurveyMarkExamServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getUserId), userId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, Integer> queryMarkedExamNum(List<String> directoryIds) {
+        QueryWrapper<ExamSurveyMarkExam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), directoryIds);
+        List<ExamSurveyMarkExam> list = list(queryWrapper);
+        Map<String, List<ExamSurveyMarkExam>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyMarkExam::getSurveyId));
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, List<ExamSurveyMarkExam>> entry : collect.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().size());
+        }
+        if(CollectionUtil.isEmpty(map)){
+            return new HashMap<>();
+        }
+        return map;
     }
 
 

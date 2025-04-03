@@ -36,7 +36,7 @@ public class ExamAnOrder extends CommonInfo {
     private String belongId;
 
     @TableField("ordery_num")
-    @ApiModelProperty(value = "订单编号")
+    @ApiModelProperty(value = "评分的分数")
     private String orderyNum;
 
     @TableField("qu_id")

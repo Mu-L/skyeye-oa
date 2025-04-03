@@ -9,6 +9,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnCheckbox
  * @Description: 答卷 多选题保存表实体类
@@ -44,10 +46,14 @@ public class ExamAnCheckbox extends CommonInfo {
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "项目编号")
+    @ApiModelProperty(value = "多选题答案id")
     private String quItemId;
 
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "多选题答案id集合")
+    private List<String> allAnswerIds;
 }

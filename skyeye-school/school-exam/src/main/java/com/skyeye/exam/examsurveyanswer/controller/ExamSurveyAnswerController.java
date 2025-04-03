@@ -66,7 +66,21 @@ public class ExamSurveyAnswerController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamSurveyAnswerController/querySurveyAnswerById")
     public void querySurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
-        examSurveyAnswerService.selectById(inputObject, outputObject);//仅用了方法
+        examSurveyAnswerService.selectById(inputObject, outputObject);
+    }
+
+    /**
+     * 根据试卷ID和用户Id获取回答信息和试卷信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySurveyBySurveyIdAndUserId", value = "根据试卷ID和用户Id获取回答信息和试卷信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "surveyId", name = "surveyId", value = "试卷Id", required = "required")})
+    @RequestMapping("/post/ExamSurveyAnswerController/querySurveyBySurveyIdAndUserId")
+    public void querySurveyAnswerBquerySurveyBySurveyIdAndUserIdyId(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.querySurveyBySurveyIdAndUserId(inputObject, outputObject);
     }
 
     /**

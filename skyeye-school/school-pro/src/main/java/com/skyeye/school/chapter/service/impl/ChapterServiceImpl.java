@@ -17,13 +17,11 @@ import com.skyeye.school.chapter.dao.ChapterDao;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
-import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: ChapterServiceImpl
@@ -42,9 +40,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
 
     @Autowired
     private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private DatumService datumService;
 
     @Autowired
     private CoursewareService coursewareService;
@@ -72,7 +67,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         String classId = params.get("classId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         if (CollectionUtil.isEmpty(chapterList)) {
             return;
@@ -118,7 +113,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     public List<Chapter> queryChaptersBySubjectId(String subjectId) {
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         return list(queryWrapper);
     }
 
