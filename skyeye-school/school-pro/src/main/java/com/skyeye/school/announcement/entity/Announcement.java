@@ -12,7 +12,10 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: Announcement
@@ -60,6 +63,10 @@ public class Announcement extends OperatorUserInfo implements EnclosureFace {
     @TableField("is_confirm")
     @ApiModelProperty(value = "公告是否需要确认，参考#EnableEnum", required = "required,num")
     private Integer isConfirm;
+
+    @TableField(exist = false)
+    @Property(value = "确认状态信息",enumClass = EnableEnum.class)
+    private Map<String, Object> confirmMation;
 
     @TableField("confirm_num")
     @ApiModelProperty(value = "确认的人数")
