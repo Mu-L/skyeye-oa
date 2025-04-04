@@ -1,5 +1,6 @@
 package com.skyeye.eve.chen.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -19,13 +20,12 @@ import com.skyeye.eve.chen.entity.DwQuChenColumn;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.DwQuChenColumnService;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.question.entity.DwQuestion;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -109,16 +109,16 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         }
     }
 
-    @Override
-    protected void deletePreExecution(DwQuChenColumn entity) {
-        String createId = entity.getCreateId();
-        String quId = entity.getQuId();
-        Integer queryvisibility = dwQuChenRowService.QueryvisibilityInRow(quId, createId);
-//        Integer visibility = entity.getVisibility();
-//        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
-//            throw new CustomException("该选项已显示，请先隐藏再删除");
-//        }
-    }
+//    @Override
+//    protected void deletePreExecution(DwQuChenColumn entity) {
+//        String createId = entity.getCreateId();
+//        String quId = entity.getQuId();
+//        Integer queryvisibility = dwQuChenRowService.QueryvisibilityInRow(quId, createId);
+////        Integer visibility = entity.getVisibility();
+////        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
+////            throw new CustomException("该选项已显示，请先隐藏再删除");
+////        }
+//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
@@ -131,6 +131,44 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(DwQuChenColumn::getVisibility), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
+    }
+
+    @Override
+    public void createChenColumns(List<DwQuestion> dwQuestionList, String userId) {
+        List<DwQuChenColumn> insertList = new ArrayList<>();
+        List<DwQuChenColumn> updateList = new ArrayList<>();
+        Map<String, List<DwQuChenColumn>> quRadioMap = new HashMap<>();
+
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            String quId = dwQuestion.getId();
+            List<DwQuChenColumn> radios = dwQuestion.getColumnTd();
+            if (CollectionUtils.isEmpty(radios)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
+
+            for (DwQuChenColumn radio : radios) {
+                DwQuChenColumn bean = new DwQuChenColumn();
+                BeanUtil.copyProperties(radio, bean);
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (CollectionUtil.isNotEmpty(insertList)) {
+            super.createEntity(insertList,userId);
+        }
+        if (CollectionUtil.isNotEmpty(updateList)) {
+            super.updateEntity(updateList,userId);
+        }
+        dwQuChenRowService.createChenRows(dwQuestionList,userId);
     }
 
     @Override
@@ -161,4 +199,85 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         return result;
     }
 
+    @Override
+    public void updateChenColumn(List<DwQuestion> dwQuestionList, String userId) {
+        dwQuChenRowService.updateChenRow(dwQuestionList, userId);
+        List<DwQuChenColumn> insertList = new ArrayList<>();
+        List<DwQuChenColumn> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<DwQuChenColumn>> existingRadiosMap = loadExistingRadios(dwQuestionList);
+
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            List<DwQuChenColumn> radios = dwQuestion.getColumnTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = dwQuestion.getId();
+            List<DwQuChenColumn> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                    .map(DwQuChenColumn::getOptionId)
+                    .filter(StrUtil::isNotBlank)
+                    .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                    .map(DwQuChenColumn::getId)
+                    .filter(id -> !newIds.contains(id))
+                    .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createChenColumns(dwQuestionList, userId);
+    }
+
+    @Override
+    public void removeByQuIds(List<String> dwQuestionIds) {
+        dwQuChenRowService.removeByQuIds(dwQuestionIds);
+        QueryWrapper<DwQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuChenColumn::getQuId), dwQuestionIds);
+        remove(queryWrapper);
+    }
+
+
+    private Map<String, List<DwQuChenColumn>> loadExistingRadios(List<DwQuestion> dwQuestions) {
+        List<String> quIds = dwQuestions.stream()
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+                .collect(Collectors.groupingBy(DwQuChenColumn::getQuId));
+    }
+
+    private List<DwQuChenColumn> selectByQuIds(List<String> quIds) {
+        QueryWrapper<DwQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuChenColumn::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<DwQuChenColumn> radios, String quId,
+                                     String userId, List<DwQuChenColumn> insertList,
+                                     List<DwQuChenColumn> updateList) {
+        for (DwQuChenColumn radio : radios) {
+            DwQuChenColumn bean = new DwQuChenColumn();
+            BeanUtil.copyProperties(radio, bean);
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
+    }
 }

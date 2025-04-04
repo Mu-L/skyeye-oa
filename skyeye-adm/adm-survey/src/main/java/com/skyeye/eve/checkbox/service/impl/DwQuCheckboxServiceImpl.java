@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.checkbox.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -22,12 +23,11 @@ import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.checkbox.dao.DwQuCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
+import com.skyeye.eve.question.entity.DwQuestion;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -139,5 +139,136 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         Map<String, List<DwQuCheckbox>> result = list.stream().collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
         return result;
     }
+    @Override
+    public void createCheckboxs(List<DwQuestion> dwQuestionList, String userId) {
+        List<DwQuCheckbox> insertList = new ArrayList<>();
+        List<DwQuCheckbox> updateList = new ArrayList<>();
+        Map<String, List<DwQuCheckbox>> quRadioMap = new HashMap<>();
 
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            String quId = dwQuestion.getId();
+            List<DwQuCheckbox> radios = dwQuestion.getCheckboxTd();
+            if (CollectionUtils.isEmpty(radios)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
+
+            for (DwQuCheckbox radio : radios) {
+                DwQuCheckbox bean = new DwQuCheckbox();
+                BeanUtil.copyProperties(radio, bean);
+                if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+                }
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            createEntity(insertList, userId);
+        }
+        if (!updateList.isEmpty()) {
+            updateEntity(updateList, userId);
+        }
+    }
+
+
+    @Override
+    public void updateCheckboxs(List<DwQuestion> dwQuestionList, String userId) {
+        List<DwQuCheckbox> insertList = new ArrayList<>();
+        List<DwQuCheckbox> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<DwQuCheckbox>> existingRadiosMap = loadExistingRadios(dwQuestionList);
+
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            List<DwQuCheckbox> radios = dwQuestion.getCheckboxTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = dwQuestion.getId();
+            List<DwQuCheckbox> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                    .map(DwQuCheckbox::getOptionId)
+                    .filter(StrUtil::isNotBlank)
+                    .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                    .map(DwQuCheckbox::getId)
+                    .filter(id -> !newIds.contains(id))
+                    .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createCheckboxs(dwQuestionList, userId);
+    }
+
+    @Override
+    public void removeByQuIds(List<String> dwQuestionIds) {
+        QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), dwQuestionIds);
+        remove(queryWrapper);
+    }
+
+    private Map<String, List<DwQuCheckbox>> loadExistingRadios(List<DwQuestion> dwQuestions) {
+        List<String> quIds = dwQuestions.stream()
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+                .collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
+    }
+
+    private List<DwQuCheckbox> selectByQuIds(List<String> quIds) {
+        QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+
+    private void processRadioOptions(List<DwQuCheckbox> radios, String quId,
+                                     String userId, List<DwQuCheckbox> insertList,
+                                     List<DwQuCheckbox> updateList) {
+        for (DwQuCheckbox radio : radios) {
+            DwQuCheckbox bean = new DwQuCheckbox();
+            BeanUtil.copyProperties(radio, bean);
+
+            // CheckType转换逻辑
+            if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+            }
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
+    }
 }
+
+
+
+
+
+
+

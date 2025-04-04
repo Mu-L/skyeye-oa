@@ -3,6 +3,7 @@ package com.skyeye.eve.radio.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 
 import java.util.List;
@@ -27,4 +28,9 @@ public interface DwQuRadioService extends SkyeyeBusinessService<DwQuRadio> {
 
     Map<String, List<DwQuRadio>> selectByBelongId(List<String> id);
 
+    void updateRadios(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
+
+    void createRadios(List<DwQuestion> dwQuestionList, String userId);
 }

@@ -3,6 +3,7 @@ package com.skyeye.eve.question.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.question.entity.DwQuestionLogic;
 
 import java.util.List;
@@ -18,4 +19,6 @@ public interface DwQuestionLogicService extends SkyeyeBusinessService<DwQuestion
     void queryDwQuestionLogicList(InputObject inputObject, OutputObject outputObject);
 
     void queryMyDwQuestionLogicList(InputObject inputObject, OutputObject outputObject);
+
+    void createLogics(List<DwQuestion> dwQuestionList, String userId);
 }

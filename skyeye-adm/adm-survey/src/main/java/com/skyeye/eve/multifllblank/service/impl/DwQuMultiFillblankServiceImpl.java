@@ -1,5 +1,6 @@
 package com.skyeye.eve.multifllblank.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -14,15 +15,15 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.multifllblank.dao.DwQuMultiFillblankDao;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
+import com.skyeye.eve.question.entity.DwQuestion;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,6 +91,46 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
     }
 
     @Override
+    public void createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId) {
+        List<DwQuMultiFillblank> insertList = new ArrayList<>();
+        List<DwQuMultiFillblank> updateList = new ArrayList<>();
+        Map<String, List<DwQuMultiFillblank>> quRadioMap = new HashMap<>();
+
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            String quId = dwQuestion.getId();
+            List<DwQuMultiFillblank> radios = dwQuestion.getMultifillblankTd();
+            if (CollectionUtils.isEmpty(radios)) continue;
+
+            quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
+
+            for (DwQuMultiFillblank radio : radios) {
+                DwQuMultiFillblank bean = new DwQuMultiFillblank();
+                BeanUtil.copyProperties(radio, bean);
+                if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                    bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+                }
+                if (ToolUtil.isBlank(radio.getOptionId())) {
+                    bean.setQuId(quId);
+                    bean.setVisibility(1);
+                    bean.setCreateId(userId);
+                    bean.setCreateTime(DateUtil.getTimeAndToString());
+                    insertList.add(bean);
+                } else {
+                    bean.setId(bean.getOptionId());
+                    updateList.add(bean);
+                }
+            }
+        }
+
+        if (!insertList.isEmpty()) {
+            createEntity(insertList,userId);
+        }
+        if (!updateList.isEmpty()) {
+            updateEntity(updateList,userId);
+        }
+    }
+
+    @Override
     public void removeByQuId(String quId) {
         UpdateWrapper<DwQuMultiFillblank> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), quId);
@@ -116,4 +157,88 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
         return result;
     }
 
+    @Override
+    public void updateMultiFillblanks(List<DwQuestion> dwQuestionList, String userId) {
+        List<DwQuMultiFillblank> insertList = new ArrayList<>();
+        List<DwQuMultiFillblank> updateList = new ArrayList<>();
+        Set<String> needDeleteIds = new HashSet<>();
+        // 问题Id和选项的映射
+        Map<String, List<DwQuMultiFillblank>> existingRadiosMap = loadExistingRadios(dwQuestionList);
+
+        for (DwQuestion dwQuestion : dwQuestionList) {
+            List<DwQuMultiFillblank> radios = dwQuestion.getMultifillblankTd();
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
+            String quId = dwQuestion.getId();
+            List<DwQuMultiFillblank> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
+
+            // 收集需要删除的ID
+            Set<String> newIds = radios.stream()
+                    .map(DwQuMultiFillblank::getOptionId)
+                    .filter(StrUtil::isNotBlank)
+                    .collect(Collectors.toSet());
+
+            existingRadios.stream()
+                    .map(DwQuMultiFillblank::getId)
+                    .filter(id -> !newIds.contains(id))
+                    .forEach(needDeleteIds::add);
+
+            // 处理插入/更新
+            processRadioOptions(radios, quId, userId, insertList, updateList);
+        }
+        List<String> needDeleteIdList = new ArrayList<>(needDeleteIds);
+        // 批量数据库操作
+        if (!needDeleteIds.isEmpty()) {
+            deleteById(needDeleteIdList);
+        }
+        createMultiFillblanks(dwQuestionList, userId);
+    }
+
+    @Override
+    public void removeByQuIds(List<String> dwQuestionIds) {
+        QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), dwQuestionIds);
+        remove(queryWrapper);
+    }
+
+
+    private Map<String, List<DwQuMultiFillblank>> loadExistingRadios(List<DwQuestion> dwQuestions) {
+        List<String> quIds = dwQuestions.stream()
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
+        return selectByQuIds(quIds).stream()
+                .collect(Collectors.groupingBy(DwQuMultiFillblank::getQuId));
+    }
+
+    private List<DwQuMultiFillblank> selectByQuIds(List<String> quIds) {
+        QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), quIds);
+        return list(queryWrapper);
+    }
+
+    private void processRadioOptions(List<DwQuMultiFillblank> radios, String quId,
+                                     String userId, List<DwQuMultiFillblank> insertList,
+                                     List<DwQuMultiFillblank> updateList) {
+        for (DwQuMultiFillblank radio : radios) {
+            DwQuMultiFillblank bean = new DwQuMultiFillblank();
+            BeanUtil.copyProperties(radio, bean);
+
+            // CheckType转换逻辑
+            if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
+                bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
+            }
+
+            if (ToolUtil.isBlank(radio.getOptionId())) {
+                bean.setQuId(quId);
+                bean.setVisibility(1);
+                bean.setCreateId(userId);
+                bean.setCreateTime(DateUtil.getTimeAndToString());
+                insertList.add(bean);
+            } else {
+                bean.setId(bean.getOptionId());
+                updateList.add(bean);
+            }
+        }
+    }
 }

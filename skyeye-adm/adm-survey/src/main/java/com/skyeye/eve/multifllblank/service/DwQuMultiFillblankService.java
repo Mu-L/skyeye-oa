@@ -4,6 +4,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
+import com.skyeye.eve.question.entity.DwQuestion;
 
 import java.util.List;
 import java.util.Map;
@@ -18,4 +19,10 @@ public interface DwQuMultiFillblankService extends SkyeyeBusinessService<DwQuMul
     List<DwQuMultiFillblank> selectQuMultiFillblank(String copyFromId);
 
     Map<String, List<DwQuMultiFillblank>> selectByBelongId(List<String> id);
+
+    void updateMultiFillblanks(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
+
+    void createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId);
 }

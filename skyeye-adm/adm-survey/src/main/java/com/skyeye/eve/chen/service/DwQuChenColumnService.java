@@ -10,6 +10,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwQuChenColumn;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
+import com.skyeye.eve.question.entity.DwQuestion;
 
 import java.util.List;
 import java.util.Map;
@@ -32,4 +33,9 @@ public interface DwQuChenColumnService extends SkyeyeBusinessService<DwQuChenCol
     List<DwQuChenColumn> selectQuChenColumn(String copyFromId);
 
     Map<String, List<DwQuChenColumn>> selectByBelongId(List<String> id);
+    void createChenColumns(List<DwQuestion> dwQuestionList, String userId);
+
+    void updateChenColumn(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
 }

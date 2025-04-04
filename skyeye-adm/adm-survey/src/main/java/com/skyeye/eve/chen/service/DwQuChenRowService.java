@@ -8,6 +8,7 @@ package com.skyeye.eve.chen.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
+import com.skyeye.eve.question.entity.DwQuestion;
 
 import java.util.List;
 import java.util.Map;
@@ -36,4 +37,11 @@ public interface DwQuChenRowService  extends SkyeyeBusinessService<DwQuChenRow>{
     List<DwQuChenRow> selectQuChenRow(String copyFromId);
 
     Map<String, List<DwQuChenRow>> selectByBelongId(List<String> id);
+
+    void createChenRows(List<DwQuestion> dwQuestionList, String userId);
+
+    void updateChenRow(List<DwQuestion> dwQuestionList, String userId);
+    void removeByQuIds(List<String> dwQuestionIds);
+
+
 }

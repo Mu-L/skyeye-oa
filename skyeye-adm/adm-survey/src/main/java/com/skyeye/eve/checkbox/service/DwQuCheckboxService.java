@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
+import com.skyeye.eve.question.entity.DwQuestion;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,12 @@ public interface DwQuCheckboxService extends SkyeyeBusinessService<DwQuCheckbox>
     List<DwQuCheckbox> selectQuChenbox(String copyFromId);
 
     Map<String, List<DwQuCheckbox>> selectByBelongId(List<String> id);
+
+    void updateCheckboxs(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
+
+    void createCheckboxs(List<DwQuestion> dwQuestionList, String userId);
 }
 
 

@@ -3,6 +3,7 @@ package com.skyeye.eve.score.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.score.entity.DwQuScore;
 
 import java.util.List;
@@ -27,5 +28,13 @@ public interface DwQuScoreService extends SkyeyeBusinessService<DwQuScore> {
     Map<String, List<DwQuScore>> selectByBelongId(List<String> id);
 
     void removeByQuId(String quId);
+
+    void updateScores(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
+
+    void removeByquId(String entityId);
+
+    void createScores(List<DwQuestion> dwQuestionList, String userId);
 }
 

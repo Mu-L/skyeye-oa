@@ -23,4 +23,6 @@ public interface DwSurveyAnswerService extends SkyeyeBusinessService<DwSurveyAns
     void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject);
 
     List<DwSurveyAnswer> querySurveyAnswerByBelongId(String dwDirectoryId);
+
+    Integer selectFractionBySurveyId(String surveyId);
 }

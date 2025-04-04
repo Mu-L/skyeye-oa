@@ -4,6 +4,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
+import com.skyeye.eve.question.entity.DwQuestion;
 
 import java.util.List;
 import java.util.Map;
@@ -19,4 +20,9 @@ public interface DwQuOrderbyService extends SkyeyeBusinessService<DwQuOrderby> {
     List<DwQuOrderby> selectQuOrderby(String copyFromId);
 
     Map<String, List<DwQuOrderby>> selectByBelongId(List<String> id);
+    void createOrderbys(List<DwQuestion> dwQuestionList, String userId);
+
+    void updateOrderbys(List<DwQuestion> dwQuestionList, String userId);
+
+    void removeByQuIds(List<String> dwQuestionIds);
 }

@@ -283,15 +283,16 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
-        dwSurveyDirectory.setEndTime(StrUtil.isEmpty(dwSurveyDirectory.getEndTime()) ? null : dwSurveyDirectory.getEndTime());
-        dwSurveyDirectory.setRealStartTime(StrUtil.isEmpty(dwSurveyDirectory.getRealStartTime()) ? null : dwSurveyDirectory.getRealStartTime());
-        dwSurveyDirectory.setRealEndTime(StrUtil.isEmpty(dwSurveyDirectory.getRealEndTime()) ? null : dwSurveyDirectory.getRealEndTime());
-        if (StrUtil.isNotEmpty(dwSurveyDirectory.getRealStartTime()) && StrUtil.isNotEmpty(dwSurveyDirectory.getRealEndTime())) {
-            if (DateUtil.compare(dwSurveyDirectory.getRealStartTime(), dwSurveyDirectory.getRealEndTime())) {
+        String realStartTime = dwSurveyDirectory.getRealStartTime();
+        String realEndTime = dwSurveyDirectory.getRealEndTime();
+        if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
+            boolean compareTime = DateUtil.compareTime(realStartTime, realEndTime);
+            if (compareTime) {
                 throw new CustomException("实际开始时间不能晚于实际结束时间");
             }
         }
     }
+
 
     @Override
     protected void createPostpose(DwSurveyDirectory entity, String userId) {
@@ -299,46 +300,54 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (CollectionUtil.isNotEmpty(dwQuestionMation)) {
             for (DwQuestion dwQuestion : dwQuestionMation) {
                 dwQuestion.setBelongId(entity.getId());
-                dwQuestionService.createEntity(dwQuestion, userId);
             }
+            dwQuestionService.createEntity(dwQuestionMation, userId);
         }
     }
 
+
+
+
     @Override
     public void updatePostpose(DwSurveyDirectory entity, String userId) {
-        List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
-        List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
-        List<String> collect = dwQuestions.stream().map(DwQuestion::getId).collect(Collectors.toList());
-        Map<Boolean, List<DwQuestion>> partitionedQuestions = dwQuestionMation.stream()
-            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
-        // 获取ID不为空的题目列表
+        List<DwQuestion> questionList = entity.getDwQuestionMation();
+        List<DwQuestion> existingQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
+        List<String> existingIds = existingQuestions.stream()
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
+        Map<Boolean, List<DwQuestion>> partitionedQuestions = questionList.stream()
+                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         List<DwQuestion> questionsWithId = partitionedQuestions.get(true);
-        // 获取ID为空的题目列表
         List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
-            .map(DwQuestion::getId)
-            .collect(Collectors.toList());
+                .map(DwQuestion::getId)
+                .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
-        List<String> idsToDelete = collect.stream()
-            .filter(id -> !submittedIdSet.contains(id))
-            .collect(Collectors.toList());
+        List<String> idsToDelete = existingIds.stream()
+                .filter(id -> !submittedIdSet.contains(id))
+                .collect(Collectors.toList());
         dwQuestionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
-            List<DwQuestion> dwQuestionList = questionsWithId.stream()
-                .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
-                    StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
-            for (DwQuestion dwQuestion : dwQuestionList) {
+            List<DwQuestion> createQuestion = new ArrayList<>();
+            //纯题目
+            List<DwQuestion> collect = questionsWithId.stream()
+                    .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
+                            StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
+            createQuestion.addAll(collect);
+            for (DwQuestion dwQuestion : createQuestion) {
                 dwQuestion.setBelongId(entity.getId());
-                dwQuestionService.createEntity(dwQuestion, userId);
             }
-            for (DwQuestion question : questionsWithId) {
-                dwQuestionService.updateEntity(question, userId);
+            for (DwQuestion dwQuestion : collect) {
+                dwQuestion.setId(StrUtil.EMPTY);
             }
+            dwQuestionService.updateEntity(createQuestion, userId);
+            dwQuestionService.createEntity(collect, userId);
+            dwQuestionService.updateEntity(questionsWithId, userId);
         }
-        for (DwQuestion question : questionsWithoutId) {
-            dwQuestionService.createEntity(question, userId);
-        }
+        dwQuestionService.createEntity(questionsWithoutId, userId);
+
     }
+
 
     /**
      * 切换是否删除问卷目录的方法
@@ -362,21 +371,22 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
      */
+
     @Override
     public void updateDwMationEndById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String examSurveyDirectoryId = map.get("id").toString();
+        String dwSurveyDirectoryId = map.get("id").toString();
         QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
-        DwSurveyDirectory dwSurveyDirectory = getOne(queryWrapper);
+        queryWrapper.eq(CommonConstants.ID, dwSurveyDirectoryId);
+        DwSurveyDirectory examSurveyDirectory = getOne(queryWrapper);
         // 判断问卷目录对象是否存在
-        if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
+        if (ObjUtil.isNotEmpty(examSurveyDirectory)) {
             // 判断问卷目录状态是否为进行中（NUM_ONE）
-            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
                 // 获取当前时间作为实际结束时间
                 String realEndTime = DateUtil.getTimeAndToString();
                 UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(CommonConstants.ID, examSurveyDirectoryId);
+                updateWrapper.eq(CommonConstants.ID, dwSurveyDirectoryId);
                 // 设置实际结束时间为当前时间
                 updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getRealEndTime), realEndTime);
                 // 设置问卷目录状态为已结束（NUM_TWO）
@@ -390,6 +400,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             throw new CustomException("该问卷信息不存在!");
         }
     }
+
 
     @Override
     public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {

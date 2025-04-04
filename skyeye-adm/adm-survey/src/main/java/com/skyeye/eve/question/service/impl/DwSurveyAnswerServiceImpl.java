@@ -11,6 +11,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.answer.service.DwAnAnswerService;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
@@ -92,6 +93,9 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     @Autowired
     private DwAnFillblankService dwAnFillblankService;
 
+    @Autowired
+    private DwSurveyAnswerService dwSurveyAnswerService;
+
     @Override
     protected void createPrepose(DwSurveyAnswer entity) {
         LocalDateTime bgAnDate = entity.getBgAnDate();
@@ -104,13 +108,14 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         }
     }
 
+
     @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
         LocalDateTime bgAnDate = entity.getBgAnDate();
         LocalDateTime endAnDate = entity.getEndAnDate();
         LocalDateTime markStartTime = entity.getMarkStartTime();
         LocalDateTime markEndTime = entity.getMarkEndTime();
-        //进行空指针判断
+      //  进行空指针判断
         if (endAnDate == null) {
             throw new CustomException("结束时间不能为空");
         }
@@ -121,7 +126,7 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         if (duration.isNegative()) {
             throw new CustomException("开始时间不能大于结束时间");
         }
-        // 将时间差转换为总小时数（浮点数）
+       //  将时间差转换为总小时数（浮点数）
         float totalHours = (float) duration.toHours() + (float) duration.toMinutes() / 60.0f + (float) duration.toMillis() / 3600000.0f;
         entity.setTotalTime(totalHours); // 设置时间差到totalTime属性
         String surveyId = entity.getSurveyId();
@@ -145,6 +150,10 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
         } else if (total < entity.getQuNum()) {
             throw new CustomException("未完成所有题目");
+        }
+        if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
+            Integer fraction = dwSurveyAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+            entity.setMarkFraction(fraction);
         }
     }
 
@@ -224,6 +233,15 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), dwDirectoryId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Integer selectFractionBySurveyId(String surveyId) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), surveyId);
+        List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
+        Integer sum = dwSurveyAnswerList.stream().mapToInt(DwSurveyAnswer::getMarkFraction ).sum();
+        return sum;
     }
 
     private void extracted(OutputObject outputObject, QueryWrapper<DwSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {

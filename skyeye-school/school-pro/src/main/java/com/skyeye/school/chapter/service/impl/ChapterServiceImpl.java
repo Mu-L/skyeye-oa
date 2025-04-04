@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: ChapterServiceImpl
@@ -49,16 +48,26 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     @Autowired
     private CoursewareService coursewareService;
 
+    @Autowired
+    private ChapterDao chapterDao;
+
+
     @Override
     public void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String subjectId = map.get("subjectId").toString();
+        String subjectId = String.valueOf(map.get("subjectId"));
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
-            chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
+            // 格式化章节名称
+            String section = String.valueOf(chapter.getSection());
+            String name = chapter.getName();
+            String formattedName = String.format(Locale.ROOT, "第 %s 章 %s", section, name);
+            chapter.setName(formattedName);
         });
+
         iAuthUserService.setDataMation(chapterList, Chapter::getCreateId);
         iAuthUserService.setDataMation(chapterList, Chapter::getLastUpdateId);
         outputObject.setBeans(chapterList);
@@ -119,7 +128,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
                 .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
-        return list(queryWrapper);
+        return chapterDao.selectList(queryWrapper);
     }
 
 }
