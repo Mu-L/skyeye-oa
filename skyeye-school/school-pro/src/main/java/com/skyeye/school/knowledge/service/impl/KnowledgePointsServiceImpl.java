@@ -57,6 +57,7 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
 
     @Override
     protected void validatorEntity(KnowledgePoints entity) {
+        super.validatorEntity(entity);
         String remark = entity.getRemark();
         if (remark != null && remark.length() > 200) {
             // 截取前200个字符
