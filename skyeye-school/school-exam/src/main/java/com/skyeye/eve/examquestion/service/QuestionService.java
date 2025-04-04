@@ -38,7 +38,9 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     List<Question> QueryQuestionByBelongId(String surveId);
 
-    Map<String, List<Question>> queryQuestionListBySurveyIds(List<String> surveyIds);
+    Map<String, List<Question>> queryQuestionListBySurveyIds(List<String> surveyIds, String createId);
+
+    List<Question> QueryQuestionByBelongIdAndStuId(String surveyId, String studentId);
 
 //    void addQuPagetag(InputObject inputObject, OutputObject outputObject);
 

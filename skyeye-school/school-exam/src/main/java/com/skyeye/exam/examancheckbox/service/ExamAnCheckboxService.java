@@ -23,4 +23,8 @@ public interface ExamAnCheckboxService extends SkyeyeBusinessService<ExamAnCheck
     List<ExamAnCheckbox> slectBySurveyId(String surveyId);
 
     List<ExamAnCheckbox> selectAnCheckBoxByQuId(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnCheckbox> selectByQuIdAndStuId(String id, String studentId);
 }

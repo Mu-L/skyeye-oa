@@ -36,7 +36,7 @@ public class ExamAnChenCheckboxController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnChenCheckbox", value = "新增/编辑矩阵多选题", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnChenCheckbox", value = "新增/编辑矩阵多选题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnChenCheckbox.class)
     @RequestMapping("/post/ExamAnChenCheckboxController/writeExamAnChenCheckbox")
     public void writeExamAnChenCheckbox(InputObject inputObject, OutputObject outputObject) {

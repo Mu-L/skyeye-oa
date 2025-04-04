@@ -7,13 +7,14 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:yesno")
+//@RedisCacheField(name = "Exam:yesno")
 @TableName(value = "exam_an_yesno")
 @ApiModel("判断题实体类")
-public class ExamAnYesno extends CommonInfo {
+public class ExamAnYesno extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

@@ -34,7 +34,7 @@ public class ExamSurveyQuAnswerController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamSurveyQuAnswer", value = "新增/编辑题目和所得分数的关联表", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamSurveyQuAnswer", value = "新增/编辑题目和所得分数的关联表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamSurveyQuAnswer.class)
     @RequestMapping("/post/ExamSurveyQuAnswerController/writeExamSurveyQuAnswer")
     public void writeExamSurveyQuAnswer(InputObject inputObject, OutputObject outputObject) {

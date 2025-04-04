@@ -35,7 +35,7 @@ public class ExamAnQuestionController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnQuestion", value = "新增/编辑试题答案相关信息表", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnQuestion", value = "新增/编辑试题答案相关信息表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnQuestion.class)
     @RequestMapping("/post/ExamAnQuestionController/writeExamAnQuestion")
     public void writeExamAnQuestion(InputObject inputObject, OutputObject outputObject) {

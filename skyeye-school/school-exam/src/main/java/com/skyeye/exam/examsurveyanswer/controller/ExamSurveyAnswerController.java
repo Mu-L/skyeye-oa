@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @ClassName: ExamSurveyAnswerController
  * @Description: 试卷回答信息表管理控制层
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--luyujia
  * @date: 2024/7/16 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -57,6 +57,8 @@ public class ExamSurveyAnswerController {
 
     /**
      * 根据ID获取试卷回答信息
+     * 学生角度,获取我的某个的回答信息
+     * 教师角度,获取某个学生的回答信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -71,6 +73,7 @@ public class ExamSurveyAnswerController {
 
     /**
      * 根据试卷ID和用户Id获取回答信息和试卷信息
+     * 学生角度根据试卷id去获取所有的回答与试卷信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -85,11 +88,12 @@ public class ExamSurveyAnswerController {
 
     /**
      * 根据createId获取my试卷回答信息
+     * 学生角度,获取我的所有试卷回答信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMySurveyAnswerList", value = "根据createId获取my试卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMySurveyAnswerList", value = "根据createId获取我的试卷回答信息", method = "POST", allUse = "2")
     @RequestMapping("/post/ExamSurveyAnswerController/queryMySurveyAnswerList")
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryMySurveyAnswerList(inputObject, outputObject);
@@ -97,55 +101,44 @@ public class ExamSurveyAnswerController {
 
     /**
      * 获取已/待批阅试卷信息
+     * 教师角度,获取所有需要批阅的试卷(仅仅是试卷，不是回答者的回答的试卷信息)
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryNoOrYesSurveyAnswerList", value = "获取已/待批阅试卷信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAllSurveyList", value = "获取所有批阅试卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ExamSurveyAnswerController/queryNoOrYesSurveyAnswerList")
-    public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
-        examSurveyAnswerService.queryNoOrYesSurveyAnswerList(inputObject, outputObject);
+    @RequestMapping("/post/ExamSurveyAnswerController/queryAllSurveyList")
+    public void queryAllSurveyList(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.queryAllSurveyList(inputObject, outputObject);
     }
 
     /**
      * 根据SurveyId获取试卷回答信息
+     * 这张试卷下的所有回答者（学生）的信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySurveyAnswerBySurveyId", value = "根据试卷surveyId(holderId)获取试卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "querySurveyAnswerBySurveyId", value = "根据试卷Id获取试卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyAnswerController/querySurveyAnswerBySurveyId")
     public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.querySurveyAnswerBySurveyId(inputObject, outputObject);
     }
 
-
     /**
      * 筛选已批阅获取试卷回答信息
+     * 教师角度,获取所有已经或未曾批阅的试卷(仅仅是回答者信息)
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选已批阅获取试卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选未/已批阅 试卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyAnswerController/queryFilterApprovedSurveys")
     public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {
         examSurveyAnswerService.queryFilterApprovedSurveys(inputObject, outputObject);
-    }
-
-    /**
-     * 筛选待批阅获取试卷回答信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryFilterToBeReviewedSurveys", value = "筛选待批阅获取试卷回答信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ExamSurveyAnswerController/queryFilterToBeReviewedSurveys")
-    public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
-        examSurveyAnswerService.queryFilterToBeReviewedSurveys(inputObject, outputObject);
     }
 
 }

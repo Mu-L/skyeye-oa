@@ -22,4 +22,8 @@ public interface ExamAnChenRadioService extends SkyeyeBusinessService<ExamAnChen
     List<ExamAnChenRadio> selectBySurveyId(String surveyId);
 
     List<ExamAnChenRadio> selectAnChenRadioByQuId(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnChenRadio> selectByQuIdAndStuId(String questionId, String studentId);
 }

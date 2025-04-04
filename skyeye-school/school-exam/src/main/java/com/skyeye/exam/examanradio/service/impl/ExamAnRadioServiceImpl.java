@@ -41,4 +41,20 @@ public class ExamAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnRadi
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id);
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getBelongId), surveyId)
+                .eq(MybatisPlusUtil.toColumns(ExamAnRadio::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnRadio> selectByQuIdAndStuId(String id, String studentId) {
+        QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id)
+                .eq(MybatisPlusUtil.toColumns(ExamAnRadio::getCreateId), studentId);
+        return list(queryWrapper);
+    }
 }

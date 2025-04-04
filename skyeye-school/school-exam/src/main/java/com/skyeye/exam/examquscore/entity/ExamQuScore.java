@@ -24,7 +24,7 @@ import java.util.List;
 //@RedisCacheField(name = "Exam:score")
 @TableName(value = "exam_qu_score")
 @ApiModel("评分题行选项实体类")
-public class ExamQuScore extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuScore extends OperatorUserInfo  {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

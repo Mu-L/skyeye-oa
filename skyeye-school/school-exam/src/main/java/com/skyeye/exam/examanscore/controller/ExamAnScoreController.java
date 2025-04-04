@@ -26,7 +26,7 @@ public class ExamAnScoreController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnScore", value = "新增/编辑评分题保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnScore", value = "新增/编辑评分题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnScore.class)
     @RequestMapping("/post/ExamAnScoreController/writeExamAnScore")
     public void writeExamAnScore(InputObject inputObject, OutputObject outputObject) {

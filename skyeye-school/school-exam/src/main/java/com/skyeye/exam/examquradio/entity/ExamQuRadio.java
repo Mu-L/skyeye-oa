@@ -21,7 +21,7 @@ import lombok.Data;
 @Data
 //@TableName(value = "exam_qu_radio")
 @ApiModel("单选题选项表实体类")
-public class ExamQuRadio extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuRadio extends OperatorUserInfo  {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

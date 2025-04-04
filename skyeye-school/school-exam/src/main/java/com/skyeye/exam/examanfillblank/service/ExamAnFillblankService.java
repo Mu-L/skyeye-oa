@@ -19,4 +19,6 @@ public interface ExamAnFillblankService extends SkyeyeBusinessService<ExamAnFill
     void queryExamAnFillblankListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnFillblank> selectBySurveyId(String surveyId);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
 }

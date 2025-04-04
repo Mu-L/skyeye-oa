@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamSurveyDirectoryService
@@ -41,7 +42,9 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     void querySurveyListByNoOrYesState(Integer state);
 
-    List<ExamSurveyDirectory> querySurveyListByIds(List<String> surveyIds);
+    Map<String, List<ExamSurveyDirectory>> querySurveyListByIds(List<String> surveyIds, String createId);
+
+    ExamSurveyDirectory selectBySurAndStuId(String surveyId, String studentId);
 
 //    void queryExamFxById(InputObject inputObject, OutputObject outputObject);
 }

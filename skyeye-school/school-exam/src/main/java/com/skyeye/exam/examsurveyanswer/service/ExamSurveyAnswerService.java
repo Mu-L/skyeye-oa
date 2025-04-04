@@ -23,13 +23,11 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
 
-    void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
+    void queryAllSurveyList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
 
     void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
-
-    void  queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject);
 
     Map<String, Integer> queryAnswerNum(List<String> directoryIds);
 

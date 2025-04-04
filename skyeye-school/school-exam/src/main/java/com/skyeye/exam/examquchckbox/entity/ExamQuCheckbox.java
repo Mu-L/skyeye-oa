@@ -13,10 +13,10 @@ import com.skyeye.eve.examquestion.classenum.CheckTypes;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:checkbox")
+//@RedisCacheField(name = "Exam:checkbox")
 @TableName(value = "exam_qu_checkbox")
 @ApiModel("多选题选项表实体类")
-public class ExamQuCheckbox extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuCheckbox extends OperatorUserInfo  {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

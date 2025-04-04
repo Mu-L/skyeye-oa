@@ -1,5 +1,7 @@
 package com.skyeye.exam.examanchenscore.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -28,6 +30,14 @@ import java.util.Map;
 public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenScoreDao, ExamAnChenScore> implements ExamAnChenScoreService {
 
     @Override
+    protected void createPrepose(ExamAnChenScore entity) {
+        List<ExamAnChenScore> chenScoreAn = entity.getChenScoreAn();
+        if (CollectionUtil.isNotEmpty(chenScoreAn)) {
+            super.createEntity(chenScoreAn, StrUtil.EMPTY);
+        }
+    }
+
+    @Override
     public void queryExamAnChenScoreListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -51,4 +61,21 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), id);
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), surveyId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnChenScore> selectByQuIdAndStuId(String questionId, String studentId) {
+        QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), questionId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getCreateId), studentId);
+        return list(queryWrapper);
+    }
+
 }

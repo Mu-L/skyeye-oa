@@ -1,5 +1,7 @@
 package com.skyeye.exam.examanchenradio.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -28,6 +30,14 @@ import java.util.Map;
 public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenRadioDao, ExamAnChenRadio> implements ExamAnChenRadioService {
 
     @Override
+    protected void createPrepose(ExamAnChenRadio entity) {
+        List<ExamAnChenRadio> chenRadioAn = entity.getChenRadioAn();
+        if (CollectionUtil.isNotEmpty(chenRadioAn)){
+            super.createEntity(chenRadioAn, StrUtil.EMPTY);
+        }
+    }
+
+    @Override
     public void queryExamAnChenRadioListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -49,6 +59,22 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     public List<ExamAnChenRadio> selectAnChenRadioByQuId(String id) {
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), surveyId)
+                .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnChenRadio> selectByQuIdAndStuId(String questionId, String studentId) {
+        QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), questionId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId),studentId);
         return list(queryWrapper);
     }
 

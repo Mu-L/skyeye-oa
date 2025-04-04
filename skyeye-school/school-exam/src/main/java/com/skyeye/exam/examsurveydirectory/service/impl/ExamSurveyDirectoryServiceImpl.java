@@ -464,7 +464,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
-        extracted(commonPageInfo,queryWrapper);
+        extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }
 
@@ -535,14 +535,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
-        if(CollectionUtil.isEmpty(examSurveyDirectoryList)){
+        if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return;
         }
         List<String> directoryIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
         // 获取已批阅的试卷数
-        Map<String,Integer> map = examSurveyMarkExamService.queryMarkedExamNum(directoryIds);
+        Map<String, Integer> map = examSurveyMarkExamService.queryMarkedExamNum(directoryIds);
         // 获取已经回答的人数
-        Map<String,Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
+        Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
             List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
             examSurveyDirectory.setQuestionMation(questionList);
@@ -569,16 +569,27 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public List<ExamSurveyDirectory> querySurveyListByIds(List<String> surveyIds) {
+    public Map<String, List<ExamSurveyDirectory>> querySurveyListByIds(List<String> surveyIds, String createId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, surveyIds);
-        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
-        Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds);
-        for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
-            examSurveyDirectory.setQuestionMation(stringListMap.get(examSurveyDirectory.getId()));
+        Map<String, List<ExamSurveyDirectory>> listMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(surveyIds)){
+            queryWrapper.in(CommonConstants.ID, surveyIds);
+            List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+            Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds, createId);
+            for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+                examSurveyDirectory.setQuestionMation(stringListMap.get(examSurveyDirectory.getId()));
+            }
+            listMap = examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getId));
         }
-        System.out.println(examSurveyDirectoryList);
-        return examSurveyDirectoryList;
+        return listMap;
+    }
+
+    @Override
+    public ExamSurveyDirectory selectBySurAndStuId(String surveyId, String studentId) {
+        ExamSurveyDirectory bean = super.selectById(surveyId);
+        List<Question> questionList = questionService.QueryQuestionByBelongIdAndStuId(surveyId, studentId);
+        bean.setQuestionMation(questionList);
+        return bean;
     }
 
     @Override
@@ -698,7 +709,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @NotNull
-    private ExamSurveyDirectory  getExamSurveyDirectory(String id) {
+    private ExamSurveyDirectory getExamSurveyDirectory(String id) {
         ExamSurveyDirectory bean = super.selectById(id);
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));

@@ -33,7 +33,7 @@ public class MatrixMultipleChoiceQuestionController{
      * @param inputObject 入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeMatrixMultipleChoiceQuestion", value = "新增/编辑矩阵单选题信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeMatrixMultipleChoiceQuestion", value = "新增/编辑矩阵单选题信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MatrixMultipleChoiceQuestion.class)
     @RequestMapping("/post/MatrixMultipleChoiceQuestionController/addMatrixMultipleChoiceQuestionMation")
     public void addMatrixMultipleChoiceQuestionMation(InputObject inputObject, OutputObject outputObject) {

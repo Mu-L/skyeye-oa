@@ -19,4 +19,6 @@ public interface ExamAnEnumquService extends SkyeyeBusinessService<ExamAnEnumqu>
     void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnEnumqu> selectBySurveyId(String surveyId);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
 }

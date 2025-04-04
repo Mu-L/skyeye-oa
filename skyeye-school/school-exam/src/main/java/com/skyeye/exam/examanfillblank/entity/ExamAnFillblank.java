@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -19,10 +20,10 @@ import lombok.Data;
  */
 
 @Data
-@RedisCacheField(name = "Exam:fillblank")
+//@RedisCacheField(name = "Exam:fillblank")
 @TableName(value = "exam_an_fillblank")
 @ApiModel("填空题保存表实体类")
-public class ExamAnFillblank extends CommonInfo {
+public class ExamAnFillblank extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

@@ -5,9 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnChenCheckbox
@@ -21,7 +25,7 @@ import lombok.Data;
 @Data
 @TableName(value = "exam_an_chen_checkbox")
 @ApiModel("答卷 矩阵多选题实体类")
-public class ExamAnChenCheckbox extends CommonInfo {
+public class ExamAnChenCheckbox extends OperatorUserInfo {
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
@@ -49,4 +53,8 @@ public class ExamAnChenCheckbox extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-矩阵多选题信息答案")
+    private List<ExamAnChenCheckbox> chenCheckboxAn;
 }

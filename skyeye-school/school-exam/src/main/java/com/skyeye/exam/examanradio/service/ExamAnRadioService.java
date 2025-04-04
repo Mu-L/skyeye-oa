@@ -14,4 +14,8 @@ public interface ExamAnRadioService extends SkyeyeBusinessService<ExamAnRadio> {
      List<ExamAnRadio> selectRadioBySurveyId(String surveyId);
 
     List<ExamAnRadio> selectByQuid(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnRadio> selectByQuIdAndStuId(String id, String studentId);
 }

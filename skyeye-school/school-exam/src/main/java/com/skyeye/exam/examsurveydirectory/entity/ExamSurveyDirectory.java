@@ -33,7 +33,7 @@ import java.util.Map;
 //@RedisCacheField(name = "Exam:directory")
 @TableName(value = "exam_survey_directory")
 @ApiModel("试卷实体类")
-public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFace {
+public class ExamSurveyDirectory extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

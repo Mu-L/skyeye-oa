@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * @ClassName: ExamAnOrderService
- * @Description: 答卷 评分题接口层
+ * @Description: 答卷 排序题接口层
  * @author: skyeye云系列--lqy
  * @date: 2024/7/16 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -22,4 +22,8 @@ public interface ExamAnOrderService extends SkyeyeBusinessService<ExamAnOrder> {
     List<ExamAnOrder> selectBySurveyId(String surveyId);
 
     List<ExamAnOrder> selectAnOrderByQuId(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnOrder> selectByQuIdAndStuId(String id, String studentId);
 }

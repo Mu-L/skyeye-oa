@@ -22,7 +22,7 @@ import lombok.Data;
 @Data
 @TableName(value = "exam_question_logic")
 @ApiModel("题目逻辑设置实体类")
-public class ExamQuestionLogic extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuestionLogic extends OperatorUserInfo  {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

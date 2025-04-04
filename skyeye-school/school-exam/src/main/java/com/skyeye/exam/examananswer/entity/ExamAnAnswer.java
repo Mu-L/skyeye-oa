@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -20,7 +21,7 @@ import lombok.Data;
 @Data
 @TableName(value = "exam_an_answer")
 @ApiModel("答卷/问答题保存表实体类")
-public class ExamAnAnswer extends CommonInfo {
+public class ExamAnAnswer extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -35,7 +36,7 @@ public class ExamAnAnswer extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属问答题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("qu_id")

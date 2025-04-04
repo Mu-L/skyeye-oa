@@ -21,4 +21,6 @@ public interface ExamAnAnswerService extends SkyeyeBusinessService<ExamAnAnswer>
     void queryExamAnAnswerListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnAnswer> selectBySurveyId(String surveyId);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
 }
