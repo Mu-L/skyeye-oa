@@ -36,7 +36,7 @@ public class ExamAnChenFbkController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnChenFbk", value = "新增/编辑矩阵填空题", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnChenFbk", value = "新增/编辑矩阵填空题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnChenFbk.class)
     @RequestMapping("/post/ExamAnChenFbkController/writeExamAnChenFbk")
     public void writeExamAnChenFbk(InputObject inputObject, OutputObject outputObject) {

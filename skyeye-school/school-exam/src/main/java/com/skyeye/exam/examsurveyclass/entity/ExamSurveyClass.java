@@ -18,7 +18,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:class")
+//@RedisCacheField(name = "Exam:class")
 @TableName(value = "exam_survey_class")
 @ApiModel("试卷与班级关系表实体类")
 public class ExamSurveyClass extends CommonInfo {

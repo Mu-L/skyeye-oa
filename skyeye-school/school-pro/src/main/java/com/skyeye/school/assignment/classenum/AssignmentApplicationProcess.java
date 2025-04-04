@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum AssignmentApplicationProcess implements SkyeyeEnumClass {
 
-    BEFORE_CLASS("beforeClass", "课前", true, false),
+    BEFORE_CLASS("beforeClass", "课前", true, true),
     IN_CLASS("inClass", "课中", true, false),
     AFTER_CLASS("afterClass", "课后", true, false);
 

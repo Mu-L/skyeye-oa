@@ -1,6 +1,7 @@
 package com.skyeye.exam.examancheckbox.service.impl;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -13,7 +14,8 @@ import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +30,22 @@ import java.util.Map;
 
 @Service
 @SkyeyeService(name = "答卷 多选题保存表", groupName = "答卷 多选题保存表")
-public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCheckboxDao, ExamAnCheckbox> implements ExamAnCheckboxService{
+public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCheckboxDao, ExamAnCheckbox> implements ExamAnCheckboxService {
+
+
+    @Override
+    protected void createPrepose(ExamAnCheckbox entity) {
+        String quItemId = entity.getQuItemId();
+        String[] splitArray = quItemId.split(",");
+        List<String> resultList = Arrays.asList(splitArray);
+        List<ExamAnCheckbox> examAnCheckboxList = new ArrayList<>();
+        for (String quAnswerId : resultList) {
+            ExamAnCheckbox examAnCheckbox = new ExamAnCheckbox();
+            examAnCheckbox.setQuItemId(quAnswerId);
+            examAnCheckboxList.add(examAnCheckbox);
+        }
+        super.createEntity(examAnCheckboxList, StrUtil.EMPTY);
+    }
 
     @Override
     public void queryExamAnCheckboxListById(InputObject inputObject, OutputObject outputObject) {
@@ -52,6 +69,22 @@ public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnC
     public List<ExamAnCheckbox> selectAnCheckBoxByQuId(String id) {
         QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getQuId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getBelongId), surveyId)
+                .eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnCheckbox> selectByQuIdAndStuId(String id, String studentId) {
+        QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getQuId), id)
+                .eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getCreateId), studentId);
         return list(queryWrapper);
     }
 }

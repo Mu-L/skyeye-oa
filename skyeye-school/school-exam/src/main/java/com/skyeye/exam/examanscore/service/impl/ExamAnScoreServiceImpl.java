@@ -1,5 +1,7 @@
 package com.skyeye.exam.examanscore.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -19,6 +21,15 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "评分题保存表管理", groupName = "评分题保存表管理")
 public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScoreDao, ExamAnScore> implements ExamAnScoreService {
+
+
+    @Override
+    protected void createPrepose(ExamAnScore entity) {
+        List<ExamAnScore> scoreAn = entity.getScoreAn();
+        if (CollectionUtil.isNotEmpty(scoreAn)){
+            super.createEntity(scoreAn, StrUtil.EMPTY);
+        }
+    }
 
     @Override
     public void queryExamAnScoreListById(InputObject inputObject, OutputObject outputObject) {
@@ -42,5 +53,21 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
        QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id);
        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongId),surveyId)
+                .eq(MybatisPlusUtil.toColumns(ExamAnScore::getCreateId),createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnScore> selectByQuIdAndStuId(String id, String studentId) {
+        QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id)
+                .eq(MybatisPlusUtil.toColumns(ExamAnScore::getCreateId),studentId);
+        return list(queryWrapper);
     }
 }

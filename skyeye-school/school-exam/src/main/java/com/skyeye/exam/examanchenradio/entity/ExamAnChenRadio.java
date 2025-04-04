@@ -5,9 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnChenRadio
@@ -18,10 +22,10 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:radio")
+//@RedisCacheField(name = "Exam:radio")
 @TableName(value = "exam_an_chen_radio")
 @ApiModel("答卷 矩阵单选题实体类")
-public class ExamAnChenRadio extends CommonInfo {
+public class ExamAnChenRadio extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -50,5 +54,9 @@ public class ExamAnChenRadio extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-矩阵单选题信息答案")
+    private List<ExamAnChenRadio> chenRadioAn;
 
 }

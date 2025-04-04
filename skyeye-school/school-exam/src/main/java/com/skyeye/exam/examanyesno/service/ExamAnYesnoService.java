@@ -13,4 +13,6 @@ public interface ExamAnYesnoService extends SkyeyeBusinessService<ExamAnYesno> {
     void queryExamAnYesnoListById(InputObject inputObject, OutputObject outputObject);
 
     List<ExamAnYesno> selectBySurveyId(String surveyId);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
 }

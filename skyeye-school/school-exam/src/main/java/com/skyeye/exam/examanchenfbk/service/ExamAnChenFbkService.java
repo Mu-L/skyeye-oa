@@ -24,4 +24,8 @@ public interface ExamAnChenFbkService extends SkyeyeBusinessService<ExamAnChenFb
     List<ExamAnChenFbk> selectBySurveyId(String surveyId);
 
     List<ExamAnChenFbk> selectByQuId(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnChenFbk> selectByQuIdAndStuId(String questionId, String studentId);
 }

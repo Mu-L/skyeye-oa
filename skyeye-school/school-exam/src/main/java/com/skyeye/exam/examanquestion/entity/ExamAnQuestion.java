@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -18,10 +19,10 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@RedisCacheField(name = "Exam:question")
+//@RedisCacheField(name = "Exam:question")
 @TableName(value = "exam_an_question")
 @ApiModel("答卷 试题答案相关信息表实体类")
-public class ExamAnQuestion extends CommonInfo {
+public class ExamAnQuestion extends OperatorUserInfo {
     @TableId("answer_id")
     @ApiModelProperty(value = "答卷id。为空时新增，不为空时编辑",required = "required")
     private String answerId;

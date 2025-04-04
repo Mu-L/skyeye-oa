@@ -14,4 +14,8 @@ public interface ExamAnScoreService extends SkyeyeBusinessService<ExamAnScore> {
     List<ExamAnScore> selectBySurveyId(String surveyId);
 
     List<ExamAnScore> selectAnScoreByQuId(String id);
+
+    void deleteBySurAndCreateId(String surveyId, String createId);
+
+    List<ExamAnScore> selectByQuIdAndStuId(String id, String studentId);
 }

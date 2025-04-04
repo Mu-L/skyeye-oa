@@ -1,5 +1,7 @@
 package com.skyeye.exam.examandfillblank.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -25,7 +27,16 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "答卷 多行填空题保存表", groupName = "答卷 多行填空题保存表")
-public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfillblank> implements ExamAnDfilllankService{
+public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfillblank> implements ExamAnDfilllankService {
+
+
+    @Override
+    protected void createPrepose(ExamAnDfillblank entity) {
+        List<ExamAnDfillblank> dFillblankAn = entity.getDFillblankAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, StrUtil.EMPTY);
+        }
+    }
 
     @Override
     public void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject) {
@@ -49,6 +60,22 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     public List<ExamAnDfillblank> selectAnMultiFillblankQuId(String id) {
         QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), surveyId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnDfillblank> selectByQuIdAndStuId(String id, String studentId) {
+        QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), id)
+            .eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getCreateId), studentId);
         return list(queryWrapper);
     }
 }

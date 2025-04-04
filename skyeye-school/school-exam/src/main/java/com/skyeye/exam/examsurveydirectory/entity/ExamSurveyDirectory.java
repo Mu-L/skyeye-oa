@@ -33,7 +33,7 @@ import java.util.Map;
 //@RedisCacheField(name = "Exam:directory")
 @TableName(value = "exam_survey_directory")
 @ApiModel("试卷实体类")
-public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFace {
+public class ExamSurveyDirectory extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -150,5 +150,17 @@ public class ExamSurveyDirectory extends OperatorUserInfo implements EnclosureFa
     @TableField(exist = false)
     @ApiModelProperty(value = "题目信息", required = "json")
     private List<Question> questionMation;
+
+    @TableField(exist = false)
+    @Property(value = "已批阅数量")
+    private Integer readNum;
+
+    @TableField(exist = false)
+    @Property(value = "未批阅数量")
+    private Integer unreadNum;
+
+    @TableField(exist = false)
+    @Property(value = "未交数量")
+    private Integer unSubmitNum;
 
 }

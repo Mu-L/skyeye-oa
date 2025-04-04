@@ -17,7 +17,6 @@ import com.skyeye.school.chapter.dao.ChapterDao;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
-import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,31 +42,18 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     private SubjectClassesService subjectClassesService;
 
     @Autowired
-    private DatumService datumService;
-
-    @Autowired
     private CoursewareService coursewareService;
-
-    @Autowired
-    private ChapterDao chapterDao;
-
 
     @Override
     public void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String subjectId = String.valueOf(map.get("subjectId"));
+        String subjectId = map.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId);
-        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
-            // 格式化章节名称
-            String section = String.valueOf(chapter.getSection());
-            String name = chapter.getName();
-            String formattedName = String.format(Locale.ROOT, "第 %s 章 %s", section, name);
-            chapter.setName(formattedName);
+            chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
         });
-
         iAuthUserService.setDataMation(chapterList, Chapter::getCreateId);
         iAuthUserService.setDataMation(chapterList, Chapter::getLastUpdateId);
         outputObject.setBeans(chapterList);
@@ -81,7 +67,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         String classId = params.get("classId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         if (CollectionUtil.isEmpty(chapterList)) {
             return;
@@ -127,8 +113,8 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     public List<Chapter> queryChaptersBySubjectId(String subjectId) {
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
-                .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
-        return chapterDao.selectList(queryWrapper);
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
+        return list(queryWrapper);
     }
 
 }

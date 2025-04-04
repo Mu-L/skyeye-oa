@@ -9,7 +9,9 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
+import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
@@ -25,6 +27,7 @@ import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
+import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.major.entity.Major;
 import lombok.Data;
@@ -45,7 +48,7 @@ import java.util.Map;
 //@RedisCacheField(name = "Exam:answer")
 @TableName(value = "exam_survey_answer")
 @ApiModel("试卷回答信息表实体类")
-public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
+public class ExamSurveyAnswer extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -76,7 +79,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private Integer dataSource;
 
     @TableField("handle_state")
-    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过",defaultValue = "0")
+    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过", defaultValue = "0")
     private Integer handleState;
 
     @TableField("ip_addr")
@@ -100,7 +103,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private Integer isEffective;
 
     @TableField("qu_num")
-    @ApiModelProperty(value = "回答的题数",required = "required")
+    @ApiModelProperty(value = "回答的题数", required = "required")
     private Integer quNum;
 
     @TableField("total_time")
@@ -132,7 +135,7 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private String markEndTime;
 
     @TableField("student_number")
-    @ApiModelProperty(value = "学号",required = "required")
+    @ApiModelProperty(value = "学号", required = "required")
     private String studentNumber;
 
     @TableField("school_id")
@@ -164,8 +167,16 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     private ExamSurveyDirectory surveyMation;
 
     @TableField(exist = false)
+    @Property(value = "试卷信息")
+    private List<ExamSurveyDirectory> surveysMation;
+
+    @TableField(exist = false)
     @Property(value = "学生信息")
     private Map<String, Object> stuMation;
+
+    @TableField(exist = false)
+    @Property(value = "学生信息")
+    private UserOrStudent userMation;
 
     @TableField(exist = false)
     @Property(value = "单选题信息")
@@ -222,5 +233,4 @@ public class ExamSurveyAnswer extends CommonInfo implements EnclosureFace {
     @TableField(exist = false)
     @Property(value = "评分题信息")
     private List<ExamAnOrder> examAnOrderList;
-
 }

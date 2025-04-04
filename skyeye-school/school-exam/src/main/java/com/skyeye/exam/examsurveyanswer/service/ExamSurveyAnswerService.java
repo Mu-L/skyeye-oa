@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamSurveyAnswerService
@@ -22,11 +23,13 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
 
-    void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject);
+    void queryAllSurveyList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
 
     void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
 
-    void  queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject);
+    Map<String, Integer> queryAnswerNum(List<String> directoryIds);
+
+    void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject);
 }

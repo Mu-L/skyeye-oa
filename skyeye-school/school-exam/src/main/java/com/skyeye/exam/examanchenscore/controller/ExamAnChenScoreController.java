@@ -36,7 +36,7 @@ public class ExamAnChenScoreController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnChenScore", value = "新增/编辑矩阵多选题保存表", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnChenScore", value = "新增/编辑矩阵多选题保存表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnChenScore.class)
     @RequestMapping("/post/ExamAnChenScoreController/writeExamAnChenScore")
     public void writeExamAnChenScore(InputObject inputObject, OutputObject outputObject) {

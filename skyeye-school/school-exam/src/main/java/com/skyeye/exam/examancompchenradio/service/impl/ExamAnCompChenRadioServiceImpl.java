@@ -1,5 +1,7 @@
 package com.skyeye.exam.examancompchenradio.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -29,6 +31,14 @@ import java.util.Map;
 public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCompChenRadioDao, ExamAnCompChenRadio> implements ExamAnCompChenRadioService {
 
     @Override
+    protected void createPrepose(ExamAnCompChenRadio entity) {
+        List<ExamAnCompChenRadio> compChenRadioAn = entity.getCompChenRadioAn();
+        if (CollectionUtil.isNotEmpty(compChenRadioAn)) {
+            super.createEntity(compChenRadioAn, StrUtil.EMPTY);
+        }
+    }
+
+    @Override
     public void queryExamAnCompChenRadioListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
@@ -50,6 +60,22 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public List<ExamAnCompChenRadio> selectByQuId(String id) {
         QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongId), surveyId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnCompChenRadio> selectByQuIdAndStuId(String questionId, String studentId) {
+        QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), questionId)
+            .eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getCreateId), studentId);
         return list(queryWrapper);
     }
 }

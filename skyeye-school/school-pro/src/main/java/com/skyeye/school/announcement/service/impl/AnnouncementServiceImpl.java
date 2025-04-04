@@ -12,6 +12,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -158,6 +159,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
                 .eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getCreateId),userId);
         AnnouncementRecord one = announcementRecordService.getOne(queryWrapper);
         announcement.setCheckConfirm(ObjectUtil.isNotEmpty(one));
+        announcement.setConfirmMation(EnableEnum.getMation(announcement.getIsConfirm()));
     }
 
     @Override

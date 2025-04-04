@@ -8,13 +8,14 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
 //@RedisCacheField(name = "Exam:radio")
 @TableName(value = "exam_an_radio")
 @ApiModel("单选题保存表实体类")
-public class ExamAnRadio extends CommonInfo {
+public class ExamAnRadio extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

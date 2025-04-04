@@ -7,7 +7,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnCheckbox
@@ -21,7 +24,7 @@ import lombok.Data;
 @Data
 @TableName(value = "exam_an_checkbox")
 @ApiModel("答卷 多选题保存表实体类")
-public class ExamAnCheckbox extends CommonInfo {
+public class ExamAnCheckbox extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -32,7 +35,7 @@ public class ExamAnCheckbox extends CommonInfo {
     private String belongAnswerId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属多选题id")
+    @ApiModelProperty(value = "所属试卷id")
     private String belongId;
 
     @TableField("other_text")
@@ -44,10 +47,14 @@ public class ExamAnCheckbox extends CommonInfo {
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "项目编号")
+    @ApiModelProperty(value = "多选题答案id")
     private String quItemId;
 
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "多选题答案id集合")
+    private List<String> allAnswerIds;
 }

@@ -16,7 +16,7 @@ import lombok.Data;
 //@RedisCacheField(name = "Exam:multifillblank")
 @TableName(value = "exam_qu_multi_fillblank")
 @ApiModel("多行填空题实体类")
-public class ExamQuMultiFillblank extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuMultiFillblank extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

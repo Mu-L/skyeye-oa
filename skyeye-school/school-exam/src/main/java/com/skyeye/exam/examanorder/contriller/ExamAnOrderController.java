@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@Api(value = "答卷 评分题", tags = "答卷 评分题", modelName = "答卷 评分题")
+@Api(value = "答卷 排序题", tags = "答卷 排序题", modelName = "答卷 排序题")
 public class ExamAnOrderController {
 
     @Autowired
@@ -35,7 +35,7 @@ public class ExamAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeExamAnOrder", value = "新增/编辑评分题", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeExamAnOrder", value = "新增/编辑评分题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnOrder.class)
     @RequestMapping("/post/ExamAnOrderController/writeExamAnOrder")
     public void writeExamAnOrder(InputObject inputObject, OutputObject outputObject) {

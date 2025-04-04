@@ -7,7 +7,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnDfillblank
@@ -19,10 +22,10 @@ import lombok.Data;
  */
 
 @Data
-@RedisCacheField(name = "Exam:dfillblank")
+//@RedisCacheField(name = "Exam:dfillblank")
 @TableName(value = "exam_an_dfillblank")
 @ApiModel("答卷 多行填空题保存表实体类")
-public class ExamAnDfillblank extends CommonInfo {
+public class ExamAnDfillblank extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -45,13 +48,14 @@ public class ExamAnDfillblank extends CommonInfo {
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "项目编号")
+    @ApiModelProperty(value = "结果选项ID")
     private String quItemId;
 
     @TableField("visibility")
     @ApiModelProperty(value = "是否显示  0不显示  1显示")
     private Integer visibility;
 
-
-
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-行选项信息答案")
+    private List<ExamAnDfillblank> dFillblankAn;
 }

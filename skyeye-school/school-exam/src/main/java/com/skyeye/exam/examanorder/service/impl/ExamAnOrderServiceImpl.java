@@ -1,5 +1,7 @@
 package com.skyeye.exam.examanorder.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -25,8 +27,16 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "答卷 评分题", groupName = "答卷 评分题")
+@SkyeyeService(name = "答卷 排序题", groupName = "答卷 排序题")
 public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrderDao, ExamAnOrder> implements ExamAnOrderService {
+
+    @Override
+    protected void createPrepose(ExamAnOrder entity) {
+        List<ExamAnOrder> orderByAn = entity.getOrderByAn();
+        if (CollectionUtil.isNotEmpty(orderByAn)) {
+            super.createEntity(orderByAn, StrUtil.EMPTY);
+        }
+    }
 
     @Override
     public void queryExamAnOrderById(InputObject inputObject, OutputObject outputObject) {
@@ -49,6 +59,22 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
     public List<ExamAnOrder> selectAnOrderByQuId(String id) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId),id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteBySurAndCreateId(String surveyId, String createId) {
+        QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongId), surveyId)
+                .eq(MybatisPlusUtil.toColumns(ExamAnOrder::getCreateId), createId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<ExamAnOrder> selectByQuIdAndStuId(String id, String studentId) {
+        QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), id)
+                .eq(MybatisPlusUtil.toColumns(ExamAnOrder::getCreateId), studentId);
         return list(queryWrapper);
     }
 }

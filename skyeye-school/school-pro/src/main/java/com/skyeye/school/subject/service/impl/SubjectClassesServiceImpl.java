@@ -182,7 +182,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         classesService.setDataMation(subjectClasses, SubjectClasses::getClassesId);
         subjectService.setDataMation(subjectClasses, SubjectClasses::getObjectId);
         semesterService.setDataMation(subjectClasses, SubjectClasses::getSemesterId);
-        refreshCache(subjectClasses.getCreateId());//刷新缓存
         return subjectClasses;
     }
 
@@ -192,7 +191,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         classesService.setDataMation(subjectClassesList, SubjectClasses::getClassesId);
         subjectService.setDataMation(subjectClassesList, SubjectClasses::getObjectId);
         semesterService.setDataMation(subjectClassesList, SubjectClasses::getSemesterId);
-        refreshCache(subjectClassesList.get(0).getId());//刷新缓存
         return subjectClassesList;
     }
 

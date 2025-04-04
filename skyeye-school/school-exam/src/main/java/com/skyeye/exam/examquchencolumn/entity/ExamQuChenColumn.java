@@ -11,10 +11,10 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 @Data
-@RedisCacheField(name = "Exam:chencolumn")
+//@RedisCacheField(name = "Exam:chencolumn")
 @TableName(value = "exam_qu_chen_column")
 @ApiModel("矩阵题-列选项实体类")
-public class ExamQuChenColumn extends OperatorUserInfo implements EnclosureFace {
+public class ExamQuChenColumn extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
