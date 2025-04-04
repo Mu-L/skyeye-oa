@@ -684,7 +684,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public ExamSurveyDirectory selectById(String id) {
         ExamSurveyDirectory bean = getExamSurveyDirectory(id);
         Integer fractionNumber = getFractionNumber(id);
-
         List<Question> questionList = questionService.QueryQuestionByBelongId(bean.getId());
         if (CollectionUtil.isEmpty(questionList)) {
             return bean;
@@ -713,7 +712,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory bean = super.selectById(id);
         bean.setSubjectMation(subjectService.selectById(bean.getSubjectId()));
         bean.setSchoolMation(schoolService.selectById(bean.getSchoolId()));
-        bean.setClassesMation(classesService.selectByIds(bean.getClassId()));
+        String classId = bean.getClassId();
+        if (StrUtil.isNotEmpty(classId)) {
+            String[] split = classId.split(",");
+            List<String> stringList = Arrays.asList(split);
+            List<Classes> classesList = classesService.selectClssByIds(stringList);
+            bean.setClassesMation(classesList);
+        }
         bean.setFacultyMation(facultyService.selectById(bean.getFacultyId()));
         bean.setMajorMation(majorService.selectById(bean.getMajorId()));
         bean.setSemesterMation(semesterService.selectById(bean.getSemesterId()));

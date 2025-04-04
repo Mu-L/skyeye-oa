@@ -157,9 +157,16 @@ public class ClassesServiceImpl extends SkyeyeBusinessServiceImpl<ClassesDao, Cl
     @Override
     public List<Classes> queryClassListById(String classId) {
         QueryWrapper<Classes> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,classId);
+        queryWrapper.eq(CommonConstants.ID, classId);
         List<Classes> classesList = list(queryWrapper);
         return classesList;
+    }
+
+    @Override
+    public List<Classes> selectClssByIds(List<String> stringList) {
+        QueryWrapper<Classes> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, stringList);
+        return list(queryWrapper);
     }
 
 }

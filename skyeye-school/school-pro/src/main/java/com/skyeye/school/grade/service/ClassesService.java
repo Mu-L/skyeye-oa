@@ -24,4 +24,6 @@ public interface ClassesService extends SkyeyeBusinessService<Classes> {
     void queryClassListByMajorId(InputObject inputObject, OutputObject outputObject);
 
     List<Classes> queryClassListById(String classId);
+
+    List<Classes> selectClssByIds(List<String> stringList);
 }
