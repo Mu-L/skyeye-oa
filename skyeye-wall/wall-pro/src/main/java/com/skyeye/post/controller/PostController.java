@@ -53,7 +53,7 @@ public class PostController {
      */
     @ApiOperation(id = "queryPostById", value = "根据ID获取帖子信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PostController/queryPostById")
     public void queryPostById(InputObject inputObject, OutputObject outputObject) {
         postService.selectById(inputObject, outputObject);
@@ -80,7 +80,7 @@ public class PostController {
      */
     @ApiOperation(id = "deletePostById", value = "根据ID删除帖子信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PostController/deletePostById")
     public void deletePostById(InputObject inputObject, OutputObject outputObject) {
         postService.deleteById(inputObject, outputObject);

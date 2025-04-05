@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.school.courseware.classenum.CoursewareStudyState;
 import lombok.Data;
 
 /**
@@ -39,7 +40,7 @@ public class CoursewareStudy extends OperatorUserInfo {
     private String coursewareId;
 
     @TableField(value = "state")
-    @Property(value = "状态")
+    @Property(value = "状态", enumClass = CoursewareStudyState.class)
     private String state;
 
 }
