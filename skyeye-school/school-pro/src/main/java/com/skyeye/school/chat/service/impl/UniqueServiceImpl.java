@@ -46,7 +46,7 @@ public class UniqueServiceImpl extends SkyeyeBusinessServiceImpl<UniqueDao, Uniq
         List<Unique> uniqueList = list(queryWrapper);
 
         if (CollectionUtil.isEmpty(uniqueList)) {
-            throw new CustomException("没有聊天信息列表");
+            return;
         }
         // 获取所有相关用户ID
         List<String> userIds = uniqueList.stream()
