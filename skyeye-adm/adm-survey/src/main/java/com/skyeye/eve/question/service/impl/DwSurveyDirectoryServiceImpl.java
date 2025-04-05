@@ -130,18 +130,11 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             // 判断试卷是否未发布
             if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
                 String dwSurveyDirectoryId = dwSurveyDirectory.getId();
-                Integer fractionNumber = getFractionNumber(dwSurveyDirectoryId);
-                if (fractionNumber == null || fractionNumber == CommonNumConstants.NUM_ZERO) {
-                    throw new CustomException("该试卷没有题目，请添加题目。");
-                }
-                if (fractionNumber != CommonNumConstants.NUM_ZERO) {
-                    UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                    updateWrapper.eq(CommonConstants.ID, id);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                    update(updateWrapper);
-                } else {
-                    throw new CustomException("该问卷没有调查项，无法发布问卷。");
-                }
+                getFractionNumber(dwSurveyDirectoryId);
+                UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, id);
+                updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+                update(updateWrapper);
             } else {
                 throw new CustomException("该问卷已发布，请刷新数据。");
             }
@@ -151,26 +144,44 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     private Integer getFractionNumber(String dwSurveyDirectoryId) {
+        if (StrUtil.isEmpty(dwSurveyDirectoryId)) {
+            return null;
+        }
+        // 查询题目
         List<DwQuestion> questions = dwQuestionService.QueryQuestionByBelongId(dwSurveyDirectoryId);
-        //判断是否有题目
-        int fraction = 0;
-        // 题目总数
-        int questionNum = 0;
+        if (CollectionUtil.isEmpty(questions)) {
+            questions = new ArrayList<>();
+        }
+        // 判断是否有题目
+        int fraction = 0; // 总分数
+        int questionNum = 0; // 题目总数
         if (CollectionUtil.isNotEmpty(questions)) {
             for (DwQuestion dwQuestion : questions) {
-                int questionType = dwQuestion.getQuType();
-                if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
-                    fraction += dwQuestion.getFraction();
-                    questionNum++;
+                if (ObjUtil.isEmpty(dwQuestion)) {
+                    continue;
+                }
+                Integer questionType = dwQuestion.getQuType();
+                Integer questionFraction = dwQuestion.getFraction();
+                if (questionType != null && questionFraction != null) {
+                    if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                        fraction += questionFraction;
+                        questionNum++;
+                    }
                 }
             }
         }
-        //总分数
+
+        // 更新数据库
         UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, dwSurveyDirectoryId);
         updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getFraction), fraction);
         updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getSurveyQuNum), questionNum);
-        update(updateWrapper);
+
+        if (updateWrapper != null) {
+            update(updateWrapper);
+        } else {
+            throw new CustomException("该问卷信息不存在。");
+        }
         return fraction;
     }
 
@@ -307,33 +318,31 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
 
-
-
     @Override
     public void updatePostpose(DwSurveyDirectory entity, String userId) {
         List<DwQuestion> questionList = entity.getDwQuestionMation();
         List<DwQuestion> existingQuestions = dwQuestionService.QueryQuestionByBelongId(entity.getId());
         List<String> existingIds = existingQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         Map<Boolean, List<DwQuestion>> partitionedQuestions = questionList.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         List<DwQuestion> questionsWithId = partitionedQuestions.get(true);
         List<DwQuestion> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = existingIds.stream()
-                .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());
+            .filter(id -> !submittedIdSet.contains(id))
+            .collect(Collectors.toList());
         dwQuestionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
             List<DwQuestion> createQuestion = new ArrayList<>();
             //纯题目
             List<DwQuestion> collect = questionsWithId.stream()
-                    .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
-                            StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
+                .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
+                    StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
             createQuestion.addAll(collect);
             for (DwQuestion dwQuestion : createQuestion) {
                 dwQuestion.setBelongId(entity.getId());

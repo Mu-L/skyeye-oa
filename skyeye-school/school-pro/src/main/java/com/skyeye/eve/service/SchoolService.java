@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.School;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: SchoolController
  * @Description: 学校管理服务接口层
@@ -22,4 +25,6 @@ public interface SchoolService extends SkyeyeBusinessService<School> {
     void queryAllSchoolList(InputObject inputObject, OutputObject outputObject);
 
     void coverBackground(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, List<School>> selectByIdList(List<String> schoolIds);
 }

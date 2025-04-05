@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SchoolController
@@ -60,6 +62,14 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
         updateWrapper.set(MybatisPlusUtil.toColumns(School::getSwLatitude), map.get("swLatitude").toString());
         update(updateWrapper);
         refreshCache(map.get("id").toString());
+    }
+
+    @Override
+    public Map<String, List<School>> selectByIdList(List<String> schoolIds) {
+        QueryWrapper<School> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, schoolIds);
+        Map<String, List<School>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(School::getId));
+        return stringListMap;
     }
 
 }

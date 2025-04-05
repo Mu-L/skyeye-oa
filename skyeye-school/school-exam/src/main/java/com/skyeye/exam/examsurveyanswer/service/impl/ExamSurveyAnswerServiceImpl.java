@@ -3,6 +3,7 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -18,6 +19,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
@@ -45,12 +47,15 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
+import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
+import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -260,6 +265,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String surveyId = commonPageInfo.getHolderId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        String id = inputObject.getLogParams().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         List<ExamSurveyAnswer> list = list(queryWrapper);
@@ -269,17 +275,30 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
-        //根据学号分别设置到对应的试卷回答信息中
-        for (ExamSurveyAnswer examSurveyAnswer : list) {
-            examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
-            examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
-            examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
-            examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
-            for (Map<String, Object> user : userList) {
-                if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
-                    examSurveyAnswer.setStuMation(user);
-                }
-            }
+        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
+        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
+        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
+        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
+        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
+            .collect(Collectors.toMap(School::getId, Function.identity()));
+        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
+            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
+        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
+            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
+        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
+            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        Map<String, Map<String, Object>> userMap = userList.stream()
+            .collect(Collectors.toMap(
+                user -> user.get("studentNumber").toString(),
+                Function.identity(),
+                (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
+            ));
+        for (ExamSurveyAnswer answer : list) {
+            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()));
+            answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
+            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()));
+            answer.setMajorMation(majorMap.get(answer.getMajorId()));
+            answer.setStuMation(userMap.get(answer.getStudentNumber()));
         }
         iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);
