@@ -227,6 +227,10 @@ public class SysEveUserStaff extends OperatorUserInfo {
     @ApiModelProperty(value = "关联的面试安排信息id")
     private String interviewArrangementId;
 
+    @TableField("background_image")
+    @ApiModelProperty(value = "学校模块-表白墙背景图片")
+    private String backgroundImage;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "员工考勤时间段", required = "json")
     private List<String> timeIdList;

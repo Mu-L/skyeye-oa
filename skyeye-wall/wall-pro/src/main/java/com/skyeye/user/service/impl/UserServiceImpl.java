@@ -230,6 +230,12 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         updateWrapper.set(MybatisPlusUtil.toColumns(User::getBackgroundImage), image);
         update(updateWrapper);
         refreshCache(id);
+
+        // 更新登录缓存信息
+        Map<String, Object> user = InputObject.getLogParamsStatic();
+        user.put("backgroundImage", image);
+        SysUserAuthConstants.setUserLoginRedisCache(user.get("id").toString() + SysUserAuthConstants.APP_IDENTIFYING, user);
+        SysUserAuthConstants.setUserLoginRedisCache(user.get("id").toString(), user);
     }
 
     @Override
@@ -240,6 +246,13 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         updateWrapper.set(MybatisPlusUtil.toColumns(User::getRealName), realName);
         update(updateWrapper);
         refreshCache(id);
+
+        // 更新登录缓存信息
+        Map<String, Object> user = InputObject.getLogParamsStatic();
+        user.put("studentNumber", studentNumber);
+        user.put("realName", realName);
+        SysUserAuthConstants.setUserLoginRedisCache(user.get("id").toString() + SysUserAuthConstants.APP_IDENTIFYING, user);
+        SysUserAuthConstants.setUserLoginRedisCache(user.get("id").toString(), user);
     }
 
     @Override

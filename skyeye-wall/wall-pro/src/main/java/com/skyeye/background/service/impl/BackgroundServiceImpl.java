@@ -3,23 +3,24 @@
  ******************************************************************************/
 package com.skyeye.background.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.background.dao.BackgroundDao;
 import com.skyeye.background.entity.Background;
 import com.skyeye.background.service.BackgroundService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.WallConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.user.service.ISysEveUserStaffService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.userenum.LoginIdentity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * @ClassName: backgroundServiceImpl
@@ -36,6 +37,9 @@ public class BackgroundServiceImpl extends SkyeyeBusinessServiceImpl<BackgroundD
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
+
     @Override
     protected QueryWrapper<Background> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Background> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -43,9 +47,15 @@ public class BackgroundServiceImpl extends SkyeyeBusinessServiceImpl<BackgroundD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Background::getCreateId), userId);
         return queryWrapper;
     }
+
     @Override
     public void createPostpose(Background background, String userId) {
-        userService.updateBackgroundImage(userId, background.getImage());
+        String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            iSysEveUserStaffService.updateTeacherWallBgImg(background.getImage());
+        } else {
+            userService.updateBackgroundImage(userId, background.getImage());
+        }
     }
 
     @Override

@@ -61,7 +61,10 @@
 			c.user_photo userPhoto,
 			c.company_id companyId,
 			c.department_id departmentId,
-			c.job_id jobId
+			c.job_id jobId,
+			c.user_sex userSex,
+			c.user_sign userSign,
+			c.background_image backgroundImage
 		FROM
 			sys_eve_user a
 			LEFT JOIN sys_eve_user_install b ON a.id = b.user_id,

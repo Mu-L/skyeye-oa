@@ -539,6 +539,24 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         String userId = user.get("id").toString();
         user.put("userName", params.get("userName").toString());
         user.put("userPhoto", params.get("userPhoto").toString());
+        user.put("userSex", params.get("userSex").toString());
+        user.put("userSign", params.get("userSign").toString());
+        sysEveUserService.setUserLoginRedisMation(userId, user);
+
+        iAuthUserService.removeCacheById(userId);
+    }
+
+    @Override
+    public void updateCurrentUserBgImg(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = InputObject.getLogParamsStatic().get("staffId").toString();
+        UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getBackgroundImage), params.get("backgroundImage").toString());
+
+        Map<String, Object> user = inputObject.getLogParams();
+        String userId = user.get("id").toString();
+        user.put("backgroundImage", params.get("backgroundImage").toString());
         sysEveUserService.setUserLoginRedisMation(userId, user);
 
         iAuthUserService.removeCacheById(userId);

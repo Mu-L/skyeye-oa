@@ -141,7 +141,7 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.editSysUserStaffActMoneyById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateCurrentUserStaff", value = "修改当前登录员工的信息", method = "POST", allUse = "0")
+    @ApiOperation(id = "updateCurrentUserStaff", value = "修改当前登录员工的信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
         @ApiImplicitParam(id = "userPhoto", name = "userPhoto", value = "员工头像", required = "required"),
@@ -150,6 +150,14 @@ public class SysEveUserStaffController {
     @RequestMapping("/post/SysEveUserStaffController/updateCurrentUserStaff")
     public void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject) {
         sysEveUserStaffService.updateCurrentUserStaff(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "updateCurrentUserBgImg", value = "修改当前登录员工表白墙的背景图", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "backgroundImage", name = "backgroundImage", value = "背景图")})
+    @RequestMapping("/post/SysEveUserStaffController/updateCurrentUserBgImg")
+    public void updateCurrentUserBgImg(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserStaffService.updateCurrentUserBgImg(inputObject, outputObject);
     }
 
 }

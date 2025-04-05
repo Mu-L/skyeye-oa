@@ -2,17 +2,16 @@
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
 
-package com.skyeye.rest.promote.company.service.impl;
+package com.skyeye.rest.promote.user.service.impl;
 
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
-import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.rest.promote.company.rest.ISysEveUserStaffRest;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
+import com.skyeye.rest.promote.user.rest.ISysEveUserStaffRest;
+import com.skyeye.rest.promote.user.service.ISysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -22,8 +21,9 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     private ISysEveUserStaffRest iSysEveUserStaffRest;
 
     @Override
-    public List<Map<String, Object>> querySysUserStaffList(CommonPageInfo commonPageInfo) {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.querySysUserStaffList(commonPageInfo)).getRows();
+    public void updateTeacherWallBgImg(String backgroundImage) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("backgroundImage", backgroundImage);
+        ExecuteFeignClient.get(() -> iSysEveUserStaffRest.updateCurrentUserBgImg(map));
     }
-
 }
