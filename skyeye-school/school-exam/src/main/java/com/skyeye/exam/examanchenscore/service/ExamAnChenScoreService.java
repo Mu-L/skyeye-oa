@@ -7,6 +7,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnChenScoreService
@@ -25,5 +26,5 @@ public interface ExamAnChenScoreService extends SkyeyeBusinessService<ExamAnChen
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnChenScore> selectByQuIdAndStuId(String questionId, String studentId);
+    Map<String, List<ExamAnChenScore>> selectByQuIdAndStuId(List<String> questionId, String studentId);
 }

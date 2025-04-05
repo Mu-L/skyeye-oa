@@ -20,6 +20,7 @@ import com.skyeye.school.knowledge.service.KnowledgePointsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -76,10 +77,16 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
     }
 
     @Override
-    public List<KnowledgePoints> queryKnowledge(String knowledgeId) {
+    public List<KnowledgePoints> queryKnowledge(List<String> knowledgeId) {
         QueryWrapper<KnowledgePoints> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID, knowledgeId);
-        List<KnowledgePoints> knowledgePointsList = list(queryWrapper);
-        return knowledgePointsList;
+        queryWrapper.in(CommonConstants.ID, knowledgeId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<KnowledgePoints> queryKnowledgeBatch(ArrayList<String> strings) {
+        QueryWrapper<KnowledgePoints> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, strings);
+        return list(queryWrapper);
     }
 }

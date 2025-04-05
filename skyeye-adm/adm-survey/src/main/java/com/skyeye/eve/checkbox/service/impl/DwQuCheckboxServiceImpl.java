@@ -139,6 +139,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         Map<String, List<DwQuCheckbox>> result = list.stream().collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
         return result;
     }
+
     @Override
     public void createCheckboxs(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuCheckbox> insertList = new ArrayList<>();
@@ -198,14 +199,14 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuCheckbox::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuCheckbox::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuCheckbox::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuCheckbox::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -227,10 +228,10 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
 
     private Map<String, List<DwQuCheckbox>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
+            .collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
     }
 
     private List<DwQuCheckbox> selectByQuIds(List<String> quIds) {

@@ -113,6 +113,7 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
 
     @Override
     public void validatorEntity(FloorInfo floorInfo) {
+        super.validatorEntity(floorInfo);
         Integer nodeType = floorInfo.getNodeType();
         String name = floorInfo.getName();
         QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();

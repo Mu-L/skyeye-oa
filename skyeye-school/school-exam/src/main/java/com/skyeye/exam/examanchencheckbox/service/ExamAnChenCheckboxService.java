@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnChenCheckboxService
@@ -25,5 +26,5 @@ public interface ExamAnChenCheckboxService extends SkyeyeBusinessService<ExamAnC
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnChenCheckbox> selectByQuIdAndStuId(String questionId, String studentId);
+    Map<String, List<ExamAnChenCheckbox>> selectByQuIdAndStuId(List<String> questionId, String studentId);
 }

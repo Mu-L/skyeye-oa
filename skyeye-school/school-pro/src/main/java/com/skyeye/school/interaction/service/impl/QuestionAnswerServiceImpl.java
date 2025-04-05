@@ -42,6 +42,7 @@ public class QuestionAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Questio
 
     @Override
     public void validatorEntity(QuestionAnswer questionAnswer){
+        super.validatorEntity(questionAnswer);
         String id = questionAnswer.getId();
         String questionId = questionAnswer.getQuestionId();
         Questions questions = questionsService.selectById(questionId);

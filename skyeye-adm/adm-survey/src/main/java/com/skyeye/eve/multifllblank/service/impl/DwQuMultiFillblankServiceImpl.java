@@ -123,10 +123,10 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
         }
 
         if (!insertList.isEmpty()) {
-            createEntity(insertList,userId);
+            createEntity(insertList, userId);
         }
         if (!updateList.isEmpty()) {
-            updateEntity(updateList,userId);
+            updateEntity(updateList, userId);
         }
     }
 
@@ -175,14 +175,14 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuMultiFillblank::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuMultiFillblank::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuMultiFillblank::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuMultiFillblank::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -205,10 +205,10 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
 
     private Map<String, List<DwQuMultiFillblank>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuMultiFillblank::getQuId));
+            .collect(Collectors.groupingBy(DwQuMultiFillblank::getQuId));
     }
 
     private List<DwQuMultiFillblank> selectByQuIds(List<String> quIds) {

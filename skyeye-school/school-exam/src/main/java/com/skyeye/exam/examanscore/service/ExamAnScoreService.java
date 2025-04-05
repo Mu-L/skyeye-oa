@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanscore.entity.ExamAnScore;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ExamAnScoreService extends SkyeyeBusinessService<ExamAnScore> {
 
@@ -17,5 +18,5 @@ public interface ExamAnScoreService extends SkyeyeBusinessService<ExamAnScore> {
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnScore> selectByQuIdAndStuId(String id, String studentId);
+    Map<String, List<ExamAnScore>> selectByQuIdAndStuId(List<String> id, String studentId);
 }

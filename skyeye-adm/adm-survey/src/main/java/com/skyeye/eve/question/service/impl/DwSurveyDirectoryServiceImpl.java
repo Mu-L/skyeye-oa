@@ -283,6 +283,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void validatorEntity(DwSurveyDirectory dwSurveyDirectory) {
+        super.validatorEntity(dwSurveyDirectory);
         String realStartTime = dwSurveyDirectory.getRealStartTime();
         String realEndTime = dwSurveyDirectory.getRealEndTime();
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {

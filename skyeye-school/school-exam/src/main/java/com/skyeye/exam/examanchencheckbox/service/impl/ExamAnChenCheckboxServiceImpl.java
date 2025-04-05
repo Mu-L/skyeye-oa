@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnChenCheckboxServiceImpl
@@ -72,10 +73,11 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     }
 
     @Override
-    public List<ExamAnChenCheckbox> selectByQuIdAndStuId(String questionId, String studentId) {
+    public Map<String, List<ExamAnChenCheckbox>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), questionId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), questionId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnChenCheckbox>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnChenCheckbox::getQuId));
+        return stringListMap;
     }
 }

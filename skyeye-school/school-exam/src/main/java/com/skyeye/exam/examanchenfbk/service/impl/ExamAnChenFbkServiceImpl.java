@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnChenFbkServiceImpl
@@ -72,10 +73,11 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
     }
 
     @Override
-    public List<ExamAnChenFbk> selectByQuIdAndStuId(String questionId, String studentId) {
+    public Map<String, List<ExamAnChenFbk>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
         QueryWrapper<ExamAnChenFbk> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), questionId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), questionId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnChenFbk>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnChenFbk::getQuId));
+        return stringListMap;
     }
 }

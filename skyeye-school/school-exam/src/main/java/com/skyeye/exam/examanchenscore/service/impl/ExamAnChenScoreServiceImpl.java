@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnChenScoreServiceImpl
@@ -71,11 +72,12 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
-    public List<ExamAnChenScore> selectByQuIdAndStuId(String questionId, String studentId) {
+    public Map<String, List<ExamAnChenScore>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
         QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), questionId)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), questionId)
             .eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnChenScore>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnChenScore::getQuId));
+        return stringListMap;
     }
 
 }

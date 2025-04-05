@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnCompChenRadioServiceImpl
@@ -72,10 +73,11 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public List<ExamAnCompChenRadio> selectByQuIdAndStuId(String questionId, String studentId) {
+    public Map<String, List<ExamAnCompChenRadio>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
         QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), questionId)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), questionId)
             .eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnCompChenRadio>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnCompChenRadio::getQuId));
+        return stringListMap;
     }
 }

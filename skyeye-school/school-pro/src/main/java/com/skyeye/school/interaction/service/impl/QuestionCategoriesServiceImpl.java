@@ -51,6 +51,7 @@ public class QuestionCategoriesServiceImpl extends SkyeyeBusinessServiceImpl<Que
     }
 
     @Override public void validatorEntity(QuestionCategories questionCategories){
+        super.validatorEntity(questionCategories);
         String id = questionCategories.getId();
         String categoriesName = questionCategories.getCategoriesName();
         QueryWrapper<QuestionCategories> queryWrapper = new QueryWrapper<>();

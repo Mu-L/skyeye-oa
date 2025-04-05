@@ -163,12 +163,12 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            super.createEntity(insertList,userId);
+            super.createEntity(insertList, userId);
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            super.updateEntity(updateList,userId);
+            super.updateEntity(updateList, userId);
         }
-        dwQuChenRowService.createChenRows(dwQuestionList,userId);
+        dwQuChenRowService.createChenRows(dwQuestionList, userId);
     }
 
     @Override
@@ -218,14 +218,14 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuChenColumn::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuChenColumn::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuChenColumn::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuChenColumn::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -249,10 +249,10 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
 
     private Map<String, List<DwQuChenColumn>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuChenColumn::getQuId));
+            .collect(Collectors.groupingBy(DwQuChenColumn::getQuId));
     }
 
     private List<DwQuChenColumn> selectByQuIds(List<String> quIds) {

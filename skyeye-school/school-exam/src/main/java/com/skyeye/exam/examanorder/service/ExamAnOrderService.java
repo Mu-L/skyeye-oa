@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnOrderService
@@ -25,5 +26,5 @@ public interface ExamAnOrderService extends SkyeyeBusinessService<ExamAnOrder> {
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnOrder> selectByQuIdAndStuId(String id, String studentId);
+    Map<String, List<ExamAnOrder>> selectByQuIdAndStuId(List<String> id, String studentId);
 }

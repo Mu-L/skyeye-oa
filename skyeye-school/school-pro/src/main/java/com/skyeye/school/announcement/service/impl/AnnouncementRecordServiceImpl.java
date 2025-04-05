@@ -114,6 +114,7 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
 
     @Override
     public  void  validatorEntity(AnnouncementRecord announcementRecord) {
+        super.validatorEntity(announcementRecord);
         Announcement announcements = getAnnouncementById(announcementRecord);
         if(ObjectUtils.isEmpty(announcements)){
             throw new CustomException("该公告不存在");

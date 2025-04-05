@@ -13,6 +13,8 @@ import com.skyeye.exam.examanradio.service.ExamAnRadioService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "单选题保存表管理", groupName = "单选题保存表管理")
@@ -51,10 +53,11 @@ public class ExamAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnRadi
     }
 
     @Override
-    public List<ExamAnRadio> selectByQuIdAndStuId(String id, String studentId) {
+    public Map<String, List<ExamAnRadio>> selectByQuIdAndStuId(List<String> id, String studentId) {
         QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnRadio::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnRadio>> radioMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnRadio::getQuId));
+        return radioMap;
     }
 }

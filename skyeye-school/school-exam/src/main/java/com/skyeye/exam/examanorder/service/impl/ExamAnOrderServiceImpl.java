@@ -12,11 +12,11 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examanorder.dao.ExamAnOrderDao;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
-import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnOrderServiceImpl
@@ -71,10 +71,11 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
     }
 
     @Override
-    public List<ExamAnOrder> selectByQuIdAndStuId(String id, String studentId) {
+    public Map<String, List<ExamAnOrder>> selectByQuIdAndStuId(List<String> id, String studentId) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), id)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnOrder::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnOrder>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnOrder::getQuId));
+        return stringListMap;
     }
 }

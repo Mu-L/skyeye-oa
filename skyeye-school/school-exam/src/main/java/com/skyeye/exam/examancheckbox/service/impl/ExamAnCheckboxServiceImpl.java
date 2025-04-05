@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnCheckboxServiceImpl
@@ -81,10 +82,11 @@ public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnC
     }
 
     @Override
-    public List<ExamAnCheckbox> selectByQuIdAndStuId(String id, String studentId) {
+    public Map<String, List<ExamAnCheckbox>> selectByQuIdAndStuId(List<String> id, String studentId) {
         QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getQuId), id)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnCheckbox::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getCreateId), studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnCheckbox>> cheneckBoxMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnCheckbox::getQuId));
+        return cheneckBoxMap;
     }
 }

@@ -170,14 +170,14 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuOrderby::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuOrderby::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuOrderby::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuOrderby::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -199,10 +199,10 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
 
     private Map<String, List<DwQuOrderby>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuOrderby::getQuId));
+            .collect(Collectors.groupingBy(DwQuOrderby::getQuId));
     }
 
     private List<DwQuOrderby> selectByQuIds(List<String> quIds) {

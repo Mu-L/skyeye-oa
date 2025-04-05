@@ -73,6 +73,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
 
     @Override
     public void validatorEntity(Assignment entity) {
+        super.validatorEntity(entity);
         if (DateUtil.getDistanceDay(entity.getStartTime(), entity.getEndTime()) < 0) {
             // endTime < startTime
             throw new CustomException("结束时间不能早于开始时间");

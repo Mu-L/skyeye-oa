@@ -41,6 +41,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
     @Autowired
     private DwQuRadioService dwQuRadioService;
+
     @Override
     protected QueryWrapper<DwQuRadio> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<DwQuRadio> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -176,7 +177,6 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
     @Override
     public void updateRadios(List<DwQuestion> dwQuestionList, String userId) {
-
         List<DwQuRadio> insertList = new ArrayList<>();
         List<DwQuRadio> updateList = new ArrayList<>();
         Set<String> needDeleteIds = new HashSet<>();
@@ -193,14 +193,14 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuRadio::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuRadio::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuRadio::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuRadio::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -223,10 +223,10 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
     private Map<String, List<DwQuRadio>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuRadio::getQuId));
+            .collect(Collectors.groupingBy(DwQuRadio::getQuId));
     }
 
     private List<DwQuRadio> selectByQuIds(List<String> quIds) {

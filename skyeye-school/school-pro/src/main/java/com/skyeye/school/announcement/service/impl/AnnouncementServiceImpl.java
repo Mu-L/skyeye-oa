@@ -131,6 +131,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
 
     @Override
     public void validatorEntity(Announcement announcement){
+        super.validatorEntity(announcement);
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getTitle),announcement.getTitle());
         List<Announcement> announcementList = list(queryWrapper);

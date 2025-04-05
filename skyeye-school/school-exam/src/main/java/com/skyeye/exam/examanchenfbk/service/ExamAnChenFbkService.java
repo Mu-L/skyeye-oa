@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnChenFbkService
@@ -27,5 +28,5 @@ public interface ExamAnChenFbkService extends SkyeyeBusinessService<ExamAnChenFb
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnChenFbk> selectByQuIdAndStuId(String questionId, String studentId);
+    Map<String, List<ExamAnChenFbk>> selectByQuIdAndStuId(List<String> questionId, String studentId);
 }

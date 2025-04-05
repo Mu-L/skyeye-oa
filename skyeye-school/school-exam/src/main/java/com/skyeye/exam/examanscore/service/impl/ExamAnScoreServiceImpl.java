@@ -14,9 +14,9 @@ import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "评分题保存表管理", groupName = "评分题保存表管理")
@@ -64,10 +64,11 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
     }
 
     @Override
-    public List<ExamAnScore> selectByQuIdAndStuId(String id, String studentId) {
+    public Map<String, List<ExamAnScore>> selectByQuIdAndStuId(List<String> id, String studentId) {
         QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id)
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnScore::getCreateId),studentId);
-        return list(queryWrapper);
+        Map<String, List<ExamAnScore>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnScore::getQuId));
+        return stringListMap;
     }
 }

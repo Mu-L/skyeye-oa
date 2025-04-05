@@ -178,14 +178,14 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuScore::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuScore::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuScore::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuScore::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -214,13 +214,13 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
 
     private Map<String, List<DwQuScore>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuScore::getQuId));
+            .collect(Collectors.groupingBy(DwQuScore::getQuId));
     }
 
-    private  List<DwQuScore> selectByQuIds(List<String> quIds) {
+    private List<DwQuScore> selectByQuIds(List<String> quIds) {
         QueryWrapper<DwQuScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuScore::getQuId), quIds);
         return list(queryWrapper);

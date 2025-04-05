@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnDfilllankService
@@ -24,5 +25,5 @@ public interface ExamAnDfilllankService extends SkyeyeBusinessService<ExamAnDfil
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnDfillblank> selectByQuIdAndStuId(String id, String studentId);
+    Map<String, List<ExamAnDfillblank>> selectByQuIdAndStuId(List<String> id, String studentId);
 }

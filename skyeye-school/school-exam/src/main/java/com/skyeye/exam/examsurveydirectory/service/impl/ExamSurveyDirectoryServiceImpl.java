@@ -318,6 +318,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
      */
     @Override
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
+        super.validatorEntity(examSurveyDirectory);
         String realStartTime = examSurveyDirectory.getRealStartTime();
         String realEndTime = examSurveyDirectory.getRealEndTime();
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
@@ -359,7 +360,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper);
         String reader = entity.getReaderList();
-        String classId = entity.getClassId();
         List<String> readerIds = Arrays.asList(reader.split(","));
         examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
         List<Question> questionList = entity.getQuestionMation();
@@ -594,6 +594,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public void validatorEntity(List<ExamSurveyDirectory> entity) {
+        super.validatorEntity(entity);
         ExamSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
         String realStartTime = examSurveyDirectory.getRealStartTime();
         String realEndTime = examSurveyDirectory.getRealEndTime();

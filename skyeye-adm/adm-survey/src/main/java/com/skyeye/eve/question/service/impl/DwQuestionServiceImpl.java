@@ -92,7 +92,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     @Autowired
     private DwAnCompChenRadioService dwAnCompChenRadioService;
 
-
     @Override
     public void createPrepose(List<DwQuestion> entity) {
         for (DwQuestion question : entity) {

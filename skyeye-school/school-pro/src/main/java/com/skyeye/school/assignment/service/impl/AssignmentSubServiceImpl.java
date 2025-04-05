@@ -72,6 +72,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
 
     @Override
     public void validatorEntity(AssignmentSub entity) {
+        super.validatorEntity(entity);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), entity.getAssignmentId());

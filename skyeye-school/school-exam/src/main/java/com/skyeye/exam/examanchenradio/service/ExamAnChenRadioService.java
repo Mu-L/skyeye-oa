@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnChenRadioService
@@ -25,5 +26,5 @@ public interface ExamAnChenRadioService extends SkyeyeBusinessService<ExamAnChen
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 
-    List<ExamAnChenRadio> selectByQuIdAndStuId(String questionId, String studentId);
+    Map<String, List<ExamAnChenRadio>> selectByQuIdAndStuId(List<String> questionId, String studentId);
 }

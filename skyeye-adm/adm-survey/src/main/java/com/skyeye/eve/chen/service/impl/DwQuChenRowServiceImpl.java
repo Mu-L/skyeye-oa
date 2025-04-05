@@ -134,13 +134,11 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            super.createEntity(insertList,userId);
+            super.createEntity(insertList, userId);
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            super.updateEntity(updateList,userId);
+            super.updateEntity(updateList, userId);
         }
-
-        dwQuChenRowService.createChenRows(dwQuestionList,userId);
     }
 
     @Override
@@ -161,14 +159,14 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                    .map(DwQuChenRow::getOptionId)
-                    .filter(StrUtil::isNotBlank)
-                    .collect(Collectors.toSet());
+                .map(DwQuChenRow::getOptionId)
+                .filter(StrUtil::isNotBlank)
+                .collect(Collectors.toSet());
 
             existingRadios.stream()
-                    .map(DwQuChenRow::getId)
-                    .filter(id -> !newIds.contains(id))
-                    .forEach(needDeleteIds::add);
+                .map(DwQuChenRow::getId)
+                .filter(id -> !newIds.contains(id))
+                .forEach(needDeleteIds::add);
 
             // 处理插入/更新
             processRadioOptions(radios, quId, userId, insertList, updateList);
@@ -189,13 +187,12 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     }
 
 
-
     private Map<String, List<DwQuChenRow>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         return selectByQuIds(quIds).stream()
-                .collect(Collectors.groupingBy(DwQuChenRow::getQuId));
+            .collect(Collectors.groupingBy(DwQuChenRow::getQuId));
     }
 
     private List<DwQuChenRow> selectByQuIds(List<String> quIds) {
@@ -218,6 +215,7 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
+                bean.setId(bean.getOptionId());
                 updateList.add(bean);
             }
         }
