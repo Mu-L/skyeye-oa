@@ -553,6 +553,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getBackgroundImage), params.get("backgroundImage").toString());
+        update(updateWrapper);
 
         Map<String, Object> user = inputObject.getLogParams();
         String userId = user.get("id").toString();
