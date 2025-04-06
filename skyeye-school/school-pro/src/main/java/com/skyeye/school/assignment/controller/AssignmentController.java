@@ -31,12 +31,6 @@ public class AssignmentController {
     @Autowired
     private AssignmentService assignmentService;
 
-    /**
-     * 添加或修改作业
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAssignment", value = "新增/编辑作业信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Assignment.class)
     @RequestMapping("/post/AssignmentController/writeAssignment")
@@ -44,12 +38,6 @@ public class AssignmentController {
         assignmentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询作业信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentById", value = "根据id查询作业信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class AssignmentController {
         assignmentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除作业信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAssignmentById", value = "根据ID删除作业信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class AssignmentController {
         assignmentService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表与班级表的关系id获取作业列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentListBySubjectClassesId", value = "根据科目表与班级表的关系id获取作业列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目表与班级表的关系id", required = "required")})

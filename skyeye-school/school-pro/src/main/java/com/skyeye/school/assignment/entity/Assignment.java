@@ -15,8 +15,8 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.school.assignment.classenum.AssignmentTimeState;
 import com.skyeye.school.chapter.entity.Chapter;
-import com.skyeye.school.score.classenum.NumberCodeEnum;
 import lombok.Data;
 
 /**
@@ -78,7 +78,7 @@ public class Assignment extends BaseGeneralInfo implements EnclosureFace {
     private String content;
 
     @TableField(exist = false)
-    @Property(value = "时间状态，参考#AssignmentTimeState")
+    @Property(value = "时间状态", enumClass = AssignmentTimeState.class)
     private String timeState;
 
     @TableField(exist = false)
