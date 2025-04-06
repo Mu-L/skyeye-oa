@@ -47,7 +47,6 @@ public class SubjectClassesController {
         subjectClassesService.queryNoPageSubjectClassesList(inputObject, outputObject);
     }
 
-
     @ApiOperation(id = "writeSubjectClasses", value = "添加或修改科目与班级的关系", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubjectClasses.class)
     @RequestMapping("/post/SubjectClassesController/writeSubjectClasses")

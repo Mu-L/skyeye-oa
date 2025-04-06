@@ -32,12 +32,6 @@ public class ClassesController {
     @Autowired
     private ClassesService classesService;
 
-    /**
-     * 获取班级信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryClassList", value = "获取班级信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ClassesController/queryClassList")
@@ -45,12 +39,6 @@ public class ClassesController {
         classesService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改班级信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeClass", value = "新增/编辑班级信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Classes.class)
     @RequestMapping("/post/ClassesController/writeClass")
@@ -58,43 +46,25 @@ public class ClassesController {
         classesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除班级信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteClassById", value = "根据ID删除班级信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ClassesController/deleteClassById")
     public void deleteClassById(InputObject inputObject, OutputObject outputObject) {
         classesService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据专业id获取班级列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryClassListByMajorId", value = "根据专业id获取班级列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "majorId", name = "majorId", value = "专业id")})
+        @ApiImplicitParam(id = "majorId", name = "majorId", value = "专业id")})
     @RequestMapping("/post/ClassesController/queryClassListByMajorId")
     public void queryClassListByMajorId(InputObject inputObject, OutputObject outputObject) {
         classesService.queryClassListByMajorId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取班级信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryClassById", value = "根据id获取班级信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ClassesController/queryClassById")
     public void queryClassById(InputObject inputObject, OutputObject outputObject) {
         classesService.selectById(inputObject, outputObject);
