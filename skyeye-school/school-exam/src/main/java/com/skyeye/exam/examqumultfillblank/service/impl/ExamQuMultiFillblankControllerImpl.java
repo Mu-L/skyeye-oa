@@ -124,6 +124,7 @@ public class ExamQuMultiFillblankControllerImpl extends SkyeyeBusinessServiceImp
         }
         QueryWrapper<ExamQuMultiFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuMultiFillblank::getQuId), questionIdList);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         List<ExamQuMultiFillblank> list = list(queryWrapper);
         Map<String, List<ExamQuMultiFillblank>> collect = list.stream().collect(Collectors.groupingBy(ExamQuMultiFillblank::getQuId));
         return collect;

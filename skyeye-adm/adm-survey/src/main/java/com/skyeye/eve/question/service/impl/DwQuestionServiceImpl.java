@@ -11,21 +11,17 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
-import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
-import com.skyeye.eve.chen.entity.*;
+import com.skyeye.eve.chen.entity.DwQuChenColumn;
+import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.*;
-import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
-import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
@@ -34,11 +30,9 @@ import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.question.entity.DwQuestionLogic;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwQuestionService;
-import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwAnRadioService;
 import com.skyeye.eve.radio.service.DwQuRadioService;
-import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.score.entity.DwQuScore;
 import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.score.service.DwQuScoreService;
@@ -47,8 +41,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -213,9 +208,9 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
 
     private void deleteNoBelongDwQuestions(List<DwQuestion> dwQuestions) {
         List<String> dwQuestionIds = dwQuestions.stream()
-                .filter(q -> StrUtil.isEmpty(q.getBelongId()))
-                .map(DwQuestion::getId)
-                .collect(Collectors.toList());
+            .filter(q -> StrUtil.isEmpty(q.getBelongId()))
+            .map(DwQuestion::getId)
+            .collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(dwQuestionIds)) {
             dwQuRadioService.removeByQuIds(dwQuestionIds);
             dwQuScoreService.removeByQuIds(dwQuestionIds);
@@ -251,7 +246,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             List<DwQuRadio> examQuRadioList = dwQuRadioService.selectQuRadio(entityId);
             List<String> collect1 = examQuRadioList.stream().map(DwQuRadio::getId).collect(Collectors.toList());
             List<String> collect2 = collect1.stream().filter(
-                    optionId -> !collect.contains(optionId)
+                optionId -> !collect.contains(optionId)
             ).collect(Collectors.toList());
             dwQuRadioService.deleteById(collect2);
             dwQuRadioService.saveList(radioTd, quId, userId);
@@ -339,76 +334,10 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
 
     @Override
     public List<DwQuestion> selectByIds(String... ids) {
-        List<DwQuestion> questionList = new ArrayList<>();
-        for (String id : ids) {
-            DwQuestion question = super.selectById(id);
-            questionList.add(question);
-        }
+        List<DwQuestion> questionList = super.selectByIds(ids);
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
-        for (DwQuestion question : questionList) {
-            String id = question.getId();
-            // 1 单选题
-            if (question.getQuType() == QuType.RADIO.getIndex()) {
-                List<DwQuRadio> radioList = dwQuRadioService.selectQuRadio(id);
-                List<DwAnRadio> dwAnRadios = dwAnRadioService.selectRadioByQuId(id);
-                question.setRadioTd(radioList);
-                question.setRadioAn(dwAnRadios);
-                continue;
-            }
-            // 2 多选题
-            if (question.getQuType() == QuType.CHECKBOX.getIndex()) {
-                List<DwQuCheckbox> dwQuCheckboxeList = dwQuCheckboxService.selectQuChenbox(id);
-                List<DwAnCheckbox> dwAnCheckboxes = dwAnCheckboxService.selectAnCheckBoxByQuId(id);
-                question.setCheckboxTd(dwQuCheckboxeList);
-                question.setCheckboxAn(dwAnCheckboxes);
-                continue;
-            }
-            // 8 评分题
-            if (question.getQuType() == QuType.SCORE.getIndex()) {
-                List<DwQuScore> scoreList = dwQuScoreService.selectQuScore(id);
-                List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
-                question.setScoreTd(scoreList);
-                question.setScoreAn(dwAnScoreList);
-                continue;
-            }
-            // 9 排序题
-            if (question.getQuType() == QuType.ORDERQU.getIndex()) {
-                List<DwQuOrderby> orderbyList = dwQuOrderbyService.selectQuOrderby(id);
-                List<DwAnOrder> dwAnOrderbyList = dwAnOrderService.selectAnOrderByQuId(id);
-                question.setOrderByTd(orderbyList);
-                question.setOrderbyAn(dwAnOrderbyList);
-                continue;
-            }
-            // 4 多行填空题
-            if (question.getQuType() == QuType.MULTIFILLBLANK.getIndex()) {
-                List<DwQuMultiFillblank> dwQuMultiFillblanks = dwQuMultiFillblankService.selectQuMultiFillblank(id);
-                List<DwAnDfillblank> dwAnDfillblanks = dwAnDfillblankService.selectAnDfillblankQuId(id);
-                question.setMultifillblankTd(dwQuMultiFillblanks);
-                question.setDfillblankAn(dwAnDfillblanks);
-                continue;
-            }
-            // 11 矩阵单选题CHENRADIO 12 矩阵填空题CHENFBK 13 矩阵多选题CHENCHECKBOX 18 矩阵评分题CHENSCORE
-            if (question.getQuType() == QuType.CHENRADIO.getIndex() ||
-                    question.getQuType() == QuType.CHENFBK.getIndex() ||
-                    question.getQuType() == QuType.CHENCHECKBOX.getIndex() ||
-                    question.getQuType() == QuType.CHENSCORE.getIndex()) {
-                List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(id);
-                List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(id);
-                List<DwAnChenRadio> dwAnChenRadios = dwAnChenRadioService.selectByQuId(id);
-                List<DwAnChenCheckbox> dwAnCheckboxList = dwAnChenCheckboxService.selectAnChenCheckboxByQuId(id);
-                List<DwAnChenFbk> dwAnChenFbks = dwAnChenFbkService.selectByQuId(id);
-                List<DwAnChenScore> dwAnChenScores = dwAnChenScoreService.slectByQuId(id);
-                List<DwAnCompChenRadio> dwAnCompChenRadios = dwAnCompChenRadioService.selectByQuId(id);
-                question.setColumnTd(dwQuChenColumnList);
-                question.setRowTd(dwQuChenRowList);
-                question.setChenRadioAn(dwAnChenRadios);
-                question.setChenCheckboxAn(dwAnCheckboxList);
-                question.setChenFbkAn(dwAnChenFbks);
-                question.setChenScoreAn(dwAnChenScores);
-                question.setCompChenRadioAn(dwAnCompChenRadios);
-            }
-        }
+        getQuestionOption(questionList);
         return questionList;
     }
 
@@ -425,44 +354,71 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getCreateTime));
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getOrderById));
         List<DwQuestion> dwQuestionList = list(queryWrapper);
-        for (DwQuestion dwQuestion : dwQuestionList) {
-            Integer quType = dwQuestion.getQuType();
-            String id = dwQuestion.getId();
-            if (quType.equals(QuType.RADIO.getIndex())) {
-                dwQuestion.setRadioTd(dwQuRadioService.selectQuRadio(id));
-                List<DwAnRadio> dwAnRadios = dwAnRadioService.selectRadioByQuId(id);
-                dwQuestion.setRadioAn(dwAnRadios);
-            }
-            if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
-                dwQuestion.setMultifillblankTd(dwQuMultiFillblankService.selectQuMultiFillblank(id));
-                dwQuestion.setDfillblankAn(dwAnDfillblankService.selectAnDfillblankQuId(id));
-            }
-            if (quType.equals(QuType.CHECKBOX.getIndex())) {
-                dwQuestion.setCheckboxTd(dwQuCheckboxService.selectQuChenbox(id));
-                dwQuestion.setCheckboxAn(dwAnCheckboxService.selectAnCheckBoxByQuId(id));
-            }
-            if (quType.equals(QuType.SCORE.getIndex())) {
-                dwQuestion.setScoreTd(dwQuScoreService.selectQuScore(id));
-                dwQuestion.setScoreAn(dwAnScoreService.selectAnScoreByQuId(id));
-            }
-            if (quType.equals(QuType.ORDERQU.getIndex())) {
-                dwQuestion.setOrderByTd(dwQuOrderbyService.selectQuOrderby(id));
-                //TODO 差一张排序题答卷表
-            }
-            if (quType.equals(QuType.CHENRADIO.getIndex()) ||
-                    quType.equals(QuType.CHENFBK.getIndex()) ||
-                    quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                    quType.equals(QuType.CHENSCORE.getIndex())) {
-                dwQuestion.setColumnTd(dwQuChenColumnService.selectQuChenColumn(id));
-                dwQuestion.setRowTd(dwQuChenRowService.selectQuChenRow(id));
-                dwQuestion.setChenCheckboxAn(dwAnChenCheckboxService.selectAnChenCheckboxByQuId(id));
-                dwQuestion.setChenFbkAn(dwAnChenFbkService.selectByQuId(id));
-                dwQuestion.setChenRadioAn(dwAnChenRadioService.selectByQuId(id));
-                dwQuestion.setChenScoreAn(dwAnChenScoreService.slectByQuId(id));
-                dwQuestion.setCompChenRadioAn(dwAnCompChenRadioService.selectByQuId(id));
-            }
-        }
+        getQuestionOption(dwQuestionList);
         return dwQuestionList;
+    }
+
+    private void getQuestionOption(List<DwQuestion> questionList) {
+        List<DwQuestion> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex()))
+            .collect(Collectors.toList());
+        List<String> radioIds = radioList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuRadio>> radioMapList = dwQuRadioService.selectByBelongId(radioIds);
+
+        List<DwQuestion> cheankboxList = questionList.stream().filter(question -> question.getQuType().equals(QuType.CHECKBOX.getIndex())).collect(Collectors.toList());
+        List<String> cheankboxIds = cheankboxList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuCheckbox>> chaeckBoxMapList = dwQuCheckboxService.selectByBelongId(cheankboxIds);
+
+        List<DwQuestion> scoreList = questionList.stream().filter(question -> question.getQuType().equals(QuType.SCORE.getIndex())).collect(Collectors.toList());
+        List<String> scoreIds = scoreList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuScore>> scoreMapList = dwQuScoreService.selectByBelongId(scoreIds);
+
+        List<DwQuestion> orderQuList = questionList.stream().filter(question -> question.getQuType().equals(QuType.ORDERQU.getIndex())).collect(Collectors.toList());
+        List<String> orderQuIds = orderQuList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuOrderby>> orderQuMapList = dwQuOrderbyService.selectByBelongId(orderQuIds);
+
+        List<DwQuestion> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())).collect(Collectors.toList());
+        List<String> multifillblankIds = multifillblankList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuMultiFillblank>> multifillblankMapList = dwQuMultiFillblankService.selectByBelongId(multifillblankIds);
+
+        List<DwQuestion> chenList = questionList.stream().filter(question ->
+            question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
+                question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
+                question.getQuType().equals(QuType.CHENCHECKBOX.getIndex()) ||
+                question.getQuType().equals(QuType.CHENSCORE.getIndex())
+        ).collect(Collectors.toList());
+        List<String> chenIds = chenList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuChenColumn>> chenColMapList = dwQuChenColumnService.selectByBelongId(chenIds);
+        Map<String, List<DwQuChenRow>> chenRowMapList = dwQuChenRowService.selectByBelongId(chenIds);
+        questionList.forEach(question -> {
+            String qid = question.getId();
+            int quType = question.getQuType();
+
+            switch (quType) {
+                case 1: // 单选题
+                    question.setRadioTd(radioMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 2: // 多选题
+                    question.setCheckboxTd(chaeckBoxMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 8: // 评分题
+                    question.setScoreTd(scoreMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 9: // 排序题
+                    question.setOrderByTd(orderQuMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 4: // 多行填空题
+                    question.setMultifillblankTd(multifillblankMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 11:
+                case 12:
+                case 13:
+                case 18:
+                    question.setColumnTd(chenColMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setRowTd(chenRowMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                default:
+            }
+        });
     }
 
     /**
@@ -487,104 +443,12 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         } else if (quType.equals(QuType.ORDERQU.getIndex())) {
             dwQuOrderbyService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHENRADIO.getIndex()) ||
-                quType.equals(QuType.CHENFBK.getIndex()) ||
-                quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
-                quType.equals(QuType.COMPCHENRADIO.getIndex()) ||
-                quType.equals(QuType.CHENSCORE.getIndex())
+            quType.equals(QuType.CHENFBK.getIndex()) ||
+            quType.equals(QuType.CHENCHECKBOX.getIndex()) ||
+            quType.equals(QuType.COMPCHENRADIO.getIndex()) ||
+            quType.equals(QuType.CHENSCORE.getIndex())
         ) {
             dwQuChenColumnService.removeByQuId(quId);
-        }
-    }
-
-    /**
-     * 复制题目信息的方法
-     *
-     * @param question 题目实体对象，包含要复制的题目信息以及复制后题目的ID
-     */
-    @Override
-    public void copyQuestionListMation(DwQuestion question) {
-        // 根据题目类型进行不同的复制操作
-        String quType = QuType.getActionName(Integer.parseInt(question.getQuType().toString()));
-        // 复制单选题或复合单选题
-        if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {
-            List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectQuRadio(question.getCopyFromId());
-            if (CollectionUtils.isEmpty(dwQuRadioList)) {
-                throw new CustomException("没有找到题目选项信息");
-            }
-            for (DwQuRadio dwQuRadio : dwQuRadioList) {
-                dwQuRadio.setId(ToolUtil.getSurFaceId()); // 设置新的唯一ID
-                dwQuRadio.setCreateTime(DateUtil.getTimeAndToString()); // 设置创建时间
-                dwQuRadio.setQuId(question.getId()); // 设置所属题目ID
-                dwQuRadioService.createEntity(dwQuRadio, StrUtil.EMPTY);
-            }
-        }
-        // 复制多选题或复合多选题
-        else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {
-            List<DwQuCheckbox> dwQuCheckboxList = dwQuCheckboxService.selectQuChenbox(question.getCopyFromId());
-            if (CollectionUtils.isEmpty(dwQuCheckboxList)) {
-                throw new CustomException("没有找到题目选项信息");
-            }
-            for (DwQuCheckbox dwQuCheckbox : dwQuCheckboxList) {
-                dwQuCheckbox.setId(ToolUtil.getSurFaceId());
-                dwQuCheckbox.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuCheckbox.setQuId(question.getId());
-                dwQuCheckboxService.createEntity(dwQuCheckbox, StrUtil.EMPTY);
-            }
-        }
-        // 复制多空填空题
-        else if (quType.equals(QuType.MULTIFILLBLANK.getActionName())) {
-            List<DwQuMultiFillblank> multiFillblanksList = dwQuMultiFillblankService.selectQuMultiFillblank(question.getCopyFromId());
-            if (CollectionUtils.isEmpty(multiFillblanksList)) {
-                throw new CustomException("没有找到题目选项信息");
-            }
-            for (DwQuMultiFillblank dwQuMultiFillblank : multiFillblanksList) {
-                dwQuMultiFillblank.setId(ToolUtil.getSurFaceId());
-                dwQuMultiFillblank.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuMultiFillblank.setQuId(question.getId());
-                dwQuMultiFillblankService.createEntity(dwQuMultiFillblank, StrUtil.EMPTY);
-            }
-        }
-        // 复制陈列题相关数据
-        else if (quType.equals(QuType.CHENRADIO.getActionName()) || quType.equals(QuType.CHENCHECKBOX.getActionName()) ||
-                quType.equals(QuType.CHENSCORE.getActionName()) || quType.equals(QuType.CHENFBK.getActionName()) ||
-                quType.equals(QuType.COMPCHENRADIO.getActionName())) {
-            List<DwQuChenRow> dwQuChenRowList = dwQuChenRowService.selectQuChenRow(question.getCopyFromId());
-            List<DwQuChenColumn> dwQuChenColumnList = dwQuChenColumnService.selectQuChenColumn(question.getCopyFromId());
-            if (CollectionUtils.isEmpty(dwQuChenRowList) || CollectionUtils.isEmpty(dwQuChenColumnList)) {
-                throw new CustomException("没有找到题目选项信息");
-            }
-            for (DwQuChenRow dwQuChenRow : dwQuChenRowList) {
-                dwQuChenRow.setId(ToolUtil.getSurFaceId());
-                dwQuChenRow.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuChenRow.setQuId(question.getId());
-                dwQuChenRowService.createEntity(dwQuChenRow, StrUtil.EMPTY);
-            }
-            for (DwQuChenColumn dwQuChenColumn : dwQuChenColumnList) {
-                dwQuChenColumn.setId(ToolUtil.getSurFaceId());
-                dwQuChenColumn.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuChenColumn.setQuId(question.getId());
-                dwQuChenColumnService.createEntity(dwQuChenColumn, StrUtil.EMPTY);
-            }
-        }
-        // 复制得分题
-        else if (quType.equals(QuType.SCORE.getActionName())) {
-            List<DwQuScore> dwQuScoreList = dwQuScoreService.selectQuScore(question.getCopyFromId());
-            for (DwQuScore dwQuScore : dwQuScoreList) {
-                dwQuScore.setId(ToolUtil.getSurFaceId());
-                dwQuScore.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuScore.setQuId(question.getId());
-                dwQuScoreService.createEntity(dwQuScore, StrUtil.EMPTY);
-            }
-        }
-        // 复制排序题
-        else if (quType.equals(QuType.ORDERQU.getActionName())) {
-            List<DwQuOrderby> dwQuOrderbyList = dwQuOrderbyService.selectQuOrderby(question.getCopyFromId());
-            for (DwQuOrderby dwQuOrderby : dwQuOrderbyList) {
-                dwQuOrderby.setId(ToolUtil.getSurFaceId());
-                dwQuOrderby.setCreateTime(DateUtil.getTimeAndToString());
-                dwQuOrderby.setQuId(question.getId());
-                dwQuOrderbyService.createEntity(dwQuOrderby, StrUtil.EMPTY);
-            }
         }
     }
 

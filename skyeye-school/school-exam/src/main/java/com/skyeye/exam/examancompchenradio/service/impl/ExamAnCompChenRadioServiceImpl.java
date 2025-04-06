@@ -14,6 +14,7 @@ import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,6 +75,9 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public Map<String, List<ExamAnCompChenRadio>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
+        if (CollectionUtil.isEmpty(questionId)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), questionId)
             .eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getCreateId), studentId);

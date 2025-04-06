@@ -16,6 +16,7 @@ import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,6 +101,7 @@ public class ExamQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCh
         }
         QueryWrapper<ExamQuChenRow> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenRow::getQuId), questionIdList);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         List<ExamQuChenRow> list = list(queryWrapper);
         Map<String, List<ExamQuChenRow>> collect = list.stream().collect(Collectors.groupingBy(ExamQuChenRow::getQuId));
         return collect;

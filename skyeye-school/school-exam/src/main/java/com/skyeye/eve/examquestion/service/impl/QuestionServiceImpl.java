@@ -17,6 +17,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.dao.QuestionDao;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
@@ -58,10 +59,13 @@ import com.skyeye.exam.examquradio.service.ExamQuRadioService;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.knowledge.entity.KnowledgePoints;
 import com.skyeye.school.knowledge.service.KnowledgePointsService;
+import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.service.SubjectService;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -414,50 +419,35 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
 
     @Override
     public List<Question> selectByIds(String... quIds) {
-        List<Question> questionList = new ArrayList<>();
-        for (String id : quIds) {
-            Question question = super.selectById(id);
-            questionList.add(question);
-            String knowledgeIds = question.getKnowledgeIds();
-            if (StrUtil.isNotEmpty(knowledgeIds)) {
-                String[] split = knowledgeIds.split(",");
-                List<String> classIds = Arrays.asList(split);
-                List<KnowledgePoints> knowledgePointsList = knowledgePointsService.queryKnowledge(classIds);
-                question.setKnowledgePointsMation(knowledgePointsList);
+        List<Question> questionList = super.selectByIds(quIds);
+        // 提取所有知识点ID（带去重处理）
+        Set<String> allKnowledgeIds = questionList.stream()
+            .map(Question::getKnowledgeIds)
+            .filter(StrUtil::isNotEmpty)
+            .flatMap(ids -> Arrays.stream(ids.split(",")))
+            .collect(Collectors.toSet());
+        // 批量获取知识点数据（按ID映射）
+        Map<String, KnowledgePoints> knowledgeMap = allKnowledgeIds.isEmpty()
+            ? Collections.emptyMap()
+            : knowledgePointsService.queryKnowledge(new ArrayList<>(allKnowledgeIds))
+            .stream()
+            .collect(Collectors.toMap(KnowledgePoints::getId, Function.identity()));
+        // 构建题目与知识点的映射关系
+        questionList.forEach(question -> {
+            if (StrUtil.isNotEmpty(question.getKnowledgeIds())) {
+                List<KnowledgePoints> points = Arrays.stream(question.getKnowledgeIds().split(","))
+                    .map(knowledgeMap::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+                question.setKnowledgePointsMation(points);
             }
-        }
+        });
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         schoolService.setDataMation(questionList, Question::getSchoolId);
         facultyService.setDataMation(questionList, Question::getFacultyId);
         majorService.setDataMation(questionList, Question::getMajorId);
         subjectService.setDataMation(questionList, Question::getSubjectId);
-
-        Set<String> allClassIds = new HashSet<>();
-        for (Question question : questionList) {
-            String knowledgeIds = question.getKnowledgeIds();
-            if (knowledgeIds != null && !knowledgeIds.isEmpty()) {
-                Collections.addAll(allClassIds, knowledgeIds.split(","));
-            }
-        }
-        ArrayList<String> strings = new ArrayList<>(allClassIds);
-        List<KnowledgePoints> allKnowledge = knowledgePointsService.queryKnowledgeBatch(strings);
-        // 知识点ID到对象的映射
-        Map<String, KnowledgePoints> knowledgeMap = allKnowledge.stream()
-            .collect(Collectors.toMap(KnowledgePoints::getId, kp -> kp));
-
-        // 分配知识点到每个问题
-        for (Question question : questionList) {
-            List<KnowledgePoints> kps = new ArrayList<>();
-            String knowledgeIds = question.getKnowledgeIds();
-            if (knowledgeIds != null && !knowledgeIds.isEmpty()) {
-                Arrays.stream(knowledgeIds.split(","))
-                    .map(String::trim)
-                    .filter(knowledgeMap::containsKey)
-                    .forEach(id -> kps.add(knowledgeMap.get(id)));
-            }
-            question.setKnowledgePointsMation(kps);
-        }
         getQuestionOption(questionList);
         return questionList;
     }
@@ -541,6 +531,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())).collect(Collectors.toList());
         List<String> multifillblankIds = multifillblankList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuMultiFillblank>> multifillblankMapList = examQuMultiFillblankService.selectByQuestionIds(multifillblankIds);
+
         List<Question> chenList = questionList.stream().filter(question ->
             question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
                 question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
@@ -595,8 +586,19 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     public List<Question> QueryQuestionByBelongIdAndStuId(String surveyId, String studentId) {
         QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Question::getOrderById));
         List<Question> questionList = list(queryWrapper);
         return getQuestionOptionAndAnswer(studentId, questionList);
+    }
+
+    @Override
+    public Map<String, List<Question>> queryQuestionListBySurveyIdList(List<String> surveyList) {
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Question::getBelongId), surveyList);
+        List<Question> questionList = list(queryWrapper);
+        getQuestionOption(questionList);
+        Map<String, List<Question>> questionListBySurveyId = questionList.stream().collect(Collectors.groupingBy(Question::getBelongId));
+        return questionListBySurveyId;
     }
 
     @NotNull
@@ -604,8 +606,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<Question> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex())).collect(Collectors.toList());
         List<String> radioIds = radioList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuRadio>> radioQuMapList = examQuRadioService.selectByQuestionIds(radioIds);
-
         Map<String, List<ExamAnRadio>> radioAnMapList = examAnRadioService.selectByQuIdAndStuId(radioIds, studentId);
+
         List<Question> cheankboxList = questionList.stream().filter(question -> question.getQuType().equals(QuType.CHECKBOX.getIndex())).collect(Collectors.toList());
         List<String> cheankboxIds = cheankboxList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuCheckbox>> chaeckBoxQuMapList = examQuCheckboxService.selectByQuestionIds(cheankboxIds);
@@ -681,19 +683,6 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
             }
         });
         return questionList;
-    }
-
-    /**
-     * 根据调查复制ID查询题目信息
-     *
-     * @param surveyCopyId 调查复制ID
-     * @return 题目信息列表
-     */
-    @Override
-    public List<Question> queryQuestionMationCopyById(String surveyCopyId) {
-        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getBelongId), surveyCopyId); // 等于归属ID
-        return list(queryWrapper); // 返回查询结果列表
     }
 
     @Override
@@ -772,21 +761,31 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
     }
 
     private List<Question> getBaseInfo(QueryWrapper<Question> queryWrapper) {
-        List<Question> questionList = list(queryWrapper)
-            .stream().map(item -> {
-                //设置学校信息
-                item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-                //设置学院信息
-                item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
-                //设置专业信息
-                item.setMajorMation(majorService.selectById(item.getMajorId()));
-                //设置科目信息
-                item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
+        List<Question> questionList1 = list(queryWrapper);
+        List<String> schoolIds = questionList1.stream().map(Question::getSchoolId).collect(Collectors.toList());
+        List<String> facultyIds = questionList1.stream().map(Question::getFacultyId).collect(Collectors.toList());
+        List<String> majorIds = questionList1.stream().map(Question::getMajorId).collect(Collectors.toList());
+        List<String> subjectIds = questionList1.stream().map(Question::getSubjectId).collect(Collectors.toList());
+        Map<String, List<School>> schoolMapList = schoolService.selectByIdList(schoolIds);
+        Map<String, List<Faculty>> facultyMapList = facultyService.selectByIdList(facultyIds);
+        Map<String, List<Major>> majorMapList = majorService.selectByIdList(majorIds);
+        Map<String, List<Subject>> subjectMapList = subjectService.selectByIdList(subjectIds);
+        List<Question> questionList = questionList1.parallelStream()
+            .map(item -> {
+                item.setSchoolMation(getFirst(schoolMapList.get(item.getSchoolId())));
+                item.setFacultyMation(getFirst(facultyMapList.get(item.getFacultyId())));
+                item.setMajorMation(getFirst(majorMapList.get(item.getMajorId())));
+                item.setSubjectMation(getFirst(subjectMapList.get(item.getSubjectId())));
                 return item;
-            }).collect(Collectors.toList());
+            })
+            .collect(Collectors.toList());
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         return questionList;
+    }
+
+    private static <T> T getFirst(List<T> list) {
+        return list != null && !list.isEmpty() ? list.get(0) : null;
     }
 
     @Override

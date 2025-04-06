@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.major.entity.Major;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: MajorService
  * @Description: 专业管理服务接口层
@@ -21,4 +24,5 @@ public interface MajorService extends SkyeyeBusinessService<Major> {
 
     void queryMajorListByFacultyId(InputObject inputObject, OutputObject outputObject);
 
+    Map<String, List<Major>> selectByIdList(List<String> majorIds);
 }

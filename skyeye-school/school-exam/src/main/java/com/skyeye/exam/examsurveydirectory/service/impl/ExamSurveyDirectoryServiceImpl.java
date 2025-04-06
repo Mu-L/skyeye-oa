@@ -543,9 +543,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, Integer> map = examSurveyMarkExamService.queryMarkedExamNum(directoryIds);
         // 获取已经回答的人数
         Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
+        List<String> surveyList = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+        Map<String, List<Question>> queryQuestionListBySurveyIdList = questionService.queryQuestionListBySurveyIdList(surveyList);
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
-            List<Question> questionList = questionService.QueryQuestionByBelongId(examSurveyDirectory.getId());
-            examSurveyDirectory.setQuestionMation(questionList);
+            examSurveyDirectory.setQuestionMation(queryQuestionListBySurveyIdList.getOrDefault(examSurveyDirectory.getId(), Collections.emptyList()));
             // 获取已批阅
             int readNum = map.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : map.get(examSurveyDirectory.getId());
             examSurveyDirectory.setReadNum(readNum);
@@ -562,17 +563,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public void querySurveyListByNoOrYesState(Integer state) {
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), state);
-        List<ExamSurveyDirectory> list = list(queryWrapper);
-    }
-
-    @Override
     public Map<String, List<ExamSurveyDirectory>> querySurveyListByIds(List<String> surveyIds, String createId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         Map<String, List<ExamSurveyDirectory>> listMap = new HashMap<>();
-        if (CollectionUtil.isNotEmpty(surveyIds)){
+        if (CollectionUtil.isNotEmpty(surveyIds)) {
             queryWrapper.in(CommonConstants.ID, surveyIds);
             List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
             Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds, createId);

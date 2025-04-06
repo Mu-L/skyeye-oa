@@ -14,6 +14,7 @@ import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,6 +75,9 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
 
     @Override
     public Map<String, List<ExamAnChenFbk>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
+        if (CollectionUtil.isEmpty(questionId)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnChenFbk> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), questionId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getCreateId), studentId);

@@ -14,6 +14,7 @@ import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,6 +75,9 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
 
     @Override
     public Map<String, List<ExamAnDfillblank>> selectByQuIdAndStuId(List<String> id, String studentId) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), id)
             .eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getCreateId), studentId);

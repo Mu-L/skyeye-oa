@@ -1,6 +1,7 @@
 package com.skyeye.exam.examancheckbox.service.impl;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -14,10 +15,7 @@ import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,6 +81,9 @@ public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnC
 
     @Override
     public Map<String, List<ExamAnCheckbox>> selectByQuIdAndStuId(List<String> id, String studentId) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnCheckbox::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getCreateId), studentId);

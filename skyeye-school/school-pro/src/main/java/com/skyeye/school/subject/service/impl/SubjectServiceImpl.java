@@ -308,6 +308,14 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         outputObject.settotal(pages.getTotal());
     }
 
+    @Override
+    public Map<String, List<Subject>> selectByIdList(List<String> subjectIds) {
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, subjectIds);
+        Map<String, List<Subject>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(Subject::getId));
+        return stringListMap;
+    }
+
     private List<Subject> querySubjectListByUserId(String userId) {
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);

@@ -265,13 +265,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String surveyId = commonPageInfo.getHolderId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        String id = inputObject.getLogParams().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(stuNoList)){
+        if (CollectionUtil.isNotEmpty(stuNoList)) {
             userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
@@ -364,21 +363,37 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         // 设置信息：
         List<String> stuNoList = beans.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
+        List<Map<String, Object>> userList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(stuNoList)) {
-            List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+            userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
-            for (ExamSurveyAnswer examSurveyAnswer : beans) {
-                examSurveyAnswer.setSchoolMation(schoolService.selectById(examSurveyAnswer.getSchoolId()));
-                examSurveyAnswer.setSurveyMation(examSurveyDirectoryService.selectById(examSurveyAnswer.getSurveyId()));
-                examSurveyAnswer.setFacultyMation(facultyService.selectById(examSurveyAnswer.getFacultyId()));
-                examSurveyAnswer.setMajorMation(majorService.selectById(examSurveyAnswer.getMajorId()));
-                for (Map<String, Object> user : userList) {
-                    if (examSurveyAnswer.getStudentNumber().equals(user.get("studentNumber"))) {
-                        examSurveyAnswer.setStuMation(user);
-                    }
-                }
-            }
         }
+        List<String> schoolIds = beans.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
+        List<String> surveyIds = beans.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
+        List<String> facultyIds = beans.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
+        List<String> majorIds = beans.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
+        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
+            .collect(Collectors.toMap(School::getId, Function.identity()));
+        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
+            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
+        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
+            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
+        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
+            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        Map<String, Map<String, Object>> userMap = userList.stream()
+            .collect(Collectors.toMap(
+                user -> user.get("studentNumber").toString(),
+                Function.identity(),
+                (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
+            ));
+        for (ExamSurveyAnswer answer : beans) {
+            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()));
+            answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
+            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()));
+            answer.setMajorMation(majorMap.get(answer.getMajorId()));
+            answer.setStuMation(userMap.get(answer.getStudentNumber()));
+        }
+
         // 学校
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
             beans = beans.stream().filter(examSurveyAnswer -> examSurveyAnswer.getSchoolId().equals(commonPageInfo.getHolderKey())).collect(Collectors.toList());
@@ -412,12 +427,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 return StrUtil.contains(surveyMation.getSurveyName(), commonPageInfo.getKeyword());
             }).collect(Collectors.toList());
         }
+
         // 将筛选后端beans按分页参数返回
         int fromIndex = (page - 1) * limit;
         if (fromIndex >= beans.size()) {
             outputObject.setBeans(new ArrayList<>());
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         }
+
         int toIndex = Math.min(fromIndex + limit, beans.size());
         outputObject.setBeans(beans.subList(fromIndex, toIndex));
         outputObject.settotal(beans.size());

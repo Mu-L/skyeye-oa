@@ -21,6 +21,7 @@ import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -139,6 +140,7 @@ public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuC
         }
         QueryWrapper<ExamQuCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuCheckbox::getQuId), questionIdList);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         List<ExamQuCheckbox> list = list(queryWrapper);
         Map<String, List<ExamQuCheckbox>> collect = list.stream().collect(Collectors.groupingBy(ExamQuCheckbox::getQuId));
         return collect;

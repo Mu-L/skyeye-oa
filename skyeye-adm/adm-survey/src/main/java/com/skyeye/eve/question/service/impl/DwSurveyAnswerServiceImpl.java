@@ -37,8 +37,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -98,37 +96,49 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
 
     @Override
     protected void createPrepose(DwSurveyAnswer entity) {
-        LocalDateTime bgAnDate = entity.getBgAnDate();
-        //进行空指针判断
-        if (bgAnDate == null) {
-            throw new CustomException("开始时间不能为空");
-        }
-        if (entity.getBgAnDate().isAfter(entity.getEndAnDate())) {
-            throw new CustomException("开始时间不能大于结束时间");
+        String bgAnDate = entity.getBgAnDate();
+        String endAnDate = entity.getEndAnDate();
+        if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
+            boolean compare = DateUtil.compare(bgAnDate, endAnDate);
+            if (!compare) {
+                throw new CustomException("开始时间不能大于结束时间");
+            }
         }
     }
 
 
     @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
-        LocalDateTime bgAnDate = entity.getBgAnDate();
-        LocalDateTime endAnDate = entity.getEndAnDate();
-        LocalDateTime markStartTime = entity.getMarkStartTime();
-        LocalDateTime markEndTime = entity.getMarkEndTime();
-      //  进行空指针判断
+        String bgAnDate = entity.getBgAnDate();
+        String endAnDate = entity.getEndAnDate();
+        String markStartTime = entity.getMarkStartTime();
+        String markEndTime = entity.getMarkEndTime();
+        //  进行空指针判断
         if (endAnDate == null) {
             throw new CustomException("结束时间不能为空");
         }
-        if (markStartTime == null || markEndTime == null) {
+        if (StrUtil.isEmpty(markStartTime) || StrUtil.isEmpty(markEndTime)) {
             throw new CustomException("批阅开始时间或结束时间不能为空");
         }
-        Duration duration = Duration.between(bgAnDate, endAnDate); // 计算时间差
-        if (duration.isNegative()) {
-            throw new CustomException("开始时间不能大于结束时间");
+        String distanceHMS = DateUtil.getDistanceHMS(bgAnDate, endAnDate);
+        // 判断时间是否大于0
+        boolean isTimeGreaterThanZero = false;
+        try {
+            String[] parts = distanceHMS.split(":");
+            if (parts.length == 3) {
+                int hours = Integer.parseInt(parts[0]);
+                int minutes = Integer.parseInt(parts[1]);
+                int seconds = Integer.parseInt(parts[2]);
+                isTimeGreaterThanZero = hours > 0 || minutes > 0 || seconds > 0;
+                if (!isTimeGreaterThanZero) {
+                    throw new CustomException("结束时间不能小于开始时间");
+                }
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
         }
-       //  将时间差转换为总小时数（浮点数）
-        float totalHours = (float) duration.toHours() + (float) duration.toMinutes() / 60.0f + (float) duration.toMillis() / 3600000.0f;
-        entity.setTotalTime(totalHours); // 设置时间差到totalTime属性
+        //  将时间差转换为总小时数（浮点数）
+        entity.setTotalTime(Float.valueOf(distanceHMS));
         String surveyId = entity.getSurveyId();
         Integer size = dwAnRadioService.selectRadioBySurveyId(surveyId).size();
         Integer size1 = dwAnScoreService.selectBySurveyId(surveyId).size();
@@ -240,7 +250,7 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), surveyId);
         List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
-        Integer sum = dwSurveyAnswerList.stream().mapToInt(DwSurveyAnswer::getMarkFraction ).sum();
+        Integer sum = dwSurveyAnswerList.stream().mapToInt(DwSurveyAnswer::getMarkFraction).sum();
         return sum;
     }
 

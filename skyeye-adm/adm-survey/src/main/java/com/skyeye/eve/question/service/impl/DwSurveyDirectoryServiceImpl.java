@@ -280,8 +280,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 List<DwQuChenRow> dwQuChenRowList = stringListMap7.get(id);
                 question.setRowTd(dwQuChenRowList);
                 question.setBelongId(examSurveyDirectory.getId());
-                dwQuestionService.createEntity(question, userId);
             }
+            dwQuestionService.createEntity(questionList, userId);
             outputObject.setBean(examSurveyDirectory);
             outputObject.settotal(1);
         }
@@ -357,7 +357,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         dwQuestionService.createEntity(questionsWithoutId, userId);
 
     }
-
 
     /**
      * 切换是否删除问卷目录的方法
@@ -772,26 +771,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         outputNoDelete(outputObject, queryWrapper, page);
     }
-
-//    @Override
-//    public void validatorEntity(List<DwSurveyDirectory> entity) {
-//        DwSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
-//        String realStartTime = examSurveyDirectory.getRealStartTime();
-//        String realEndTime = examSurveyDirectory.getRealEndTime();
-//        // 假设时间格式为 yyyy-MM-dd HH:mm:ss，根据实际情况调整格式
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) { // 判断开始和结束时间是否都不为空
-//            try {
-//                LocalDateTime startTime = LocalDateTime.parse(realStartTime, formatter); // 将字符串转换为 LocalDateTime
-//                LocalDateTime endTime = LocalDateTime.parse(realEndTime, formatter); // 将字符串转换为 LocalDateTime
-//                if (startTime.isAfter(endTime)) { // 判断开始时间是否在结束时间之后
-//                    throw new CustomException("实际开始时间不能晚于实际结束时间"); // 开始时间晚于结束时间抛出异常
-//                }
-//            } catch (Exception e) {
-//                throw new CustomException("时间格式错误，请检查时间格式是否正确：" + e.getMessage());
-//            }
-//        }
-//    }
 
     @Override
     public DwSurveyDirectory selectById(String id) {

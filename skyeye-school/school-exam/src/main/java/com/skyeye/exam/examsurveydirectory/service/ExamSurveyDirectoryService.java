@@ -40,8 +40,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     void querySurveyListBySubjectLinkId(InputObject inputObject, OutputObject outputObject);
 
-    void querySurveyListByNoOrYesState(Integer state);
-
     Map<String, List<ExamSurveyDirectory>> querySurveyListByIds(List<String> surveyIds, String createId);
 
     ExamSurveyDirectory selectBySurAndStuId(String surveyId, String studentId);

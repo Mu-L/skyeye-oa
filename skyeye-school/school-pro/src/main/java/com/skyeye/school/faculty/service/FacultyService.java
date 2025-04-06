@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.faculty.entity.Faculty;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: FacultyService
  * @Description: 院系管理服务接口层
@@ -21,4 +24,5 @@ public interface FacultyService extends SkyeyeBusinessService<Faculty> {
 
     void queryFacultyListBySchoolId(InputObject inputObject, OutputObject outputObject);
 
+    Map<String, List<Faculty>> selectByIdList(List<String> facultyIds);
 }

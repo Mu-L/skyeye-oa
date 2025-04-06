@@ -1,5 +1,6 @@
 package com.skyeye.exam.examanradio.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,6 +13,7 @@ import com.skyeye.exam.examanradio.entity.ExamAnRadio;
 import com.skyeye.exam.examanradio.service.ExamAnRadioService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,6 +56,9 @@ public class ExamAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnRadi
 
     @Override
     public Map<String, List<ExamAnRadio>> selectByQuIdAndStuId(List<String> id, String studentId) {
+        if (CollectionUtil.isEmpty(id)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnRadio::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnRadio::getCreateId), studentId);

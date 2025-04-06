@@ -12,8 +12,6 @@ public interface DwQuestionService extends SkyeyeBusinessService<DwQuestion> {
 
     List<DwQuestion> QueryQuestionByBelongId(String belongId);
 
-    void copyQuestionListMation(DwQuestion question);
-
     void queryMyDwQuestionList(InputObject inputObject, OutputObject outputObject);
 
     void queryPageDwQuestionList(InputObject inputObject, OutputObject outputObject);

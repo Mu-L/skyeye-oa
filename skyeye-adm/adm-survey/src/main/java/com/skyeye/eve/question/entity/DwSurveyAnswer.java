@@ -40,11 +40,11 @@ public class DwSurveyAnswer extends CommonInfo {
 
     @TableField("bg_an_date")
     @ApiModelProperty(value = "回答开始时间", required = "required")
-    private LocalDateTime bgAnDate;
+    private String bgAnDate;
 
     @TableField("end_an_date")
     @ApiModelProperty(value = "回答结束时间", required = "required")
-    private LocalDateTime endAnDate;
+    private String endAnDate;
 
     @TableField("complete_num")
     @ApiModelProperty(value = "回答的题数")
@@ -112,11 +112,11 @@ public class DwSurveyAnswer extends CommonInfo {
 
     @TableField("mark_start_time")
     @ApiModelProperty(value = "开始阅卷时间")
-    private LocalDateTime markStartTime;
+    private String markStartTime;
 
     @TableField("mark_end_time")
     @ApiModelProperty(value = "结束阅卷时间")
-    private LocalDateTime markEndTime;
+    private String markEndTime;
 
     @TableField(exist = false)
     @Property(value = "问卷信息")

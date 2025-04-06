@@ -14,6 +14,7 @@ import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,6 +75,9 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
 
     @Override
     public Map<String, List<ExamAnChenCheckbox>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
+        if (CollectionUtil.isEmpty(questionId)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), questionId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getCreateId), studentId);

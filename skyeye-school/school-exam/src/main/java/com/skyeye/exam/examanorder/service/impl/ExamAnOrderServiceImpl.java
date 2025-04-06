@@ -14,6 +14,7 @@ import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,6 +73,9 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
 
     @Override
     public Map<String, List<ExamAnOrder>> selectByQuIdAndStuId(List<String> id, String studentId) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnOrder::getCreateId), studentId);

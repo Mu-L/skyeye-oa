@@ -19,6 +19,7 @@ import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examquorderby.dao.ExamQuOrderbyDao;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquorderby.service.ExamQuOrderbyService;
+import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -123,6 +124,7 @@ public class ExamQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuOr
         }
         QueryWrapper<ExamQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuOrderby::getQuId), questionIdList);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         List<ExamQuOrderby> list = list(queryWrapper);
         Map<String, List<ExamQuOrderby>> collect = list.stream().collect(Collectors.groupingBy(ExamQuOrderby::getQuId));
         return collect;

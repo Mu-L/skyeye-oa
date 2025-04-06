@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.subject.entity.Subject;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: SubjectService
  * @Description: 科目管理服务接口层
@@ -26,6 +29,8 @@ public interface SubjectService extends SkyeyeBusinessService<Subject> {
     void searchSubjectList(InputObject inputObject, OutputObject outputObject);
 
     void queryMySubjectListOnly(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, List<Subject>> selectByIdList(List<String> subjectIds);
 
 //    void queryTeacherMessage(InputObject inputObject, OutputObject outputObject);
 }

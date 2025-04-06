@@ -22,8 +22,6 @@ import java.util.Map;
  */
 public interface QuestionService extends SkyeyeBusinessService<Question> {
 
-    List<Question> queryQuestionMationCopyById(String surveyCopyId);
-
     void queryPageQuestionList(InputObject inputObject, OutputObject outputObject);
 
     void selectQuestionBySubjectId(InputObject inputObject, OutputObject outputObject);
@@ -42,8 +40,5 @@ public interface QuestionService extends SkyeyeBusinessService<Question> {
 
     List<Question> QueryQuestionByBelongIdAndStuId(String surveyId, String studentId);
 
-//    void addQuPagetag(InputObject inputObject, OutputObject outputObject);
-
-//    String saveQuestion(Question question, String id, String userId);
-
+    Map<String, List<Question>> queryQuestionListBySurveyIdList(List<String> surveyList);
 }

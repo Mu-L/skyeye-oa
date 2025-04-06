@@ -14,6 +14,7 @@ import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +66,9 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
 
     @Override
     public Map<String, List<ExamAnScore>> selectByQuIdAndStuId(List<String> id, String studentId) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
         QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnScore::getQuId),id)
                 .eq(MybatisPlusUtil.toColumns(ExamAnScore::getCreateId),studentId);

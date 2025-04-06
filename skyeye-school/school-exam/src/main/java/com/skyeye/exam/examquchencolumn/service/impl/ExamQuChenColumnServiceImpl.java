@@ -164,6 +164,7 @@ public class ExamQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<ExamQ
         }
         QueryWrapper<ExamQuChenColumn> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamQuChenColumn::getQuId), questionIdList);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ExamQuRadio::getOrderById));
         List<ExamQuChenColumn> list = list(queryWrapper);
         Map<String, List<ExamQuChenColumn>> collect = list.stream().collect(Collectors.groupingBy(ExamQuChenColumn::getQuId));
         return collect;
