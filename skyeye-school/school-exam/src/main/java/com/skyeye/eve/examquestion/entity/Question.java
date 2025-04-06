@@ -264,8 +264,12 @@ public class Question extends OperatorUserInfo implements EnclosureFace {
     private List<ExamQuMultiFillblank> multifillblankTd;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "矩阵题-行选项信息答案")
+    @ApiModelProperty(value = "多行填空题信息")
     private List<ExamAnDfillblank> dFillblankAn;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "填空题信息")
+    private List<ExamAnFillblank> FillblankAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")

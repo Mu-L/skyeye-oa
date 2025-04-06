@@ -1,5 +1,6 @@
 package com.skyeye.exam.examanfillblank.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,8 +13,10 @@ import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
 import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnFillblankController
@@ -51,5 +54,17 @@ public class ExamAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnFillblank::getBelongId), surveyId)
                 .eq(MybatisPlusUtil.toColumns(ExamAnFillblank::getCreateId), createId);
         remove(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<ExamAnFillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId) {
+        if (CollectionUtil.isEmpty(multifillblankIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamAnFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnFillblank::getQuId), multifillblankIds)
+            .eq(MybatisPlusUtil.toColumns(ExamAnFillblank::getCreateId), studentId);
+        Map<String, List<ExamAnFillblank>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnFillblank::getQuId));
+        return stringListMap;
     }
 }

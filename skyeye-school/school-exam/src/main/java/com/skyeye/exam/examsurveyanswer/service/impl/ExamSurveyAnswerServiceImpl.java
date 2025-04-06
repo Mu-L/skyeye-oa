@@ -340,6 +340,23 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    public Map<String, Integer> queryAlreadyAnswerNum(List<String> directoryIds) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
+        List<ExamSurveyAnswer> list = list(queryWrapper);
+        Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
+        Map<String, Integer> map = new HashMap<>();
+        for (Map.Entry<String, List<ExamSurveyAnswer>> entry : collect.entrySet()) {
+            map.put(entry.getKey(), entry.getValue().size());
+        }
+        if (CollectionUtil.isEmpty(map)) {
+            return Collections.emptyMap();
+        }
+        return map;
+    }
+
+    @Override
     public void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         String surveyId = inputObject.getParams().get("surveyId").toString();

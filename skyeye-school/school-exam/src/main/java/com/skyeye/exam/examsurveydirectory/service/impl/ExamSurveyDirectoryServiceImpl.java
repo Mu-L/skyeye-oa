@@ -533,22 +533,23 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String objectId = commonPageInfo.getObjectId();
         Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return;
         }
         List<String> directoryIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
-        // 获取已批阅的试卷数
-        Map<String, Integer> map = examSurveyMarkExamService.queryMarkedExamNum(directoryIds);
-        // 获取已经回答的人数
+        // 获取已回答的人数
         Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
+        // 获取已批阅的人数
+        Map<String, Integer> alreadyAnswerNum = examSurveyAnswerService.queryAlreadyAnswerNum(directoryIds);
         List<String> surveyList = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
         Map<String, List<Question>> queryQuestionListBySurveyIdList = questionService.queryQuestionListBySurveyIdList(surveyList);
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
             examSurveyDirectory.setQuestionMation(queryQuestionListBySurveyIdList.getOrDefault(examSurveyDirectory.getId(), Collections.emptyList()));
             // 获取已批阅
-            int readNum = map.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : map.get(examSurveyDirectory.getId());
+            int readNum = alreadyAnswerNum.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : alreadyAnswerNum.get(examSurveyDirectory.getId());
             examSurveyDirectory.setReadNum(readNum);
             int answerNum = answerNumMap.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : answerNumMap.get(examSurveyDirectory.getId());
             // 获取未回答的人数

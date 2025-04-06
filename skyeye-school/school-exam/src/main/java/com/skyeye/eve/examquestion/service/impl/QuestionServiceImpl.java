@@ -36,6 +36,8 @@ import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
 import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
 import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
+import com.skyeye.exam.examanfillblank.entity.ExamAnFillblank;
+import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
 import com.skyeye.exam.examanradio.entity.ExamAnRadio;
@@ -466,7 +468,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         // 根据题目类型删除对应的题目数据
         if (quType.equals(QuType.RADIO.getIndex())) {
             examQuRadioService.removeByQuId(quId);
-        } else if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
+        } else if (quType.equals(QuType.MULTIFILLBLANK.getIndex()) ||
+            quType.equals(QuType.FILLBLANK.getIndex())) {
             examQuMultiFillblankService.removeByQuId(quId);
         } else if (quType.equals(QuType.CHECKBOX.getIndex())) {
             examQuCheckboxService.removeByQuId(quId);
@@ -528,7 +531,8 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<String> orderQuIds = orderQuList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuOrderby>> orderQuMapList = examQuOrderbyService.selectByQuestionIds(orderQuIds);
 
-        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())).collect(Collectors.toList());
+        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())||
+            question.getQuType().equals(QuType.FILLBLANK.getIndex())).collect(Collectors.toList());
         List<String> multifillblankIds = multifillblankList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuMultiFillblank>> multifillblankMapList = examQuMultiFillblankService.selectByQuestionIds(multifillblankIds);
 
@@ -558,6 +562,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 case 9: // 排序题
                     question.setOrderByTd(orderQuMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
+                case 3:
                 case 4: // 多行填空题
                     question.setMultifillblankTd(multifillblankMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
@@ -601,6 +606,9 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         return questionListBySurveyId;
     }
 
+    @Autowired
+    private ExamAnFillblankService examAnFillblankService;
+
     @NotNull
     private List<Question> getQuestionOptionAndAnswer(String studentId, List<Question> questionList) {
         List<Question> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex())).collect(Collectors.toList());
@@ -623,11 +631,12 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         Map<String, List<ExamQuOrderby>> orderQuMapList = examQuOrderbyService.selectByQuestionIds(orderQuIds);
         Map<String, List<ExamAnOrder>> orderAnMapList = examAnOrderService.selectByQuIdAndStuId(orderQuIds, studentId);
 
-        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())).collect(Collectors.toList());
+        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex()) ||
+            question.getQuType().equals(QuType.FILLBLANK.getIndex())).collect(Collectors.toList());
         List<String> multifillblankIds = multifillblankList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuMultiFillblank>> multifillblankMapList = examQuMultiFillblankService.selectByQuestionIds(multifillblankIds);
         Map<String, List<ExamAnDfillblank>> multifillblankAnMapList = examAnDfilllankService.selectByQuIdAndStuId(multifillblankIds, studentId);
-
+        Map<String, List<ExamAnFillblank>> fillblankAnMapList = examAnFillblankService.selectByQuIdAndStuId(multifillblankIds, studentId);
         List<Question> chenList = questionList.stream().filter(question ->
             question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
                 question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
@@ -663,9 +672,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     question.setOrderByTd(orderQuMapList.getOrDefault(qid, Collections.emptyList()));
                     question.setOrderByAn(orderAnMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
+                case 3: //填空题
                 case 4: // 多行填空题
                     question.setMultifillblankTd(multifillblankMapList.getOrDefault(qid, Collections.emptyList()));
                     question.setDFillblankAn(multifillblankAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setFillblankAn(fillblankAnMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
                 case 11:
                 case 12:
@@ -727,6 +738,11 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                     List<ExamQuRadio> radioList = examQuRadioService.selectQuRadio(quId);
                     question.setRadioTd(radioList);
                     break;
+                case 3:
+                case 4:
+                    // 去ExamQuDfillblank表查询
+                    List<ExamQuMultiFillblank> dfillblankList = examQuMultiFillblankService.selectQuMultiFillblank(quId);
+                    question.setMultifillblankTd(dfillblankList);
                 case 8:
                     // 去ExamQuScore表查询
                     List<ExamQuScore> scoreList = examQuScoreService.selectQuScore(quId);
