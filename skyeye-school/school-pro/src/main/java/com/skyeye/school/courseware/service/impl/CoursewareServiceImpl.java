@@ -29,7 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -80,10 +83,12 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         }
 
         chapterService.setDataMation(coursewareList, Courseware::getChapterId);
+        String serviceClassName = getServiceClassName();
         coursewareList.forEach(courseware -> {
             if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
                 courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
             }
+            courseware.setServiceClassName(serviceClassName);
         });
 
         iAuthUserService.setDataMation(coursewareList, Courseware::getCreateId);
@@ -143,20 +148,20 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
         List<Courseware> list = list(queryWrapper); // 所有章节下的课件
-        Map<String,  Map<String, Object>> resultMap = new HashMap<>();
-        Map<String,  Map<String, Object>> temp = new HashMap<>();
-        for (Chapter chapter: chapterList){
+        Map<String, Map<String, Object>> resultMap = new HashMap<>();
+        Map<String, Map<String, Object>> temp = new HashMap<>();
+        for (Chapter chapter : chapterList) {
             Map<String, Object> map = new HashMap<>();
-            map.put("type","互动课件");
+            map.put("type", "互动课件");
             map.put("name", chapter.getName());
             map.put("activeNum", CommonNumConstants.NUM_ZERO);
             map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             temp.put(chapter.getId(), map);
         }
         Map<String, Object> temp1 = new HashMap<>();
-        if(StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)){
+        if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
             temp1.put("type", "互动课件");
-            temp1.put("name",type);
+            temp1.put("name", type);
             temp1.put("activeNum", CommonNumConstants.NUM_ZERO);
             temp1.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             resultMap.put(type, temp1);
@@ -178,8 +183,8 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         if (StrUtil.isNotEmpty(type)) {
             double completeNum = coursewareSubs.size(); // 完成互动课件次数数
             double totalNum = list.size(); // 总互动课件次数
-            temp1.put("type","互动课件");
-            temp1.put("name",type);
+            temp1.put("type", "互动课件");
+            temp1.put("name", type);
             temp1.put("activeNum", totalNum);
             String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
             temp1.put("completeRate", completeRate);
@@ -188,14 +193,14 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         }
         for (Chapter chapter : chapterList) {
             Map<String, Object> t = new HashMap<>();
-            t.put("type","互动课件");
-            t.put("name",chapter.getName());
+            t.put("type", "互动课件");
+            t.put("name", chapter.getName());
             List<Courseware> coursewares = map.get(chapter.getId());
             t.put("activeNum", coursewares.size());
             double completeNum = 0;
             for (Courseware courseware : coursewares) {
                 List<CoursewareStudy> coursewareSub = coursewareSubMap.get(courseware.getId());
-                if(CollectionUtil.isNotEmpty(coursewareSub)){
+                if (CollectionUtil.isNotEmpty(coursewareSub)) {
                     completeNum += coursewareSub.size();
                 }
             }
