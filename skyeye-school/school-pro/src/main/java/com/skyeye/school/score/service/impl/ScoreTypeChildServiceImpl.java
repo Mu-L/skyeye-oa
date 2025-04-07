@@ -14,12 +14,15 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
@@ -69,6 +72,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Autowired
     private AssignmentService assignmentService;
 
+    @Autowired
+    private ICertificationService iCertificationService;
+
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
@@ -97,12 +103,34 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Override
     public ScoreTypeChild selectById(String id) {
         ScoreTypeChild bean = super.selectById(id);
-        List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
-        List<String> stuNoList = scoreSumList.stream().map(ScoreSum::getStuNo).collect(Collectors.toList());
-        List<Student> studentList = studentService.queryListByStuNoList(stuNoList);
-        Map<String, Map<String, Object>> stuNoStudentMap = studentList.stream()
-            .collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
-        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
+        String userIdentity = InputObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        List<ScorePart> scorePartList = new ArrayList<>();
+        List<ScoreSum> scoreSumList = new ArrayList<>();
+        Map<String, Map<String, Object>> stuNoStudentMap = new HashMap<>();
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
+            List<String> stuNoList = scoreSumList.stream().map(ScoreSum::getStuNo).collect(Collectors.toList());
+            List<Student> studentList = studentService.queryListByStuNoList(stuNoList);
+            stuNoStudentMap = studentList.stream().collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
+            scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
+            bean.setScoreSumList(scoreSumList);
+        }
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            Map<String, Object> certification = iCertificationService.queryCertificationById(InputObject.getLogParamsStatic().get("id").toString());
+            if (!certification.containsKey("state")) {
+                throw new CustomException("请先进行学生认证");
+            }
+            if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
+                throw new CustomException("认证信息未通过审核，不允许加入课程班级");
+            }
+            String studentNumber = certification.get("studentNumber").toString();
+            ScoreSum scoreSum = scoreSumService.queryByObjectIdListAndStuNo(Arrays.asList(bean.getId()), studentNumber).get(CommonNumConstants.NUM_ZERO);
+            scoreSumList = Arrays.asList(scoreSum);
+            Student student = studentService.queryListByStuNoList(Arrays.asList(scoreSum.getStuNo())).get(CommonNumConstants.NUM_ZERO);
+            stuNoStudentMap.put(studentNumber, JSONUtil.toBean(JSONUtil.toJsonStr(student), null));
+            scoreSum.setStuMation(JSONUtil.toBean(JSONUtil.toJsonStr(student), null));
+            scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
+        }
         // 查询作业成绩
         if (Objects.equals(bean.getNumberCode(), NumberCodeEnum.WORK.getKey())) {
             List<String> workIdList = scorePartList.stream().map(ScorePart::getWorkId).collect(Collectors.toList());
@@ -124,7 +152,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 scoreSum.setStuMation(stuNoStudentMap.get(scoreSum.getStuNo()));
             }
         }
-        bean.setScoreSumList(scoreSumList);
         return bean;
     }
 
@@ -165,7 +192,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
     }
 
-    public void createPostpose(List<ScoreTypeChild> entity,String userId){
+    public void createPostpose(List<ScoreTypeChild> entity, String userId) {
         List<ScoreSum> scoreSumList = new ArrayList<>();
         for (ScoreTypeChild scoreTypeChild : entity) {
             ScoreSum newScoreSum = new ScoreSum();

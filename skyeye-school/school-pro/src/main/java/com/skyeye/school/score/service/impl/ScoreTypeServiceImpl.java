@@ -12,11 +12,15 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.dao.ScoreTypeDao;
 import com.skyeye.school.score.entity.*;
 import com.skyeye.school.score.service.*;
@@ -50,6 +54,9 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
 
     @Autowired
     private ScoreMaxMinService scoreMaxMinService;
+
+    @Autowired
+    private ICertificationService iCertificationService;
 
     @Override
     public void createPrepose(ScoreType scoreType) {
@@ -156,9 +163,11 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
 
     @Override
     public void querySameTableDateList(InputObject inputObject, OutputObject outputObject) {
+        String userIdentity = InputObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
         Map<String, Object> params = inputObject.getParams();
-        // 查出总成绩，一个班级中的一个班级只有一个总成绩数据
+        ScoreType bean = null;
         QueryWrapper<ScoreType> queryWrapper = new QueryWrapper<>();
+        // 查出总成绩，一个班级中的一个班级只有一个总成绩数据
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), params.get("classId").toString())
             .eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), params.get("subjectId").toString());
         List<ScoreType> list = list(queryWrapper);
@@ -166,26 +175,42 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
             return;
         }
         Map<Integer, List<ScoreType>> mapScoreTypeList = list.stream().collect(Collectors.groupingBy(ScoreType::getIsDefault));
-        ScoreType bean = mapScoreTypeList.get(IsDefaultEnum.IS_DEFAULT.getKey()).get(CommonNumConstants.NUM_ZERO);
+        bean = mapScoreTypeList.get(IsDefaultEnum.IS_DEFAULT.getKey()).get(CommonNumConstants.NUM_ZERO);
         List<ScoreType> sameTableChildDateList = mapScoreTypeList.get(IsDefaultEnum.NOT_DEFAULT.getKey());
         if (CollectionUtil.isEmpty(sameTableChildDateList)) {
             return;
         }
         List<String> scoreTypeIdList = sameTableChildDateList.stream().map(ScoreType::getId).collect(Collectors.toList());
-        List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList, null);
-        Map<String, List<ScorePart>> mapByStuNo = scorePartList.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-        List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
-        for (ScoreSum scoreSum : scoreSumList) {
-            if (mapByStuNo.containsKey(scoreSum.getStuNo())) {
-                scoreSum.setScorePartList(mapByStuNo.get(scoreSum.getStuNo()));
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList, null);
+            Map<String, List<ScorePart>> mapByStuNo = scorePartList.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
+            List<ScoreSum> scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
+            for (ScoreSum scoreSum : scoreSumList) {
+                if (mapByStuNo.containsKey(scoreSum.getStuNo())) {
+                    scoreSum.setScorePartList(mapByStuNo.get(scoreSum.getStuNo()));
+                }
             }
+            bean.setSameTableChildDateList(sameTableChildDateList);
+            if (StrUtil.isNotEmpty(bean.getMaxMinId())) {
+                ScoreMaxMin scoreMaxMin = scoreMaxMinService.selectById(bean.getMaxMinId());
+                bean.setScoreMaxMin(scoreMaxMin);
+            }
+            bean.setScoreSumAndChildList(scoreSumList);
         }
-        bean.setSameTableChildDateList(sameTableChildDateList);
-        if (StrUtil.isNotEmpty(bean.getMaxMinId())) {
-            ScoreMaxMin scoreMaxMin = scoreMaxMinService.selectById(bean.getMaxMinId());
-            bean.setScoreMaxMin(scoreMaxMin);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            Map<String, Object> certification = iCertificationService.queryCertificationById(inputObject.getLogParams().get("id").toString());
+            if (!certification.containsKey("state")) {
+                throw new CustomException("请先进行学生认证");
+            }
+            if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
+                throw new CustomException("认证信息未通过审核，不允许加入课程班级");
+            }
+            String studentNumber = certification.get("studentNumber").toString();
+            List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList, studentNumber);
+            ScoreSum scoreSum = scoreSumService.queryByObjectIdListAndStuNo(Arrays.asList(bean.getId()), studentNumber).get(CommonNumConstants.NUM_ZERO);
+            scoreSum.setScorePartList(scorePartList);
+            bean.setScoreSumAndChildList(Arrays.asList(scoreSum));
         }
-        bean.setScoreSumAndChildList(scoreSumList);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -267,7 +292,6 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreType::getSubjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getClassId), classId)
             .eq(MybatisPlusUtil.toColumns(ScoreType::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
-        List<ScoreType> list = list(queryWrapper);
         return getOne(queryWrapper);
     }
 
