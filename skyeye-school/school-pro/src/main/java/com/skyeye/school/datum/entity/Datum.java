@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
@@ -67,4 +68,7 @@ public class Datum extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "章节信息", required = "json")
     private  Chapter chapterMation;
 
+//    @TableField(exist = false)
+//    @Property(value = "科目数据")
+//    private  String serviceClassName;
 }

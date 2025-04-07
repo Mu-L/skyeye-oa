@@ -531,11 +531,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String holderId = commonPageInfo.getHolderId();
         // 科目
         String objectId = commonPageInfo.getObjectId();
-        Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return;
         }
@@ -559,8 +559,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             int unReadNum = answerNum - readNum;
             examSurveyDirectory.setUnreadNum(unReadNum);
         }
-        outputObject.setBeans(examSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
+        outputObject.setBeans(examSurveyDirectoryList);
     }
 
     @Override

@@ -109,10 +109,6 @@ public class ExamSurveyAnswer extends OperatorUserInfo {
     @ApiModelProperty(value = "用时")
     private String totalTime;
 
-    @TableField("create_id")
-    @ApiModelProperty(value = "学生ID", required = "required")
-    private String createId;
-
     @TableField("state")
     @ApiModelProperty(value = "教师是否阅卷  1.否  2.是")
     private Integer state;

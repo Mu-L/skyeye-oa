@@ -13,7 +13,6 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.datum.dao.DatumDao;
 import com.skyeye.school.datum.entity.Datum;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: DatumServiceImpl
@@ -66,6 +64,8 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         }
         chapterService.setDataMation(datumList, Datum::getChapterId);
         datumList.forEach(datum -> {
+            String serviceClassName = getServiceClassName();
+            datum.setServiceClassName(serviceClassName);
             if (ObjectUtil.isNotEmpty(datum.getChapterMation())) {
                 datum.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", datum.getChapterMation().getSection(), datum.getChapterMation().getName()));
             }

@@ -58,6 +58,9 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -142,6 +145,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
+        String id = InputObject.getLogParamsStatic().get("id").toString();
+        String surveyId = entity.getSurveyId();
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), id);
+        if (CollectionUtil.isNotEmpty(list(queryWrapper))){
+            throw new CustomException("该试卷已回答,请勿重复回答");
+        }
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
         if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
@@ -156,10 +167,18 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
+        String markStartTime = entity.getMarkStartTime();
+        String markEndTime = entity.getMarkEndTime();
+        if (StrUtil.isNotEmpty(markStartTime) && StrUtil.isNotEmpty(markEndTime)) {
+            boolean compare = DateUtil.compare(markStartTime, markEndTime);
+            if (!compare) {
+                throw new CustomException("开始时间不能大于结束时间");
+            }
+        }
         if (endAnDate == null) {
             throw new CustomException("结束时间不能为空");
         }
-        String distanceHMS = DateUtil.getDistanceHMS(bgAnDate, endAnDate);
+        String distanceHMS = getDistanceHMS(bgAnDate, endAnDate);
         entity.setTotalTime(distanceHMS);
         String surveyId = entity.getSurveyId();
         Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
@@ -189,6 +208,18 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             entity.setMarkFraction(fraction);
         }
     }
+
+    public static String getDistanceHMS(String bgAnDate, String endAnDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime start = LocalDateTime.parse(bgAnDate, formatter);
+        LocalDateTime end = LocalDateTime.parse(endAnDate, formatter);
+        Duration duration = Duration.between(start, end);
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes() % 60;
+        long seconds = duration.getSeconds() % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
 
     @Override
     protected void deletePreExecution(ExamSurveyAnswer entity) {
