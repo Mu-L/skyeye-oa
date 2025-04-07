@@ -29,10 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +56,14 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         chapterService.setDataMation(courseware, Courseware::getChapterId);
         if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
             courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
+        }
+
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生身份信息
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            Map<String, String> stateMap = coursewareStudyService.queryStudyState(Arrays.asList(courseware.getId()), userId);
+            courseware.setState(stateMap.get(courseware.getId()));
         }
         return courseware;
     }
