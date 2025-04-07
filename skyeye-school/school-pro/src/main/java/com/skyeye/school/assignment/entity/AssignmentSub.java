@@ -16,6 +16,7 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.school.assignment.classenum.AssignmentCorrectState;
 import lombok.Data;
 
 /**
@@ -41,7 +42,7 @@ public class AssignmentSub extends OperatorUserInfo implements EnclosureFace {
     private String assignmentId;
 
     @TableField(value = "state")
-    @Property(value = "批阅状态，参考#AssignmentCorrectState")
+    @Property(value = "批阅状态", enumClass = AssignmentCorrectState.class)
     private String state;
 
     @TableField(value = "content")

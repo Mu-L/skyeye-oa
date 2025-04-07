@@ -31,7 +31,6 @@ import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
 import com.skyeye.school.score.service.ScorePartService;
-import com.skyeye.school.score.service.ScoreService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,12 +59,6 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
 
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
-
-    @Autowired
-    private ScoreService scoreService;
-
-    @Autowired
-    private AssignmentSubService assignmentSubService;
 
     @Autowired
     private ScorePartService scorePartService;
@@ -259,6 +252,9 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), userId);
         AssignmentSub assignmentSub = getOne(queryWrapper, false);
+        if (StrUtil.isNotEmpty(assignmentSub.getId())) {
+            builderByHandler(assignmentSub);
+        }
         outputObject.setBean(assignmentSub);
         outputObject.settotal(ObjectUtil.isEmpty(assignmentSub) ? CommonNumConstants.NUM_ZERO : CommonNumConstants.NUM_ONE);
     }
@@ -269,13 +265,13 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         Long sum = 0L;
         // 获取作业id
         List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(id);
-        if(CollectionUtil.isEmpty(ids)){
+        if (CollectionUtil.isEmpty(ids)) {
             return sum;
         }
         for (String assignmentId : ids) {
             QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId)
-                    .select(MybatisPlusUtil.toColumns(AssignmentSub::getId));
+                .select(MybatisPlusUtil.toColumns(AssignmentSub::getId));
             long total = count(queryWrapper);
             sum += total;
         }
@@ -287,7 +283,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
         List<AssignmentSub> list = list(queryWrapper);
-        if (CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyList();
         }
         return list;
