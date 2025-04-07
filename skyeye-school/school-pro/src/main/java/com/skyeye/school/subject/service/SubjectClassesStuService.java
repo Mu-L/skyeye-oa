@@ -32,7 +32,7 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
      * @param subClassLinkId
      * @return
      */
-    Long queruClassStuNum(String... subClassLinkId);
+    Long queryClassStuNum(String... subClassLinkId);
 
     /**
      * 查询科目与班级的关联数据下学生信息列表

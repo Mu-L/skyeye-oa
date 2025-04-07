@@ -96,6 +96,23 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             assignment.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
         }
         iAuthUserService.setDataMation(assignment, Assignment::getCreateId);
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
+            // 教师身份信息
+            // 设置需要提交作业的人数
+            Long allStuNum = subjectClassesStuService.queryClassStuNum(assignment.getSubjectClassesId());
+            // 设置总人数/已经提交作业/未提交作业的学生人数
+            Map<String, Long> userSubMap = assignmentSubService.querySubResult(assignment.getId());
+            Long subNum = userSubMap.get(assignment.getId());
+            assignment.setNeedNum(allStuNum);
+            assignment.setSubNum(subNum);
+            assignment.setNoSubNum(allStuNum - subNum);
+            // 设置已经批改/未批改的作业的人数
+            Map<String, Long> correctSubMap = assignmentSubService.querySubCorrectResult(assignment.getId());
+            Long correctNum = correctSubMap.get(assignment.getId());
+            assignment.setCorrectNum(correctNum);
+            assignment.setNoCorrectNum(assignment.getSubNum() - correctNum);
+        }
         return assignment;
     }
 
@@ -117,7 +134,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             // 教师身份信息
             // 设置需要提交作业的人数
-            Long allStuNum = subjectClassesStuService.queruClassStuNum(subjectClassesId);
+            Long allStuNum = subjectClassesStuService.queryClassStuNum(subjectClassesId);
             // 设置总人数/已经提交作业/未提交作业的学生人数
             Map<String, Long> userSubMap = assignmentSubService.querySubResult(assignmentIdList.toArray(new String[]{}));
             assignmentList.forEach(assignment -> {
@@ -136,7 +153,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         } else {
             // 学生身份信息
             // 设置当前学生提交作业的状态
-            Map<String, String> userSubMap = assignmentSubService.querySubResult(userId, assignmentIdList.toArray(new String[]{}));
+            Map<String, String> userSubMap = assignmentSubService.querySubResultByUserId(userId, assignmentIdList.toArray(new String[]{}));
             assignmentList.forEach(assignment -> {
                 assignment.setSubState(userSubMap.get(assignment.getId()));
             });
@@ -176,19 +193,19 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
         List<Assignment> list = list(queryWrapper); // 所有章节下的作业
         Map<String, Map<String, Object>> resultMap = new HashMap<>();
-        Map<String,Map<String, Object>> temp = new HashMap<>();
-        for (Chapter chapter: chapterList){
+        Map<String, Map<String, Object>> temp = new HashMap<>();
+        for (Chapter chapter : chapterList) {
             Map<String, Object> map = new HashMap<>();
-            map.put("type","作业");
+            map.put("type", "作业");
             map.put("name", chapter.getName());
             map.put("activeNum", CommonNumConstants.NUM_ZERO);
             map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             temp.put(chapter.getId(), map);
         }
         Map<String, Object> temp1 = new HashMap<>();
-        if(StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)){
+        if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
             temp1.put("type", "作业");
-            temp1.put("name",type);
+            temp1.put("name", type);
             temp1.put("activeNum", CommonNumConstants.NUM_ZERO);
             temp1.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             resultMap.put(type, temp1);
@@ -206,28 +223,28 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         Map<String, List<AssignmentSub>> assSubMap = assignmentSubs.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId));
         // 作业分析
 
-        if(StrUtil.isNotEmpty(type)){
+        if (StrUtil.isNotEmpty(type)) {
             double completeNum = assignmentSubs.size(); // 完成作业次数数
             double totalNum = list.size(); // 总作业次数
             temp1.put("type", "作业");
-            temp1.put("name",type);
+            temp1.put("name", type);
             temp1.put("activeNum", totalNum);
             // 计算完成率--16.8%
-            String completeRate = new DecimalFormat("0.0%").format(completeNum/(totalNum*classNum));
+            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
             temp1.put("completeRate", completeRate);
             resultMap.put(type, temp1);
             return resultMap;
         }
-        for(Chapter chapter:chapterList){
+        for (Chapter chapter : chapterList) {
             Map<String, Object> t = new HashMap<>();
-            t.put("type","作业");
-            t.put("name",chapter.getName());
+            t.put("type", "作业");
+            t.put("name", chapter.getName());
             List<Assignment> assignments = map.get(chapter.getId());
             t.put("activeNum", assignments.size());
             double completeNum = 0;
             for (Assignment assignment : assignments) {
                 List<AssignmentSub> assSub = assSubMap.get(assignment.getId());
-                if(CollectionUtil.isNotEmpty(assSub)){
+                if (CollectionUtil.isNotEmpty(assSub)) {
                     completeNum += assSub.size();
                 }
             }

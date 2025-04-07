@@ -49,7 +49,7 @@ public interface AssignmentSubService extends SkyeyeBusinessService<AssignmentSu
      * @param assignmentId 作业id
      * @return
      */
-    Map<String, String> querySubResult(String userId, String... assignmentId);
+    Map<String, String> querySubResultByUserId(String userId, String... assignmentId);
 
     void queryAssignmentStuSubListByAssignmentId(InputObject inputObject, OutputObject outputObject);
 

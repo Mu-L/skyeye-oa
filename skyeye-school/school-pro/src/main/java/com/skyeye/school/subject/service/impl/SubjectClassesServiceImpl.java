@@ -318,7 +318,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         String id = map.get("id").toString(); // 科目与班级的关系id
         Map<String, Object> resultMap = new HashMap<>();
         // 获取加课人数
-        Long joinNum = subjectClassesStuService.queruClassStuNum(id);
+        Long joinNum = subjectClassesStuService.queryClassStuNum(id);
         resultMap.put("joinNum", joinNum);
         // 资料个数
 //        Long dataNum = datumService.queryClassDataNum(id, null);

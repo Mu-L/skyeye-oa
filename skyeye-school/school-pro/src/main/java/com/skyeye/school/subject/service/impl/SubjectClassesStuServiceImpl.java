@@ -168,7 +168,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     }
 
     @Override
-    public Long queruClassStuNum(String... subClassLinkId) {
+    public Long queryClassStuNum(String... subClassLinkId) {
         List<String> idList = Arrays.asList(subClassLinkId).stream()
             .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
         if (CollectionUtil.isEmpty(idList)) {

@@ -219,7 +219,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     }
 
     @Override
-    public Map<String, String> querySubResult(String userId, String... assignmentId) {
+    public Map<String, String> querySubResultByUserId(String userId, String... assignmentId) {
         List<String> assignmentIdList = Arrays.asList(assignmentId);
         if (CollectionUtil.isEmpty(assignmentIdList)) {
             return MapUtil.newHashMap();
