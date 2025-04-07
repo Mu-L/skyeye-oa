@@ -252,7 +252,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), userId);
         AssignmentSub assignmentSub = getOne(queryWrapper, false);
-        if (StrUtil.isNotEmpty(assignmentSub.getId())) {
+        if (ObjectUtil.isNotEmpty(assignmentSub) && StrUtil.isNotEmpty(assignmentSub.getId())) {
             builderByHandler(assignmentSub);
         }
         outputObject.setBean(assignmentSub);
