@@ -32,7 +32,6 @@ import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.checkwork.service.CheckworkService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.grade.service.ClassesService;
-import com.skyeye.school.score.entity.ScoreMaxMin;
 import com.skyeye.school.score.service.ScoreMaxMinService;
 import com.skyeye.school.score.service.ScoreTypeService;
 import com.skyeye.school.semester.service.SemesterService;
@@ -547,6 +546,18 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     public List<SubjectClasses> selectIdByClassId(String id1) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), id1);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        return subjectClassesList;
+    }
+
+    @Override
+    public List<SubjectClasses> getSubjectClassesByObjectIdAndClassesIds(String subjectId, List<String> classIds) {
+        if (CollectionUtil.isEmpty(classIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
+            .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
         List<SubjectClasses> subjectClassesList = list(queryWrapper);
         return subjectClassesList;
     }

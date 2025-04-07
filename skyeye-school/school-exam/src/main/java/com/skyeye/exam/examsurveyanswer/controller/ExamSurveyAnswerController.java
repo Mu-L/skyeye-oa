@@ -141,4 +141,19 @@ public class ExamSurveyAnswerController {
         examSurveyAnswerService.queryFilterApprovedSurveys(inputObject, outputObject);
     }
 
+    /**
+     * 判断是否可以参与回答试卷
+     * 教师角度,获取所有已经或未曾批阅的试卷(仅仅是回答者信息)
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "IsTakeSurveyAnswer", value = "判断是否可以参与回答试卷", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "surveyId", name = "surveyId", value = "试卷Id", required = "required")})
+    @RequestMapping("/post/ExamSurveyAnswerController/IsTakeSurveyAnswer")
+    public void IsTakeSurveyAnswer(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.IsTakeSurveyAnswer(inputObject, outputObject);
+    }
+
 }

@@ -64,4 +64,6 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
     List<SubjectClasses> selectIdBySubJectId(String subjectId);
 
     List<SubjectClasses> selectIdByClassId(String id1);
+
+    List<SubjectClasses> getSubjectClassesByObjectIdAndClassesIds(String subjectId, List<String> classIds);
 }

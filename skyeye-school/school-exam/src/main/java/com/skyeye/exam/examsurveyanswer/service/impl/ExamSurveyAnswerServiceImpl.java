@@ -51,6 +51,10 @@ import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
+import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -354,6 +358,49 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             return Collections.emptyMap();
         }
         return map;
+    }
+
+    @Autowired
+    private SubjectClassesService subjectClassesService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Override
+    public void IsTakeSurveyAnswer(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        String surveyId = inputObject.getParams().get("surveyId").toString();
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
+        if (ObjectUtil.isEmpty(examSurveyDirectory)) {
+            throw new CustomException("试卷不存在");
+        }
+        String classId = examSurveyDirectory.getClassId();
+        String[] split = classId.split(",");
+        List<String> classIds = Arrays.asList(split);
+        String subjectId = examSurveyDirectory.getSubjectId();
+        Boolean yesOrNo = false;
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
+        if (ObjectUtil.isEmpty(userOrStudent)) {
+            throw new CustomException("用户不存在");
+        }
+        if (userOrStudent.getUserOrStudent()) {
+            Map<String, Object> dataMation = userOrStudent.getDataMation();
+            String no = dataMation.get("no").toString();
+            List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIds);
+            List<String> subLinkIds = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subLinkIds);
+            List<String> studentNumber = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+            if (studentNumber.contains(no)) {
+                yesOrNo = true;
+            }
+        } else {
+            List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIds);
+            List<String> createIds = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getCreateId).collect(Collectors.toList());
+            if (createIds.contains(userId)) {
+                yesOrNo = true;
+            }
+        }
+        outputObject.setBean(yesOrNo);
     }
 
     @Override
