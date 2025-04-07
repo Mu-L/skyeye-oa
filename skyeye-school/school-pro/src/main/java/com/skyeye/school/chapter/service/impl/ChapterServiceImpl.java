@@ -49,7 +49,8 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
+            .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
             chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
