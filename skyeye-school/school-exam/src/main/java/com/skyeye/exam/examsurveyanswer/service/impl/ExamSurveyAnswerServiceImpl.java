@@ -134,6 +134,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Autowired
     private FacultyService facultyService;
 
+    @Autowired
+    private SubjectClassesService subjectClassesService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
@@ -213,7 +219,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         examSurveyAnswer.setSurveyMation(examSurveyDirectory);
         return examSurveyAnswer;
     }
-
 
     @Override
     public void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
@@ -360,12 +365,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         return map;
     }
 
-    @Autowired
-    private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private SubjectClassesStuService subjectClassesStuService;
-
     @Override
     public void IsTakeSurveyAnswer(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -385,7 +384,15 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         if (userOrStudent.getUserOrStudent()) {
             Map<String, Object> dataMation = userOrStudent.getDataMation();
-            String no = dataMation.get("no").toString();
+            String no = null;
+            if (dataMation != null) {
+                Object noObject = dataMation.get("no");
+                if (noObject != null) {
+                    no = noObject.toString();
+                } else {
+                    no = dataMation.get("studentNumber").toString();
+                }
+            }
             List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIds);
             List<String> subLinkIds = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getId).collect(Collectors.toList());
             List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subLinkIds);
