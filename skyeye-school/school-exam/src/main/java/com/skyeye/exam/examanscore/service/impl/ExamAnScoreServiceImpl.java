@@ -24,12 +24,11 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "评分题保存表管理", groupName = "评分题保存表管理")
 public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScoreDao, ExamAnScore> implements ExamAnScoreService {
 
-
     @Override
-    protected void createPrepose(ExamAnScore entity) {
-        List<ExamAnScore> scoreAn = entity.getScoreAn();
-        if (CollectionUtil.isNotEmpty(scoreAn)){
-            super.createEntity(scoreAn, StrUtil.EMPTY);
+    protected void createPostpose(ExamAnScore examAnOrder, String userId) {
+        List<ExamAnScore> dFillblankAn = examAnOrder.getScoreAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -43,6 +42,7 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID,id);
         examAnDfillblank.setScoreAn(list(queryWrapper1));
         return examAnDfillblank;
     }

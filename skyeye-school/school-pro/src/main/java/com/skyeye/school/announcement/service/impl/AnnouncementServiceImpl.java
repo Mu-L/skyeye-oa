@@ -109,6 +109,10 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Announcement::getCreateTime));
         List<Announcement> announcementList = list(queryWrapper);
+        for (Announcement announcement : announcementList) {
+            String serviceClassName = getServiceClassName();
+            announcement.setServiceClassName(serviceClassName);
+        }
         if (CollectionUtil.isEmpty(announcementList)) {
             iUserService.setDataMation(announcementList, Announcement::getCreateId);
         } else {

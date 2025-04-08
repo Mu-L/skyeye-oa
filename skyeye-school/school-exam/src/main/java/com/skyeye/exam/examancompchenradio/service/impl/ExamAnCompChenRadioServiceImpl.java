@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCompChenRadioDao, ExamAnCompChenRadio> implements ExamAnCompChenRadioService {
 
     @Override
-    protected void createPrepose(ExamAnCompChenRadio entity) {
-        List<ExamAnCompChenRadio> compChenRadioAn = entity.getCompChenRadioAn();
-        if (CollectionUtil.isNotEmpty(compChenRadioAn)) {
-            super.createEntity(compChenRadioAn, StrUtil.EMPTY);
+    protected void createPostpose(ExamAnCompChenRadio entity, String userId) {
+        List<ExamAnCompChenRadio> dFillblankAn = entity.getCompChenRadioAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -62,6 +62,7 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID,id);
         examAnChenCheckbox.setCompChenRadioAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }

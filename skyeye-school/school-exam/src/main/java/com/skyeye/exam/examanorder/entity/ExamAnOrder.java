@@ -41,7 +41,7 @@ public class ExamAnOrder extends OperatorUserInfo {
 
     @TableField("ordery_num")
     @ApiModelProperty(value = "评分的分数")
-    private String orderyNum;
+    private Integer orderyNum;
 
     @TableField("qu_id")
     @ApiModelProperty(value = "所属排序题")

@@ -33,10 +33,10 @@ import java.util.stream.Collectors;
 public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenScoreDao, ExamAnChenScore> implements ExamAnChenScoreService {
 
     @Override
-    protected void createPrepose(ExamAnChenScore entity) {
-        List<ExamAnChenScore> chenScoreAn = entity.getChenScoreAn();
-        if (CollectionUtil.isNotEmpty(chenScoreAn)) {
-            super.createEntity(chenScoreAn, StrUtil.EMPTY);
+    protected void createPostpose(ExamAnChenScore entity, String userId) {
+        List<ExamAnChenScore> dFillblankAn = entity.getChenScoreAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -50,6 +50,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID,id);
         examAnChenCheckbox.setChenScoreAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }

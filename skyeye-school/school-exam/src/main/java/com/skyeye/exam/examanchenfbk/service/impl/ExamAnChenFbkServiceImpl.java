@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenFbkDao, ExamAnChenFbk> implements ExamAnChenFbkService {
 
     @Override
-    protected void createPrepose(ExamAnChenFbk entity) {
-        List<ExamAnChenFbk> chenFbkAn = entity.getChenFbkAn();
-        if (CollectionUtil.isNotEmpty(chenFbkAn)){
-            super.createEntity(chenFbkAn, StrUtil.EMPTY);
+    protected void createPostpose(ExamAnChenFbk entity, String userId) {
+        List<ExamAnChenFbk> dFillblankAn = entity.getChenFbkAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -69,6 +69,7 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID,id);
         examAnChenCheckbox.setChenFbkAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }

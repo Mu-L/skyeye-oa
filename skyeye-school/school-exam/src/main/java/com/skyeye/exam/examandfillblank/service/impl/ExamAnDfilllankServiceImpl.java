@@ -33,10 +33,10 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
 
 
     @Override
-    protected void createPrepose(ExamAnDfillblank entity) {
+    protected void createPostpose(ExamAnDfillblank entity, String userId) {
         List<ExamAnDfillblank> dFillblankAn = entity.getDFillblankAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
-            super.createEntity(dFillblankAn, StrUtil.EMPTY);
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -79,11 +79,12 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         String belongAnswerId = examAnDfillblank.getBelongAnswerId();
         String belongId = examAnDfillblank.getBelongId();
         String quId = examAnDfillblank.getQuId();
-        QueryWrapper<ExamAnDfillblank> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongAnswerId), belongAnswerId);
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), belongId);
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), quId);
-        examAnDfillblank.setDFillblankAn(list(queryWrapper1));
+        QueryWrapper<ExamAnDfillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongAnswerId), belongAnswerId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), belongId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), quId);
+        queryWrapper.ne(CommonConstants.ID,id);
+        examAnDfillblank.setDFillblankAn(list(queryWrapper));
         return examAnDfillblank;
     }
 

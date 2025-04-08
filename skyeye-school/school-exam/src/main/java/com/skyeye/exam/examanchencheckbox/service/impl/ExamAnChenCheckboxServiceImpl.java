@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnChenCheckboxDao, ExamAnChenCheckbox> implements ExamAnChenCheckboxService {
 
     @Override
-    protected void createPrepose(ExamAnChenCheckbox entity) {
-        List<ExamAnChenCheckbox> chenCheckboxAn = entity.getChenCheckboxAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.createEntity(chenCheckboxAn, StrUtil.EMPTY);
+    protected void createPostpose(ExamAnChenCheckbox entity, String userId) {
+        List<ExamAnChenCheckbox> dFillblankAn = entity.getChenCheckboxAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
         }
     }
 
@@ -69,6 +69,7 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID,id);
         examAnChenCheckbox.setChenCheckboxAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }

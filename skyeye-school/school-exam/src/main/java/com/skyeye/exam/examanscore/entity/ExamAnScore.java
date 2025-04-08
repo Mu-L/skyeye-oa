@@ -25,7 +25,7 @@ public class ExamAnScore extends OperatorUserInfo {
 
     @TableField("answser_score")
     @ApiModelProperty(value = "答案分数")
-    private String answserScore;
+    private Float answserScore;
 
     @TableField("belong_answer_id")
     @ApiModelProperty(value = "所属评分题答案id", required = "required")

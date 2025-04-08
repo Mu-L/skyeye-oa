@@ -1,5 +1,6 @@
 package com.skyeye.school.announcement.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
@@ -57,9 +58,9 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
     @Override
     public void queryRecordByAnnouncementId(InputObject inputObject, OutputObject outputObject) {
         String announcementId = inputObject.getParams().get("announcementId").toString();
-        List<AnnouncementRecord> announcementRecords = queryAllData();
+        List<AnnouncementRecord> announcementRecordList = queryAllData();
         List<String> stuNoList = new ArrayList<>();
-        for (AnnouncementRecord announcementRecord : announcementRecords) {
+        for (AnnouncementRecord announcementRecord : announcementRecordList) {
             if (announcementRecord.getAnnouncementId().equals(announcementId)) {
                 stuNoList.add(announcementRecord.getStuNo());
             }
@@ -104,8 +105,11 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
                    }
                    flag = 0;
                 }
-                List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-                    iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                List<Map<String,Object>> userList = new ArrayList<>();
+                if (CollectionUtil.isNotEmpty(stuNoList)){
+                    userList = ExecuteFeignClient.get(() ->
+                        iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                }
                 outputObject.setBeans(userList);
                 outputObject.settotal(userList.size());
             }
