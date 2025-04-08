@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -62,34 +63,34 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         Announcement announcement = announcementService.getOne(updateWrapper);
-        if(ObjectUtil.isEmpty(announcement)){
+        if (ObjectUtil.isEmpty(announcement)) {
             throw new CustomException("该公告不存在");
         }
         int total = announcement.getConfirmNum() + announcement.getUnConfirmNum();
-        if(announcement.getIsConfirm()==CommonNumConstants.NUM_ZERO){
+        if (announcement.getIsConfirm() == CommonNumConstants.NUM_ZERO) {
             throw new CustomException("该公告不需要确认");
         }
-        if(announcement.getConfirmNum() == total){
+        if (announcement.getConfirmNum() == total) {
             throw new CustomException("该班级里所有人都已确认");
         } else {
             int flag = 0;
             List<AnnouncementRecord> announcementRecord = announcementRecordService.queryAllData();
             List<AnnouncementRecord> bean = new ArrayList<>();
-            for(AnnouncementRecord record : announcementRecord){
-                if (record.getAnnouncementId().equals(id)&&record.getStuNo().equals(stuNo)) {
+            for (AnnouncementRecord record : announcementRecord) {
+                if (record.getAnnouncementId().equals(id) && record.getStuNo().equals(stuNo)) {
                     bean.add(record);
                     flag = 1;
                     break;
                 }
             }
-            if(flag == 1){
+            if (flag == 1) {
                 outputObject.setBeans(bean);
                 outputObject.settotal(bean.size());
-            }else {
-                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getConfirmNum), announcement.getConfirmNum()+1);
-                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum),announcement.getUnConfirmNum()-1);
+            } else {
+                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getConfirmNum), announcement.getConfirmNum() + 1);
+                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum() - 1);
                 update(updateWrapper);
-                announcementRecordService.createEntity(inputObject,outputObject);
+                announcementRecordService.createEntity(inputObject, outputObject);
                 announcementService.refreshCache(id);
             }
         }
@@ -101,7 +102,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         String subjectClassesId = map.get("subjectClassesId").toString();
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subjectClassesId)
-                .orderByDesc(MybatisPlusUtil.toColumns(Announcement::getCreateTime));
+            .orderByDesc(MybatisPlusUtil.toColumns(Announcement::getCreateTime));
         List<Announcement> announcementList = list(queryWrapper);
         for (Announcement announcement : announcementList) {
             String serviceClassName = getServiceClassName();
@@ -133,8 +134,31 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         for (Announcement announcement : announcementList) {
             UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
-            updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum()+CommonNumConstants.NUM_ONE);
+            updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum() + CommonNumConstants.NUM_ONE);
             update(updateWrapper);
+        }
+    }
+
+    @Override
+    public void delectBySubClassLinkId(String subClassLinkId, String stuNo) {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subClassLinkId);
+        List<Announcement> announcementList = list(queryWrapper);
+        List<String> annIds = announcementList.stream().map(Announcement::getId).collect(Collectors.toList());
+        Map<String, List<AnnouncementRecord>> announcementMapList = announcementRecordService.queryRecordByAnnouncementIdAndStu(annIds, stuNo);
+        for (Announcement announcement : announcementList) {
+            if (announcementMapList.containsKey(announcement.getId())) {
+                announcementRecordService.deleteRecordByAnnouncementId(announcement.getId());
+                UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, announcement.getId());
+                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getConfirmNum), announcement.getConfirmNum() - CommonNumConstants.NUM_ONE);
+                update(updateWrapper);
+            } else {
+                UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, announcement.getId());
+                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum() - CommonNumConstants.NUM_ONE);
+                update(updateWrapper);
+            }
         }
     }
 
@@ -146,12 +170,12 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     }
 
     @Override
-    public void validatorEntity(Announcement announcement){
+    public void validatorEntity(Announcement announcement) {
         super.validatorEntity(announcement);
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getTitle),announcement.getTitle());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getTitle), announcement.getTitle());
         List<Announcement> announcementList = list(queryWrapper);
-        if(CollectionUtil.isNotEmpty(announcementList)&&!announcementList.get(0).getTitle().equals(announcement.getTitle())){
+        if (CollectionUtil.isNotEmpty(announcementList) && !announcementList.get(0).getTitle().equals(announcement.getTitle())) {
             throw new CustomException("标题重复");
         }
         subjectClassesService.refreshCache(announcement.getSubjectClassesId());
@@ -162,25 +186,25 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     }
 
     @Override
-    public Announcement selectById(String id){
+    public Announcement selectById(String id) {
         Announcement announcement = super.selectById(id);
         setCheckIsConfirm(announcement);
-        iAuthUserService.setDataMation(announcement,Announcement::getCreateId);
+        iAuthUserService.setDataMation(announcement, Announcement::getCreateId);
         return announcement;
     }
 
-    private void setCheckIsConfirm(Announcement announcement){
+    private void setCheckIsConfirm(Announcement announcement) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<AnnouncementRecord> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId),announcement.getId())
-                .eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getCreateId),userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId), announcement.getId())
+            .eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getCreateId), userId);
         AnnouncementRecord one = announcementRecordService.getOne(queryWrapper);
         announcement.setCheckConfirm(ObjectUtil.isNotEmpty(one));
         announcement.setConfirmMation(EnableEnum.getMation(announcement.getIsConfirm()));
     }
 
     @Override
-    public void createPrepose(Announcement announcement){
+    public void createPrepose(Announcement announcement) {
         SubjectClasses subjectClasses = subjectClassesService.selectById(announcement.getSubjectClassesId());
         announcement.setConfirmNum(CommonNumConstants.NUM_ZERO);
         announcement.setUnConfirmNum(subjectClasses.getPeopleNum());
@@ -189,7 +213,7 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     }
 
     @Override
-    public void updatePrepose(Announcement announcement){
+    public void updatePrepose(Announcement announcement) {
         String id = announcement.getId();
         SubjectClasses subjectClasses = subjectClassesService.selectById(announcement.getSubjectClassesId());
         announcement.setConfirmNum(CommonNumConstants.NUM_ZERO);
@@ -201,25 +225,25 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     }
 
     @Override
-    public void deleteById(InputObject inputObject,OutputObject outputObject){
+    public void deleteById(InputObject inputObject, OutputObject outputObject) {
         String announcementId = inputObject.getParams().get("id").toString();
         List<Announcement> announcementList = announcementService.queryAllData();
         Announcement announcements = new Announcement();
-        for(Announcement announcement : announcementList){
-            if(announcementId.equals(announcement.getId())){
+        for (Announcement announcement : announcementList) {
+            if (announcementId.equals(announcement.getId())) {
                 announcements = announcement;
                 break;
             }
         }
-        if(ObjectUtil.isEmpty(announcements)){
+        if (ObjectUtil.isEmpty(announcements)) {
             throw new CustomException("该公告不存在");
         }
         // 该公告不存在或者确认人数为0就直接删除公告表，不必理会记录表
-        if(announcements.getConfirmNum() == CommonNumConstants.NUM_ZERO){
-            super.deleteById(inputObject,outputObject);
-        }else {
-            announcementRecordService.deleteById(inputObject,outputObject);
-            super.deleteById(inputObject,outputObject);
+        if (announcements.getConfirmNum() == CommonNumConstants.NUM_ZERO) {
+            super.deleteById(inputObject, outputObject);
+        } else {
+            announcementRecordService.deleteById(inputObject, outputObject);
+            super.deleteById(inputObject, outputObject);
         }
     }
 }

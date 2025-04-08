@@ -23,4 +23,6 @@ public interface AnnouncementService extends SkyeyeBusinessService<Announcement>
     Long queryClassNoticeNum(String id);
 
     void updateUnConfirmNum(String id);
+
+    void delectBySubClassLinkId(String subClassLinkId ,String stuNo);
 }
