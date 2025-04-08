@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenscore.dao.ExamAnChenScoreDao;
 import com.skyeye.exam.examanchenscore.entity.ExamAnChenScore;
 import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
@@ -37,6 +38,20 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         if (CollectionUtil.isNotEmpty(chenScoreAn)) {
             super.createEntity(chenScoreAn, StrUtil.EMPTY);
         }
+    }
+
+    @Override
+    public ExamAnChenScore selectById(String id) {
+        ExamAnChenScore examAnChenCheckbox = super.selectById(id);
+        String belongAnswerId = examAnChenCheckbox.getBelongAnswerId();
+        String belongId = examAnChenCheckbox.getBelongId();
+        String quId = examAnChenCheckbox.getQuId();
+        QueryWrapper<ExamAnChenScore> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), quId);
+        examAnChenCheckbox.setChenScoreAn(list(queryWrapper1));
+        return examAnChenCheckbox;
     }
 
     @Override

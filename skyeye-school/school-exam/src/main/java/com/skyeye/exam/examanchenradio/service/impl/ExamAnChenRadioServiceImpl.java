@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenradio.dao.ExamAnChenRadioDao;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
@@ -55,6 +56,20 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), surveyId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public ExamAnChenRadio selectById(String id) {
+        ExamAnChenRadio examAnChenCheckbox = super.selectById(id);
+        String belongAnswerId = examAnChenCheckbox.getBelongAnswerId();
+        String belongId = examAnChenCheckbox.getBelongId();
+        String quId = examAnChenCheckbox.getQuId();
+        QueryWrapper<ExamAnChenRadio> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), quId);
+        examAnChenCheckbox.setChenRadioAn(list(queryWrapper1));
+        return examAnChenCheckbox;
     }
 
     @Override

@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examanorder.dao.ExamAnOrderDao;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
@@ -37,6 +38,20 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
         if (CollectionUtil.isNotEmpty(orderByAn)) {
             super.createEntity(orderByAn, StrUtil.EMPTY);
         }
+    }
+
+    @Override
+    public ExamAnOrder selectById(String id) {
+        ExamAnOrder examAnDfillblank = super.selectById(id);
+        String belongAnswerId = examAnDfillblank.getBelongAnswerId();
+        String belongId = examAnDfillblank.getBelongId();
+        String quId = examAnDfillblank.getQuId();
+        QueryWrapper<ExamAnOrder> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getQuId), quId);
+        examAnDfillblank.setOrderByAn(list(queryWrapper1));
+        return examAnDfillblank;
     }
 
     @Override

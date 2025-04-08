@@ -12,6 +12,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examanchencheckbox.dao.ExamAnChenCheckboxDao;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
+import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -56,6 +57,20 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), surveyId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public ExamAnChenCheckbox selectById(String id) {
+        ExamAnChenCheckbox examAnChenCheckbox = super.selectById(id);
+        String belongAnswerId = examAnChenCheckbox.getBelongAnswerId();
+        String belongId = examAnChenCheckbox.getBelongId();
+        String quId = examAnChenCheckbox.getQuId();
+        QueryWrapper<ExamAnChenCheckbox> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), quId);
+        examAnChenCheckbox.setChenCheckboxAn(list(queryWrapper1));
+        return examAnChenCheckbox;
     }
 
     @Override

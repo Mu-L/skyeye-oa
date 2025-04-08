@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
@@ -55,6 +56,6 @@ public class ExamAnCheckbox extends OperatorUserInfo {
     private Integer visibility;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "多选题答案id集合")
+    @Property(value = "多选题答案id集合")
     private List<String> allAnswerIds;
 }

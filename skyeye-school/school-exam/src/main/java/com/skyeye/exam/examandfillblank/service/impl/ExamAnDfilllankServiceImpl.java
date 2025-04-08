@@ -74,6 +74,20 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
+    public ExamAnDfillblank selectById(String id) {
+        ExamAnDfillblank examAnDfillblank = super.selectById(id);
+        String belongAnswerId = examAnDfillblank.getBelongAnswerId();
+        String belongId = examAnDfillblank.getBelongId();
+        String quId = examAnDfillblank.getQuId();
+        QueryWrapper<ExamAnDfillblank> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), quId);
+        examAnDfillblank.setDFillblankAn(list(queryWrapper1));
+        return examAnDfillblank;
+    }
+
+    @Override
     public Map<String, List<ExamAnDfillblank>> selectByQuIdAndStuId(List<String> id, String studentId) {
         if (CollectionUtil.isEmpty(id)) {
             return new HashMap<>();
