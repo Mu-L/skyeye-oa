@@ -41,6 +41,14 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
+    protected void updatePostpose(ExamAnChenRadio entity, String userId) {
+        List<ExamAnChenRadio> chenCheckboxAn = entity.getChenRadioAn();
+        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
+            super.updateEntity(chenCheckboxAn, userId);
+        }
+    }
+
+    @Override
     public void queryExamAnChenRadioListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();

@@ -42,6 +42,14 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
     }
 
     @Override
+    protected void updatePostpose(ExamAnOrder entity, String userId) {
+        List<ExamAnOrder> chenCheckboxAn = entity.getOrderByAn();
+        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
+            super.updateEntity(chenCheckboxAn, userId);
+        }
+    }
+
+    @Override
     public ExamAnOrder selectById(String id) {
         ExamAnOrder examAnDfillblank = super.selectById(id);
         String belongAnswerId = examAnDfillblank.getBelongAnswerId();

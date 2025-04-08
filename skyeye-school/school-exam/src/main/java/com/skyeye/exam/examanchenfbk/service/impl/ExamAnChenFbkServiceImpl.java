@@ -42,6 +42,15 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
     }
 
     @Override
+    protected void updatePostpose(ExamAnChenFbk entity, String userId) {
+        List<ExamAnChenFbk> chenCheckboxAn = entity.getChenFbkAn();
+        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
+            super.updateEntity(chenCheckboxAn, userId);
+        }
+    }
+
+
+    @Override
     public void queryExamAnChenFbkListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
