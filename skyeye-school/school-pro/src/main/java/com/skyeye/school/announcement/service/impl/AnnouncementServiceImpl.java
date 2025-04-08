@@ -5,13 +5,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -25,15 +22,12 @@ import com.skyeye.school.announcement.service.AnnouncementRecordService;
 import com.skyeye.school.announcement.service.AnnouncementService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
-import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 /**
@@ -131,6 +125,24 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
         return count(queryWrapper);
+    }
+
+    @Override
+    public void updateUnConfirmNum(String id) {
+        List<Announcement> announcementList = selectBySubjectClassesId(id);
+        for (Announcement announcement : announcementList) {
+            UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum()+CommonNumConstants.NUM_ONE);
+            update(updateWrapper);
+        }
+    }
+
+    private List<Announcement> selectBySubjectClassesId(String id) {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
+        List<Announcement> announcementList = list(queryWrapper);
+        return announcementList;
     }
 
     @Override

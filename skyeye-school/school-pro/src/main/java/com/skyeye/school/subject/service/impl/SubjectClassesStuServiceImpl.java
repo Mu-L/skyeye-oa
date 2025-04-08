@@ -24,6 +24,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.school.announcement.service.AnnouncementService;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
@@ -70,6 +71,8 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     @Autowired
     private StudentService studentService;
 
+    @Autowired
+    private AnnouncementService announcementService;
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinSubjectClasses(InputObject inputObject, OutputObject outputObject) {
@@ -111,6 +114,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         } else {
             throw new CustomException("认证信息为空，或者认证的学号信息不存在");
         }
+        announcementService.updateUnConfirmNum(subjectClasses.getId());
     }
 
     @Override
