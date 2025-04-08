@@ -173,8 +173,8 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
 
     public void setTimeState(List<Assignment> assignmentList) {
         for (Assignment assignment : assignmentList) {
-            String currentTime = DateUtil.getTimeStrAndToString();
-            if (DateUtil.getDistanceDay(assignment.getStartTime(), currentTime) >= 0 && DateUtil.getDistanceDay(currentTime, assignment.getEndTime()) >= 0) {
+            String currentTime = DateUtil.getTimeAndToString();
+            if (DateUtil.compare(assignment.getStartTime(), currentTime) && DateUtil.compare(currentTime, assignment.getEndTime())) {
                 // startTime <= 当前时间 <= endTime
                 assignment.setTimeState(AssignmentTimeState.IN_PROGRESS.getKey());
             } else {
