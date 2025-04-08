@@ -171,7 +171,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void createDeFaultInfo(SubjectClasses subjectClasses) {
-        List<String> nameList = Arrays.asList("作业成绩", "测试成绩", "互动答题成绩", "平时成绩");
+        List<String> nameList = Arrays.asList("作业成绩", "测试成绩", "平时成绩");
         List<Integer> numberCodeList = Arrays.asList(NumberCodeEnum.WORK.getKey(), NumberCodeEnum.TEST.getKey()
             , NumberCodeEnum.INTERACTION.getKey(), NumberCodeEnum.USUAL.getKey());
         Map<String, Integer> map = new HashMap<>();
