@@ -28,6 +28,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -171,5 +172,15 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
         QueryWrapper<AnnouncementRecord> recordQueryWrapper = new QueryWrapper<>();
         recordQueryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId), announcementId);
         remove(recordQueryWrapper);
+    }
+
+    @Override
+    public Map<String, List<AnnouncementRecord>> queryRecordByAnnouncementIdAndStu(List<String> annIds, String stuNo) {
+        QueryWrapper<AnnouncementRecord> recordQueryWrapper = new QueryWrapper<>();
+        recordQueryWrapper.in(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId), annIds);
+        recordQueryWrapper.eq(MybatisPlusUtil.toColumns(AnnouncementRecord::getStuNo), stuNo);
+        List<AnnouncementRecord> announcementRecordList = list(recordQueryWrapper);
+        Map<String, List<AnnouncementRecord>> collect = announcementRecordList.stream().collect(Collectors.groupingBy(AnnouncementRecord::getAnnouncementId));
+        return collect;
     }
 }

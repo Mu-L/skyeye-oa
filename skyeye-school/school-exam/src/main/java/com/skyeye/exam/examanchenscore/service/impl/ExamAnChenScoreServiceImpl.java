@@ -41,6 +41,14 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
+    protected void updatePostpose(ExamAnChenScore entity, String userId) {
+        List<ExamAnChenScore> chenCheckboxAn = entity.getChenScoreAn();
+        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
+            super.updateEntity(chenCheckboxAn, userId);
+        }
+    }
+
+    @Override
     public ExamAnChenScore selectById(String id) {
         ExamAnChenScore examAnChenCheckbox = super.selectById(id);
         String belongAnswerId = examAnChenCheckbox.getBelongAnswerId();

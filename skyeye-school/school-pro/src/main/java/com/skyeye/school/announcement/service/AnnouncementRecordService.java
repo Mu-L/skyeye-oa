@@ -5,6 +5,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.announcement.entity.AnnouncementRecord;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: AnnouncementRecordService
  * @Description: 公告收到记录管理服务接口层
@@ -20,4 +23,6 @@ public interface AnnouncementRecordService extends SkyeyeBusinessService<Announc
     void queryUnConfirmRecordByAnnouncementId(InputObject inputObject, OutputObject outputObject);
 
     void deleteRecordByAnnouncementId(String announcementId);
+
+    Map<String, List<AnnouncementRecord>> queryRecordByAnnouncementIdAndStu(List<String> annIds, String stuNo);
 }

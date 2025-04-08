@@ -5,9 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -23,9 +20,9 @@ public class ExamAnScore extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("answser_score")
+    @TableField("answer_score")
     @ApiModelProperty(value = "答案分数")
-    private Float answserScore;
+    private Float answerScore;
 
     @TableField("belong_answer_id")
     @ApiModelProperty(value = "所属评分题答案id", required = "required")

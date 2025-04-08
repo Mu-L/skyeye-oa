@@ -169,6 +169,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         if (subjectClasses.getQuit() == WhetherEnum.DISABLE_USING.getKey()) {
             throw new CustomException("对不起，现在不能退课");
         }
+        announcementService.delectBySubClassLinkId(subjectClassesStu.getSubClassLinkId(),subjectClassesStu.getStuNo());
     }
 
     @Override

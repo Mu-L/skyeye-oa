@@ -1,7 +1,6 @@
 package com.skyeye.exam.examanchencheckbox.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,7 +11,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examanchencheckbox.dao.ExamAnChenCheckboxDao;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
-import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -38,6 +36,14 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         List<ExamAnChenCheckbox> dFillblankAn = entity.getChenCheckboxAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void updatePostpose(ExamAnChenCheckbox entity, String userId) {
+        List<ExamAnChenCheckbox> chenCheckboxAn = entity.getChenCheckboxAn();
+        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
+            super.updateEntity(chenCheckboxAn, userId);
         }
     }
 
@@ -69,7 +75,7 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         examAnChenCheckbox.setChenCheckboxAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }
@@ -91,7 +97,7 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
 
     @Override
     public Map<String, List<ExamAnChenCheckbox>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
-        if (CollectionUtil.isEmpty(questionId)){
+        if (CollectionUtil.isEmpty(questionId)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
