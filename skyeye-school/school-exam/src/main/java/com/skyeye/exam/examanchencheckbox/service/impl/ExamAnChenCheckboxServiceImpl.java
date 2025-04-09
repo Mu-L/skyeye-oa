@@ -1,6 +1,7 @@
 package com.skyeye.exam.examanchencheckbox.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,8 +44,30 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     @Override
     protected void updatePostpose(ExamAnChenCheckbox entity, String userId) {
         List<ExamAnChenCheckbox> chenCheckboxAn = entity.getChenCheckboxAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnChenCheckbox> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnChenCheckbox> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnChenCheckbox> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenCheckbox::getId).collect(Collectors.toSet());
+        List<ExamAnChenCheckbox> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<ExamAnChenCheckbox> intersection = examAnChenCheckboxList.stream()
+            .filter(e -> yesIdSet.contains(e.getId()))
+            .collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnChenCheckbox::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
+        }
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(intersection)) {
+            super.updateEntity(intersection, userId);
         }
     }
 

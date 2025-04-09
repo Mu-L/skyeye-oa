@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +44,30 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     @Override
     protected void updatePostpose(ExamAnChenRadio entity, String userId) {
         List<ExamAnChenRadio> chenCheckboxAn = entity.getChenRadioAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnChenRadio> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnChenRadio> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnChenRadio> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenRadio::getId).collect(Collectors.toSet());
+        List<ExamAnChenRadio> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<ExamAnChenRadio> intersection = examAnChenCheckboxList.stream()
+            .filter(e -> yesIdSet.contains(e.getId()))
+            .collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnChenRadio::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
+        }
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(intersection)) {
+            super.updateEntity(intersection, userId);
         }
     }
 
@@ -76,7 +99,7 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         examAnChenCheckbox.setChenRadioAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }
@@ -92,7 +115,7 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     public void deleteBySurAndCreateId(String surveyId, String createId) {
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), surveyId)
-                .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId), createId);
+            .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId), createId);
         remove(queryWrapper);
     }
 
@@ -103,7 +126,7 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         }
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), questionId)
-            .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId),studentId);
+            .eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getCreateId), studentId);
         Map<String, List<ExamAnChenRadio>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(ExamAnChenRadio::getQuId));
         return stringListMap;
     }

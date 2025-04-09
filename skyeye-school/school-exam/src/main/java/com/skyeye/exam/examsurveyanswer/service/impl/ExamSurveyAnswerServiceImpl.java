@@ -55,6 +55,7 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -304,10 +305,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String surveyId = commonPageInfo.getHolderId();
+        String state = commonPageInfo.getState();
+        Integer starts = Integer.valueOf(state);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),starts);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
@@ -315,30 +318,33 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
-        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
-        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
-        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
-        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
-            .collect(Collectors.toMap(School::getId, Function.identity()));
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
-            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
-        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
-            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
-        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
-            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+
+        Map<String, List<School>> schoolMap = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
+        Map<String, List<Major>> majorMap = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
+            .filter(user -> user.get("studentNumber") != null) // 过滤空学号
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),
                 Function.identity(),
-                (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
+                (oldValue, newValue) -> oldValue
             ));
+
         for (ExamSurveyAnswer answer : list) {
-            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()));
+            List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
+            answer.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
-            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()));
-            answer.setMajorMation(majorMap.get(answer.getMajorId()));
-            answer.setStuMation(userMap.get(answer.getStudentNumber()));
+            List<Faculty> faculties = facultyMap.getOrDefault(answer.getFacultyId(), Collections.emptyList());
+            answer.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
+            List<Major> majors = majorMap.getOrDefault(answer.getMajorId(), Collections.emptyList());
+            answer.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+            String studentNumber = answer.getStudentNumber();
+            answer.setStuMation(StrUtil.isNotBlank(studentNumber) ? userMap.get(studentNumber) : null);
         }
         iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);
@@ -475,14 +481,10 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> surveyIds = beans.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
         List<String> facultyIds = beans.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
         List<String> majorIds = beans.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
-            .collect(Collectors.toMap(School::getId, Function.identity()));
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
-            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
-        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
-            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
-        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
-            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        Map<String, School> schoolMap = schoolService.selectMapByIds(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, Faculty> facultyMap = facultyService.selectMapByIds(facultyIds);
+        Map<String, Major> majorMap = majorService.selectMapByIds(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),

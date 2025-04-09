@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +44,30 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     @Override
     protected void updatePostpose(ExamAnChenScore entity, String userId) {
         List<ExamAnChenScore> chenCheckboxAn = entity.getChenScoreAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnChenScore> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnChenScore> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnChenScore> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenScore::getId).collect(Collectors.toSet());
+        List<ExamAnChenScore> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<ExamAnChenScore> intersection = examAnChenCheckboxList.stream()
+            .filter(e -> yesIdSet.contains(e.getId()))
+            .collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnChenScore::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
+        }
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(intersection)) {
+            super.updateEntity(intersection, userId);
         }
     }
 
@@ -58,7 +81,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         examAnChenCheckbox.setChenScoreAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }
@@ -98,7 +121,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
 
     @Override
     public Map<String, List<ExamAnChenScore>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
-        if (CollectionUtil.isEmpty(questionId)){
+        if (CollectionUtil.isEmpty(questionId)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();

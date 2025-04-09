@@ -118,10 +118,6 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
 
         String signTime = DateUtil.getTimeAndToString();
         long distanceMinute = DateUtil.getDistanceMinute(checkwork.getCreateTime(), signTime);
-        if (distanceMinute > checkwork.getMaintainTime()) {
-            // 考勤时间已过
-            throw new CustomException("考勤时间已过，不能签到.");
-        }
         // 判断该学生是否在该考勤信息中
         List<String> studentIds = checkwork.getCheckworkSignList().stream().map(CheckworkSign::getUserId).collect(Collectors.toList());
         if (studentIds.contains(userId)) {
@@ -135,8 +131,13 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
             UpdateWrapper<CheckworkSign> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), checkwork.getId());
             updateWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), userId);
-            updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.SIGN.getKey());
-            updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime), signTime);
+            if (distanceMinute > checkwork.getMaintainTime()) {
+                // 考勤时间已过--设置状态为迟到
+                updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.LATE_SIGN.getKey());
+            }else {
+                updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.SIGN.getKey());
+                updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime), signTime);
+            }
             update(updateWrapper);
         } else {
             CheckworkSign checkworkSign = new CheckworkSign();
