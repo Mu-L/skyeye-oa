@@ -318,26 +318,33 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
-        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
-        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
-        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
-        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, List<School>> schoolMap = schoolService.selectByIdList(schoolIds);
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
-        Map<String, List<Faculty>> facultyMap = facultyService.selectByIdList(facultyIds);
-        Map<String, List<Major>> majorMap = majorService.selectByIdList(majorIds);
+        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+
+        Map<String, List<School>> schoolMap = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
+        Map<String, List<Major>> majorMap = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
+            .filter(user -> user.get("studentNumber") != null) // 过滤空学号
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),
                 Function.identity(),
                 (oldValue, newValue) -> oldValue
             ));
+
         for (ExamSurveyAnswer answer : list) {
-            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()).get(CommonNumConstants.NUM_ZERO));
+            List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
+            answer.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
-            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()).get(CommonNumConstants.NUM_ZERO));
-            answer.setMajorMation(majorMap.get(answer.getMajorId()).get(CommonNumConstants.NUM_ZERO));
-            answer.setStuMation(userMap.get(answer.getStudentNumber()));
+            List<Faculty> faculties = facultyMap.getOrDefault(answer.getFacultyId(), Collections.emptyList());
+            answer.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
+            List<Major> majors = majorMap.getOrDefault(answer.getMajorId(), Collections.emptyList());
+            answer.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+            String studentNumber = answer.getStudentNumber();
+            answer.setStuMation(StrUtil.isNotBlank(studentNumber) ? userMap.get(studentNumber) : null);
         }
         iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);

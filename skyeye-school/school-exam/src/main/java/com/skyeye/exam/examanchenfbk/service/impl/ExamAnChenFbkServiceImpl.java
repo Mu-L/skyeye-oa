@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -44,17 +45,30 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
     @Override
     protected void updatePostpose(ExamAnChenFbk entity, String userId) {
         List<ExamAnChenFbk> chenFbkList = entity.getChenFbkAn();
-        List<ExamAnChenFbk> NoIdChenFbk = chenFbkList.stream().filter(
-            e -> StrUtil.isEmpty(e.getId())
-        ).collect(Collectors.toList());
-        List<ExamAnChenFbk> YesIdChenFbk = chenFbkList.stream().filter(
-            e -> StrUtil.isNotEmpty(e.getId())
-        ).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
-            super.createEntity(NoIdChenFbk, userId);
+        QueryWrapper<ExamAnChenFbk> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnChenFbk> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnChenFbk> NoIdChenCheckbox = chenFbkList.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnChenFbk> YesIdChenCheckbox = chenFbkList.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenFbk::getId).collect(Collectors.toSet());
+        List<ExamAnChenFbk> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<ExamAnChenFbk> intersection = examAnChenCheckboxList.stream()
+            .filter(e -> yesIdSet.contains(e.getId()))
+            .collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnChenFbk::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
         }
-        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
-            super.updateEntity(YesIdChenFbk, userId);
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(intersection)) {
+            super.updateEntity(intersection, userId);
         }
     }
 
