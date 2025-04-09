@@ -82,27 +82,29 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
 
     @Override
     protected void createPostpose(GroupsInformation groupsInformation, String userId) {
-        List<SubjectClassesStu> allStuNum = subjectClassesStuService.selectNumBySubClassLinkId(groupsInformation.getSubjectClassId());
-        int size = allStuNum.size();
-        Integer groupsnun = groupsInformation.getGroupsNum();
-        int num;
-        int numGroups;
-        if (size > groupsnun) {
-            num = size % groupsnun;
-            if (num != 0) {
-                numGroups = size / groupsnun + 1;
+        if (groupsInformation.getStatus().equals(CommonNumConstants.NUM_ONE)) {
+            List<SubjectClassesStu> allStuNum = subjectClassesStuService.selectNumBySubClassLinkId(groupsInformation.getSubjectClassId());
+            int size = allStuNum.size();
+            Integer groupsnun = groupsInformation.getGroupsNum();
+            int num;
+            int numGroups;
+            if (size >= groupsnun) {
+                num = size % groupsnun;
+                if (num != 0) {
+                    numGroups = size / groupsnun + 1;
+                } else {
+                    numGroups = size / groupsnun;
+                }
+                UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
+                updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
+                updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
+                update(updateWrapper);
             } else {
-                numGroups = size / groupsnun;
+                throw new CustomException("学生人数不足,无法创建分组");
             }
-            UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
-            updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
-            update(updateWrapper);
-        } else {
-            throw new CustomException("学生人数不足,无法创建分组");
+            GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
+            groupsService.insertList(groupsInformation1);
         }
-        GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
-        groupsService.insertList(groupsInformation1);
     }
 
     @Override
