@@ -5,6 +5,7 @@
 package com.skyeye.user.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -28,6 +29,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.dao.UserDao;
@@ -58,6 +60,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private FocusService focusService;
+    
+    @Autowired
+    private IAuthUserService iAuthUserService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -95,7 +100,8 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
             }
         } else {
             String userId = InputObject.getLogParamsStatic().get("id").toString();
-            if (!userId.equals(entity.getId())) {
+            Map<String, Object> map = iAuthUserService.queryDataMationById(userId);
+            if (!userId.equals(entity.getId()) && CollectionUtil.isEmpty(map)) {
                 throw new CustomException("无权限，不可修改");
             }
         }
