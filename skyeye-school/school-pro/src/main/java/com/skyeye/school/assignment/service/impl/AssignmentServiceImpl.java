@@ -121,7 +121,8 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         Map<String, Object> map = inputObject.getParams();
         String subjectClassesId = map.get("subjectClassesId").toString();
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId)
+            .orderByDesc(MybatisPlusUtil.toColumns(Assignment::getCreateTime));
         List<Assignment> assignmentList = list(queryWrapper);
         if (CollectionUtil.isEmpty(assignmentList)) {
             return;
