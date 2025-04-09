@@ -23,7 +23,8 @@ import lombok.NoArgsConstructor;
 public enum CheckworkSignState implements SkyeyeEnumClass {
 
     NOT_SIGN(1, "未签到", true, true),
-    SIGN(2, "已签到", true, false);
+    SIGN(2, "已签到", true, false),
+    LATE_SIGN(3, "迟到", true, false);
 
     private Integer key;
 
