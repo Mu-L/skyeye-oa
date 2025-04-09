@@ -46,9 +46,9 @@ public class ExamAnChenScore extends OperatorUserInfo {
     @ApiModelProperty(value = "所属矩阵多选题列id")
     private String quColId;
 
-    @TableField("answser_score")
+    @TableField("answer_score")
     @ApiModelProperty(value = "答案分数")
-    private String answserScore;
+    private Float answerScore;
 
     @TableField("qu_row_id")
     @ApiModelProperty(value = "所属矩阵多选题行id")

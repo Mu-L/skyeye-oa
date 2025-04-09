@@ -43,8 +43,17 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     @Override
     protected void updatePostpose(ExamAnChenScore entity, String userId) {
         List<ExamAnChenScore> chenCheckboxAn = entity.getChenScoreAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        List<ExamAnChenScore> NoIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())
+        ).collect(Collectors.toList());
+        List<ExamAnChenScore> YesIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())
+        ).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
+            super.createEntity(NoIdChenFbk, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
+            super.updateEntity(YesIdChenFbk, userId);
         }
     }
 
@@ -58,7 +67,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         examAnChenCheckbox.setChenScoreAn(list(queryWrapper1));
         return examAnChenCheckbox;
     }
@@ -98,7 +107,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
 
     @Override
     public Map<String, List<ExamAnChenScore>> selectByQuIdAndStuId(List<String> questionId, String studentId) {
-        if (CollectionUtil.isEmpty(questionId)){
+        if (CollectionUtil.isEmpty(questionId)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();

@@ -55,6 +55,7 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -304,10 +305,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String surveyId = commonPageInfo.getHolderId();
+        String state = commonPageInfo.getState();
+        Integer starts = Integer.valueOf(state);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),starts);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
@@ -319,25 +322,21 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
         List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
         List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
-            .collect(Collectors.toMap(School::getId, Function.identity()));
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
-            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
-        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
-            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
-        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
-            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        Map<String, List<School>> schoolMap = schoolService.selectByIdList(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, List<Faculty>> facultyMap = facultyService.selectByIdList(facultyIds);
+        Map<String, List<Major>> majorMap = majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),
                 Function.identity(),
-                (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
+                (oldValue, newValue) -> oldValue
             ));
         for (ExamSurveyAnswer answer : list) {
-            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()));
+            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()).get(CommonNumConstants.NUM_ZERO));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
-            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()));
-            answer.setMajorMation(majorMap.get(answer.getMajorId()));
+            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()).get(CommonNumConstants.NUM_ZERO));
+            answer.setMajorMation(majorMap.get(answer.getMajorId()).get(CommonNumConstants.NUM_ZERO));
             answer.setStuMation(userMap.get(answer.getStudentNumber()));
         }
         iAuthUserService.setName(list, "createId", "createName");
@@ -475,14 +474,10 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> surveyIds = beans.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
         List<String> facultyIds = beans.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
         List<String> majorIds = beans.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, School> schoolMap = schoolService.selectByIds(JSONUtil.toJsonStr(schoolIds)).stream()
-            .collect(Collectors.toMap(School::getId, Function.identity()));
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectByIds(JSONUtil.toJsonStr(surveyIds)).stream()
-            .collect(Collectors.toMap(ExamSurveyDirectory::getId, Function.identity()));
-        Map<String, Faculty> facultyMap = facultyService.selectByIds(JSONUtil.toJsonStr(facultyIds)).stream()
-            .collect(Collectors.toMap(Faculty::getId, Function.identity()));
-        Map<String, Major> majorMap = majorService.selectByIds(JSONUtil.toJsonStr(majorIds)).stream()
-            .collect(Collectors.toMap(Major::getId, Function.identity()));
+        Map<String, School> schoolMap = schoolService.selectMapByIds(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, Faculty> facultyMap = facultyService.selectMapByIds(facultyIds);
+        Map<String, Major> majorMap = majorService.selectMapByIds(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),

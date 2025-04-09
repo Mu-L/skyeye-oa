@@ -44,8 +44,17 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     @Override
     protected void updatePostpose(ExamAnDfillblank entity, String userId) {
         List<ExamAnDfillblank> chenCheckboxAn = entity.getDFillblankAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        List<ExamAnDfillblank> NoIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())
+        ).collect(Collectors.toList());
+        List<ExamAnDfillblank> YesIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())
+        ).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
+            super.createEntity(NoIdChenFbk, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
+            super.updateEntity(YesIdChenFbk, userId);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.skyeye.exam.examanchencheckbox.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -42,8 +43,17 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     @Override
     protected void updatePostpose(ExamAnChenCheckbox entity, String userId) {
         List<ExamAnChenCheckbox> chenCheckboxAn = entity.getChenCheckboxAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        List<ExamAnChenCheckbox> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())
+        ).collect(Collectors.toList());
+        List<ExamAnChenCheckbox> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())
+        ).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 
