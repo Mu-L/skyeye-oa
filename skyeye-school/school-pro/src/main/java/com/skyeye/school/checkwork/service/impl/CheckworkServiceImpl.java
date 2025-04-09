@@ -10,7 +10,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -76,11 +75,26 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         return queryWrapper;
     }
 
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        for (Map<String, Object> bean : beans) {
+            String type = MybatisPlusUtil.toColumns(Checkwork::getType);
+            if (bean.get(type).equals(CheckworkType.SCAN_THE_CODE.getKey())) {
+                bean.put(MybatisPlusUtil.toColumns(Checkwork::getCodeNumber), StrUtil.EMPTY);
+            }
+            if (bean.get(type).equals(CheckworkType.DIGIT.getKey())) {
+                bean.put(MybatisPlusUtil.toColumns(Checkwork::getSourceCode), StrUtil.EMPTY);
+                bean.put(MybatisPlusUtil.toColumns(Checkwork::getQrCodeUrl), StrUtil.EMPTY);
+            }
+        }
+        return beans;
+    }
+
     @Override
     public void validatorEntity(Checkwork entity) {
         super.validatorEntity(entity);
         Integer maintainTime = entity.getMaintainTime();
-        if (maintainTime >30 ||  maintainTime <0 ){
+        if (maintainTime > 30 || maintainTime < 0) {
             throw new CustomException("持续时间必须大于0小于30分钟");
         }
         if (entity.getType() == CheckworkType.DIGIT.getKey()) {
@@ -203,13 +217,13 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), id);
         List<Checkwork> beans = list(queryWrapper);
-        if(CollectionUtil.isEmpty(beans)){
+        if (CollectionUtil.isEmpty(beans)) {
             return sum;
         }
         List<String> ids = beans.stream().map(Checkwork::getId).collect(Collectors.toList());
         for (String checkWorkId : ids) {
-           Long temp =  checkworkSignService.queryStuCheckWorkSignNum(checkWorkId, stuId);
-           sum += temp;
+            Long temp = checkworkSignService.queryStuCheckWorkSignNum(checkWorkId, stuId);
+            sum += temp;
         }
         return sum;
     }
