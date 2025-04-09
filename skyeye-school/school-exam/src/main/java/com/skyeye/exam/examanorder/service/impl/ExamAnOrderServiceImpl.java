@@ -44,8 +44,17 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
     @Override
     protected void updatePostpose(ExamAnOrder entity, String userId) {
         List<ExamAnOrder> chenCheckboxAn = entity.getOrderByAn();
-        if (CollectionUtil.isNotEmpty(chenCheckboxAn)) {
-            super.updateEntity(chenCheckboxAn, userId);
+        List<ExamAnOrder> NoIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())
+        ).collect(Collectors.toList());
+        List<ExamAnOrder> YesIdChenFbk = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())
+        ).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
+            super.createEntity(NoIdChenFbk, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
+            super.updateEntity(YesIdChenFbk, userId);
         }
     }
 

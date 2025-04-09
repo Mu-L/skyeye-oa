@@ -20,6 +20,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -49,9 +50,11 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
+import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -586,6 +589,25 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<Question> questionList = questionService.QueryQuestionByBelongIdAndStuId(surveyId, studentId);
         bean.setQuestionMation(questionList);
         return bean;
+    }
+
+    @Override
+    public Map<String, ExamSurveyDirectory> selectMapBysurveyIds(List<String> surveyIds) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, surveyIds);
+        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        List<String> schoolIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getSchoolId).collect(Collectors.toList());
+        Map<String, List<School>> schoolMapList = schoolService.selectByIdList(schoolIds);
+        List<String> facultyIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getFacultyId).collect(Collectors.toList());
+        Map<String, List<Faculty>> facultyMapList = facultyService.selectByIdList(facultyIds);
+        List<String> majorIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getMajorId).collect(Collectors.toList());
+        Map<String, List<Major>> majorMapList = majorService.selectByIdList(majorIds);
+        for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+            examSurveyDirectory.setSchoolMation( schoolMapList.get(examSurveyDirectory.getSchoolId()).get(CommonNumConstants.NUM_ZERO));
+            examSurveyDirectory.setFacultyMation(facultyMapList.get(examSurveyDirectory.getFacultyId()).get(CommonNumConstants.NUM_ZERO));
+            examSurveyDirectory.setMajorMation( majorMapList.get(examSurveyDirectory.getMajorId()).get(CommonNumConstants.NUM_ZERO));
+        }
+        return examSurveyDirectoryList.stream().collect(Collectors.toMap(ExamSurveyDirectory::getId, examSurveyDirectory -> examSurveyDirectory));
     }
 
     @Override
