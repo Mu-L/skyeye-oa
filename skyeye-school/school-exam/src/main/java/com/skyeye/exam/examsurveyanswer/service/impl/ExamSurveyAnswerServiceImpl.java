@@ -46,6 +46,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
+import com.skyeye.school.exam.service.ExamDirectoryAnService;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.entity.Major;
@@ -74,7 +75,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "试卷回答信息表管理", groupName = "试卷回答信息表管理")
-public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService {
+public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService , ExamDirectoryAnService {
 
     @Autowired
     private ExamAnRadioService examAnRadioService;
@@ -444,6 +445,17 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             }
         }
         outputObject.setBean(yesOrNo);
+    }
+
+    @Override
+    public Long queryClassExamSurveyAnswerNum(String classId) {
+        // 获取试卷id
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
+        // 获取参与人次
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete),CommonNumConstants.NUM_ONE);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
+        return count(queryWrapper);
     }
 
     @Override

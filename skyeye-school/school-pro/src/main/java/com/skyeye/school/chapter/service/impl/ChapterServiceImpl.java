@@ -17,6 +17,7 @@ import com.skyeye.school.chapter.dao.ChapterDao;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
+import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,17 +67,17 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
     @Override
     public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String subjectId = params.get("subjectId").toString();
-        String classId = params.get("classId").toString();
+        String subjectClassesId = params.get("subjectClassesId").toString();
+        SubjectClasses subjectClasses = subjectClassesService.selectById(subjectClassesId);
         QueryWrapper<Chapter> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectId)
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Chapter::getObjectId), subjectClasses.getObjectId())
             .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         if (CollectionUtil.isEmpty(chapterList)) {
             return;
         }
         // 查这个科目下的人数
-        Integer classNum = subjectClassesService.queryStuNumBySubjectId(subjectId, classId);
+        Integer classNum = subjectClassesService.queryStuNumBySubjectId(subjectClasses.getObjectId(), subjectClasses.getClassesId());
         if (classNum == CommonNumConstants.NUM_ZERO) {
             return;
         }

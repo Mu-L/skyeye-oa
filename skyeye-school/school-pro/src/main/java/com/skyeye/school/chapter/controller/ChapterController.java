@@ -64,8 +64,7 @@ public class ChapterController {
 
     @ApiOperation(id = "queryChapterAnalysis", value = "章节分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"),
-        @ApiImplicitParam(id = "classId", name = "classId", value = "班级id", required = "required")
+        @ApiImplicitParam(id = "subjectClassesId", name = "subjectClassesId", value = "科目班级id", required = "required")
     })
     @RequestMapping("/post/ChapterController/queryChapterAnalysis")
     public void queryChapterAnalysis(InputObject inputObject, OutputObject outputObject) {

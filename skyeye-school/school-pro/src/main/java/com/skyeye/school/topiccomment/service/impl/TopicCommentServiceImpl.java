@@ -85,13 +85,9 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         if (CollectionUtil.isEmpty(ids)) {
             return 0L;
         }
-        List<TopicComment> beans = new ArrayList<>();
-        for (String topicId : ids) {
-            // 获取话题评论数
-            QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId);
-            beans.addAll(list(queryWrapper));
-        }
+        QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
+        List<TopicComment> beans = list(queryWrapper);
         // 根据createId去重
         long count = beans.stream().map(TopicComment::getCreateId).distinct().count();
         if(count == 0){
@@ -107,7 +103,9 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         if (CollectionUtil.isEmpty(ids)) {
             return 0L;
         }
-        return queryTopicCommentNum(ids.toArray(new String[0]));
+        QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
+        return count(queryWrapper);
     }
 
     @Override
@@ -116,18 +114,5 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId)
                 .eq(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuId);
         return count(queryWrapper);
-    }
-
-    /**
-     * 根据话题id获取评论数量
-     * */
-    private Long queryTopicCommentNum(String ... topicIds) {
-        Long sum = 0L;
-        for (String topicId : topicIds) {
-            QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId);
-            sum += count(queryWrapper);
-        }
-        return sum;
     }
 }

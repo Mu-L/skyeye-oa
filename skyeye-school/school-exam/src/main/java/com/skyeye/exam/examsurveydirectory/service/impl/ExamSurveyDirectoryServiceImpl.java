@@ -50,6 +50,7 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.exam.service.ExamService;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.grade.entity.Classes;
@@ -76,7 +77,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "试卷管理", groupName = "试卷管理")
-public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyDirectoryDao, ExamSurveyDirectory> implements ExamSurveyDirectoryService {
+public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyDirectoryDao, ExamSurveyDirectory> implements ExamSurveyDirectoryService, ExamService {
 
     @Autowired
     private ExamSurveyClassService examSurveyClassService;
@@ -615,6 +616,20 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             examSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
         }
         return examSurveyDirectoryList.stream().collect(Collectors.toMap(ExamSurveyDirectory::getId, examSurveyDirectory -> examSurveyDirectory));
+    }
+
+    @Override
+    public Long queryClassExamSurveyDirectoryNum(String classId) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId),classId);
+        return count(queryWrapper);
+    }
+
+    @Override
+    public List<String> queryDirectoryIdsByClassId(String classId) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId),classId);
+        return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
     }
 
     @Override
