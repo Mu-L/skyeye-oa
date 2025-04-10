@@ -55,7 +55,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         chapterList.forEach(chapter -> {
             String serviceClassName = getServiceClassName();
             chapter.setServiceClassName(serviceClassName);
-            chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
+            chapter.setRealName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
         });
         iAuthUserService.setDataMation(chapterList, Chapter::getCreateId);
         iAuthUserService.setDataMation(chapterList, Chapter::getLastUpdateId);

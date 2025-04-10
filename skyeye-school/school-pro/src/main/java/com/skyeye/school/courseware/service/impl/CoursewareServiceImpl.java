@@ -55,7 +55,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Courseware courseware = super.selectById(id);
         chapterService.setDataMation(courseware, Courseware::getChapterId);
         if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
-            courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
+            courseware.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
         }
 
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
@@ -91,7 +91,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         String serviceClassName = getServiceClassName();
         coursewareList.forEach(courseware -> {
             if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
-                courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
+                courseware.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
             }
             courseware.setServiceClassName(serviceClassName);
         });
