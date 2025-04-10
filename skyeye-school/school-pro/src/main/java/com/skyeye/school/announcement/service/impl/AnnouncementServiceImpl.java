@@ -131,12 +131,13 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     @Override
     public void updateUnConfirmNum(String id) {
         List<Announcement> announcementList = selectBySubjectClassesId(id);
-        for (Announcement announcement : announcementList) {
-            UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
-            updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum() + CommonNumConstants.NUM_ONE);
-            update(updateWrapper);
+        if (CollectionUtil.isEmpty(announcementList)){
+            return;
         }
+        for (Announcement announcement : announcementList) {
+            announcement.setUnConfirmNum(announcement.getUnConfirmNum() + CommonNumConstants.NUM_ONE);
+        }
+        super.updateEntity(announcementList,announcementList.get(CommonNumConstants.NUM_ZERO).getCreateId());
     }
 
     @Override
@@ -164,7 +165,8 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
 
     private List<Announcement> selectBySubjectClassesId(String id) {
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), id)
+            .eq(MybatisPlusUtil.toColumns(Announcement::getIsConfirm), CommonNumConstants.NUM_ONE);
         List<Announcement> announcementList = list(queryWrapper);
         return announcementList;
     }
