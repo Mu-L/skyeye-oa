@@ -80,11 +80,11 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         for (Map<String, Object> bean : beans) {
             String type = MybatisPlusUtil.toColumns(Checkwork::getType);
             if (bean.get(type).equals(CheckworkType.SCAN_THE_CODE.getKey())) {
-                bean.put(MybatisPlusUtil.toColumns(Checkwork::getCodeNumber), StrUtil.EMPTY);
+                bean.put("codeNumber", StrUtil.EMPTY);
             }
             if (bean.get(type).equals(CheckworkType.DIGIT.getKey())) {
-                bean.put(MybatisPlusUtil.toColumns(Checkwork::getSourceCode), StrUtil.EMPTY);
-                bean.put(MybatisPlusUtil.toColumns(Checkwork::getQrCodeUrl), StrUtil.EMPTY);
+                bean.put("sourceCode", StrUtil.EMPTY);
+                bean.put("qrCodeUrl", StrUtil.EMPTY);
             }
         }
         return beans;
