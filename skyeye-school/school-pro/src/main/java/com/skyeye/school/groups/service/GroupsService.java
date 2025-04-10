@@ -14,8 +14,6 @@ public interface GroupsService extends SkyeyeBusinessService<Groups> {
 
     void deleteGroups(String groupsInformationId);
 
-    List<Groups> selectByGroupsInformationId(String groupsInformationId);
-
     void deleteGroupsById(InputObject inputObject, OutputObject outputObject);
 
     void changeState(InputObject inputObject, OutputObject outputObject);

@@ -6,13 +6,13 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+import java.util.Map;
+
 @Data
-@RedisCacheField(name = "school:Groups", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "school_groups")
 @ApiModel(value = "学生分组实体类")
 public class Groups extends OperatorUserInfo {
@@ -22,7 +22,7 @@ public class Groups extends OperatorUserInfo {
     private String id;
 
     @TableField("group_name")
-    @ApiModelProperty(value = "组名称",required = "required")
+    @ApiModelProperty(value = "组名称", required = "required")
     private String groupName;
 
     @TableField("state")
@@ -30,7 +30,7 @@ public class Groups extends OperatorUserInfo {
     private Integer state;
 
     @TableField("group_barcode")
-    @ApiModelProperty(value = "加组二维码")
+    @ApiModelProperty(value = "加组码")
     private String groupBarcode;
 
     @TableField("gr_code_url")
@@ -44,4 +44,16 @@ public class Groups extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "学生分组信息")
     private GroupsInformation groupsInformationMation;
+
+    @TableField(exist = false)
+    @Property(value = "该分组下的学生列表")
+    private List<Map<String, Object>> students;
+
+    @TableField(exist = false)
+    @Property(value = "是否已加入该分组")
+    private Boolean isJoined;
+
+    @TableField(exist = false)
+    @Property("组下的成员数")
+    private Integer studentCount;
 }

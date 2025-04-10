@@ -3,7 +3,6 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -56,7 +55,6 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -143,7 +141,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     private SubjectClassesService subjectClassesService;
 
     @Autowired
+    private ExamSurveyMarkExamService examSurveyMarkExamService;
+
+    @Autowired
     private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
@@ -152,7 +156,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), id);
-        if (CollectionUtil.isNotEmpty(list(queryWrapper))){
+        if (CollectionUtil.isNotEmpty(list(queryWrapper))) {
             throw new CustomException("该试卷已回答,请勿重复回答");
         }
         String bgAnDate = entity.getBgAnDate();
@@ -286,9 +290,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         return list(queryWrapper);
     }
 
-    @Autowired
-    private ExamSurveyMarkExamService examSurveyMarkExamService;
-
     @Override
     public void queryAllSurveyList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -311,7 +312,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),starts);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
@@ -319,26 +320,33 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             userList = ExecuteFeignClient.get(() ->
                 iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
-        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
-        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
-        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).distinct().collect(Collectors.toList());
-        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).distinct().collect(Collectors.toList());
-        Map<String, List<School>> schoolMap = schoolService.selectByIdList(schoolIds);
-        Map<String, ExamSurveyDirectory> surveyMap = examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
-        Map<String, List<Faculty>> facultyMap = facultyService.selectByIdList(facultyIds);
-        Map<String, List<Major>> majorMap = majorService.selectByIdList(majorIds);
+        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+
+        Map<String, List<School>> schoolMap = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
+        Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
+        Map<String, List<Major>> majorMap = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
+            .filter(user -> user.get("studentNumber") != null) // 过滤空学号
             .collect(Collectors.toMap(
                 user -> user.get("studentNumber").toString(),
                 Function.identity(),
                 (oldValue, newValue) -> oldValue
             ));
+
         for (ExamSurveyAnswer answer : list) {
-            answer.setSchoolMation(schoolMap.get(answer.getSchoolId()).get(CommonNumConstants.NUM_ZERO));
+            List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
+            answer.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
-            answer.setFacultyMation(facultyMap.get(answer.getFacultyId()).get(CommonNumConstants.NUM_ZERO));
-            answer.setMajorMation(majorMap.get(answer.getMajorId()).get(CommonNumConstants.NUM_ZERO));
-            answer.setStuMation(userMap.get(answer.getStudentNumber()));
+            List<Faculty> faculties = facultyMap.getOrDefault(answer.getFacultyId(), Collections.emptyList());
+            answer.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
+            List<Major> majors = majorMap.getOrDefault(answer.getMajorId(), Collections.emptyList());
+            answer.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+            String studentNumber = answer.getStudentNumber();
+            answer.setStuMation(StrUtil.isNotBlank(studentNumber) ? userMap.get(studentNumber) : null);
         }
         iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);
@@ -360,9 +368,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), IntState);
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
-
-    @Autowired
-    private SchoolCommonService schoolCommonService;
 
     @Override
     public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
@@ -409,7 +414,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String[] split = classId.split(",");
         List<String> classIds = Arrays.asList(split);
         String subjectId = examSurveyDirectory.getSubjectId();
-        Boolean yesOrNo = false;
+        boolean yesOrNo = false;
         UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
         if (ObjectUtil.isEmpty(userOrStudent)) {
             throw new CustomException("用户不存在");

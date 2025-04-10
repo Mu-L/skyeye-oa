@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.groups.controller;
 
 import com.skyeye.annotation.api.Api;
@@ -28,18 +32,10 @@ public class GroupsStudentController {
 
     @ApiOperation(id = "exitGroups", value = "退出分组", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "groupsId", name = "groupsId", value = "分组id", required = "required")})
     @RequestMapping("/post/GroupsStudentController/exitGroups")
     public void exitGroups(InputObject inputObject, OutputObject outputObject) {
-        groupsStudentService.deleteById(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "selectGroupsByStuNumber", value = "获取学生所在分组", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "studentNumber", name = "studentNumber", value = "学号", required = "required")})
-    @RequestMapping("/post/GroupsStudentController/selectGroupsByStuNumber")
-    public void selectGroupsByStuNumber(InputObject inputObject, OutputObject outputObject) {
-        groupsStudentService.selectGroupsByStuNumber(inputObject, outputObject);
+        groupsStudentService.exitGroups(inputObject, outputObject);
     }
 
 }

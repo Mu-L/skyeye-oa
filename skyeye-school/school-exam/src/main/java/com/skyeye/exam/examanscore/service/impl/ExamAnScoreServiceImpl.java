@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,17 +36,28 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
     @Override
     protected void updatePostpose(ExamAnScore entity, String userId) {
         List<ExamAnScore> chenCheckboxAn = entity.getScoreAn();
-        List<ExamAnScore> NoIdChenFbk = chenCheckboxAn.stream().filter(
-            e -> StrUtil.isEmpty(e.getId())
-        ).collect(Collectors.toList());
-        List<ExamAnScore> YesIdChenFbk = chenCheckboxAn.stream().filter(
-            e -> StrUtil.isNotEmpty(e.getId())
-        ).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
-            super.createEntity(NoIdChenFbk, userId);
+        QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnScore> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnScore> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnScore> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnScore::getId).collect(Collectors.toSet());
+        List<ExamAnScore> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnScore::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
         }
-        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
-            super.updateEntity(YesIdChenFbk, userId);
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 

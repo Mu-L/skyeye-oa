@@ -25,6 +25,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.announcement.service.AnnouncementService;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
@@ -73,6 +74,10 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private AnnouncementService announcementService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinSubjectClasses(InputObject inputObject, OutputObject outputObject) {
@@ -97,12 +102,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             throw new CustomException("您在这个课程里面，已经是老师/助教不能重复加入");
         }
         Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
-        if (!certification.containsKey("state")) {
-            throw new CustomException("请先进行学生认证");
-        }
-        if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
-            throw new CustomException("认证信息未通过审核，不允许加入课程班级");
-        }
+        schoolCommonService.checkUserCertification(certification);
         String studentNumber = certification.get("studentNumber").toString();
         String classId = studentService.getStudents(studentNumber).getClassId();
         if (!classId.equals(subjectClasses.getClassesId())) {
@@ -169,7 +169,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         if (subjectClasses.getQuit() == WhetherEnum.DISABLE_USING.getKey()) {
             throw new CustomException("对不起，现在不能退课");
         }
-        announcementService.delectBySubClassLinkId(subjectClassesStu.getSubClassLinkId(),subjectClassesStu.getStuNo());
+        announcementService.delectBySubClassLinkId(subjectClassesStu.getSubClassLinkId(), subjectClassesStu.getStuNo());
     }
 
     @Override

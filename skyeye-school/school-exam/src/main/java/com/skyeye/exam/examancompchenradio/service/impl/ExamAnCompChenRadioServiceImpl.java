@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -44,17 +45,28 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     protected void updatePostpose(ExamAnCompChenRadio entity, String userId) {
         List<ExamAnCompChenRadio> chenCheckboxAn = entity.getCompChenRadioAn();
-        List<ExamAnCompChenRadio> NoIdChenFbk = chenCheckboxAn.stream().filter(
-            e -> StrUtil.isEmpty(e.getId())
-        ).collect(Collectors.toList());
-        List<ExamAnCompChenRadio> YesIdChenFbk = chenCheckboxAn.stream().filter(
-            e -> StrUtil.isNotEmpty(e.getId())
-        ).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(NoIdChenFbk)) {
-            super.createEntity(NoIdChenFbk, userId);
+        QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
+        List<ExamAnCompChenRadio> examAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<ExamAnCompChenRadio> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<ExamAnCompChenRadio> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnCompChenRadio::getId).collect(Collectors.toSet());
+        List<ExamAnCompChenRadio> result = examAnChenCheckboxList.stream().filter(
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(ExamAnCompChenRadio::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
         }
-        if (CollectionUtil.isNotEmpty(YesIdChenFbk)) {
-            super.updateEntity(YesIdChenFbk, userId);
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 

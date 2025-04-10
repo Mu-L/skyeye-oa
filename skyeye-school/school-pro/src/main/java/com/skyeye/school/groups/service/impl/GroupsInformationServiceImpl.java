@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.groups.service.impl;
 
 import cn.hutool.core.util.StrUtil;
@@ -20,7 +24,6 @@ import com.skyeye.school.groups.service.GroupsInformationService;
 import com.skyeye.school.groups.service.GroupsService;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import com.skyeye.school.subject.service.impl.SubjectClassesServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @ClassName: GroupsInformationServiceImpl
+ * @Description: 学生分组信息管理服务类
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/4/10 9:07
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
 @SkyeyeService(name = "学生分组信息管理", groupName = "分组管理")
 public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<GroupsInformationDao, GroupsInformation> implements GroupsInformationService {
@@ -38,7 +49,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
     @Autowired
     private GroupsService groupsService;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(GroupsInformationServiceImpl.class);
 
     @Override
     public QueryWrapper<GroupsInformation> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -50,7 +61,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubjectId), commonPageInfo.getHolderId());
         }
-        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsInformation::getSubjectClassId), commonPageInfo.getObjectId());
         }
         return queryWrapper;
@@ -70,39 +81,27 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
             if (size < groNumber) {
                 throw new CustomException("学生人数不足,无法创建分组");
             }
-            groupsService.insertList(groupsInformation);
         }
         if (status.equals(CommonNumConstants.NUM_ONE)) {
             Integer groupsnun = groupsInformation.getGroupsNum();
             if (groupsnun == null) {
                 throw new CustomException("分组数量未设置");
             }
-        }
-    }
-
-    @Override
-    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
-        List<SubjectClassesStu> allStuNum = subjectClassesStuService.selectNumBySubClassLinkId(groupsInformation.getSubjectClassId());
-        int size = allStuNum.size();
-        Integer groupsnun = groupsInformation.getGroupsNum();
-        int num;
-        int numGroups;
-        if (size > groupsnun) {
-            num = size % groupsnun;
+            int numGroups;
+            int num = size % groupsnun;
             if (num != 0) {
                 numGroups = size / groupsnun + 1;
             } else {
                 numGroups = size / groupsnun;
             }
-            UpdateWrapper<GroupsInformation> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, groupsInformation.getId());
-            updateWrapper.set(MybatisPlusUtil.toColumns(GroupsInformation::getGroupsNumber), numGroups);
-            update(updateWrapper);
-        } else {
-            throw new CustomException("学生人数不足,无法创建分组");
+            groupsInformation.setGroupsNumber(numGroups);
         }
-        GroupsInformation groupsInformation1 = selectById(groupsInformation.getId());
-        groupsService.insertList(groupsInformation1);
+
+    }
+
+    @Override
+    protected void createPostpose(GroupsInformation groupsInformation, String userId) {
+        groupsService.insertList(groupsInformation);
     }
 
     @Override
