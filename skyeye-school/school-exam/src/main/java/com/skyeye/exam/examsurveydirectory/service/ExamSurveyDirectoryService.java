@@ -46,5 +46,9 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     Map<String, ExamSurveyDirectory> selectMapBysurveyIds(List<String> surveyIds);
 
+    Long queryClassExamSurveyDirectoryNum(String id);
+
+    List<String> queryDirectoryIdsByClassId(String classId);
+
 //    void queryExamFxById(InputObject inputObject, OutputObject outputObject);
 }

@@ -267,13 +267,9 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         if (CollectionUtil.isEmpty(ids)) {
             return sum;
         }
-        for (String assignmentId : ids) {
-            QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assignmentId)
-                .select(MybatisPlusUtil.toColumns(AssignmentSub::getId));
-            long total = count(queryWrapper);
-            sum += total;
-        }
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
+        sum = count(queryWrapper);
         return sum;
     }
 
