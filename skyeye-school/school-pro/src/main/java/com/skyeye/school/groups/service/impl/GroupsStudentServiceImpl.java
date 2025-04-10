@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.groups.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
@@ -31,6 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @ClassName: GroupsStudentServiceImpl
+ * @Description: 学生与分组的关系管理服务类
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/4/10 9:45
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
 @SkyeyeService(name = "学生与分组的关系管理", groupName = "分组管理")
 public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsStudentDao, GroupsStudent> implements GroupsStudentService {
@@ -108,9 +120,7 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             return;
         }
 
-//        groupsStudent.setStudentNumber(studentNumber);
         groupsStudent.setCreateTime(DateUtil.getTimeAndToString());
-//        groupsStudent.setGroupId(groupsStudent.getGroupId());
         createEntity(groupsStudent, StrUtil.EMPTY);
         GroupsInformation groupsInformation = getGroupsInformation(groupsStudent.getGroupId());
         groupsInformationService.editGroupsInformationStuNum(groupsInformation.getId(), true);
