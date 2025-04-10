@@ -53,6 +53,8 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             .orderByAsc(MybatisPlusUtil.toColumns(Chapter::getSection));
         List<Chapter> chapterList = list(queryWrapper);
         chapterList.forEach(chapter -> {
+            String serviceClassName = getServiceClassName();
+            chapter.setServiceClassName(serviceClassName);
             chapter.setName(String.format(Locale.ROOT, "第 %s 章 %s", chapter.getSection(), chapter.getName()));
         });
         iAuthUserService.setDataMation(chapterList, Chapter::getCreateId);
@@ -79,8 +81,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             return;
         }
         List<Object> beans = new ArrayList<>();
-
-
         // 按章节分开的作业分析--
         Map<String, Map<String, Object>> assAnaMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, null);
         // 全部作业分析
