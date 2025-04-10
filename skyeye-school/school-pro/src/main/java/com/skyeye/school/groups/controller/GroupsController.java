@@ -4,7 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.groups.service.GroupsService;
@@ -19,11 +19,11 @@ public class GroupsController {
     @Autowired
     private GroupsService groupsService;
 
-    @ApiOperation(id = "queryGroupsList", value = "获取学生分组列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiOperation(id = "queryGroupsList", value = "根据分组信息id查询分组列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GroupsController/queryGroupsList")
     public void queryGroupsList(InputObject inputObject, OutputObject outputObject) {
-        groupsService.queryPageList(inputObject, outputObject);
+        groupsService.queryList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteGroupsById", value = "根据Id删除学生分组", method = "DELETE", allUse = "2")
@@ -41,6 +41,14 @@ public class GroupsController {
     @RequestMapping("/post/GroupsController/changeState")
     public void changeState(InputObject inputObject, OutputObject outputObject) {
         groupsService.changeState(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryGroupsById", value = "根据Id查询学生分组", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/GroupsController/queryGroupsById")
+    public void queryGroupsById(InputObject inputObject, OutputObject outputObject) {
+        groupsService.selectById(inputObject, outputObject);
     }
 
 }

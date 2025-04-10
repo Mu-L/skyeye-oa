@@ -19,8 +19,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
-import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.score.dao.ScoreTypeDao;
 import com.skyeye.school.score.entity.*;
 import com.skyeye.school.score.service.*;
@@ -57,6 +57,9 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
 
     @Autowired
     private ICertificationService iCertificationService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
 
     @Override
     public void createPrepose(ScoreType scoreType) {
@@ -199,12 +202,7 @@ public class ScoreTypeServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeDao
         }
         if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             Map<String, Object> certification = iCertificationService.queryCertificationById(inputObject.getLogParams().get("id").toString());
-            if (!certification.containsKey("state")) {
-                throw new CustomException("请先进行学生认证");
-            }
-            if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
-                throw new CustomException("认证信息未通过审核，不允许加入课程班级");
-            }
+            schoolCommonService.checkUserCertification(certification);
             String studentNumber = certification.get("studentNumber").toString();
             List<ScorePart> scorePartList = scorePartService.queryByObjectIdList(scoreTypeIdList, studentNumber);
             ScoreSum scoreSum = scoreSumService.queryByObjectIdListAndStuNo(Arrays.asList(bean.getId()), studentNumber).get(CommonNumConstants.NUM_ZERO);

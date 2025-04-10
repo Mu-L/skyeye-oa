@@ -31,12 +31,6 @@ public class SubjectClassesStuController {
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
-    /**
-     * 加入课程班级
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "joinSubjectClasses", value = "加入课程班级", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubjectClassesStu.class)
     @RequestMapping("/post/SubjectClassesStuController/joinSubjectClasses")
@@ -44,12 +38,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.joinSubjectClasses(inputObject, outputObject);
     }
 
-    /**
-     * 退出课程班级
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "exitSubjectClasses", value = "退出课程班级", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -67,12 +55,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.queryAllStudentById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表与班级表关系id和学号查询单人学生信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStudentSubjectClassesBySubClassLinkIdAndStuNo", value = "根据科目表与班级表关系id和学号查询单人学生信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),
@@ -82,12 +64,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.queryStudentSubjectClassesBySubClassLinkIdAndStuNo(inputObject, outputObject);
     }
 
-    /**
-     * 根据学号和科目表与班级表关系Id查询科目表与班级表关系下的学生信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryIdBysubClassLinkIdAndstuNo", value = "根据学号和科目表与班级表关系Id查询科目表与班级表关系下的学生信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),
@@ -97,12 +73,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.queryIdBysubClassLinkIdAndstuNo(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询科目与班级的关系信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteUserById", value = "根据id删除学生信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),
@@ -112,12 +82,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.deleteUserById(inputObject, outputObject);
     }
 
-    /**
-     * 学生奖励学生星星
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateRewardNumberById", value = "学生奖励学生星星", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "stuNo", name = "stuNo", value = "学号", required = "required"),
@@ -128,12 +92,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.updateRewardNumberById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表与班级表关系id查询学生奖励星星列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectRewardList", value = "根据班级id查询学生奖励星星列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required")})
@@ -142,12 +100,6 @@ public class SubjectClassesStuController {
         subjectClassesStuService.selectRewardList(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目表与班级表关系id查询学生分组
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectStudentList", value = "根据科目表与班级表关系id新增学生分组", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),

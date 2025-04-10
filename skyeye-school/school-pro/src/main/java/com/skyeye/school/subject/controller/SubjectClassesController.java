@@ -72,7 +72,7 @@ public class SubjectClassesController {
 
     @ApiOperation(id = "querySubjectClassesById", value = "根据id查询科目与班级的关系信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "编码", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "科目与班级的关系id", required = "required")})
     @RequestMapping("/post/SubjectClassesController/querySubjectClassesById")
     public void querySubjectClassesById(InputObject inputObject, OutputObject outputObject) {
         subjectClassesService.selectById(inputObject, outputObject);

@@ -101,9 +101,7 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
 
     @Override
     protected void createPostpose(GroupsInformation groupsInformation, String userId) {
-        if (groupsInformation.getStatus().equals(CommonNumConstants.NUM_ONE)) {
-            groupsService.insertList(groupsInformation);
-        }
+        groupsService.insertList(groupsInformation);
     }
 
     @Override
