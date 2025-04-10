@@ -45,6 +45,7 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     protected void updatePostpose(ExamAnChenRadio entity, String userId) {
         List<ExamAnChenRadio> chenCheckboxAn = entity.getChenRadioAn();
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
@@ -56,9 +57,6 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenRadio::getId).collect(Collectors.toSet());
         List<ExamAnChenRadio> result = examAnChenCheckboxList.stream().filter(
             e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
-        List<ExamAnChenRadio> intersection = examAnChenCheckboxList.stream()
-            .filter(e -> yesIdSet.contains(e.getId()))
-            .collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(ExamAnChenRadio::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);
@@ -66,8 +64,8 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
             super.createEntity(NoIdChenCheckbox, userId);
         }
-        if (CollectionUtil.isNotEmpty(intersection)) {
-            super.updateEntity(intersection, userId);
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 
