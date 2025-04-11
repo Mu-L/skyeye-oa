@@ -1,11 +1,18 @@
 package com.skyeye.school.route.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.route.dao.RouteStopDao;
 import com.skyeye.school.route.entity.RouteStop;
 import com.skyeye.school.route.service.RouteStopService;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: RouteStopServiceImpl
@@ -18,4 +25,12 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "路线站点服务", groupName = "路线站点服务")
 public class RouteStopServiceImpl extends SkyeyeBusinessServiceImpl<RouteStopDao, RouteStop> implements RouteStopService {
+    @Override
+    public Map<String, List<RouteStop>> queryStopListGroupByRoteIds(List<String> routeIds) {
+        QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(RouteStop::getRouteId), routeIds);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
+        List<RouteStop> routeStops = list(queryWrapper);
+        return routeStops.stream().collect(Collectors.groupingBy(RouteStop::getRouteId));
+    }
 }

@@ -9,6 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.checkwork.entity.Checkwork;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,5 +30,7 @@ public interface CheckworkService extends SkyeyeBusinessService<Checkwork> {
 
     Long queryCheckWorkNum(String id);
 
-    Long queryStuCheckWorkNum(String id, String stuId);
+    Map<String, Long> queryStuCheckWorkNumBySubClassesId(String id, List<String> stuIds);
+
+    List<Checkwork> queryCheckworkList(String subjectLinkClassId);
 }

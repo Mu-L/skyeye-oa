@@ -3,6 +3,9 @@ package com.skyeye.school.topiccomment.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.school.topiccomment.entity.TopicComment;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: TopicCommentService
  * @Description: 话题评论服务接口层
@@ -16,5 +19,5 @@ public interface TopicCommentService extends SkyeyeBusinessService<TopicComment>
 
     Long queryClassTopicJoinPersonNum(String id);
 
-    Long queryStuTopicCommentNum(String topicId, String stuId);
+    Map<String, Long> queryCommentNumByTopicIdsAndStuIds(List<String> topicIds, List<String> stuIds);
 }

@@ -29,4 +29,6 @@ public interface CoursewareStudyService extends SkyeyeBusinessService<Courseware
     double queryCoursewareFinshRate(List<String> ids, Long classNum);
 
     List<CoursewareStudy> queryCoursewareSubByCoursewareIds(List<String> coursewareIds);
+
+    Map<String, Long> queryStuCourByCourIdsAndStuIds(List<String> coursewareIds, List<String> stuIds);
 }

@@ -35,10 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -195,10 +192,16 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         unsignedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), id);
         unsignedqueryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.NOT_SIGN.getKey());
         long unsignedCount = checkworkSignService.count(unsignedqueryWrapper);
+        // 查询迟到的数量
+        QueryWrapper<CheckworkSign> latequeryWrapper = new QueryWrapper<>();
+        latequeryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), id);
+        latequeryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.LATE_SIGN.getKey());
+        long lateCount = checkworkSignService.count(latequeryWrapper);
         //返回
         Map<String, Integer> result = new HashMap<>();
         result.put("signedCount", (int) signedCount);
         result.put("unsignedCount", (int) unsignedCount);
+        result.put("lateCount", (int) lateCount);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -212,19 +215,22 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
     }
 
     @Override
-    public Long queryStuCheckWorkNum(String id, String stuId) {
-        Long sum = 0L;
+    public Map<String, Long> queryStuCheckWorkNumBySubClassesId(String id, List<String> stuIds) {
         QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), id);
         List<Checkwork> beans = list(queryWrapper);
         if (CollectionUtil.isEmpty(beans)) {
-            return sum;
+            return Collections.emptyMap();
         }
         List<String> ids = beans.stream().map(Checkwork::getId).collect(Collectors.toList());
-        for (String checkWorkId : ids) {
-            Long temp = checkworkSignService.queryStuCheckWorkSignNum(checkWorkId, stuId);
-            sum += temp;
-        }
-        return sum;
+        return checkworkSignService.queryStuCheckWorkSignNums(ids, stuIds);
+    }
+
+    @Override
+    public List<Checkwork> queryCheckworkList(String subjectLinkClassId) {
+        QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), subjectLinkClassId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Checkwork::getCreateTime));
+        return list(queryWrapper);
     }
 }

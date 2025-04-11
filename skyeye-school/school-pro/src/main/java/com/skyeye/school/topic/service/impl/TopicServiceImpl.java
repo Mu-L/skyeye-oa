@@ -20,6 +20,7 @@ import com.skyeye.school.topiccomment.service.TopicCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -98,25 +99,15 @@ public class TopicServiceImpl extends SkyeyeBusinessServiceImpl<TopicDao, Topic>
     }
 
     @Override
-    public Long queryStuTopicCommentNum(String id, String stuId) {
-        Long sum = 0L;
-        List<String> topicIds = queryTopicIdsBySubjectClassesId(id);
-        if (CollectionUtil.isEmpty(topicIds)) {
-            return sum;
-        }
-        for (String topicId : topicIds) {
-           Long temp =  topicCommentService.queryStuTopicCommentNum(topicId, stuId);
-           sum += temp;
-        }
-        return sum;
-    }
-
-    @Override
-    public Long queryStuTopicNum(String id, String stuId) {
+    public Map<String, Long> queryStuCommentNumBySubClassesId(String id, List<String> stuIds) {
         QueryWrapper<Topic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id)
-                .eq(MybatisPlusUtil.toColumns(Topic::getCreateId), stuId);
-        return count(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id);
+        List<Topic> topics = list(queryWrapper);
+        if (CollectionUtil.isEmpty(topics)) {
+            return Collections.emptyMap();
+        }
+        List<String> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
+        return topicCommentService.queryCommentNumByTopicIdsAndStuIds(topicIds, stuIds);
     }
 
     @Override

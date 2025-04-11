@@ -3,7 +3,6 @@ package com.skyeye.school.datum.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.datum.entity.Datum;
 
 import java.util.List;
@@ -23,4 +22,6 @@ public interface DatumService extends SkyeyeBusinessService<Datum> {
     Map<String, Double> queryDatumByChapterId(Long classNum,String ...ids);
 
     Long queryClassDataNum(String subjectId);
+
+    Map<String, Long> queryDatumBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds, List<String> stuIds);
 }

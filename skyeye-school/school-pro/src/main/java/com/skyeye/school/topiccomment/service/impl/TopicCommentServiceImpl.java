@@ -18,7 +18,7 @@ import com.skyeye.school.topiccomment.service.TopicCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -109,10 +109,14 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
     }
 
     @Override
-    public Long queryStuTopicCommentNum(String topicId, String stuId) {
+    public Map<String, Long> queryCommentNumByTopicIdsAndStuIds(List<String> topicIds, List<String> stuIds) {
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicId)
-                .eq(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuId);
-        return count(queryWrapper);
+        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuIds);
+        List<TopicComment> list = list(queryWrapper);
+        if(CollectionUtil.isEmpty(list)){
+            return Collections.emptyMap();
+        }
+        return list.stream().collect(Collectors.groupingBy(TopicComment::getTopicId, Collectors.counting()));
     }
 }

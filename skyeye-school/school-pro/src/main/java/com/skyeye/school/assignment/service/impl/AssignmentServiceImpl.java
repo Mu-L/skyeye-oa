@@ -259,6 +259,34 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         return resultMap;
     }
 
+    @Override
+    public Map<String, Long> queryAssignmentBySubjectClassesIdAndChapterIds(String subjectClassesId, List<String> chapterIds) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
+        List<Assignment> assignments = list(queryWrapper);
+        if(CollectionUtil.isEmpty(assignments)){
+            return Collections.emptyMap();
+        }
+        // 统计每个章节的资料数量stream流
+        Map<String, Long> resultMap = assignments.stream().collect(Collectors.groupingBy(Assignment::getChapterId, Collectors.counting()));
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassesId, List<String> chapterIds, List<String> stuIds) {
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
+        List<Assignment> assignments = list(queryWrapper);
+        if(CollectionUtil.isEmpty(assignments)){
+            return Collections.emptyMap();
+        }
+        List<String> assIds = assignments.stream().map(Assignment::getId).collect(Collectors.toList());
+        Map<String, Long> map  = assignmentSubService.queryStuAssignNumByAssIds(assIds, stuIds);
+        return map;
+    }
+
     // 查询科目班级id作业数量
     @Override
     public Long queryClassAssignmentNum(String id, String chapterId) {
@@ -276,17 +304,6 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         List<Assignment> list = list(queryWrapper);
         return list.stream().map(Assignment::getId).collect(Collectors.toList());
-    }
-
-    @Override
-    public Long queryStuAssignmentNum(String id, String stuId, String chapterId) {
-        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
-        if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
-        }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getCreateId), stuId);
-        return count(queryWrapper);
     }
 
     @Override

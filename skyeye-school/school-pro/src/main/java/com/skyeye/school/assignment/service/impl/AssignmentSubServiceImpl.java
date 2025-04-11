@@ -284,4 +284,16 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         return list;
     }
 
+    @Override
+    public Map<String, Long> queryStuAssignNumByAssIds(List<String> assIds, List<String> stuIds) {
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), stuIds);
+        List<AssignmentSub> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyMap();
+        }
+        return list.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId, Collectors.counting()));
+    }
+
 }

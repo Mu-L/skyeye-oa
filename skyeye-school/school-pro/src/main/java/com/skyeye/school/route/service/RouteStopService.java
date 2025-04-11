@@ -3,6 +3,9 @@ package com.skyeye.school.route.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.school.route.entity.RouteStop;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: RouteStopService
  * @Description: 路线站点服务管理接口
@@ -12,4 +15,5 @@ import com.skyeye.school.route.entity.RouteStop;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface RouteStopService extends SkyeyeBusinessService<RouteStop> {
+    Map<String, List<RouteStop>> queryStopListGroupByRoteIds(List<String> routeIds);
 }
