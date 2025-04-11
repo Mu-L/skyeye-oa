@@ -2,6 +2,7 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -50,6 +51,8 @@ import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.exam.service.ExamService;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
@@ -58,7 +61,10 @@ import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
+import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -555,7 +561,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             int answerNum = answerNumMap.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : answerNumMap.get(examSurveyDirectory.getId());
             // 获取未回答的人数
             int unSubmitNum = stuNum - answerNum;
-            unSubmitNum = unSubmitNum ==-1 ? CommonNumConstants.NUM_ONE : unSubmitNum;
+            unSubmitNum = unSubmitNum == -1 ? CommonNumConstants.NUM_ONE : unSubmitNum;
             examSurveyDirectory.setUnSubmitNum(unSubmitNum);
             // 未批阅
             int unReadNum = answerNum - readNum;
@@ -623,15 +629,108 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public Long queryClassExamSurveyDirectoryNum(String classId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId),classId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
         return count(queryWrapper);
     }
 
     @Override
     public List<String> queryDirectoryIdsByClassId(String classId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId),classId);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
         return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+    }
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Override
+    public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        // 学生老师的userId
+        String userId = inputObject.getLogParams().get("id").toString();
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
+        if (userOrStudent.getUserOrStudent().equals(true)) {
+            // 学生
+            Map<String, Object> dataMation = userOrStudent.getDataMation();
+            String studentNumber = dataMation.get("studentNumber").toString();
+            if (StrUtil.isEmpty(studentNumber)) {
+                return;
+            }
+            SubjectClassesStu subjectClassesStu = subjectClassesStuService.querySubClassLinkIdByStuNumberNo(studentNumber);
+            if (ObjectUtil.isNotEmpty(subjectClassesStu)) {
+                SubjectClasses subjectClasses = subjectClassesService.queryClassBySubClassLinkId(subjectClassesStu.getSubClassLinkId());
+                String classesId = subjectClasses.getClassesId();
+                List<String> directoryIds = queryDirectoryIdsByClassId(classesId);
+                if (CollectionUtil.isEmpty(directoryIds)) {
+                    return;
+                }
+                List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByUserId(userId);
+                if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
+                    return;
+                }
+                List<String> yesDoSurveyList = examSurveyAnswerList.stream()
+                    .map(ExamSurveyAnswer::getSurveyId)
+                    .collect(Collectors.toList());
+                List<String> resultIds = directoryIds.stream()
+                    .filter(id -> !yesDoSurveyList.contains(id))
+                    .collect(Collectors.toList());
+
+                if (resultIds.isEmpty()) {
+                    return ;
+                }
+                Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+                QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+                queryWrapper.in(CommonConstants.ID, resultIds);
+                List<ExamSurveyDirectory> examSurveyDirectories = list(queryWrapper);
+                outputObject.settotal(page.getTotal());
+                outputObject.setBeans(examSurveyDirectories);
+            }
+        } else {
+            // 老师
+            List<SubjectClasses> subjectClassesList = subjectClassesService.selectByCreateId(userId);
+            if (CollectionUtil.isEmpty(subjectClassesList)) {
+                return;
+            }
+            List<String> classIds = subjectClassesList.stream().map(SubjectClasses::getClassesId).collect(Collectors.toList());
+            List<String> examSurveyDirectories = queryDirectoryIdsByClassIds(classIds);
+            List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
+            if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
+                return;
+            }
+            List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
+                .collect(Collectors.toList());
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+            if (CollectionUtil.isEmpty(examSurveyDirectories)) {
+                return ;
+            }
+            queryWrapper.in(CommonConstants.ID, examSurveyDirectories);
+            List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+            List<ExamSurveyDirectory> examSurveyDirectoryList1 = examSurveyDirectoryList.stream()
+                .peek(directory -> {
+                    directory.setIsAnswered(yesDoSurveyList.contains(directory.getId()));
+                }).collect(Collectors.toList());
+
+            outputObject.settotal(page.getTotal());
+            outputObject.setBeans(examSurveyDirectoryList1);
+        }
+    }
+
+    private List<String> queryDirectoryIdsByClassIds(List<String> classIds) {
+        if (CollectionUtil.isEmpty(classIds)){
+            return new ArrayList<>();
+        }
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds);
+        return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+    }
+
+    private List<ExamSurveyDirectory> queryMySurveyListByIds(QueryWrapper<ExamSurveyDirectory> queryWrapper, List<String> directoryIds, String userId) {
+
+        return list(queryWrapper);
     }
 
     @Override

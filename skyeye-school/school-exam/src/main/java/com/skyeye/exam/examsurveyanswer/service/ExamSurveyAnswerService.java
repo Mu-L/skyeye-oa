@@ -38,4 +38,8 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void IsTakeSurveyAnswer(InputObject inputObject, OutputObject outputObject);
 
     Long queryClassExamSurveyAnswerNum(String id);
+
+    List<ExamSurveyAnswer> selectSurveyIdByUserId(String userId);
+
+    List<ExamSurveyAnswer> selectSurveyIdByteacherId(String userId);
 }

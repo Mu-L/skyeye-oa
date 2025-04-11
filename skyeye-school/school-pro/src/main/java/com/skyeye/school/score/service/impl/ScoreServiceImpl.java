@@ -10,12 +10,15 @@ import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreDao;
 import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,9 +53,14 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     private ScoreTypeChildService scoreTypeChildService;
 
     @Override
-    public void deleteByObjectId(String objectId) {
+    public void deleteByObjectId(String... objectId) {
+        List<String> idList = Arrays.asList(objectId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return;
+        }
         QueryWrapper<Score> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Score::getObjectId), objectId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Score::getObjectId), idList);
         remove(queryWrapper);
     }
 
@@ -125,7 +134,8 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     }
 
     @Override
-    public void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId, String score) {
+    public void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId,
+                                   String nameLinkKey, String nameLinkName, String score) {
         // 查询这个课程与班级下的所有成绩类型
         List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
         List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
@@ -135,7 +145,11 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         // 1. 先查询出 scoreTypeChildId
         ScoreTypeChild scoreTypeChild = scoreTypeChildrenList.stream()
             .filter(item -> item.getNameLinkId().equals(nameLinkId)).findFirst().orElse(null);
-        if (ObjectUtil.isNotEmpty(scoreTypeChild)) {
+        if (ObjectUtil.isEmpty(scoreTypeChild)) {
+            // 如果没有这个成绩类型，则先初始化
+            initNameLinkMation(subjectId, subClassLinkId, nameLinkId, nameLinkKey, nameLinkName);
+            // 再更新学生的成绩
+            updateStudentScore(subjectId, subClassLinkId, studentNumber, nameLinkId, nameLinkKey, nameLinkName, score);
             return;
         }
         scoreList.forEach(item -> {
@@ -145,6 +159,21 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         });
 
         calculateScore(scoreTypeChildrenList, scoreList);
+    }
+
+    private void initNameLinkMation(String subjectId, String subClassLinkId, String nameLinkId, String nameLinkKey, String nameLinkName) {
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.select(subjectId, subClassLinkId, NumberCodeEnum.WORK.getKey());
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+
+        ScoreTypeChild scoreTypeChild1 = new ScoreTypeChild();
+        scoreTypeChild1.setSubjectId(subjectId);
+        scoreTypeChild1.setSubClassLinkId(subClassLinkId);
+        scoreTypeChild1.setName(nameLinkName);
+        scoreTypeChild1.setNameLinkId(nameLinkId);
+        scoreTypeChild1.setNameLinkKey(nameLinkKey);
+        scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
 
     @Override
@@ -185,6 +214,30 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         // 查询这个学生的成绩
         List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 计算成绩
+        calculateScore(scoreTypeChildrenList, scoreList);
+    }
+
+    @Override
+    public void updateScore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        List<Map<String, Object>> scoreMapList = JSONUtil.toList(params.get("scoreList").toString(), null);
+        Map<String, String> scoreMap = scoreMapList.stream()
+            .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item.get("score").toString()));
+
+        // 查询这个课程与班级下的所有成绩类型
+        List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
+        List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        // 查询这个学生的成绩
+        List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 更新学生的成绩
+        scoreList.forEach(item -> {
+            if (scoreMap.containsKey(item.getId())) {
+                item.setScore(scoreMap.get(item.getId()));
+            }
+        });
         // 计算成绩
         calculateScore(scoreTypeChildrenList, scoreList);
     }

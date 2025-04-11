@@ -5,6 +5,7 @@
 package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -486,5 +487,15 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             return rewardTwo.compareTo(rewardOne);
         });
         return userList;
+    }
+
+    public SubjectClassesStu querySubClassLinkIdByStuNumberNo(String studentNumber) {
+        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), studentNumber);
+        SubjectClassesStu subjectClassesStu = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(subjectClassesStu)) {
+            return subjectClassesStu;
+        }
+        return new SubjectClassesStu();
     }
 }

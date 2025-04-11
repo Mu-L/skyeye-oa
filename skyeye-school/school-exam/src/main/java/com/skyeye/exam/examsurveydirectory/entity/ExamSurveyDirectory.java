@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
@@ -17,7 +16,6 @@ import com.skyeye.school.semester.entity.Semester;
 import com.skyeye.school.subject.entity.Subject;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -162,5 +160,9 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "未交数量")
     private Integer unSubmitNum;
+
+    @TableField(exist = false)
+    @Property(value = "未交数量")
+    private Boolean isAnswered;
 
 }

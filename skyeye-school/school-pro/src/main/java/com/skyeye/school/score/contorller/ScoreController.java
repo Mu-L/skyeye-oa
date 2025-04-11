@@ -30,13 +30,14 @@ public class ScoreController {
     @Autowired
     private ScoreService scoreService;
 
-    @ApiOperation(id = "updateScorePartScore", value = "修改分数信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "updateScore", value = "修改分数信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "score", name = "score", value = "成绩", required = "required")})
-    @RequestMapping("/post/ScorePartController/updateScorePartScore")
-    public void updateScorePartScore(InputObject inputObject, OutputObject outputObject) {
-//        scoreService.updateScorePart(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"),
+        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),
+        @ApiImplicitParam(id = "scoreList", name = "scoreList", value = "成绩信息列表，格式：[{'id':'成绩id','score':'分数'},...]", required = "required,json")})
+    @RequestMapping("/post/ScorePartController/updateScore")
+    public void updateScore(InputObject inputObject, OutputObject outputObject) {
+        scoreService.updateScore(inputObject, outputObject);
     }
 
 }

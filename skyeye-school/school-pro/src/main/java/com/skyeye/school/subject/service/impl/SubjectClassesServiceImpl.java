@@ -165,7 +165,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
         refreshCache(entity.getId());
         scoreTypeChildService.initScoreTypeChild(entity.getObjectId(), entity.getId());
-
     }
 
     @Override
@@ -384,11 +383,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 获取测试数量--按班级查
         Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId);
         // 获取资料数--按章节分组
-        Map<String, Long> dataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId,chapterIds,null);
+        Map<String, Long> dataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId, chapterIds, null);
         // 获取互动课件数 ---按章节分组
-        Map<String, Long> coursewareNumMap = coursewareService.queryCoursewareBySubjectIdAndChapterIds(subjectId,chapterIds);
+        Map<String, Long> coursewareNumMap = coursewareService.queryCoursewareBySubjectIdAndChapterIds(subjectId, chapterIds);
         // 获取作业数---按章节分组
-        Map<String, Long> assignmentNumMap = assignmentService.queryAssignmentBySubjectClassesIdAndChapterIds(id,chapterIds);
+        Map<String, Long> assignmentNumMap = assignmentService.queryAssignmentBySubjectClassesIdAndChapterIds(id, chapterIds);
 
 
         // 与学生有关的数据
@@ -399,19 +398,19 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             stuNumbers.add(student.get("studentNumber").toString());
         }
         // 1.获取学生上传的资料数--按stuId分组
-        Map<String, Long> stuDataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId,chapterIds,stuIds);
+        Map<String, Long> stuDataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId, chapterIds, stuIds);
         // 2.获取学生学习的互动课件数--按stuId分组
-        Map<String, Long> stuCoursewareNumMap = coursewareService.queryStuCourBySubIdAndChapIdsAndStuIds(subjectId,chapterIds,stuIds);
+        Map<String, Long> stuCoursewareNumMap = coursewareService.queryStuCourBySubIdAndChapIdsAndStuIds(subjectId, chapterIds, stuIds);
         // 3.获取学生提交的作业数--按stuId分组
-        Map<String, Long> stuAssignmentNumMap = assignmentService.queryStuAssignNumBySubClassesId(id,chapterIds,stuIds);
+        Map<String, Long> stuAssignmentNumMap = assignmentService.queryStuAssignNumBySubClassesId(id, chapterIds, stuIds);
         // 4.获取学生考勤次数---按stuId分组
-        Map<String, Long> stuCheckWorkNumMap = checkworkService.queryStuCheckWorkNumBySubClassesId(id,stuIds);
+        Map<String, Long> stuCheckWorkNumMap = checkworkService.queryStuCheckWorkNumBySubClassesId(id, stuIds);
         // 5.获取学生的奖励星星数
-        Map<String, String> stuStarNumMap = subjectClassesStuService.queryStuStarNumBySubClassesId(id,stuNumbers);
+        Map<String, String> stuStarNumMap = subjectClassesStuService.queryStuStarNumBySubClassesId(id, stuNumbers);
         // 6.获取学生的弹幕数量
-        Map<String, Long> stuTopicCommentNumMap = topicService.queryStuCommentNumBySubClassesId(id,stuIds);
+        Map<String, Long> stuTopicCommentNumMap = topicService.queryStuCommentNumBySubClassesId(id, stuIds);
         // 7.获取学生参与的测试数量
-        Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId,stuIds);
+        Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId, stuIds);
 
         // 总数
         Map<String, Long> totalData = new HashMap<>();
@@ -428,52 +427,52 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         totalData.put("stuTestNum", 0L);
         totalData.put("topicNum", topicNum);
         // 1-n 章
-        for(Chapter chapter : chapterList){
+        for (Chapter chapter : chapterList) {
             String name = chapter.getName();
-            for (Map<String, Object> student : studentList){
+            for (Map<String, Object> student : studentList) {
                 String stuId = student.get("id").toString();
                 // 互动课件
-                student.put("coursewareNum",coursewareNumMap.getOrDefault(chapter.getId(),0L));
-                student.put("stuCoursewareNum",stuCoursewareNumMap.getOrDefault(stuId,0L));
-                totalData.put("coursewareNum",totalData.get("coursewareNum")+coursewareNumMap.getOrDefault(chapter.getId(),0L));
-                totalData.put("stuCoursewareNum",totalData.get("stuCoursewareNum")+stuCoursewareNumMap.getOrDefault(stuId,0L));
-                double  courseRate = getRate(stuCoursewareNumMap.getOrDefault(stuId,0L),coursewareNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("coursewareNum", coursewareNumMap.getOrDefault(chapter.getId(), 0L));
+                student.put("stuCoursewareNum", stuCoursewareNumMap.getOrDefault(stuId, 0L));
+                totalData.put("coursewareNum", totalData.get("coursewareNum") + coursewareNumMap.getOrDefault(chapter.getId(), 0L));
+                totalData.put("stuCoursewareNum", totalData.get("stuCoursewareNum") + stuCoursewareNumMap.getOrDefault(stuId, 0L));
+                double courseRate = getRate(stuCoursewareNumMap.getOrDefault(stuId, 0L), coursewareNumMap.getOrDefault(chapter.getId(), 0L));
 
                 // 资料
-                student.put("dataNum",dataNumMap.getOrDefault(chapter.getId(),0L));
-                student.put("stuDataNum",stuDataNumMap.getOrDefault(stuId,0L));
-                totalData.put("dataNum",totalData.get("dataNum") + dataNumMap.getOrDefault(chapter.getId(),0L));
-                totalData.put("stuDataNum",totalData.get("stuDataNum") + stuDataNumMap.getOrDefault(stuId,0L));
-                double  dataRate = getRate(stuDataNumMap.getOrDefault(stuId,0L),dataNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("dataNum", dataNumMap.getOrDefault(chapter.getId(), 0L));
+                student.put("stuDataNum", stuDataNumMap.getOrDefault(stuId, 0L));
+                totalData.put("dataNum", totalData.get("dataNum") + dataNumMap.getOrDefault(chapter.getId(), 0L));
+                totalData.put("stuDataNum", totalData.get("stuDataNum") + stuDataNumMap.getOrDefault(stuId, 0L));
+                double dataRate = getRate(stuDataNumMap.getOrDefault(stuId, 0L), dataNumMap.getOrDefault(chapter.getId(), 0L));
                 // 作业
-                student.put("assignmentNum",assignmentNumMap.getOrDefault(chapter.getId(),0L));
-                student.put("stuAssignmentNum",stuAssignmentNumMap.getOrDefault(stuId,0L));
-                totalData.put("assignmentNum",totalData.get("assignmentNum") + assignmentNumMap.getOrDefault(chapter.getId(),0L));
-                totalData.put("stuAssignmentNum",totalData.get("stuAssignmentNum") + stuAssignmentNumMap.getOrDefault(stuId,0L));
-                double  assignmentRate = getRate(stuAssignmentNumMap.getOrDefault(stuId,0L),assignmentNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("assignmentNum", assignmentNumMap.getOrDefault(chapter.getId(), 0L));
+                student.put("stuAssignmentNum", stuAssignmentNumMap.getOrDefault(stuId, 0L));
+                totalData.put("assignmentNum", totalData.get("assignmentNum") + assignmentNumMap.getOrDefault(chapter.getId(), 0L));
+                totalData.put("stuAssignmentNum", totalData.get("stuAssignmentNum") + stuAssignmentNumMap.getOrDefault(stuId, 0L));
+                double assignmentRate = getRate(stuAssignmentNumMap.getOrDefault(stuId, 0L), assignmentNumMap.getOrDefault(chapter.getId(), 0L));
                 // 测试
-                student.put("testNum",testNum);
-                student.put("stuTestNum",stuTestNumMap.getOrDefault(stuId,0L));
-                totalData.put("stuTestNum",totalData.get("stuTestNum") + stuTestNumMap.getOrDefault(stuId,0L));
-                double  testRate = getRate(stuTestNumMap.getOrDefault(stuId,0L),testNum);
+                student.put("testNum", testNum);
+                student.put("stuTestNum", stuTestNumMap.getOrDefault(stuId, 0L));
+                totalData.put("stuTestNum", totalData.get("stuTestNum") + stuTestNumMap.getOrDefault(stuId, 0L));
+                double testRate = getRate(stuTestNumMap.getOrDefault(stuId, 0L), testNum);
                 // 考勤
-                student.put("checkWorkNum",checkWorkNum);
-                student.put("stuCheckWorkNum",stuCheckWorkNumMap.getOrDefault(stuId,0L));
-                totalData.put("stuCheckWorkNum",totalData.get("stuCheckWorkNum") + stuCheckWorkNumMap.getOrDefault(stuId,0L));
-                double  checkWorkRate = getRate(stuCheckWorkNumMap.getOrDefault(stuId,0L),checkWorkNum);
+                student.put("checkWorkNum", checkWorkNum);
+                student.put("stuCheckWorkNum", stuCheckWorkNumMap.getOrDefault(stuId, 0L));
+                totalData.put("stuCheckWorkNum", totalData.get("stuCheckWorkNum") + stuCheckWorkNumMap.getOrDefault(stuId, 0L));
+                double checkWorkRate = getRate(stuCheckWorkNumMap.getOrDefault(stuId, 0L), checkWorkNum);
                 // 话题数
-                student.put("topicNum",topicNum);
+                student.put("topicNum", topicNum);
                 // 表现奖励
-                student.put("rewardNum",stuStarNumMap.getOrDefault(stuId,"0"));
+                student.put("rewardNum", stuStarNumMap.getOrDefault(stuId, "0"));
                 // 发弹幕数
-                student.put("stuTopicCommentNum",stuTopicCommentNumMap.getOrDefault(stuId,0L));
+                student.put("stuTopicCommentNum", stuTopicCommentNumMap.getOrDefault(stuId, 0L));
                 // 整体完成率
-                double rate = (courseRate+assignmentRate+testRate+checkWorkRate+dataRate)/5;
+                double rate = (courseRate + assignmentRate + testRate + checkWorkRate + dataRate) / 5;
                 // 保留三位
-                student.put("rate",String.format("%.3f",rate*100)+'%');
+                student.put("rate", String.format("%.3f", rate * 100) + '%');
                 bean.add(student);
             }
-            resultMap.put("name",name);
+            resultMap.put("name", name);
             resultMap.put("studentAnalysis", bean);
             beans.add(resultMap);
             resultMap = new HashMap<>();
@@ -485,21 +484,21 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             String stuId = student.get("id").toString();
             student.putAll(totalData);
             // 表现奖励
-            student.put("rewardNum",stuStarNumMap.getOrDefault(stuId,"0"));
+            student.put("rewardNum", stuStarNumMap.getOrDefault(stuId, "0"));
             // 发弹幕数
-            student.put("stuTopicCommentNum",stuTopicCommentNumMap.getOrDefault(stuId,0L));
+            student.put("stuTopicCommentNum", stuTopicCommentNumMap.getOrDefault(stuId, 0L));
 
-            double courseRate = getRate(totalData.get("stuCoursewareNum"),totalData.get("coursewareNum"));
-            double assignmentRate = getRate(totalData.get("stuAssignmentNum"),totalData.get("assignmentNum"));
-            double testRate = getRate(totalData.get("stuTestNum"),totalData.get("testNum"));
-            double checkWorkRate = getRate(totalData.get("stuCheckWorkNum"),totalData.get("checkWorkNum"));
-            double dataRate = getRate(totalData.get("stuDataNum"),totalData.get("dataNum"));
+            double courseRate = getRate(totalData.get("stuCoursewareNum"), totalData.get("coursewareNum"));
+            double assignmentRate = getRate(totalData.get("stuAssignmentNum"), totalData.get("assignmentNum"));
+            double testRate = getRate(totalData.get("stuTestNum"), totalData.get("testNum"));
+            double checkWorkRate = getRate(totalData.get("stuCheckWorkNum"), totalData.get("checkWorkNum"));
+            double dataRate = getRate(totalData.get("stuDataNum"), totalData.get("dataNum"));
             // 整体完成率
-            double rate = (courseRate+assignmentRate+testRate+checkWorkRate+dataRate)/5;
-            student.put("rate",String.format("%.3f",rate*100)+'%');
+            double rate = (courseRate + assignmentRate + testRate + checkWorkRate + dataRate) / 5;
+            student.put("rate", String.format("%.3f", rate * 100) + '%');
             bean.add(student);
         }
-        resultMap.put("name","全部");
+        resultMap.put("name", "全部");
         resultMap.put("studentAnalysis", bean);
         beans.add(resultMap);
 
@@ -576,7 +575,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         String classesId = subjectClasses.getClassesId();
         String subjectId = subjectClasses.getObjectId();
         // 作业发布次数
-        Long assignmentNum = assignmentService.queryClassAssignmentNum(subjectClassId,null);
+        Long assignmentNum = assignmentService.queryClassAssignmentNum(subjectClassId, null);
         // 作业提交数
         Long assignmentSubNum = assignmentSubService.queryClassAssignmentJoinNum(subjectClassId);
         // 测试发布次数
@@ -598,7 +597,20 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 测试参与人数
         Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId);
         // 表现榜
-        List<Map<String,Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
+        List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
         // TODO
+    }
+    public SubjectClasses queryClassBySubClassLinkId(String subClassLinkId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, subClassLinkId);
+        SubjectClasses subjectClasses = getOne(queryWrapper);
+        return subjectClasses;
+    }
+
+    @Override
+    public List<SubjectClasses> selectByCreateId(String userId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getCreateId), userId);
+        return list(queryWrapper);
     }
 }
