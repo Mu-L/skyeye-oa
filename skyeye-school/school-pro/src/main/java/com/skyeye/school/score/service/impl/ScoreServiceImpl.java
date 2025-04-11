@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,9 +52,14 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     private ScoreTypeChildService scoreTypeChildService;
 
     @Override
-    public void deleteByObjectId(String objectId) {
+    public void deleteByObjectId(String... objectId) {
+        List<String> idList = Arrays.asList(objectId).stream()
+            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(idList)) {
+            return;
+        }
         QueryWrapper<Score> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Score::getObjectId), objectId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Score::getObjectId), idList);
         remove(queryWrapper);
     }
 

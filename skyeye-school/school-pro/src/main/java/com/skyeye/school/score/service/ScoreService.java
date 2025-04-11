@@ -22,7 +22,7 @@ import java.util.List;
  */
 public interface ScoreService extends SkyeyeBusinessService<Score> {
 
-    void deleteByObjectId(String objectId);
+    void deleteByObjectId(String... objectId);
 
     void initScorePartForScoreType(List<String> scoreTypeIds, String subClassLinkId);
 
