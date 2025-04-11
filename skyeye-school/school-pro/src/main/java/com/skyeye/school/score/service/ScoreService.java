@@ -5,6 +5,8 @@
 package com.skyeye.school.score.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
 
@@ -52,4 +54,6 @@ public interface ScoreService extends SkyeyeBusinessService<Score> {
     void calculateScore(List<ScoreTypeChild> scoreTypeChildrenList, List<Score> scoreList);
 
     void calculateScore(String subjectId, String subClassLinkId);
+
+    void updateScore(InputObject inputObject, OutputObject outputObject);
 }

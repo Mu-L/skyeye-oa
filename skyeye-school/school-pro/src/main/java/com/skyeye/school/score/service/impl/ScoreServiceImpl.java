@@ -10,11 +10,13 @@ import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.score.dao.ScoreDao;
 import com.skyeye.school.score.entity.Score;
@@ -185,6 +187,30 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         // 查询这个学生的成绩
         List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 计算成绩
+        calculateScore(scoreTypeChildrenList, scoreList);
+    }
+
+    @Override
+    public void updateScore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        List<Map<String, Object>> scoreMapList = JSONUtil.toList(params.get("scoreList").toString(), null);
+        Map<String, String> scoreMap = scoreMapList.stream()
+            .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item.get("score").toString()));
+
+        // 查询这个课程与班级下的所有成绩类型
+        List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
+        List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        // 查询这个学生的成绩
+        List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 更新学生的成绩
+        scoreList.forEach(item -> {
+            if (scoreMap.containsKey(item.getId())) {
+                item.setScore(scoreMap.get(item.getId()));
+            }
+        });
         // 计算成绩
         calculateScore(scoreTypeChildrenList, scoreList);
     }

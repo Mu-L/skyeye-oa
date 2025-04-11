@@ -7,15 +7,20 @@ package com.skyeye.school.score.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.Score;
@@ -44,6 +49,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private ScoreService scoreService;
+
+    @Autowired
+    private ICertificationRest iCertificationRest;
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
@@ -176,6 +184,19 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         }
         Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
 
+        // 获取学生信息
+        List<String> stuNoList = scoreList.stream().map(Score::getStuNo).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(stuNoList)) {
+            return;
+        }
+        List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        if (CollectionUtil.isEmpty(userList)) {
+            return;
+        }
+        Map<String, String> userMap = userList.stream()
+            .collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.getOrDefault("realName", StrUtil.EMPTY).toString()));
+
         Map<String, Map<String, Object>> stuScoreMap = new HashMap<>();
         for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
             List<Score> scores = collect.get(scoreTypeChild.getId());
@@ -185,16 +206,24 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             scores.forEach(score -> {
                 if (stuScoreMap.containsKey(score.getStuNo())) {
                     Map<String, Object> map = stuScoreMap.get(score.getStuNo());
-                    map.put(scoreTypeChild.getId(), score.getScore());
+                    Map<String, Object> scoreInfo = new HashMap<>();
+                    scoreInfo.put("score", score.getScore());
+                    scoreInfo.put("id", score.getId());
+                    map.put(scoreTypeChild.getId(), scoreInfo);
                 } else {
                     Map<String, Object> map = new HashMap<>();
-                    map.put(scoreTypeChild.getId(), score.getScore());
+                    Map<String, Object> scoreInfo = new HashMap<>();
+                    scoreInfo.put("score", score.getScore());
+                    scoreInfo.put("id", score.getId());
+                    map.put(scoreTypeChild.getId(), scoreInfo);
                     map.put("stuNo", score.getStuNo());
+                    map.put("name", userMap.get(score.getStuNo()));
                     stuScoreMap.put(score.getStuNo(), map);
                 }
             });
         }
         List<Map<String, Object>> result = stuScoreMap.values().stream().collect(Collectors.toList());
+        outputObject.setCustomBeans("tableRows", JSONUtil.toList(JSONUtil.toJsonStr(scoreTypeChildList), null));
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
     }
