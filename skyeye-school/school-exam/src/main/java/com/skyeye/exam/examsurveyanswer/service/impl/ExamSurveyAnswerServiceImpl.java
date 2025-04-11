@@ -173,6 +173,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
+        ExamSurveyAnswer examSurveyAnswer = selectById(entity.getId());
+        // 判断是否结束
+        if (StrUtil.isNotEmpty(examSurveyAnswer.getId())) {
+            if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())) {
+                throw new CustomException("该试卷已结束,请勿修改");
+            }
+        }
         String markStartTime = entity.getMarkStartTime();
         String markEndTime = entity.getMarkEndTime();
         if (StrUtil.isNotEmpty(markStartTime) && StrUtil.isNotEmpty(markEndTime)) {
@@ -263,7 +270,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String createId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
-        queryWrapper.isNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate));
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .or()
+            .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
         List<String> collect = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
         //试卷id及信息
