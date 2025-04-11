@@ -3,10 +3,8 @@ package com.skyeye.school.topiccomment.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,4 +129,5 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         }
         return list.stream().collect(Collectors.groupingBy(TopicComment::getTopicId, Collectors.counting()));
     }
+
 }

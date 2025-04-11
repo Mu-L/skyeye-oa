@@ -452,4 +452,39 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return list.stream().collect(Collectors.toMap(SubjectClassesStu::getStuNo, SubjectClassesStu::getReward));
     }
 
+    @Override
+    public List<Map<String, Object>> queryStuRewordList(String subjectClassId) {
+        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subjectClassId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward));
+        List<SubjectClassesStu> list = list(queryWrapper);
+        if(CollectionUtil.isEmpty(list)){
+            return Collections.emptyList();
+        }
+        List<String> stuNoList = list.stream().map(SubjectClassesStu::getStuNo).distinct().collect(Collectors.toList());
+        // 获取学生信息
+        List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+        if(CollectionUtil.isEmpty(userList)){
+            throw new CustomException("数据有误");
+        }
+        Map<String,SubjectClassesStu> map = new HashMap<>();
+        for (SubjectClassesStu stu : list) {
+            map.put(stu.getStuNo(), stu);
+        }
+        for (Map<String, Object> user : userList) {
+            String studentNumber = user.get("studentNumber").toString();
+            SubjectClassesStu stu = map.get(studentNumber);
+            user.put("reward", stu.getReward());
+        }
+        // 倒序排序userList--根据map中的数据字符串reward排序
+        userList.sort((o1, o2) -> {
+            // 提取并转换为数字
+            Integer rewardOne = Integer.parseInt((String) o1.get("reward"));
+            Integer rewardTwo = Integer.parseInt((String) o2.get("reward"));
+            // 倒序排序
+            return rewardTwo.compareTo(rewardOne);
+        });
+        return userList;
+    }
 }

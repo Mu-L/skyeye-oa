@@ -234,4 +234,14 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Checkwork::getCreateTime));
         return list(queryWrapper);
     }
+
+    @Override
+    public Long queryCheckWorkPersonNum(String subjectClassId) {
+        List<Checkwork> checkworks = queryCheckworkList(subjectClassId);
+        if (CollectionUtil.isEmpty(checkworks)) {
+            return 0L;
+        }
+        List<String> ids = checkworks.stream().map(Checkwork::getId).collect(Collectors.toList());
+        return checkworkSignService.queryCheckWorkPersonNum(ids);
+    }
 }
