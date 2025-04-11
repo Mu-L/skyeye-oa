@@ -31,12 +31,6 @@ public class AssignmentSubController {
     @Autowired
     private AssignmentSubService assignmentSubService;
 
-    /**
-     * 提交作业信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAssignmentSub", value = "提交作业信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AssignmentSub.class)
     @RequestMapping("/post/AssignmentSubController/writeAssignmentSub")
@@ -44,12 +38,6 @@ public class AssignmentSubController {
         assignmentSubService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询作业提交信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentSubById", value = "根据id查询作业提交信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class AssignmentSubController {
         assignmentSubService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除作业提交信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAssignmentSubById", value = "根据ID删除作业提交信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class AssignmentSubController {
         assignmentSubService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据作业id获取学生提交信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentStuSubListByAssignmentId", value = "根据作业id获取学生提交信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "assignmentId", name = "assignmentId", value = "作业id", required = "required")})
@@ -86,12 +62,6 @@ public class AssignmentSubController {
         assignmentSubService.queryAssignmentStuSubListByAssignmentId(inputObject, outputObject);
     }
 
-    /**
-     * 根据作业id获取已经提交的学生信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentSubListByAssignmentId", value = "根据作业id获取已经提交的学生信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "assignmentId", name = "assignmentId", value = "作业id")})
@@ -100,12 +70,6 @@ public class AssignmentSubController {
         assignmentSubService.queryAssignmentSubListByAssignmentId(inputObject, outputObject);
     }
 
-    /**
-     * 根据作业id获取未提交的学生信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssignmentNotSubListByAssignmentId", value = "根据作业id获取未提交的学生信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "assignmentId", name = "assignmentId", value = "作业id")})
@@ -114,12 +78,6 @@ public class AssignmentSubController {
         assignmentSubService.queryAssignmentNotSubListByAssignmentId(inputObject, outputObject);
     }
 
-    /**
-     * 批阅作业
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "readOverAssignmentSubById", value = "批阅作业", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

@@ -7,40 +7,27 @@ package com.skyeye.school.score.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.constans.SchoolConstants;
-import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.classenum.LoginIdentity;
-import com.skyeye.exception.CustomException;
-import com.skyeye.rest.wall.certification.service.ICertificationService;
-import com.skyeye.school.assignment.entity.Assignment;
-import com.skyeye.school.assignment.service.AssignmentService;
-import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
-import com.skyeye.school.score.entity.ScorePart;
-import com.skyeye.school.score.entity.ScoreSum;
-import com.skyeye.school.score.entity.ScoreType;
+import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.score.service.*;
-import com.skyeye.school.student.entity.Student;
-import com.skyeye.school.student.service.StudentService;
-import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.score.service.ScoreService;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -56,368 +43,160 @@ import java.util.stream.Collectors;
 public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTypeChildDao, ScoreTypeChild> implements ScoreTypeChildService {
 
     @Autowired
-    private ScorePartService scorePartService;
-
-    @Autowired
-    private ScoreSumService scoreSumService;
-
-    @Autowired
-    private StudentService studentService;
-
-    @Autowired
-    private ScoreTypeService scoreTypeService;
-
-    @Autowired
-    private ScoreMaxMinService scoreMaxMinService;
-
-    @Autowired
-    private AssignmentService assignmentService;
-
-    @Autowired
-    private ICertificationService iCertificationService;
-
-    @Autowired
-    private SchoolCommonService schoolCommonService;
+    private ScoreService scoreService;
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
         scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-        scoreTypeChild.setNumberCode(ObjectUtil.isEmpty(scoreTypeChild.getNumberCode()) ? NumberCodeEnum.CUSTOM.getKey() : scoreTypeChild.getNumberCode());
-        scoreTypeChild.setIsDefault(ObjectUtil.isEmpty(scoreTypeChild.getIsDefault()) ? IsDefaultEnum.NOT_DEFAULT.getKey() : scoreTypeChild.getIsDefault());
-    }
-
-    @Override
-    public List<ScoreTypeChild> queryListByParentIdList(List<String> list) {
-        if (CollectionUtil.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), list);
-        return list(queryWrapper);
-    }
-
-    @Override
-    public ScoreTypeChild queryByTypeId(String typeId) {
-        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getScoreTypeId), typeId);
-        return getOne(queryWrapper);
-    }
-
-    @Override
-    public ScoreTypeChild selectById(String id) {
-        ScoreTypeChild bean = super.selectById(id);
-        String userIdentity = InputObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
-        List<ScorePart> scorePartList = new ArrayList<>();
-        List<ScoreSum> scoreSumList = new ArrayList<>();
-        Map<String, Map<String, Object>> stuNoStudentMap = new HashMap<>();
-        if (StrUtil.equals(userIdentity, LoginIdentity.TEACHER.getKey())) {
-            scoreSumList = scoreSumService.queryByObjectIdList(Arrays.asList(bean.getId()));
-            List<String> stuNoList = scoreSumList.stream().map(ScoreSum::getStuNo).collect(Collectors.toList());
-            List<Student> studentList = studentService.queryListByStuNoList(stuNoList);
-            stuNoStudentMap = studentList.stream().collect(Collectors.toMap(Student::getNo, sco -> JSONUtil.toBean(JSONUtil.toJsonStr(sco), null)));
-            scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
-            bean.setScoreSumList(scoreSumList);
-        }
-        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
-            Map<String, Object> certification = iCertificationService.queryCertificationById(InputObject.getLogParamsStatic().get("id").toString());
-            schoolCommonService.checkUserCertification(certification);
-            String studentNumber = certification.get("studentNumber").toString();
-            ScoreSum scoreSum = scoreSumService.queryByObjectIdListAndStuNo(Arrays.asList(bean.getId()), studentNumber).get(CommonNumConstants.NUM_ZERO);
-            scoreSumList = Arrays.asList(scoreSum);
-            Student student = studentService.queryListByStuNoList(Arrays.asList(scoreSum.getStuNo())).get(CommonNumConstants.NUM_ZERO);
-            stuNoStudentMap.put(studentNumber, JSONUtil.toBean(JSONUtil.toJsonStr(student), null));
-            scoreSum.setStuMation(JSONUtil.toBean(JSONUtil.toJsonStr(student), null));
-            scorePartList = scorePartService.queryByObjectIdList(Arrays.asList(bean.getId()), null);
-        }
-        // 查询作业成绩
-        if (Objects.equals(bean.getNumberCode(), NumberCodeEnum.WORK.getKey())) {
-            List<String> workIdList = scorePartList.stream().map(ScorePart::getWorkId).collect(Collectors.toList());
-            List<Assignment> assignments = assignmentService.selectByIds(workIdList.toArray(new String[]{}));
-            Map<String, Map<String, Object>> assignmentMap = assignments.stream().collect(Collectors.toMap(Assignment::getId, assignment -> JSONUtil.toBean(JSONUtil.toJsonStr(assignment), null)));
-            for (ScorePart scorePart : scorePartList) {
-                scorePart.setWorkMation(assignmentMap.get(scorePart.getWorkId()));
-            }
-        }
-        // 将成绩列表根据创建时间排序饭后根据学号分组
-        Map<String, List<ScorePart>> stuPartListMap = scorePartList.stream()
-            .sorted(Comparator.comparing(ScorePart::getCreateTime))
-            .collect(Collectors.groupingBy(ScorePart::getStuNo));
-        for (ScoreSum scoreSum : scoreSumList) {
-            if (stuPartListMap.containsKey(scoreSum.getStuNo())) {
-                scoreSum.setScorePartList(stuPartListMap.get(scoreSum.getStuNo()));
-            }
-            if (stuNoStudentMap.containsKey(scoreSum.getStuNo())) {
-                scoreSum.setStuMation(stuNoStudentMap.get(scoreSum.getStuNo()));
-            }
-        }
-        return bean;
-    }
-
-    @Override
-    public void deletePreExecution(ScoreTypeChild scoreTypeChild) {
-        if (Objects.equals(scoreTypeChild.getIsDefault(), IsDefaultEnum.IS_DEFAULT.getKey())) {
-            throw new CustomException("默认数据不可删除");
-        }
-    }
-
-    @Override
-    public void deletePostpose(String id) {
-        // 删除成绩
-        scorePartService.deleteByObjectId(id);
-        scoreSumService.deleteByObjectId(id);
-    }
-
-    @Override
-    public void createDeFaultInfo(SubjectClasses subjectClasses) {
-        List<String> nameList = Arrays.asList("作业成绩", "测试成绩", "平时成绩");
-        List<Integer> numberCodeList = Arrays.asList(NumberCodeEnum.WORK.getKey(), NumberCodeEnum.TEST.getKey()
-            , NumberCodeEnum.INTERACTION.getKey(), NumberCodeEnum.USUAL.getKey());
-        Map<String, Integer> map = new HashMap<>();
-        for (int i = 0; i < nameList.size(); i++) {
-            map.put(nameList.get(i), numberCodeList.get(i));
-        }
-        List<ScoreTypeChild> scoreTypeChildList = new ArrayList<>();
-        map.forEach((name, numberCode) -> {
-            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
-            scoreTypeChild.setIsDefault(IsDefaultEnum.IS_DEFAULT.getKey());
-            scoreTypeChild.setName(name);
-            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-            scoreTypeChild.setSubjectId(subjectClasses.getObjectId());
-            scoreTypeChild.setClassId(subjectClasses.getClassesId());
-            scoreTypeChild.setNumberCode(numberCode);
-            scoreTypeChildList.add(scoreTypeChild);
-        });
-        super.createEntity(scoreTypeChildList, subjectClasses.getCreateId());
-    }
-
-    public void createPostpose(List<ScoreTypeChild> entity, String userId) {
-        List<ScoreSum> scoreSumList = new ArrayList<>();
-        for (ScoreTypeChild scoreTypeChild : entity) {
-            ScoreSum newScoreSum = new ScoreSum();
-            newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
-            newScoreSum.setProportion(scoreTypeChild.getProportion());
-            newScoreSum.setObjectId(scoreTypeChild.getId());
-            newScoreSum.setStuNo(StrUtil.EMPTY);
-            scoreSumList.add(newScoreSum);
-        }
-        scoreSumService.createEntity(scoreSumList, userId);
     }
 
     @Override
     public void createPostpose(ScoreTypeChild entity, String userId) {
-        if (StrUtil.isNotEmpty(entity.getName())) {
-            ScoreType scoreType = scoreTypeService.queryDefaultInfo(entity.getSubjectId(), entity.getClassId());
-            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
-            List<ScoreSum> scoreSumList = new ArrayList<>();
-            if (scoreSums.size() == CommonNumConstants.NUM_ZERO) {// 课程下班级没人
-                ScoreSum scoreSum = new ScoreSum();
-                scoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
-                scoreSum.setProportion(entity.getProportion());
-                scoreSum.setObjectId(entity.getId());
-                scoreSum.setStuNo(StrUtil.EMPTY);
-                scoreSumList.add(scoreSum);
-            } else {// 有人
-                for (ScoreSum scoreSum : scoreSums) {
-                    ScoreSum newScoreSum = new ScoreSum();
-                    newScoreSum.setScore(CommonNumConstants.NUM_ZERO.toString());
-                    newScoreSum.setProportion(entity.getProportion());
-                    newScoreSum.setObjectId(entity.getId());
-                    newScoreSum.setStuNo(scoreSum.getStuNo());
-                    scoreSumList.add(newScoreSum);
-                }
-            }
-            scoreSumService.createEntity(scoreSumList, userId);
+        // 初始化成绩
+        scoreService.initScorePartForScoreType(entity.getId(), entity.getSubClassLinkId());
+    }
+
+    @Override
+    public void updatePostpose(ScoreTypeChild entity, String userId) {
+        ScoreTypeChild scoreTypeChild = selectById(entity.getId());
+        if (!StrUtil.equals(entity.getProportion(), scoreTypeChild.getProportion())) {
+            // 重新占比，重新计算成绩
+            scoreService.calculateScore(scoreTypeChild.getSubjectId(), scoreTypeChild.getSubClassLinkId());
         }
     }
 
     @Override
-    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void boundDataOrNot(InputObject inputObject, OutputObject outputObject) {
-        String currentUserId = inputObject.getLogParams().get("id").toString();
-        Map<String, Object> params = inputObject.getParams();
-        String parentId = params.get("parentId").toString();
-        String id = params.get("id").toString();
-        if (StrUtil.isEmpty(parentId)) {// 父级为空，则取消绑定
-            UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, id)
-                .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), StrUtil.EMPTY)
-                .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getProportion), CommonNumConstants.NUM_ZERO.toString());
-            ScoreTypeChild one = getOne(updateWrapper);
-            // 更新成绩
-            if (Double.parseDouble(one.getProportion()) > CommonNumConstants.NUM_ZERO) {// 占比大于0，则更新该学生的”平时成绩“
-                ScoreType scoreType = scoreTypeService.queryDefaultInfo(one.getSubjectId(), one.getClassId());
-                List<ScoreSum> scoreList = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
-                if (CollectionUtil.isEmpty(scoreList) || (StrUtil.isEmpty(scoreList.get(CommonNumConstants.NUM_ZERO).getStuNo()))) {// 课程下该班级没有学生
-                    update(updateWrapper);
-                    return;
-                }
-                List<ScorePart> updateScorePartList = new ArrayList<>();
-                List<ScoreSum> updateScoreSumList = new ArrayList<>();
-                List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(one.getId()));
-                Map<String, String> map = new HashMap<>();
-                for (ScoreSum scoreSum : scoreSums) {
-                    String subtractNum = CalculationUtil.multiply(scoreSum.getScore(), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    map.put(scoreSum.getStuNo(), subtractNum);
-                }
-                List<ScorePart> scoreParts = scorePartService.queryByObjectIdList(Arrays.asList(one.getParentId()), null);
-                for (ScorePart scorePart : scoreParts) {
-                    String newScore = CalculationUtil.subtract(scorePart.getScore(), map.get(scorePart.getStuNo()), CommonNumConstants.NUM_TWO);
-                    scorePart.setScore(newScore);
-                    updateScorePartList.add(scorePart);
-                }
-                List<ScoreSum> scoreTypeSums = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
-                for (ScoreSum scoreSum : scoreTypeSums) {
-                    String newScore = CalculationUtil.subtract(map.get(scoreSum.getStuNo()), CalculationUtil.divide(scoreSum.getProportion(), "100"), CommonNumConstants.NUM_TWO);
-                    scoreSum.setScore(newScore);
-                    updateScoreSumList.add(scoreSum);
-                }
-                List<ScoreSum> sortByScoreList = scoreTypeSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
-                scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                    sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
-                scoreSumService.updateEntity(updateScoreSumList, currentUserId);
-                scorePartService.updateEntity(updateScorePartList, currentUserId);
-                update(updateWrapper);
-            }
-            update(updateWrapper);
+    public void createPostpose(List<ScoreTypeChild> entity, String userId) {
+        if (CollectionUtil.isEmpty(entity)) {
             return;
         }
-        // 绑定操作
-        UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        ScoreTypeChild one = getOne(updateWrapper);
-        if (ObjectUtil.isNotEmpty(one)) {
-            if (StrUtil.isNotEmpty(one.getParentId())) {
-                throw new CustomException("不可重复绑定");
-            }
-            updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), parentId);
-            update(updateWrapper);
-        } else {
-            throw new CustomException("成绩类型不存在");
-        }
+        // 初始化成绩
+        List<String> ids = entity.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        String subClassLinkId = entity.get(CommonNumConstants.NUM_ZERO).getSubClassLinkId();
+        scoreService.initScorePartForScoreType(ids, subClassLinkId);
     }
 
     @Override
-    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void changeProportion(InputObject inputObject, OutputObject outputObject) {
-        String currentUserId = inputObject.getLogParams().get("id").toString();
-        Map<String, Object> params = inputObject.getParams();
-        String id = params.get("id").toString();
-        String proportion = params.get("proportion").toString();
-        ScoreTypeChild scoreTypeChild = queryById(id);
+    public void initScoreTypeChild(String subjectId, String subjectClassId) {
+        List<ScoreTypeChild> scoreTypeChildList = NumberCodeEnum.getScoreTypeList(subjectId, subjectClassId);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        createEntity(scoreTypeChildList, userId);
+    }
+
+    @Override
+    public void deleteBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId) {
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void deletePostpose(ScoreTypeChild entity) {
+        // 删除成绩信息
+        scoreService.deleteByObjectId(entity.getId());
+        // 重新计算成绩
+        scoreService.calculateScore(entity.getSubjectId(), entity.getSubClassLinkId());
+    }
+
+    @Override
+    public ScoreTypeChild select(String subjectId, String subjectClassesId, String nameLinkId) {
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public void delete(String subjectId, String subjectClassesId, String nameLinkId) {
+        ScoreTypeChild scoreTypeChild = select(subjectId, subjectClassesId, nameLinkId);
         if (ObjectUtil.isEmpty(scoreTypeChild)) {
-            throw new CustomException("成绩类型子表信息不存在");
+            return;
         }
-        UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id)
-            .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getProportion), proportion);
-        if (StrUtil.isNotEmpty(scoreTypeChild.getParentId())) { // 绑定了scoreType表
-            ScoreType scoreType = scoreTypeService.queryDefaultInfo(scoreTypeChild.getSubjectId(), scoreTypeChild.getClassId());
-            List<ScoreSum> scoreList = scoreSumService.queryByObjectIdList(Arrays.asList(scoreType.getId()));
-            if (CollectionUtil.isEmpty(scoreList) || (StrUtil.isEmpty(scoreList.get(CommonNumConstants.NUM_ZERO).getStuNo()))) {// 课程下该班级没有学生
-                update(updateWrapper);
-                return;
-            }
-            List<ScorePart> updateScorePartList = new ArrayList<>();
-            List<ScoreSum> updateScoreSumList = new ArrayList<>();
-            ScoreTypeChild flagScoreChild = queryByTypeId(scoreTypeChild.getParentId());
-            List<ScoreTypeChild> flagScoreTypeChildList = queryListByParentIdList(Arrays.asList(flagScoreChild.getParentId()));
-            // 取出期末成绩、期中成绩等信息的主键id
-            List<String> flagScoreTypeTypeIdList = flagScoreTypeChildList.stream().map(ScoreTypeChild::getScoreTypeId).collect(Collectors.toList());
-            // 取出作业成绩、测试成绩的成绩的信息
-            List<ScoreTypeChild> scoreTypeChildList = queryListByParentIdList(flagScoreTypeTypeIdList);
-            // 取出作业成绩、测试成绩的主键id
-            List<String> scoreTypeChildIdList = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
-            // 更新被修改占比的所有学生的作业成绩总分
-            List<ScoreSum> scoreChildSums = scoreSumService.queryByObjectIdList(scoreTypeChildIdList);
-            for (ScoreSum scoreChildSum : scoreChildSums) {// 修改占比
-                if (scoreChildSum.getObjectId().equals(scoreTypeChild.getId())) {
-                    scoreChildSum.setProportion(proportion);
-                    updateScoreSumList.add(scoreChildSum);// 放进更新列表中
-                }
-            }
-            // 计算作业成绩绑定的平时成绩
-            List<String> idListByParentId = scoreTypeChildList.stream().filter(scoreTypeChild1 -> scoreTypeChild1.getParentId().equals(scoreTypeChild.getParentId()))
-                .map(ScoreTypeChild::getId).collect(Collectors.toList());
-            List<ScoreSum> collect = scoreChildSums.stream().filter(scoreSum -> idListByParentId.contains(scoreSum.getObjectId())).collect(Collectors.toList());
-            Map<String, List<ScoreSum>> map = collect.stream().collect(Collectors.groupingBy(ScoreSum::getStuNo));
-            Map<String, String> mapStuNoScore = scoreSumService.getStuNoScoreSumMap(map);
-            List<ScorePart> flagScoreParts = scorePartService.queryByObjectIdList(flagScoreTypeTypeIdList, null);
-            for (ScorePart flagScorePart : flagScoreParts) {
-                if (flagScorePart.getObjectId().equals(scoreTypeChild.getParentId())) {// 是平时成绩，修改分数
-                    flagScorePart.setScore(mapStuNoScore.get(flagScorePart.getStuNo()));
-                    updateScorePartList.add(flagScorePart);
-                }
-            }
-            Map<String, List<ScorePart>> collect1 = flagScoreParts.stream().collect(Collectors.groupingBy(ScorePart::getStuNo));
-            Map<String, String> mapStuNoScore1 = scorePartService.getStuNoScorePartMap(collect1);
-            List<ScoreSum> scoreSums = scoreSumService.queryByObjectIdList(Arrays.asList(flagScoreChild.getParentId()));
-            for (ScoreSum scoreSum : scoreSums) {
-                scoreSum.setScore(mapStuNoScore1.get(scoreSum.getStuNo()));
-                updateScoreSumList.add(scoreSum);
-            }
-            List<ScoreSum> sortByScoreList = scoreSums.stream().sorted(Comparator.comparing(ScoreSum::getScore)).collect(Collectors.toList());
-            scoreMaxMinService.updateScoreById(sortByScoreList.get(CommonNumConstants.NUM_ZERO).getObjectId(),
-                sortByScoreList.get(sortByScoreList.size()).getScore(), sortByScoreList.get(CommonNumConstants.NUM_ZERO).getScore(), currentUserId);
-            scorePartService.updateEntity(updateScorePartList, currentUserId);
-            scoreSumService.updateEntity(updateScoreSumList, currentUserId);
-        }
-        update(updateWrapper);
-        outputObject.setBean(scoreTypeChild);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        // 删除成绩信息
+        scoreService.deleteByObjectId(scoreTypeChild.getId());
     }
 
     @Override
-    public List<ScoreTypeChild> queryListBySubjectIdAndClassId(String subjectId, String classId) {
+    public List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getClassId), classId);
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
         return list(queryWrapper);
     }
 
     @Override
-    public String deleteByTypeId(String typeId) {
-        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getScoreTypeId), typeId);
-        ScoreTypeChild one = getOne(queryWrapper);
-        remove(queryWrapper);
-        // 解除绑定,将parentId置空以及将占比改为0
+    public void editName(String subjectId, String subjectClassesId, String nameLinkId, String name) {
         UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), StrUtil.EMPTY)
-            .set(MybatisPlusUtil.toColumns(ScoreTypeChild::getProportion), CommonNumConstants.NUM_ZERO.toString())
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), typeId);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getName), name);
         update(updateWrapper);
-        return one.getParentId();
     }
 
     @Override
-    public ScoreTypeChild queryById(String id) {
-        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID, id);
-        return getOne(queryWrapper);
-    }
-
-    @Override
-    public ScoreTypeChild selectBySubjectIdClassIdAndNumberCode(String subjectId, String classesId, Integer numberCode) {
+    public void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getClassId), classesId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNumberCode), numberCode);
-        return getOne(queryWrapper);
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
+        String parentIdKey = MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId);
+        queryWrapper.and(wra -> {
+            wra.isNull(parentIdKey).or().eq(parentIdKey, StrUtil.EMPTY);
+        });
+        List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
+        outputObject.setBeans(scoreTypeChildList);
+        outputObject.settotal(scoreTypeChildList.size());
     }
 
     @Override
-    public List<ScoreTypeChild> queryByObjectIdAndClassId(String subjectId, String classesId) {
+    public void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        String parentId = params.get("parentId").toString();
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getClassId), classesId);
-        return list(queryWrapper);
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
+        queryWrapper.and(wra -> {
+            wra.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), parentId)
+                .or().eq(CommonConstants.ID, parentId);
+        });
+
+        List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
+        List<String> ids = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        List<Score> scoreList = scoreService.queryScoreList(ids, StrUtil.EMPTY);
+        if (CollectionUtil.isEmpty(scoreList)) {
+            return;
+        }
+        Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
+
+        Map<String, Map<String, Object>> stuScoreMap = new HashMap<>();
+        for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
+            List<Score> scores = collect.get(scoreTypeChild.getId());
+            if (CollectionUtil.isEmpty(scores)) {
+                continue;
+            }
+            scores.forEach(score -> {
+                if (stuScoreMap.containsKey(score.getStuNo())) {
+                    Map<String, Object> map = stuScoreMap.get(score.getStuNo());
+                    map.put(scoreTypeChild.getId(), score.getScore());
+                } else {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put(scoreTypeChild.getId(), score.getScore());
+                    map.put("stuNo", score.getStuNo());
+                    stuScoreMap.put(score.getStuNo(), map);
+                }
+            });
+        }
+        List<Map<String, Object>> result = stuScoreMap.values().stream().collect(Collectors.toList());
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
     }
 
-    @Override
-    public void deleteByIdList(List<String> idList) {
-        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, idList);
-        remove(queryWrapper);
-    }
 }

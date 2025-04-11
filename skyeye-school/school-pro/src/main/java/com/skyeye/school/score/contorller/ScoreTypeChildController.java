@@ -31,12 +31,6 @@ public class ScoreTypeChildController {
     @Autowired
     private ScoreTypeChildService scoreTypeChildService;
 
-    /**
-     * 新增/编辑成绩类型子表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeScoreTypeChild", value = "新增/编辑成绩类型子表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ScoreTypeChild.class)
     @RequestMapping("/post/ScoreTypeChildController/writeScoreTypeChild")
@@ -44,12 +38,6 @@ public class ScoreTypeChildController {
         scoreTypeChildService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询成绩类型子表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectScoreTypeById", value = "根据id查询成绩类型子表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,13 +46,7 @@ public class ScoreTypeChildController {
         scoreTypeChildService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除成绩类型子表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "deleteScoreTypeChildById", value = "根据id删除成绩类型子表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteScoreTypeChildById", value = "根据id删除成绩类型子表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ScoreTypeChildController/deleteScoreTypeChildById")
@@ -72,33 +54,22 @@ public class ScoreTypeChildController {
         scoreTypeChildService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 关联或取消关联成绩类型子表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "boundDataOrNot", value = "关联或取消关联成绩类型子表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryScoreTypeChildFirstList", value = "获取一级成绩类型子表列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "parentId", name = "parentId", value = "父级id(平时成绩的主键id)"),
-        @ApiImplicitParam(id = "id", name = "id", value = "子数据id", required = "required")})
-    @RequestMapping("/post/ScoreTypeChildController/boundDataOrNot")
-    public void boundDataOrNOt(InputObject inputObject, OutputObject outputObject) {
-        scoreTypeChildService.boundDataOrNot(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"),
+        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required")})
+    @RequestMapping("/post/ScoreTypeChildController/queryScoreTypeChildFirstList")
+    public void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject) {
+        scoreTypeChildService.queryScoreTypeChildFirstList(inputObject, outputObject);
     }
 
-    /**
-     * 修改成绩类型子表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "changeProportion", value = "修改成绩类型子表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryScoreTypeChildSecondList", value = "获取二级成绩类型子表列表和成绩", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "proportion", name = "proportion", value = "占比(80即占比80%)", required = "required"),
-        @ApiImplicitParam(id = "id", name = "id", value = "子数据id", required = "required")})
-    @RequestMapping("/post/ScoreTypeChildController/changeProportion")
-    public void changeProportion(InputObject inputObject, OutputObject outputObject) {
-        scoreTypeChildService.changeProportion(inputObject, outputObject);
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "required"),
+        @ApiImplicitParam(id = "subClassLinkId", name = "subClassLinkId", value = "科目表与班级表关系id", required = "required"),
+        @ApiImplicitParam(id = "parentId", name = "parentId", value = "父节点id", required = "required")})
+    @RequestMapping("/post/ScoreTypeChildController/queryScoreTypeChildSecondList")
+    public void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject) {
+        scoreTypeChildService.queryScoreTypeChildSecondList(inputObject, outputObject);
     }
 }

@@ -35,8 +35,7 @@ import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.exam.service.ExamDirectoryAnService;
 import com.skyeye.school.exam.service.ExamService;
 import com.skyeye.school.grade.service.ClassesService;
-import com.skyeye.school.score.service.ScoreMaxMinService;
-import com.skyeye.school.score.service.ScoreTypeService;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
 import com.skyeye.school.subject.entity.Subject;
@@ -83,9 +82,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     private SemesterService semesterService;
 
     @Autowired
-    private ScoreTypeService scoreTypeService;
-
-    @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
     @Autowired
@@ -116,9 +112,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     private SubjectClassesTopService subjectClassesTopService;
 
     @Autowired
-    private ScoreMaxMinService scoreMaxMinService;
-
-    @Autowired
     private DatumService datumService;
 
     @Autowired
@@ -127,6 +120,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Autowired
     private ExamDirectoryAnService examDirectoryAnService;
 
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
 
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -169,12 +164,8 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         entity.setSourceCodeLogo(sourceCodeLogo);
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
         refreshCache(entity.getId());
-    }
+        scoreTypeChildService.initScoreTypeChild(entity.getObjectId(), entity.getId());
 
-    @Override
-    public void createPostpose(SubjectClasses entity, String userId) {
-        scoreTypeService.createDeFaultInfo(entity, userId);
-        scoreMaxMinService.createDeFaultInfo(entity.getObjectId(), entity.getId(), userId);
     }
 
     @Override
@@ -185,7 +176,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 删除班级学生置顶课程
         subjectClassesTopService.deleteSubjectClassesTopBySubClassLinkId(entity.getId());
         // 删除成绩信息
-        scoreTypeService.deleteBysubjectyIdAndClassId(entity.getObjectId(), entity.getClassesId());
+        scoreTypeChildService.deleteBySubjectIdAndSubjectClassId(entity.getObjectId(), entity.getId());
     }
 
     @Override

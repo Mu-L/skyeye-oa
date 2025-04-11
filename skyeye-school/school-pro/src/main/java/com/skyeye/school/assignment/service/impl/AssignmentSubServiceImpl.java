@@ -30,7 +30,7 @@ import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
-import com.skyeye.school.score.service.ScorePartService;
+import com.skyeye.school.score.service.ScoreService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,7 +61,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     private SubjectClassesStuService subjectClassesStuService;
 
     @Autowired
-    private ScorePartService scorePartService;
+    private ScoreService scorePartService;
 
     @Override
     public void validatorEntity(AssignmentSub entity) {
@@ -161,9 +161,16 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         updateWrapper.set(MybatisPlusUtil.toColumns(AssignmentSub::getState), AssignmentCorrectState.CORRECTED.getKey());
         updateWrapper.set(MybatisPlusUtil.toColumns(AssignmentSub::getComment), comment);
         update(updateWrapper);
-        AssignmentSub one = getOne(updateWrapper);
-        List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(one.getCreateId());
-        scorePartService.updateScorePartByStuNoAndWorkId(userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), one.getAssignmentId(), score);
+
+        // 更新学生成绩
+        AssignmentSub entity = getOne(updateWrapper);
+        if (ObjectUtil.isEmpty(entity)) {
+            return;
+        }
+        Assignment assignment = assignmentService.selectById(entity.getAssignmentId());
+        List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(entity.getCreateId());
+        scorePartService.updateStudentScore(assignment.getObjectId(), assignment.getSubjectClassesId(),
+            userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), id, score);
         refreshCache(id);
     }
 

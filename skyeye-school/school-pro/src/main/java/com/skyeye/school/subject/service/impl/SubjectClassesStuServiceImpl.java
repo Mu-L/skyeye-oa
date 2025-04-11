@@ -26,7 +26,9 @@ import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.announcement.service.AnnouncementService;
 import com.skyeye.school.common.service.SchoolCommonService;
-import com.skyeye.school.score.service.ScorePartService;
+import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.service.ScoreService;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.student.entity.Student;
 import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.dao.SubjectClassesStuDao;
@@ -67,7 +69,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     private SubjectClassesTopService subjectClassesTopService;
 
     @Autowired
-    private ScorePartService scorePartService;
+    private ScoreService scoreService;
 
     @Autowired
     private StudentService studentService;
@@ -77,6 +79,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Autowired
     private SchoolCommonService schoolCommonService;
+
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -137,9 +142,11 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Override
     public void createPostpose(SubjectClassesStu subjectClassesStu, String UserId) {
-        // 同步所有的成绩数据
+        // 新加入的学生需要初始化一下成绩，新加入的默认成绩为0
         SubjectClasses subjectClasses = subjectClassesService.selectById(subjectClassesStu.getSubClassLinkId());
-        scorePartService.midCourse(subjectClassesStu.getStuNo(), subjectClasses.getObjectId(), subjectClasses.getClassesId());
+        List<ScoreTypeChild> scoreTypeChildren = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectClasses.getObjectId(), subjectClasses.getId());
+        List<String> scoreTypeChildIds = scoreTypeChildren.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        scoreService.initScorePartForStudent(scoreTypeChildIds, subjectClassesStu.getStuNo());
     }
 
     @Override
@@ -157,7 +164,10 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
 
     @Override
     public void deletePostpose(SubjectClassesStu subjectClassesStu) {
+        // 删除置顶课程数据
         subjectClassesTopService.deleteSubjectClassesTopBySubClassLinkId(subjectClassesStu.getSubClassLinkId());
+        // 删除成绩数据
+        scoreService.deleteScoreByStudentNumber(subjectClassesStu.getStuNo());
     }
 
     @Override

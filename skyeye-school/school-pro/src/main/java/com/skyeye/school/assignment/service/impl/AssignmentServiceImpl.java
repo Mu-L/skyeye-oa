@@ -29,10 +29,7 @@ import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.score.service.ScorePartService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
-import com.skyeye.school.subject.entity.SubjectClasses;
-import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,13 +60,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     private ChapterService chapterService;
 
     @Autowired
-    private ScorePartService scorePartService;
-
-    @Autowired
     private ScoreTypeChildService scoreTypeChildService;
-
-    @Autowired
-    private SubjectClassesService subjectClassesService;
 
     @Override
     public void validatorEntity(Assignment entity) {
@@ -83,9 +74,30 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Override
     public void createPostpose(Assignment entity, String userId) {
         // 新增作业时，创建空白成绩记录
-        SubjectClasses subjectClasses = subjectClassesService.selectById(entity.getSubjectClassesId());
-        ScoreTypeChild scoreTypeChild = scoreTypeChildService.selectBySubjectIdClassIdAndNumberCode(subjectClasses.getObjectId(), subjectClasses.getClassesId(), NumberCodeEnum.WORK.getKey());
-        scorePartService.createScorePartByWorkId(scoreTypeChild.getId(), entity.getId());
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.select(entity.getObjectId(), entity.getSubjectClassesId(), NumberCodeEnum.WORK.getKey());
+
+        ScoreTypeChild scoreTypeChild1 = new ScoreTypeChild();
+        scoreTypeChild1.setSubjectId(entity.getObjectId());
+        scoreTypeChild1.setSubClassLinkId(entity.getSubjectClassesId());
+        scoreTypeChild1.setName(entity.getName());
+        scoreTypeChild1.setNameLinkId(entity.getId());
+        scoreTypeChild1.setNameLinkKey(getServiceClassName());
+        scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        scoreTypeChildService.createEntity(scoreTypeChild1, userId);
+    }
+
+    @Override
+    protected void updatePostpose(Assignment entity, String userId) {
+        Assignment assignment = selectById(entity.getId());
+        // 修改成绩子类型名称
+        scoreTypeChildService.editName(assignment.getObjectId(), assignment.getSubjectClassesId(), assignment.getId(), entity.getName());
+    }
+
+    @Override
+    public void deletePostpose(Assignment entity) {
+        // 删除成绩子类型
+        scoreTypeChildService.delete(entity.getObjectId(), entity.getSubjectClassesId(), entity.getId());
     }
 
     @Override

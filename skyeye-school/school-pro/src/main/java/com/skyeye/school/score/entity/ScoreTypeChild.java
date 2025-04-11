@@ -11,8 +11,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.common.enumeration.IsDefaultEnum;
-import com.skyeye.school.score.classenum.NumberCodeEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -34,33 +32,33 @@ public class ScoreTypeChild extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField(value = "number_code")
-    @Property(value = "类型编码", enumClass = NumberCodeEnum.class)
-    private Integer numberCode;
-
     @TableField("subject_id")
     @ApiModelProperty(value = "科目id", required = "required")
     private String subjectId;
 
-    @TableField("class_id")
-    @ApiModelProperty(value = "班级id", required = "required")
-    private String classId;
-
-    @TableField("is_default")
-    @Property(value = "类型(是否默认，默认不可删除)", enumClass = IsDefaultEnum.class)
-    private Integer isDefault;
+    @TableField("sub_class_link_id")
+    @ApiModelProperty(value = "科目表与班级表关系id", required = "required")
+    private String subClassLinkId;
 
     @TableField("name")
     @ApiModelProperty(value = "名称")
     private String name;
 
+    @TableField("name_link_id")
+    @ApiModelProperty(value = "名称关联的业务对象id")
+    private String nameLinkId;
+
+    @TableField("name_link_key")
+    @ApiModelProperty(value = "名称关联的业务对象的key")
+    private String nameLinkKey;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "名称关联的业务对象")
+    private String nameLinkMation;
+
     @TableField("proportion")
     @Property(value = "占比(80即占比80%)")
     private String proportion;
-
-    @TableField("score_type_id")
-    @Property(value = "成绩类型id")
-    private String scoreTypeId;
 
     @TableField("parent_id")
     @Property(value = "父级id(成绩类型主表id)")
@@ -68,5 +66,9 @@ public class ScoreTypeChild extends OperatorUserInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "成绩列表")
-    private List<ScoreSum> scoreSumList;
+    private List<Score> scoreList;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "子节点")
+    private List<ScoreTypeChild> children;
 }

@@ -8,7 +8,6 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.score.entity.ScoreTypeChild;
-import com.skyeye.school.subject.entity.SubjectClasses;
 
 import java.util.List;
 
@@ -21,25 +20,20 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeChild> {
-    List<ScoreTypeChild> queryListByParentIdList(List<String> list);
 
-    ScoreTypeChild queryByTypeId(String typeId);
+    ScoreTypeChild select(String subjectId, String subjectClassesId, String nameLinkId);
 
-    void createDeFaultInfo(SubjectClasses subjectClasses);
+    void delete(String subjectId, String subjectClassesId, String nameLinkId);
 
-    void boundDataOrNot(InputObject inputObject, OutputObject outputObject);
+    List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId);
 
-    void changeProportion(InputObject inputObject, OutputObject outputObject);
+    void initScoreTypeChild(String subjectId, String subjectClassId);
 
-    List<ScoreTypeChild> queryListBySubjectIdAndClassId(String subjectId, String classId);
+    void deleteBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId);
 
-    String deleteByTypeId(String typeId);
+    void editName(String subjectId, String subjectClassesId, String nameLinkId, String name);
 
-    ScoreTypeChild queryById(String id);
+    void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject);
 
-    ScoreTypeChild selectBySubjectIdClassIdAndNumberCode(String subjectId, String classesId, Integer numberCode);
-
-    List<ScoreTypeChild> queryByObjectIdAndClassId(String subjectId, String classesId);
-
-    void deleteByIdList(List<String> idList);
+    void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject);
 }
