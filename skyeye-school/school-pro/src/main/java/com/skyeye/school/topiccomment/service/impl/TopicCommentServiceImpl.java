@@ -11,6 +11,8 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.wall.user.service.IUserService;
+import com.skyeye.school.common.entity.UserOrStudent;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.topic.service.TopicService;
 import com.skyeye.school.topiccomment.dao.TopicCommentDao;
 import com.skyeye.school.topiccomment.entity.TopicComment;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +35,9 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
 
     public void createPostpose(TopicComment topicComment, String userId) {
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
@@ -47,16 +53,21 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         }
         List<String> createIdList = beans.stream()
             .map(bean -> bean.get("createId").toString()).distinct().collect(Collectors.toList());
-        Map<String, Map<String, Object>> studentMation = iUserService.queryDataMationForMapByIds(
-            Joiner.on(CommonCharConstants.COMMA_MARK).join(createIdList));
-        Map<String, Map<String, Object>> userMation = iAuthUserService.queryDataMationForMapByIds(
-            Joiner.on(CommonCharConstants.COMMA_MARK).join(createIdList));
+        Map<String,Map<Boolean,Map<String,Object>>> userMation = new HashMap<>();
+        for (String createId : createIdList) {
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(createId);
+            Map<Boolean,Map<String,Object>> userOrStudentMation = new HashMap<>();
+            userOrStudentMation.put(userOrStudent.getUserOrStudent(), userOrStudent.getDataMation());
+            userMation.put(createId,userOrStudentMation);
+        }
         beans.forEach(bean -> {
-            String createId = bean.get("createId").toString();
-            if (studentMation.containsKey(createId) && studentMation.get(createId) != null){
-                bean.put("createMation", studentMation.get(createId));
-            } else {
-                bean.put("createMation", userMation.get(createId));
+            String id = bean.get("createId").toString();
+            Map<Boolean, Map<String, Object>> userOrStudentMation = userMation.get(id);
+            if (userOrStudentMation.containsKey(true)){
+                bean.put("studentMation", userOrStudentMation.get(true));
+            }
+            if (userOrStudentMation.containsKey(false)){
+                bean.put("teacherMation", userOrStudentMation.get(false));
             }
         });
         return beans;

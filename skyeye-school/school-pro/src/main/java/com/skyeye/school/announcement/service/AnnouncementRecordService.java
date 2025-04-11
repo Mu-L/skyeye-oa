@@ -5,6 +5,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.announcement.entity.AnnouncementRecord;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,4 +26,6 @@ public interface AnnouncementRecordService extends SkyeyeBusinessService<Announc
     void deleteRecordByAnnouncementId(String announcementId);
 
     Map<String, List<AnnouncementRecord>> queryRecordByAnnouncementIdAndStu(List<String> annIds, String stuNo);
+
+    void deleteBatchByAnnouncementIds(ArrayList<String> strings);
 }
