@@ -123,7 +123,7 @@ public class SubjectClassesController {
     @ApiOperation(id = "queryOverallAnalysis", value = "获取整体分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "科目表与班级表关系id", required = "require")})
-    @RequestMapping("/post/SubjectClassesController/queryStudentAnalysis")
+    @RequestMapping("/post/SubjectClassesController/queryOverallAnalysis")
     public void queryOverallAnalysis(InputObject inputObject, OutputObject outputObject) {
         subjectClassesService.queryOverallAnalysis(inputObject, outputObject);
     }
