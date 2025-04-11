@@ -45,7 +45,7 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         Datum datum = super.selectById(id);
         chapterService.setDataMation(datum, Datum::getChapterId);
         if (ObjectUtil.isNotEmpty(datum.getChapterMation())) {
-            datum.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", datum.getChapterMation().getSection(), datum.getChapterMation().getName()));
+            datum.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", datum.getChapterMation().getSection(), datum.getChapterMation().getName()));
         }
         iAuthUserService.setDataMation(datum, Datum::getCreateId);
         return datum;
@@ -67,7 +67,7 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
             String serviceClassName = getServiceClassName();
             datum.setServiceClassName(serviceClassName);
             if (ObjectUtil.isNotEmpty(datum.getChapterMation())) {
-                datum.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", datum.getChapterMation().getSection(), datum.getChapterMation().getName()));
+                datum.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", datum.getChapterMation().getSection(), datum.getChapterMation().getName()));
             }
         });
         iAuthUserService.setDataMation(datumList, Datum::getCreateId);
@@ -105,14 +105,9 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Long queryClassDataNum(String id, String stuId, String chapterId) {
+    public Long queryClassDataNum(String subjectId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterId);
-        }
-        if (StrUtil.isNotEmpty(stuId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getCreateId), stuId);
-        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getObjectId), subjectId);
         return count(queryWrapper);
     }
 }

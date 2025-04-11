@@ -6,8 +6,10 @@ package com.skyeye.school.common.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
@@ -63,5 +65,15 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
             item.setDataMation(teacherMation);
         }
         return item;
+    }
+
+    @Override
+    public void checkUserCertification(Map<String, Object> certification) {
+        if (!certification.containsKey("state")) {
+            throw new CustomException("请先进行学生认证");
+        }
+        if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
+            throw new CustomException("认证信息未通过审核，不允许执行该操作");
+        }
     }
 }

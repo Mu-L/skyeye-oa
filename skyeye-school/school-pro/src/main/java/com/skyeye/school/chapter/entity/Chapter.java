@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
@@ -47,5 +48,16 @@ public class Chapter extends BaseGeneralInfo implements EnclosureFace {
     @TableField(exist = false)
     @ApiModelProperty(value = "附件", required = "json")
     private Enclosure enclosureInfo;
+
+    @TableField(exist = false)
+    @Property("是否已经设置name")
+    private Boolean isSetName = false;
+
+    public void setRealName(String realName) {
+        if (!this.isSetName) {
+            this.isSetName = true;
+            this.setName(realName);
+        }
+    }
 
 }

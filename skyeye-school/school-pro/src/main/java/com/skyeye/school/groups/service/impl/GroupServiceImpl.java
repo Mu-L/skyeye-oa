@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.groups.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
@@ -10,11 +14,12 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.constans.SchoolConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.QRCodeLinkType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
@@ -31,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,17 +58,17 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     private ICertificationService iCertificationService;
 
     @Override
-    public QueryWrapper<Groups> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<Groups> queryWrapper = super.getQueryWrapper(commonPageInfo);
+    public QueryWrapper<Groups> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<Groups> queryWrapper = super.getQueryWrapper(tableSelectInfo);
         // 学生分组信息下的所有分组
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), commonPageInfo.getObjectId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), tableSelectInfo.getObjectId());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Groups::getCreateTime));
         return queryWrapper;
     }
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryDataList(inputObject);
         if (CollectionUtil.isEmpty(beans)) {
             return beans;
         }
@@ -81,6 +87,12 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
                 });
             }
         }
+        List<String> groupsIds = beans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
+        Map<String, Integer> studentCount = groupsStudentService.getStudentCountByGroupId(groupsIds);
+        beans.forEach(item -> {
+            String groupId = item.get("id").toString();
+            item.put("studentCount", studentCount.getOrDefault(groupId, CommonNumConstants.NUM_ZERO));
+        });
         return beans;
     }
 
@@ -118,10 +130,10 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         entity.setGroupName("第" + i + "组");
         entity.setGroupsInformationId(groupsInformation.getId());
         String imgPath = tPath.replace("images", StrUtil.EMPTY + entity.getGroupBarcode());
-        //生成分组编码
+        // 生成分组编码
         String code = ToolUtil.getFourWord();
         entity.setGroupBarcode(code);
-        //生成分组二维码
+        // 生成分组二维码
         String content = QRCodeLinkType.getJsonStrByType(QRCodeLinkType.STUDENT_CHECKWORK.getKey(), code);
         String sourCodeLogo = QRCodeLogoUtil.encode(content, imgPath, tPath, true, FileConstants.FileUploadPath.SCHOOL_SUBJECT.getType()[0]);
         entity.setGrCodeUrl(sourCodeLogo);
@@ -132,14 +144,19 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
     public void deleteGroups(String groupsInformationId) {
         QueryWrapper<Groups> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), groupsInformationId);
+        List<Groups> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        list.forEach(item -> {
+            // 删除分组的二维码
+            FileUtil.deleteFile(tPath.replace("images", StrUtil.EMPTY) + item.getGrCodeUrl());
+        });
+        List<String> ids = list.stream().map(Groups::getId).collect(Collectors.toList());
+        // 删除分组下的学生信息
+        groupsStudentService.deleteByGroupsIds(ids);
+        // 删除分组信息
         remove(queryWrapper);
-    }
-
-    @Override
-    public List<Groups> selectByGroupsInformationId(String groupsInformationId) {
-        QueryWrapper<Groups> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Groups::getGroupsInformationId), groupsInformationId);
-        return list(queryWrapper);
     }
 
     @Override
@@ -167,6 +184,24 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         Groups groups = super.selectById(id);
         GroupsInformation groupsInformation = groupsInformationService.selectById(groups.getGroupsInformationId());
         groups.setGroupsInformationMation(groupsInformation);
+
+        List<Map<String, Object>> students = groupsStudentService.queryGroupsStudentsByGroupId(id);
+        groups.setStudents(students);
+
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生身份采取判断是否已经加入分组
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
+            String studentNumber = certification.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            if (StrUtil.isNotBlank(studentNumber)) {
+                Map<String, Boolean> isJoined = groupsStudentService.checkStudentIsJoined(Arrays.asList(id), studentNumber);
+                groups.setIsJoined(isJoined.getOrDefault(id, false));
+            }
+        }
+
+        Map<String, Integer> studentCount = groupsStudentService.getStudentCountByGroupId(Arrays.asList(id));
+        groups.setStudentCount(studentCount.getOrDefault(id, CommonNumConstants.NUM_ZERO));
         return groups;
     }
 }

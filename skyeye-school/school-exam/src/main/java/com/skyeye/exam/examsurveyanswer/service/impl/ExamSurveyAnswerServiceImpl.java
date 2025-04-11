@@ -3,7 +3,6 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -47,6 +46,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
+import com.skyeye.school.exam.service.ExamDirectoryAnService;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.entity.Major;
@@ -55,7 +55,6 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,7 +75,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "试卷回答信息表管理", groupName = "试卷回答信息表管理")
-public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService {
+public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService , ExamDirectoryAnService {
 
     @Autowired
     private ExamAnRadioService examAnRadioService;
@@ -142,7 +141,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     private SubjectClassesService subjectClassesService;
 
     @Autowired
+    private ExamSurveyMarkExamService examSurveyMarkExamService;
+
+    @Autowired
     private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
 
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
@@ -151,7 +156,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), id);
-        if (CollectionUtil.isNotEmpty(list(queryWrapper))){
+        if (CollectionUtil.isNotEmpty(list(queryWrapper))) {
             throw new CustomException("该试卷已回答,请勿重复回答");
         }
         String bgAnDate = entity.getBgAnDate();
@@ -285,9 +290,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         return list(queryWrapper);
     }
 
-    @Autowired
-    private ExamSurveyMarkExamService examSurveyMarkExamService;
-
     @Override
     public void queryAllSurveyList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -310,7 +312,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),starts);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
@@ -367,9 +369,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
     }
 
-    @Autowired
-    private SchoolCommonService schoolCommonService;
-
     @Override
     public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
@@ -415,7 +414,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String[] split = classId.split(",");
         List<String> classIds = Arrays.asList(split);
         String subjectId = examSurveyDirectory.getSubjectId();
-        Boolean yesOrNo = false;
+        boolean yesOrNo = false;
         UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
         if (ObjectUtil.isEmpty(userOrStudent)) {
             throw new CustomException("用户不存在");
@@ -446,6 +445,17 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             }
         }
         outputObject.setBean(yesOrNo);
+    }
+
+    @Override
+    public Long queryClassExamSurveyAnswerNum(String classId) {
+        // 获取试卷id
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
+        // 获取参与人次
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete),CommonNumConstants.NUM_ONE);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
+        return count(queryWrapper);
     }
 
     @Override

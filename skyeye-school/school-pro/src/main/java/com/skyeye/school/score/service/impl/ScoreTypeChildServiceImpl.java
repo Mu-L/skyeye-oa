@@ -25,6 +25,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.assignment.entity.Assignment;
 import com.skyeye.school.assignment.service.AssignmentService;
+import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.ScorePart;
@@ -75,6 +76,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     @Autowired
     private ICertificationService iCertificationService;
 
+    @Autowired
+    private SchoolCommonService schoolCommonService;
+
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
@@ -117,12 +121,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         }
         if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             Map<String, Object> certification = iCertificationService.queryCertificationById(InputObject.getLogParamsStatic().get("id").toString());
-            if (!certification.containsKey("state")) {
-                throw new CustomException("请先进行学生认证");
-            }
-            if (!certification.get("state").equals(CommonNumConstants.NUM_FOUR)) {
-                throw new CustomException("认证信息未通过审核，不允许加入课程班级");
-            }
+            schoolCommonService.checkUserCertification(certification);
             String studentNumber = certification.get("studentNumber").toString();
             ScoreSum scoreSum = scoreSumService.queryByObjectIdListAndStuNo(Arrays.asList(bean.getId()), studentNumber).get(CommonNumConstants.NUM_ZERO);
             scoreSumList = Arrays.asList(scoreSum);

@@ -55,7 +55,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Courseware courseware = super.selectById(id);
         chapterService.setDataMation(courseware, Courseware::getChapterId);
         if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
-            courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
+            courseware.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
         }
 
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
@@ -91,7 +91,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         String serviceClassName = getServiceClassName();
         coursewareList.forEach(courseware -> {
             if (ObjectUtil.isNotEmpty(courseware.getChapterMation())) {
-                courseware.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
+                courseware.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", courseware.getChapterMation().getSection(), courseware.getChapterMation().getName()));
             }
             courseware.setServiceClassName(serviceClassName);
         });
@@ -163,13 +163,13 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             temp.put(chapter.getId(), map);
         }
-        Map<String, Object> temp1 = new HashMap<>();
+        Map<String, Object> tempAll = new HashMap<>();
         if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
-            temp1.put("type", "互动课件");
-            temp1.put("name", type);
-            temp1.put("activeNum", CommonNumConstants.NUM_ZERO);
-            temp1.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
-            resultMap.put(type, temp1);
+            tempAll.put("type", "互动课件");
+            tempAll.put("name", "全部");
+            tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
+            tempAll.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            resultMap.put(type, tempAll);
             return resultMap;
         }
         if (CollectionUtil.isEmpty(list)) {
@@ -184,16 +184,15 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Map<String, List<CoursewareStudy>> coursewareSubMap = coursewareSubs.stream().collect(Collectors.groupingBy(CoursewareStudy::getCoursewareId));
         // 互动课件分析
 
-
         if (StrUtil.isNotEmpty(type)) {
             double completeNum = coursewareSubs.size(); // 完成互动课件次数数
             double totalNum = list.size(); // 总互动课件次数
-            temp1.put("type", "互动课件");
-            temp1.put("name", type);
-            temp1.put("activeNum", totalNum);
+            tempAll.put("type", "互动课件");
+            tempAll.put("name", "全部");
+            tempAll.put("activeNum", totalNum);
             String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            temp1.put("completeRate", completeRate);
-            resultMap.put(type, temp1);
+            tempAll.put("completeRate", completeRate);
+            resultMap.put(type, tempAll);
             return resultMap;
         }
         for (Chapter chapter : chapterList) {

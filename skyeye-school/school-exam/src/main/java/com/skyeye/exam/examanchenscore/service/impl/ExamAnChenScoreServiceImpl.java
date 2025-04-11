@@ -45,6 +45,7 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     protected void updatePostpose(ExamAnChenScore entity, String userId) {
         List<ExamAnChenScore> chenCheckboxAn = entity.getChenScoreAn();
         QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), entity.getBelongAnswerId());
@@ -56,9 +57,6 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenScore::getId).collect(Collectors.toSet());
         List<ExamAnChenScore> result = examAnChenCheckboxList.stream().filter(
             e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
-        List<ExamAnChenScore> intersection = examAnChenCheckboxList.stream()
-            .filter(e -> yesIdSet.contains(e.getId()))
-            .collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(ExamAnChenScore::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);
@@ -66,8 +64,8 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
             super.createEntity(NoIdChenCheckbox, userId);
         }
-        if (CollectionUtil.isNotEmpty(intersection)) {
-            super.updateEntity(intersection, userId);
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 

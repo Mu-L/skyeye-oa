@@ -45,6 +45,7 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     protected void updatePostpose(ExamAnChenCheckbox entity, String userId) {
         List<ExamAnChenCheckbox> chenCheckboxAn = entity.getChenCheckboxAn();
         QueryWrapper<ExamAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenCheckbox::getBelongAnswerId), entity.getBelongAnswerId());
@@ -56,9 +57,6 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(ExamAnChenCheckbox::getId).collect(Collectors.toSet());
         List<ExamAnChenCheckbox> result = examAnChenCheckboxList.stream().filter(
             e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
-        List<ExamAnChenCheckbox> intersection = examAnChenCheckboxList.stream()
-            .filter(e -> yesIdSet.contains(e.getId()))
-            .collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(ExamAnChenCheckbox::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);
@@ -66,8 +64,8 @@ public class ExamAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
             super.createEntity(NoIdChenCheckbox, userId);
         }
-        if (CollectionUtil.isNotEmpty(intersection)) {
-            super.updateEntity(intersection, userId);
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 

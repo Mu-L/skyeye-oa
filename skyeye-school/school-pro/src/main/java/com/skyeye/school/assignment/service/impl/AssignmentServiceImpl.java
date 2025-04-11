@@ -93,7 +93,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         Assignment assignment = super.selectById(id);
         chapterService.setDataMation(assignment, Assignment::getChapterId);
         if (ObjectUtil.isNotEmpty(assignment.getChapterMation())) {
-            assignment.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
+            assignment.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
         }
         iAuthUserService.setDataMation(assignment, Assignment::getCreateId);
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
@@ -163,7 +163,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         chapterService.setDataMation(assignmentList, Assignment::getChapterId);
         assignmentList.forEach(assignment -> {
             if (ObjectUtil.isNotEmpty(assignment.getChapterMation())) {
-                assignment.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
+                assignment.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
             }
         });
         iAuthUserService.setDataMation(assignmentList, Assignment::getCreateId);
@@ -192,9 +192,11 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
-        List<Assignment> list = list(queryWrapper); // 所有章节下的作业
+        // 所有章节下的作业
+        List<Assignment> list = list(queryWrapper);
         Map<String, Map<String, Object>> resultMap = new HashMap<>();
         Map<String, Map<String, Object>> temp = new HashMap<>();
+        // 初始化
         for (Chapter chapter : chapterList) {
             Map<String, Object> map = new HashMap<>();
             map.put("type", "作业");
@@ -203,13 +205,14 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
             temp.put(chapter.getId(), map);
         }
-        Map<String, Object> temp1 = new HashMap<>();
+        Map<String, Object> tempAll = new HashMap<>();
+        // 全部type = all
         if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
-            temp1.put("type", "作业");
-            temp1.put("name", type);
-            temp1.put("activeNum", CommonNumConstants.NUM_ZERO);
-            temp1.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
-            resultMap.put(type, temp1);
+            tempAll.put("type", "作业");
+            tempAll.put("name", "全部");
+            tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
+            tempAll.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            resultMap.put(type, tempAll);
             return resultMap;
         }
         if (CollectionUtil.isEmpty(list)) {
@@ -227,13 +230,13 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         if (StrUtil.isNotEmpty(type)) {
             double completeNum = assignmentSubs.size(); // 完成作业次数数
             double totalNum = list.size(); // 总作业次数
-            temp1.put("type", "作业");
-            temp1.put("name", type);
-            temp1.put("activeNum", totalNum);
+            tempAll.put("type", "作业");
+            tempAll.put("name", "全部");
+            tempAll.put("activeNum", totalNum);
             // 计算完成率--16.8%
             String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            temp1.put("completeRate", completeRate);
-            resultMap.put(type, temp1);
+            tempAll.put("completeRate", completeRate);
+            resultMap.put(type, tempAll);
             return resultMap;
         }
         for (Chapter chapter : chapterList) {
@@ -260,7 +263,6 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
     @Override
     public Long queryClassAssignmentNum(String id, String chapterId) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         if (StrUtil.isNotEmpty(chapterId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
