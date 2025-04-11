@@ -79,4 +79,6 @@ public interface SubjectClassesStuService extends SkyeyeBusinessService<SubjectC
     List<SubjectClassesStu> queryListBySubClassLinkIds(List<String> subLinkIds);
 
     Map<String, String> queryStuStarNumBySubClassesId(String id, List<String> stuNumbers);
+
+    SubjectClassesStu querySubClassLinkIdByStuNumberNo(String studentNumber);
 }

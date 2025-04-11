@@ -473,6 +473,21 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    public List<ExamSurveyAnswer> selectSurveyIdByUserId(String userId) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate));
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ExamSurveyAnswer> selectSurveyIdByteacherId(String userId) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+        return list(queryWrapper);
+    }
+
+    @Override
     public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds) {
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
