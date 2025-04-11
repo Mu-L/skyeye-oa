@@ -93,7 +93,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         Assignment assignment = super.selectById(id);
         chapterService.setDataMation(assignment, Assignment::getChapterId);
         if (ObjectUtil.isNotEmpty(assignment.getChapterMation())) {
-            assignment.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
+            assignment.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
         }
         iAuthUserService.setDataMation(assignment, Assignment::getCreateId);
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
@@ -163,7 +163,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         chapterService.setDataMation(assignmentList, Assignment::getChapterId);
         assignmentList.forEach(assignment -> {
             if (ObjectUtil.isNotEmpty(assignment.getChapterMation())) {
-                assignment.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
+                assignment.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", assignment.getChapterMation().getSection(), assignment.getChapterMation().getName()));
             }
         });
         iAuthUserService.setDataMation(assignmentList, Assignment::getCreateId);

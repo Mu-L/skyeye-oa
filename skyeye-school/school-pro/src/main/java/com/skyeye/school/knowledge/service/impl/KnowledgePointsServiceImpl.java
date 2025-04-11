@@ -71,7 +71,7 @@ public class KnowledgePointsServiceImpl extends SkyeyeBusinessServiceImpl<Knowle
         KnowledgePoints knowledgePoints = super.selectById(id);
         chapterService.setDataMation(knowledgePoints, KnowledgePoints::getChapterId);
         if (ObjectUtil.isNotEmpty(knowledgePoints.getChapterMation())) {
-            knowledgePoints.getChapterMation().setName(String.format(Locale.ROOT, "第 %s 章 %s", knowledgePoints.getChapterMation().getSection(), knowledgePoints.getChapterMation().getName()));
+            knowledgePoints.getChapterMation().setRealName(String.format(Locale.ROOT, "第 %s 章 %s", knowledgePoints.getChapterMation().getSection(), knowledgePoints.getChapterMation().getName()));
         }
         return knowledgePoints;
     }

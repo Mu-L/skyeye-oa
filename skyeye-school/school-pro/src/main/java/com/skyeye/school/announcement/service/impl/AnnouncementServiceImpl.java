@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -131,13 +132,13 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
     @Override
     public void updateUnConfirmNum(String id) {
         List<Announcement> announcementList = selectBySubjectClassesId(id);
-        if (CollectionUtil.isEmpty(announcementList)){
+        if (CollectionUtil.isEmpty(announcementList)) {
             return;
         }
         for (Announcement announcement : announcementList) {
             announcement.setUnConfirmNum(announcement.getUnConfirmNum() + CommonNumConstants.NUM_ONE);
         }
-        super.updateEntity(announcementList,announcementList.get(CommonNumConstants.NUM_ZERO).getCreateId());
+        super.updateEntity(announcementList, announcementList.get(CommonNumConstants.NUM_ZERO).getCreateId());
     }
 
     @Override
@@ -145,22 +146,34 @@ public class AnnouncementServiceImpl extends SkyeyeBusinessServiceImpl<Announcem
         QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Announcement::getSubjectClassesId), subClassLinkId);
         List<Announcement> announcementList = list(queryWrapper);
-        List<String> annIds = announcementList.stream().map(Announcement::getId).collect(Collectors.toList());
-        Map<String, List<AnnouncementRecord>> announcementMapList = announcementRecordService.queryRecordByAnnouncementIdAndStu(annIds, stuNo);
-        for (Announcement announcement : announcementList) {
-            if (announcementMapList.containsKey(announcement.getId())) {
-                announcementRecordService.deleteRecordByAnnouncementId(announcement.getId());
-                UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(CommonConstants.ID, announcement.getId());
-                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getConfirmNum), announcement.getConfirmNum() - CommonNumConstants.NUM_ONE);
-                update(updateWrapper);
-            } else {
-                UpdateWrapper<Announcement> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.eq(CommonConstants.ID, announcement.getId());
-                updateWrapper.set(MybatisPlusUtil.toColumns(Announcement::getUnConfirmNum), announcement.getUnConfirmNum() - CommonNumConstants.NUM_ONE);
-                update(updateWrapper);
-            }
+        List<String> announcementIds = announcementList.stream().map(Announcement::getId).collect(Collectors.toList());
+        Map<String, List<AnnouncementRecord>> announcementMapList = announcementRecordService.queryRecordByAnnouncementIdAndStu(announcementIds, stuNo);
+        Set<String> existingAnnIds = announcementMapList.keySet();
+        List<String> nonExistingAnnIds = announcementIds.stream().filter(id -> !existingAnnIds.contains(id)).collect(Collectors.toList());
+        if (!existingAnnIds.isEmpty()) {
+            announcementRecordService.deleteBatchByAnnouncementIds(new ArrayList<>(existingAnnIds));
         }
+        if (!existingAnnIds.isEmpty()) {
+            List<String> existingAnnIdsList = new ArrayList<>(existingAnnIds);
+            List<Announcement> announcementList1 = queryAnnouncementListByIds(existingAnnIdsList);
+            for (Announcement announcement : announcementList1) {
+                announcement.setConfirmNum(announcement.getConfirmNum() - 1);
+            }
+           super.updateEntity(announcementList1, announcementList.get(CommonNumConstants.NUM_ZERO).getCreateId());
+        }
+        if (!nonExistingAnnIds.isEmpty()) {
+            List<Announcement> announcementList1 = queryAnnouncementListByIds(nonExistingAnnIds);
+            for (Announcement announcement : announcementList1) {
+                announcement.setUnConfirmNum(announcement.getUnConfirmNum() - 1);
+            }
+            super.updateEntity(announcementList1, announcementList.get(CommonNumConstants.NUM_ZERO).getCreateId());
+        }
+    }
+
+    private List<Announcement> queryAnnouncementListByIds(List<String> existingAnnIds) {
+        QueryWrapper<Announcement> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, existingAnnIds);
+        return list(queryWrapper);
     }
 
     private List<Announcement> selectBySubjectClassesId(String id) {

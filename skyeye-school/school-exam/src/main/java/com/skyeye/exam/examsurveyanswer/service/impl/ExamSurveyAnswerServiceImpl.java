@@ -75,7 +75,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "试卷回答信息表管理", groupName = "试卷回答信息表管理")
-public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService , ExamDirectoryAnService {
+public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService, ExamDirectoryAnService {
 
     @Autowired
     private ExamAnRadioService examAnRadioService;
@@ -173,6 +173,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
+        ExamSurveyAnswer examSurveyAnswer = selectById(entity.getId());
+        // 判断是否结束
+        if (StrUtil.isNotEmpty(examSurveyAnswer.getId())) {
+            if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())) {
+                throw new CustomException("该试卷已结束,请勿修改");
+            }
+        }
         String markStartTime = entity.getMarkStartTime();
         String markEndTime = entity.getMarkEndTime();
         if (StrUtil.isNotEmpty(markStartTime) && StrUtil.isNotEmpty(markEndTime)) {
@@ -181,38 +188,39 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 throw new CustomException("开始时间不能大于结束时间");
             }
         }
-        if (endAnDate == null) {
-            throw new CustomException("结束时间不能为空");
+        if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
+            boolean compare = DateUtil.compare(bgAnDate, endAnDate);
+            if (!compare) {
+                throw new CustomException("开始时间不能大于结束时间");
+            }
+            String distanceHMS = getDistanceHMS(bgAnDate, endAnDate);
+            entity.setTotalTime(distanceHMS);
+            String surveyId = entity.getSurveyId();
+            Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
+            Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
+            Integer size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
+            Integer size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
+            Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
+            Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
+            Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
+            Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
+            Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
+            Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
+            Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
+            Integer size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
+            Integer size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
+            Integer size13 = examAnOrderService.selectBySurveyId(surveyId).size();
+            Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
+            entity.setCompleteNum(total);
+            if (total.equals(entity.getQuNum())) {
+                entity.setIsComplete(CommonNumConstants.NUM_ONE);
+            }
+            if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
+                Integer fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+                entity.setMarkFraction(fraction);
+            }
         }
-        String distanceHMS = getDistanceHMS(bgAnDate, endAnDate);
-        entity.setTotalTime(distanceHMS);
-        String surveyId = entity.getSurveyId();
-        Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
-        Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
-        Integer size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
-        Integer size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
-        Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
-        Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
-        Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
-        Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
-        Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
-        Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
-        Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
-        Integer size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
-        Integer size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
-        Integer size13 = examAnOrderService.selectBySurveyId(surveyId).size();
-        Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
-        entity.setCompleteNum(total);
-        if (total.equals(entity.getQuNum())) {
-            entity.setIsComplete(CommonNumConstants.NUM_ONE);
-        }
-//        else if (total < entity.getQuNum()) {
-//            throw new CustomException("未完成所有题目");
-//        }
-        if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-            Integer fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId());
-            entity.setMarkFraction(fraction);
-        }
+
     }
 
     public static String getDistanceHMS(String bgAnDate, String endAnDate) {
@@ -250,6 +258,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public ExamSurveyAnswer selectById(String id) {
         ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
+        if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())){
+            throw new CustomException("该试卷已回答结束，不能查看");
+        }
         String surveyId = examSurveyAnswer.getSurveyId();
         String studentId = examSurveyAnswer.getCreateId();
         ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuId(surveyId, studentId);
@@ -262,6 +273,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String createId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .or()
+            .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
         List<String> collect = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
         //试卷id及信息
@@ -453,7 +467,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
         // 获取参与人次
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
         return count(queryWrapper);
     }

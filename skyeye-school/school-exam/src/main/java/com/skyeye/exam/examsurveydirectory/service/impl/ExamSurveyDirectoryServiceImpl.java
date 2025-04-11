@@ -535,6 +535,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        // 总人数
         Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return;
@@ -554,6 +555,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             int answerNum = answerNumMap.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : answerNumMap.get(examSurveyDirectory.getId());
             // 获取未回答的人数
             int unSubmitNum = stuNum - answerNum;
+            unSubmitNum = unSubmitNum ==-1 ? CommonNumConstants.NUM_ONE : unSubmitNum;
             examSurveyDirectory.setUnSubmitNum(unSubmitNum);
             // 未批阅
             int unReadNum = answerNum - readNum;

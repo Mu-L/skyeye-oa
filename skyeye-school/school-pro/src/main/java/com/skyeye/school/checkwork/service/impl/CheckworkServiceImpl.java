@@ -68,7 +68,8 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
     @Override
     public QueryWrapper<Checkwork> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Checkwork> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), commonPageInfo.getHolderId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), commonPageInfo.getHolderId())
+            .orderByDesc(MybatisPlusUtil.toColumns(Checkwork::getCreateTime));
         return queryWrapper;
     }
 
