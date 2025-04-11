@@ -363,145 +363,146 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString(); // 科目与班级的关系id
         SubjectClasses subjectClasses = selectById(id);
+        String subjectId = subjectClasses.getObjectId();
+        String classesId = subjectClasses.getClassesId();
+
         // 查询班级学生信息
         List<Map<String, Object>> studentList = subjectClassesStuService.queryClassStuIds(id);
         // 获取章节数据
-        List<Chapter> chapterList = chapterService.queryChaptersBySubjectId(subjectClasses.getObjectId());
+        List<Chapter> chapterList = chapterService.queryChaptersBySubjectId(subjectId);
+
+        Map<String, Object> resultMap = new HashMap<>();
+        List<Map<String, Object>> bean = new ArrayList<>();
+        List<Map<String, Object>> beans = new ArrayList<>();
+
+        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
+
         // 获取科目班级下的话题数量
         Long topicNum = topicService.queryClassTopicNum(id);
         // 获取考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
+        // 获取测试数量--按班级查
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId);
+        // 获取资料数--按章节分组
+        Map<String, Long> dataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId,chapterIds,null);
+        // 获取互动课件数 ---按章节分组
+        Map<String, Long> coursewareNumMap = coursewareService.queryCoursewareBySubjectIdAndChapterIds(subjectId,chapterIds);
+        // 获取作业数---按章节分组
+        Map<String, Long> assignmentNumMap = assignmentService.queryAssignmentBySubjectClassesIdAndChapterIds(id,chapterIds);
 
-        Map<String, Object> tempMap = new HashMap<>();
-        Map<String, Object> resultMap = new HashMap<>();
-        List<Map<String, Object>> bean = new ArrayList<>();
-        List<Map<String, Object>> beans = new ArrayList<>();
-        for (Chapter chapter : chapterList) {
-            String name = "chapter" + chapter.getSection();
-            // 获取科目班级的章节下的资料数
-//            Long dataNum = datumService.queryClassDataNum(id, chapter.getId());
-            // 获取科目班级的章节下的测试数
-//            Long testNum = measurementService.queryClassMeasurementNum(id, chapter.getId());
-            // 获取科目班级的章节下的作业数
-            Long assignmentNum = assignmentService.queryClassAssignmentNum(id, chapter.getId());
-            // 获取科目班级下的章节互动课件数量
-            Long coursewareNum = coursewareService.queryClassCoursewareNum(id, chapter.getId());
-            for (Map<String, Object> student : studentList) {
+
+        // 与学生有关的数据
+        List<String> stuIds = new ArrayList<>();
+        List<String> stuNumbers = new ArrayList<>();
+        for (Map<String, Object> student : studentList) {
+            stuIds.add(student.get("id").toString());
+            stuNumbers.add(student.get("studentNumber").toString());
+        }
+        // 1.获取学生上传的资料数--按stuId分组
+        Map<String, Long> stuDataNumMap = datumService.queryDatumBySubjectIdAndChapterIds(subjectId,chapterIds,stuIds);
+        // 2.获取学生学习的互动课件数--按stuId分组
+        Map<String, Long> stuCoursewareNumMap = coursewareService.queryStuCourBySubIdAndChapIdsAndStuIds(subjectId,chapterIds,stuIds);
+        // 3.获取学生提交的作业数--按stuId分组
+        Map<String, Long> stuAssignmentNumMap = assignmentService.queryStuAssignNumBySubClassesId(id,chapterIds,stuIds);
+        // 4.获取学生考勤次数---按stuId分组
+        Map<String, Long> stuCheckWorkNumMap = checkworkService.queryStuCheckWorkNumBySubClassesId(id,stuIds);
+        // 5.获取学生的奖励星星数
+        Map<String, String> stuStarNumMap = subjectClassesStuService.queryStuStarNumBySubClassesId(id,stuNumbers);
+        // 6.获取学生的弹幕数量
+        Map<String, Long> stuTopicCommentNumMap = topicService.queryStuCommentNumBySubClassesId(id,stuIds);
+        // 7.获取学生参与的测试数量
+        Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId,stuIds);
+
+        // 总数
+        Map<String, Long> totalData = new HashMap<>();
+        // 初始化
+        totalData.put("coursewareNum", 0L);
+        totalData.put("stuCoursewareNum", 0L);
+        totalData.put("dataNum", 0L);
+        totalData.put("stuDataNum", 0L);
+        totalData.put("assignmentNum", 0L);
+        totalData.put("stuAssignmentNum", 0L);
+        totalData.put("checkWorkNum", checkWorkNum);
+        totalData.put("stuCheckWorkNum", 0L);
+        totalData.put("testNum", testNum);
+        totalData.put("stuTestNum", 0L);
+        totalData.put("topicNum", topicNum);
+        // 1-n 章
+        for(Chapter chapter : chapterList){
+            String name = chapter.getName();
+            for (Map<String, Object> student : studentList){
                 String stuId = student.get("id").toString();
-                String studentNumber = student.get("studentNumber").toString();
-                String stuName = "student" + studentNumber;
-                // 获取学生上传的资料数
-//                Long stuDataNum = datumService.queryStuDataNum(id, stuId, chapter.getId());
-                // 获取学生的某章节测试数
-//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, chapter.getId());
-                // 获取学生的某章节作业数
-                Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, chapter.getId());
-                // 获取学生的某章节互动课件数量
-                Long stuCoursewareNum = coursewareService.queryStuCoursewareNum(id, stuId, chapter.getId());
-                // 获取学生的考勤数量
-                Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
-                // 获取学生的弹幕数量
-                Long stuTopicCommentNum = topicService.queryStuTopicCommentNum(id, stuId);
-                // 获取奖励星星数量
-                Long stuStarNum = subjectClassesStuService.queryStuStarNum(id, studentNumber);
-                // 获取学生的发话题数
-                Long stuTopicNum = topicService.queryStuTopicNum(id, stuId);
-                // 互动课件上传率
-                double courseRate = getRate(stuCoursewareNum, coursewareNum);
-                // 考勤率
-                double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
-                // 测试完成率
-//                double testRate = getRate(stuTestNum, testNum);
-                // 作业完成率
-                double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
-                // 资料上传率
-//                double dataRate = getRate(stuDataNum, dataNum);
+                // 互动课件
+                student.put("coursewareNum",coursewareNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("stuCoursewareNum",stuCoursewareNumMap.getOrDefault(stuId,0L));
+                totalData.put("coursewareNum",totalData.get("coursewareNum")+coursewareNumMap.getOrDefault(chapter.getId(),0L));
+                totalData.put("stuCoursewareNum",totalData.get("stuCoursewareNum")+stuCoursewareNumMap.getOrDefault(stuId,0L));
+                double  courseRate = getRate(stuCoursewareNumMap.getOrDefault(stuId,0L),coursewareNumMap.getOrDefault(chapter.getId(),0L));
+
+                // 资料
+                student.put("dataNum",dataNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("stuDataNum",stuDataNumMap.getOrDefault(stuId,0L));
+                totalData.put("dataNum",totalData.get("dataNum") + dataNumMap.getOrDefault(chapter.getId(),0L));
+                totalData.put("stuDataNum",totalData.get("stuDataNum") + stuDataNumMap.getOrDefault(stuId,0L));
+                double  dataRate = getRate(stuDataNumMap.getOrDefault(stuId,0L),dataNumMap.getOrDefault(chapter.getId(),0L));
+                // 作业
+                student.put("assignmentNum",assignmentNumMap.getOrDefault(chapter.getId(),0L));
+                student.put("stuAssignmentNum",stuAssignmentNumMap.getOrDefault(stuId,0L));
+                totalData.put("assignmentNum",totalData.get("assignmentNum") + assignmentNumMap.getOrDefault(chapter.getId(),0L));
+                totalData.put("stuAssignmentNum",totalData.get("stuAssignmentNum") + stuAssignmentNumMap.getOrDefault(stuId,0L));
+                double  assignmentRate = getRate(stuAssignmentNumMap.getOrDefault(stuId,0L),assignmentNumMap.getOrDefault(chapter.getId(),0L));
+                // 测试
+                student.put("testNum",testNum);
+                student.put("stuTestNum",stuTestNumMap.getOrDefault(stuId,0L));
+                totalData.put("stuTestNum",totalData.get("stuTestNum") + stuTestNumMap.getOrDefault(stuId,0L));
+                double  testRate = getRate(stuTestNumMap.getOrDefault(stuId,0L),testNum);
+                // 考勤
+                student.put("checkWorkNum",checkWorkNum);
+                student.put("stuCheckWorkNum",stuCheckWorkNumMap.getOrDefault(stuId,0L));
+                totalData.put("stuCheckWorkNum",totalData.get("stuCheckWorkNum") + stuCheckWorkNumMap.getOrDefault(stuId,0L));
+                double  checkWorkRate = getRate(stuCheckWorkNumMap.getOrDefault(stuId,0L),checkWorkNum);
+                // 话题数
+                student.put("topicNum",topicNum);
+                // 表现奖励
+                student.put("rewardNum",stuStarNumMap.getOrDefault(stuId,"0"));
+                // 发弹幕数
+                student.put("stuTopicCommentNum",stuTopicCommentNumMap.getOrDefault(stuId,0L));
                 // 整体完成率
-                double overallRate = (courseRate + checkWorkRate + assignmentRate) / CommonNumConstants.NUM_FIVE;
-//                student.put("stuDataNum", stuDataNum);
-//                student.put("dataNum", dataNum);
-//                student.put("stuTestNum", stuTestNum);
-//                student.put("testNum", testNum);
-                student.put("stuAssignmentNum", stuAssignmentNum);
-                student.put("assignmentNum", assignmentNum);
-                student.put("stuCoursewareNum", stuCoursewareNum);
-                student.put("coursewareNum", coursewareNum);
-                student.put("stuCheckWorkNum", stuCheckWorkNum);
-                student.put("checkWorkNum", checkWorkNum);
-                student.put("stuTopicNum", stuTopicNum);
-                student.put("topicNum", topicNum);
-                student.put("stuTopicCommentNum", stuTopicCommentNum);
-                student.put("stuStarNum", stuStarNum);
-                student.put("overallRate", overallRate);
-                tempMap.put(stuName, student);
-                bean.add(tempMap);
+                double rate = (courseRate+assignmentRate+testRate+checkWorkRate+dataRate)/5;
+                // 保留三位
+                student.put("rate",String.format("%.3f",rate*100)+'%');
+                bean.add(student);
             }
-            resultMap.put(name, bean);
+            resultMap.put("name",name);
+            resultMap.put("studentAnalysis", bean);
             beans.add(resultMap);
             resultMap = new HashMap<>();
         }
+
         // 全部数据
-        if (chapterList.size() > CommonNumConstants.NUM_ONE) {
-            bean = new ArrayList<>();
-            // 获取科目班级的互动课件数量
-            Long coursewareNum = coursewareService.queryClassCoursewareNum(id, null);
-            // 获取科目班级的作业数量
-            Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
-            // 获取科目班级的资料
-//            Long dataNum = datumService.queryClassDataNum(id, null);
-            // 获取科目班级的测试数量
-//            Long testNum = measurementService.queryClassMeasurementNum(id, null);
-            for (Map<String, Object> student : studentList) {
-                String stuId = student.get("id").toString();
-                String studentNumber = student.get("studentNumber").toString();
-                String stuName = "student" + studentNumber;
-                // 获取学生互动课件数量
-                Long stuCoursewareNum = coursewareService.queryStuCoursewareNum(id, stuId, null);
-                // 获取学生作业数量
-                Long stuAssignmentNum = assignmentService.queryStuAssignmentNum(id, stuId, null);
-                // 获取学生资料数量
-//                Long stuDataNum = datumService.queryStuDataNum(id, stuId, null);
-                // 获取学生测试数量
-//                Long stuTestNum = measurementService.queryStuMeasurementNum(id, stuId, null);
-                // 获取考勤数量
-                Long stuCheckWorkNum = checkworkService.queryStuCheckWorkNum(id, stuId);
-                // 获取奖励星星数量
-                Long stuStarNum = subjectClassesStuService.queryStuStarNum(id, studentNumber);
-                // 获取学生的弹幕数量
-                Long stuTopicCommentNum = topicService.queryStuTopicCommentNum(id, stuId);
-                // 获取学生的发话题数
-                Long stuTopicNum = topicService.queryStuTopicNum(id, stuId);
-                student.put("stuCoursewareNum", stuCoursewareNum);
-                student.put("coursewareNum", coursewareNum);
-                student.put("stuAssignmentNum", stuAssignmentNum);
-                student.put("assignmentNum", assignmentNum);
-//                student.put("stuDataNum", stuDataNum);
-//                student.put("dataNum", dataNum);
-//                student.put("stuTestNum", stuTestNum);
-//                student.put("testNum", testNum);
-                student.put("stuCheckWorkNum", stuCheckWorkNum);
-                student.put("checkWorkNum", checkWorkNum);
-                student.put("stuTopicNum", stuTopicNum);
-                student.put("topicNum", topicNum);
-                student.put("stuStarNum", stuStarNum);
-                student.put("stuTopicCommentNum", stuTopicCommentNum);
-                double courseRate = getRate(stuCoursewareNum, coursewareNum);
-                double checkWorkRate = getRate(stuCheckWorkNum, checkWorkNum);
-//                double testRate = getRate(stuTestNum, testNum);
-                double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
-//                double dataRate = getRate(stuDataNum, dataNum);
-                double overallRate = (courseRate + checkWorkRate + assignmentRate) / CommonNumConstants.NUM_FIVE;
-                student.put("overallRate", overallRate);
-                tempMap.put(stuName, student);
-                bean.add(tempMap);
-            }
-            resultMap.put("all", bean);
-            beans.add(resultMap);
+        bean = new ArrayList<>();
+        for (Map<String, Object> student : studentList) {
+            String stuId = student.get("id").toString();
+            student.putAll(totalData);
+            // 表现奖励
+            student.put("rewardNum",stuStarNumMap.getOrDefault(stuId,"0"));
+            // 发弹幕数
+            student.put("stuTopicCommentNum",stuTopicCommentNumMap.getOrDefault(stuId,0L));
+
+            double courseRate = getRate(totalData.get("stuCoursewareNum"),totalData.get("coursewareNum"));
+            double assignmentRate = getRate(totalData.get("stuAssignmentNum"),totalData.get("assignmentNum"));
+            double testRate = getRate(totalData.get("stuTestNum"),totalData.get("testNum"));
+            double checkWorkRate = getRate(totalData.get("stuCheckWorkNum"),totalData.get("checkWorkNum"));
+            double dataRate = getRate(totalData.get("stuDataNum"),totalData.get("dataNum"));
+            // 整体完成率
+            double rate = (courseRate+assignmentRate+testRate+checkWorkRate+dataRate)/5;
+            student.put("rate",String.format("%.3f",rate*100)+'%');
+            bean.add(student);
         }
-        if (CollectionUtil.isNotEmpty(beans)) {
-            resultMap.put("all", bean);
-            beans.add(resultMap);
-        }
+        resultMap.put("name","全部");
+        resultMap.put("studentAnalysis", bean);
+        beans.add(resultMap);
+
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

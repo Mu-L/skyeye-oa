@@ -183,4 +183,11 @@ public class AnnouncementRecordServiceImpl extends SkyeyeBusinessServiceImpl<Ann
         Map<String, List<AnnouncementRecord>> collect = announcementRecordList.stream().collect(Collectors.groupingBy(AnnouncementRecord::getAnnouncementId));
         return collect;
     }
+
+    @Override
+    public void deleteBatchByAnnouncementIds(ArrayList<String> strings) {
+        QueryWrapper<AnnouncementRecord> recordQueryWrapper = new QueryWrapper<>();
+        recordQueryWrapper.in(MybatisPlusUtil.toColumns(AnnouncementRecord::getAnnouncementId), strings);
+        remove(recordQueryWrapper);
+    }
 }

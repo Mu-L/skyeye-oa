@@ -129,25 +129,6 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     }
 
     @Override
-    public Long queryClassCoursewareNum(String id, String chapterId) {
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterId);
-        }
-        return count(queryWrapper);
-    }
-
-    @Override
-    public Long queryStuCoursewareNum(String id, String stuId, String chapterId) {
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterId);
-        }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getCreateId), stuId);
-        return count(queryWrapper);
-    }
-
-    @Override
     public Map<String, Map<String, Object>> queryInterAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
         List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
@@ -212,6 +193,34 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             t.put("completeRate", completeRate);
             resultMap.put(chapter.getId(), t);
         }
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Long> queryCoursewareBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds) {
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
+        List<Courseware> coursewares = list(queryWrapper);
+        if(CollectionUtil.isEmpty(coursewares)){
+            return Collections.emptyMap();
+        }
+        // 统计每个章节的资料数量stream流
+        Map<String, Long> resultMap = coursewares.stream().collect(Collectors.groupingBy(Courseware::getChapterId, Collectors.counting()));
+        return resultMap;
+    }
+
+    @Override
+    public Map<String, Long> queryStuCourBySubIdAndChapIdsAndStuIds(String subjectId, List<String> chapterIds, List<String> stuIds) {
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
+        List<Courseware> bean = list(queryWrapper);
+        if(CollectionUtil.isEmpty(bean)){
+            return Collections.emptyMap();
+        }
+        List<String> coursewareIds = bean.stream().map(Courseware::getId).collect(Collectors.toList());
+        Map<String,Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
         return resultMap;
     }
 }

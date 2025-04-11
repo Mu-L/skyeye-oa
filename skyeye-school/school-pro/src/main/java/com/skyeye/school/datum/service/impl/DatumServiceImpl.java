@@ -6,7 +6,6 @@ package com.skyeye.school.datum.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -19,11 +18,10 @@ import com.skyeye.school.datum.entity.Datum;
 import com.skyeye.school.datum.service.DatumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DatumServiceImpl
@@ -109,5 +107,29 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getObjectId), subjectId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public Map<String, Long> queryDatumBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds, List<String> stuIds) {
+        QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getObjectId), subjectId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterIds);
+        if(CollectionUtil.isNotEmpty(stuIds)){
+            queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getCreateId), stuIds);
+            List<Datum> stuList = list(queryWrapper);
+            if(CollectionUtils.isEmpty(stuList)){
+                return Collections.emptyMap();
+            }
+            // 统计每个创建人的资料数量stream流
+            Map<String, Long> map = stuList.stream().collect(Collectors.groupingBy(Datum::getCreateId, Collectors.counting()));
+            return map;
+        }
+        List<Datum> list = list(queryWrapper);
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.emptyMap();
+        }
+        // 统计每个章节的资料数量stream流
+        Map<String, Long> map = list.stream().collect(Collectors.groupingBy(Datum::getChapterId, Collectors.counting()));
+        return map;
     }
 }

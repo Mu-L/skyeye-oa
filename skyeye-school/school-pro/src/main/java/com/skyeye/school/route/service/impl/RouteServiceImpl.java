@@ -117,15 +117,14 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
 
     private List<Routes> setBaseMation(QueryWrapper<Routes> queryWrapper) {
         List<Routes> bean = list(queryWrapper);
+        List<String> routeIds = bean.stream().map(Routes::getId).collect(Collectors.toList());
+        Map<String,List<RouteStop>> routeStopListMap = routeStopService.queryStopListGroupByRoteIds(routeIds);
         for (Routes routes : bean) {
-            QueryWrapper<RouteStop> routeStopQueryWrapper = new QueryWrapper<>();
-            routeStopQueryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), routes.getId())
-                    .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
-            List<RouteStop> routeStopList = routeStopService.list(routeStopQueryWrapper);
+            List<RouteStop> routeStopList = routeStopListMap.get(routes.getId());
             routes.setRouteStopList(routeStopList);
-            routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
-            routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
         }
+        iAuthUserService.setDataMation(bean,Routes::getEndMation);
+        iAuthUserService.setDataMation(bean,Routes::getStartMation);
         iAuthUserService.setName(bean, "createId", "createName");
         iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
         return bean;

@@ -423,15 +423,6 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
     }
 
     @Override
-    public Long queryStuStarNum(String id, String studentNumber) {
-        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), id);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), studentNumber);
-        SubjectClassesStu one = getOne(queryWrapper);
-        return Long.valueOf(one.getReward());
-    }
-
-    @Override
     public List<SubjectClassesStu> selectNumBySubClassLinkId(String subjectClassId) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subjectClassId);
@@ -447,6 +438,18 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subLinkIds);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, String> queryStuStarNumBySubClassesId(String id, List<String> stuNumbers) {
+        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), id);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNumbers);
+        List<SubjectClassesStu> list = list(queryWrapper);
+        if(CollectionUtil.isEmpty(list)){
+            return Collections.emptyMap();
+        }
+        return list.stream().collect(Collectors.toMap(SubjectClassesStu::getStuNo, SubjectClassesStu::getReward));
     }
 
 }
