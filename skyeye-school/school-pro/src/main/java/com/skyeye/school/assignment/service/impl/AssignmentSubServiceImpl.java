@@ -170,7 +170,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         Assignment assignment = assignmentService.selectById(entity.getAssignmentId());
         List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(entity.getCreateId());
         scorePartService.updateStudentScore(assignment.getObjectId(), assignment.getSubjectClassesId(),
-            userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), id, score);
+            userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), id, getServiceClassName(), assignment.getName(), score);
         refreshCache(id);
     }
 
