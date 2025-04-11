@@ -259,7 +259,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public ExamSurveyAnswer selectById(String id) {
         ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
         if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())){
-            throw new CustomException("该时卷已回答结束，不能查看");
+            throw new CustomException("该试卷已回答结束，不能查看");
         }
         String surveyId = examSurveyAnswer.getSurveyId();
         String studentId = examSurveyAnswer.getCreateId();
