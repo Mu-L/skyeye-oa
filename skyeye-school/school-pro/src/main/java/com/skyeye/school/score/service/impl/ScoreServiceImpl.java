@@ -18,6 +18,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreDao;
 import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
@@ -133,7 +134,8 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     }
 
     @Override
-    public void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId, String score) {
+    public void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId,
+                                   String nameLinkKey, String nameLinkName, String score) {
         // 查询这个课程与班级下的所有成绩类型
         List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
         List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
@@ -143,7 +145,11 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         // 1. 先查询出 scoreTypeChildId
         ScoreTypeChild scoreTypeChild = scoreTypeChildrenList.stream()
             .filter(item -> item.getNameLinkId().equals(nameLinkId)).findFirst().orElse(null);
-        if (ObjectUtil.isNotEmpty(scoreTypeChild)) {
+        if (ObjectUtil.isEmpty(scoreTypeChild)) {
+            // 如果没有这个成绩类型，则先初始化
+            initNameLinkMation(subjectId, subClassLinkId, nameLinkId, nameLinkKey, nameLinkName);
+            // 再更新学生的成绩
+            updateStudentScore(subjectId, subClassLinkId, studentNumber, nameLinkId, nameLinkKey, nameLinkName, score);
             return;
         }
         scoreList.forEach(item -> {
@@ -153,6 +159,21 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         });
 
         calculateScore(scoreTypeChildrenList, scoreList);
+    }
+
+    private void initNameLinkMation(String subjectId, String subClassLinkId, String nameLinkId, String nameLinkKey, String nameLinkName) {
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.select(subjectId, subClassLinkId, NumberCodeEnum.WORK.getKey());
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+
+        ScoreTypeChild scoreTypeChild1 = new ScoreTypeChild();
+        scoreTypeChild1.setSubjectId(subjectId);
+        scoreTypeChild1.setSubClassLinkId(subClassLinkId);
+        scoreTypeChild1.setName(nameLinkName);
+        scoreTypeChild1.setNameLinkId(nameLinkId);
+        scoreTypeChild1.setNameLinkKey(nameLinkKey);
+        scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
 
     @Override

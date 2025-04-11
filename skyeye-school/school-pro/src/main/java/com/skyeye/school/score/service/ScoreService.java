@@ -41,9 +41,12 @@ public interface ScoreService extends SkyeyeBusinessService<Score> {
      * @param subClassLinkId 科目与班级关联id
      * @param studentNumber  学生学号
      * @param nameLinkId     业务数据的id(作业id，试卷id等)
+     * @param nameLinkKey    业务数据的key(作业key，试卷key等)
+     * @param nameLinkName   业务数据名称(作业名称，试卷名称等)
      * @param score          成绩
      */
-    void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId, String score);
+    void updateStudentScore(String subjectId, String subClassLinkId, String studentNumber, String nameLinkId,
+                            String nameLinkKey, String nameLinkName, String score);
 
     /**
      * 计算成绩
