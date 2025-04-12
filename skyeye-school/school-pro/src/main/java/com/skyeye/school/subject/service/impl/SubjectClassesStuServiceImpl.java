@@ -5,6 +5,7 @@
 package com.skyeye.school.subject.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -378,10 +379,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         UpdateWrapper<SubjectClassesStu> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNo)
             .eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), subClassLinkId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), reward);
         SubjectClassesStu one = getOne(updateWrapper);
-        Integer rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), String.valueOf(rewardNumber));
+        if (ObjectUtil.isEmpty(one)) {
+            throw new CustomException("该学生不存在");
+        }
+        int rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward),
+            rewardNumber > CommonNumConstants.NUM_ZERO ? String.valueOf(rewardNumber) : CommonNumConstants.NUM_ZERO.toString());
         update(updateWrapper);
     }
 
@@ -446,7 +450,7 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getSubClassLinkId), id);
         queryWrapper.in(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), stuNumbers);
         List<SubjectClassesStu> list = list(queryWrapper);
-        if(CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
         return list.stream().collect(Collectors.toMap(SubjectClassesStu::getStuNo, SubjectClassesStu::getReward));
