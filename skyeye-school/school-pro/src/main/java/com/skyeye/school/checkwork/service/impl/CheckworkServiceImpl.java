@@ -216,18 +216,6 @@ public class CheckworkServiceImpl extends SkyeyeBusinessServiceImpl<CheckworkDao
     }
 
     @Override
-    public Map<String, Long> queryStuCheckWorkNumBySubClassesId(String id, List<String> stuIds) {
-        QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), id);
-        List<Checkwork> beans = list(queryWrapper);
-        if (CollectionUtil.isEmpty(beans)) {
-            return Collections.emptyMap();
-        }
-        List<String> ids = beans.stream().map(Checkwork::getId).collect(Collectors.toList());
-        return checkworkSignService.queryStuCheckWorkSignNums(ids, stuIds);
-    }
-
-    @Override
     public List<Checkwork> queryCheckworkList(String subjectLinkClassId) {
         QueryWrapper<Checkwork> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Checkwork::getSubClassLinkId), subjectLinkClassId);

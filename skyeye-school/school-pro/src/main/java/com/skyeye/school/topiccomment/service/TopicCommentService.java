@@ -19,5 +19,5 @@ public interface TopicCommentService extends SkyeyeBusinessService<TopicComment>
 
     Long queryClassTopicJoinPersonNum(String id, String stuId);
 
-    Map<String, Long> queryCommentNumByTopicIdsAndStuIds(List<String> topicIds, List<String> stuIds);
+    Map<String, Long> queryCommentNumByTopicIdsAndStuIds(String subjectClassId, List<String> stuIds);
 }

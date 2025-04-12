@@ -28,7 +28,6 @@ import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -209,20 +208,6 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         }
         // 统计每个章节的资料数量stream流
         Map<String, Long> resultMap = coursewares.stream().collect(Collectors.groupingBy(Courseware::getChapterId, Collectors.counting()));
-        return resultMap;
-    }
-
-    @Override
-    public Map<String, Long> queryStuCourBySubIdAndChapIdsAndStuIds(String subjectId, List<String> chapterIds, List<String> stuIds) {
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
-        List<Courseware> bean = list(queryWrapper);
-        if (CollectionUtil.isEmpty(bean)) {
-            return Collections.emptyMap();
-        }
-        List<String> coursewareIds = bean.stream().map(Courseware::getId).collect(Collectors.toList());
-        Map<String, Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
         return resultMap;
     }
 

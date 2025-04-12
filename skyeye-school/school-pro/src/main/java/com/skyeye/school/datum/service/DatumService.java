@@ -23,5 +23,5 @@ public interface DatumService extends SkyeyeBusinessService<Datum> {
 
     Long queryClassDataNum(String subjectId);
 
-    Map<String, Long> queryDatumBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds, List<String> stuIds);
+    Map<String, Long> queryDatumBySubjectIdAndStuIds(String subjectId, List<String> stuIds);
 }

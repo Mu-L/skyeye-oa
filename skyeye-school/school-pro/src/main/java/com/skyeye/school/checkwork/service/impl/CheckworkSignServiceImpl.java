@@ -226,9 +226,14 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
     }
 
     @Override
-    public Map<String, Long> queryStuCheckWorkSignNums(List<String> ids, List<String> stuIds) {
+    public Map<String, Long> queryStuCheckWorkSignNums(String subjectClassId, List<String> stuIds) {
+        List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectClassId);
+        if(CollectionUtil.isEmpty(checkworkList)){
+            return Collections.emptyMap();
+        }
+        List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
         QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), checkworkIdList);
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuIds);
         List<CheckworkSign> list = list(queryWrapper);
         if(CollectionUtil.isEmpty(list)){

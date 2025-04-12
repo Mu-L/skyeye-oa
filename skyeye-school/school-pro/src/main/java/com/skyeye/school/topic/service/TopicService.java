@@ -21,6 +21,4 @@ public interface TopicService extends SkyeyeBusinessService<Topic> {
     Long queryClassTopicNum(String id);
 
     List<String> queryTopicIdsBySubjectClassesId(String id);
-
-    Map<String, Long> queryStuCommentNumBySubClassesId(String id, List<String> stuIds);
 }
