@@ -4,6 +4,7 @@
 
 package com.skyeye.dsform.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
@@ -72,6 +73,21 @@ public class DsFormPageContentServiceImpl extends SkyeyeBusinessServiceImpl<DsFo
         remove(queryWrapper);
         String cacheKey = getCacheKeyByPageId(pageId);
         jedisClientService.del(cacheKey);
+    }
+
+    @Override
+    public void deleteDsFormContent(List<String> pageIds, String attrKey) {
+        if (CollectionUtil.isEmpty(pageIds)) {
+            return;
+        }
+        QueryWrapper<DsFormPageContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DsFormPageContent::getPageId), pageIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPageContent::getAttrKey), attrKey);
+        remove(queryWrapper);
+        pageIds.forEach(pageId -> {
+            String cacheKey = getCacheKeyByPageId(pageId);
+            jedisClientService.del(cacheKey);
+        });
     }
 
     private String getCacheKeyByPageId(String pageId) {

@@ -12,6 +12,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnChenScore
  * @Description: 答卷矩阵评分题实体类
@@ -22,7 +24,6 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_chen_score")
 @ApiModel(value = "答卷矩阵评分题实体类")
 public class DwAnChenScore extends CommonInfo {
@@ -58,6 +59,10 @@ public class DwAnChenScore extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非" )
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-矩阵多选题信息答案")
+    private List<DwAnChenScore> dwChenScoreAn;
 
 
 }

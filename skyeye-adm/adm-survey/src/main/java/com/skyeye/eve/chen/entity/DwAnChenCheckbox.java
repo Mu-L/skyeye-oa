@@ -24,7 +24,6 @@ import java.util.List;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_chen_checkbox")
 @ApiModel(value = "答卷矩阵多选题实体类")
 public class DwAnChenCheckbox extends CommonInfo {

@@ -36,7 +36,7 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     @Override
     protected void createPostpose(ExamAnChenRadio entity, String userId) {
         List<ExamAnChenRadio> dFillblankAn = entity.getChenRadioAn();
-        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+        if (CollectionUtil.isNotEmpty(dFillblankAn))  {
             super.createEntity(dFillblankAn, userId);
         }
     }

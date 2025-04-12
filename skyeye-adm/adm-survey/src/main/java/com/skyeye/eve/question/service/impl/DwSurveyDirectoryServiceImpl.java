@@ -461,6 +461,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     public void queryDwSurveyDirectoryMationByIdToHTML(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         DwSurveyDirectory dwSurveyDirectory = selectById(id);
+        if (StrUtil.isEmpty(dwSurveyDirectory.getId())) {
+            throw new CustomException("该试卷信息不存在!");
+        }
         if (ObjectUtil.isNotEmpty(dwSurveyDirectory)) {
             List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongId(id);
             int pageNo = 1;
@@ -569,7 +572,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.CHENRADIO.getIndex())) {
             List<DwAnChenRadio> beans = dwAnChenRadioService.selectByQuId(id);
-            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenRadioAn");
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenRadioAn"))
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .filter(Objects::nonNull) // 过滤 null 元素
+                .collect(Collectors.toList());
             int count = 0;
             Map<String, Map<String, Integer>> statMap = new HashMap<>();
             for (DwAnChenRadio bean : beans) {
@@ -592,24 +600,55 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             );
             for (Map<String, Object> row : rows) {
                 row.put("anCount", 0);
-                String rowId = row.get("id").toString();
+                String rowId = Optional.ofNullable(row.get("id"))
+                    .map(Object::toString)
+                    .orElse("");
                 for (Map<String, Object> statBean : statBeans) {
-                    if (rowId.equals(statBean.get("quRowId").toString())) {
-                        int currentCount = (int) row.get("anCount");
-                        currentCount += (int) statBean.get("count");
+                    Object quRowIdObject = statBean.get("quRowId");
+                    if (quRowIdObject == null) {
+                        continue;
+                    }
+                    String quRowId = quRowIdObject.toString();
+
+                    if (rowId.equals(quRowId)) {
+                        Integer currentCount = (Integer) row.get("anCount");
+                        Object countObject = statBean.get("count");
+                        if (countObject instanceof Integer) {
+                            currentCount += (Integer) countObject;
+                        } else {
+                            currentCount += 0; // 如果 count 不是 Integer 类型，跳过
+                        }
                         row.put("anCount", currentCount);
                     }
                 }
-                count += (int) row.get("anCount");
+                Integer anCount = (Integer) row.get("anCount");
+                if (anCount != null) {
+                    count += anCount;
+                }
             }
-
             for (Map<String, Object> statBean : statBeans) {
                 statBean.put("anAllCount", count); // 全局总答案数
-                String quRowId = statBean.get("quRowId").toString();
+                Object quRowIdObject = statBean.get("quRowId");
+                if (quRowIdObject == null) {
+                    continue; // 如果 quRowId 为 null，跳过当前 statBean
+                }
+                String quRowId = quRowIdObject.toString();
+
                 // 匹配行并设置当前行的总答案数
                 for (Map<String, Object> row : rows) {
-                    if (quRowId.equals(row.get("id").toString())) {
-                        statBean.put("anCount", row.get("anCount").toString());
+                    Object rowIdObject = row.get("id");
+                    if (rowIdObject == null) {
+                        continue; // 如果 id 为 null，跳过当前行
+                    }
+                    String rowId = rowIdObject.toString();
+
+                    if (quRowId.equals(rowId)) {
+                        Object anCountObject = row.get("anCount");
+                        if (anCountObject instanceof Integer) {
+                            statBean.put("anCount", anCountObject.toString());
+                        } else {
+                            statBean.put("anCount", "0");
+                        }
                         break;
                     }
                 }
@@ -793,4 +832,37 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         outputObject.setBean(bean);
         outputObject.settotal(questionList.size());
     }
+
+    @Override
+    public Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds) {
+        if (CollectionUtil.isEmpty(dwSurveyIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, dwSurveyIds);
+        List<DwSurveyDirectory> dwSurveyDirectoryList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(dwSurveyDirectoryList)) {
+            return new HashMap<>();
+        }
+//        List<String> schoolIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getSchoolId).collect(Collectors.toList());
+//        List<String> facultyIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getFacultyId).collect(Collectors.toList());
+//        List<String> majorIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getMajorId).collect(Collectors.toList());
+//
+//        Map<String, List<School>> schoolMapList = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
+//        Map<String, List<Faculty>> facultyMapList = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
+//        Map<String, List<Major>> majorMapList = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
+//        for (DwSurveyDirectory dwSurveyDirectory : dwSurveyDirectoryList) {
+//            List<School> schools = schoolMapList.getOrDefault(dwSurveyDirectory.getSchoolId(), Collections.emptyList());
+//            dwSurveyDirectory.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
+//
+//            List<Faculty> faculties = facultyMapList.getOrDefault(dwSurveyDirectory.getFacultyId(), Collections.emptyList());
+//            dwSurveyDirectory.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
+//
+//            List<Major> majors = majorMapList.getOrDefault(dwSurveyDirectory.getMajorId(), Collections.emptyList());
+//            dwSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+//        }
+        return dwSurveyDirectoryList.stream().collect(Collectors.toMap(DwSurveyDirectory::getId, dwSurveyDirectory -> dwSurveyDirectory));
+    }
+
+
 }

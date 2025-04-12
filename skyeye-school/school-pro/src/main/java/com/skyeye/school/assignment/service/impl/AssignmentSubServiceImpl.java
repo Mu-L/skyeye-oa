@@ -268,16 +268,14 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     // 获取作业参数人数
     @Override
     public Long queryClassAssignmentJoinNum(String id) {
-        Long sum = 0L;
         // 获取作业id
         List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(id);
         if (CollectionUtil.isEmpty(ids)) {
-            return sum;
+            return 0L;
         }
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
-        sum = count(queryWrapper);
-        return sum;
+        return count(queryWrapper);
     }
 
     @Override
@@ -292,9 +290,13 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     }
 
     @Override
-    public Map<String, Long> queryStuAssignNumByAssIds(List<String> assIds, List<String> stuIds) {
+    public Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassId, List<String> stuIds) {
+        List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(subjectClassId);
+        if (CollectionUtil.isEmpty(ids)) {
+            return Collections.emptyMap();
+        }
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), stuIds);
         List<AssignmentSub> list = list(queryWrapper);
         if (CollectionUtil.isEmpty(list)) {

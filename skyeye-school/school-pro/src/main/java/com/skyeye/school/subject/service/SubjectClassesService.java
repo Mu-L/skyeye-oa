@@ -73,4 +73,5 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
 
     List<SubjectClasses> selectByCreateId(String userId);
 
+    void queryOneStudentAnalysis(InputObject inputObject, OutputObject outputObject);
 }

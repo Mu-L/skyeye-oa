@@ -12,6 +12,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnCompChenRadio
  * @Description: 答卷复合矩阵单选题实体类
@@ -58,6 +60,10 @@ public class DwAnCompChenRadio extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非" )
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-复合矩阵单选题信息答案")
+    private List<DwAnCompChenRadio> dwCompChenRadioAn;
 
 
 }

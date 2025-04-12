@@ -4,6 +4,8 @@
 
 package com.skyeye.eve.checkbox.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -16,8 +18,8 @@ import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DwAnCheckboxServiceImpl
@@ -32,10 +34,17 @@ import java.util.Map;
 public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheckboxDao, DwAnCheckbox> implements DwAnCheckboxService {
 
     @Override
-    public List<DwAnCheckbox> selectAnCheckBoxByQuId(String id) {
-        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), id);
-        return list(queryWrapper);
+    protected void createPrepose(DwAnCheckbox entity) {
+        String quItemId = entity.getQuItemId();
+        String[] splitArray = quItemId.split(",");
+        List<String> resultList = Arrays.asList(splitArray);
+        List<DwAnCheckbox> dwAnCheckboxList = new ArrayList<>();
+        for (String quAnswerId : resultList) {
+            DwAnCheckbox dwAnCheckbox = new DwAnCheckbox();
+            dwAnCheckbox.setQuItemId(quAnswerId);
+            dwAnCheckboxList.add(dwAnCheckbox);
+        }
+        super.createEntity(dwAnCheckboxList, StrUtil.EMPTY);
     }
 
     @Override
@@ -49,10 +58,39 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
         outputObject.settotal(examAnCheckboxList.size());
     }
 
+
+    @Override
+    public List<DwAnCheckbox> selectAnCheckBoxByQuId(String id) {
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), id);
+        return list(queryWrapper);
+    }
+
+
+
     @Override
     public List<DwAnCheckbox> slectBySurveyId(String surveyId) {
         QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getBelongId), surveyId);
         return list(queryWrapper);
     }
+
+    @Override
+    public void deleteBySurveyId(String surveyId) {
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getBelongId), surveyId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnCheckbox>> selectByQuId(List<String> id) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId),id);
+        Map<String, List<DwAnCheckbox>> cheneckBoxMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnCheckbox::getQuId));
+        return cheneckBoxMap;
+    }
+
 }

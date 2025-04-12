@@ -193,17 +193,19 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             }
             return 0;
         });
+        scoreTypeChildList.forEach(scoreTypeChild -> {
+            if (scoreTypeChild.getId().equals(parentId)) {
+                scoreTypeChild.setName("成绩");
+            }
+        });
+        outputObject.setCustomBeans("tableRows", JSONUtil.toList(JSONUtil.toJsonStr(scoreTypeChildList), null));
 
         List<String> ids = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         List<Score> scoreList = scoreService.queryScoreList(ids, StrUtil.EMPTY);
         if (CollectionUtil.isEmpty(scoreList)) {
             return;
         }
-        scoreTypeChildList.forEach(scoreTypeChild -> {
-            if (scoreTypeChild.getId().equals(parentId)) {
-                scoreTypeChild.setName("成绩");
-            }
-        });
+
         Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
 
         // 获取学生信息
@@ -245,7 +247,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             });
         }
         List<Map<String, Object>> result = stuScoreMap.values().stream().collect(Collectors.toList());
-        outputObject.setCustomBeans("tableRows", JSONUtil.toList(JSONUtil.toJsonStr(scoreTypeChildList), null));
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
     }

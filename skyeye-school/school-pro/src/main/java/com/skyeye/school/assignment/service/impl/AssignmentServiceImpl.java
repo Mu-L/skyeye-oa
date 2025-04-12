@@ -34,7 +34,6 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -286,28 +285,11 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         return resultMap;
     }
 
-    @Override
-    public Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassesId, List<String> chapterIds, List<String> stuIds) {
-        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
-        List<Assignment> assignments = list(queryWrapper);
-        if (CollectionUtil.isEmpty(assignments)) {
-            return Collections.emptyMap();
-        }
-        List<String> assIds = assignments.stream().map(Assignment::getId).collect(Collectors.toList());
-        Map<String, Long> map = assignmentSubService.queryStuAssignNumByAssIds(assIds, stuIds);
-        return map;
-    }
-
     // 查询科目班级id作业数量
     @Override
-    public Long queryClassAssignmentNum(String id, String chapterId) {
+    public Long queryClassAssignmentNum(String id) {
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
-        if (StrUtil.isNotEmpty(chapterId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterId);
-        }
         return count(queryWrapper);
     }
 

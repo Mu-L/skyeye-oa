@@ -99,18 +99,6 @@ public class TopicServiceImpl extends SkyeyeBusinessServiceImpl<TopicDao, Topic>
     }
 
     @Override
-    public Map<String, Long> queryStuCommentNumBySubClassesId(String id, List<String> stuIds) {
-        QueryWrapper<Topic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Topic::getSubjectClassesId), id);
-        List<Topic> topics = list(queryWrapper);
-        if (CollectionUtil.isEmpty(topics)) {
-            return Collections.emptyMap();
-        }
-        List<String> topicIds = topics.stream().map(Topic::getId).collect(Collectors.toList());
-        return topicCommentService.queryCommentNumByTopicIdsAndStuIds(topicIds, stuIds);
-    }
-
-    @Override
     public Topic selectById(String id) {
         Topic topic = super.selectById(id);
         Map<String, Object> userMation = iAuthUserService.queryDataMationById(topic.getCreateId());

@@ -29,4 +29,6 @@ public interface DsFormPageContentService extends SkyeyeBusinessService<DsFormPa
 
     void deleteDsFormContentByPageId(String pageId);
 
+    void deleteDsFormContent(List<String> pageIds, String attrKey);
+
 }
