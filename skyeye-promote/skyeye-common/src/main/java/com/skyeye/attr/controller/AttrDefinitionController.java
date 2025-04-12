@@ -31,12 +31,6 @@ public class AttrDefinitionController {
     @Autowired
     private AttrDefinitionService attrDefinitionService;
 
-    /**
-     * 根据service的className获取属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAttrDefinitionList", value = "根据service的className获取属性信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
@@ -53,12 +47,14 @@ public class AttrDefinitionController {
         attrDefinitionService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取子属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "deleteAttrDefinitionById", value = "删除属性信息", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id列表", required = "required")})
+    @RequestMapping("/post/AttrDefinitionController/deleteAttrDefinitionById")
+    public void deleteRoleByIds(InputObject inputObject, OutputObject outputObject) {
+        attrDefinitionService.deleteById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryChildAttrDefinitionList", value = "获取子属性信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),

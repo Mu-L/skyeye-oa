@@ -4,13 +4,18 @@
 
 package com.skyeye.attr.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.attr.classenum.AttrDefinitionAttrType;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
+
 
 /**
  * @ClassName: AttrDefinition
@@ -33,10 +38,8 @@ public class AttrDefinition extends CommonInfo {
     @Property("自定义属性信息")
     private AttrDefinitionCustom attrDefinitionCustom;
 
-    /**
-     * 应用的APPID
-     */
     @TableField("app_id")
+    @ApiModelProperty(value = "应用的APPID")
     private String appId;
 
     @TableField("class_name")
@@ -48,7 +51,7 @@ public class AttrDefinition extends CommonInfo {
     private String attrKey;
 
     @TableField("attr_type")
-    @ApiModelProperty(value = "字段类型", required = "required")
+    @ApiModelProperty(value = "字段类型", enumClass = AttrDefinitionAttrType.class, required = "required")
     private String attrType;
 
     @TableField("`name`")

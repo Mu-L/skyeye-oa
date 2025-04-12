@@ -5,6 +5,7 @@
 package com.skyeye.attr.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -14,13 +15,19 @@ import com.skyeye.attr.entity.AttrDefinitionCustom;
 import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.dsform.entity.DsFormPage;
+import com.skyeye.dsform.service.DsFormPageContentService;
+import com.skyeye.dsform.service.DsFormPageService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.server.entity.ServiceBean;
 import com.skyeye.server.service.ServiceBeanService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,12 +57,50 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
     @Autowired
     private AttrDefinitionCustomService attrDefinitionCustomService;
 
-    /**
-     * 系统启动时，批量扫描业务对象属性入库
-     *
-     * @param appId
-     * @param attrDefinitionList
-     */
+    @Autowired
+    private DsFormPageService dsFormPageService;
+
+    @Autowired
+    private DsFormPageContentService dsFormPageContentService;
+
+    @Override
+    protected void validatorEntity(AttrDefinition entity) {
+        QueryWrapper<AttrDefinition> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), entity.getAppId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), entity.getClassName());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAttrKey), entity.getAttrKey());
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        AttrDefinition checkAttrDefinition = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(checkAttrDefinition)) {
+            throw new CustomException("this data['name'] is exist.");
+        }
+
+        entity.setWhetherInputParams(WhetherEnum.ENABLE_USING.getKey());
+        entity.setModelAttribute(WhetherEnum.DISABLE_USING.getKey());
+        entity.setCreateTime(DateUtil.getTimeAndToString());
+        entity.setLastUpdateTime(DateUtil.getTimeAndToString());
+    }
+
+    @Override
+    protected void deletePreExecution(AttrDefinition entity) {
+        if (entity.getModelAttribute() == WhetherEnum.ENABLE_USING.getKey()) {
+            throw new CustomException("模型属性不能删除");
+        }
+    }
+
+    @Override
+    protected void deletePostpose(AttrDefinition entity) {
+        List<DsFormPage> dsFormPageList = dsFormPageService.queryDsFormPageList(entity.getAppId(), entity.getClassName());
+        if (CollectionUtil.isEmpty(dsFormPageList)) {
+            return;
+        }
+        List<String> ids = dsFormPageList.stream().map(DsFormPage::getId).collect(Collectors.toList());
+        // 删除布局关联的属性数据
+        dsFormPageContentService.deleteDsFormContent(ids, entity.getAttrKey());
+    }
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void saveBarchAttrDefinition(String appId, List<AttrDefinition> attrDefinitionList) {
@@ -119,12 +164,6 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         return String.format(Locale.ROOT, "%s:%s", attrDefinition.getClassName(), attrDefinition.getAttrKey());
     }
 
-    /**
-     * 根据service的className获取属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAttrDefinitionList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -157,12 +196,6 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         return attrDefinitionList;
     }
 
-    /**
-     * 获取子属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryChildAttrDefinitionList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
