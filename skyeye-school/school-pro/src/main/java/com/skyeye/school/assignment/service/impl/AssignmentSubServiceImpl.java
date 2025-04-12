@@ -268,16 +268,14 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     // 获取作业参数人数
     @Override
     public Long queryClassAssignmentJoinNum(String id) {
-        Long sum = 0L;
         // 获取作业id
         List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(id);
         if (CollectionUtil.isEmpty(ids)) {
-            return sum;
+            return 0L;
         }
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
-        sum = count(queryWrapper);
-        return sum;
+        return count(queryWrapper);
     }
 
     @Override
@@ -292,15 +290,45 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     }
 
     @Override
-    public Map<String, Long> queryStuAssignNumByAssIds(List<String> assIds, List<String> stuIds) {
+    public Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassId, List<String> stuIds) {
+        List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(subjectClassId);
+        if (CollectionUtil.isEmpty(ids)) {
+            return Collections.emptyMap();
+        }
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), stuIds);
         List<AssignmentSub> list = list(queryWrapper);
         if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
         return list.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId, Collectors.counting()));
+    }
+
+    @Override
+    public Double queryClassAssignmentAvg(String subjectClassId) {
+        List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(subjectClassId);
+        if(CollectionUtil.isEmpty(ids)){
+            return 0.0;
+        }
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
+        List<AssignmentSub> list = list(queryWrapper);
+        return list.stream()
+                // 确保对象本身不为null
+                .filter(Objects::nonNull)
+                .mapToDouble(answer -> StrUtil.isNotEmpty(answer.getScore()) ? Integer.parseInt(answer.getScore()) : 0.0)
+                .average()
+                .orElse(0.0);
+    }
+
+    @Override
+    public Long queryStuAssignNumByStuId(String id, String stuId) {
+        List<String> assIds = assignmentService.queryAssignmentIdsBySubjectCLassId(id);
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AssignmentSub::getCreateId), stuId);
+        return count(queryWrapper);
     }
 
 }

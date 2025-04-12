@@ -32,12 +32,6 @@ public class FacultyController {
     @Autowired
     private FacultyService facultyService;
 
-    /**
-     * 获取院系信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFacultyList", value = "获取院系信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FacultyController/queryFacultyList")
@@ -45,12 +39,6 @@ public class FacultyController {
         facultyService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改院系信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeFaculty", value = "新增/编辑院系信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Faculty.class)
     @RequestMapping("/post/FacultyController/writeFaculty")
@@ -58,12 +46,6 @@ public class FacultyController {
         facultyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除院系信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFacultyById", value = "根据ID删除院系信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,14 @@ public class FacultyController {
         facultyService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据学校id获取院系列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "queryFacultyByIds", value = "根据id批量查询院系信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/FacultyController/queryFacultyByIds")
+    public void queryFacultyByIds(InputObject inputObject, OutputObject outputObject) {
+        facultyService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryFacultyListBySchoolId", value = "根据学校id获取院系列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id")})

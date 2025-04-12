@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @ClassName: ExamSurveyDirectoryService
  * @Description: 试卷管理服务接口层
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--lyj
  * @date: 2024/7/19 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -48,9 +48,8 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     Long queryClassExamSurveyDirectoryNum(String id);
 
-    List<String> queryDirectoryIdsByClassId(String classId);
+    List<String> queryDirectoryIdsByClassId(String objectIds);
 
     void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject);
 
-//    void queryExamFxById(InputObject inputObject, OutputObject outputObject);
 }

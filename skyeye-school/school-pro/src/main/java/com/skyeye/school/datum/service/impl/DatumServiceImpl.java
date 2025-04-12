@@ -110,26 +110,16 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Map<String, Long> queryDatumBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds, List<String> stuIds) {
+    public Map<String, Long> queryDatumBySubjectIdAndStuIds(String subjectId, List<String> stuIds) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getObjectId), subjectId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getChapterId), chapterIds);
-        if(CollectionUtil.isNotEmpty(stuIds)){
-            queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getCreateId), stuIds);
-            List<Datum> stuList = list(queryWrapper);
-            if(CollectionUtils.isEmpty(stuList)){
-                return Collections.emptyMap();
-            }
-            // 统计每个创建人的资料数量stream流
-            Map<String, Long> map = stuList.stream().collect(Collectors.groupingBy(Datum::getCreateId, Collectors.counting()));
-            return map;
-        }
-        List<Datum> list = list(queryWrapper);
-        if(CollectionUtils.isEmpty(list)){
+        queryWrapper.in(MybatisPlusUtil.toColumns(Datum::getCreateId), stuIds);
+        List<Datum> List = list(queryWrapper);
+        if(CollectionUtils.isEmpty(List)){
             return Collections.emptyMap();
         }
-        // 统计每个章节的资料数量stream流
-        Map<String, Long> map = list.stream().collect(Collectors.groupingBy(Datum::getChapterId, Collectors.counting()));
+        // 统计每个创建人的资料数量stream流
+        Map<String, Long> map = List.stream().collect(Collectors.groupingBy(Datum::getCreateId, Collectors.counting()));
         return map;
     }
 }

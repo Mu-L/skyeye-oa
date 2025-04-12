@@ -83,6 +83,7 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
 
         QueryWrapper<DsFormPage> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), className);
+        wrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getAppId), appId);
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(DsFormPage::getCreateTime));
         List<DsFormPage> dsFormPageList = list(wrapper);
         iAuthUserService.setName(dsFormPageList, "createId", "createName");
@@ -275,5 +276,13 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
         dsFormPage = selectById(dsFormPage.getId());
         outputObject.setBean(dsFormPage);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public List<DsFormPage> queryDsFormPageList(String appId, String serviceClassName) {
+        QueryWrapper<DsFormPage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), serviceClassName);
+        return list(queryWrapper);
     }
 }

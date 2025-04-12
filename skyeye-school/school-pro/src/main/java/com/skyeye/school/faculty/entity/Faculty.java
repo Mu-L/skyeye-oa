@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.eve.entity.School;
 import lombok.Data;
@@ -25,7 +26,7 @@ import lombok.Data;
  */
 @Data
 @UniqueField(value = {"schoolId","name"})
-@RedisCacheField(name = "school:faculty")
+@RedisCacheField(name = CacheConstants.SC_FACULTY_CACHE_KEY)
 @TableName(value = "school_faculty")
 @ApiModel(value = "院系实体类")
 public class Faculty extends BaseGeneralInfo {

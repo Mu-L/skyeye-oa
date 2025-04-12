@@ -32,12 +32,6 @@ public class MajorController {
     @Autowired
     private MajorService majorService;
 
-    /**
-     * 获取专业信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMajorList", value = "获取专业信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MajorController/queryMajorList")
@@ -45,12 +39,6 @@ public class MajorController {
         majorService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改专业信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMajor", value = "新增/编辑专业信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Major.class)
     @RequestMapping("/post/MajorController/writeMajor")
@@ -58,12 +46,6 @@ public class MajorController {
         majorService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除专业信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMajorById", value = "根据ID删除专业信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,14 @@ public class MajorController {
         majorService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据院系id获取专业列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "queryMajorByIds", value = "根据id批量查询专业信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/MajorController/queryMajorByIds")
+    public void queryMajorByIds(InputObject inputObject, OutputObject outputObject) {
+        majorService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryMajorListByFacultyId", value = "根据院系id获取专业列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "facultyId", name = "facultyId", value = "院系id")})

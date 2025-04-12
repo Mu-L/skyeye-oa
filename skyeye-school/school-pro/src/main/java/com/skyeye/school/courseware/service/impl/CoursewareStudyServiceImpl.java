@@ -15,7 +15,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.courseware.classenum.CoursewareStudyState;
 import com.skyeye.school.courseware.dao.CoursewareStudyDao;
 import com.skyeye.school.courseware.entity.CoursewareStudy;
+import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.courseware.service.CoursewareStudyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -34,6 +36,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "互动课件学习信息", groupName = "互动课件")
 public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareStudyDao, CoursewareStudy> implements CoursewareStudyService {
+
+    @Autowired
+    private CoursewareService coursewareService;
 
     @Override
     public void studyCoursewareByCoursewareId(InputObject inputObject, OutputObject outputObject) {
@@ -100,16 +105,28 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
     }
 
     @Override
-    public Map<String, Long> queryStuCourByCourIdsAndStuIds(List<String> coursewareIds, List<String> stuIds) {
+    public Map<String, Long> queryStuCourBySubjectIdsAndStuIds(String subjectId, List<String> stuIds) {
+        List<String> ids = coursewareService.queryClassCourIdsBySubjectClassId(subjectId);
+        if(CollectionUtil.isEmpty(ids)){
+            return Collections.emptyMap();
+        }
         QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), coursewareIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), ids);
         queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCreateId), stuIds);
         List<CoursewareStudy> list = list(queryWrapper);
         if(CollectionUtil.isEmpty(list)){
             return Collections.emptyMap();
         }
         // 统计按创建人分组数量stream流
-        Map<String, Long> map = list.stream().collect(Collectors.groupingBy(CoursewareStudy::getCreateId, Collectors.counting()));
-        return map;
+        return list.stream().collect(Collectors.groupingBy(CoursewareStudy::getCreateId, Collectors.counting()));
+    }
+
+    @Override
+    public Long queryStuStudyCoursewareNum(String id, String stuId) {
+        List<String> ids = coursewareService.queryClassCourIdsBySubjectClassId(id);
+        QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), ids);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CoursewareStudy::getCreateId), stuId);
+        return count(queryWrapper);
     }
 }

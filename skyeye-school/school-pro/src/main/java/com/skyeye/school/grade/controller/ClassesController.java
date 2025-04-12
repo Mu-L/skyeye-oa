@@ -70,4 +70,12 @@ public class ClassesController {
         classesService.selectById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryClassByIds", value = "根据id批量查询班级信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/ClassesController/queryClassByIds")
+    public void queryClassByIds(InputObject inputObject, OutputObject outputObject) {
+        classesService.selectByIds(inputObject, outputObject);
+    }
+
 }

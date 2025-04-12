@@ -32,12 +32,6 @@ public class SchoolController {
     @Autowired
     private SchoolService schoolService;
 
-    /**
-     * 获取学校信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySchoolList", value = "获取学校信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SchoolController/querySchoolList")
@@ -45,12 +39,6 @@ public class SchoolController {
         schoolService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改学校信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSchool", value = "新增/编辑学校信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = School.class)
     @RequestMapping("/post/SchoolController/writeSchool")
@@ -58,46 +46,36 @@ public class SchoolController {
         schoolService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除学校信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSchoolById", value = "根据ID删除学校信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SchoolController/deleteSchoolById")
     public void deleteSchoolById(InputObject inputObject, OutputObject outputObject) {
         schoolService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有学校列表展示为下拉选择框
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "querySchoolByIds", value = "根据id批量查询学校信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/SchoolController/querySchoolByIds")
+    public void querySchoolByIds(InputObject inputObject, OutputObject outputObject) {
+        schoolService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryAllSchoolList", value = "获取所有学校列表展示为下拉选择框", method = "GET", allUse = "2")
     @RequestMapping("/post/SchoolController/queryAllSchoolList")
     public void queryAllSchoolList(InputObject inputObject, OutputObject outputObject) {
         schoolService.queryAllSchoolList(inputObject, outputObject);
     }
 
-    /**
-     * 位置覆盖
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "coverBackground", value = "学校背景图位置覆盖", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "background", name = "background", value = "背景图", required = "required"),
-            @ApiImplicitParam(id = "neLongitude", name = "neLongitude", value = "东北经度", required = "required"),
-            @ApiImplicitParam(id = "neLatitude", name = "neLatitude", value = "东北纬度", required = "required"),
-            @ApiImplicitParam(id = "swLongitude", name = "swLongitude", value = "西南经度", required = "required"),
-            @ApiImplicitParam(id = "swLatitude", name = "swLatitude", value = "西南纬度", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "background", name = "background", value = "背景图", required = "required"),
+        @ApiImplicitParam(id = "neLongitude", name = "neLongitude", value = "东北经度", required = "required"),
+        @ApiImplicitParam(id = "neLatitude", name = "neLatitude", value = "东北纬度", required = "required"),
+        @ApiImplicitParam(id = "swLongitude", name = "swLongitude", value = "西南经度", required = "required"),
+        @ApiImplicitParam(id = "swLatitude", name = "swLatitude", value = "西南纬度", required = "required"),
     })
     @RequestMapping("/post/SchoolController/coverBackground")
     public void coverBackground(InputObject inputObject, OutputObject outputObject) {

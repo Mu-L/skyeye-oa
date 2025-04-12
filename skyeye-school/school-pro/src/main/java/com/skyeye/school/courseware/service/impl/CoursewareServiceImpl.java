@@ -28,7 +28,6 @@ import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -141,7 +140,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             map.put("type", "互动课件");
             map.put("name", chapter.getName());
             map.put("activeNum", CommonNumConstants.NUM_ZERO);
-            map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            map.put("completeRate", String.format("%.2f",0.0)+"%");
             temp.put(chapter.getId(), map);
         }
         Map<String, Object> tempAll = new HashMap<>();
@@ -149,7 +148,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             tempAll.put("type", "互动课件");
             tempAll.put("name", "全部");
             tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
-            tempAll.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            tempAll.put("completeRate", String.format("%.2f",0.0)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -171,8 +170,9 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             tempAll.put("type", "互动课件");
             tempAll.put("name", "全部");
             tempAll.put("activeNum", totalNum);
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            tempAll.put("completeRate", completeRate);
+//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
+            double completeRate = (completeNum / (totalNum * classNum)) * 100;
+            tempAll.put("completeRate", String.format("%.2f",completeRate)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -180,7 +180,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             Map<String, Object> t = new HashMap<>();
             t.put("type", "互动课件");
             t.put("name", chapter.getName());
-            List<Courseware> coursewares = map.get(chapter.getId());
+            List<Courseware> coursewares = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
             t.put("activeNum", coursewares.size());
             double completeNum = 0;
             for (Courseware courseware : coursewares) {
@@ -189,8 +189,9 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
                     completeNum += coursewareSub.size();
                 }
             }
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
-            t.put("completeRate", completeRate);
+//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
+            double completeRate = (completeNum / (coursewares.size() * classNum)) * 100;
+            t.put("completeRate",  String.format("%.2f",completeRate)+"%");
             resultMap.put(chapter.getId(), t);
         }
         return resultMap;
@@ -202,7 +203,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
         queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
         List<Courseware> coursewares = list(queryWrapper);
-        if(CollectionUtil.isEmpty(coursewares)){
+        if (CollectionUtil.isEmpty(coursewares)) {
             return Collections.emptyMap();
         }
         // 统计每个章节的资料数量stream流
@@ -211,23 +212,20 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
     }
 
     @Override
-    public Map<String, Long> queryStuCourBySubIdAndChapIdsAndStuIds(String subjectId, List<String> chapterIds, List<String> stuIds) {
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
-        List<Courseware> bean = list(queryWrapper);
-        if(CollectionUtil.isEmpty(bean)){
-            return Collections.emptyMap();
-        }
-        List<String> coursewareIds = bean.stream().map(Courseware::getId).collect(Collectors.toList());
-        Map<String,Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
-        return resultMap;
-    }
-
-    @Override
     public Long queryClassCoursewareNum(String subjectId) {
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public List<String> queryClassCourIdsBySubjectClassId(String id) {
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), id);
+        List<Courseware> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(Courseware::getId).collect(Collectors.toList());
     }
 }

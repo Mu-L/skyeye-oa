@@ -2,7 +2,6 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -69,6 +68,7 @@ import com.skyeye.school.subject.service.SubjectService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -117,9 +117,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     private ExamQuChenRowService examQuChenRowService;
 
     @Autowired
-    private ExamQuScoreService examQuScoreService;
-
-    @Autowired
     private ExamQuestionLogicService examQuestionLogicService;
 
     @Autowired
@@ -148,6 +145,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private SubjectClassesService subjectClassesService;
+
+    @Autowired
+    private SchoolCommonService schoolCommonService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
 
     /**
      * 设置考试目录的方法
@@ -640,17 +644,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
     }
 
-    @Autowired
-    private SchoolCommonService schoolCommonService;
-
-    @Autowired
-    private SubjectClassesStuService subjectClassesStuService;
-
     @Override
     public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // 学生老师的userId
         String userId = inputObject.getLogParams().get("id").toString();
+        //班级Id
+        String holderId = commonPageInfo.getHolderId();
+        //科目Id
+        String objectId = commonPageInfo.getObjectId();
         UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
         if (userOrStudent.getUserOrStudent().equals(true)) {
             // 学生
@@ -659,78 +661,135 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (StrUtil.isEmpty(studentNumber)) {
                 return;
             }
-            SubjectClassesStu subjectClassesStu = subjectClassesStuService.querySubClassLinkIdByStuNumberNo(studentNumber);
-            if (ObjectUtil.isNotEmpty(subjectClassesStu)) {
-                SubjectClasses subjectClasses = subjectClassesService.queryClassBySubClassLinkId(subjectClassesStu.getSubClassLinkId());
-                String classesId = subjectClasses.getClassesId();
-                List<String> directoryIds = queryDirectoryIdsByClassId(classesId);
-                if (CollectionUtil.isEmpty(directoryIds)) {
-                    return;
-                }
-                List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByUserId(userId);
-                if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
-                    return;
-                }
-                List<String> yesDoSurveyList = examSurveyAnswerList.stream()
-                    .map(ExamSurveyAnswer::getSurveyId)
-                    .collect(Collectors.toList());
-                List<String> resultIds = directoryIds.stream()
-                    .filter(id -> !yesDoSurveyList.contains(id))
-                    .collect(Collectors.toList());
-
-                if (resultIds.isEmpty()) {
-                    return ;
-                }
-                Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-                QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-                queryWrapper.in(CommonConstants.ID, resultIds);
-                List<ExamSurveyDirectory> examSurveyDirectories = list(queryWrapper);
-                outputObject.settotal(page.getTotal());
-                outputObject.setBeans(examSurveyDirectories);
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.querySubClassLinkIdByStuNumberNo(studentNumber);
+            if (CollectionUtil.isEmpty(subjectClassesStuList)) {
+                return;
             }
+            List<String> subClassLinkIds = subjectClassesStuList.stream().map(SubjectClassesStu::getSubClassLinkId).collect(Collectors.toList());
+            List<SubjectClasses> subjectClassesList = subjectClassesService.queryClassBySubClassLinkId(subClassLinkIds);
+            //学生所在班级对应的科目id
+            List<String> objectIds = subjectClassesList.stream().map(SubjectClasses::getObjectId).collect(Collectors.toList());
+            String classesId = subjectClassesList.get(CommonNumConstants.NUM_ZERO).getClassesId();
+            //科目对应的所有试卷
+            Map<String, List<ExamSurveyDirectory>> objectIdMapList = queryDirectoryIdsByClassIds(objectIds, classesId);
+            if (CollectionUtils.isEmpty(objectIdMapList)) {
+                return;
+            }
+            // 学生回答过的试卷
+            List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByUserId(userId);
+            if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
+                return;
+            }
+            List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
+            // 过滤掉学生做过的试卷
+            objectIdMapList.replaceAll((subjectId, directories) ->
+                directories.stream()
+                    .filter(dir -> !yesDoSurveyList.contains(dir.getId()))
+                    .collect(Collectors.toList())
+            );
+            // 获取目标科目下的试卷列表
+            List<ExamSurveyDirectory> filteredList = Optional.ofNullable(objectIdMapList.get(objectId))
+                .orElseGet(Collections::emptyList);
+            int pageSize = Math.max(1, commonPageInfo.getLimit());
+            int pageNum = Math.max(1, commonPageInfo.getPage());
+            // 计算分页范围
+            int total = filteredList.size();
+            int fromIndex = (pageNum - 1) * pageSize;
+            // 分页结果处理
+            List<ExamSurveyDirectory> pagedList;
+            if (fromIndex >= total) {
+                pagedList = Collections.emptyList();
+            } else {
+                int toIndex = Math.min(fromIndex + pageSize, total);
+                pagedList = filteredList.subList(fromIndex, toIndex);
+            }
+
+            outputObject.settotal(filteredList.size());
+            outputObject.setBeans(pagedList);
         } else {
             // 老师
             List<SubjectClasses> subjectClassesList = subjectClassesService.selectByCreateId(userId);
             if (CollectionUtil.isEmpty(subjectClassesList)) {
                 return;
             }
+            //老师创建的所有班级
             List<String> classIds = subjectClassesList.stream().map(SubjectClasses::getClassesId).collect(Collectors.toList());
-            List<String> examSurveyDirectories = queryDirectoryIdsByClassIds(classIds);
+            //科目对应的老师创建的所有班级对应的试卷
+            Map<String, Map<String, List<ExamSurveyDirectory>>> subClassMapList = Optional
+                .ofNullable(selectSurveyListByClassIds(classIds))
+                .orElseGet(Collections::emptyMap);
+            //老师回答过的答卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
             if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
                 return;
             }
+            //老师回答过的试卷id
             List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
                 .collect(Collectors.toList());
-            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-            QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+            // 查询老师做过的试卷
+            List<ExamSurveyDirectory> examSurveyDirectories = selectAllSurveyList(yesDoSurveyList);
             if (CollectionUtil.isEmpty(examSurveyDirectories)) {
-                return ;
+                return;
             }
-            queryWrapper.in(CommonConstants.ID, examSurveyDirectories);
-            List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
-            List<ExamSurveyDirectory> examSurveyDirectoryList1 = examSurveyDirectoryList.stream()
-                .peek(directory -> {
-                    directory.setIsAnswered(yesDoSurveyList.contains(directory.getId()));
-                }).collect(Collectors.toList());
-
-            outputObject.settotal(page.getTotal());
-            outputObject.setBeans(examSurveyDirectoryList1);
+            Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
+                .collect(Collectors.toSet());
+            // 遍历三层结构：科目 -> 班级 -> 试卷列表
+            subClassMapList.forEach((subjectId, classMap) -> {
+                classMap.forEach((classId, surveyList) -> {
+                    surveyList.forEach(survey -> {
+                        // 如果当前试卷ID在老师回答过的集合中存在
+                        if (yesDoSurveyIds.contains(survey.getId())) {
+                            survey.setIsAnswered(true);  // 设置已答标记
+                        }
+                    });
+                });
+            });
+            List<ExamSurveyDirectory> allResults = Optional.ofNullable(subClassMapList.get(objectId))
+                .map(classMap -> classMap.get(holderId))
+                .orElseGet(Collections::emptyList);
+            int pageSize = commonPageInfo.getLimit();
+            int pageNum = commonPageInfo.getPage();
+            List<ExamSurveyDirectory> pagedList = allResults.stream()
+                .skip(pageNum)
+                .limit(pageSize)
+                .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(pagedList)) {
+                outputObject.settotal(CommonNumConstants.NUM_ZERO);
+                outputObject.setBeans(Collections.emptyList());
+            } else {
+                outputObject.settotal(allResults.size());
+                outputObject.setBeans(pagedList);
+            }
         }
     }
 
-    private List<String> queryDirectoryIdsByClassIds(List<String> classIds) {
-        if (CollectionUtil.isEmpty(classIds)){
-            return new ArrayList<>();
-        }
+    private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds);
-        return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+        Map<String, Map<String, List<ExamSurveyDirectory>>> result = list(queryWrapper).stream()
+            .collect(Collectors.groupingBy(
+                ExamSurveyDirectory::getSubjectId, // 外层 Map 的键是科目ID
+                Collectors.groupingBy(
+                    ExamSurveyDirectory::getClassId // 内层 Map 的键是班级ID
+                )
+            ));
+        return result;
     }
 
-    private List<ExamSurveyDirectory> queryMySurveyListByIds(QueryWrapper<ExamSurveyDirectory> queryWrapper, List<String> directoryIds, String userId) {
-
+    private List<ExamSurveyDirectory> selectAllSurveyList(List<String> surveyIds) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, surveyIds);
         return list(queryWrapper);
+    }
+
+    private Map<String, List<ExamSurveyDirectory>> queryDirectoryIdsByClassIds(List<String> objectIds, String classesId) {
+        if (CollectionUtil.isEmpty(objectIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classesId);
+        return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
     }
 
     @Override
@@ -775,6 +834,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
+
+
         for (ExamSurveyDirectory entity : examSurveyDirectory) {
             String id = entity.getId();
             String reader = entity.getReaderList();
@@ -785,9 +846,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<String> classIds = Arrays.asList(classId.split(","));
             // 创建考试试卷
             examSurveyClassService.createExamSurveyClass(id, classIds, userId);
-
         }
-
     }
 
     private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {

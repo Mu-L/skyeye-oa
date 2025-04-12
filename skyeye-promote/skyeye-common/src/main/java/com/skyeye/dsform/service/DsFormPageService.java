@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.dsform.entity.DsFormPage;
 
+import java.util.List;
+
 public interface DsFormPageService extends SkyeyeBusinessService<DsFormPage> {
 
     void queryDsFormPageList(InputObject inputObject, OutputObject outputObject);
@@ -20,4 +22,6 @@ public interface DsFormPageService extends SkyeyeBusinessService<DsFormPage> {
     void queryBusinessDataByObject(InputObject inputObject, OutputObject outputObject);
 
     void queryDsFormPageForProcess(InputObject inputObject, OutputObject outputObject);
+
+    List<DsFormPage> queryDsFormPageList(String appId, String serviceClassName);
 }

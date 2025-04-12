@@ -31,7 +31,7 @@ public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
 
     Map<String, Long> queryCoursewareBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds);
 
-    Map<String, Long> queryStuCourBySubIdAndChapIdsAndStuIds(String subjectId, List<String> chapterIds, List<String> stuIds);
-
     Long queryClassCoursewareNum(String subjectId);
+
+    List<String> queryClassCourIdsBySubjectClassId(String id);
 }

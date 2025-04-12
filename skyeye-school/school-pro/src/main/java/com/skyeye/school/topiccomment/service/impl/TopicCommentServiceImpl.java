@@ -107,21 +107,28 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
     }
 
     @Override
-    public Long queryClassTopicJoinPersonNum(String id) {
+    public Long queryClassTopicJoinPersonNum(String id, String stuId) {
         // 获取话题id
         List<String> ids = topicService.queryTopicIdsBySubjectClassesId(id);
         if (CollectionUtil.isEmpty(ids)) {
             return 0L;
         }
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuId);
+        }
         queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
         return count(queryWrapper);
     }
 
     @Override
-    public Map<String, Long> queryCommentNumByTopicIdsAndStuIds(List<String> topicIds, List<String> stuIds) {
+    public Map<String, Long> queryCommentNumByTopicIdsAndStuIds(String subjectClassId, List<String> stuIds) {
+        List<String> ids = topicService.queryTopicIdsBySubjectClassesId(subjectClassId);
+        if(CollectionUtil.isEmpty(ids)){
+            return Collections.emptyMap();
+        }
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), topicIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
         queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuIds);
         List<TopicComment> list = list(queryWrapper);
         if(CollectionUtil.isEmpty(list)){
