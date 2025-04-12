@@ -73,7 +73,8 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Map<String, Object> map = inputObject.getParams();
         String subjectId = map.get("subjectId").toString();
         QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId)
+            .orderByDesc(MybatisPlusUtil.toColumns(Courseware::getCreateTime));
         List<Courseware> coursewareList = list(queryWrapper);
 
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
