@@ -384,6 +384,9 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
             throw new CustomException("该学生不存在");
         }
         int rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
+        if (rewardNumber > 100){
+            throw new CustomException("奖励星星不能大于100");
+        }
         updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward),
             rewardNumber > CommonNumConstants.NUM_ZERO ? String.valueOf(rewardNumber) : CommonNumConstants.NUM_ZERO.toString());
         update(updateWrapper);
