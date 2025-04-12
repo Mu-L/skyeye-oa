@@ -53,4 +53,5 @@ public class DwAnCheckbox extends OperatorUserInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
+
 }

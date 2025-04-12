@@ -793,4 +793,37 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         outputObject.setBean(bean);
         outputObject.settotal(questionList.size());
     }
+
+    @Override
+    public Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds) {
+        if (CollectionUtil.isEmpty(dwSurveyIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, dwSurveyIds);
+        List<DwSurveyDirectory> dwSurveyDirectoryList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(dwSurveyDirectoryList)) {
+            return new HashMap<>();
+        }
+//        List<String> schoolIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getSchoolId).collect(Collectors.toList());
+//        List<String> facultyIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getFacultyId).collect(Collectors.toList());
+//        List<String> majorIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getMajorId).collect(Collectors.toList());
+//
+//        Map<String, List<School>> schoolMapList = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
+//        Map<String, List<Faculty>> facultyMapList = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
+//        Map<String, List<Major>> majorMapList = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
+//        for (DwSurveyDirectory dwSurveyDirectory : dwSurveyDirectoryList) {
+//            List<School> schools = schoolMapList.getOrDefault(dwSurveyDirectory.getSchoolId(), Collections.emptyList());
+//            dwSurveyDirectory.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
+//
+//            List<Faculty> faculties = facultyMapList.getOrDefault(dwSurveyDirectory.getFacultyId(), Collections.emptyList());
+//            dwSurveyDirectory.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
+//
+//            List<Major> majors = majorMapList.getOrDefault(dwSurveyDirectory.getMajorId(), Collections.emptyList());
+//            dwSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+//        }
+        return dwSurveyDirectoryList.stream().collect(Collectors.toMap(DwSurveyDirectory::getId, dwSurveyDirectory -> dwSurveyDirectory));
+    }
+
+
 }

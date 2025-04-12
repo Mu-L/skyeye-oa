@@ -5,6 +5,7 @@
 package com.skyeye.eve.chen.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DwAnCheckboxServiceImpl
@@ -37,6 +40,34 @@ public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnC
         List<DwAnChenCheckbox> dFillblankAn = entity.getDwChenCheckboxAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void updatePostpose(DwAnChenCheckbox entity, String userId) {
+        List<DwAnChenCheckbox> chenCheckboxAn = entity.getDwChenCheckboxAn();
+        QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongId), entity.getBelongId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongAnswerId), entity.getBelongAnswerId());
+        List<DwAnChenCheckbox> dwAnChenCheckboxList = list(queryWrapper);//数据库数据
+        List<DwAnChenCheckbox> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
+                e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+        List<DwAnChenCheckbox> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
+                e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+        Set<String> yesIdSet = YesIdChenCheckbox.stream().map(DwAnChenCheckbox::getId).collect(Collectors.toSet());
+        List<DwAnChenCheckbox> result = dwAnChenCheckboxList.stream().filter(
+                e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+        List<String> TodeleteIds = result.stream().map(DwAnChenCheckbox::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(TodeleteIds)) {
+            deleteById(TodeleteIds);
+        }
+        if (CollectionUtil.isNotEmpty(NoIdChenCheckbox)) {
+            super.createEntity(NoIdChenCheckbox, userId);
+        }
+        if (CollectionUtil.isNotEmpty(YesIdChenCheckbox)) {
+            super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
 

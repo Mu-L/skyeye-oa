@@ -5,6 +5,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.question.entity.DwSurveyDirectory;
 
+import java.util.List;
+import java.util.Map;
+
 public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurveyDirectory> {
     void setUpDwDirectory(InputObject inputObject, OutputObject outputObject);
 
@@ -23,4 +26,8 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
     void queryDwurveyMationById(InputObject inputObject, OutputObject outputObject);
 
     void queryDwSurveyDirectoryMationByIdToHTML(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds);
+
+
 }

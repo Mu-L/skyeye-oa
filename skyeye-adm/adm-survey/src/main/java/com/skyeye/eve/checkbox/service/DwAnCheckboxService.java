@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnCheckboxService
@@ -26,6 +27,11 @@ public interface DwAnCheckboxService extends SkyeyeBusinessService<DwAnCheckbox>
     void queryDwAnCheckboxListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnCheckbox> slectBySurveyId(String surveyId);
+
+
+    void deleteBySurveyId(String surveyId);
+
+    Map<String, List<DwAnCheckbox>> selectByQuId(List<String> id);
 }
 
 

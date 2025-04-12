@@ -12,6 +12,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnChenFbk
  * @Description: 答卷矩阵填空题实体类
@@ -58,5 +60,10 @@ public class DwAnChenFbk extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-矩阵填空题信息答案")
+    private List<DwAnChenFbk> dwChenFbkAn;
+
 
 }
