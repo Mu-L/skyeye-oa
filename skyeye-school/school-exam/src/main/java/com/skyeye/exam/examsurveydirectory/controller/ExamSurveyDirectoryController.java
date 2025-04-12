@@ -145,7 +145,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "deleteSurvey", value = "删除试卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/deleteSurvey")
     public void deleteSurvey(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.deleteById(inputObject, outputObject);
@@ -231,20 +231,5 @@ public class ExamSurveyDirectoryController {
     public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryMyDoSurvey(inputObject, outputObject);
     }
-
-//    /**
-//     * 分析报告试卷
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @ApiOperation(id = "queryExamFxById", value = "分析报告试卷", method = "POST", allUse = "2")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
-//    @RequestMapping("/post/ExamSurveyDirectoryController/queryExamFxById")
-//    public void queryExamFxById(InputObject inputObject, OutputObject outputObject) {
-//        examSurveyDirectoryService.queryExamFxById(inputObject, outputObject);
-//    }
-
 
 }

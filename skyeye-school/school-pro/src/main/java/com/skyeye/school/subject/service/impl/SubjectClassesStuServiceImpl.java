@@ -495,13 +495,13 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         return userList;
     }
 
-    public SubjectClassesStu querySubClassLinkIdByStuNumberNo(String studentNumber) {
+    public List<SubjectClassesStu> querySubClassLinkIdByStuNumberNo(String studentNumber) {
         QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), studentNumber);
-        SubjectClassesStu subjectClassesStu = getOne(queryWrapper);
-        if (ObjectUtil.isNotEmpty(subjectClassesStu)) {
-            return subjectClassesStu;
+        List<SubjectClassesStu> subjectClassesStuList = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(subjectClassesStuList)) {
+            return subjectClassesStuList;
         }
-        return new SubjectClassesStu();
+        return new ArrayList<>();
     }
 }
