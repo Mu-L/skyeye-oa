@@ -35,10 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -246,6 +243,32 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
         queryWrapper.ne(MybatisPlusUtil.toColumns(CheckworkSign::getState),CheckworkSignState.NOT_SIGN.getKey());
         return count(queryWrapper);
+    }
+
+    @Override
+    public void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject) {
+        String stuId = inputObject.getParams().get("stuId").toString();
+        Map<String, Object> map = queryStuCheckworkSignByStuId(stuId);
+        outputObject.setBean(map);
+    }
+
+    @Override
+    public Map<String, Object> queryStuCheckworkSignByStuId(String stuId) {
+        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuId);
+        List<CheckworkSign> list = list(queryWrapper);
+        Map<String, Object> dataMap = new HashMap<>();
+        if(CollectionUtil.isEmpty(list)){
+            dataMap.put(CheckworkSignState.NOT_SIGN.name(), 0L);
+            dataMap.put(CheckworkSignState.SIGN.name(), 0L);
+            dataMap.put(CheckworkSignState.LATE_SIGN.name(), 0L);
+            return dataMap;
+        }
+        Map<Integer, Long> map = list.stream().collect(Collectors.groupingBy(CheckworkSign::getState, Collectors.counting()));
+        dataMap.put(CheckworkSignState.NOT_SIGN.name(), map.getOrDefault(CheckworkSignState.NOT_SIGN.getKey(), 0L));
+        dataMap.put(CheckworkSignState.SIGN.name(), map.getOrDefault(CheckworkSignState.SIGN.getKey(), 0L));
+        dataMap.put(CheckworkSignState.LATE_SIGN.name(), map.getOrDefault(CheckworkSignState.LATE_SIGN.getKey(), 0L));
+        return dataMap;
     }
 
 }

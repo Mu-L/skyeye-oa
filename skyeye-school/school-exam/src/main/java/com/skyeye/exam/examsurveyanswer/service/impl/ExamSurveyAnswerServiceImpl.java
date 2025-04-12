@@ -466,12 +466,15 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Long queryClassExamSurveyAnswerNum(String classId) {
+    public Long queryClassExamSurveyAnswerNum(String classId, String stuId) {
         // 获取试卷id
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
         // 获取参与人次
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), stuId);
+        }
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
         return count(queryWrapper);
     }
@@ -503,6 +506,27 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             return Collections.emptyMap();
         }
         return list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getCreateId, Collectors.counting()));
+    }
+
+    @Override
+    public Double queryClassExamSurveyAvgScore(String classesId, String stuId) {
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        // 已批阅的试卷
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_TWO);
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId),stuId);
+        }
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
+        List<ExamSurveyAnswer> list = list(queryWrapper);
+
+        // 求最后得分平均值，还需要判断是否为空-为空代表0
+        return  list.stream()
+                // 确保对象本身不为null
+                .filter(Objects::nonNull)
+                .mapToDouble(answer -> answer.getMarkFraction() != null ? answer.getMarkFraction() : 0.0)
+                .average()
+                .orElse(0.0);
     }
 
     @Override

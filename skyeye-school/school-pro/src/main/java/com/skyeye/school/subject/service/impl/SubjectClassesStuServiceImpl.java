@@ -504,4 +504,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         return new SubjectClassesStu();
     }
+
+    @Override
+    public String queryRewordNumByStuNo(String studentNumber) {
+        QueryWrapper<SubjectClassesStu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClassesStu::getStuNo), studentNumber);
+        SubjectClassesStu subjectClassesStu = getOne(queryWrapper);
+        return subjectClassesStu.getReward();
+    }
 }

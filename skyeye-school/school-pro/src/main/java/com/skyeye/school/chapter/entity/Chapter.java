@@ -4,6 +4,7 @@
 
 package com.skyeye.school.chapter.entity;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -56,6 +57,9 @@ public class Chapter extends BaseGeneralInfo implements EnclosureFace {
     public void setRealName(String realName) {
         if (!this.isSetName) {
             this.isSetName = true;
+            if (StrUtil.isEmpty(this.getId())) {
+                return;
+            }
             this.setName(realName);
         }
     }
