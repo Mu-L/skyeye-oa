@@ -49,10 +49,18 @@ public class AttrDefinitionController {
 
     @ApiOperation(id = "deleteAttrDefinitionById", value = "删除属性信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id列表", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/AttrDefinitionController/deleteAttrDefinitionById")
     public void deleteRoleByIds(InputObject inputObject, OutputObject outputObject) {
         attrDefinitionService.deleteById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAttrDefinitionById", value = "根据id查询属性信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/AttrDefinitionController/queryAttrDefinitionById")
+    public void queryAttrDefinitionById(InputObject inputObject, OutputObject outputObject) {
+        attrDefinitionService.selectById(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryChildAttrDefinitionList", value = "获取子属性信息", method = "POST", allUse = "2")
