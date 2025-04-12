@@ -567,4 +567,50 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         List<SubjectClasses> subjectClassesList = list(queryWrapper);
         return subjectClassesList;
     }
+
+    @Override
+    public void queryOverallAnalysis(InputObject inputObject, OutputObject outputObject) {
+        String subjectClassId = inputObject.getParams().get("id").toString();
+        SubjectClasses subjectClasses = selectById(subjectClassId);
+        String classesId = subjectClasses.getClassesId();
+        String subjectId = subjectClasses.getObjectId();
+        // 作业发布次数
+        Long assignmentNum = assignmentService.queryClassAssignmentNum(subjectClassId, null);
+        // 作业提交数
+        Long assignmentSubNum = assignmentSubService.queryClassAssignmentJoinNum(subjectClassId);
+        // 测试发布次数
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId);
+        // 话题数
+        Long topicNum = topicService.queryClassTopicNum(subjectClassId);
+        // 话题的评论数--弹幕条数
+        Long topicCommentNum = topicCommentService.queryClassTopicJoinPersonNum(subjectClassId);
+        // 考勤数量
+        Long checkWorkNum = checkworkService.queryCheckWorkNum(subjectClassId);
+        // 考勤人次
+        Long checkWorkPersonNum = checkworkService.queryCheckWorkPersonNum(subjectClassId);
+        // 资料数
+        Long datumNum = datumService.queryClassDataNum(subjectId);
+        // 互动课件数
+        Long coursewareNum = coursewareService.queryClassCoursewareNum(subjectId);
+        // 测试数量
+        Long examNum = examService.queryClassExamSurveyDirectoryNum(classesId);
+        // 测试参与人数
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId);
+        // 表现榜
+        List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
+        // TODO
+    }
+    public SubjectClasses queryClassBySubClassLinkId(String subClassLinkId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, subClassLinkId);
+        SubjectClasses subjectClasses = getOne(queryWrapper);
+        return subjectClasses;
+    }
+
+    @Override
+    public List<SubjectClasses> selectByCreateId(String userId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getCreateId), userId);
+        return list(queryWrapper);
+    }
 }

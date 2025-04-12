@@ -33,4 +33,6 @@ public interface CheckworkService extends SkyeyeBusinessService<Checkwork> {
     Map<String, Long> queryStuCheckWorkNumBySubClassesId(String id, List<String> stuIds);
 
     List<Checkwork> queryCheckworkList(String subjectLinkClassId);
+
+    Long queryCheckWorkPersonNum(String subjectClassId);
 }

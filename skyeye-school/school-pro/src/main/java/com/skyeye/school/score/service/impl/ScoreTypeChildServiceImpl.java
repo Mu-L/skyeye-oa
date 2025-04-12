@@ -97,6 +97,12 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
+        List<ScoreTypeChild> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        List<String> ids = list.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        scoreService.deleteByObjectId(ids.toArray(new String[ids.size()]));
         remove(queryWrapper);
     }
 

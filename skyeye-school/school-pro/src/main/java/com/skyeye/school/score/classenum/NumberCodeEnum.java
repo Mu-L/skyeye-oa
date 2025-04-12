@@ -32,7 +32,6 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
     CUSTOM("1", "自定义成绩", true, true),
     WORK("2", "作业成绩", true, false),
     TEST("3", "测试成绩", true, false),
-    INTERACTION("4", "互动答题成绩", true, false),
     USUAL("5", "平时成绩", true, false);
 
     private String key;

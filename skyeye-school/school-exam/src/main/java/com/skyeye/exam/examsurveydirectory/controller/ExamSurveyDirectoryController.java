@@ -219,6 +219,19 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.querySurveyListBySubjectLinkId(inputObject, outputObject);
     }
 
+    /**
+     * 获取我需做试卷，并过滤已做试卷
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryMyDoSurvey", value = "获取我需做试卷，并过滤已做试卷", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/queryMyDoSurvey")
+    public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.queryMyDoSurvey(inputObject, outputObject);
+    }
+
 //    /**
 //     * 分析报告试卷
 //     *

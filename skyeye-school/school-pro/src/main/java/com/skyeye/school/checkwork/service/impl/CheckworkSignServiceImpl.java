@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -185,12 +186,15 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
-        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+
+        MPJLambdaWrapper<CheckworkSign> queryWrapper = new MPJLambdaWrapper<CheckworkSign>()
+                .innerJoin(Checkwork.class, Checkwork::getId, CheckworkSign::getCheckworkId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.NOT_SIGN.getKey());
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), checkworkIdList);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime));
-        List<CheckworkSign> checkworkSignList = list(queryWrapper);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Checkwork::getCreateTime));
+
+        List<CheckworkSign> checkworkSignList =  skyeyeBaseMapper.selectJoinList(CheckworkSign.class, queryWrapper);
         checkworkService.setDataMation(checkworkSignList, CheckworkSign::getCheckworkId);
         outputObject.setBeans(checkworkSignList);
         outputObject.settotal(pages.getTotal());
@@ -207,15 +211,18 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
-        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+
+        MPJLambdaWrapper<CheckworkSign> queryWrapper = new MPJLambdaWrapper<CheckworkSign>()
+                .innerJoin(Checkwork.class, Checkwork::getId, CheckworkSign::getCheckworkId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), userId);
         queryWrapper.and(w -> {
             w.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.SIGN.getKey())
                     .or().eq(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.LATE_SIGN.getKey());
         });
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), checkworkIdList);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime));
-        List<CheckworkSign> checkworkSignList = list(queryWrapper);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Checkwork::getCreateTime));
+
+        List<CheckworkSign> checkworkSignList =  skyeyeBaseMapper.selectJoinList(CheckworkSign.class, queryWrapper);
         checkworkService.setDataMation(checkworkSignList, CheckworkSign::getCheckworkId);
         outputObject.setBeans(checkworkSignList);
         outputObject.settotal(pages.getTotal());
@@ -231,6 +238,14 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
             return Collections.emptyMap();
         }
         return list.stream().collect(Collectors.groupingBy(CheckworkSign::getUserId, Collectors.counting()));
+    }
+
+    @Override
+    public Long queryCheckWorkPersonNum(List<String> ids) {
+        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(CheckworkSign::getState),CheckworkSignState.NOT_SIGN.getKey());
+        return count(queryWrapper);
     }
 
 }

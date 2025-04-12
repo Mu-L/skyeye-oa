@@ -88,7 +88,7 @@ public class ExamSurveyAnswerController {
 
     /**
      * 根据createId获取my试卷回答信息
-     * 学生角度,获取我的所有试卷回答信息
+     * 学生教师角度,获取我的所有试卷回答信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象

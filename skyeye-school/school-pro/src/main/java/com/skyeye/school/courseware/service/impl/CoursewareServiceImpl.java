@@ -223,4 +223,11 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         Map<String,Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
         return resultMap;
     }
+
+    @Override
+    public Long queryClassCoursewareNum(String subjectId) {
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
+        return count(queryWrapper);
+    }
 }
