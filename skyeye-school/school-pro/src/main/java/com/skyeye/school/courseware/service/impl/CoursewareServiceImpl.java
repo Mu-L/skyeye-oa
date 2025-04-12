@@ -180,7 +180,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             Map<String, Object> t = new HashMap<>();
             t.put("type", "互动课件");
             t.put("name", chapter.getName());
-            List<Courseware> coursewares = map.get(chapter.getId());
+            List<Courseware> coursewares = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
             t.put("activeNum", coursewares.size());
             double completeNum = 0;
             for (Courseware courseware : coursewares) {

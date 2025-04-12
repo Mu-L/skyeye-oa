@@ -255,7 +255,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             Map<String, Object> t = new HashMap<>();
             t.put("type", "作业");
             t.put("name", chapter.getName());
-            List<Assignment> assignments = map.get(chapter.getId());
+            List<Assignment> assignments = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
             t.put("activeNum", assignments.size());
             double completeNum = 0;
             for (Assignment assignment : assignments) {
@@ -277,7 +277,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
         queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
         List<Assignment> assignments = list(queryWrapper);
-        if(CollectionUtil.isEmpty(assignments)){
+        if (CollectionUtil.isEmpty(assignments)) {
             return Collections.emptyMap();
         }
         // 统计每个章节的资料数量stream流
@@ -291,11 +291,11 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
         queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
         List<Assignment> assignments = list(queryWrapper);
-        if(CollectionUtil.isEmpty(assignments)){
+        if (CollectionUtil.isEmpty(assignments)) {
             return Collections.emptyMap();
         }
         List<String> assIds = assignments.stream().map(Assignment::getId).collect(Collectors.toList());
-        Map<String, Long> map  = assignmentSubService.queryStuAssignNumByAssIds(assIds, stuIds);
+        Map<String, Long> map = assignmentSubService.queryStuAssignNumByAssIds(assIds, stuIds);
         return map;
     }
 
