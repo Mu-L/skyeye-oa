@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaGeneralInfo;
 import lombok.Data;
 
@@ -23,7 +24,7 @@ import lombok.Data;
  */
 @Data
 @UniqueField
-@RedisCacheField(name = "school:mation")
+@RedisCacheField(name = CacheConstants.SC_SCHOOL_CACHE_KEY)
 @TableName(value = "school_mation")
 @ApiModel(value = "学校实体类")
 public class School extends AreaGeneralInfo {

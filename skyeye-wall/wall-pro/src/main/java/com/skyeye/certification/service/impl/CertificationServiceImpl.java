@@ -10,7 +10,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certification.classenum.StateEnum;
@@ -25,14 +24,13 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.school.student.service.IStudentService;
+import com.skyeye.rest.school.student.service.*;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +57,18 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
     @Autowired
     private IStudentService iStudentService;
 
+    @Autowired
+    private ISchoolService iSchoolService;
+
+    @Autowired
+    private IFacultyService iFacultyService;
+
+    @Autowired
+    private IMajorService iMajorService;
+
+    @Autowired
+    private IClassService iClassService;
+
     @Override
     protected QueryWrapper<Certification> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Certification> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -74,28 +84,10 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
-        List<String> studentNumber = maps.stream().map(map -> map.get("studentNumber").toString()).collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(studentNumber)) {
-            return new ArrayList<>();
-        }
-        String studentNumbers = Joiner.on(CommonCharConstants.COMMA_MARK).join(studentNumber);
-        List<Map<String, Object>> maps1 = iStudentService.queryStudentByStudentNumbers(studentNumbers);
-        Map<String, Map<String, Object>> studentNumberMap = maps1.stream()
-            .collect(Collectors.toMap(map -> map.get("no").toString(), map -> map));
-        for (Map<String, Object> map : maps) {
-            String studentNumber1 = map.get("studentNumber").toString();
-            if (studentNumberMap.containsKey(studentNumber1)) {
-                Map<String, Object> matchedMap = studentNumberMap.get(studentNumber1);
-                Map<String,Object>  schoolMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("schoolMation")),null);
-                Map<String,Object>  facultyMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("facultyMation")),null);
-                Map<String,Object>  majorMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("majorMation")),null);
-                Map<String,Object>  classMation = JSONUtil.toBean(JSONUtil.toJsonStr(matchedMap.get("classMation")),null);
-                map.put("schoolMation", schoolMation);
-                map.put("facultyMation", facultyMation);
-                map.put("majorMation", majorMation);
-                map.put("classMation", classMation);
-            }
-        }
+        iSchoolService.setMationForMap(maps, "campus", "campusMation");
+        iFacultyService.setMationForMap(maps, "facultyId", "facultyMation");
+        iMajorService.setMationForMap(maps, "majorId", "majorMation");
+        iClassService.setMationForMap(maps, "classId", "classMation");
         return maps;
     }
 
@@ -117,14 +109,13 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
             Certification certification = selectById(userId);
             if (StrUtil.isNotEmpty(certification.getId()) && certification.getState() == StateEnum.CERTIFIEDSUCCESS.getKey()) {
                 certification.setCheckCertification(true);
-                Map<String, Object> stuMation = iStudentService.queryStudentByStudentNumbers(certification.getStudentNumber()).get(CommonNumConstants.NUM_ZERO);
-                certification.setCampusMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("schoolMation")),null));
-                certification.setFacultyMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("facultyMation")),null));
-                certification.setMajorMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("majorMation")),null));
-                certification.setClassMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("classMation")),null));
             } else {
                 certification.setCheckCertification(false);
             }
+            iSchoolService.setDataMation(certification, Certification::getCampus);
+            iFacultyService.setDataMation(certification, Certification::getFacultyId);
+            iMajorService.setDataMation(certification, Certification::getMajorId);
+            iClassService.setDataMation(certification, Certification::getClassId);
             outputObject.setBean(certification);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
         } else {

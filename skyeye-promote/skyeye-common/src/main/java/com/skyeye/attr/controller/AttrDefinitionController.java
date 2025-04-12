@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -43,6 +44,13 @@ public class AttrDefinitionController {
     @RequestMapping("/post/AttrDefinitionController/queryAttrDefinitionList")
     public void queryAttrDefinitionList(InputObject inputObject, OutputObject outputObject) {
         attrDefinitionService.queryAttrDefinitionList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "writeAttrDefinition", value = "动态新增属性信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = AttrDefinition.class)
+    @RequestMapping("/post/AttrDefinitionController/writeAttrDefinition")
+    public void writeAttrDefinition(InputObject inputObject, OutputObject outputObject) {
+        attrDefinitionService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     /**

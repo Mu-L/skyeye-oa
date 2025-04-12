@@ -7,14 +7,17 @@ package com.skyeye.attr.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.attr.dao.AttrDefinitionDao;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.entity.AttrDefinitionCustom;
 import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.server.entity.ServiceBean;
 import com.skyeye.server.service.ServiceBeanService;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "属性管理", groupName = "系统公共模块")
 public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDefinitionDao, AttrDefinition> implements AttrDefinitionService {
 
     @Autowired
@@ -58,7 +62,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         // 获取数据库中的数据
         QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
-        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getModelAttribute), true);
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getModelAttribute), WhetherEnum.ENABLE_USING.getKey());
         List<AttrDefinition> oldList = super.list(wrapper);
         List<String> oldKeys = oldList.stream().map(bean -> getKey(bean)).collect(Collectors.toList());
 
@@ -72,13 +76,17 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
             deleteById(ids);
         }
 
+        String currentTime = DateUtil.getTimeAndToString();
+
         // (新数据 - 旧数据) 添加到数据库
         List<AttrDefinition> addBeans = attrDefinitionList.stream()
             .filter(item -> !oldKeys.contains(getKey(item))).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(addBeans)) {
             addBeans.forEach(attrDefinition -> {
                 attrDefinition.setAppId(appId);
-                attrDefinition.setModelAttribute(true);
+                attrDefinition.setModelAttribute(WhetherEnum.ENABLE_USING.getKey());
+                attrDefinition.setCreateTime(currentTime);
+                attrDefinition.setLastUpdateTime(currentTime);
             });
             // 新增模型属性
             createEntity(addBeans, StrUtil.EMPTY);
@@ -101,6 +109,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
                 bean.setRemark(attrDefinition.getRemark());
                 bean.setRequired(attrDefinition.getRequired());
                 bean.setWhetherInputParams(attrDefinition.getWhetherInputParams());
+                bean.setLastUpdateTime(currentTime);
             });
             updateEntity(editBeans, StrUtil.EMPTY);
         }
