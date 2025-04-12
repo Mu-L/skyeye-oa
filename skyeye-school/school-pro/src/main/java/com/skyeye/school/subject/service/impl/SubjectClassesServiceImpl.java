@@ -600,11 +600,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
         // TODO
     }
-    public List<SubjectClasses> queryClassBySubClassLinkId(List<String> subClassLinkId) {
+    public SubjectClasses queryClassBySubClassLinkId(String subClassLinkId) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, subClassLinkId);
-        List<SubjectClasses> subjectClassesList = list(queryWrapper);
-        return subjectClassesList;
+        queryWrapper.eq(CommonConstants.ID, subClassLinkId);
+        SubjectClasses subjectClasses = getOne(queryWrapper);
+        return subjectClasses;
     }
 
     @Override

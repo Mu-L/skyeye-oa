@@ -39,4 +39,8 @@ public interface CheckworkSignService extends SkyeyeBusinessService<CheckworkSig
     Map<String, Long> queryStuCheckWorkSignNums(List<String> ids, List<String> stuIds);
 
     Long queryCheckWorkPersonNum(List<String> ids);
+
+    void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, Object> queryStuCheckworkSignByStuId(String stuId);
 }

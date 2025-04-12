@@ -13,16 +13,21 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.school.assignment.service.AssignmentService;
+import com.skyeye.school.assignment.service.AssignmentSubService;
 import com.skyeye.school.chapter.dao.ChapterDao;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.service.CoursewareService;
+import com.skyeye.school.exam.service.ExamDirectoryAnService;
+import com.skyeye.school.exam.service.ExamService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ChapterServiceImpl
@@ -44,6 +49,18 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
 
     @Autowired
     private CoursewareService coursewareService;
+
+    @Autowired
+    private ExamService examService;
+
+    @Autowired
+    private ExamDirectoryAnService examDirectoryAnService;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private AssignmentSubService assignmentSubService;
 
     @Override
     public void queryChapterListBySubjectId(InputObject inputObject, OutputObject outputObject) {
@@ -86,7 +103,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         Map<String, Map<String, Object>> assAnaMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, null);
         // 全部作业分析
         Map<String, Map<String, Object>> assAnaAllMap = assignmentService.queryAssAnalysisByChapters(classNum, chapterList, "all");
-
         // 互动课件分析
         Map<String, Map<String, Object>> coursewareAnaMap = coursewareService.queryInterAnalysisByChapters(classNum, chapterList, null);
         // 全部互动课件分析
