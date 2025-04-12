@@ -214,7 +214,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             map.put("type", "作业");
             map.put("name", chapter.getName());
             map.put("activeNum", CommonNumConstants.NUM_ZERO);
-            map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            map.put("completeRate", String.format("%.2f", 0.0)+"%");
             temp.put(chapter.getId(), map);
         }
         Map<String, Object> tempAll = new HashMap<>();
@@ -223,7 +223,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             tempAll.put("type", "作业");
             tempAll.put("name", "全部");
             tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
-            tempAll.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            tempAll.put("completeRate", String.format("%.2f", 0.0)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -246,8 +246,8 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
             tempAll.put("name", "全部");
             tempAll.put("activeNum", totalNum);
             // 计算完成率--16.8%
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            tempAll.put("completeRate", completeRate);
+            double completeRate = completeNum / (totalNum * classNum) * 100;
+            tempAll.put("completeRate", String.format("%.2f", completeRate)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -264,8 +264,9 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
                     completeNum += assSub.size();
                 }
             }
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
-            t.put("completeRate", completeRate);
+//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
+            double completeRate = completeNum / (assignments.size() * classNum) * 100;
+            t.put("completeRate", String.format("%.2f", completeRate)+"%");
             resultMap.put(chapter.getId(), t);
         }
         return resultMap;

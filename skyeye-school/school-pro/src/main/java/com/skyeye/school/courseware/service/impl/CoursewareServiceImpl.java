@@ -141,7 +141,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             map.put("type", "互动课件");
             map.put("name", chapter.getName());
             map.put("activeNum", CommonNumConstants.NUM_ZERO);
-            map.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            map.put("completeRate", String.format("%.2f",0.0)+"%");
             temp.put(chapter.getId(), map);
         }
         Map<String, Object> tempAll = new HashMap<>();
@@ -149,7 +149,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             tempAll.put("type", "互动课件");
             tempAll.put("name", "全部");
             tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
-            tempAll.put("completeRate", CommonNumConstants.NUM_ZERO + "%");
+            tempAll.put("completeRate", String.format("%.2f",0.0)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -171,8 +171,9 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             tempAll.put("type", "互动课件");
             tempAll.put("name", "全部");
             tempAll.put("activeNum", totalNum);
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            tempAll.put("completeRate", completeRate);
+//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
+            double completeRate = (completeNum / (totalNum * classNum)) * 100;
+            tempAll.put("completeRate", String.format("%.2f",completeRate)+"%");
             resultMap.put(type, tempAll);
             return resultMap;
         }
@@ -189,8 +190,9 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
                     completeNum += coursewareSub.size();
                 }
             }
-            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
-            t.put("completeRate", completeRate);
+//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
+            double completeRate = (completeNum / (coursewares.size() * classNum)) * 100;
+            t.put("completeRate",  String.format("%.2f",completeRate)+"%");
             resultMap.put(chapter.getId(), t);
         }
         return resultMap;

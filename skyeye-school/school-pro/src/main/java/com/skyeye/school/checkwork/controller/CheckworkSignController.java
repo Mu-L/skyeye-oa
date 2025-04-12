@@ -95,6 +95,7 @@ public class CheckworkSignController {
     @ApiOperation(id = "queryStuCheckworkSignCount", value = "获取学生的待考勤、已考勤、迟到的数量", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "stuId",name = "stuId", value = "学生ID", required = "required"),
+        @ApiImplicitParam(id = "subjectClassId",name = "subjectClassId", value = "科目与班级id", required = "required")
     })
     @RequestMapping("/post/CheckworkSignController/queryStuCheckworkSignCount")
     public void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject) {

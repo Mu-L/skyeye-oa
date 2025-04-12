@@ -248,8 +248,26 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
     @Override
     public void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject) {
         String stuId = inputObject.getParams().get("stuId").toString();
-        Map<String, Object> map = queryStuCheckworkSignByStuId(stuId);
-        outputObject.setBean(map);
+        String subjectClassId = inputObject.getParams().get("subjectClassId").toString();
+        List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectClassId);
+        List<String> ids = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
+        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
+        List<CheckworkSign> list = list(queryWrapper);
+        Map<String, Object> dataMap = new HashMap<>();
+        if(CollectionUtil.isEmpty(list)){
+            dataMap.put(CheckworkSignState.NOT_SIGN.name(), 0L);
+            dataMap.put(CheckworkSignState.SIGN.name(), 0L);
+            dataMap.put(CheckworkSignState.LATE_SIGN.name(), 0L);
+            outputObject.setBean(dataMap);
+            return ;
+        }
+        Map<Integer, Long> map = list.stream().collect(Collectors.groupingBy(CheckworkSign::getState, Collectors.counting()));
+        dataMap.put(CheckworkSignState.NOT_SIGN.name(), map.getOrDefault(CheckworkSignState.NOT_SIGN.getKey(), 0L));
+        dataMap.put(CheckworkSignState.SIGN.name(), map.getOrDefault(CheckworkSignState.SIGN.getKey(), 0L));
+        dataMap.put(CheckworkSignState.LATE_SIGN.name(), map.getOrDefault(CheckworkSignState.LATE_SIGN.getKey(), 0L));
+        outputObject.setBean(dataMap);
     }
 
     @Override
