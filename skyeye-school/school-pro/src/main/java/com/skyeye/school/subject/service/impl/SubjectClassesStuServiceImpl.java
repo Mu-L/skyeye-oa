@@ -385,10 +385,12 @@ public class SubjectClassesStuServiceImpl extends SkyeyeBusinessServiceImpl<Subj
         }
         int rewardNumber = Integer.parseInt(one.getReward()) + Integer.parseInt(reward);
         if (rewardNumber > 100){
-            throw new CustomException("奖励星星不能大于100");
+            throw new CustomException("最终的奖励星星数量不能大于100");
         }
-        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward),
-            rewardNumber > CommonNumConstants.NUM_ZERO ? String.valueOf(rewardNumber) : CommonNumConstants.NUM_ZERO.toString());
+        if (rewardNumber < CommonNumConstants.NUM_ZERO){
+            throw new CustomException("最终的奖励星星数量不能小于0");
+        }
+        updateWrapper.set(MybatisPlusUtil.toColumns(SubjectClassesStu::getReward), String.valueOf(rewardNumber));
         update(updateWrapper);
     }
 
