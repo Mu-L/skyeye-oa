@@ -180,7 +180,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
             Map<String, Object> t = new HashMap<>();
             t.put("type", "互动课件");
             t.put("name", chapter.getName());
-            List<Courseware> coursewares = map.get(chapter.getId());
+            List<Courseware> coursewares = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
             t.put("activeNum", coursewares.size());
             double completeNum = 0;
             for (Courseware courseware : coursewares) {
@@ -202,7 +202,7 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
         queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
         List<Courseware> coursewares = list(queryWrapper);
-        if(CollectionUtil.isEmpty(coursewares)){
+        if (CollectionUtil.isEmpty(coursewares)) {
             return Collections.emptyMap();
         }
         // 统计每个章节的资料数量stream流
@@ -216,11 +216,11 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
         queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
         List<Courseware> bean = list(queryWrapper);
-        if(CollectionUtil.isEmpty(bean)){
+        if (CollectionUtil.isEmpty(bean)) {
             return Collections.emptyMap();
         }
         List<String> coursewareIds = bean.stream().map(Courseware::getId).collect(Collectors.toList());
-        Map<String,Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
+        Map<String, Long> resultMap = coursewareStudyService.queryStuCourByCourIdsAndStuIds(coursewareIds, stuIds);
         return resultMap;
     }
 
