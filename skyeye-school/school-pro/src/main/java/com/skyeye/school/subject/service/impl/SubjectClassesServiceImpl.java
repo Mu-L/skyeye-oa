@@ -29,6 +29,7 @@ import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
+import com.skyeye.school.checkwork.classenum.CheckworkSignState;
 import com.skyeye.school.checkwork.service.CheckworkService;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.datum.service.DatumService;
@@ -339,7 +340,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(id);
         resultMap.put("topicJoinNum", topicJoinNum);
         // 话题参与人次--评论总数
-        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id);
+        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id,null);
         resultMap.put("topicJoinPersonNum", topicJoinPersonNum);
         // 作业数
         Long assignmentNum = assignmentService.queryClassAssignmentNum(id, null);
@@ -351,7 +352,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long testNum = examService.queryClassExamSurveyDirectoryNum(classId);
         resultMap.put("testNum", testNum);
         // 测试参与人次
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId,null);
         resultMap.put("testJoinNum", testJoinNum);
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -583,7 +584,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 话题数
         Long topicNum = topicService.queryClassTopicNum(subjectClassId);
         // 话题的评论数--弹幕条数
-        Long topicCommentNum = topicCommentService.queryClassTopicJoinPersonNum(subjectClassId);
+        Long topicCommentNum = topicCommentService.queryClassTopicJoinPersonNum(subjectClassId,null);
         // 考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(subjectClassId);
         // 考勤人次
@@ -595,11 +596,20 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 测试数量
         Long examNum = examService.queryClassExamSurveyDirectoryNum(classesId);
         // 测试参与人数
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId,null);
         // 表现榜
         List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
         // TODO
     }
+
+    @Override
+    public List<SubjectClasses> queryClassBySubClassLinkId(List<String> subClassLinkId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, subClassLinkId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        return subjectClassesList;
+    }
+
     public SubjectClasses queryClassBySubClassLinkId(String subClassLinkId) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, subClassLinkId);
@@ -613,4 +623,5 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getCreateId), userId);
         return list(queryWrapper);
     }
+
 }
