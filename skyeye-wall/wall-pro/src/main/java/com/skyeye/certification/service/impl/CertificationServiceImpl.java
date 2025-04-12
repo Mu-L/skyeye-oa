@@ -117,6 +117,11 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
             Certification certification = selectById(userId);
             if (StrUtil.isNotEmpty(certification.getId()) && certification.getState() == StateEnum.CERTIFIEDSUCCESS.getKey()) {
                 certification.setCheckCertification(true);
+                Map<String, Object> stuMation = iStudentService.queryStudentByStudentNumbers(certification.getStudentNumber()).get(CommonNumConstants.NUM_ZERO);
+                certification.setCampusMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("schoolMation")),null));
+                certification.setFacultyMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("facultyMation")),null));
+                certification.setMajorMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("majorMation")),null));
+                certification.setClassMation(JSONUtil.toBean(JSONUtil.toJsonStr(stuMation.get("classMation")),null));
             } else {
                 certification.setCheckCertification(false);
             }

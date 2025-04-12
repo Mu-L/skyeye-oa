@@ -17,6 +17,8 @@ import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: Certification
  * @Description: 学生信息认证实体类
@@ -47,17 +49,33 @@ public class Certification extends CommonInfo {
     @ApiModelProperty(value = "校区", required = "required")
     private String campus;
 
+    @TableField(exist = false)
+    @Property(value = "校区信息")
+    private Map<String,Object> campusMation;
+
     @TableField("faculty_id")
     @ApiModelProperty(value = "学院", required = "required")
     private String facultyId;
+
+    @TableField(exist = false)
+    @Property(value = "学院信息")
+    private Map<String,Object> facultyMation;
 
     @TableField("major_id")
     @ApiModelProperty(value = "专业", required = "required")
     private String majorId;
 
+    @TableField(exist = false)
+    @Property(value = "专业信息")
+    private Map<String,Object> majorMation;
+
     @TableField("class_id")
     @ApiModelProperty(value = "班级", required = "required")
     private String classId;
+
+    @TableField(exist = false)
+    @Property(value = "班级信息")
+    private Map<String,Object> classMation;
 
     @TableField("join_time")
     @ApiModelProperty(value = "入学时间", required = "required")
