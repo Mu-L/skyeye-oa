@@ -111,9 +111,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     private CheckworkService checkworkService;
 
     @Autowired
-    private CheckworkSignService checkworkSignService;
-
-    @Autowired
     private SubjectClassesTopService subjectClassesTopService;
 
     @Autowired
@@ -126,10 +123,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     private ExamDirectoryAnService examDirectoryAnService;
 
     @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
+
+    @Autowired
     private CoursewareStudyService coursewareStudyService;
 
     @Autowired
-    private ScoreTypeChildService scoreTypeChildService;
+    private CheckworkSignService checkworkSignService;
+
+
 
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -347,7 +349,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(id);
         resultMap.put("topicJoinNum", topicJoinNum);
         // 话题参与人次--评论总数
-        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id, null);
+        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id,null);
         resultMap.put("topicJoinPersonNum", topicJoinPersonNum);
         // 作业数
         Long assignmentNum = assignmentService.queryClassAssignmentNum(id);
@@ -359,7 +361,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long testNum = examService.queryClassExamSurveyDirectoryNum(classId);
         resultMap.put("testNum", testNum);
         // 测试参与人次
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId, null);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId,null);
         resultMap.put("testJoinNum", testJoinNum);
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -390,6 +392,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long coursewareNum = coursewareService.queryClassCoursewareNum(subjectId);
         // 获取作业数
         Long assignmentNum = assignmentService.queryClassAssignmentNum(id);
+
 
         // 与学生有关的数据
         List<String> stuIds = new ArrayList<>();
@@ -476,7 +479,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     public Integer queryStuNumBySubjectId(String subjectId, String classId) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
-                .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classId);
+            .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classId);
         SubjectClasses one = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(one)) {
             return null;
@@ -507,7 +510,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
-                .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
+            .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
         List<SubjectClasses> subjectClassesList = list(queryWrapper);
         return subjectClassesList;
     }
@@ -589,7 +592,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 表现榜
         List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
         resultMap.put("rewordList", rewordList);
-        outputObject.setBean(resultMap);
+        outputObject.setBean(rewordList);
+    }
+
+    @Override
+    public List<SubjectClasses> queryClassBySubClassLinkId(List<String> subClassLinkId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, subClassLinkId);
+        List<SubjectClasses> subjectClassesList = list(queryWrapper);
+        return subjectClassesList;
     }
 
     public SubjectClasses queryClassBySubClassLinkId(String subClassLinkId) {

@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.eve.entity.School;
@@ -31,7 +32,7 @@ import java.util.Map;
  */
 @Data
 @UniqueField
-@RedisCacheField(name = "school:classes", cacheTime = RedisConstants.A_YEAR_SECONDS)
+@RedisCacheField(name = CacheConstants.SC_CLASS_CACHE_KEY, cacheTime = RedisConstants.A_YEAR_SECONDS)
 @TableName(value = "school_classes")
 @ApiModel(value = "班级实体类")
 public class Classes extends BaseGeneralInfo {

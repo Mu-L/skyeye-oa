@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.dsform.entity.DsFormComponent;
 import com.skyeye.server.entity.ServiceBean;
 import lombok.Data;
@@ -77,8 +78,8 @@ public class AttrDefinitionCustom extends OperatorUserInfo {
     private String remark;
 
     @TableField(exist = false)
-    @Property(value = "是否可以作为入参，数据来源：属性原始信息")
-    private Boolean whetherInputParams;
+    @Property(value = "是否可以作为入参，数据来源：属性原始信息", enumClass = WhetherEnum.class)
+    private Integer whetherInputParams;
 
     @TableField(value = "data_type", updateStrategy = FieldStrategy.IGNORED)
     @ApiModelProperty(value = "数据类型，参考#AttrKeyDataType", required = "num")

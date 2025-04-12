@@ -4,13 +4,12 @@
 
 package com.skyeye.attr.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 /**
@@ -61,15 +60,23 @@ public class AttrDefinition extends CommonInfo {
     private String remark;
 
     @TableField("whether_input_params")
-    @ApiModelProperty(value = "是否可以作为入参", required = "required")
-    private Boolean whetherInputParams;
+    @ApiModelProperty(value = "是否可以作为入参", enumClass = WhetherEnum.class, required = "required")
+    private Integer whetherInputParams;
 
     @TableField("required")
     @ApiModelProperty(value = "属性限制条件")
     private String required;
 
     @TableField("model_attribute")
-    @ApiModelProperty(value = "是否是模型属性", required = "required")
-    private Boolean modelAttribute;
+    @ApiModelProperty(value = "是否是模型属性", enumClass = WhetherEnum.class, required = "required")
+    private Integer modelAttribute;
+
+    @Property("创建时间")
+    @TableField(value = "create_time", updateStrategy = FieldStrategy.NEVER)
+    private String createTime;
+
+    @Property("最后更新日期")
+    @TableField(value = "last_update_time")
+    private String lastUpdateTime;
 
 }
