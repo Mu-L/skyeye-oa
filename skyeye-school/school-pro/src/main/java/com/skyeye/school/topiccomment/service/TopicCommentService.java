@@ -17,7 +17,7 @@ import java.util.Map;
 public interface TopicCommentService extends SkyeyeBusinessService<TopicComment> {
     Long queryClassTopicJoinNum(String id);
 
-    Long queryClassTopicJoinPersonNum(String id);
+    Long queryClassTopicJoinPersonNum(String id, String stuId);
 
     Map<String, Long> queryCommentNumByTopicIdsAndStuIds(List<String> topicIds, List<String> stuIds);
 }

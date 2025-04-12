@@ -107,13 +107,16 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
     }
 
     @Override
-    public Long queryClassTopicJoinPersonNum(String id) {
+    public Long queryClassTopicJoinPersonNum(String id, String stuId) {
         // 获取话题id
         List<String> ids = topicService.queryTopicIdsBySubjectClassesId(id);
         if (CollectionUtil.isEmpty(ids)) {
             return 0L;
         }
         QueryWrapper<TopicComment> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotEmpty(stuId)){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TopicComment::getCreateId), stuId);
+        }
         queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
         return count(queryWrapper);
     }

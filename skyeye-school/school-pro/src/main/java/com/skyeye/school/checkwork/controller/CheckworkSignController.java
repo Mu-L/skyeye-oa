@@ -86,4 +86,19 @@ public class CheckworkSignController {
         checkworkSignService.queryCheckworkAlreadySignList(inputObject, outputObject);
     }
 
+    /**
+     * 获取学生的待考勤、已考勤、迟到的数量
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryStuCheckworkSignCount", value = "获取学生的待考勤、已考勤、迟到的数量", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "stuId",name = "stuId", value = "学生ID", required = "required"),
+    })
+    @RequestMapping("/post/CheckworkSignController/queryStuCheckworkSignCount")
+    public void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject) {
+        checkworkSignService.queryStuCheckworkSignCount(inputObject, outputObject);
+    }
+
 }
