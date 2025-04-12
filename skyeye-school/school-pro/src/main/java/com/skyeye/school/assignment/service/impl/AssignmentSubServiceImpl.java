@@ -170,7 +170,8 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         Assignment assignment = assignmentService.selectById(entity.getAssignmentId());
         List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(entity.getCreateId());
         scorePartService.updateStudentScore(assignment.getObjectId(), assignment.getSubjectClassesId(),
-            userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), id, getServiceClassName(), assignment.getName(), score);
+            userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), assignment.getId(), assignmentService.getServiceClassName(),
+            assignment.getName(), score);
         refreshCache(id);
     }
 
@@ -308,18 +309,18 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     @Override
     public Double queryClassAssignmentAvg(String subjectClassId) {
         List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(subjectClassId);
-        if(CollectionUtil.isEmpty(ids)){
+        if (CollectionUtil.isEmpty(ids)) {
             return 0.0;
         }
         QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), ids);
         List<AssignmentSub> list = list(queryWrapper);
         return list.stream()
-                // 确保对象本身不为null
-                .filter(Objects::nonNull)
-                .mapToDouble(answer -> StrUtil.isNotEmpty(answer.getScore()) ? Integer.parseInt(answer.getScore()) : 0.0)
-                .average()
-                .orElse(0.0);
+            // 确保对象本身不为null
+            .filter(Objects::nonNull)
+            .mapToDouble(answer -> StrUtil.isNotEmpty(answer.getScore()) ? Integer.parseInt(answer.getScore()) : 0.0)
+            .average()
+            .orElse(0.0);
     }
 
     @Override
