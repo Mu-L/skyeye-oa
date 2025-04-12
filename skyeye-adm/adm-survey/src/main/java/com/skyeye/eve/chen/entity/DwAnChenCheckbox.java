@@ -12,6 +12,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnChenCheckbox
  * @Description: 答卷矩阵多选题实体类
@@ -54,6 +56,10 @@ public class DwAnChenCheckbox extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-矩阵多选题信息答案")
+    private List<DwAnChenCheckbox> dwChenCheckboxAn;
 
 
 }

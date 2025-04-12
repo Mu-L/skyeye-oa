@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.chen.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -32,6 +33,14 @@ import java.util.Map;
 public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenCheckboxDao, DwAnChenCheckbox> implements DwAnChenCheckboxService {
 
     @Override
+    protected void createPostpose(DwAnChenCheckbox entity, String userId) {
+        List<DwAnChenCheckbox> dFillblankAn = entity.getDwChenCheckboxAn();
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
+            super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
     public List<DwAnChenCheckbox> selectAnChenCheckboxByQuId(String id) {
         QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), id);
@@ -43,6 +52,22 @@ public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnC
         QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongId), surveyId);
         return list(queryWrapper);
+    }
+
+
+    @Override
+    public DwAnChenCheckbox selectById(String id) {
+        DwAnChenCheckbox dwAnChenCheckbox = super.selectById(id);
+        String belongAnswerId = dwAnChenCheckbox.getBelongAnswerId();
+        String belongId = dwAnChenCheckbox.getBelongId();
+        String quId = dwAnChenCheckbox.getQuId();
+        QueryWrapper<DwAnChenCheckbox> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongAnswerId), belongAnswerId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongId), belongId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), quId);
+        queryWrapper1.ne(CommonConstants.ID, id);
+        dwAnChenCheckbox.setDwChenCheckboxAn(list(queryWrapper1));
+        return dwAnChenCheckbox;
     }
 
     @Override
