@@ -303,7 +303,7 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
-        return list.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId, Collectors.counting()));
+        return list.stream().collect(Collectors.groupingBy(AssignmentSub::getCreateId, Collectors.counting()));
     }
 
     @Override

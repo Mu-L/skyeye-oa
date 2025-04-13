@@ -417,6 +417,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId, stuIds);
         for (Map<String, Object> student : studentList) {
             String stuId = student.get("id").toString();
+            String studentNumber = student.get("studentNumber").toString();
             // 互动课件
             student.put("coursewareNum", coursewareNum);
             student.put("stuCoursewareNum", stuCoursewareNumMap.getOrDefault(stuId, 0L));
@@ -440,7 +441,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
             // 话题数
             student.put("topicNum", topicNum);
             // 表现奖励
-            student.put("rewardNum", stuStarNumMap.getOrDefault(stuId, "0"));
+            student.put("rewardNum", stuStarNumMap.getOrDefault(studentNumber, "0"));
             // 发弹幕数
             student.put("stuTopicCommentNum", stuTopicCommentNumMap.getOrDefault(stuId, 0L));
             // 整体完成率
@@ -592,7 +593,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 表现榜
         List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
         resultMap.put("rewordList", rewordList);
-        outputObject.setBean(rewordList);
+        outputObject.setBean(resultMap);
     }
 
     @Override

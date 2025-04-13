@@ -162,7 +162,12 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Integer unSubmitNum;
 
     @TableField(exist = false)
-    @Property(value = "未交数量")
+    @Property(value = "是否回答")
     private Boolean isAnswered;
+
+    @TableField(exist = false)
+    @Property(value = "是否是创建人")
+    private Boolean isCreated;
+
 
 }

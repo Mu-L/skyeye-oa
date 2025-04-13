@@ -64,6 +64,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @ClassName: ExamSurveyAnswerServiceImpl
@@ -260,8 +261,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(userId);
         ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
-        if (userOrStudent.getUserOrStudent()){
-            if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())){
+        if (userOrStudent.getUserOrStudent()) {
+            if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())) {
                 throw new CustomException("该试卷已回答结束，不能查看");
             }
         }
@@ -311,14 +312,86 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void queryAllSurveyList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        //老师的账号Id
         String userId = inputObject.getLogParams().get("id").toString();
+        //科目Id
+        String objectId = commonPageInfo.getObjectId();
+        //班级Id
+        String holderId = commonPageInfo.getHolderId();
         List<ExamSurveyMarkExam> examSurveyMarkExams = examSurveyMarkExamService.selectByUserId(userId);
+        //作为阅卷人的所有试卷Id
         List<String> surveyIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
-        Map<String, List<ExamSurveyDirectory>> stringListMap = examSurveyDirectoryService.querySurveyListByIds(surveyIds, userId);
-        List<ExamSurveyDirectory> examSurveyDirectories = stringListMap.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
-        outputObject.setBeans(examSurveyDirectories);
-        outputObject.settotal(page.getTotal());
+        List<ExamSurveyDirectory> examSurveyDirectoryList = examSurveyDirectoryService.queryCreatedSurveyListByUserId(userId);
+        //作为创建人的所有试卷Id
+        List<String> surveyIds1 = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+        List<String> combinedSurveyIds = Stream.concat(
+                examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId),
+                examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId)
+            )
+            .distinct()
+            .collect(Collectors.toList());
+        //试卷id和对应的试卷信息（有回答过的信息）
+        Map<String, List<ExamSurveyDirectory>> stringListMap = examSurveyDirectoryService.querySurveyListByIds(combinedSurveyIds, userId);
+        stringListMap.replaceAll((k, v) -> v == null ? new ArrayList<>() : v);
+        //老师回答过的答卷
+        List<ExamSurveyAnswer> examSurveyAnswerList = selectSurveyIdByteacherId(userId);
+        List<String> yesDoSurveyList = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(examSurveyAnswerList)) {
+            //老师回答过的试卷id
+            yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
+                .collect(Collectors.toList());
+        }
+        Set<String> yesDoSurveySet = new HashSet<>(yesDoSurveyList);
+        stringListMap.values().stream()
+            .flatMap(Collection::stream)
+            .forEach(directory -> {
+                // 判断当前试卷ID是否在老师回答过的集合中
+                boolean isAnswered = yesDoSurveySet.contains(directory.getId());
+                directory.setIsAnswered(isAnswered);
+            });
+        Set<String> createdSurveyIdSet = new HashSet<>(surveyIds1);
+        for (List<ExamSurveyDirectory> directories : stringListMap.values()) {
+            for (ExamSurveyDirectory directory : directories) {
+                // 检查当前试卷ID是否在创建者的ID集合中
+                boolean isCreated = createdSurveyIdSet.contains(directory.getId());
+                directory.setIsCreated(isCreated);
+            }
+        }
+        List<ExamSurveyDirectory> examSurveyDirectories = stringListMap.values().stream()
+            .flatMap(Collection::stream)
+            .filter(d -> d.getSubjectId() != null && d.getClassId() != null)
+            .sorted(Comparator.comparing(ExamSurveyDirectory::getId)) // 固定排序
+            .collect(Collectors.toList());
+        //所有的试卷信息
+        Map<String, Map<String, List<ExamSurveyDirectory>>> resultMap = examSurveyDirectories.stream()
+            .filter(d -> d.getSubjectId() != null && d.getClassId() != null) // 过滤空ID
+            .collect(
+                Collectors.groupingBy(
+                    ExamSurveyDirectory::getSubjectId,
+                    Collectors.groupingBy(
+                        ExamSurveyDirectory::getClassId,
+                        Collectors.toList()
+                    )
+                )
+            );
+        List<ExamSurveyDirectory> resultList = Optional.ofNullable(resultMap.get(objectId))
+            .map(classMap -> classMap.get(holderId))
+            .orElse(Collections.emptyList());
+        // 内存分页处理
+        int pageSize = Math.max(1, commonPageInfo.getLimit());
+        int pageNum = Math.max(1, commonPageInfo.getPage());
+        int total = resultList.size();
+        int fromIndex = (pageNum - 1) * pageSize;
+
+        List<ExamSurveyDirectory> pagedList;
+        if (fromIndex >= total) {
+            pagedList = Collections.emptyList();
+        } else {
+            int toIndex = Math.min(fromIndex + pageSize, total);
+            pagedList = resultList.subList(fromIndex, toIndex);
+        }
+        outputObject.settotal(total);
+        outputObject.setBeans(pagedList);
     }
 
     @Override
@@ -472,7 +545,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         // 获取参与人次
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
-        if(StrUtil.isNotEmpty(stuId)){
+        if (StrUtil.isNotEmpty(stuId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), stuId);
         }
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
@@ -498,11 +571,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds) {
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), stuIds);
         List<ExamSurveyAnswer> list = list(queryWrapper);
-        if(CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
         return list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getCreateId, Collectors.counting()));
@@ -513,20 +586,20 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         // 已批阅的试卷
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState),CommonNumConstants.NUM_TWO);
-        if(StrUtil.isNotEmpty(stuId)){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId),stuId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
+        if (StrUtil.isNotEmpty(stuId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), stuId);
         }
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
         List<ExamSurveyAnswer> list = list(queryWrapper);
 
         // 求最后得分平均值，还需要判断是否为空-为空代表0
-        return  list.stream()
-                // 确保对象本身不为null
-                .filter(Objects::nonNull)
-                .mapToDouble(answer -> answer.getMarkFraction() != null ? answer.getMarkFraction() : 0.0)
-                .average()
-                .orElse(0.0);
+        return list.stream()
+            // 确保对象本身不为null
+            .filter(Objects::nonNull)
+            .mapToDouble(answer -> answer.getMarkFraction() != null ? answer.getMarkFraction() : 0.0)
+            .average()
+            .orElse(0.0);
     }
 
     @Override
