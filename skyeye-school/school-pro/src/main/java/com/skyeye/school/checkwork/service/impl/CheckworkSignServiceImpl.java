@@ -181,6 +181,9 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         // 获取考勤列表
         List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectLinkClassId);
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
+        if(CollectionUtil.isEmpty(checkworkIdList)){
+            return;
+        }
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
 
@@ -206,6 +209,9 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         String subjectLinkClassId = commonPageInfo.getHolderId();
         List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectLinkClassId);
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
+        if(CollectionUtil.isEmpty(checkworkIdList)){
+            return;
+        }
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
 
