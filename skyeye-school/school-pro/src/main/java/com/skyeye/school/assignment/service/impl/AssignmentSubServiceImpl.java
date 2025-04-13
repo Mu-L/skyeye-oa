@@ -332,4 +332,14 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
         return count(queryWrapper);
     }
 
+    @Override
+    public List<AssignmentSub> queryByAssignmentIdList(List<String> assiIdList) {
+        if (CollectionUtil.isEmpty(assiIdList)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assiIdList);
+        return list(queryWrapper);
+    }
+
 }

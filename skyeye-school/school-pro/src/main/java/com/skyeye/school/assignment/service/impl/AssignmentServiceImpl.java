@@ -285,6 +285,16 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         return resultMap;
     }
 
+    @Override
+    public List<Assignment> queryBySubjectClassesId(String subjectClassesId) {
+        if (StrUtil.isEmpty(subjectClassesId)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
+        return list(queryWrapper);
+    }
+
     // 查询科目班级id作业数量
     @Override
     public Long queryClassAssignmentNum(String id) {

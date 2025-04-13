@@ -87,7 +87,7 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
             double temp = (double) count / classNum;
             sum = sum + temp;
         }
-        if(sum == 0){
+        if (sum == 0) {
             return sum;
         }
         return sum / ids.size();
@@ -107,14 +107,14 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
     @Override
     public Map<String, Long> queryStuCourBySubjectIdsAndStuIds(String subjectId, List<String> stuIds) {
         List<String> ids = coursewareService.queryClassCourIdsBySubjectClassId(subjectId);
-        if(CollectionUtil.isEmpty(ids)){
+        if (CollectionUtil.isEmpty(ids)) {
             return Collections.emptyMap();
         }
         QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), ids);
         queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCreateId), stuIds);
         List<CoursewareStudy> list = list(queryWrapper);
-        if(CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
         // 统计按创建人分组数量stream流
@@ -128,5 +128,15 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
         queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), ids);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CoursewareStudy::getCreateId), stuId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public List<CoursewareStudy> queryByCoursewareIdList(List<String> coursewareIdList) {
+        if (CollectionUtil.isEmpty(coursewareIdList)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), coursewareIdList);
+        return list(queryWrapper);
     }
 }

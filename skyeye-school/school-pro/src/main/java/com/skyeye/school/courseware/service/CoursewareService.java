@@ -9,6 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.courseware.entity.Courseware;
+import com.skyeye.school.courseware.entity.CoursewareStudy;
 
 import java.util.List;
 import java.util.Map;
@@ -34,4 +35,6 @@ public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
     Long queryClassCoursewareNum(String subjectId);
 
     List<String> queryClassCourIdsBySubjectClassId(String id);
+
+    List<Courseware> queryBySubjectId(String objectId);
 }

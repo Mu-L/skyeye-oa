@@ -638,6 +638,16 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
+    public List<Map<String, Object>> queryListBySubjectId(String subjectId) {
+        if (StrUtil.isEmpty(subjectId)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
+        return listMaps(queryWrapper);
+    }
+
+    @Override
     public List<String> queryDirectoryIdsByClassId(String classId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);

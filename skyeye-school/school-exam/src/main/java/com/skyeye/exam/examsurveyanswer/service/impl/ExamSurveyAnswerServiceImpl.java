@@ -530,6 +530,16 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    public List<Map<String, Object>> queryExamAnserByExamIds(List<String> examIdList) {
+        if (CollectionUtil.isEmpty(examIdList)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), examIdList);
+        return listMaps(queryWrapper);
+    }
+
+    @Override
     public void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         String surveyId = inputObject.getParams().get("surveyId").toString();
