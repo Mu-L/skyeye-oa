@@ -558,7 +558,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
             .or()
-            .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate),"");
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate),"");
         return list(queryWrapper);
     }
 
