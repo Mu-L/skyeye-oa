@@ -134,7 +134,7 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         if(CollectionUtil.isEmpty(list)){
             return Collections.emptyMap();
         }
-        return list.stream().collect(Collectors.groupingBy(TopicComment::getTopicId, Collectors.counting()));
+        return list.stream().collect(Collectors.groupingBy(TopicComment::getCreateId, Collectors.counting()));
     }
 
 }
