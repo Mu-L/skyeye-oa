@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @ClassName: ExamSurveyDirectoryController
  * @Description: 试卷管理控制层
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--luyujia
  * @date: 2024/7/16 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -221,11 +221,13 @@ public class ExamSurveyDirectoryController {
 
     /**
      * 获取我需做试卷，并过滤已做试卷
+     * 学生角度过滤已做试卷
+     * 教师角度获取我可以做的试卷，并显示哪些已做过
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMyDoSurvey", value = "获取我需做试卷，并过滤已做试卷", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMyDoSurvey", value = "获取我需做试卷", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMyDoSurvey")
     public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {

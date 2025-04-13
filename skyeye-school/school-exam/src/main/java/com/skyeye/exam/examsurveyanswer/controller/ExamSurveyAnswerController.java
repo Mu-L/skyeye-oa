@@ -100,7 +100,7 @@ public class ExamSurveyAnswerController {
     }
 
     /**
-     * 获取已/待批阅试卷信息
+     * 获取所有批阅试卷信息
      * 教师角度,获取所有需要批阅的试卷(仅仅是试卷，不是回答者的回答的试卷信息)
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -134,7 +134,7 @@ public class ExamSurveyAnswerController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选未/已批阅 试卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选未/已批阅试卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyAnswerController/queryFilterApprovedSurveys")
     public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {

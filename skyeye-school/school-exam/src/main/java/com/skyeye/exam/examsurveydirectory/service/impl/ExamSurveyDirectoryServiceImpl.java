@@ -582,6 +582,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isNotEmpty(surveyIds)) {
             queryWrapper.in(CommonConstants.ID, surveyIds);
             List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+            //试卷Id和对应的创建者题目
             Map<String, List<Question>> stringListMap = questionService.queryQuestionListBySurveyIds(surveyIds, createId);
             for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
                 examSurveyDirectory.setQuestionMation(stringListMap.get(examSurveyDirectory.getId()));
@@ -723,14 +724,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
                 return;
             }
-            //老师回答过的试卷id
-            List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
-                .collect(Collectors.toList());
-            // 查询老师做过的试卷
-            List<ExamSurveyDirectory> examSurveyDirectories = selectAllSurveyList(yesDoSurveyList);
-            if (CollectionUtil.isEmpty(examSurveyDirectories)) {
-                return;
-            }
             Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
                 .collect(Collectors.toSet());
             // 遍历三层结构：科目 -> 班级 -> 试卷列表
@@ -739,7 +732,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     surveyList.forEach(survey -> {
                         // 如果当前试卷ID在老师回答过的集合中存在
                         if (yesDoSurveyIds.contains(survey.getId())) {
-                            survey.setIsAnswered(true);  // 设置已答标记
+                            survey.setIsAnswered(true); // 设置已答标记
                         }
                     });
                 });
@@ -747,10 +740,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamSurveyDirectory> allResults = Optional.ofNullable(subClassMapList.get(objectId))
                 .map(classMap -> classMap.get(holderId))
                 .orElseGet(Collections::emptyList);
-            int pageSize = commonPageInfo.getLimit();
-            int pageNum = commonPageInfo.getPage();
+            int pageSize = Math.max(1, commonPageInfo.getLimit());
+            int pageNum = Math.max(1, commonPageInfo.getPage());
+            long offset = (long) (pageNum - 1) * pageSize;
+            // 分页处理
             List<ExamSurveyDirectory> pagedList = allResults.stream()
-                .skip(pageNum)
+                .skip(offset)
                 .limit(pageSize)
                 .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(pagedList)) {
@@ -761,6 +756,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 outputObject.setBeans(pagedList);
             }
         }
+    }
+
+    @Override
+    public List<ExamSurveyDirectory> queryCreatedSurveyListByUserId(String userId) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
+        return list(queryWrapper);
     }
 
     private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
