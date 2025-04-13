@@ -25,4 +25,6 @@ public interface IUserService extends IService {
     List<Map<String, Object>> queryEntityMationByIds(String ids);
 
     List<Map<String, Object>> queryUserByRealNameOrStudentNumber(CommonPageInfo commonPageInfo);
+
+    List<Map<String, Object>> queryListBuStudentNumberList(String studentNumberList);
 }

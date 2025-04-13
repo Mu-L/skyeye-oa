@@ -39,6 +39,12 @@ public interface IUserRest {
     @PostMapping("/queryUserByRealNameOrStudentNumber")
     String queryUserByRealNameOrStudentNumber(@RequestBody CommonPageInfo commonPageInfo);
 
-
+    /**
+     * 根据学号批量获取用户信息,多个学号用逗号分隔
+     *
+     * @param studentNumberList 学号
+     */
+    @PostMapping("/queryListBuStudentNumberList")
+    String queryListBuStudentNumberList(@RequestParam("studentNumberList") String studentNumberList);
 
 }

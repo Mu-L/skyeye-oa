@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -128,13 +129,14 @@ public class GroupsStudentServiceImpl extends SkyeyeBusinessServiceImpl<GroupsSt
             throw new CustomException("该分组已解散");
         }
 
-        QueryWrapper<GroupsStudent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getStudentNumber), studentNumber);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(GroupsStudent::getGroupId), groupsStudent.getGroupId());
-        long count = count(queryWrapper);
-        if (count > 0) {
+        MPJLambdaWrapper<GroupsStudent> wrapper = new MPJLambdaWrapper<GroupsStudent>()
+            .innerJoin(Groups.class, Groups::getId, GroupsStudent::getGroupId)
+            .eq(Groups::getGroupsInformationId, groups.getGroupsInformationId())
+            .eq(GroupsStudent::getStudentNumber, studentNumber);
+        List<GroupsStudent> groupsStudentList = skyeyeBaseMapper.selectJoinList(GroupsStudent.class, wrapper);
+        if (CollectionUtil.isNotEmpty(groupsStudentList)) {
             if (throwException) {
-                throw new CustomException("学生已加入该分组");
+                throw new CustomException("您已加入本次分组下的其中一组");
             }
             return;
         }

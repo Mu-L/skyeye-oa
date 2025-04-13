@@ -38,6 +38,7 @@ import com.skyeye.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -307,5 +308,23 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         queryWrapper.eq(CommonConstants.ID, createId);
         User user = getOne(queryWrapper);
         return ObjectUtil.isEmpty(user);
+    }
+
+    /**
+     * 根据学号查询用户信息
+     * 用于school远程调用(章节分析)
+     *
+     * @param inputObject
+     * @param outputObject
+     */
+    @Override
+    public void queryListBuStudentNumberList(InputObject inputObject, OutputObject outputObject) {
+        String studentNumberStr = inputObject.getParams().get("studentNumberList").toString();
+        List<String> studentNumberList = Arrays.asList(studentNumberStr.split(","));
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(User::getStudentNumber), studentNumberList);
+        List<User> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 }
