@@ -229,4 +229,15 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         }
         return list.stream().map(Courseware::getId).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Courseware> queryBySubjectId(String objectId) {
+        if (StrUtil.isEmpty(objectId)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), objectId);
+        return list(queryWrapper);
+    }
+
 }

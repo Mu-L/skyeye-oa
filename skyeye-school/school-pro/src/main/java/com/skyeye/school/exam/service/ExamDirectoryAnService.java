@@ -9,4 +9,6 @@ public interface ExamDirectoryAnService {
     Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds);
 
     Double queryClassExamSurveyAvgScore(String classesId, String stuId);
+
+    List<Map<String, Object>> queryExamAnserByExamIds(List<String> examIdList);
 }
