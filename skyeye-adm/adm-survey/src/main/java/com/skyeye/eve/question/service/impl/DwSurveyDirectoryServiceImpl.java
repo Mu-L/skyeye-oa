@@ -491,15 +491,24 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         String id = question.get("id").toString();
         if (quType.equals(QuType.RADIO.getIndex())) {
             List<DwAnRadio> dwAnRadioList = dwAnRadioService.selectRadioByQuId(id);
-            List<Map<String, Object>> radios = (List<Map<String, Object>>) question.get("radioAn");
-            Map<String, Long> countMap = dwAnRadioList.stream()
-                .collect(Collectors.groupingBy(DwAnRadio::getQuItemId, Collectors.counting()));
+            List<Map<String, Object>> radios = Optional.ofNullable(question.get("radioAn"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
+            List<DwAnRadio> safeDwAnRadioList = Optional.ofNullable(dwAnRadioList).orElseGet(Collections::emptyList);
+            Map<String, Long> countMap = safeDwAnRadioList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(
+                    bean -> Objects.toString(bean.getQuItemId(), ""),
+                    Collectors.counting()
+                ));
             int count = 0;
             for (Map<String, Object> radio : radios) {
                 radio.put("anCount", 0);
                 String radioId = radio.get("id").toString();
                 for (DwAnRadio dwAnRadio : dwAnRadioList) {
-                    if (dwAnRadio.getQuItemId().equals(radio.get("id").toString())) {
+                    if (dwAnRadio != null &&
+                        Objects.toString(dwAnRadio.getQuItemId(), "").equals(radio.get("id"))) {
                         Long count1 = countMap.get(radioId);
                         radio.put("anCount", count1 != null ? count1 : 0);
                     }
@@ -512,7 +521,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
             List<DwAnDfillblank> dwAnDfillblankList = dwAnDfillblankService.selectAnDfillblankQuId(id);
-            List<Map<String, Object>> checkBoxs = (List<Map<String, Object>>) question.get("dfillblankAn");
+            List<Map<String, Object>> checkBoxs = Optional.ofNullable(question.get("dfillblankAn"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
             Map<String, Long> countMap = dwAnDfillblankList.stream().collect(Collectors.groupingBy(DwAnDfillblank::getQuItemId, Collectors.counting()));
             int count = 0;
             for (Map<String, Object> checkBox : checkBoxs) {
@@ -573,10 +585,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (quType.equals(QuType.CHENRADIO.getIndex())) {
             List<DwAnChenRadio> beans = dwAnChenRadioService.selectByQuId(id);
             List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenRadioAn"))
+                .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList)
                 .stream()
-                .filter(Objects::nonNull) // 过滤 null 元素
+                .filter(Objects::nonNull)
+                .peek(map -> map.putIfAbsent("id", ""))
                 .collect(Collectors.toList());
             int count = 0;
             Map<String, Map<String, Integer>> statMap = new HashMap<>();
@@ -657,7 +671,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.CHENFBK.getIndex())) {
             List<DwAnChenFbk> beans = dwAnChenFbkService.selectByQuId(id);
-            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenFbkAn");
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenFbkAn"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
             int count = 0;
             Map<String, Map<String, Integer>> statMap = new HashMap<>();
             for (DwAnChenFbk bean : beans) {
@@ -705,7 +722,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
             List<DwAnChenCheckbox> beans = dwAnChenCheckboxService.selectByQuId(id);
-            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("chenCheckboxAn");
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenCheckboxAn"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
             int count = 0;
             Map<String, Map<String, Integer>> statMap = new HashMap<>();
             for (DwAnChenCheckbox bean : beans) {
@@ -757,7 +777,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.SCORE.getIndex())) {
             List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
-            List<Map<String, Object>> scores = (List<Map<String, Object>>) question.get("scoreAn");
+            List<Map<String, Object>> scores = Optional.ofNullable(question.get("scoreAn"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
             Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getQuRowId, Collectors.counting()));
             int count = 0;
             for (Map<String, Object> score : scores) {
@@ -777,7 +800,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.ORDERQU.getIndex())) {
             List<DwAnOrder> dwAnOrderList = dwAnOrderService.selectAnOrderByQuId(id);
-            List<Map<String, Object>> orders = (List<Map<String, Object>>) question.get("orderByTd");
+            List<Map<String, Object>> orders = Optional.ofNullable(question.get("orderByTd"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
             Map<String, Long> orderCountMap = dwAnOrderList.stream()
                 .filter(order ->
                     order.getVisibility() == 1 &&

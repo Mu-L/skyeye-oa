@@ -147,6 +147,7 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
         }
         QueryWrapper<DwQuOrderby> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuOrderby::getQuId), id);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuOrderby::getOrderById));
         List<DwQuOrderby> list = list(queryWrapper);
         Map<String, List<DwQuOrderby>> result = list.stream().collect(Collectors.groupingBy(DwQuOrderby::getQuId));
         return result;
