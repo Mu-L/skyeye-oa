@@ -32,12 +32,6 @@ public class SysEnclosureController {
     @Autowired
     private SysEnclosureService sysEnclosureService;
 
-    /**
-     * 获取指定文件夹下的文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysenclosure004", value = "获取指定文件夹下的文件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CatalogBusinessQueryDo.class)
     @RequestMapping("/post/SysEnclosureController/queryEnclosureList")
@@ -45,12 +39,6 @@ public class SysEnclosureController {
         sysEnclosureService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增附件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "createEnclosure", value = "新增附件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Enclosure.class)
     @RequestMapping("/post/SysEnclosureController/createEnclosure")
@@ -58,12 +46,6 @@ public class SysEnclosureController {
         sysEnclosureService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ids(逗号隔开)获取多个附件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnclosureInfoByIds", value = "根据ids(逗号隔开)获取多个附件信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "enclosureInfoIds", name = "enclosureInfoIds", value = "附件id(多个用逗号隔开)")})
@@ -72,12 +54,6 @@ public class SysEnclosureController {
         sysEnclosureService.queryEnclosureInfo(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的附件树
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnclosureTree", value = "获取我的附件树", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEnclosureController/queryEnclosureTree")
     public void queryEnclosureTree(InputObject inputObject, OutputObject outputObject) {
