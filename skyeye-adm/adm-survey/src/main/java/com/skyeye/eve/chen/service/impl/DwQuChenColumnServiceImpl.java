@@ -246,7 +246,6 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         remove(queryWrapper);
     }
 
-
     private Map<String, List<DwQuChenColumn>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
             .map(DwQuestion::getId)
