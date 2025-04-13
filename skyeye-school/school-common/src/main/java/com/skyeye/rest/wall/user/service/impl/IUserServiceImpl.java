@@ -55,4 +55,9 @@ public class IUserServiceImpl extends IServiceImpl implements IUserService {
     public List<Map<String, Object>> queryUserByRealNameOrStudentNumber(CommonPageInfo commonPageInfo) {
         return ExecuteFeignClient.get(() -> iUserRest.queryUserByRealNameOrStudentNumber(commonPageInfo)).getRows();
     }
+
+    @Override
+    public List<Map<String, Object>> queryListBuStudentNumberList(String studentNumberList) {
+        return ExecuteFeignClient.get(() -> iUserRest.queryListBuStudentNumberList(studentNumberList)).getRows();
+    }
 }

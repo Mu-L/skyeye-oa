@@ -38,4 +38,6 @@ public interface UserService extends SkyeyeBusinessService<User> {
     void queryUserById(InputObject inputObject, OutputObject outputObject);
 
     boolean checkCreateIdIsStudent(String createId);
+
+    void queryListBuStudentNumberList(InputObject inputObject, OutputObject outputObject);
 }

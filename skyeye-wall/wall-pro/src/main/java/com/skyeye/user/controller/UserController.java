@@ -103,4 +103,12 @@ public class UserController {
     public void editWallPassword(InputObject inputObject, OutputObject outputObject) {
         userService.editWallPassword(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryListBuStudentNumberList", value = "根据学号查询用户信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "studentNumberList", name = "studentNumberList", value = "学号列表,分多个学号逗号隔开", required = "required")})
+    @RequestMapping("/post/UserController/queryListBuStudentNumberList")
+    public void queryListBuStudentNumberList(InputObject inputObject, OutputObject outputObject) {
+        userService.queryListBuStudentNumberList(inputObject, outputObject);
+    }
 }
