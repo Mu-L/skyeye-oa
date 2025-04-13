@@ -19,6 +19,7 @@
 			a.home_phone homePhone,
 			a.qq,
 			a.work_time workTime,
+			a.background_image backgroundImage,
 			a.entry_time entryTime,
 			IFNULL(a.quit_time, '') quitTime,
 			IFNULL(a.quit_reason, '') quitReason,
