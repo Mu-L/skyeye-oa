@@ -74,7 +74,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         }
         AttrDefinition checkAttrDefinition = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(checkAttrDefinition)) {
-            throw new CustomException("this data['name'] is exist.");
+            throw new CustomException("该属性键已存在.");
         }
 
         entity.setWhetherInputParams(WhetherEnum.ENABLE_USING.getKey());

@@ -31,7 +31,7 @@ import lombok.Data;
 public class AttrDefinition extends CommonInfo {
 
     @TableId("id")
-    @Property("主键id")
+    @ApiModelProperty("主键id")
     private String id;
 
     @TableField(exist = false)
