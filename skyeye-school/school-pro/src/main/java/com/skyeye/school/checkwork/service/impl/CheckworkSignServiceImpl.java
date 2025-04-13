@@ -182,7 +182,7 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectLinkClassId);
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
         if(CollectionUtil.isEmpty(checkworkIdList)){
-            return;
+            throw new CustomException("没有考勤信息");
         }
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
@@ -210,7 +210,7 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectLinkClassId);
         List<String> checkworkIdList = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
         if(CollectionUtil.isEmpty(checkworkIdList)){
-            return;
+            throw new CustomException("没有考勤信息");
         }
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String userId = inputObject.getLogParams().get("id").toString();
@@ -262,18 +262,18 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
         String subjectClassId = inputObject.getParams().get("subjectClassId").toString();
         List<Checkwork> checkworkList = checkworkService.queryCheckworkList(subjectClassId);
         List<String> ids = checkworkList.stream().map(Checkwork::getId).collect(Collectors.toList());
-        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
-        List<CheckworkSign> list = list(queryWrapper);
         Map<String, Object> dataMap = new HashMap<>();
-        if(CollectionUtil.isEmpty(list)){
+        if(CollectionUtil.isEmpty(ids)){
             dataMap.put(CheckworkSignState.NOT_SIGN.name(), 0L);
             dataMap.put(CheckworkSignState.SIGN.name(), 0L);
             dataMap.put(CheckworkSignState.LATE_SIGN.name(), 0L);
             outputObject.setBean(dataMap);
             return ;
         }
+        QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getUserId), stuId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
+        List<CheckworkSign> list = list(queryWrapper);
         Map<Integer, Long> map = list.stream().collect(Collectors.groupingBy(CheckworkSign::getState, Collectors.counting()));
         dataMap.put(CheckworkSignState.NOT_SIGN.name(), map.getOrDefault(CheckworkSignState.NOT_SIGN.getKey(), 0L));
         dataMap.put(CheckworkSignState.SIGN.name(), map.getOrDefault(CheckworkSignState.SIGN.getKey(), 0L));
