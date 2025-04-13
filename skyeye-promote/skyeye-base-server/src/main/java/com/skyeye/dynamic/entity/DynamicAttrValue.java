@@ -33,6 +33,10 @@ public class DynamicAttrValue extends CommonInfo {
     @Property("主键id")
     private String id;
 
+    @TableField(value = "object_app_id")
+    @ApiModelProperty(value = "appId", required = "required")
+    private String objectAppId;
+
     @TableField(value = "object_id")
     @ApiModelProperty(value = "业务对象数据的id", required = "required")
     private String objectId;

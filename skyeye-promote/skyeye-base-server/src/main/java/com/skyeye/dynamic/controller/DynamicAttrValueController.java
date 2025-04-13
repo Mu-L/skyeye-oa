@@ -48,6 +48,7 @@ public class DynamicAttrValueController {
 
     @ApiOperation(id = "queryDynamicAttrValueList", value = "根据业务对象数据获取动态属性值", method = "POST", allUse = "0")
     @ApiImplicitParams({
+        @ApiImplicitParam(id = "objectAppId", name = "objectAppId", value = "业务对象数据的APPID", required = "required"),
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象数据的id", required = "required"),
         @ApiImplicitParam(id = "objectKey", name = "objectKey", value = "业务对象服务的className", required = "required")})
     @RequestMapping("/post/DynamicAttrValueController/queryDynamicAttrValueList")
@@ -58,7 +59,7 @@ public class DynamicAttrValueController {
     @ApiOperation(id = "queryBatchDynamicAttrValueList", value = "根据业务对象数据批量获取动态属性值", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "list", name = "list", value = "业务对象数据的信息，需要包含objectId和objectKey两个字段",
-            required = "required,格式：[{\"objectId\":\"1\",\"objectKey\":\"com.skyeye.test.entity.Test\"}]")})
+            required = "required,格式：[{\"objectAppId\": \"objectAppId\",\"objectId\":\"1\",\"objectKey\":\"com.skyeye.test.entity.Test\"}]")})
     @RequestMapping("/post/DynamicAttrValueController/queryBatchDynamicAttrValueList")
     public void queryBatchDynamicAttrValueList(InputObject inputObject, OutputObject outputObject) {
         dynamicAttrValueService.queryBatchDynamicAttrValueList(inputObject, outputObject);
@@ -66,6 +67,7 @@ public class DynamicAttrValueController {
 
     @ApiOperation(id = "deleteDynamicAttrValue", value = "根据业务对象数据删除动态属性值", method = "POST", allUse = "0")
     @ApiImplicitParams({
+        @ApiImplicitParam(id = "objectAppId", name = "objectAppId", value = "业务对象数据的APPID", required = "required"),
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务对象数据的id", required = "required"),
         @ApiImplicitParam(id = "objectKey", name = "objectKey", value = "业务对象服务的className", required = "required")})
     @RequestMapping("/post/DynamicAttrValueController/deleteDynamicAttrValue")
@@ -76,7 +78,7 @@ public class DynamicAttrValueController {
     @ApiOperation(id = "deleteBatchDynamicAttrValue", value = "根据业务对象数据批量删除动态属性值", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "list", name = "list", value = "业务对象数据的信息，需要包含objectId和objectKey两个字段",
-            required = "required,格式：[{\"objectId\":\"1\",\"objectKey\":\"com.skyeye.test.entity.Test\"}]")})
+            required = "required,格式：[{\"objectAppId\": \"objectAppId\",\"objectId\":\"1\",\"objectKey\":\"com.skyeye.test.entity.Test\"}]")})
     @RequestMapping("/post/DynamicAttrValueController/deleteBatchDynamicAttrValue")
     public void deleteBatchDynamicAttrValue(InputObject inputObject, OutputObject outputObject) {
         dynamicAttrValueService.deleteBatchDynamicAttrValue(inputObject, outputObject);

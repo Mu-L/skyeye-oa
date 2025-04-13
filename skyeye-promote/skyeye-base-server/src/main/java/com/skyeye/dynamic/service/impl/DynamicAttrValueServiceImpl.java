@@ -42,14 +42,15 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         dynamicAttrValue.setCreateTime(currentTime);
         dynamicAttrValue.setLastUpdateTime(currentTime);
 
-        remove(dynamicAttrValue.getObjectId(), dynamicAttrValue.getObjectKey());
+        remove(dynamicAttrValue.getObjectAppId(), dynamicAttrValue.getObjectId(), dynamicAttrValue.getObjectKey());
 
         DataCommonUtil.setId(dynamicAttrValue);
         save(dynamicAttrValue);
     }
 
-    private void remove(String objectId, String objectKey) {
+    private void remove(String appId, String objectId, String objectKey) {
         QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
+        deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), appId);
         deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), objectId);
         deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
         remove(deleteWrapper);
@@ -65,6 +66,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
         deleteWrapper.or(wrapper -> {
             for (DynamicAttrValue dynamicAttrValue : dynamicAttrValueList) {
+                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.getObjectAppId());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.getObjectId());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.getObjectKey());
             }
@@ -84,7 +86,9 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         Map<String, Object> params = inputObject.getParams();
         String objectId = params.get("objectId").toString();
         String objectKey = params.get("objectKey").toString();
+        String objectAppId = params.get("objectAppId").toString();
         QueryWrapper<DynamicAttrValue> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), objectAppId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
         DynamicAttrValue dynamicAttrValue = getOne(queryWrapper, false);
@@ -99,6 +103,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         QueryWrapper<DynamicAttrValue> queryWrapper = new QueryWrapper<>();
         queryWrapper.or(wrapper -> {
             for (Map<String, Object> dynamicAttrValue : list) {
+                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.get("objectAppId").toString());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.get("objectId").toString());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.get("objectKey").toString());
             }
@@ -111,9 +116,10 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
     @Override
     public void deleteDynamicAttrValue(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        String objectAppId = params.get("objectAppId").toString();
         String objectId = params.get("objectId").toString();
         String objectKey = params.get("objectKey").toString();
-        remove(objectId, objectKey);
+        remove(objectAppId, objectId, objectKey);
     }
 
     @Override
@@ -124,6 +130,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
         deleteWrapper.or(wrapper -> {
             for (Map<String, Object> dynamicAttrValue : list) {
+                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.get("objectAppId").toString());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.get("objectId").toString());
                 wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.get("objectKey").toString());
             }
