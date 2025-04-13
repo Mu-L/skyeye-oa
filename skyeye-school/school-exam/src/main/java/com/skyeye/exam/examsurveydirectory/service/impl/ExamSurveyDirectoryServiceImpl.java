@@ -686,7 +686,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (CollectionUtils.isEmpty(objectIdMapList)) {
                 return;
             }
-            // 学生回答过的试卷
+            // 学生回答并上交的试卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByUserId(userId);
             if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
                 return;
@@ -801,7 +801,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classesId);
-        return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
+        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        return examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
     }
 
     @Override
