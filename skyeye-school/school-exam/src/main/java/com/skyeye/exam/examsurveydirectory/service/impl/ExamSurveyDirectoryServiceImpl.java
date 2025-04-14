@@ -2,6 +2,7 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -640,7 +641,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public List<Map<String, Object>> queryListBySubjectId(String subjectId) {
-        if (StrUtil.isEmpty(subjectId)){
+        if (StrUtil.isEmpty(subjectId)) {
             return Collections.emptyList();
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
@@ -752,6 +753,33 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamSurveyDirectory> allResults = Optional.ofNullable(subClassMapList.get(objectId))
                 .map(classMap -> classMap.get(holderId))
                 .orElseGet(Collections::emptyList);
+            SubjectClasses idAndClassesId = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(objectId, holderId);
+            int size;
+            if (ObjectUtil.isNotEmpty(idAndClassesId)) {
+                List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(idAndClassesId.getId());
+                //改科目下这个班级的总人数
+                size = subjectClassesStuList.size();
+            } else {
+                size = CommonNumConstants.NUM_ZERO;
+            }
+            List<String> collect = allResults.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+            Map<String, Integer> stringIntegerMap = examSurveyAnswerService.queryAnswerNum(collect);
+            Map<String, List<ExamSurveyAnswer>> stringListMap = examSurveyAnswerService.queryAnswerList(collect);
+            allResults.forEach(survey -> {
+                //这张试卷做过的人,已交数量
+                Integer num = stringIntegerMap.get(survey.getId());
+                Integer unSubmitNum = size - num;
+                //未交数量
+                survey.setUnSubmitNum(unSubmitNum);
+                List<ExamSurveyAnswer> examSurveyAnswerList1 = stringListMap.get(survey.getId());
+                List<ExamSurveyAnswer> collect1 = examSurveyAnswerList1.stream().filter(examSurveyAnswer -> examSurveyAnswer.getState().equals(CommonNumConstants.NUM_TWO)).collect(Collectors.toList());
+                //已批阅数量
+                int size1 = collect1.size();
+                survey.setReadNum(size1);
+                //未批阅数量
+                Integer num1 = num - size1;
+                survey.setUnreadNum(num1);
+            });
             int pageSize = Math.max(1, commonPageInfo.getLimit());
             int pageNum = Math.max(1, commonPageInfo.getPage());
             long offset = (long) (pageNum - 1) * pageSize;

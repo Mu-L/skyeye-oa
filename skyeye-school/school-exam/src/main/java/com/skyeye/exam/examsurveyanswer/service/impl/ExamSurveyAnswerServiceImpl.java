@@ -568,6 +568,13 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    public Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect) {
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), collect);
+        return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
+    }
+
+    @Override
     public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds) {
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
