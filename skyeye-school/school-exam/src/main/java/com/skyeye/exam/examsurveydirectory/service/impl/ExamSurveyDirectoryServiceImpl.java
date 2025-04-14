@@ -769,6 +769,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 //这张试卷做过的人,已交数量
                 Integer num = stringIntegerMap.get(survey.getId());
                 Integer unSubmitNum = size - num;
+                if (unSubmitNum.equals(-1)) {
+                    unSubmitNum = CommonNumConstants.NUM_ONE;
+                }
                 //未交数量
                 survey.setUnSubmitNum(unSubmitNum);
                 List<ExamSurveyAnswer> examSurveyAnswerList1 = stringListMap.get(survey.getId());
