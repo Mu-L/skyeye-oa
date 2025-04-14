@@ -1,6 +1,7 @@
 package com.skyeye.exam.examsurveyquanswer.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
@@ -20,6 +21,10 @@ import lombok.Data;
 @TableName(value = "exam_survey_qu_answer")
 @ApiModel("答卷 题目和所得分数的关联表实体类")
 public class ExamSurveyQuAnswer extends CommonInfo {
+
+    @TableId("id")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
+    private String id;
 
     @TableField("qu_id")
     @ApiModelProperty(value = "问题id", required = "required")

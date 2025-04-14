@@ -43,6 +43,7 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
+import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
 import com.skyeye.exam.examsurveydirectory.dao.ExamSurveyDirectoryDao;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
@@ -76,7 +77,7 @@ import java.util.stream.Collectors;
 /**
  * @ClassName: ExamSurveyDirectoryServiceImpl
  * @Description: 试卷管理服务层
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--lyj
  * @date: 2024/7/19 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -111,7 +112,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private ExamQuChenColumnService examQuChenColumnService;
-
 
     @Autowired
     private ExamQuChenRowService examQuChenRowService;
@@ -743,6 +743,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                         // 如果当前试卷ID在老师回答过的集合中存在
                         if (yesDoSurveyIds.contains(survey.getId())) {
                             survey.setIsAnswered(true); // 设置已答标记
+                        } else {
+                            survey.setIsAnswered(false); // 设置未答标记;
                         }
                     });
                 });
@@ -778,6 +780,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         Map<String, Map<String, List<ExamSurveyDirectory>>> result = list(queryWrapper).stream()
             .collect(Collectors.groupingBy(
                 ExamSurveyDirectory::getSubjectId, // 外层 Map 的键是科目ID
@@ -801,6 +804,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classesId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         return examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
     }
@@ -847,7 +851,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Override
     public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
-
+        List<ExamSurveyMarkExam> surveyMarkExamList = new ArrayList<>();
+        List<ExamSurveyClass> surveyClassList = new ArrayList<>();
 
         for (ExamSurveyDirectory entity : examSurveyDirectory) {
             String id = entity.getId();

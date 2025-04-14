@@ -56,6 +56,6 @@ public class ExamAnDfillblank extends OperatorUserInfo {
     private Integer visibility;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "矩阵题-行选项信息答案", required = "json")
+    @ApiModelProperty(value = "矩阵题-行选项信息答案")
     private List<ExamAnDfillblank> dFillblankAn;
 }
