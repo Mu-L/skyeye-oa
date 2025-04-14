@@ -132,7 +132,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     private CheckworkSignService checkworkSignService;
 
 
-
     @Override
     public QueryWrapper<SubjectClasses> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<SubjectClasses> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -173,7 +172,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         String sourceCodeLogo = QRCodeLogoUtil.encode(content, imgPath, tPath, true, FileConstants.FileUploadPath.SCHOOL_SUBJECT.getType()[0]);
         entity.setSourceCodeLogo(sourceCodeLogo);
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
-        refreshCache(entity.getId());
+    }
+
+    @Override
+    protected void createPostpose(SubjectClasses entity, String userId) {
         scoreTypeChildService.initScoreTypeChild(entity.getObjectId(), entity.getId());
     }
 
@@ -349,7 +351,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(id);
         resultMap.put("topicJoinNum", topicJoinNum);
         // 话题参与人次--评论总数
-        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id,null);
+        Long topicJoinPersonNum = topicCommentService.queryClassTopicJoinPersonNum(id, null);
         resultMap.put("topicJoinPersonNum", topicJoinPersonNum);
         // 作业数
         Long assignmentNum = assignmentService.queryClassAssignmentNum(id);
@@ -361,7 +363,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long testNum = examService.queryClassExamSurveyDirectoryNum(classId);
         resultMap.put("testNum", testNum);
         // 测试参与人次
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId,null);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId, null);
         resultMap.put("testJoinNum", testJoinNum);
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -630,11 +632,11 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 查询班级学生信息
         List<Map<String, Object>> studentList = subjectClassesStuService.queryClassStuIds(id);
         Map<String, Object> stuMap = Optional.ofNullable(studentList)
-                .orElse(Collections.emptyList())
-                .stream()
-                .filter(m -> CollectionUtil.isNotEmpty(m) && ObjectUtil.isNotEmpty(m.get("id")) && m.get("id").equals(stuId))
-                .findFirst()
-                .orElse(null);
+            .orElse(Collections.emptyList())
+            .stream()
+            .filter(m -> CollectionUtil.isNotEmpty(m) && ObjectUtil.isNotEmpty(m.get("id")) && m.get("id").equals(stuId))
+            .findFirst()
+            .orElse(null);
         if (ObjectUtil.isEmpty(stuMap)) {
             throw new CustomException("查询不到该学生信息");
         }
@@ -643,7 +645,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Map<String, Object> checkworkMap = checkworkSignService.queryStuCheckworkSignByStuId(stuId);
         stuMap.put("checkWorkList", checkworkMap);
         //2. 表现星星
-        String reword = subjectClassesStuService.queryRewordNumByStuNoAndSubjectClassId(id,studentNumber);
+        String reword = subjectClassesStuService.queryRewordNumByStuNoAndSubjectClassId(id, studentNumber);
         stuMap.put("reword", reword);
         //3. 考勤次数
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
