@@ -35,10 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,28 +69,36 @@ public class GroupServiceImpl extends SkyeyeBusinessServiceImpl<GroupsDao, Group
         if (CollectionUtil.isEmpty(beans)) {
             return beans;
         }
+        List<Map<String, Object>> sortedBeans = beans.stream()
+            .sorted(Comparator.comparingInt(map -> {
+                String groupName = (String) map.get("groupName");
+                // 提取数字部分
+                String numberStr = groupName.replaceAll("[^\\d]", "");
+                return Integer.parseInt(numberStr);
+            }))
+            .collect(Collectors.toList());
         String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
         if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
             // 学生身份采取判断是否已经加入分组
-            List<String> groupsIds = beans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
+            List<String> groupsIds = sortedBeans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
             String studentNumber = certification.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
             if (StrUtil.isNotBlank(studentNumber)) {
                 Map<String, Boolean> isJoined = groupsStudentService.checkStudentIsJoined(groupsIds, studentNumber);
-                beans.forEach(item -> {
+                sortedBeans.forEach(item -> {
                     String groupId = item.get("id").toString();
                     item.put("isJoined", isJoined.getOrDefault(groupId, false));
                 });
             }
         }
-        List<String> groupsIds = beans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
+        List<String> groupsIds = sortedBeans.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
         Map<String, Integer> studentCount = groupsStudentService.getStudentCountByGroupId(groupsIds);
-        beans.forEach(item -> {
+        sortedBeans.forEach(item -> {
             String groupId = item.get("id").toString();
             item.put("studentCount", studentCount.getOrDefault(groupId, CommonNumConstants.NUM_ZERO));
         });
-        return beans;
+        return sortedBeans;
     }
 
     @Override
