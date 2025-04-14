@@ -743,6 +743,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                         // 如果当前试卷ID在老师回答过的集合中存在
                         if (yesDoSurveyIds.contains(survey.getId())) {
                             survey.setIsAnswered(true); // 设置已答标记
+                        } else {
+                            survey.setIsAnswered(false); // 设置未答标记;
                         }
                     });
                 });
