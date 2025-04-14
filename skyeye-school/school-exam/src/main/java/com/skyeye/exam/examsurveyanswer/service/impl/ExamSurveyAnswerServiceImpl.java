@@ -604,7 +604,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     @Override
     public List<Map<String, Object>> queryExamAnserByExamIds(List<String> examIdList) {
-        if (CollectionUtil.isEmpty(examIdList)){
+        if (CollectionUtil.isEmpty(examIdList)) {
             return Collections.emptyList();
         }
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
