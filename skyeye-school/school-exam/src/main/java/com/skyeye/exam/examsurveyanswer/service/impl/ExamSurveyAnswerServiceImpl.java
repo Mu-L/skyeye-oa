@@ -274,8 +274,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
         queryWrapper.isNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
-            .or()
-            .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
         List<String> collect = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
         //试卷id及信息
@@ -320,11 +320,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         //作为创建人的所有试卷Id
         List<String> surveyIds1 = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
         List<String> combinedSurveyIds = Stream.concat(
-                examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId),
-                examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId)
-            )
-            .distinct()
-            .collect(Collectors.toList());
+                        examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId),
+                        examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId)
+                )
+                .distinct()
+                .collect(Collectors.toList());
         //试卷id和对应的试卷信息（有回答过的信息）
         Map<String, List<ExamSurveyDirectory>> stringListMap = examSurveyDirectoryService.querySurveyListByIds(combinedSurveyIds, userId);
         stringListMap.replaceAll((k, v) -> v == null ? new ArrayList<>() : v);
@@ -334,16 +334,16 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         if (CollectionUtil.isNotEmpty(examSurveyAnswerList)) {
             //老师回答过的试卷id
             yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
-                .collect(Collectors.toList());
+                    .collect(Collectors.toList());
         }
         Set<String> yesDoSurveySet = new HashSet<>(yesDoSurveyList);
         stringListMap.values().stream()
-            .flatMap(Collection::stream)
-            .forEach(directory -> {
-                // 判断当前试卷ID是否在老师回答过的集合中
-                boolean isAnswered = yesDoSurveySet.contains(directory.getId());
-                directory.setIsAnswered(isAnswered);
-            });
+                .flatMap(Collection::stream)
+                .forEach(directory -> {
+                    // 判断当前试卷ID是否在老师回答过的集合中
+                    boolean isAnswered = yesDoSurveySet.contains(directory.getId());
+                    directory.setIsAnswered(isAnswered);
+                });
         Set<String> createdSurveyIdSet = new HashSet<>(surveyIds1);
         for (List<ExamSurveyDirectory> directories : stringListMap.values()) {
             for (ExamSurveyDirectory directory : directories) {
@@ -353,25 +353,25 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             }
         }
         List<ExamSurveyDirectory> examSurveyDirectories = stringListMap.values().stream()
-            .flatMap(Collection::stream)
-            .filter(d -> d.getSubjectId() != null && d.getClassId() != null)
-            .sorted(Comparator.comparing(ExamSurveyDirectory::getId)) // 固定排序
-            .collect(Collectors.toList());
+                .flatMap(Collection::stream)
+                .filter(d -> d.getSubjectId() != null && d.getClassId() != null)
+                .sorted(Comparator.comparing(ExamSurveyDirectory::getId)) // 固定排序
+                .collect(Collectors.toList());
         //所有的试卷信息
         Map<String, Map<String, List<ExamSurveyDirectory>>> resultMap = examSurveyDirectories.stream()
-            .filter(d -> d.getSubjectId() != null && d.getClassId() != null) // 过滤空ID
-            .collect(
-                Collectors.groupingBy(
-                    ExamSurveyDirectory::getSubjectId,
-                    Collectors.groupingBy(
-                        ExamSurveyDirectory::getClassId,
-                        Collectors.toList()
-                    )
-                )
-            );
+                .filter(d -> d.getSubjectId() != null && d.getClassId() != null) // 过滤空ID
+                .collect(
+                        Collectors.groupingBy(
+                                ExamSurveyDirectory::getSubjectId,
+                                Collectors.groupingBy(
+                                        ExamSurveyDirectory::getClassId,
+                                        Collectors.toList()
+                                )
+                        )
+                );
         List<ExamSurveyDirectory> resultList = Optional.ofNullable(resultMap.get(objectId))
-            .map(classMap -> classMap.get(holderId))
-            .orElse(Collections.emptyList());
+                .map(classMap -> classMap.get(holderId))
+                .orElse(Collections.emptyList());
         // 内存分页处理
         int pageSize = Math.max(1, commonPageInfo.getLimit());
         int pageNum = Math.max(1, commonPageInfo.getPage());
@@ -404,7 +404,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<Map<String, Object>> userList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(stuNoList)) {
             userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                    iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
         List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
@@ -416,12 +416,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
         Map<String, List<Major>> majorMap = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
-            .filter(user -> user.get("studentNumber") != null) // 过滤空学号
-            .collect(Collectors.toMap(
-                user -> user.get("studentNumber").toString(),
-                Function.identity(),
-                (oldValue, newValue) -> oldValue
-            ));
+                .filter(user -> user.get("studentNumber") != null) // 过滤空学号
+                .collect(Collectors.toMap(
+                        user -> user.get("studentNumber").toString(),
+                        Function.identity(),
+                        (oldValue, newValue) -> oldValue
+                ));
 
         for (ExamSurveyAnswer answer : list) {
             List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
@@ -537,6 +537,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public Long queryClassExamSurveyAnswerNum(String classId, String stuId) {
         // 获取试卷id
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
+        if (CollectionUtil.isEmpty(directorIds)) {
+            return 0L;
+        }
         // 获取参与人次
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
@@ -552,8 +555,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId)
-            .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
-                .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
+                .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+                        .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
         return list(queryWrapper);
     }
 
@@ -562,8 +565,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId)
-            .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
-                .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
+                .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+                        .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
         return list(queryWrapper);
     }
 
@@ -584,6 +587,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public Double queryClassExamSurveyAvgScore(String classesId, String stuId) {
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
+        if (CollectionUtil.isEmpty(directorIds)) {
+            return 0.0;
+        }
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         // 已批阅的试卷
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
@@ -595,11 +601,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
         // 求最后得分平均值，还需要判断是否为空-为空代表0
         return list.stream()
-            // 确保对象本身不为null
-            .filter(Objects::nonNull)
-            .mapToDouble(answer -> answer.getMarkFraction() != null ? answer.getMarkFraction() : 0.0)
-            .average()
-            .orElse(0.0);
+                // 确保对象本身不为null
+                .filter(Objects::nonNull)
+                .mapToDouble(answer -> answer.getMarkFraction() != null ? answer.getMarkFraction() : 0.0)
+                .average()
+                .orElse(0.0);
     }
 
     @Override
@@ -618,7 +624,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String surveyId = inputObject.getParams().get("surveyId").toString();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId)
-            .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         ExamSurveyAnswer examSurveyAnswer = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(examSurveyAnswer)) {
             ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuId(surveyId, userId);
@@ -639,7 +645,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<Map<String, Object>> userList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(stuNoList)) {
             userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                    iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
         }
         List<String> schoolIds = beans.stream().map(ExamSurveyAnswer::getSchoolId).distinct().collect(Collectors.toList());
         List<String> surveyIds = beans.stream().map(ExamSurveyAnswer::getSurveyId).distinct().collect(Collectors.toList());
@@ -650,11 +656,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Map<String, Faculty> facultyMap = facultyService.selectMapByIds(facultyIds);
         Map<String, Major> majorMap = majorService.selectMapByIds(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
-            .collect(Collectors.toMap(
-                user -> user.get("studentNumber").toString(),
-                Function.identity(),
-                (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
-            ));
+                .collect(Collectors.toMap(
+                        user -> user.get("studentNumber").toString(),
+                        Function.identity(),
+                        (oldValue, newValue) -> oldValue  // 保留第一个值，忽略后续重复值
+                ));
         for (ExamSurveyAnswer answer : beans) {
             answer.setSchoolMation(schoolMap.get(answer.getSchoolId()));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));

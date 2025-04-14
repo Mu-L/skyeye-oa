@@ -124,6 +124,9 @@ public class CoursewareStudyServiceImpl extends SkyeyeBusinessServiceImpl<Course
     @Override
     public Long queryStuStudyCoursewareNum(String id, String stuId) {
         List<String> ids = coursewareService.queryClassCourIdsBySubjectClassId(id);
+        if (CollectionUtil.isEmpty(ids)) {
+            return 0L;
+        }
         QueryWrapper<CoursewareStudy> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(CoursewareStudy::getCoursewareId), ids);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CoursewareStudy::getCreateId), stuId);
