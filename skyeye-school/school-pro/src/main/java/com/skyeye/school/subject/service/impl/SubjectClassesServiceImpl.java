@@ -680,6 +680,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 14. 学生发的弹幕数
         Long stuTopicCommentNum = topicCommentService.queryClassTopicJoinPersonNum(id, stuId);
         stuMap.put("stuTopicCommentNum", stuTopicCommentNum);
+        // 15. 话题数
+        Long topicNum = topicService.queryClassTopicNum(id);
+        stuMap.put("topicNum", topicNum);
         outputObject.setBean(stuMap);
     }
 }
