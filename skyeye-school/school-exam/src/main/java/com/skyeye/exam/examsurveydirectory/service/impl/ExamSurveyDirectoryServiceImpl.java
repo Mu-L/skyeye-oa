@@ -753,35 +753,49 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamSurveyDirectory> allResults = Optional.ofNullable(subClassMapList.get(objectId))
                 .map(classMap -> classMap.get(holderId))
                 .orElseGet(Collections::emptyList);
+
             SubjectClasses idAndClassesId = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(objectId, holderId);
             int size;
-            if (ObjectUtil.isNotEmpty(idAndClassesId)) {
-                List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(idAndClassesId.getId());
-                //改科目下这个班级的总人数
+            if (idAndClassesId != null) {
+                List<SubjectClassesStu> subjectClassesStuList = Optional.ofNullable(
+                        subjectClassesStuService.selectNumBySubClassLinkId(idAndClassesId.getId()))
+                    .orElseGet(Collections::emptyList);
                 size = subjectClassesStuList.size();
             } else {
-                size = CommonNumConstants.NUM_ZERO;
+                size = 0;
             }
-            List<String> collect = allResults.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
-            Map<String, Integer> stringIntegerMap = examSurveyAnswerService.queryAnswerNum(collect);
-            Map<String, List<ExamSurveyAnswer>> stringListMap = examSurveyAnswerService.queryAnswerList(collect);
+
+            List<String> collect = allResults.stream()
+                .map(ExamSurveyDirectory::getId)
+                .filter(Objects::nonNull) // 过滤掉 null ID
+                .collect(Collectors.toList());
+
+            Map<String, Integer> stringIntegerMap = CollectionUtil.isNotEmpty(collect)
+                ? examSurveyAnswerService.queryAnswerNum(collect)
+                : Collections.emptyMap();
+            Map<String, List<ExamSurveyAnswer>> stringListMap = CollectionUtil.isNotEmpty(collect)
+                ? examSurveyAnswerService.queryAnswerList(collect)
+                : Collections.emptyMap();
+
+            Map<String, Integer> finalStringIntegerMap = stringIntegerMap;
             allResults.forEach(survey -> {
-                //这张试卷做过的人,已交数量
-                Integer num = stringIntegerMap.get(survey.getId());
-                Integer unSubmitNum = size - num;
-                if (unSubmitNum.equals(-1)) {
-                    unSubmitNum = CommonNumConstants.NUM_ONE;
-                }
-                //未交数量
+                String surveyId = survey.getId();
+                // 处理可能的 null 值，使用默认值 0
+                Integer num = finalStringIntegerMap.getOrDefault(surveyId, 0);
+                int unSubmitNum = Math.max(0, size - num);
                 survey.setUnSubmitNum(unSubmitNum);
-                List<ExamSurveyAnswer> examSurveyAnswerList1 = stringListMap.get(survey.getId());
-                List<ExamSurveyAnswer> collect1 = examSurveyAnswerList1.stream().filter(examSurveyAnswer -> examSurveyAnswer.getState().equals(CommonNumConstants.NUM_TWO)).collect(Collectors.toList());
-                //已批阅数量
-                int size1 = collect1.size();
-                survey.setReadNum(size1);
-                //未批阅数量
-                Integer num1 = num - size1;
-                survey.setUnreadNum(num1);
+
+                // 使用空列表避免 NPE
+                List<ExamSurveyAnswer> answerList = stringListMap.getOrDefault(surveyId, Collections.emptyList());
+                // 过滤时检查 state 是否为 null
+                long readNum = answerList.stream()
+                    .filter(answer -> answer.getState() != null && answer.getState().equals(CommonNumConstants.NUM_TWO))
+                    .count();
+                survey.setReadNum((int) readNum);
+
+                // num 已用默认值 0，无需拆箱检查
+                int unreadNum = num - (int) readNum;
+                survey.setUnreadNum(Math.max(0, unreadNum));
             });
             int pageSize = Math.max(1, commonPageInfo.getLimit());
             int pageNum = Math.max(1, commonPageInfo.getPage());
