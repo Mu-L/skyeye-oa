@@ -43,4 +43,5 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect);
 
+    void updateMarkFraction(String id);
 }

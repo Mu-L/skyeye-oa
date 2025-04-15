@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
@@ -55,6 +56,7 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -171,6 +173,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    protected void createPostpose(ExamSurveyAnswer entity, String userId) {
+
+    }
+
+    @Override
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
@@ -200,23 +207,23 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             entity.setTotalTime(distanceHMS);
             String surveyId = entity.getSurveyId();
             String id = entity.getId();
-            Integer size = examAnRadioService.selectRadioBySurveyId(surveyId,id).size();
-            Integer size1 = examAnScoreService.selectBySurveyId(surveyId,id).size();
-            Integer size2 = examAnYesnoService.selectBySurveyId(surveyId,id).size();
-            Integer size3 = examAnAnswerService.selectBySurveyId(surveyId,id).size();
-            Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId,id).size();
-            Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId,id).size();
-            Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId,id).size();
-            Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId,id).size();
-            Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId,id).size();
-            Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId,id).size();
-            Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId,id).size();
-            Integer size11 = examAnEnumquService.selectBySurveyId(surveyId,id).size();
-            Integer size12 = examAnFillblankService.selectBySurveyId(surveyId,id).size();
-            Integer size13 = examAnOrderService.selectBySurveyId(surveyId,id).size();
-            Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
-            entity.setCompleteNum(total);
-            if (total.equals(entity.getQuNum())) {
+            Long size = examAnRadioService.selectRadioBySurveyId(surveyId,id);
+            Long size1 = examAnScoreService.selectBySurveyId(surveyId,id);
+            Long size2 = examAnYesnoService.selectBySurveyId(surveyId,id);
+            Long size3 = examAnAnswerService.selectBySurveyId(surveyId,id);
+            Long size4 = examAnCheckboxService.slectBySurveyId(surveyId,id);
+            Long size5 = examAnChenCheckboxService.selectBySurveyId(surveyId,id);
+            Long size6 = examAnChenFbkService.selectBySurveyId(surveyId,id);
+            Long size7 = examAnChenRadioService.selectBySurveyId(surveyId,id);
+            Long size8 = examAnChenScoreService.selectBySurveyId(surveyId,id);
+            Long size9 = examAnCompChenRadioService.selectBySurveyId(surveyId,id);
+            Long size10 = examAnDfilllankService.selectBySurveyId(surveyId,id);
+            Long size11 = examAnEnumquService.selectBySurveyId(surveyId,id);
+            Long size12 = examAnFillblankService.selectBySurveyId(surveyId,id);
+            Long size13 = examAnOrderService.selectBySurveyId(surveyId,id);
+            Long total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
+            entity.setCompleteNum(total.intValue());
+            if (total.intValue() == entity.getQuNum()) {
                 entity.setIsComplete(CommonNumConstants.NUM_ONE);
             }
             if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
@@ -270,7 +277,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
         String surveyId = examSurveyAnswer.getSurveyId();
         String studentId = examSurveyAnswer.getCreateId();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuId(surveyId, studentId);
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuIds(surveyId, studentId,id);
         examSurveyAnswer.setSurveyMation(examSurveyDirectory);
         return examSurveyAnswer;
     }
@@ -618,6 +625,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), collect);
         return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
+    }
+
+    @Override
+    public void updateMarkFraction(String id) {
+        UpdateWrapper<ExamSurveyAnswer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getMarkFraction), CommonNumConstants.NUM_ZERO);
+        update(updateWrapper);
     }
 
 

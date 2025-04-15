@@ -20,7 +20,7 @@ import java.util.Map;
 public interface ExamAnChenRadioService extends SkyeyeBusinessService<ExamAnChenRadio> {
     void queryExamAnChenRadioListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnChenRadio> selectBySurveyId(String surveyId, String id);
+    long selectBySurveyId(String surveyId, String id);
 
     List<ExamAnChenRadio> selectAnChenRadioByQuId(String id);
 

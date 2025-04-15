@@ -12,7 +12,7 @@ public interface ExamAnRadioService extends SkyeyeBusinessService<ExamAnRadio> {
 
     void queryExamAnRadioListById(InputObject inputObject, OutputObject outputObject);
 
-     List<ExamAnRadio> selectRadioBySurveyId(String surveyId, String id);
+     long selectRadioBySurveyId(String surveyId, String id);
 
     List<ExamAnRadio> selectByQuid(String id);
 

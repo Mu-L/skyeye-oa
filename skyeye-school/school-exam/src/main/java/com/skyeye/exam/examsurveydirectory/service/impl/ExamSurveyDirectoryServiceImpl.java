@@ -50,6 +50,7 @@ import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
+import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
@@ -613,6 +614,31 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return bean;
     }
 
+    @Autowired
+    private ExamSurveyQuAnswerService examSurveyQuAnswerService;
+
+    @Override
+    public ExamSurveyDirectory selectBySurAndStuIds(String surveyId, String studentId, String id) {
+        ExamSurveyDirectory bean = super.selectById(surveyId);
+        List<Question> questionList = questionService.QueryQuestionByBelongIdAndStuId(surveyId, studentId);
+        Map<String, List<Question>> collect = questionList.stream()
+            .collect(Collectors.groupingBy(Question::getId));
+        Map<String, Float> stringFloatMap = examSurveyQuAnswerService.selectFacByIdAndSurveyId(id, surveyId);
+        // 遍历分组后的 Map
+        for (Map.Entry<String, List<Question>> entry : collect.entrySet()) {
+            String key = entry.getKey();
+            List<Question> questions = entry.getValue();
+            Float fraction = stringFloatMap.get(key);
+            if (fraction != null) {
+                for (Question question : questions) {
+                    question.setFaction(fraction);
+                }
+            }
+        }
+        bean.setQuestionMation(questionList);
+        return bean;
+    }
+
     @Override
     public Map<String, ExamSurveyDirectory> selectMapBysurveyIds(List<String> surveyIds) {
         if (CollectionUtil.isEmpty(surveyIds)) {
@@ -837,7 +863,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId),  classIds.stream().collect(Collectors.joining(",")));
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds.stream().collect(Collectors.joining(",")));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         Map<String, Map<String, List<ExamSurveyDirectory>>> result = examSurveyDirectoryList.stream()

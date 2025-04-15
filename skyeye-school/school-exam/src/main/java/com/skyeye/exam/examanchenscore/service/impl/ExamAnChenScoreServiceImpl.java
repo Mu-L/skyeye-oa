@@ -95,11 +95,11 @@ public class ExamAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
-    public List<ExamAnChenScore> selectBySurveyId(String surveyId, String id) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnChenScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenScore::getBelongAnswerId), id);
-        return list(queryWrapper);
+        return count(queryWrapper);
     }
 
     @Override

@@ -283,4 +283,8 @@ public class Question extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "知识点信息", required = "json")
     private List<KnowledgePoints> knowledgePointsMation;
 
+    @TableField(exist = false)
+    @Property(value = "题目分数")
+    private Float faction;
+
 }

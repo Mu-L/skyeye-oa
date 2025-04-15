@@ -94,11 +94,11 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
         outputObject.settotal(examAnOrderList.size());
     }
     @Override
-    public List<ExamAnOrder> selectBySurveyId(String surveyId, String id) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongAnswerId), id);
-        return list(queryWrapper);
+        return count(queryWrapper);
     }
 
     @Override

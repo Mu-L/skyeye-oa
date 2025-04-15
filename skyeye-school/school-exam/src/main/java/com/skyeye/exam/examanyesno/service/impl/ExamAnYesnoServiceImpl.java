@@ -29,11 +29,12 @@ public class ExamAnYesnoServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnYesn
     }
 
     @Override
-    public List<ExamAnYesno> selectBySurveyId(String surveyId, String id) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnYesno> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnYesno::getBelongId), surveyId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnYesno::getBelongAnswerId), id);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnYesno::getBelongAnswerId), id)
+            .select(CommonConstants.ID);
+        return count(queryWrapper);
     }
 
     @Override

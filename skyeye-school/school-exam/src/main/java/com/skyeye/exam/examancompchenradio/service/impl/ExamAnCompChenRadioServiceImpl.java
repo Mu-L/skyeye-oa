@@ -96,11 +96,11 @@ public class ExamAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public List<ExamAnCompChenRadio> selectBySurveyId(String surveyId, String id) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnCompChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongId), surveyId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCompChenRadio::getBelongAnswerId), id);
-        return list(queryWrapper);
+        return count(queryWrapper);
     }
 
     @Override

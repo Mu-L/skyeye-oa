@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamSurveyQuAnswerServiceImpl
@@ -48,5 +49,20 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
             .mapToDouble(ExamSurveyQuAnswer::getFraction)
             .sum();
         return totalFraction;
+    }
+
+    @Override
+    public Map<String, Float> selectFacByIdAndSurveyId(String id, String surveyId) {
+        QueryWrapper<ExamSurveyQuAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getBelongAnswerId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getSurveyId), surveyId);
+        List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
+        Map<String, Float> quIdToFractionMap = examSurveyQuAnswerList.stream()
+            .collect(Collectors.toMap(
+                ExamSurveyQuAnswer::getQuId,  // 键：QuId
+                ExamSurveyQuAnswer::getFraction,  // 值：fraction
+                (existing, replacement) -> existing
+            ));
+        return quIdToFractionMap;
     }
 }

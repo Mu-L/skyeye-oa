@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 
+import java.util.Map;
+
 /**
  * @ClassName: ExamSurveyQuAnswerService
  * @Description: 答卷 题目和所得分数的关联表管理服务接口层
@@ -18,4 +20,5 @@ public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSur
 
     float selectFractionBySurveyId(String surveyId, String id);
 
+    Map<String, Float> selectFacByIdAndSurveyId(String id, String surveyId);
 }
