@@ -135,8 +135,8 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
                 updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.LATE_SIGN.getKey());
             }else {
                 updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getState), CheckworkSignState.SIGN.getKey());
-                updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime), signTime);
             }
+            updateWrapper.set(MybatisPlusUtil.toColumns(CheckworkSign::getSignTime), signTime);
             update(updateWrapper);
         } else {
             CheckworkSign checkworkSign = new CheckworkSign();
