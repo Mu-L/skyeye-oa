@@ -85,7 +85,10 @@ public class GroupsInformationServiceImpl extends SkyeyeBusinessServiceImpl<Grou
         if (status.equals(CommonNumConstants.NUM_ONE)) {
             Integer groupsnun = groupsInformation.getGroupsNum();
             if (groupsnun == null) {
-                throw new CustomException("分组数量未设置");
+                throw new CustomException("请输入每组人数");
+            }
+            if (size == 0) {
+                throw new CustomException("学生人数为0,无法创建分组");
             }
             int numGroups;
             int num = size % groupsnun;
