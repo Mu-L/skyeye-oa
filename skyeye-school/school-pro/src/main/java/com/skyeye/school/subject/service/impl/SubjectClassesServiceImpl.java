@@ -575,7 +575,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(subjectClassId);
         resultMap.put("topicJoinNum", topicJoinNum);
         // 成员参与率
-        Double joinRate = getRate(topicJoinNum, joinNum * topicNum);
+        Double joinRate = getRate(topicJoinNum-1, joinNum * topicNum);
         resultMap.put("joinRate", String.format("%.2f", joinRate) + '%');
         // 考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(subjectClassId);
@@ -649,7 +649,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         String reword = subjectClassesStuService.queryRewordNumByStuNoAndSubjectClassId(id, studentNumber);
         stuMap.put("reword", reword);
         //3. 考勤次数
-        Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
+        Long checkWorkNum = Long.parseLong(checkworkMap.get(CheckworkSignState.SIGN.name()).toString())
+                + Long.parseLong(checkworkMap.get(CheckworkSignState.LATE_SIGN.name()).toString())
+                + Long.parseLong(checkworkMap.get(CheckworkSignState.NOT_SIGN.name()).toString());
         //4. 自己的考勤记录
         Long stuCheckWorkNum = Long.parseLong(checkworkMap.get(CheckworkSignState.SIGN.name()).toString());
         // 5. 考勤率
