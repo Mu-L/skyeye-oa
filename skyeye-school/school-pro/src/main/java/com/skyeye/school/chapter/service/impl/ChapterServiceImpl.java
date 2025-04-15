@@ -227,17 +227,20 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             Double.parseDouble(shouldSubNum) == CommonNumConstants.NUM_ZERO || examList.size() == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO :
                 CalculationUtil.divide(String.valueOf(CollectionUtil.isEmpty(examAnswerList) ? CommonNumConstants.NUM_ZERO : examAnswerList.size()), shouldSubNum, CommonNumConstants.NUM_TWO));
         beans.add(allChapterMap);
-        // 根据sort升序排序
+        // 添加百分比, 并排序
         beans = beans.stream().map(bean -> {
-            if (Double.parseDouble(bean.get("assignmentCompleteRate").toString()) != CommonNumConstants.NUM_ZERO){
-                bean.put("assignmentCompleteRate", bean.get("assignmentCompleteRate") + "%");
+            double assignmentCompleteRate = Double.parseDouble(bean.get("assignmentCompleteRate").toString());
+            double coursewareCompleteRate = Double.parseDouble(bean.get("coursewareCompleteRate").toString());
+            if (assignmentCompleteRate != CommonNumConstants.NUM_ZERO) {
+                bean.put("assignmentCompleteRate", assignmentCompleteRate == 100 ? "100%" : bean.get("assignmentCompleteRate") + "%");
             }
-            if (Double.parseDouble(bean.get("coursewareCompleteRate").toString()) != CommonNumConstants.NUM_ZERO){
-                bean.put("coursewareCompleteRate", bean.get("coursewareCompleteRate") + "%");
+            if (coursewareCompleteRate != CommonNumConstants.NUM_ZERO) {
+                bean.put("coursewareCompleteRate", coursewareCompleteRate == 100 ? "100%" : bean.get("coursewareCompleteRate") + "%");
             }
-            if (bean.containsKey("examCompleteRate")){
-                if (Double.parseDouble(bean.get("examCompleteRate").toString()) != CommonNumConstants.NUM_ZERO){
-                    bean.put("examCompleteRate", bean.get("examCompleteRate") + "%");
+            if (bean.containsKey("examCompleteRate")) {
+                double examCompleteRate = Double.parseDouble(bean.get("examCompleteRate").toString());
+                if (examCompleteRate != CommonNumConstants.NUM_ZERO) {
+                    bean.put("examCompleteRate", examCompleteRate == 100 ? "100%" : bean.get("examCompleteRate") + "%");
                 }
             }
             return bean;
