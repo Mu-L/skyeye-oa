@@ -20,7 +20,7 @@ import java.util.Map;
 public interface ExamAnChenCheckboxService extends SkyeyeBusinessService<ExamAnChenCheckbox> {
     void queryExamAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnChenCheckbox> selectBySurveyId(String surveyId);
+    List<ExamAnChenCheckbox> selectBySurveyId(String surveyId, String id);
 
     List<ExamAnChenCheckbox> selectAnChenCheckboxByQuId(String id);
 

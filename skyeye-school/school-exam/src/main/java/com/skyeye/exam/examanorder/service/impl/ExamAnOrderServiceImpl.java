@@ -9,8 +9,6 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examancompchenradio.entity.ExamAnCompChenRadio;
-import com.skyeye.exam.examandfillblank.entity.ExamAnDfillblank;
 import com.skyeye.exam.examanorder.dao.ExamAnOrderDao;
 import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanorder.service.ExamAnOrderService;
@@ -96,9 +94,10 @@ public class ExamAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnOrde
         outputObject.settotal(examAnOrderList.size());
     }
     @Override
-    public List<ExamAnOrder> selectBySurveyId(String surveyId) {
+    public List<ExamAnOrder> selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongId), surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnOrder::getBelongAnswerId), id);
         return list(queryWrapper);
     }
 

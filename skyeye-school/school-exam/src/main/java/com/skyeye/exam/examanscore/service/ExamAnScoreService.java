@@ -12,7 +12,7 @@ public interface ExamAnScoreService extends SkyeyeBusinessService<ExamAnScore> {
 
     void queryExamAnScoreListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnScore> selectBySurveyId(String surveyId);
+    List<ExamAnScore> selectBySurveyId(String surveyId, String id);
 
     List<ExamAnScore> selectAnScoreByQuId(String id);
 

@@ -199,31 +199,38 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             String distanceHMS = getDistanceHMS(bgAnDate, endAnDate);
             entity.setTotalTime(distanceHMS);
             String surveyId = entity.getSurveyId();
-            Integer size = examAnRadioService.selectRadioBySurveyId(surveyId).size();
-            Integer size1 = examAnScoreService.selectBySurveyId(surveyId).size();
-            Integer size2 = examAnYesnoService.selectBySurveyId(surveyId).size();
-            Integer size3 = examAnAnswerService.selectBySurveyId(surveyId).size();
-            Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId).size();
-            Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId).size();
-            Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId).size();
-            Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId).size();
-            Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId).size();
-            Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId).size();
-            Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId).size();
-            Integer size11 = examAnEnumquService.selectBySurveyId(surveyId).size();
-            Integer size12 = examAnFillblankService.selectBySurveyId(surveyId).size();
-            Integer size13 = examAnOrderService.selectBySurveyId(surveyId).size();
+            String id = entity.getId();
+            Integer size = examAnRadioService.selectRadioBySurveyId(surveyId,id).size();
+            Integer size1 = examAnScoreService.selectBySurveyId(surveyId,id).size();
+            Integer size2 = examAnYesnoService.selectBySurveyId(surveyId,id).size();
+            Integer size3 = examAnAnswerService.selectBySurveyId(surveyId,id).size();
+            Integer size4 = examAnCheckboxService.slectBySurveyId(surveyId,id).size();
+            Integer size5 = examAnChenCheckboxService.selectBySurveyId(surveyId,id).size();
+            Integer size6 = examAnChenFbkService.selectBySurveyId(surveyId,id).size();
+            Integer size7 = examAnChenRadioService.selectBySurveyId(surveyId,id).size();
+            Integer size8 = examAnChenScoreService.selectBySurveyId(surveyId,id).size();
+            Integer size9 = examAnCompChenRadioService.selectBySurveyId(surveyId,id).size();
+            Integer size10 = examAnDfilllankService.selectBySurveyId(surveyId,id).size();
+            Integer size11 = examAnEnumquService.selectBySurveyId(surveyId,id).size();
+            Integer size12 = examAnFillblankService.selectBySurveyId(surveyId,id).size();
+            Integer size13 = examAnOrderService.selectBySurveyId(surveyId,id).size();
             Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
             entity.setCompleteNum(total);
             if (total.equals(entity.getQuNum())) {
                 entity.setIsComplete(CommonNumConstants.NUM_ONE);
             }
             if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-                Integer fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+                float fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId(), entity.getId());
                 entity.setMarkFraction(fraction);
+                ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
+                //已经批阅的学生人数加一
+                examSurveyDirectory.setMarkedNumber(examSurveyDirectory.getMarkedNumber() + CommonNumConstants.NUM_ONE);
+                if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getMarkedNumber() + CommonNumConstants.NUM_ONE)) {
+                    examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
+                }
+                examSurveyDirectoryService.updateEntity(examSurveyDirectory, examSurveyDirectory.getCreateId());
             }
         }
-
     }
 
     public static String getDistanceHMS(String bgAnDate, String endAnDate) {
@@ -399,10 +406,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         //班级Id
         String companyId = commonPageInfo.getCompanyId();
         SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(objectId, companyId);
+        //老师创建班级的创建Id
+        String createId = subjectClasses.getCreateId();
         List<String> stuNoLists = new ArrayList<>();
         if (StrUtil.isNotEmpty(subjectClasses.getId())) {
             List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(subjectClasses.getId());
-            if (CollectionUtil.isNotEmpty(subjectClassesStuList)){
+            if (CollectionUtil.isNotEmpty(subjectClassesStuList)) {
                 stuNoLists = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
             }
         }
@@ -411,12 +420,27 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        if (CollectionUtil.isEmpty(stuNoLists)){
+        if (CollectionUtil.isEmpty(stuNoLists)) {
             throw new CustomException("当前班级没有学生,没有答卷");
         }
-        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getStudentNumber), stuNoLists);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
+        if (CollectionUtil.isNotEmpty(stuNoLists)) {
+            List<String> finalStuNoLists = stuNoLists;
+            queryWrapper.and(wrapper ->
+                wrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getStudentNumber), finalStuNoLists)
+                    .or()
+                    .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId)
+            );
+        } else {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
+        }
+        //学生回答的答卷
         List<ExamSurveyAnswer> list = list(queryWrapper);
+        UserOrStudent teacherInfo = schoolCommonService.queryUserOrStudent(createId);
+        QueryWrapper<ExamSurveyAnswer> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
+        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(stuNoList)) {
@@ -427,7 +451,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-
         Map<String, List<School>> schoolMap = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
         Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
         Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
@@ -441,6 +464,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             ));
 
         for (ExamSurveyAnswer answer : list) {
+            if (answer.getCreateId().equals(createId)) {
+                answer.setTeacherMation(teacherInfo);
+            }
             List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
             answer.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
             answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
@@ -593,6 +619,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), collect);
         return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
     }
+
 
     @Override
     public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds) {

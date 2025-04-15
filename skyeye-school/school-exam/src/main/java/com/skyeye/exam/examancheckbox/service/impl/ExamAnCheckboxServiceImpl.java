@@ -58,9 +58,10 @@ public class ExamAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnC
     }
 
     @Override
-    public List<ExamAnCheckbox> slectBySurveyId(String surveyId) {
+    public List<ExamAnCheckbox> slectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getBelongId), surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnCheckbox::getBelongAnswerId), id);
         return list(queryWrapper);
     }
 

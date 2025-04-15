@@ -169,5 +169,16 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @Property(value = "是否是创建人")
     private Boolean isCreated;
 
+    @TableField("is_mark_state")
+    @ApiModelProperty(value = "是否批阅试卷（0 待批阅 ，1 已批阅）")
+    private Integer isMarkState;
+
+    @TableField("marked_number")
+    @ApiModelProperty(value = "已批阅人数")
+    private Integer markedNumber;
+
+    @TableField("all_number")
+    @ApiModelProperty(value = "总批阅人数")
+    private Integer allNumber;
 
 }

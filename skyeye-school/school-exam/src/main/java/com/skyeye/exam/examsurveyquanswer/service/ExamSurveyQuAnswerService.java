@@ -16,6 +16,6 @@ import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSurveyQuAnswer> {
     void queryExamSurveyQuAnswerListById(InputObject inputObject, OutputObject outputObject);
 
-    Integer selectFractionBySurveyId(String surveyId);
+    float selectFractionBySurveyId(String surveyId, String id);
 
 }

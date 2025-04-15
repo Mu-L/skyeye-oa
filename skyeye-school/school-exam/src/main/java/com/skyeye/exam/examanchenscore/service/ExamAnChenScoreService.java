@@ -20,7 +20,7 @@ import java.util.Map;
 public interface ExamAnChenScoreService extends SkyeyeBusinessService<ExamAnChenScore> {
     void queryExamAnChenScoreListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnChenScore> selectBySurveyId(String surveyId);
+    List<ExamAnChenScore> selectBySurveyId(String surveyId, String id);
 
     List<ExamAnChenScore> selectByQuId(String id);
 

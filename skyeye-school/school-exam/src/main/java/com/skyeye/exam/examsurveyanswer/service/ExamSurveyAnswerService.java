@@ -42,4 +42,5 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     List<ExamSurveyAnswer> selectSurveyIdByteacherId(String userId);
 
     Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect);
+
 }

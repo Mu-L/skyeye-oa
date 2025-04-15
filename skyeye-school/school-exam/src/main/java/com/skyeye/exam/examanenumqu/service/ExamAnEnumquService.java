@@ -18,7 +18,7 @@ import java.util.List;
 public interface ExamAnEnumquService extends SkyeyeBusinessService<ExamAnEnumqu> {
     void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnEnumqu> selectBySurveyId(String surveyId);
+    List<ExamAnEnumqu> selectBySurveyId(String surveyId, String id);
 
     void deleteBySurAndCreateId(String surveyId, String createId);
 }

@@ -42,6 +42,7 @@ import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.dao.SubjectClassesDao;
 import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectClassesTopService;
@@ -694,5 +695,19 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), objectId)
             .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), companyId);
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public int queryNumBySubAndClassIds(String subjectId, List<String> classIds) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
+            .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
+        List<SubjectClasses> list = list(queryWrapper);
+        List<String> collect = list.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(collect)) {
+            throw new CustomException("查询不到班级信息");
+        }
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(collect);
+        return subjectClassesStuList.size();
     }
 }

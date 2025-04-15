@@ -53,4 +53,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject);
 
     List<ExamSurveyDirectory> queryCreatedSurveyListByUserId(String userId);
+
+    void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject);
 }

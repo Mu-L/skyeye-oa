@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * @ClassName: ExamSurveyAnswer
  * @Description: 试卷回答信息表实体类
- * @author: skyeye云系列--lqy
+ * @author: skyeye云系列--lyj
  * @date: 2024/7/16 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
@@ -115,7 +115,7 @@ public class ExamSurveyAnswer extends OperatorUserInfo {
 
     @TableField("mark_fraction")
     @ApiModelProperty(value = "最后得分")
-    private Integer markFraction;
+    private Float markFraction;
 
     @TableField("mark_people")
     @ApiModelProperty(value = "阅卷人")
@@ -172,6 +172,10 @@ public class ExamSurveyAnswer extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "学生信息")
     private UserOrStudent userMation;
+
+    @TableField(exist = false)
+    @Property(value = "老师信息")
+    private UserOrStudent teacherMation;
 
     @TableField(exist = false)
     @Property(value = "单选题信息")
