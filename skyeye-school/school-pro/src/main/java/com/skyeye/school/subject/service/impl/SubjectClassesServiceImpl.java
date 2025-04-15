@@ -687,4 +687,12 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         stuMap.put("topicNum", topicNum);
         outputObject.setBean(stuMap);
     }
+
+    @Override
+    public SubjectClasses selectIdBySubAndClassId(String objectId, String companyId) {
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), objectId)
+            .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), companyId);
+        return getOne(queryWrapper);
+    }
 }

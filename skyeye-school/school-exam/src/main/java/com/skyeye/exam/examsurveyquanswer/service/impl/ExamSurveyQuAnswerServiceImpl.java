@@ -1,5 +1,7 @@
 package com.skyeye.exam.examsurveyquanswer.service.impl;
 
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,6 +14,8 @@ import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +30,7 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "答卷 题目和所得分数的关联表管理", groupName = "答卷 题目和所得分数的关联表管理")
 public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyQuAnswerDao, ExamSurveyQuAnswer> implements ExamSurveyQuAnswerService {
+
     @Override
     public void queryExamSurveyQuAnswerListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

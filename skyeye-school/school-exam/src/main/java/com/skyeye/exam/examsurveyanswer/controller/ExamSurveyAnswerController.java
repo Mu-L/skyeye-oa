@@ -143,7 +143,6 @@ public class ExamSurveyAnswerController {
 
     /**
      * 判断是否可以参与回答试卷
-     * 教师角度,获取所有已经或未曾批阅的试卷(仅仅是回答者信息)
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象

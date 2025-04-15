@@ -2,7 +2,6 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -824,7 +823,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds);
+        String classId = MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId);
+        for (String item : classIds) {
+            queryWrapper.or(wrapper -> wrapper.like(classId, "," + item + ",")
+                .or().like(classId, item + ",") // 以当前值开头
+                .or().like(classId, "," + item) // 以当前值结尾
+                .or().eq(classId, item)); // 等于当前值
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         Map<String, Map<String, List<ExamSurveyDirectory>>> result = list(queryWrapper).stream()
             .collect(Collectors.groupingBy(

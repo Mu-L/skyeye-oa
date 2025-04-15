@@ -392,12 +392,24 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        //试卷id
         String surveyId = commonPageInfo.getHolderId();
+        //科目Id
+        String objectId = commonPageInfo.getObjectId();
+        //班级Id
+        String companyId = commonPageInfo.getCompanyId();
+        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(objectId, companyId);
+        List<String> stuNoLists = new ArrayList<>();
+        if (StrUtil.isNotEmpty(subjectClasses.getId())){
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(subjectClasses.getId());
+            stuNoLists = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+        }
         String state = commonPageInfo.getState();
         Integer starts = Integer.valueOf(state);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getStudentNumber), stuNoLists);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
