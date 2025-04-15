@@ -119,7 +119,7 @@ public class SearchConfigServiceImpl implements SearchConfigService {
     public Map<String, Object> querySearchParamsConfig(String urlId, String appId) {
         SearchMation searchMation = querySearchMation(urlId, appId);
         if (searchMation != null) {
-            Map<String, Object> result = JSONUtil.toBean(searchMation.getParamsConfigStr(), null);
+            Map<String, Object> result = JSONUtil.toBean(searchMation.getParamsConfig(), null);
             return result;
         }
         return null;
@@ -144,7 +144,6 @@ public class SearchConfigServiceImpl implements SearchConfigService {
         }
         SearchMation checkSearchMation = searchDao.selectOne(queryWrapper);
         if (ObjectUtils.isEmpty(checkSearchMation)) {
-            searchMation.setParamsConfigStr(JSONUtil.toJsonStr(searchMation.getParamsConfig()));
             // 2.新增/编辑数据
             if (StringUtils.isNotEmpty(searchMation.getId())) {
                 LOGGER.info("update searchConfig data, id is {}", searchMation.getId());

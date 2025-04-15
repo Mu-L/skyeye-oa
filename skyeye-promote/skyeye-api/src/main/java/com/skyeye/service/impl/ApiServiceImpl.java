@@ -153,7 +153,7 @@ public class ApiServiceImpl implements ApiService {
             // 存在分页参数，择取获取高级筛选json
             SearchMation searchMation = searchConfigService.querySearchMation(urlId, appId);
             if (searchMation != null) {
-                apiMation.put("searchParams", searchMation.getParamsConfigStr());
+                apiMation.put("searchParams", searchMation.getParamsConfig());
                 apiMation.put("searchParamsId", searchMation.getId());
             }
         }

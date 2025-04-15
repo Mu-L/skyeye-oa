@@ -10,10 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.eve.search.entity.SearchParamsConfigMation;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * @ClassName: SearchMation
@@ -40,14 +37,8 @@ public class SearchMation extends OperatorUserInfo {
     @ApiModelProperty(value = "接口对应的url的id", required = "required")
     private String urlId;
 
-    @TableField(exist = false)
-    @ApiModelProperty(value = "参数配置信息", required = "required")
-    private Map<String, SearchParamsConfigMation> paramsConfig;
-
-    /**
-     * 参数配置信息json字符串
-     */
     @TableField("params_config")
-    private String paramsConfigStr;
+    @ApiModelProperty(value = "参数配置信息", required = "required")
+    private String paramsConfig;
 
 }
