@@ -182,7 +182,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Integer markedNumber;
 
     @TableField("all_number")
-    @ApiModelProperty(value = "总批阅人数")
+    @ApiModelProperty(value = "总人数")
     private Integer allNumber;
 
 }
