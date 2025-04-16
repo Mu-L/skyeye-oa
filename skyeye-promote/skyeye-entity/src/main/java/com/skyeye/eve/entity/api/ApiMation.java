@@ -42,9 +42,17 @@ public class ApiMation extends OperatorUserInfo {
     @ApiModelProperty(value = "请求入参")
     private String requestBody;
 
+    @TableField("request_body_remark")
+    @ApiModelProperty(value = "请求入参的键的说明")
+    private String requestBodyRemark;
+
     @TableField("response_body")
     @ApiModelProperty(value = "请求出参")
     private String responseBody;
+
+    @TableField("response_body_remark")
+    @ApiModelProperty(value = "请求出参的键的说明")
+    private String responseBodyRemark;
 
     @TableField(value = "app_id", fill = FieldFill.INSERT)
     @ApiModelProperty(value = "appId", required = "required")
