@@ -56,7 +56,6 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
-import org.apache.ibatis.annotations.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -207,20 +206,20 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             entity.setTotalTime(distanceHMS);
             String surveyId = entity.getSurveyId();
             String id = entity.getId();
-            Long size = examAnRadioService.selectRadioBySurveyId(surveyId,id);
-            Long size1 = examAnScoreService.selectBySurveyId(surveyId,id);
-            Long size2 = examAnYesnoService.selectBySurveyId(surveyId,id);
-            Long size3 = examAnAnswerService.selectBySurveyId(surveyId,id);
-            Long size4 = examAnCheckboxService.slectBySurveyId(surveyId,id);
-            Long size5 = examAnChenCheckboxService.selectBySurveyId(surveyId,id);
-            Long size6 = examAnChenFbkService.selectBySurveyId(surveyId,id);
-            Long size7 = examAnChenRadioService.selectBySurveyId(surveyId,id);
-            Long size8 = examAnChenScoreService.selectBySurveyId(surveyId,id);
-            Long size9 = examAnCompChenRadioService.selectBySurveyId(surveyId,id);
-            Long size10 = examAnDfilllankService.selectBySurveyId(surveyId,id);
-            Long size11 = examAnEnumquService.selectBySurveyId(surveyId,id);
-            Long size12 = examAnFillblankService.selectBySurveyId(surveyId,id);
-            Long size13 = examAnOrderService.selectBySurveyId(surveyId,id);
+            Long size = examAnRadioService.selectRadioBySurveyId(surveyId, id);
+            Long size1 = examAnScoreService.selectBySurveyId(surveyId, id);
+            Long size2 = examAnYesnoService.selectBySurveyId(surveyId, id);
+            Long size3 = examAnAnswerService.selectBySurveyId(surveyId, id);
+            Long size4 = examAnCheckboxService.slectBySurveyId(surveyId, id);
+            Long size5 = examAnChenCheckboxService.selectBySurveyId(surveyId, id);
+            Long size6 = examAnChenFbkService.selectBySurveyId(surveyId, id);
+            Long size7 = examAnChenRadioService.selectBySurveyId(surveyId, id);
+            Long size8 = examAnChenScoreService.selectBySurveyId(surveyId, id);
+            Long size9 = examAnCompChenRadioService.selectBySurveyId(surveyId, id);
+            Long size10 = examAnDfilllankService.selectBySurveyId(surveyId, id);
+            Long size11 = examAnEnumquService.selectBySurveyId(surveyId, id);
+            Long size12 = examAnFillblankService.selectBySurveyId(surveyId, id);
+            Long size13 = examAnOrderService.selectBySurveyId(surveyId, id);
             Long total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
             entity.setCompleteNum(total.intValue());
             if (total.intValue() == entity.getQuNum()) {
@@ -277,8 +276,18 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         ExamSurveyAnswer examSurveyAnswer = super.selectById(id);
         String surveyId = examSurveyAnswer.getSurveyId();
         String studentId = examSurveyAnswer.getCreateId();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuIds(surveyId, studentId,id);
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuIds(surveyId, studentId, id);
         examSurveyAnswer.setSurveyMation(examSurveyDirectory);
+        String studentNumber = examSurveyAnswer.getStudentNumber();
+        List<String> studentList = Arrays.asList(studentNumber);
+        List<Map<String, Object>> userList = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(studentList)) {
+            userList = ExecuteFeignClient.get(() ->
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(studentList))).getRows();
+        }
+        if (CollectionUtil.isNotEmpty(userList)) {
+            examSurveyAnswer.setStuMation(userList.get(CommonNumConstants.NUM_ZERO));
+        }
         return examSurveyAnswer;
     }
 
@@ -633,6 +642,37 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getMarkFraction), CommonNumConstants.NUM_ZERO);
         update(updateWrapper);
+    }
+
+    @Override
+    public void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String holderId = commonPageInfo.getHolderId();
+        //1.否  2.是
+        String state = commonPageInfo.getState();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), holderId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
+        List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
+        examSurveyAnswerList.forEach(
+            examSurveyAnswer -> {
+                String createId = examSurveyAnswer.getCreateId();
+                UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(createId);
+                if (userOrStudent.getUserOrStudent()){
+                    examSurveyAnswer.setUserMation(userOrStudent);
+                } else {
+                    examSurveyAnswer.setTeacherMation(userOrStudent);
+                }
+            }
+        );
+        List<String> surveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
+        for (ExamSurveyAnswer answer : examSurveyAnswerList) {
+            answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
+        }
+        outputObject.setBeans(examSurveyAnswerList);
+        outputObject.settotal(page.getTotal());
     }
 
 

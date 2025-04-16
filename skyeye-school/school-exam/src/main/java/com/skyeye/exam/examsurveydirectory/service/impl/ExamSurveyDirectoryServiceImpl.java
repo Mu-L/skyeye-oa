@@ -62,6 +62,7 @@ import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
 import com.skyeye.school.semester.service.SemesterService;
+import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -631,7 +632,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             Float fraction = stringFloatMap.get(key);
             if (fraction != null) {
                 for (Question question : questions) {
-                    question.setFaction(fraction);
+                    question.setEndFaction(fraction);
                 }
             }
         }
@@ -650,20 +651,27 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return new HashMap<>();
         }
+        List<String> subjecyIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getSubjectId).collect(Collectors.toList());
+        List<String> classIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getClassId).collect(Collectors.toList());
         List<String> schoolIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getSchoolId).collect(Collectors.toList());
         List<String> facultyIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getFacultyId).collect(Collectors.toList());
         List<String> majorIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getMajorId).collect(Collectors.toList());
 
+        Map<String, List<Subject>> subjectMap = subjecyIds.isEmpty() ? new HashMap<>() : subjectService.selectByIdList(subjecyIds);
+        Map<String, List<Classes>> classMap = classIds.isEmpty() ? new HashMap<>() : classesService.selectByIdList(classIds);
         Map<String, List<School>> schoolMapList = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
         Map<String, List<Faculty>> facultyMapList = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
         Map<String, List<Major>> majorMapList = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
+
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+            List<Subject> subjects = subjectMap.getOrDefault(examSurveyDirectory.getSubjectId(), Collections.emptyList());
+            examSurveyDirectory.setSubjectListMation(subjects.isEmpty() ? null : subjects);
+            List<Classes> classes = classMap.getOrDefault(examSurveyDirectory.getClassId(), Collections.emptyList());
+            examSurveyDirectory.setClassesMation(classes.isEmpty() ? null : classes);
             List<School> schools = schoolMapList.getOrDefault(examSurveyDirectory.getSchoolId(), Collections.emptyList());
             examSurveyDirectory.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
-
             List<Faculty> faculties = facultyMapList.getOrDefault(examSurveyDirectory.getFacultyId(), Collections.emptyList());
             examSurveyDirectory.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
-
             List<Major> majors = majorMapList.getOrDefault(examSurveyDirectory.getMajorId(), Collections.emptyList());
             examSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
         }

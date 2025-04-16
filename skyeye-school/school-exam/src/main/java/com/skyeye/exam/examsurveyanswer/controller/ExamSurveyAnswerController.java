@@ -155,4 +155,18 @@ public class ExamSurveyAnswerController {
         examSurveyAnswerService.IsTakeSurveyAnswer(inputObject, outputObject);
     }
 
+    /**
+     * 根据SurveyId获取试卷下面所有回答者信息
+     * 这张试卷下的所有答卷的信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllSurveyAnswerListBySurveyId", value = "根据SurveyId获取试卷下面所有回答者信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyAnswerController/queryAllSurveyAnswerListBySurveyId")
+    public void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject) {
+        examSurveyAnswerService.queryAllSurveyAnswerListBySurveyId(inputObject, outputObject);
+    }
+
 }

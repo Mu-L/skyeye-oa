@@ -285,6 +285,6 @@ public class Question extends OperatorUserInfo implements EnclosureFace {
 
     @TableField(exist = false)
     @Property(value = "题目分数")
-    private Float faction;
+    private Float endFaction;
 
 }

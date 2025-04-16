@@ -142,6 +142,10 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Subject subjectMation;
 
     @TableField(exist = false)
+    @Property(value = "科目信息")
+    private List<Subject> subjectListMation;
+
+    @TableField(exist = false)
     @Property(value = "班级信息")
     private List<Classes> classesMation;
 

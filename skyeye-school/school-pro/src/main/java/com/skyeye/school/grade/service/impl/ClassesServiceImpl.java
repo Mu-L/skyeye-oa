@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ClassesServiceImpl
@@ -167,6 +168,14 @@ public class ClassesServiceImpl extends SkyeyeBusinessServiceImpl<ClassesDao, Cl
         QueryWrapper<Classes> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, stringList);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<Classes>> selectByIdList(List<String> classIds) {
+        QueryWrapper<Classes> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, classIds);
+        Map<String, List<Classes>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(Classes::getId));
+        return stringListMap;
     }
 
 }

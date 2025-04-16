@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.grade.entity.Classes;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ClassesService
@@ -26,4 +27,6 @@ public interface ClassesService extends SkyeyeBusinessService<Classes> {
     List<Classes> queryClassListById(String classId);
 
     List<Classes> selectClssByIds(List<String> stringList);
+
+    Map<String, List<Classes>> selectByIdList(List<String> classIds);
 }
