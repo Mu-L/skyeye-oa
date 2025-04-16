@@ -180,15 +180,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
-        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID, entity.getId());
-        ExamSurveyAnswer examSurveyAnswer = getOne(queryWrapper);
         // 判断是否结束
-        if (StrUtil.isNotEmpty(examSurveyAnswer.getId())) {
-            if (StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())) {
-                throw new CustomException("该试卷已结束,请勿修改");
-            }
-        }
         String markStartTime = entity.getMarkStartTime();
         String markEndTime = entity.getMarkEndTime();
         if (StrUtil.isNotEmpty(markStartTime) && StrUtil.isNotEmpty(markEndTime)) {

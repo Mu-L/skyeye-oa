@@ -648,6 +648,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, surveyIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return new HashMap<>();
@@ -730,9 +731,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<SubjectClasses> subjectClassesList = subjectClassesService.queryClassBySubClassLinkId(subClassLinkIds);
             //学生所在班级对应的科目id
             List<String> objectIds = subjectClassesList.stream().map(SubjectClasses::getObjectId).collect(Collectors.toList());
-            String classesId = subjectClassesList.get(CommonNumConstants.NUM_ZERO).getClassesId();
             //科目对应的所有试卷
-            Map<String, List<ExamSurveyDirectory>> objectIdMapList = queryDirectoryIdsByClassIds(objectIds, classesId);
+            Map<String, List<ExamSurveyDirectory>> objectIdMapList = queryDirectoryIdsByClassIds(objectIds, holderId);
             if (CollectionUtils.isEmpty(objectIdMapList)) {
                 return;
             }
@@ -773,6 +773,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     wrapper.or(qw -> qw.apply("FIND_IN_SET({0}, class_id)", holderId1));
                 }
             });
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
             //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
@@ -858,13 +859,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return list(queryWrapper);
     }
 
-    private Map<String, List<ExamSurveyDirectory>> queryDirectoryIdsByClassIds(List<String> objectIds, String classesId) {
+    private Map<String, List<ExamSurveyDirectory>> queryDirectoryIdsByClassIds(List<String> objectIds, String holderId) {
         if (CollectionUtil.isEmpty(objectIds)) {
             return new HashMap<>();
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classesId);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         return examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
