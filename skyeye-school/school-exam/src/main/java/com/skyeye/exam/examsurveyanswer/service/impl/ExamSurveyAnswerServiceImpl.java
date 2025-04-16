@@ -590,9 +590,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Long queryClassExamSurveyAnswerNum(String classId, String stuId) {
+    public Long queryClassExamSurveyAnswerNum(String classId, String stuId, String subjectId) {
         // 获取试卷id
-        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId);
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classId,subjectId);
         if (CollectionUtil.isEmpty(directorIds)) {
             return 0L;
         }
@@ -675,8 +675,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
 
     @Override
-    public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds) {
-        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
+    public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds, String subjectId) {
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId, subjectId);
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
@@ -689,8 +689,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Double queryClassExamSurveyAvgScore(String classesId, String stuId) {
-        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId);
+    public Double queryClassExamSurveyAvgScore(String classesId, String stuId, String subjectId) {
+        List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId, subjectId);
         if (CollectionUtil.isEmpty(directorIds)) {
             return 0.0;
         }
