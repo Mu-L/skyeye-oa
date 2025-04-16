@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum CheckworkType implements SkyeyeEnumClass {
 
-    SCAN_THE_CODE(1, "扫码考勤", true, true),
+    SCAN_THE_CODE(1, "扫码考勤", false, true),
     DIGIT(2, "数字考勤", true, false);
 
     private Integer key;
