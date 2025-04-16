@@ -278,15 +278,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String studentId = examSurveyAnswer.getCreateId();
         ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectBySurAndStuIds(surveyId, studentId, id);
         examSurveyAnswer.setSurveyMation(examSurveyDirectory);
-        String studentNumber = examSurveyAnswer.getStudentNumber();
-        List<String> studentList = Arrays.asList(studentNumber);
-        List<Map<String, Object>> userList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(studentList)) {
-            userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(studentList))).getRows();
-        }
-        if (CollectionUtil.isNotEmpty(userList)) {
-            examSurveyAnswer.setStuMation(userList.get(CommonNumConstants.NUM_ZERO));
+        String createId = examSurveyAnswer.getCreateId();
+        UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(createId);
+        if (userOrStudent.getUserOrStudent()) {
+            examSurveyAnswer.setUserMation(userOrStudent);
+        } else {
+            examSurveyAnswer.setTeacherMation(userOrStudent);
         }
         return examSurveyAnswer;
     }
