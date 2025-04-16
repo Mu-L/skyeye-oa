@@ -768,7 +768,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             String[] holderIdArray = holderId.split(",");
             QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
-            queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderIdArray);
+            queryWrapper.and(wrapper -> {
+                for (String holderId1 : holderIdArray) {
+                    wrapper.or(qw -> qw.apply("FIND_IN_SET({0}, class_id)", holderId1));
+                }
+            });
             //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
