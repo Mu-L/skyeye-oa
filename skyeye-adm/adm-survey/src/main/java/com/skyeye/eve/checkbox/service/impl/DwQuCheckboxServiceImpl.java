@@ -24,6 +24,7 @@ import com.skyeye.eve.checkbox.dao.DwQuCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -135,6 +136,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         }
         QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), id);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuRadio::getOrderById));
         List<DwQuCheckbox> list = list(queryWrapper);
         Map<String, List<DwQuCheckbox>> result = list.stream().collect(Collectors.groupingBy(DwQuCheckbox::getQuId));
         return result;

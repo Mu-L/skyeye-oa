@@ -20,6 +20,7 @@ import com.skyeye.eve.multifllblank.dao.DwQuMultiFillblankDao;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -152,6 +153,7 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
         }
         QueryWrapper<DwQuMultiFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuMultiFillblank::getQuId), id);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuRadio::getOrderById));
         List<DwQuMultiFillblank> list = list(queryWrapper);
         Map<String, List<DwQuMultiFillblank>> result = list.stream().collect(Collectors.groupingBy(DwQuMultiFillblank::getQuId));
         return result;
