@@ -5,6 +5,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,5 +21,5 @@ public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSur
 
     float selectFractionBySurveyId(String surveyId, String id);
 
-    Map<String, Float> selectFacByIdAndSurveyId(String id, String surveyId);
+    Map<String, List<ExamSurveyQuAnswer>> selectFacByIdAndSurveyId(String id, String surveyId);
 }

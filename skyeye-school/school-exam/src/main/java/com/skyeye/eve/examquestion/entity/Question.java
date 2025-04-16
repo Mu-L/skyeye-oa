@@ -34,6 +34,7 @@ import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
+import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.knowledge.entity.KnowledgePoints;
 import com.skyeye.school.major.entity.Major;
@@ -284,7 +285,7 @@ public class Question extends OperatorUserInfo implements EnclosureFace {
     private List<KnowledgePoints> knowledgePointsMation;
 
     @TableField(exist = false)
-    @Property(value = "题目分数")
-    private Float endFaction;
+    @Property(value = "题目分数实体类")
+    private ExamSurveyQuAnswer examSurveyQuAnswerFraction;
 
 }

@@ -52,17 +52,13 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     }
 
     @Override
-    public Map<String, Float> selectFacByIdAndSurveyId(String id, String surveyId) {
+    public Map<String, List<ExamSurveyQuAnswer>> selectFacByIdAndSurveyId(String id, String surveyId) {
         QueryWrapper<ExamSurveyQuAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getBelongAnswerId), id);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getSurveyId), surveyId);
         List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
-        Map<String, Float> quIdToFractionMap = examSurveyQuAnswerList.stream()
-            .collect(Collectors.toMap(
-                ExamSurveyQuAnswer::getQuId,  // 键：QuId
-                ExamSurveyQuAnswer::getFraction,  // 值：fraction
-                (existing, replacement) -> existing
-            ));
+        Map<String, List<ExamSurveyQuAnswer>> quIdToFractionMap = examSurveyQuAnswerList.stream()
+            .collect(Collectors.groupingBy(ExamSurveyQuAnswer::getQuId));
         return quIdToFractionMap;
     }
 }

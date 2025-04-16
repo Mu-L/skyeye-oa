@@ -336,12 +336,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         String objectId = commonPageInfo.getObjectId();
         //班级Id
         String holderId = commonPageInfo.getHolderId();
+        //作为阅卷人的试卷
         List<ExamSurveyMarkExam> examSurveyMarkExams = examSurveyMarkExamService.selectByUserId(userId);
-        //作为阅卷人的所有试卷Id
-        List<String> surveyIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
         List<ExamSurveyDirectory> examSurveyDirectoryList = examSurveyDirectoryService.queryCreatedSurveyListByUserId(userId);
         //作为创建人的所有试卷Id
         List<String> surveyIds1 = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+        //作为阅卷人和创建人的所有试卷Id
         List<String> combinedSurveyIds = Stream.concat(
                 examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId),
                 examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId)
@@ -647,19 +647,20 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        //试卷Id
         String holderId = commonPageInfo.getHolderId();
         //1.否  2.是
         String state = commonPageInfo.getState();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), holderId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), Integer.valueOf(state));
         List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
         examSurveyAnswerList.forEach(
             examSurveyAnswer -> {
                 String createId = examSurveyAnswer.getCreateId();
                 UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(createId);
-                if (userOrStudent.getUserOrStudent()){
+                if (userOrStudent.getUserOrStudent()) {
                     examSurveyAnswer.setUserMation(userOrStudent);
                 } else {
                     examSurveyAnswer.setTeacherMation(userOrStudent);
