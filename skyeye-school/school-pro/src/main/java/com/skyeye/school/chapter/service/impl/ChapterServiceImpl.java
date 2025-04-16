@@ -191,25 +191,68 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             CalculationUtil.multiply(String.valueOf(examList.size()), String.valueOf(stuNoList.size()), CommonNumConstants.NUM_TWO);
 
         List<Map<String, Object>> beans = new ArrayList<>();
+        // 计算每一个章节的数据
+        setValueForPart(beans, chapterList, subjectClassesStuList, assiIdSubNumMap, courStudyNumMap, chapterAssiMap, chapterCoursewareMap);
+        // 计算所有章节的合数据
+        setValueForAll(beans, subjectClassesStuList, coursewareList, examList, examAnswerList, assignmentList, shouldSubNum);
+        beans = setPercentSign(beans);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    /**
+     * 设置分章节数据
+     *
+     * @param beans                 所有章节的数据（不包括合数据）
+     * @param chapterList           章节列表
+     * @param subjectClassesStuList 学生列表
+     * @param assiIdSubNumMap       作业提交的学生分组信息
+     * @param courStudyNumMap       互动课件的提交学生分组信息
+     * @param chapterAssiMap        根据章节分组后的作业
+     * @param chapterCoursewareMap  根据章节分组后的互动课件
+     */
+    private void setValueForPart(List<Map<String, Object>> beans,
+                                 List<Chapter> chapterList, List<SubjectClassesStu> subjectClassesStuList,
+                                 Map<String, Integer> assiIdSubNumMap, Map<String, Integer> courStudyNumMap,
+                                 Map<String, List<Assignment>> chapterAssiMap, Map<String, List<Courseware>> chapterCoursewareMap) {
         int i = CommonNumConstants.NUM_ZERO;
         for (Chapter chapter : chapterList) {
             Map<String, Object> chapterMap = new HashMap<>();
-            chapterMap.put("sort", i);
+            chapterMap.put("sort", ++i);
             chapterMap.put("name", chapter.getName());
             List<Assignment> assignments = chapterAssiMap.getOrDefault(chapter.getId(), Collections.emptyList());
             chapterMap.put("assignmentSum", assignments.size());
+            // 计算作业完成率
             int assignmentCompleteRate = assignments.stream().mapToInt(assignment -> assiIdSubNumMap.getOrDefault(assignment.getId(), CommonNumConstants.NUM_ZERO)).sum();
-            chapterMap.put("assignmentCompleteRate", CalculationUtil.divide(String.valueOf(assignmentCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_TWO));
+            chapterMap.put("assignmentCompleteRate", assignmentCompleteRate == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO
+                : CalculationUtil.divide(String.valueOf(assignmentCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_FOUR));
 
             List<Courseware> coursewares = chapterCoursewareMap.getOrDefault(chapter.getId(), Collections.emptyList());
             chapterMap.put("coursewareSum", coursewares.size());
+            // 计算互动课件完成率
             int coursewareCompleteRate = coursewares.stream().mapToInt(courseware -> courStudyNumMap.getOrDefault(courseware.getId(), CommonNumConstants.NUM_ZERO)).sum();
-            chapterMap.put("coursewareCompleteRate", CalculationUtil.divide(String.valueOf(coursewareCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_TWO));
+            chapterMap.put("coursewareCompleteRate", coursewareCompleteRate == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO :
+                CalculationUtil.divide(String.valueOf(coursewareCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_FOUR));
             beans.add(chapterMap);
-            i++;
         }
+    }
+
+    /**
+     * 设置所有章节的合数据
+     *
+     * @param beans                 返回数据
+     * @param subjectClassesStuList 学生数据
+     * @param coursewareList        互动课件数据
+     * @param examList              试卷数据
+     * @param examAnswerList        试卷回答数据
+     * @param assignmentList        作业数据
+     * @param shouldSubNum          应交的考试数量
+     */
+    private void setValueForAll(List<Map<String, Object>> beans, List<SubjectClassesStu> subjectClassesStuList,
+                                List<Courseware> coursewareList, List<Map<String, Object>> examList,
+                                List<Map<String, Object>> examAnswerList, List<Assignment> assignmentList, String shouldSubNum) {
         Map<String, Object> allChapterMap = new HashMap<>();
-        allChapterMap.put("sort", i);
+        allChapterMap.put("sort", CommonNumConstants.NUM_ZERO);
         allChapterMap.put("name", "全部");
         allChapterMap.put("assignmentSum", assignmentList.size());
         allChapterMap.put("assignmentCompleteRate",
@@ -224,29 +267,36 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         allChapterMap.put("examSum", examList.size());
         allChapterMap.put("examCompleteRate",
             // 应交数量为0或者考试数量为0则直接为0，否则计算
-            Double.parseDouble(shouldSubNum) == CommonNumConstants.NUM_ZERO || examList.size() == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO :
-                CalculationUtil.divide(String.valueOf(CollectionUtil.isEmpty(examAnswerList) ? CommonNumConstants.NUM_ZERO : examAnswerList.size()), shouldSubNum, CommonNumConstants.NUM_TWO));
+            Double.parseDouble(shouldSubNum) == CommonNumConstants.NUM_ZERO || examList.size() == CommonNumConstants.NUM_ZERO ?
+                CommonNumConstants.NUM_ZERO : CalculationUtil.divide(String.valueOf(examAnswerList.size()), shouldSubNum, CommonNumConstants.NUM_FOUR));
         beans.add(allChapterMap);
+    }
+
+    /**
+     * 设置百分比和排序
+     *
+     * @param beans 被操作的数据
+     */
+    private List<Map<String, Object>> setPercentSign(List<Map<String, Object>> beans) {
+        String flagDouble = String.valueOf(Double.valueOf(CommonNumConstants.NUM_ZERO));
         // 添加百分比, 并排序
-        beans = beans.stream().map(bean -> {
-            double assignmentCompleteRate = Double.parseDouble(bean.get("assignmentCompleteRate").toString());
-            double coursewareCompleteRate = Double.parseDouble(bean.get("coursewareCompleteRate").toString());
-            if (assignmentCompleteRate != CommonNumConstants.NUM_ZERO) {
-                bean.put("assignmentCompleteRate", assignmentCompleteRate == 100 ? "100%" : bean.get("assignmentCompleteRate") + "%");
+        return beans.stream().map(bean -> {
+            String assignmentCompleteRate = bean.get("assignmentCompleteRate").toString();
+            String coursewareCompleteRate = bean.get("coursewareCompleteRate").toString();
+            if (!assignmentCompleteRate.equals(flagDouble)) {
+                bean.put("assignmentCompleteRate", CalculationUtil.multiply(assignmentCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
             }
-            if (coursewareCompleteRate != CommonNumConstants.NUM_ZERO) {
-                bean.put("coursewareCompleteRate", coursewareCompleteRate == 100 ? "100%" : bean.get("coursewareCompleteRate") + "%");
+            if (!coursewareCompleteRate.equals(flagDouble)) {
+                bean.put("coursewareCompleteRate", CalculationUtil.multiply(coursewareCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
             }
             if (bean.containsKey("examCompleteRate")) {
-                double examCompleteRate = Double.parseDouble(bean.get("examCompleteRate").toString());
-                if (examCompleteRate != CommonNumConstants.NUM_ZERO) {
-                    bean.put("examCompleteRate", examCompleteRate == 100 ? "100%" : bean.get("examCompleteRate") + "%");
+                String examCompleteRate = bean.get("examCompleteRate").toString();
+                if (examCompleteRate.equals(flagDouble)) {
+                    bean.put("examCompleteRate", CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
                 }
             }
             return bean;
-        }).sorted(Comparator.comparing(bean -> (Integer) bean.get("sort"), Comparator.reverseOrder())).collect(Collectors.toList());
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        }).sorted(Comparator.comparing(bean -> (Integer) bean.get("sort"))).collect(Collectors.toList());
     }
 
     @Override
