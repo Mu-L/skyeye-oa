@@ -9,7 +9,6 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examanorder.entity.ExamAnOrder;
 import com.skyeye.exam.examanscore.dao.ExamAnScoreDao;
 import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examanscore.service.ExamAnScoreService;
@@ -87,10 +86,12 @@ public class ExamAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnScor
     }
 
     @Override
-    public List<ExamAnScore> selectBySurveyId(String surveyId) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongId), surveyId);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnScore::getBelongAnswerId), id)
+            .select(CommonConstants.ID);
+        return count(queryWrapper);
     }
 
     @Override

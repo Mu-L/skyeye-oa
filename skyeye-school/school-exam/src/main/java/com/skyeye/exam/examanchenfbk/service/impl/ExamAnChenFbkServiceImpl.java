@@ -9,7 +9,6 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchenfbk.dao.ExamAnChenFbkDao;
 import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
@@ -83,10 +82,11 @@ public class ExamAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnCh
     }
 
     @Override
-    public List<ExamAnChenFbk> selectBySurveyId(String surveyId) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnChenFbk> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongId), surveyId);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenFbk::getBelongAnswerId), id);
+        return count(queryWrapper);
     }
 
     @Override

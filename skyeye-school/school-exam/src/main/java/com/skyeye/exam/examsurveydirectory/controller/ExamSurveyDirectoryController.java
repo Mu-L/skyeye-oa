@@ -234,4 +234,18 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryMyDoSurvey(inputObject, outputObject);
     }
 
+    /**
+     * 筛选未/已批阅试卷信息
+     * 教师角度,筛选未/已批阅试卷，看状态
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryFilterNoSurveys", value = "筛选未/已批阅试卷信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ExamSurveyDirectoryController/queryFilterNoSurveys")
+    public void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.queryFilterNoSurveys(inputObject, outputObject);
+    }
+
 }

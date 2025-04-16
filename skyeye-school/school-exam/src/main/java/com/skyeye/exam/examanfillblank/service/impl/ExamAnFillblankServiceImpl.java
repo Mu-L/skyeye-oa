@@ -42,10 +42,11 @@ public class ExamAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
-    public List<ExamAnFillblank> selectBySurveyId(String surveyId) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnFillblank::getBelongId), surveyId);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnFillblank::getBelongAnswerId), id);
+        return count(queryWrapper);
     }
 
     @Override

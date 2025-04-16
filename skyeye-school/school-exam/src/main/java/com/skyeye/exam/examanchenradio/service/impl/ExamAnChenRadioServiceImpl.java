@@ -9,7 +9,6 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
 import com.skyeye.exam.examanchenradio.dao.ExamAnChenRadioDao;
 import com.skyeye.exam.examanchenradio.entity.ExamAnChenRadio;
 import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
@@ -81,10 +80,11 @@ public class ExamAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
     }
 
     @Override
-    public List<ExamAnChenRadio> selectBySurveyId(String surveyId) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongId), surveyId);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnChenRadio::getBelongAnswerId), id);
+        return count(queryWrapper);
     }
 
     @Override

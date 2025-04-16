@@ -12,9 +12,7 @@ import com.skyeye.exam.examanyesno.entity.ExamAnYesno;
 import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @SkyeyeService(name = "判断题保存表管理", groupName = "判断题保存表管理")
@@ -31,10 +29,12 @@ public class ExamAnYesnoServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnYesn
     }
 
     @Override
-    public List<ExamAnYesno> selectBySurveyId(String surveyId) {
+    public long selectBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamAnYesno> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnYesno::getBelongId), surveyId);
-        return list(queryWrapper);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnYesno::getBelongAnswerId), id)
+            .select(CommonConstants.ID);
+        return count(queryWrapper);
     }
 
     @Override

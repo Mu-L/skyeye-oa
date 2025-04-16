@@ -22,7 +22,7 @@ public interface ExamAnChenFbkService extends SkyeyeBusinessService<ExamAnChenFb
 
     void queryExamAnChenFbkListById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnChenFbk> selectBySurveyId(String surveyId);
+    long selectBySurveyId(String surveyId, String id);
 
     List<ExamAnChenFbk> selectByQuId(String id);
 

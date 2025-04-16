@@ -1,7 +1,5 @@
 package com.skyeye.exam.examsurveyquanswer.service.impl;
 
-import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -14,10 +12,9 @@ import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamSurveyQuAnswerServiceImpl
@@ -43,11 +40,29 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     }
 
     @Override
-    public Integer selectFractionBySurveyId(String surveyId) {
+    public float selectFractionBySurveyId(String surveyId, String id) {
         QueryWrapper<ExamSurveyQuAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getSurveyId), surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getBelongAnswerId), id);
         List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
-        Integer sum = examSurveyQuAnswerList.stream().mapToInt(ExamSurveyQuAnswer::getFraction).sum();
-        return sum;
+        float totalFraction = (float) examSurveyQuAnswerList.stream()
+            .mapToDouble(ExamSurveyQuAnswer::getFraction)
+            .sum();
+        return totalFraction;
+    }
+
+    @Override
+    public Map<String, Float> selectFacByIdAndSurveyId(String id, String surveyId) {
+        QueryWrapper<ExamSurveyQuAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getBelongAnswerId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyQuAnswer::getSurveyId), surveyId);
+        List<ExamSurveyQuAnswer> examSurveyQuAnswerList = list(queryWrapper);
+        Map<String, Float> quIdToFractionMap = examSurveyQuAnswerList.stream()
+            .collect(Collectors.toMap(
+                ExamSurveyQuAnswer::getQuId,  // 键：QuId
+                ExamSurveyQuAnswer::getFraction,  // 值：fraction
+                (existing, replacement) -> existing
+            ));
+        return quIdToFractionMap;
     }
 }

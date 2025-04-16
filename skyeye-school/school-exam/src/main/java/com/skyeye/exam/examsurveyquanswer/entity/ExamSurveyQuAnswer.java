@@ -31,14 +31,18 @@ public class ExamSurveyQuAnswer extends CommonInfo {
     private String quId;
 
     @TableField("answer_id")
-    @ApiModelProperty(value = "答案id", required = "required")
+    @ApiModelProperty(value = "答案id")
     private String answerId;
 
     @TableField("survey_id")
     @ApiModelProperty(value = "试卷id", required = "required")
     private String surveyId;
 
+    @TableField("belong_answer_id")
+    @ApiModelProperty(value = "试卷id", required = "required")
+    private String belongAnswerId;
+
     @TableField("fraction")
     @ApiModelProperty(value = "所得分数", required = "required")
-    private Integer fraction;
+    private Float fraction;
 }

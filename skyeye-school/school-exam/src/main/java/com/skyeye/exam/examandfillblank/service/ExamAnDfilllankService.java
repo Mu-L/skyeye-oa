@@ -19,7 +19,7 @@ import java.util.Map;
 public interface ExamAnDfilllankService extends SkyeyeBusinessService<ExamAnDfillblank> {
     void queryExamAnDfilllankById(InputObject inputObject, OutputObject outputObject);
 
-    List<ExamAnDfillblank> selectBySurveyId(String surveyId);
+    long selectBySurveyId(String surveyId, String id);
 
     List<ExamAnDfillblank> selectAnMultiFillblankQuId(String id);
 

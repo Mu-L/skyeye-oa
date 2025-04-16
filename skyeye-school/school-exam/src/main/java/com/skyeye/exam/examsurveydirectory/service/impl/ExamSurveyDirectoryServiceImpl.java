@@ -50,6 +50,7 @@ import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveymarkexam.entity.ExamSurveyMarkExam;
 import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
+import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
@@ -340,6 +341,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    @Override
+    protected void createPrepose(ExamSurveyDirectory entity) {
+        //班级Id
+        String classId = entity.getClassId();
+        //科目Id
+        String subjectId = entity.getSubjectId();
+        List<String> classIds = Arrays.asList(classId.split(","));
+        //总人数
+        int num = subjectClassesService.queryNumBySubAndClassIds(subjectId, classIds);
+        entity.setAllNumber(num);
+        entity.setIsMarkState(CommonNumConstants.NUM_ZERO);
+    }
+
     /**
      * 创建考试目录后的后置操作
      *
@@ -600,6 +614,31 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return bean;
     }
 
+    @Autowired
+    private ExamSurveyQuAnswerService examSurveyQuAnswerService;
+
+    @Override
+    public ExamSurveyDirectory selectBySurAndStuIds(String surveyId, String studentId, String id) {
+        ExamSurveyDirectory bean = super.selectById(surveyId);
+        List<Question> questionList = questionService.QueryQuestionByBelongIdAndStuId(surveyId, studentId);
+        Map<String, List<Question>> collect = questionList.stream()
+            .collect(Collectors.groupingBy(Question::getId));
+        Map<String, Float> stringFloatMap = examSurveyQuAnswerService.selectFacByIdAndSurveyId(id, surveyId);
+        // 遍历分组后的 Map
+        for (Map.Entry<String, List<Question>> entry : collect.entrySet()) {
+            String key = entry.getKey();
+            List<Question> questions = entry.getValue();
+            Float fraction = stringFloatMap.get(key);
+            if (fraction != null) {
+                for (Question question : questions) {
+                    question.setFaction(fraction);
+                }
+            }
+        }
+        bean.setQuestionMation(questionList);
+        return bean;
+    }
+
     @Override
     public Map<String, ExamSurveyDirectory> selectMapBysurveyIds(List<String> surveyIds) {
         if (CollectionUtil.isEmpty(surveyIds)) {
@@ -818,20 +857,16 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public List<ExamSurveyDirectory> queryCreatedSurveyListByUserId(String userId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
+        list(queryWrapper).forEach(examSurveyDirectory -> examSurveyDirectory.setIsCreated(true));
         return list(queryWrapper);
     }
 
     private Map<String, Map<String, List<ExamSurveyDirectory>>> selectSurveyListByClassIds(List<String> classIds) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        String classId = MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId);
-        for (String item : classIds) {
-            queryWrapper.or(wrapper -> wrapper.like(classId, "," + item + ",")
-                .or().like(classId, item + ",") // 以当前值开头
-                .or().like(classId, "," + item) // 以当前值结尾
-                .or().eq(classId, item)); // 等于当前值
-        }
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classIds.stream().collect(Collectors.joining(",")));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
-        Map<String, Map<String, List<ExamSurveyDirectory>>> result = list(queryWrapper).stream()
+        List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
+        Map<String, Map<String, List<ExamSurveyDirectory>>> result = examSurveyDirectoryList.stream()
             .collect(Collectors.groupingBy(
                 ExamSurveyDirectory::getSubjectId, // 外层 Map 的键是科目ID
                 Collectors.groupingBy(
@@ -999,5 +1034,30 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             bean.setReaderMationList(userMationList);
         }
         return bean;
+    }
+
+    @Override
+    public void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String state = commonPageInfo.getState();
+        Integer stateInt = Integer.valueOf(state);
+        String userId = inputObject.getLogParams().get("id").toString();
+        List<ExamSurveyMarkExam> examSurveyMarkExams = examSurveyMarkExamService.selectByUserId(userId);
+        List<String> surveyIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Map<String, ExamSurveyDirectory> stringExamSurveyDirectoryMap = selectMapBysurveyIds(surveyIds);
+        //作为批阅人需要批阅的试卷
+        List<ExamSurveyDirectory> examSurveyDirectoryList = stringExamSurveyDirectoryMap.values().stream().collect(Collectors.toList());
+        for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
+            if (examSurveyDirectory.getCreateId().equals(userId)) {
+                examSurveyDirectory.setIsCreated(true);
+            }
+        }
+        List<ExamSurveyDirectory> filteredExamSurveyDirectoryList = examSurveyDirectoryList.stream()
+            .filter(examSurveyDirectory -> examSurveyDirectory.getIsMarkState() != null
+                && examSurveyDirectory.getIsMarkState().equals(stateInt))
+            .collect(Collectors.toList());
+        outputObject.setBeans(filteredExamSurveyDirectoryList);
+        outputObject.settotal(page.getTotal());
     }
 }
