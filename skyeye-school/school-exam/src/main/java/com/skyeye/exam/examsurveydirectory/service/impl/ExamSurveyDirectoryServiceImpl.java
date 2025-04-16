@@ -736,9 +736,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             // 学生回答并上交的试卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByUserId(userId);
-            if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
-                return;
-            }
             List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
             // 过滤掉学生做过的试卷
             objectIdMapList.replaceAll((subjectId, directories) ->
@@ -770,6 +767,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectId);
             queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderIdArray);
+            //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
