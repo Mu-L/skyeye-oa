@@ -361,10 +361,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long assignmentJoinNum = assignmentSubService.queryClassAssignmentJoinNum(id);
         resultMap.put("assignmentJoinNum", assignmentJoinNum);
         // 测试数量
-        Long testNum = examService.queryClassExamSurveyDirectoryNum(classId);
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(classId, subjectId);
         resultMap.put("testNum", testNum);
         // 测试参与人次
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId, null);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classId, null,subjectId);
         resultMap.put("testJoinNum", testJoinNum);
         outputObject.setBean(resultMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -388,7 +388,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 获取考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
         // 获取测试数量--按班级查
-        Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId);
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId, subjectId);
         // 获取资料数--按科目查
         Long dataNum = datumService.queryClassDataNum(subjectId);
         // 获取互动课件数 --按科目查
@@ -417,7 +417,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         // 6.获取学生的弹幕数量
         Map<String, Long> stuTopicCommentNumMap = topicCommentService.queryCommentNumByTopicIdsAndStuIds(id, stuIds);
         // 7.获取学生参与的测试数量
-        Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId, stuIds);
+        Map<String, Long> stuTestNumMap = examDirectoryAnService.queryClassExamSurveyAnswerNumByStuIds(classesId, stuIds,subjectId);
         for (Map<String, Object> student : studentList) {
             String stuId = student.get("id").toString();
             String studentNumber = student.get("studentNumber").toString();
@@ -538,7 +538,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long coursewareNum = coursewareService.queryClassCoursewareNum(subjectId);
         resultMap.put("dataAndCoursewareNum", datumNum + coursewareNum);
         // 测试数量
-        Long examNum = examService.queryClassExamSurveyDirectoryNum(classesId);
+        Long examNum = examService.queryClassExamSurveyDirectoryNum(classesId,subjectId);
         resultMap.put("examNum", examNum);
         // 课程人数
         Long joinNum = subjectClassesStuService.queryClassStuNum(subjectClassId);
@@ -585,10 +585,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Double checkWorkRate = getRate(checkWorkPersonNum, joinNum * checkWorkNum);
         resultMap.put("checkWorkRate", String.format("%.2f", checkWorkRate) + '%');
         // 测试参与人数---累计参与人数
-        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId, null);
+        Long testJoinNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId, null, subjectId);
         resultMap.put("testJoinNum", testJoinNum);
         // 测试平均分
-        Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, null);
+        Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, null,subjectId);
         resultMap.put("testAvgScore", testAvgScore);
         // 测试提交率
         Double testSubRate = getRate(testJoinNum, joinNum * examNum);
@@ -643,15 +643,13 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
         String studentNumber = stuMap.get("studentNumber").toString();
         //1. 考勤情况
-        Map<String, Object> checkworkMap = checkworkSignService.queryStuCheckworkSignByStuId(stuId);
+        Map<String, Object> checkworkMap = checkworkSignService.queryStuCheckworkSignByStuId(stuId,id);
         stuMap.put("checkWorkList", checkworkMap);
         //2. 表现星星
         String reword = subjectClassesStuService.queryRewordNumByStuNoAndSubjectClassId(id, studentNumber);
         stuMap.put("reword", reword);
         //3. 考勤次数
-        Long checkWorkNum = Long.parseLong(checkworkMap.get(CheckworkSignState.SIGN.name()).toString())
-                + Long.parseLong(checkworkMap.get(CheckworkSignState.LATE_SIGN.name()).toString())
-                + Long.parseLong(checkworkMap.get(CheckworkSignState.NOT_SIGN.name()).toString());
+        Long checkWorkNum = checkworkService.queryCheckWorkNum(id);
         //4. 自己的考勤记录
         Long stuCheckWorkNum = Long.parseLong(checkworkMap.get(CheckworkSignState.SIGN.name()).toString());
         // 5. 考勤率
@@ -667,13 +665,13 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
         stuMap.put("assignmentRate", String.format("%.2f", assignmentRate) + "%");
         // 9. 测试
-        Long testNum = examService.queryClassExamSurveyDirectoryNum(id);
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(id, subjectId);
         stuMap.put("testNum", testNum);
         // 10.学生完成的测试数
-        Long stuTestNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId, stuId);
+        Long stuTestNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId, stuId, subjectId);
         stuMap.put("stuTestNum", stuTestNum);
         // 11. 测试平均数
-        Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, stuId);
+        Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, stuId, subjectId);
         stuMap.put("testAvgScore", testAvgScore);
         stuMap.put("testTotalScore", testNum * 100);
         // 12. 互动课件数

@@ -4,6 +4,7 @@
 
 package com.skyeye.joincircle.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -149,6 +150,9 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
      */
     @Override
     public Map<String, Boolean> checkIsJoinCircle(List<String> circleIds, String userId) {
+        if(CollectionUtil.isEmpty(circleIds)){
+            return new HashMap<>();
+        }
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleIds)
                 .eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);

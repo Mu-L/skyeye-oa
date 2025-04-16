@@ -42,5 +42,5 @@ public interface CheckworkSignService extends SkyeyeBusinessService<CheckworkSig
 
     void queryStuCheckworkSignCount(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, Object> queryStuCheckworkSignByStuId(String stuId);
+    Map<String, Object> queryStuCheckworkSignByStuId(String stuId, String subjectClassId);
 }
