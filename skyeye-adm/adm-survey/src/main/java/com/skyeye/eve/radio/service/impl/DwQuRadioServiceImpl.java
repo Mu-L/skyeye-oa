@@ -170,6 +170,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         }
         QueryWrapper<DwQuRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuRadio::getQuId), id);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuRadio::getOrderById));
         List<DwQuRadio> list = list(queryWrapper);
         Map<String, List<DwQuRadio>> result = list.stream().collect(Collectors.groupingBy(DwQuRadio::getQuId));
         return result;

@@ -773,20 +773,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
-            if (CollectionUtil.isEmpty(examSurveyAnswerList)) {
-                return;
-            }
-            Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
-                .collect(Collectors.toSet());
-            allResults.forEach(
-                survey -> {
-                    if (yesDoSurveyIds.contains(survey.getId())) {
-                        survey.setIsAnswered(true);
-                    } else {
-                        survey.setIsAnswered(false);
+            if (CollectionUtil.isNotEmpty(examSurveyAnswerList)){
+                Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
+                    .collect(Collectors.toSet());
+                allResults.forEach(
+                    survey -> {
+                        if (yesDoSurveyIds.contains(survey.getId())) {
+                            survey.setIsAnswered(true);
+                        } else {
+                            survey.setIsAnswered(false);
+                        }
                     }
-                }
-            );
+                );
+            }
             SubjectClasses idAndClassesId = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(objectId, holderId);
             int size;
             if (idAndClassesId != null) {

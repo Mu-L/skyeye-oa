@@ -406,6 +406,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 case 9: // 排序题
                     question.setOrderByTd(orderQuMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
+                case 3:
                 case 4: // 多行填空题
                     question.setMultifillblankTd(multifillblankMapList.getOrDefault(qid, Collections.emptyList()));
                     break;
