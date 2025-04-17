@@ -8,10 +8,8 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.assignment.entity.Assignment;
-import com.skyeye.school.chapter.entity.Chapter;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: AssignmentService
@@ -28,12 +26,6 @@ public interface AssignmentService extends SkyeyeBusinessService<Assignment> {
     Long queryClassAssignmentNum(String id);
 
     List<String> queryAssignmentIdsBySubjectCLassId(String id);
-
-    List<Assignment> queryListByObjectIdAndSubjectIdAndClassId(String objectId, String subjectClassesId);
-
-    Map<String, Map<String, Object>> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type);
-
-    Map<String, Long> queryAssignmentBySubjectClassesIdAndChapterIds(String subjectClassesId, List<String> chapterIds);
 
     List<Assignment> queryBySubjectClassesId(String subjectClassesId);
 }

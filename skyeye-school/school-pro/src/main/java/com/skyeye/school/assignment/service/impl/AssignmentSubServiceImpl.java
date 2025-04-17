@@ -280,17 +280,6 @@ public class AssignmentSubServiceImpl extends SkyeyeBusinessServiceImpl<Assignme
     }
 
     @Override
-    public List<AssignmentSub> queryAssSubByAssignmentIds(List<String> assIds) {
-        QueryWrapper<AssignmentSub> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(AssignmentSub::getAssignmentId), assIds);
-        List<AssignmentSub> list = list(queryWrapper);
-        if (CollectionUtil.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-        return list;
-    }
-
-    @Override
     public Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassId, List<String> stuIds) {
         List<String> ids = assignmentService.queryAssignmentIdsBySubjectCLassId(subjectClassId);
         if (CollectionUtil.isEmpty(ids)) {

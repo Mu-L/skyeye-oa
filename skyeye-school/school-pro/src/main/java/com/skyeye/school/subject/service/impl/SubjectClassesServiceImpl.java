@@ -480,15 +480,15 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public Integer queryStuNumBySubjectId(String subjectId, String classId) {
+    public SubjectClasses queryStuNumBySubjectId(String subjectId, String classId) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classId);
         SubjectClasses one = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(one)) {
-            return null;
+            return new SubjectClasses();
         }
-        return one.getPeopleNum();
+        return one;
     }
 
     @Override
