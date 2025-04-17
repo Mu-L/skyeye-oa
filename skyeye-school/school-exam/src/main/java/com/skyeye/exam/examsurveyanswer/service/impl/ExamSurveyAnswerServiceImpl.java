@@ -499,11 +499,12 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
+    public Map<String, Integer> queryAnswerNum(List<String> directoryIds, String createId) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
                 .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
