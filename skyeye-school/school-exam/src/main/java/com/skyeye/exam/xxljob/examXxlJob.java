@@ -1,35 +1,28 @@
 package com.skyeye.exam.xxljob;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.google.common.base.Joiner;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.exam.examananswer.service.ExamAnAnswerService;
-import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
-import com.skyeye.exam.examanchencheckbox.service.ExamAnChenCheckboxService;
-import com.skyeye.exam.examanchenfbk.service.ExamAnChenFbkService;
-import com.skyeye.exam.examanchenradio.service.ExamAnChenRadioService;
-import com.skyeye.exam.examanchenscore.service.ExamAnChenScoreService;
-import com.skyeye.exam.examancompchenradio.service.ExamAnCompChenRadioService;
-import com.skyeye.exam.examandfillblank.service.ExamAnDfilllankService;
-import com.skyeye.exam.examanenumqu.service.ExamAnEnumquService;
-import com.skyeye.exam.examanfillblank.service.ExamAnFillblankService;
-import com.skyeye.exam.examanorder.service.ExamAnOrderService;
-import com.skyeye.exam.examanradio.service.ExamAnRadioService;
-import com.skyeye.exam.examanscore.service.ExamAnScoreService;
-import com.skyeye.exam.examanyesno.service.ExamAnYesnoService;
+import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
-import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,18 +46,71 @@ public class examXxlJob {
 
     @Autowired
     private ExamSurveyAnswerService examSurveyAnswerService;
+
+    @Autowired
+    private ExamSurveyDirectoryService examSurveyDirectoryService;
+
+    @Autowired
+    private IUserService iUserService;
+
+    @Autowired
+    private IQuartzService iQuartzService;
+
+    private static Logger log = LoggerFactory.getLogger(examXxlJob.class);
+
+
     @XxlJob("examZoreXxlJob")
     public void examZoreXxlJob() {
         String param = XxlJobHelper.getJobParam();
-        ExamSurveyDirectory paramMap = JSONUtil.toBean(JSONUtil.toJsonStr(param), ExamSurveyDirectory.class);
-        String realStartTime = paramMap.getRealStartTime();
-        String subjectId = paramMap.getSubjectId();
-        String classId = paramMap.getClassId();
-        String id = paramMap.getId();
-        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
-        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectStudentById(subjectClasses.getId());
-        List<String> stuNos = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
-        // 查询学生答题信息
-        examSurveyAnswerService.queryAnswerListByAll(subjectId,classId,id,stuNos);
+        Map<String, Object> paramMap = JSONUtil.toBean(JSONUtil.toJsonStr(param), null);
+        String userId = paramMap.get("userId").toString();
+        String examId = paramMap.get("id").toString();
+        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(examId);
+        String subjectId = examSurveyDirectory.getSubjectId();
+        // 查询班级信息
+        List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectId);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return;
+        }
+        List<String> subjectClassesIdList = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        // 查询班级的所有学生
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subjectClassesIdList);
+        List<String> allStuNo = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+        // 查询学生的答题信息
+        List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.queryListByStuNoListAndExamId(allStuNo, examId);
+        List<String> haveStuNoList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
+        // 找出没有答题的学生学号
+        List<String> notHaveStuNoList = allStuNo.stream().filter(stuNo -> !haveStuNoList.contains(stuNo)).collect(Collectors.toList());
+        try {
+            if (CollectionUtil.isNotEmpty(notHaveStuNoList)) {
+                // 根据学号获取学生的用户信息
+                List<Map<String, Object>> userList = iUserService.queryListBuStudentNumberList(Joiner.on(CommonCharConstants.COMMA_MARK).join(notHaveStuNoList));
+                // 过滤出学号和id
+                Map<String, String> stuNoIdMap = userList.stream().collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.get("id").toString()));
+                // 创造零分答题信息
+                List<ExamSurveyAnswer> examSurveyAnswerList1 = new ArrayList<>();
+                for (String s : notHaveStuNoList) {
+                    ExamSurveyAnswer examSurveyAnswer = new ExamSurveyAnswer();
+                    examSurveyAnswer.setSurveyId(examId);
+                    examSurveyAnswer.setCompleteNum(CommonNumConstants.NUM_ZERO);
+                    examSurveyAnswer.setCompleteItemNum(CommonNumConstants.NUM_ZERO);
+                    examSurveyAnswer.setDataSource(CommonNumConstants.NUM_ZERO);
+                    examSurveyAnswer.setHandleState(CommonNumConstants.NUM_ONE);
+                    examSurveyAnswer.setIsComplete(CommonNumConstants.NUM_ZERO);
+                    examSurveyAnswer.setQuNum(CommonNumConstants.NUM_ZERO);
+                    examSurveyAnswer.setCreateId(stuNoIdMap.getOrDefault(s, "not exits stuNo duty data"));
+                    examSurveyAnswer.setState(CommonNumConstants.NUM_ONE);
+                    examSurveyAnswer.setMarkFraction(CommonNumConstants.NUM_ZERO.floatValue());
+                    examSurveyAnswer.setStudentNumber(s);
+                    examSurveyAnswerList1.add(examSurveyAnswer);
+                }
+                examSurveyAnswerService.createEntity(examSurveyAnswerList1, userId);
+            }
+        } finally {
+            log.info("考试---删除任务---开始");
+            iQuartzService.stopAndDeleteTaskQuartz(examId);// 删除任务
+            log.info("考试---删除任务---结束");
+        }
     }
+
 }
