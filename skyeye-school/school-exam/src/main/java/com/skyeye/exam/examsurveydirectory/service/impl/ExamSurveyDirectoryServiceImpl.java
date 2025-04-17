@@ -354,6 +354,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         int num = subjectClassesService.queryNumBySubAndClassIds(subjectId, classIds);
         entity.setAllNumber(num);
         entity.setIsMarkState(CommonNumConstants.NUM_ZERO);
+        entity.setMarkedNumber(CommonNumConstants.NUM_ZERO);
     }
 
     /**
