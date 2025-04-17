@@ -172,11 +172,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    protected void createPostpose(ExamSurveyAnswer entity, String userId) {
-
-    }
-
-    @Override
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
@@ -507,6 +502,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public Map<String, Integer> queryAnswerNum(List<String> directoryIds) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+                .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
         Map<String, Integer> map = new HashMap<>();
@@ -523,6 +521,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public Map<String, Integer> queryAlreadyAnswerNum(List<String> directoryIds) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
@@ -601,7 +601,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public List<ExamSurveyAnswer> selectSurveyIdByUserId(String userId) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId)
             .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
                 .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
@@ -611,7 +610,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public List<ExamSurveyAnswer> selectSurveyIdByteacherId(String userId) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId)
             .and(wrapper -> wrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
                 .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), ""));
@@ -663,6 +661,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         outputObject.setBeans(examSurveyAnswerList);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryAnswerListByAll(String subjectId, String classId, String id, List<String> stuNos) {
+
     }
 
 

@@ -354,6 +354,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         int num = subjectClassesService.queryNumBySubAndClassIds(subjectId, classIds);
         entity.setAllNumber(num);
         entity.setIsMarkState(CommonNumConstants.NUM_ZERO);
+        entity.setMarkedNumber(CommonNumConstants.NUM_ZERO);
     }
 
     /**
@@ -579,7 +580,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             int readNum = alreadyAnswerNum.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : alreadyAnswerNum.get(examSurveyDirectory.getId());
             examSurveyDirectory.setReadNum(readNum);
             int answerNum = answerNumMap.get(examSurveyDirectory.getId()) == null ? CommonNumConstants.NUM_ZERO : answerNumMap.get(examSurveyDirectory.getId());
-            // 获取未回答的人数
+            // 获取未交的人数
             int unSubmitNum = stuNum - answerNum;
             unSubmitNum = unSubmitNum == -1 ? CommonNumConstants.NUM_ONE : unSubmitNum;
             examSurveyDirectory.setUnSubmitNum(unSubmitNum);
@@ -775,6 +776,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 }
             });
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
             //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
