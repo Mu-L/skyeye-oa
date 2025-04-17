@@ -563,13 +563,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         // 总人数
-        Integer stuNum = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
+        SubjectClasses subjectClasses = subjectClassesService.queryStuNumBySubjectId(objectId, holderId);
+        Integer stuNum = subjectClasses.getPeopleNum();
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return;
         }
         List<String> directoryIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
         // 获取已回答的人数
-        Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds);
+        Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds, subjectClasses.getCreateId());
         // 获取已批阅的人数
         Map<String, Integer> alreadyAnswerNum = examSurveyAnswerService.queryAlreadyAnswerNum(directoryIds);
         List<String> surveyList = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
@@ -650,6 +651,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, surveyIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
             return new HashMap<>();
@@ -794,6 +796,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 );
             }
             SubjectClasses idAndClassesId = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(objectId, holderId);
+            //老师Id
+            String createId = idAndClassesId.getCreateId();
             int size;
             if (idAndClassesId != null) {
                 List<SubjectClassesStu> subjectClassesStuList = Optional.ofNullable(
@@ -803,14 +807,16 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             } else {
                 size = 0;
             }
+            //试卷所有Id
             List<String> collect = allResults.stream()
                 .map(ExamSurveyDirectory::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-
+            //获取这个班级没有批阅但已交答卷人数,纯学生
             Map<String, Integer> stringIntegerMap = CollectionUtil.isNotEmpty(collect)
-                ? examSurveyAnswerService.queryAnswerNum(collect)
+                ? examSurveyAnswerService.queryAnswerNum(collect,createId)
                 : Collections.emptyMap();
+            //获取所有的答卷
             Map<String, List<ExamSurveyAnswer>> stringListMap = CollectionUtil.isNotEmpty(collect)
                 ? examSurveyAnswerService.queryAnswerList(collect)
                 : Collections.emptyMap();
@@ -818,7 +824,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             Map<String, Integer> finalStringIntegerMap = stringIntegerMap;
             allResults.forEach(survey -> {
                 String surveyId = survey.getId();
-                // 处理可能的 null 值，使用默认值 0
+                //没有批阅但已交答卷人数
                 Integer num = finalStringIntegerMap.getOrDefault(surveyId, 0);
                 int unSubmitNum = Math.max(0, size - num);
                 survey.setUnSubmitNum(unSubmitNum);
@@ -831,7 +837,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     .count();
                 survey.setReadNum((int) readNum);
 
-                // num 已用默认值 0，无需拆箱检查
+                // 未批阅数量
                 int unreadNum = num - (int) readNum;
                 survey.setUnreadNum(Math.max(0, unreadNum));
             });
