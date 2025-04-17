@@ -182,7 +182,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         // 将互动课件按章节分组
         Map<String, List<Courseware>> chapterCoursewareMap = coursewareList.stream().collect(Collectors.groupingBy(Courseware::getChapterId));
         // 测试操作
-        List<Map<String, Object>> examList = examService.queryListBySubjectId(subjectClasses.getObjectId());
+        List<Map<String, Object>> examList = examService.queryListBySubjectIdAndState(subjectClasses.getObjectId(),CommonNumConstants.NUM_TWO);
         List<String> examIdList = examList.stream().map(map -> map.get("id").toString()).collect(Collectors.toList());
         // 查出所有的考试提交记录
         List<Map<String, Object>> examAnswerList = examDirectoryAnService.queryExamAnserByExamIds(examIdList);
@@ -224,14 +224,14 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
             chapterMap.put("assignmentSum", assignments.size());
             // 计算作业完成率
             int assignmentCompleteRate = assignments.stream().mapToInt(assignment -> assiIdSubNumMap.getOrDefault(assignment.getId(), CommonNumConstants.NUM_ZERO)).sum();
-            chapterMap.put("assignmentCompleteRate", assignmentCompleteRate == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO
+            chapterMap.put("assignmentCompleteRate", assignmentCompleteRate == CommonNumConstants.NUM_ZERO ? "0.0"
                 : CalculationUtil.divide(String.valueOf(assignmentCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_FOUR));
 
             List<Courseware> coursewares = chapterCoursewareMap.getOrDefault(chapter.getId(), Collections.emptyList());
             chapterMap.put("coursewareSum", coursewares.size());
             // 计算互动课件完成率
             int coursewareCompleteRate = coursewares.stream().mapToInt(courseware -> courStudyNumMap.getOrDefault(courseware.getId(), CommonNumConstants.NUM_ZERO)).sum();
-            chapterMap.put("coursewareCompleteRate", coursewareCompleteRate == CommonNumConstants.NUM_ZERO ? CommonNumConstants.NUM_ZERO :
+            chapterMap.put("coursewareCompleteRate", coursewareCompleteRate == CommonNumConstants.NUM_ZERO ? "0.0":
                 CalculationUtil.divide(String.valueOf(coursewareCompleteRate), String.valueOf(subjectClassesStuList.size()), CommonNumConstants.NUM_FOUR));
             beans.add(chapterMap);
         }
@@ -268,7 +268,7 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         allChapterMap.put("examCompleteRate",
             // 应交数量为0或者考试数量为0则直接为0，否则计算
             Double.parseDouble(shouldSubNum) == CommonNumConstants.NUM_ZERO || examList.size() == CommonNumConstants.NUM_ZERO ?
-                CommonNumConstants.NUM_ZERO : CalculationUtil.divide(String.valueOf(examAnswerList.size()), shouldSubNum, CommonNumConstants.NUM_FOUR));
+                "0.0" : CalculationUtil.divide(String.valueOf(examAnswerList.size()), shouldSubNum, CommonNumConstants.NUM_FOUR));
         beans.add(allChapterMap);
     }
 
@@ -278,23 +278,34 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
      * @param beans 被操作的数据
      */
     private List<Map<String, Object>> setPercentSign(List<Map<String, Object>> beans) {
-        String flagDouble = String.valueOf(Double.valueOf(CommonNumConstants.NUM_ZERO));
+        String zeroDouble = "0.0";
+        String oneHundredDouble = "1.00";
         // 添加百分比, 并排序
         return beans.stream().map(bean -> {
             String assignmentCompleteRate = bean.get("assignmentCompleteRate").toString();
             String coursewareCompleteRate = bean.get("coursewareCompleteRate").toString();
-            if (!assignmentCompleteRate.equals(flagDouble)) {
-                bean.put("assignmentCompleteRate", CalculationUtil.multiply(assignmentCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-            }
-            if (!coursewareCompleteRate.equals(flagDouble)) {
-                bean.put("coursewareCompleteRate", CalculationUtil.multiply(coursewareCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-            }
+            bean.put("assignmentCompleteRate", assignmentCompleteRate.equals(zeroDouble) ? CommonNumConstants.NUM_ZERO :
+                assignmentCompleteRate.equals(oneHundredDouble) ? "100%" : CalculationUtil.multiply(assignmentCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
+            bean.put("coursewareCompleteRate", coursewareCompleteRate.equals(zeroDouble) ? CommonNumConstants.NUM_ZERO :
+                coursewareCompleteRate.equals(oneHundredDouble) ? "100%" : CalculationUtil.multiply(coursewareCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
             if (bean.containsKey("examCompleteRate")) {
                 String examCompleteRate = bean.get("examCompleteRate").toString();
-                if (examCompleteRate.equals(flagDouble)) {
-                    bean.put("examCompleteRate", CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-                }
+                bean.put("examCompleteRate", examCompleteRate.equals(zeroDouble) ? CommonNumConstants.NUM_ZERO :
+                    examCompleteRate.equals(oneHundredDouble) ? "100%" : CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
             }
+
+//            if (!assignmentCompleteRate.equals(zeroDouble)) {
+//                bean.put("assignmentCompleteRate", CalculationUtil.multiply(assignmentCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
+//            }
+//            if (!coursewareCompleteRate.equals(zeroDouble)) {
+//                bean.put("coursewareCompleteRate", CalculationUtil.multiply(coursewareCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
+//            }
+//            if (bean.containsKey("examCompleteRate")) {
+//                String examCompleteRate = bean.get("examCompleteRate").toString();
+//                if (!examCompleteRate.equals(zeroDouble)) {
+//                    bean.put("examCompleteRate", CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
+//                }
+//            }
             return bean;
         }).sorted(Comparator.comparing(bean -> (Integer) bean.get("sort"))).collect(Collectors.toList());
     }

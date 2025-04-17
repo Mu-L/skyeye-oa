@@ -7,5 +7,5 @@ import java.util.Map;
 public interface ExamService  {
     Long queryClassExamSurveyDirectoryNum(String id, String subjectId);
 
-    List<Map<String, Object>> queryListBySubjectId(String subjectId);
+    List<Map<String, Object>> queryListBySubjectIdAndState(String subjectId, Integer state);
 }
