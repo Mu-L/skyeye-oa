@@ -22,13 +22,17 @@ import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.school.subject.entity.SubjectClasses;
+import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamXxlJob
@@ -44,6 +48,11 @@ public class examXxlJob {
     @Autowired
     private SubjectClassesService subjectClassesService;
 
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private ExamSurveyAnswerService examSurveyAnswerService;
     @XxlJob("examZoreXxlJob")
     public void examZoreXxlJob() {
         String param = XxlJobHelper.getJobParam();
@@ -51,7 +60,11 @@ public class examXxlJob {
         String realStartTime = paramMap.getRealStartTime();
         String subjectId = paramMap.getSubjectId();
         String classId = paramMap.getClassId();
+        String id = paramMap.getId();
         SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
-
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectStudentById(subjectClasses.getId());
+        List<String> stuNos = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+        // 查询学生答题信息
+        examSurveyAnswerService.queryAnswerListByAll(subjectId,classId,id,stuNos);
     }
 }

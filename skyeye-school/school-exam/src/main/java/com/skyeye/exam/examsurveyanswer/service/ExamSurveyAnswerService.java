@@ -46,4 +46,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void updateMarkFraction(String id);
 
     void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject);
+
+    void queryAnswerListByAll(String subjectId, String classId, String id, List<String> stuNos);
 }
