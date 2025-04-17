@@ -75,34 +75,6 @@ public class DatumServiceImpl extends SkyeyeBusinessServiceImpl<DatumDao, Datum>
     }
 
     @Override
-    public Map<String, Double> queryDatumByChapterId(Long classNum, String... ids) {
-        Map<String, Double> map = new HashMap<>();
-        double sumSize = 0;
-        double finishRate = 0;
-        map.put("activeNum", sumSize);
-        map.put("finishRate", finishRate);
-        if (classNum == 0) {
-            return map;
-        }
-        for (String id : ids) {
-            QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getChapterId), id);
-            List<Datum> list = list(queryWrapper);
-            if (CollectionUtil.isEmpty(list)) {
-                continue;
-            }
-            sumSize += list.size();
-            double rate = (double) list.size() / classNum;
-            finishRate = finishRate + rate;
-        }
-        if (finishRate == 0 && ids.length > 1) {
-            finishRate = finishRate / ids.length;
-        }
-        map.put("finishRate", finishRate);
-        return map;
-    }
-
-    @Override
     public Long queryClassDataNum(String subjectId) {
         QueryWrapper<Datum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Datum::getObjectId), subjectId);

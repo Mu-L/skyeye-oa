@@ -10,19 +10,15 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
-import com.skyeye.school.assignment.entity.Assignment;
-import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.courseware.dao.CoursewareDao;
 import com.skyeye.school.courseware.entity.Courseware;
-import com.skyeye.school.courseware.entity.CoursewareStudy;
 import com.skyeye.school.courseware.service.CoursewareService;
 import com.skyeye.school.courseware.service.CoursewareStudyService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,116 +96,6 @@ public class CoursewareServiceImpl extends SkyeyeBusinessServiceImpl<CoursewareD
         iAuthUserService.setDataMation(coursewareList, Courseware::getLastUpdateId);
         outputObject.setBeans(coursewareList);
         outputObject.settotal(coursewareList.size());
-    }
-
-    @Override
-    public Map<String, Double> queryCoursewareByChapterId(Long classNum, String... ids) {
-        Map<String, Double> map = new HashMap<>();
-        double sumSize = 0;
-        double finishRate = 0;
-        map.put("activeNum", sumSize);
-        map.put("finishRate", finishRate);
-        for (String id : ids) {
-            QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getChapterId), id);
-            List<Courseware> list = list(queryWrapper);
-            if (CollectionUtil.isEmpty(list)) {
-                continue;
-            }
-            sumSize += list.size();
-            List<String> cIds = list.stream().map(Courseware::getId).collect(Collectors.toList());
-            double rate = coursewareStudyService.queryCoursewareFinshRate(cIds, classNum);
-            finishRate = finishRate + rate;
-        }
-        if (finishRate == 0 && ids.length > 1) {
-            finishRate = finishRate / ids.length;
-        }
-        map.put("finishRate", finishRate);
-        return map;
-    }
-
-    @Override
-    public Map<String, Map<String, Object>> queryInterAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
-        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
-        List<Courseware> list = list(queryWrapper); // 所有章节下的课件
-        Map<String, Map<String, Object>> resultMap = new HashMap<>();
-        Map<String, Map<String, Object>> temp = new HashMap<>();
-        for (Chapter chapter : chapterList) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", "互动课件");
-            map.put("name", chapter.getName());
-            map.put("activeNum", CommonNumConstants.NUM_ZERO);
-            map.put("completeRate", String.format("%.2f",0.0)+"%");
-            temp.put(chapter.getId(), map);
-        }
-        Map<String, Object> tempAll = new HashMap<>();
-        if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
-            tempAll.put("type", "互动课件");
-            tempAll.put("name", "全部");
-            tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
-            tempAll.put("completeRate", String.format("%.2f",0.0)+"%");
-            resultMap.put(type, tempAll);
-            return resultMap;
-        }
-        if (CollectionUtil.isEmpty(list)) {
-            return temp;
-        }
-        // 按章节id分组
-        Map<String, List<Courseware>> map = list.stream().collect(Collectors.groupingBy(Courseware::getChapterId));
-        List<String> coursewareIds = list.stream().map(Courseware::getId).collect(Collectors.toList()); // 所有课件id
-
-        // 获取所有完成作业情况
-        List<CoursewareStudy> coursewareSubs = coursewareStudyService.queryCoursewareSubByCoursewareIds(coursewareIds);
-        Map<String, List<CoursewareStudy>> coursewareSubMap = coursewareSubs.stream().collect(Collectors.groupingBy(CoursewareStudy::getCoursewareId));
-        // 互动课件分析
-
-        if (StrUtil.isNotEmpty(type)) {
-            double completeNum = coursewareSubs.size(); // 完成互动课件次数数
-            double totalNum = list.size(); // 总互动课件次数
-            tempAll.put("type", "互动课件");
-            tempAll.put("name", "全部");
-            tempAll.put("activeNum", totalNum);
-//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (totalNum * classNum));
-            double completeRate = (completeNum / (totalNum * classNum)) * 100;
-            tempAll.put("completeRate", String.format("%.2f",completeRate)+"%");
-            resultMap.put(type, tempAll);
-            return resultMap;
-        }
-        for (Chapter chapter : chapterList) {
-            Map<String, Object> t = new HashMap<>();
-            t.put("type", "互动课件");
-            t.put("name", chapter.getName());
-            List<Courseware> coursewares = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
-            t.put("activeNum", coursewares.size());
-            double completeNum = 0;
-            for (Courseware courseware : coursewares) {
-                List<CoursewareStudy> coursewareSub = coursewareSubMap.get(courseware.getId());
-                if (CollectionUtil.isNotEmpty(coursewareSub)) {
-                    completeNum += coursewareSub.size();
-                }
-            }
-//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (coursewares.size() * classNum));
-            double completeRate = (completeNum / (coursewares.size() * classNum)) * 100;
-            t.put("completeRate",  String.format("%.2f",completeRate)+"%");
-            resultMap.put(chapter.getId(), t);
-        }
-        return resultMap;
-    }
-
-    @Override
-    public Map<String, Long> queryCoursewareBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds) {
-        QueryWrapper<Courseware> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Courseware::getObjectId), subjectId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Courseware::getChapterId), chapterIds);
-        List<Courseware> coursewares = list(queryWrapper);
-        if (CollectionUtil.isEmpty(coursewares)) {
-            return Collections.emptyMap();
-        }
-        // 统计每个章节的资料数量stream流
-        Map<String, Long> resultMap = coursewares.stream().collect(Collectors.groupingBy(Courseware::getChapterId, Collectors.counting()));
-        return resultMap;
     }
 
     @Override

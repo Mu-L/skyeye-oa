@@ -250,6 +250,9 @@ public class CheckworkSignServiceImpl extends SkyeyeBusinessServiceImpl<Checkwor
 
     @Override
     public Long queryCheckWorkPersonNum(List<String> ids) {
+        if(CollectionUtil.isEmpty(ids)){
+            return 0L;
+        }
         QueryWrapper<CheckworkSign> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckworkSign::getCheckworkId), ids);
         queryWrapper.eq(MybatisPlusUtil.toColumns(CheckworkSign::getState),CheckworkSignState.SIGN.getKey());

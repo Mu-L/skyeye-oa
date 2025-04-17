@@ -7,12 +7,9 @@ package com.skyeye.school.courseware.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.courseware.entity.Courseware;
-import com.skyeye.school.courseware.entity.CoursewareStudy;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: CoursewareService
@@ -25,12 +22,6 @@ import java.util.Map;
 public interface CoursewareService extends SkyeyeBusinessService<Courseware> {
 
     void queryCoursewareListBySubjectId(InputObject inputObject, OutputObject outputObject);
-
-    Map<String, Double> queryCoursewareByChapterId(Long classNum, String... ids);
-
-    Map<String, Map<String, Object>> queryInterAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type);
-
-    Map<String, Long> queryCoursewareBySubjectIdAndChapterIds(String subjectId, List<String> chapterIds);
 
     Long queryClassCoursewareNum(String subjectId);
 

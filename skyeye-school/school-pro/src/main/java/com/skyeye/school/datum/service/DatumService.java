@@ -19,8 +19,6 @@ import java.util.Map;
 public interface DatumService extends SkyeyeBusinessService<Datum> {
     void queryDatumListBySubjectId(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, Double> queryDatumByChapterId(Long classNum,String ...ids);
-
     Long queryClassDataNum(String subjectId);
 
     Map<String, Long> queryDatumBySubjectIdAndStuIds(String subjectId, List<String> stuIds);

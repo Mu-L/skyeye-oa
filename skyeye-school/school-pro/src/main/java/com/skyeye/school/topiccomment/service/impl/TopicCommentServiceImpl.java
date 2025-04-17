@@ -99,11 +99,7 @@ public class TopicCommentServiceImpl extends SkyeyeBusinessServiceImpl<TopicComm
         queryWrapper.in(MybatisPlusUtil.toColumns(TopicComment::getTopicId), ids);
         List<TopicComment> beans = list(queryWrapper);
         // 根据createId去重
-        long count = beans.stream().map(TopicComment::getCreateId).distinct().count();
-        if(count == 0){
-            return (long) ids.size();
-        }
-        return count;
+        return beans.stream().map(TopicComment::getCreateId).distinct().count();
     }
 
     @Override
