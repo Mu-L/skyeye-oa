@@ -672,6 +672,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public Map<String, Long> queryClassExamSurveyAnswerNumByStuIds(String classesId, List<String> stuIds, String subjectId) {
         List<String> directorIds = examSurveyDirectoryService.queryDirectoryIdsByClassId(classesId, subjectId);
+        if(CollectionUtil.isEmpty(directorIds)){
+            return new HashMap<>();
+        }
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directorIds);
