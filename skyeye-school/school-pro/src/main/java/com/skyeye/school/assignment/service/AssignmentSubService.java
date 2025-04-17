@@ -57,8 +57,6 @@ public interface AssignmentSubService extends SkyeyeBusinessService<AssignmentSu
 
     Long queryClassAssignmentJoinNum(String id);
 
-    List<AssignmentSub> queryAssSubByAssignmentIds(List<String> assIds);
-
     Map<String, Long> queryStuAssignNumBySubClassesId(String subjectClassId, List<String> stuIds);
 
     Double queryClassAssignmentAvg(String subjectClassId);

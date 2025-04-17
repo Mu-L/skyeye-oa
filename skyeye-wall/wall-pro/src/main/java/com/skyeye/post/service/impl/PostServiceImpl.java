@@ -353,6 +353,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         //查询post
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
         //查询PictureList、commentList
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);

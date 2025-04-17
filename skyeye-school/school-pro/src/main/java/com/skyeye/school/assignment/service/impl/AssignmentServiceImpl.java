@@ -22,10 +22,8 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.school.assignment.classenum.AssignmentTimeState;
 import com.skyeye.school.assignment.dao.AssignmentDao;
 import com.skyeye.school.assignment.entity.Assignment;
-import com.skyeye.school.assignment.entity.AssignmentSub;
 import com.skyeye.school.assignment.service.AssignmentService;
 import com.skyeye.school.assignment.service.AssignmentSubService;
-import com.skyeye.school.chapter.entity.Chapter;
 import com.skyeye.school.chapter.service.ChapterService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.entity.ScoreTypeChild;
@@ -195,96 +193,6 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         }
     }
 
-    /**
-     * type--传 all 计算全部的分析
-     */
-    @Override
-    public Map<String, Map<String, Object>> queryAssAnalysisByChapters(Integer classNum, List<Chapter> chapterList, String type) {
-        List<String> chapterIds = chapterList.stream().map(Chapter::getId).collect(Collectors.toList());
-        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
-        // 所有章节下的作业
-        List<Assignment> list = list(queryWrapper);
-        Map<String, Map<String, Object>> resultMap = new HashMap<>();
-        Map<String, Map<String, Object>> temp = new HashMap<>();
-        // 初始化
-        for (Chapter chapter : chapterList) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("type", "作业");
-            map.put("name", chapter.getName());
-            map.put("activeNum", CommonNumConstants.NUM_ZERO);
-            map.put("completeRate", String.format("%.2f", 0.0)+"%");
-            temp.put(chapter.getId(), map);
-        }
-        Map<String, Object> tempAll = new HashMap<>();
-        // 全部type = all
-        if (StrUtil.isNotEmpty(type) && CollectionUtil.isEmpty(list)) {
-            tempAll.put("type", "作业");
-            tempAll.put("name", "全部");
-            tempAll.put("activeNum", CommonNumConstants.NUM_ZERO);
-            tempAll.put("completeRate", String.format("%.2f", 0.0)+"%");
-            resultMap.put(type, tempAll);
-            return resultMap;
-        }
-        if (CollectionUtil.isEmpty(list)) {
-            return temp;
-        }
-        // 按章节id分组
-        Map<String, List<Assignment>> map = list.stream().collect(Collectors.groupingBy(Assignment::getChapterId));
-        List<String> assIds = list.stream().map(Assignment::getId).collect(Collectors.toList()); // 所有作业id
-        // 获取所有完成作业情况
-        List<AssignmentSub> assignmentSubs = assignmentSubService.queryAssSubByAssignmentIds(assIds);
-        // 按作业id分组
-        Map<String, List<AssignmentSub>> assSubMap = assignmentSubs.stream().collect(Collectors.groupingBy(AssignmentSub::getAssignmentId));
-        // 作业分析
-
-        if (StrUtil.isNotEmpty(type)) {
-            double completeNum = assignmentSubs.size(); // 完成作业次数数
-            double totalNum = list.size(); // 总作业次数
-            tempAll.put("type", "作业");
-            tempAll.put("name", "全部");
-            tempAll.put("activeNum", totalNum);
-            // 计算完成率--16.8%
-            double completeRate = completeNum / (totalNum * classNum) * 100;
-            tempAll.put("completeRate", String.format("%.2f", completeRate)+"%");
-            resultMap.put(type, tempAll);
-            return resultMap;
-        }
-        for (Chapter chapter : chapterList) {
-            Map<String, Object> t = new HashMap<>();
-            t.put("type", "作业");
-            t.put("name", chapter.getName());
-            List<Assignment> assignments = CollectionUtil.isEmpty(map.get(chapter.getId())) ? new ArrayList<>() : map.get(chapter.getId());
-            t.put("activeNum", assignments.size());
-            double completeNum = 0;
-            for (Assignment assignment : assignments) {
-                List<AssignmentSub> assSub = assSubMap.get(assignment.getId());
-                if (CollectionUtil.isNotEmpty(assSub)) {
-                    completeNum += assSub.size();
-                }
-            }
-//            String completeRate = new DecimalFormat("0.0%").format(completeNum / (assignments.size() * classNum));
-            double completeRate = completeNum / (assignments.size() * classNum) * 100;
-            t.put("completeRate", String.format("%.2f", completeRate)+"%");
-            resultMap.put(chapter.getId(), t);
-        }
-        return resultMap;
-    }
-
-    @Override
-    public Map<String, Long> queryAssignmentBySubjectClassesIdAndChapterIds(String subjectClassesId, List<String> chapterIds) {
-        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Assignment::getChapterId), chapterIds);
-        List<Assignment> assignments = list(queryWrapper);
-        if (CollectionUtil.isEmpty(assignments)) {
-            return Collections.emptyMap();
-        }
-        // 统计每个章节的资料数量stream流
-        Map<String, Long> resultMap = assignments.stream().collect(Collectors.groupingBy(Assignment::getChapterId, Collectors.counting()));
-        return resultMap;
-    }
-
     @Override
     public List<Assignment> queryBySubjectClassesId(String subjectClassesId) {
         if (StrUtil.isEmpty(subjectClassesId)) {
@@ -309,15 +217,6 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), id);
         List<Assignment> list = list(queryWrapper);
         return list.stream().map(Assignment::getId).collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Assignment> queryListByObjectIdAndSubjectIdAndClassId(String objectId, String subjectClassesId) {
-        QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getObjectId), objectId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId);
-        List<Assignment> assignmentList = list(queryWrapper);
-        return CollectionUtil.isEmpty(assignmentList) ? new ArrayList<>() : assignmentList;
     }
 
 }
