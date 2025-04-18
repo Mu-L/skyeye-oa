@@ -437,6 +437,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             throw new CustomException("当前班级没有学生,没有答卷");
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         if (CollectionUtil.isNotEmpty(stuNoLists)) {
             List<String> finalStuNoLists = stuNoLists;
             queryWrapper.and(wrapper ->
