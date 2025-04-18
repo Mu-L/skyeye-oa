@@ -13,6 +13,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.dao.MajorDao;
 import com.skyeye.school.major.entity.Major;
@@ -41,6 +42,17 @@ public class MajorServiceImpl extends SkyeyeBusinessServiceImpl<MajorDao, Major>
 
     @Autowired
     private FacultyService facultyService;
+
+    @Override
+    protected void createPrepose(Major entity) {
+        Integer year = entity.getYear();
+        if (year == null) {
+            throw new CustomException("请选择入学年份");
+        }
+        if (year<2 || year >5 ){
+            throw new CustomException("入学年份只能为2-5年");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

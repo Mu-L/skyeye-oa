@@ -415,8 +415,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper);
         String reader = entity.getReaderList();
-        List<String> readerIds = Arrays.asList(reader.split(","));
-        examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
+        if (StrUtil.isNotEmpty(reader)){
+            List<String> readerIds = Arrays.asList(reader.split(","));
+            examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
+        }
         List<Question> questionList = entity.getQuestionMation();
         List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
         List<String> existingIds = existingQuestions.stream().map(Question::getId)
