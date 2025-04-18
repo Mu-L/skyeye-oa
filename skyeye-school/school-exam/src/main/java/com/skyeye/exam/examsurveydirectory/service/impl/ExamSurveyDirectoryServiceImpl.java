@@ -354,7 +354,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         int num = subjectClassesService.queryNumBySubAndClassIds(subjectId, classIds);
         entity.setAllNumber(num);
         entity.setIsMarkState(CommonNumConstants.NUM_ZERO);
-        entity.setMarkedNumber(CommonNumConstants.NUM_ZERO);
+        entity.setReadNum(CommonNumConstants.NUM_ZERO);
     }
 
     /**
@@ -570,7 +570,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         List<String> directoryIds = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
         // 获取已回答的人数
-        Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds, subjectClasses.getCreateId());
+        Map<String, Integer> answerNumMap = examSurveyAnswerService.queryAnswerNum(directoryIds, subjectClasses.getCreateId(), holderId, objectId, CommonNumConstants.NUM_ONE);
         // 获取已批阅的人数
         Map<String, Integer> alreadyAnswerNum = examSurveyAnswerService.queryAlreadyAnswerNum(directoryIds);
         List<String> surveyList = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
@@ -813,34 +813,28 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 .map(ExamSurveyDirectory::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-            //获取这个班级没有批阅但已交答卷人数,纯学生
+            //已交未批试卷
             Map<String, Integer> stringIntegerMap = CollectionUtil.isNotEmpty(collect)
-                ? examSurveyAnswerService.queryAnswerNum(collect,createId)
+                ? examSurveyAnswerService.queryAnswerNum(collect,createId,holderId,objectId,CommonNumConstants.NUM_ONE)
                 : Collections.emptyMap();
-            //获取所有的答卷
-            Map<String, List<ExamSurveyAnswer>> stringListMap = CollectionUtil.isNotEmpty(collect)
-                ? examSurveyAnswerService.queryAnswerList(collect)
+            // 已交已批试卷
+            Map<String, Integer> stringIntegerMap1 = CollectionUtil.isNotEmpty(collect)
+                ? examSurveyAnswerService.queryAnswerNum(collect,createId,holderId,objectId,CommonNumConstants.NUM_TWO)
                 : Collections.emptyMap();
-
             Map<String, Integer> finalStringIntegerMap = stringIntegerMap;
+            Map<String, Integer> finalStringIntegerMap1 = stringIntegerMap1;
             allResults.forEach(survey -> {
                 String surveyId = survey.getId();
-                //没有批阅但已交答卷人数
+                //已交未批人数
                 Integer num = finalStringIntegerMap.getOrDefault(surveyId, 0);
-                int unSubmitNum = Math.max(0, size - num);
+                //已交已批人数
+                Integer num1 = finalStringIntegerMap1.getOrDefault(surveyId, 0);
+                int unSubmitNum = Math.max(0, size - num -num1);
                 survey.setUnSubmitNum(unSubmitNum);
-
-                // 使用空列表避免 NPE
-                List<ExamSurveyAnswer> answerList = stringListMap.getOrDefault(surveyId, Collections.emptyList());
-                // 过滤时检查 state 是否为 null
-                long readNum = answerList.stream()
-                    .filter(answer -> answer.getState() != null && answer.getState().equals(CommonNumConstants.NUM_TWO))
-                    .count();
-                survey.setReadNum((int) readNum);
-
+                // 已批阅数量
+                survey.setReadNum(Math.max(0, num1));
                 // 未批阅数量
-                int unreadNum = num - (int) readNum;
-                survey.setUnreadNum(Math.max(0, unreadNum));
+                survey.setUnreadNum(Math.max(0, num));
             });
             int pageSize = Math.max(1, commonPageInfo.getLimit());
             int pageNum = Math.max(1, commonPageInfo.getPage());

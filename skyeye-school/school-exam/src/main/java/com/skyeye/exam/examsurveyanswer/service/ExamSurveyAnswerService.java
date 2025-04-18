@@ -29,7 +29,7 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, Integer> queryAnswerNum(List<String> directoryIds, String createId);
+    Map<String, Integer> queryAnswerNum(List<String> directoryIds, String createId, String holderId, String objectId, Integer numOne);
 
     void querySurveyBySurveyIdAndUserId(InputObject inputObject, OutputObject outputObject);
 
