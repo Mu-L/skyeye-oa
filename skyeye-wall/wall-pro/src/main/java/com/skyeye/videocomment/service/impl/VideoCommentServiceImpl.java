@@ -177,8 +177,17 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             }
             return videoComment;
         }).collect(Collectors.toList());
+        // 获取父评论数量
+        long total = queryVideoParentCommentTotal(videoId);
         outputObject.setBeans(bean);
-        outputObject.settotal(page.getTotal());
+        outputObject.settotal(total);
+    }
+
+    private Long queryVideoParentCommentTotal(String videoId) {
+        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(VideoComment::getParentId), StrUtil.EMPTY);
+        return count(queryWrapper);
     }
 
     @Override
