@@ -191,8 +191,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                     updateWrapper.eq(CommonConstants.ID, id);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                    update(updateWrapper);
+                    // 创建定时任务
                     startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), examSurveyDirectory.getRealStartTime());
+                    // 更新数据库
+                    update(updateWrapper);
                 }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");

@@ -129,7 +129,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             forumReport.setExamineId(currentUser.get("id").toString());
             forumReport.setExamineTime(DateUtil.getTimeAndToString());
             // 更新状态
-            forumReport.setExamineState((Integer) map.get("state"));
+            forumReport.setExamineState(Integer.parseInt(map.get("state").toString()));
             forumReportService.updateById(forumReport);
             if (ExamineStateEnum.EXAMINE_PASS.getKey().equals(forumReport.getExamineState())) {// 审核通过
                 // 设置举报帖子的状态为不正常
