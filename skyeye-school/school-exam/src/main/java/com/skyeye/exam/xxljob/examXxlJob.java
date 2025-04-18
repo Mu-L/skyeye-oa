@@ -59,29 +59,30 @@ public class examXxlJob {
     private static Logger log = LoggerFactory.getLogger(examXxlJob.class);
 
 
-    @XxlJob("examZoreXxlJob")
-    public void examZoreXxlJob() {
+    @XxlJob("createExam")
+    public void createExam() {
         String param = XxlJobHelper.getJobParam();
         Map<String, Object> paramMap = JSONUtil.toBean(JSONUtil.toJsonStr(param), null);
         String userId = paramMap.get("userId").toString();
-        String examId = paramMap.get("id").toString();
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(examId);
-        String subjectId = examSurveyDirectory.getSubjectId();
-        // 查询班级信息
-        List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectId);
-        if (CollectionUtil.isEmpty(subjectClassesList)) {
-            return;
-        }
-        List<String> subjectClassesIdList = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        // 查询班级的所有学生
-        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subjectClassesIdList);
-        List<String> allStuNo = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
-        // 查询学生的答题信息
-        List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.queryListByStuNoListAndExamId(allStuNo, examId);
-        List<String> haveStuNoList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
-        // 找出没有答题的学生学号
-        List<String> notHaveStuNoList = allStuNo.stream().filter(stuNo -> !haveStuNoList.contains(stuNo)).collect(Collectors.toList());
+        String examId = paramMap.get("objectId").toString();
+        log.info("get paramMap:userId" + userId + "examId" + examId);
         try {
+            ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(examId);
+            String subjectId = examSurveyDirectory.getSubjectId();
+            // 查询班级信息
+            List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectId);
+            if (CollectionUtil.isEmpty(subjectClassesList)) {
+                return;
+            }
+            List<String> subjectClassesIdList = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+            // 查询班级的所有学生
+            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subjectClassesIdList);
+            List<String> allStuNo = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+            // 查询学生的答题信息
+            List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.queryListByStuNoListAndExamId(allStuNo, examId);
+            List<String> haveStuNoList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
+            // 找出没有答题的学生学号
+            List<String> notHaveStuNoList = allStuNo.stream().filter(stuNo -> !haveStuNoList.contains(stuNo)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(notHaveStuNoList)) {
                 // 根据学号获取学生的用户信息
                 List<Map<String, Object>> userList = iUserService.queryListBuStudentNumberList(Joiner.on(CommonCharConstants.COMMA_MARK).join(notHaveStuNoList));
