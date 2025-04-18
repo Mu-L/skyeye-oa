@@ -172,6 +172,19 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
+    protected void createPostpose(ExamSurveyAnswer entity, String userId) {
+        String surveyId = entity.getSurveyId();
+        ExamSurveyDirectory surveyDirectory = examSurveyDirectoryService.selectById(surveyId);
+        String subjectId = surveyDirectory.getSubjectId();
+        String classId = surveyDirectory.getClassId();
+        UpdateWrapper<ExamSurveyAnswer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, entity.getId());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSubjectId), subjectId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getClassId), classId);
+        update(updateWrapper);
+    }
+
+    @Override
     protected void updatePrepose(ExamSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
@@ -217,8 +230,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 entity.setMarkFraction(fraction);
                 ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
                 //已经批阅的学生人数加一
-                examSurveyDirectory.setMarkedNumber(examSurveyDirectory.getMarkedNumber() + CommonNumConstants.NUM_ONE);
-                if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getMarkedNumber() + CommonNumConstants.NUM_ONE)) {
+                examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
+                if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
                     examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
                 }
                 examSurveyDirectoryService.updateEntity(examSurveyDirectory, examSurveyDirectory.getCreateId());
@@ -499,13 +512,15 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Map<String, Integer> queryAnswerNum(List<String> directoryIds, String createId) {
+    public Map<String, Integer> queryAnswerNum(List<String> directoryIds, String createId, String holderId, String objectId, Integer numState) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), directoryIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSubjectId), objectId);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getClassId), holderId);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
                 .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), numState);
         List<ExamSurveyAnswer> list = list(queryWrapper);
         Map<String, List<ExamSurveyAnswer>> collect = list.stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
         Map<String, Integer> map = new HashMap<>();
@@ -621,6 +636,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     public Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect) {
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), collect);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
     }
 

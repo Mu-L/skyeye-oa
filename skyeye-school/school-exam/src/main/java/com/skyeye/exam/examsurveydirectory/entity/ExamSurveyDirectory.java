@@ -153,16 +153,16 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "题目信息", required = "json")
     private List<Question> questionMation;
 
-    @TableField(exist = false)
-    @Property(value = "已批阅数量")
+    @TableField("read_num")
+    @ApiModelProperty(value = "已批阅数量")
     private Integer readNum;
 
-    @TableField(exist = false)
-    @Property(value = "未批阅数量")
+    @TableField("unread_num")
+    @ApiModelProperty(value = "未批阅数量")
     private Integer unreadNum;
 
-    @TableField(exist = false)
-    @Property(value = "未交数量")
+    @TableField("unSubmit_num")
+    @ApiModelProperty(value = "未交数量")
     private Integer unSubmitNum;
 
     @TableField(exist = false)
@@ -177,12 +177,8 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "是否批阅试卷（0 待批阅 ，1 已批阅）",defaultValue = "0")
     private Integer isMarkState;
 
-    @TableField("marked_number")
-    @ApiModelProperty(value = "已批阅人数",defaultValue = "0")
-    private Integer markedNumber;
-
     @TableField("all_number")
-    @ApiModelProperty(value = "总人数")
+    @ApiModelProperty(value = "总人数(一个班或多个班总人数)")
     private Integer allNumber;
 
 }

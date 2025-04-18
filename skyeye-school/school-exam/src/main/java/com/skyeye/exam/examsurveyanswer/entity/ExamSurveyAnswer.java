@@ -145,6 +145,14 @@ public class ExamSurveyAnswer extends OperatorUserInfo {
     @ApiModelProperty(value = "所属专业")
     private String majorId;
 
+    @TableField("subject_id")
+    @ApiModelProperty(value = "所属科目")
+    private String subjectId;
+
+    @TableField("class_id")
+    @ApiModelProperty(value = "所属班级")
+    private String classId;
+
     @TableField(exist = false)
     @Property(value = "所属专业")
     private Major majorMation;
