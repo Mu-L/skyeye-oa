@@ -48,4 +48,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject);
 
     void queryAnswerListByAll(String subjectId, String classId, String id, List<String> stuNos);
+
+    List<ExamSurveyAnswer> queryListByStuNoListAndExamId(List<String> allStuNo, String examId);
 }

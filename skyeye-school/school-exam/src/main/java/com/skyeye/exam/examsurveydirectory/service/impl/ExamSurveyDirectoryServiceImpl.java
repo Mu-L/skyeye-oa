@@ -2,6 +2,7 @@ package com.skyeye.exam.examsurveydirectory.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -13,6 +14,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -23,7 +25,9 @@ import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.eve.examquestion.service.QuestionService;
+import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
@@ -74,6 +78,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -155,6 +161,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
 
+    @Autowired
+    private IQuartzService iQuartzService;
+
 
     /**
      * 设置考试目录的方法
@@ -183,6 +192,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     updateWrapper.eq(CommonConstants.ID, id);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     update(updateWrapper);
+                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), examSurveyDirectory.getRealStartTime());
                 }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
@@ -190,6 +200,21 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         } else {
             throw new CustomException("该试卷信息不存在。");
         }
+    }
+
+    private void startUpTaskQuartz(String name, String title, String startTime) {
+        /// 处理日期  此处delayedTime为当前日期
+        Date stringToDate = DateUtil.getPointTime(startTime, DateUtil.YYYY_MM_DD_HH_MM_SS);
+        Date afterOneDay = DateUtil.getAfDate(stringToDate, 120, "m");
+        DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
+        String lastTime = df.format(afterOneDay);
+        // 正式准备启动定时任务
+        SysQuartzMation sysQuartzMation = new SysQuartzMation();
+        sysQuartzMation.setName(name);
+        sysQuartzMation.setTitle(title);
+        sysQuartzMation.setDelayedTime(lastTime);
+        sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.CREATE_EXAM.getTaskType());
+        iQuartzService.startUpTaskQuartz(sysQuartzMation);
     }
 
     @NotNull
@@ -693,12 +718,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public List<Map<String, Object>> queryListBySubjectId(String subjectId) {
+    public List<Map<String, Object>> queryListBySubjectIdAndState(String subjectId, Integer state) {
         if (StrUtil.isEmpty(subjectId)) {
             return Collections.emptyList();
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
+        if (ObjectUtil.isNotEmpty(state)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), state);
+        }
         return listMaps(queryWrapper);
     }
 
@@ -777,13 +805,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     wrapper.or(qw -> qw.apply("FIND_IN_SET({0}, class_id)", holderId1));
                 }
             });
+
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
             //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
             //老师回答过的答卷
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
-            if (CollectionUtil.isNotEmpty(examSurveyAnswerList)){
+            if (CollectionUtil.isNotEmpty(examSurveyAnswerList)) {
                 Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
                     .collect(Collectors.toSet());
                 allResults.forEach(
@@ -869,7 +898,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), objectIds);
         queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), holderId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         return examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
