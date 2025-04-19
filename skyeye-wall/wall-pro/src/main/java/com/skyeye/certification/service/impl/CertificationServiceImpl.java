@@ -102,6 +102,16 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
     }
 
     @Override
+    public Certification selectById(String id) {
+        Certification certification = super.selectById(id);
+        iSchoolService.setDataMation(certification, Certification::getCampus);
+        iFacultyService.setDataMation(certification, Certification::getFacultyId);
+        iMajorService.setDataMation(certification, Certification::getMajorId);
+        iClassService.setDataMation(certification, Certification::getClassId);
+        return certification;
+    }
+
+    @Override
     public void queryByUserId(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
