@@ -87,6 +87,7 @@ public class examXxlJob {
             log.info("notHaveStuNoList:{}", Arrays.toString(notHaveStuNoList.toArray()));
             if (CollectionUtil.isNotEmpty(notHaveStuNoList)) {
                 // 根据学号获取学生的用户信息
+                log.info("开始调用wall服务，获取用户信息");
                 List<Map<String, Object>> userList = iUserService.queryListBuStudentNumberList(Joiner.on(CommonCharConstants.COMMA_MARK).join(notHaveStuNoList));
                 log.info("userList:{}", Arrays.toString(userList.toArray()));
                 // 过滤出学号和id
