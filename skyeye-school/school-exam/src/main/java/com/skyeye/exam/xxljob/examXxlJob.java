@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -83,9 +84,11 @@ public class examXxlJob {
             List<String> haveStuNoList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
             // 找出没有答题的学生学号
             List<String> notHaveStuNoList = allStuNo.stream().filter(stuNo -> !haveStuNoList.contains(stuNo)).collect(Collectors.toList());
+            log.info("notHaveStuNoList:{}", Arrays.toString(notHaveStuNoList.toArray()));
             if (CollectionUtil.isNotEmpty(notHaveStuNoList)) {
                 // 根据学号获取学生的用户信息
                 List<Map<String, Object>> userList = iUserService.queryListBuStudentNumberList(Joiner.on(CommonCharConstants.COMMA_MARK).join(notHaveStuNoList));
+                log.info("userList:{}", Arrays.toString(userList.toArray()));
                 // 过滤出学号和id
                 Map<String, String> stuNoIdMap = userList.stream().collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.get("id").toString()));
                 // 创造零分答题信息
@@ -105,6 +108,7 @@ public class examXxlJob {
                     examSurveyAnswer.setStudentNumber(s);
                     examSurveyAnswerList1.add(examSurveyAnswer);
                 }
+                log.info("examSurveyAnswerList1:{}", Arrays.toString(examSurveyAnswerList1.toArray()));
                 examSurveyAnswerService.createEntity(examSurveyAnswerList1, userId);
             }
         } finally {
