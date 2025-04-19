@@ -186,7 +186,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     private Long queryVideoParentCommentTotal(String videoId) {
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
-        queryWrapper.ne(MybatisPlusUtil.toColumns(VideoComment::getParentId), StrUtil.EMPTY);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId), StrUtil.EMPTY);
         return count(queryWrapper);
     }
 
