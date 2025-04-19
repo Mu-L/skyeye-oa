@@ -575,7 +575,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Long topicJoinNum = topicCommentService.queryClassTopicJoinNum(subjectClassId);
         resultMap.put("topicJoinNum", topicJoinNum);
         // 成员参与率
-        Double joinRate = getRate(topicJoinNum-1, joinNum * topicNum);
+        Double joinRate = getRate(topicJoinNum, (joinNum+1) * topicNum);
         resultMap.put("joinRate", String.format("%.2f", joinRate) + '%');
         // 考勤数量
         Long checkWorkNum = checkworkService.queryCheckWorkNum(subjectClassId);
