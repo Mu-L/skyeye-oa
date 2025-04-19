@@ -452,10 +452,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         //学生回答的答卷
         List<ExamSurveyAnswer> list = list(queryWrapper);
         UserOrStudent teacherInfo = schoolCommonService.queryUserOrStudent(createId);
-        QueryWrapper<ExamSurveyAnswer> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
-        queryWrapper1.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
         List<Map<String, Object>> userList = new ArrayList<>();
         if (CollectionUtil.isNotEmpty(stuNoList)) {
