@@ -167,6 +167,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Autowired
     private IQuartzService iQuartzService;
 
+    @Autowired
+    private IUserService iUserService;
+
 
     /**
      * 设置考试目录的方法
@@ -196,8 +199,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     // 更新数据库
                     update(updateWrapper);
-                    // 创建定时任务
-                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
+                    if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)){
+                        // 创建定时任务
+                        startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
+                    }
                 }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
@@ -537,6 +542,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getEndType), CommonNumConstants.NUM_ONE);
                 // 执行更新操作
                 update(updateWrapper);
+                // 创建没有提交考试的答案的学生，创建0分答案
+                createNotSubStudent(examSurveyDirectoryId, inputObject.getLogParams().get("id").toString());
             }
         } else {
             throw new CustomException("该试卷信息不存在!");
@@ -748,7 +755,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ZERO);
         return count(queryWrapper);
     }
 
@@ -1103,5 +1110,55 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             .collect(Collectors.toList());
         outputObject.setBeans(filteredExamSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
+    }
+
+    /**
+     * 根据试卷id和当前用户id，创建没有提交考试的答案的学生，创建0分答案
+     *
+     * @param id
+     * @param userId
+     */
+    @Override
+    public void createNotSubStudent(String id, String userId) {
+        ExamSurveyDirectory examSurveyDirectory = super.selectById(id);
+        String subjectId = examSurveyDirectory.getSubjectId();
+        // 查询班级信息
+        List<SubjectClasses> subjectClassesList = subjectClassesService.querySubjectClassesByObjectId(subjectId);
+        if (CollectionUtil.isEmpty(subjectClassesList)) {
+            return;
+        }
+        List<String> subjectClassesIdList = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        // 查询班级的所有学生
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(subjectClassesIdList);
+        List<String> allStuNo = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
+        // 查询学生的答题信息
+        List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.queryListByStuNoListAndExamId(allStuNo, id);
+        List<String> haveStuNoList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());
+        // 找出没有答题的学生学号
+        List<String> notHaveStuNoList = allStuNo.stream().filter(stuNo -> !haveStuNoList.contains(stuNo)).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(notHaveStuNoList)) {
+            // 根据学号获取学生的用户信息
+            List<Map<String, Object>> userList = iUserService.queryListBuStudentNumberList(Joiner.on(CommonCharConstants.COMMA_MARK).join(notHaveStuNoList));
+            // 过滤出学号和id
+            Map<String, String> stuNoIdMap = userList.stream().collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.get("id").toString()));
+            // 创造零分答题信息
+            List<ExamSurveyAnswer> examSurveyAnswerList1 = new ArrayList<>();
+            for (String s : notHaveStuNoList) {
+                ExamSurveyAnswer examSurveyAnswer = new ExamSurveyAnswer();
+                examSurveyAnswer.setSurveyId(id);
+                examSurveyAnswer.setCompleteNum(CommonNumConstants.NUM_ZERO);
+                examSurveyAnswer.setCompleteItemNum(CommonNumConstants.NUM_ZERO);
+                examSurveyAnswer.setDataSource(CommonNumConstants.NUM_ZERO);
+                examSurveyAnswer.setHandleState(CommonNumConstants.NUM_ONE);
+                examSurveyAnswer.setIsComplete(CommonNumConstants.NUM_ZERO);
+                examSurveyAnswer.setQuNum(CommonNumConstants.NUM_ZERO);
+                examSurveyAnswer.setCreateId(stuNoIdMap.getOrDefault(s, "not exits stuNo duty data"));
+                examSurveyAnswer.setState(CommonNumConstants.NUM_ONE);
+                examSurveyAnswer.setMarkFraction(CommonNumConstants.NUM_ZERO.floatValue());
+                examSurveyAnswer.setStudentNumber(s);
+                examSurveyAnswerList1.add(examSurveyAnswer);
+            }
+            examSurveyAnswerService.createEntity(examSurveyAnswerList1, userId);
+        }
     }
 }

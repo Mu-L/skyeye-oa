@@ -25,7 +25,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+@UniqueField(value = {"schoolId", "name"})
 @RedisCacheField(name = "school:teachBuilding")
 @TableName(value = "school_teach_building")
 @ApiModel(value = "教学楼信息实体类")
@@ -44,7 +44,7 @@ public class TeachBuilding extends AreaGeneralInfo {
     private String schoolId;
 
     @TableField("name")
-    @ApiModelProperty(value = "地点名称",required = "required")
+    @ApiModelProperty(value = "地点名称",required = "required",fuzzyLike = true)
     private String name;
 
     @TableField("longitude")

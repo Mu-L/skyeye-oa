@@ -12,6 +12,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
@@ -55,6 +56,13 @@ public class ClassesServiceImpl extends SkyeyeBusinessServiceImpl<ClassesDao, Cl
 
     @Autowired
     private YearSystemService yearSystemService;
+
+    @Override
+    public void validatorEntity(Classes entity){
+        if (entity.getYear() < 1977){
+            throw new CustomException("入学年份必须在1976年之后，不包括1976年");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

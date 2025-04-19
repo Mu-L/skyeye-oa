@@ -3,6 +3,7 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -744,7 +745,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), examIdList);
-        return listMaps(queryWrapper);
+        return JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
     }
 
     @Override

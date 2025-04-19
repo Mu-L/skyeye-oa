@@ -56,4 +56,5 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject);
 
+    void createNotSubStudent(String id, String userId);
 }

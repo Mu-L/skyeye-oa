@@ -162,10 +162,21 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId),StrUtil.EMPTY);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
         List<VideoComment> videoCommentList = list(queryWrapper);
         if (CollectionUtil.isEmpty(videoCommentList)) {
             return;
+        }
+        List<String> videoCommentIds = videoCommentList.stream().map(VideoComment::getId).collect(Collectors.toList());
+        // 查询子评论
+        QueryWrapper<VideoComment> querySonWrapper = new QueryWrapper<>();
+        querySonWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
+        querySonWrapper.in(MybatisPlusUtil.toColumns(VideoComment::getParentId),videoCommentIds);
+        querySonWrapper.orderByAsc(MybatisPlusUtil.toColumns(VideoComment::getCreateTime));
+        List<VideoComment> sonVideoCommentList = list(querySonWrapper);
+        if (CollectionUtil.isNotEmpty(sonVideoCommentList)) {
+            videoCommentList.addAll(sonVideoCommentList);
         }
         setCommentPicture(videoCommentList);
         checkUpvote(videoCommentList, userId);
@@ -178,16 +189,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             return videoComment;
         }).collect(Collectors.toList());
         // 获取父评论数量
-        long total = queryVideoParentCommentTotal(videoId);
         outputObject.setBeans(bean);
-        outputObject.settotal(total);
-    }
-
-    private Long queryVideoParentCommentTotal(String videoId) {
-        QueryWrapper<VideoComment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getVideoId), videoId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoComment::getParentId), StrUtil.EMPTY);
-        return count(queryWrapper);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
