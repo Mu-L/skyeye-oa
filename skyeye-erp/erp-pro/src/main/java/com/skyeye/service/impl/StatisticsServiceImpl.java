@@ -4,6 +4,7 @@
 
 package com.skyeye.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.common.base.handler.enclosure.helper.ServiceBeanToEntityHelper;
@@ -81,9 +82,19 @@ public class StatisticsServiceImpl implements StatisticsService {
         materialNormsService.setMationForMap(beans, "normsId", "normsMation");
         erpDepotService.setMationForMap(beans, "depotId", "depotMation");
         beans.forEach(bean -> {
-            String idKey = bean.get("idKey").toString();
-            String serviceName = ServiceBeanToEntityHelper.getServiceName(idKey);
-            bean.put("serviceName", serviceName);
+            Object idKeyObj = bean.get("idKey");
+            if (idKeyObj != null && !idKeyObj.toString().trim().isEmpty()) {
+                String idKey = idKeyObj.toString();
+                String serviceName = null;
+                try {
+                    serviceName = ServiceBeanToEntityHelper.getServiceName(idKey);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                bean.put("serviceName", serviceName);
+            } else {
+                bean.put("serviceName", null);
+            }
         });
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());

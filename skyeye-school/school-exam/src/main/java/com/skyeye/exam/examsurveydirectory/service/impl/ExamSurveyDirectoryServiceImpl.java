@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -57,6 +58,7 @@ import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.exam.service.ExamService;
@@ -73,7 +75,10 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectService;
+import com.xxl.job.core.context.XxlJobHelper;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -191,10 +196,10 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
                     updateWrapper.eq(CommonConstants.ID, id);
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                    // 创建定时任务
-                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), examSurveyDirectory.getLastUpdateTime());
                     // 更新数据库
                     update(updateWrapper);
+                    // 创建定时任务
+                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
                 }
             } else {
                 throw new CustomException("该试卷已发布，请刷新数据。");
@@ -415,7 +420,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyMarkExam::getSurveyId), surveId);
         examSurveyMarkExamService.remove(queryWrapper);
         String reader = entity.getReaderList();
-        if (StrUtil.isNotEmpty(reader)){
+        if (StrUtil.isNotEmpty(reader)) {
             List<String> readerIds = Arrays.asList(reader.split(","));
             examSurveyMarkExamService.createExamSurveyMarkExam(surveId, readerIds, userId);
         }
@@ -679,7 +684,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, surveyIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
@@ -809,7 +814,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     wrapper.or(qw -> qw.apply("FIND_IN_SET({0}, class_id)", holderId1));
                 }
             });
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState),CommonNumConstants.NUM_ONE);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
             //这个科目班级的试卷
             List<ExamSurveyDirectory> allResults = list(queryWrapper);
@@ -847,11 +852,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 .collect(Collectors.toList());
             //已交未批试卷
             Map<String, Integer> stringIntegerMap = CollectionUtil.isNotEmpty(collect)
-                ? examSurveyAnswerService.queryAnswerNum(collect,createId,holderId,objectId,CommonNumConstants.NUM_ONE)
+                ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_ONE)
                 : Collections.emptyMap();
             // 已交已批试卷
             Map<String, Integer> stringIntegerMap1 = CollectionUtil.isNotEmpty(collect)
-                ? examSurveyAnswerService.queryAnswerNum(collect,createId,holderId,objectId,CommonNumConstants.NUM_TWO)
+                ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_TWO)
                 : Collections.emptyMap();
             Map<String, Integer> finalStringIntegerMap = stringIntegerMap;
             Map<String, Integer> finalStringIntegerMap1 = stringIntegerMap1;
@@ -861,7 +866,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 Integer num = finalStringIntegerMap.getOrDefault(surveyId, 0);
                 //已交已批人数
                 Integer num1 = finalStringIntegerMap1.getOrDefault(surveyId, 0);
-                int unSubmitNum = Math.max(0, size - num -num1);
+                int unSubmitNum = Math.max(0, size - num - num1);
                 survey.setUnSubmitNum(unSubmitNum);
                 // 已批阅数量
                 survey.setReadNum(Math.max(0, num1));
