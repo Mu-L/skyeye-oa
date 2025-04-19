@@ -44,7 +44,7 @@ public class TeachBuilding extends AreaGeneralInfo {
     private String schoolId;
 
     @TableField("name")
-    @ApiModelProperty(value = "地点名称",required = "required")
+    @ApiModelProperty(value = "地点名称",required = "required",fuzzyLike = true)
     private String name;
 
     @TableField("longitude")

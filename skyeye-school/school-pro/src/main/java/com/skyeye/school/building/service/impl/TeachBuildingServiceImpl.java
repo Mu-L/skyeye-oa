@@ -50,17 +50,6 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String keyword = commonPageInfo.getKeyword();
-        if (StrUtil.isNotEmpty(keyword)) {
-            QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
-            queryWrapper.like(MybatisPlusUtil.toColumns(TeachBuilding::getName), keyword);
-            List<TeachBuilding> list = list(queryWrapper);
-            list.stream().map(item->{
-                item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-                return item;
-            });
-        }
         List<Map<String, Object>> bean = super.queryPageDataList(inputObject);
         schoolService.setMationForMap(bean, "schoolId", "schoolMation");
         return bean;
@@ -70,23 +59,23 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         TeachBuilding building = selectById(id);
-        iAuthUserService.setName(building,"createId", "createName");
-        iAuthUserService.setName(building,"lastUpdateId", "lastUpdateName");
+        iAuthUserService.setName(building, "createId", "createName");
+        iAuthUserService.setName(building, "lastUpdateId", "lastUpdateName");
         outputObject.setBean(building);
     }
 
     @Override
     public void queryTeachBuildingBySchoolId(InputObject inputObject, OutputObject outputObject) {
         String schoolId = inputObject.getParams().get("schoolId").toString();
-        if(StrUtil.isEmpty(schoolId)){
+        if (StrUtil.isEmpty(schoolId)) {
             return;
         }
         QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
         List<TeachBuilding> teachBuildingList = list(queryWrapper);
-        schoolService.setDataMation(teachBuildingList,TeachBuilding::getSchoolId);
-        iAuthUserService.setName(teachBuildingList,"createId","createName");
-        iAuthUserService.setName(teachBuildingList,"lastUpdateId","lastUpdateName");
+        schoolService.setDataMation(teachBuildingList, TeachBuilding::getSchoolId);
+        iAuthUserService.setName(teachBuildingList, "createId", "createName");
+        iAuthUserService.setName(teachBuildingList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(teachBuildingList);
         outputObject.settotal(teachBuildingList.size());
     }
@@ -105,7 +94,7 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
         outputObject.settotal(teachBuildingList.size());
     }
 
-    @Transactional
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     @Override
     public void deleteById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
