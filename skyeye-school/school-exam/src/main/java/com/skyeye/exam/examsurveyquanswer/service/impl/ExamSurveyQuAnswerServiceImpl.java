@@ -68,6 +68,15 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
     public void batchWriteExamSurveyQuAnswer(InputObject inputObject, OutputObject outputObject) {
         ExamSurveyQuAnswerBox examSurveyQuAnswerBox = inputObject.getParams(ExamSurveyQuAnswerBox.class);
         List<ExamSurveyQuAnswer> examSurveyQuAnswerList = examSurveyQuAnswerBox.getExamSurveyQuAnswerList();
-        createEntity(examSurveyQuAnswerList, StrUtil.EMPTY);
+
+        List<ExamSurveyQuAnswer> updateList = examSurveyQuAnswerList.stream()
+            .filter(examSurveyQuAnswer -> StrUtil.isNotBlank(examSurveyQuAnswer.getId()))
+            .collect(Collectors.toList());
+        updateEntity(updateList, StrUtil.EMPTY);
+
+        List<ExamSurveyQuAnswer> insertList = examSurveyQuAnswerList.stream()
+            .filter(examSurveyQuAnswer -> StrUtil.isBlank(examSurveyQuAnswer.getId()))
+            .collect(Collectors.toList());
+        createEntity(insertList, StrUtil.EMPTY);
     }
 }
