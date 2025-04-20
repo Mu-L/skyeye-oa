@@ -27,6 +27,7 @@ import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
 import com.skyeye.school.score.service.ScoreService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
+import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private ICertificationRest iCertificationRest;
+
+    @Autowired
+    private SubjectClassesStuService subjectClassesStuService;
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
@@ -248,21 +252,27 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             return;
         }
 
-        Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
-
         // 获取学生信息
         List<String> stuNoList = scoreList.stream().map(Score::getStuNo).distinct().collect(Collectors.toList());
+        // 过滤出当前班级学生信息
+        Map<String, String> stuNoReward = subjectClassesStuService.queryStuStarNumBySubClassesId(subClassLinkId, stuNoList);
+        stuNoList = stuNoReward.keySet().stream().collect(Collectors.toList());
         if (CollectionUtil.isEmpty(stuNoList)) {
             return;
         }
+        List<String> finalStuNoList = stuNoList;
+        // 只要当前班级的学生成绩信息
+        scoreList = scoreList.stream().filter(score -> finalStuNoList.contains(score.getStuNo())).collect(Collectors.toList());
+
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(finalStuNoList))).getRows();
         if (CollectionUtil.isEmpty(userList)) {
             return;
         }
         Map<String, String> userMap = userList.stream()
             .collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.getOrDefault("realName", StrUtil.EMPTY).toString()));
 
+        Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
         Map<String, Map<String, Object>> stuScoreMap = new HashMap<>();
         for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
             List<Score> scores = collect.get(scoreTypeChild.getId());
