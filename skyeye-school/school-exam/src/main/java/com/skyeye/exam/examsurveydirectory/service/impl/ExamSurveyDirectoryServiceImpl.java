@@ -175,7 +175,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
 
     /**
-     * 设置考试目录的方法
+     * 发布试卷
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
@@ -192,20 +192,31 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (surveyState == null || !surveyState.equals(CommonNumConstants.NUM_ZERO)) {
             throw new CustomException("该试卷已发布，请刷新数据。");
         }
-        String belongId = examSurveyDirectory.getId();
-        Integer fractionNumber = getFractionNumber(belongId);
-        if (fractionNumber == null || fractionNumber == 0) {
+        List<Question> questions = questionService.QueryQuestionByBelongId(id);
+        if (CollectionUtil.isEmpty(questions)) {
             throw new CustomException("该试卷没有题目，请添加题目。");
         }
-        if (fractionNumber != 0) {
-            UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, id);
-            updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-            update(updateWrapper);
-            if (examSurveyDirectory.getEndType() != null){
-                if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
-                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
-                }
+        Integer fraction = 0;
+        int questionNum = 0;
+        for (Question question : questions) {
+            int questionType = question.getQuType();
+            if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                fraction += question.getFraction();
+                questionNum++;
+            }
+        }
+        if (fraction == null || fraction == 0) {
+            throw new CustomException("该试卷没有题目，请添加题目!");
+        }
+        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+        update(updateWrapper);
+        if (examSurveyDirectory.getEndType() != null) {
+            if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
+                startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
             }
         }
     }
@@ -241,11 +252,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                 questionNum++;
             }
         }
-        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, belongId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), questionNum);
-        update(updateWrapper);
         return fraction;
     }
 
