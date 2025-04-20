@@ -36,8 +36,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
 
     void queryMySurvey(InputObject inputObject, OutputObject outputObject);
 
-    void createExamDirectory(InputObject inputObject, OutputObject outputObject);
-
     void querySurveyListBySubjectLinkId(InputObject inputObject, OutputObject outputObject);
 
     Map<String, List<ExamSurveyDirectory>> querySurveyListByIds(List<String> surveyIds, String createId);
@@ -57,4 +55,6 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject);
 
     void createNotSubStudent(String id, String userId);
+
+    void updateSurveyAnswerStatus(String id);
 }

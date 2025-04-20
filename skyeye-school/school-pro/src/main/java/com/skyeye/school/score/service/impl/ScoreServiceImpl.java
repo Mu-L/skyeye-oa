@@ -65,8 +65,12 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     }
 
     @Override
-    public void initScorePartForScoreType(List<String> scoreTypeIds, String subClassLinkId) {
-        List<Map<String, Object>> students = subjectClassesStuService.queryClassStuIds(subClassLinkId);
+    public void initScorePartForScoreType(List<String> scoreTypeIds, Map<String, String> childIdToSubClassLinkId) {
+        if (CollectionUtil.isEmpty(scoreTypeIds) || CollectionUtil.isEmpty(childIdToSubClassLinkId)) {
+            return;
+        }
+        List<String> subClassLinkId = childIdToSubClassLinkId.values().stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        List<Map<String, Object>> students = subjectClassesStuService.queryClassStuIds(subClassLinkId.toArray(new String[]{}));
         if (CollectionUtil.isEmpty(students)) {
             return;
         }
@@ -211,6 +215,17 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     public void calculateScore(String subjectId, String subClassLinkId) {
         // 查询这个课程与班级下的所有成绩类型
         List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
+        List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        // 查询这个学生的成绩
+        List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 计算成绩
+        calculateScore(scoreTypeChildrenList, scoreList);
+    }
+
+    @Override
+    public void calculateScore(String subjectId, List<String> subClassLinkIdList) {
+        // 查询这个课程与班级下的所有成绩类型
+        List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkIdList);
         List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         // 查询这个学生的成绩
         List<Score> scoreList = queryScoreList(scoreTypeIds, StrUtil.EMPTY);

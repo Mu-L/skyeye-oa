@@ -28,7 +28,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-//@RedisCacheField(name = "Exam:directory")
 @TableName(value = "exam_survey_directory")
 @ApiModel("试卷实体类")
 public class ExamSurveyDirectory extends OperatorUserInfo {
@@ -106,7 +105,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private String gradeId;
 
     @TableField("class_id")
-    @ApiModelProperty(value = "所属班级", required = "required")
+    @ApiModelProperty(value = "所属班级,多个班级用逗号隔开", required = "required")
     private String classId;
 
     @TableField("semester_id")
@@ -174,7 +173,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private Boolean isCreated;
 
     @TableField("is_mark_state")
-    @ApiModelProperty(value = "是否批阅试卷（0 待批阅 ，1 已批阅）",defaultValue = "0")
+    @ApiModelProperty(value = "是否批阅试卷（0 待批阅 ，1 已批阅）", defaultValue = "0")
     private Integer isMarkState;
 
     @TableField("all_number")

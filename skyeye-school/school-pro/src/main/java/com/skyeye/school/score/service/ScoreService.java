@@ -11,6 +11,7 @@ import com.skyeye.school.score.entity.Score;
 import com.skyeye.school.score.entity.ScoreTypeChild;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ScoreService
@@ -24,7 +25,7 @@ public interface ScoreService extends SkyeyeBusinessService<Score> {
 
     void deleteByObjectId(String... objectId);
 
-    void initScorePartForScoreType(List<String> scoreTypeIds, String subClassLinkId);
+    void initScorePartForScoreType(List<String> scoreTypeIds, Map<String, String> childIdToSubClassLinkId);
 
     void initScorePartForScoreType(String scoreTypeId, String subClassLinkId);
 
@@ -57,6 +58,9 @@ public interface ScoreService extends SkyeyeBusinessService<Score> {
     void calculateScore(List<ScoreTypeChild> scoreTypeChildrenList, List<Score> scoreList);
 
     void calculateScore(String subjectId, String subClassLinkId);
+
+    void calculateScore(String subjectId, List<String> subClassLinkIdList);
+
 
     void updateScore(InputObject inputObject, OutputObject outputObject);
 }

@@ -54,10 +54,9 @@ import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.faculty.service.FacultyService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
-import com.skyeye.school.score.classenum.NumberCodeEnum;
-import com.skyeye.school.score.entity.ScoreTypeChild;
 import com.skyeye.school.score.service.ScoreService;
-import com.skyeye.school.score.service.ScoreTypeChildService;
+import com.skyeye.school.student.entity.Student;
+import com.skyeye.school.student.service.StudentService;
 import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
@@ -157,6 +156,15 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Autowired
     private SchoolCommonService schoolCommonService;
 
+    @Autowired
+    private IUserService iUserService;
+
+    @Autowired
+    private ScoreService scorePartService;
+
+    @Autowired
+    private StudentService studentService;
+
     @Override
     protected void createPrepose(ExamSurveyAnswer entity) {
         String id = InputObject.getLogParamsStatic().get("id").toString();
@@ -177,9 +185,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
     }
 
-    @Autowired
-    private ScoreTypeChildService scoreTypeChildService;
-
     @Override
     protected void createPostpose(ExamSurveyAnswer entity, String userId) {
         String surveyId = entity.getSurveyId();
@@ -191,43 +196,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSubjectId), subjectId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getClassId), classId);
         update(updateWrapper);
-
-        List<String> classIds = Arrays.asList(classId.split(","));
-        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubAndClassIds(subjectId, classIds);
-        if (ObjectUtil.isEmpty(subjectClassesList)) {
-            throw new CustomException("没有科目对应的班级");
-        }
-        String testKey = NumberCodeEnum.TEST.getKey();
-        List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        List<ScoreTypeChild> scoreTypeChildren = scoreTypeChildService.selectIds(subjectId, subjectClassesIds, testKey);
-        if (CollectionUtil.isEmpty(scoreTypeChildren)) {
-            throw new CustomException("没有科目对应的班级");
-        }
-        Map<String, List<ScoreTypeChild>> collect = scoreTypeChildren.stream().collect(Collectors.groupingBy(ScoreTypeChild::getSubClassLinkId));
-        List<ScoreTypeChild> list = new ArrayList<>();
-        for (String subjectClassesId : subjectClassesIds) {
-            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
-            scoreTypeChild.setSubjectId(subjectId);
-            scoreTypeChild.setSubClassLinkId(subjectClassesId);
-            if (CollectionUtil.isEmpty(collect.get(subjectClassesId)) || ObjectUtil.isEmpty(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO))) {
-                throw new CustomException("没有科目对应的班级");
-            }
-
-            scoreTypeChild.setParentId(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO).getId());
-            scoreTypeChild.setName(surveyDirectory.getSurveyName());
-            scoreTypeChild.setNameLinkId(entity.getId());
-            scoreTypeChild.setNameLinkKey(getServiceClassName());
-            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-            list.add(scoreTypeChild);
-        }
-        scoreTypeChildService.createEntity(list, userId);
     }
-
-    @Autowired
-    private IUserService iUserService;
-
-    @Autowired
-    private ScoreService scorePartService;
 
     @Override
     protected void updatePrepose(ExamSurveyAnswer entity) {
@@ -273,46 +242,31 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
                 float fraction = examSurveyQuAnswerService.selectFractionBySurveyId(entity.getSurveyId(), entity.getId());
                 entity.setMarkFraction(fraction);
-                ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
-                //已经批阅的学生人数加一
-                if (examSurveyDirectory.getReadNum() == null) {
-                    examSurveyDirectory.setReadNum(CommonNumConstants.NUM_ONE);
-                }
-                examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
-                if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
-                    examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
-                }
-                examSurveyDirectoryService.updateEntity(examSurveyDirectory, examSurveyDirectory.getCreateId());
-
-                ExamSurveyAnswer examSurveyAnswer = selectById(entity.getId());
-                String subjectId = examSurveyAnswer.getSubjectId();
-                String classId = examSurveyAnswer.getClassId();
-                String[] classIdArray = classId.split(",");
-                List<String> classIds = Arrays.asList(classIdArray);
-                List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIds);
-                List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(examSurveyAnswer.getCreateId());
-                for (SubjectClasses subjectClassesByObjectIdAndClassesId : subjectClassesByObjectIdAndClassesIds) {
-                    scorePartService.updateStudentScore(examSurveyAnswer.getSubjectId(), subjectClassesByObjectIdAndClassesId.getId(),
-                        userList.get(CommonNumConstants.NUM_ZERO).get("studentNumber").toString(), entity.getId(), getServiceClassName(),
-                        examSurveyDirectory.getSurveyName(), String.valueOf(examSurveyAnswer.getMarkFraction()));
-                    refreshCache(id);
-                }
             }
         }
     }
 
     @Override
     protected void updatePostpose(ExamSurveyAnswer entity, String userId) {
-        ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(entity.getSurveyId());
-        String subjectId = examSurveyDirectory.getSubjectId();
-        String classId = examSurveyDirectory.getClassId();
-        String[] classIdArray = classId.split(",");
-        List<String> classIdList = Arrays.asList(classIdArray);
-        List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIdList);
-        List<String> collect = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getId).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(collect)) {
-            // 修改成绩子类型名称ry.getSurveyName());
-            scoreTypeChildService.editNames(examSurveyDirectory.getSubjectId(), collect, examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName());
+        if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
+            // 修改试卷批阅状态和已批阅数量
+            examSurveyDirectoryService.updateSurveyAnswerStatus(entity.getSurveyId());
+            // 修改成绩
+            List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(entity.getCreateId());
+            if (CollectionUtil.isEmpty(userList)) {
+                return;
+            }
+            String studentNumber = userList.get(CommonNumConstants.NUM_ZERO).getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+            Student students = studentService.getStudents(studentNumber);
+            if (ObjectUtil.isNull(students)) {
+                return;
+            }
+            ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(entity.getSurveyId());
+            SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(examSurveyDirectory.getSubjectId(),
+                students.getClassId());
+            scorePartService.updateStudentScore(examSurveyDirectory.getSubjectId(), subjectClasses.getId(),
+                studentNumber, entity.getSurveyId(), examSurveyDirectory.getServiceClassName(),
+                examSurveyDirectory.getSurveyName(), String.valueOf(entity.getMarkFraction()));
         }
     }
 
@@ -325,27 +279,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         long minutes = duration.toMinutes() % 60;
         long seconds = duration.getSeconds() % 60;
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-    }
-
-
-    @Override
-    protected void deletePreExecution(ExamSurveyAnswer entity) {
-        String surveyId = entity.getSurveyId();
-        String createId = entity.getCreateId();
-        examAnRadioService.deleteBySurAndCreateId(surveyId, createId);
-        examAnScoreService.deleteBySurAndCreateId(surveyId, createId);
-        examAnYesnoService.deleteBySurAndCreateId(surveyId, createId);
-        examAnAnswerService.deleteBySurAndCreateId(surveyId, createId);
-        examAnCheckboxService.deleteBySurAndCreateId(surveyId, createId);
-        examAnChenCheckboxService.deleteBySurAndCreateId(surveyId, createId);
-        examAnChenFbkService.deleteBySurAndCreateId(surveyId, createId);
-        examAnChenRadioService.deleteBySurAndCreateId(surveyId, createId);
-        examAnChenScoreService.deleteBySurAndCreateId(surveyId, createId);
-        examAnCompChenRadioService.deleteBySurAndCreateId(surveyId, createId);
-        examAnDfilllankService.deleteBySurAndCreateId(surveyId, createId);
-        examAnEnumquService.deleteBySurAndCreateId(surveyId, createId);
-        examAnFillblankService.deleteBySurAndCreateId(surveyId, createId);
-        examAnOrderService.deleteBySurAndCreateId(surveyId, createId);
     }
 
     @Override
@@ -390,15 +323,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), id);
         return getOne(queryWrapper);
-    }
-
-    @Override
-    public List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId) {
-        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        queryWrapper.eq(CommonConstants.ID, answerId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), userId);
-        return list(queryWrapper);
     }
 
     @Override
@@ -710,23 +634,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     }
 
     @Override
-    public Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect) {
-        QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), collect);
-        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
-            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
-        return list(queryWrapper).stream().collect(Collectors.groupingBy(ExamSurveyAnswer::getSurveyId));
-    }
-
-    @Override
-    public void updateMarkFraction(String id) {
-        UpdateWrapper<ExamSurveyAnswer> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getMarkFraction), CommonNumConstants.NUM_ZERO);
-        update(updateWrapper);
-    }
-
-    @Override
     public void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         //试卷Id
@@ -756,11 +663,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         outputObject.setBeans(examSurveyAnswerList);
         outputObject.settotal(page.getTotal());
-    }
-
-    @Override
-    public void queryAnswerListByAll(String subjectId, String classId, String id, List<String> stuNos) {
-
     }
 
     @Override

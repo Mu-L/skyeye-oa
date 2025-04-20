@@ -55,18 +55,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
-        super.validatorEntity(scoreTypeChild);
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
         scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-    }
-
-    @Override
-    protected void validatorEntity(List<ScoreTypeChild> scoreTypeChildList) {
-        super.validatorEntity(scoreTypeChildList);
-        // 新增/编辑不操作占比和parentId，通过另外的接口修改
-        for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
-            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
-        }
     }
 
     @Override
@@ -86,16 +76,13 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void createPostpose(List<ScoreTypeChild> entity, String userId) {
-        for (ScoreTypeChild scoreTypeChild : entity) {
-            scoreService.initScorePartForScoreType(scoreTypeChild.getId(), scoreTypeChild.getSubClassLinkId());
-        }
         if (CollectionUtil.isEmpty(entity)) {
             return;
         }
         // 初始化成绩
         List<String> ids = entity.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
-        String subClassLinkId = entity.get(CommonNumConstants.NUM_ZERO).getSubClassLinkId();
-        scoreService.initScorePartForScoreType(ids, subClassLinkId);
+        Map<String, String> childIdToSubClassLinkId = entity.stream().collect(Collectors.toMap(ScoreTypeChild::getId, ScoreTypeChild::getSubClassLinkId));
+        scoreService.initScorePartForScoreType(ids, childIdToSubClassLinkId);
     }
 
     @Override
@@ -137,10 +124,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
-    public List<ScoreTypeChild> selectIds(String subjectId, List<String> collect, String testKey) {
+    public List<ScoreTypeChild> selectIds(String subjectId, List<String> subjectClassesIdList, String testKey) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), collect)
+            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList)
             .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), testKey);
         return list(queryWrapper);
     }
@@ -153,6 +140,21 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         }
         // 删除成绩信息
         scoreService.deleteByObjectId(scoreTypeChild.getId());
+        // 重新计算成绩
+        scoreService.calculateScore(subjectId, subjectClassesId);
+    }
+
+    @Override
+    public void deletes(String subjectId, List<String> subjectClassesIdList, String nameLinkId) {
+        List<ScoreTypeChild> scoreTypeChildList = selectIds(subjectId, subjectClassesIdList, nameLinkId);
+        if (CollectionUtil.isEmpty(scoreTypeChildList)) {
+            return;
+        }
+        // 删除成绩信息
+        List<String> ids = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        scoreService.deleteByObjectId(ids.toArray(new String[ids.size()]));
+        // 重新计算成绩
+        scoreService.calculateScore(subjectId, subjectClassesIdList);
     }
 
     @Override
@@ -160,6 +162,14 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
             .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, List<String> subjectClassesIdList) {
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList);
         return list(queryWrapper);
     }
 

@@ -23,9 +23,16 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     ScoreTypeChild select(String subjectId, String subjectClassesId, String nameLinkId);
 
+    List<ScoreTypeChild> selectIds(String subjectId, List<String> subjectClassesIdList, String testKey);
+
     void delete(String subjectId, String subjectClassesId, String nameLinkId);
 
+    void deletes(String subjectId, List<String> subjectClassesIdList, String nameLinkId);
+
+
     List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId);
+
+    List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, List<String> subjectClassesIdList);
 
     void initScoreTypeChild(String subjectId, String subjectClassId);
 
@@ -39,5 +46,4 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject);
 
-    List<ScoreTypeChild> selectIds(String subjectId, List<String> collect, String testKey);
 }
