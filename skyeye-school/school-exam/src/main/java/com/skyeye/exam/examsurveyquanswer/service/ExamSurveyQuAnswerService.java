@@ -22,4 +22,6 @@ public interface ExamSurveyQuAnswerService extends SkyeyeBusinessService<ExamSur
     float selectFractionBySurveyId(String surveyId, String id);
 
     Map<String, List<ExamSurveyQuAnswer>> selectFacByIdAndSurveyId(String id, String surveyId);
+
+    void batchWriteExamSurveyQuAnswer(InputObject inputObject, OutputObject outputObject);
 }
