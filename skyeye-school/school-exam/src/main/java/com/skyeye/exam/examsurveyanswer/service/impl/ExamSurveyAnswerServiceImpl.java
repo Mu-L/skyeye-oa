@@ -252,7 +252,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             // 修改试卷批阅状态和已批阅数量
             examSurveyDirectoryService.updateSurveyAnswerStatus(entity.getSurveyId());
             // 修改成绩
-            List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(entity.getCreateId());
+            ExamSurveyAnswer oldExamSurveyAnswer = selectById(entity.getId());
+            List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(oldExamSurveyAnswer.getCreateId());
             if (CollectionUtil.isEmpty(userList)) {
                 return;
             }
