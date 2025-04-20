@@ -55,8 +55,18 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void validatorEntity(ScoreTypeChild scoreTypeChild) {
+        super.validatorEntity(scoreTypeChild);
         // 新增/编辑不操作占比和parentId，通过另外的接口修改
         scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+    }
+
+    @Override
+    protected void validatorEntity(List<ScoreTypeChild> scoreTypeChildList) {
+        super.validatorEntity(scoreTypeChildList);
+        // 新增/编辑不操作占比和parentId，通过另外的接口修改
+        for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
+            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        }
     }
 
     @Override
@@ -76,6 +86,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void createPostpose(List<ScoreTypeChild> entity, String userId) {
+        for (ScoreTypeChild scoreTypeChild : entity) {
+            scoreService.initScorePartForScoreType(scoreTypeChild.getId(), scoreTypeChild.getSubClassLinkId());
+        }
         if (CollectionUtil.isEmpty(entity)) {
             return;
         }
@@ -121,6 +134,15 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
             .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public List<ScoreTypeChild> selectIds(String subjectId, List<String> collect, String testKey) {
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), collect)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), testKey);
+        return list(queryWrapper);
     }
 
     @Override
@@ -250,5 +272,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
     }
+
 
 }

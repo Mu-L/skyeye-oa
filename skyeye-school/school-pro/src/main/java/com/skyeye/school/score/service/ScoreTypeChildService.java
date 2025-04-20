@@ -36,4 +36,6 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
     void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject);
 
     void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject);
+
+    List<ScoreTypeChild> selectIds(String subjectId, List<String> collect, String testKey);
 }
