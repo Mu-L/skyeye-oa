@@ -21,8 +21,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     ExamSurveyAnswer queryWhetherExamIngByStuId(String userId, String id);
 
-    List<ExamSurveyAnswer> querySurveyAnswer(String surveyId, String answerId, String userId);
-
     void queryAllSurveyList(InputObject inputObject, OutputObject outputObject);
 
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
@@ -41,13 +39,7 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     List<ExamSurveyAnswer> selectSurveyIdByteacherId(String userId);
 
-    Map<String, List<ExamSurveyAnswer>> queryAnswerList(List<String> collect);
-
-    void updateMarkFraction(String id);
-
     void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject);
-
-    void queryAnswerListByAll(String subjectId, String classId, String id, List<String> stuNos);
 
     List<ExamSurveyAnswer> queryListByStuNoListAndExamId(List<String> allStuNo, String examId);
 }

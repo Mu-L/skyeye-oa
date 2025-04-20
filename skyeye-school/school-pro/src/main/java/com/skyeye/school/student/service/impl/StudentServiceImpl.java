@@ -256,6 +256,9 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Override
     public Student getStudents(String studentNumber) {
+        if (StrUtil.isEmpty(studentNumber)) {
+            return null;
+        }
         QueryWrapper<Student> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Student::getNo), studentNumber);
         Student student = getOne(queryWrapper, false);

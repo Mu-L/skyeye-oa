@@ -28,30 +28,11 @@ public class ExamSurveyDirectoryController {
     @Autowired
     private ExamSurveyDirectoryService examSurveyDirectoryService;
 
-    /**
-     * 新增/编辑试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeExamDirectory", value = "新增/编辑试卷", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamSurveyDirectory.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/writeExamDirectory")
     public void writeExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.saveOrUpdateEntity(inputObject, outputObject);
-    }
-
-    /**
-     * 批量新增试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "createExamDirectory", value = "批量新增试卷", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ExamSurveyDirectory.class)
-    @RequestMapping("/post/ExamSurveyDirectoryController/createExamDirectory")
-    public void createExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        examSurveyDirectoryService.createExamDirectory(inputObject, outputObject);
     }
 
     /**

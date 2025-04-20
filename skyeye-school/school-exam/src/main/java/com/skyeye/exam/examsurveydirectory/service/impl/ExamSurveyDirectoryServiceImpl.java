@@ -47,7 +47,6 @@ import com.skyeye.exam.examquscore.entity.ExamQuScore;
 import com.skyeye.exam.examquscore.service.ExamQuScoreService;
 import com.skyeye.exam.examsurveyanswer.entity.ExamSurveyAnswer;
 import com.skyeye.exam.examsurveyanswer.service.ExamSurveyAnswerService;
-import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
 import com.skyeye.exam.examsurveydirectory.dao.ExamSurveyDirectoryDao;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
@@ -170,6 +169,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private IUserService iUserService;
+
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
 
 
     /**
@@ -362,11 +364,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.settotal(1);
     }
 
-    /**
-     * 创建/更新题目前的操作
-     *
-     * @param examSurveyDirectory 考试目录对象
-     */
     @Override
     public void validatorEntity(ExamSurveyDirectory examSurveyDirectory) {
         super.validatorEntity(examSurveyDirectory);
@@ -394,12 +391,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         entity.setReadNum(CommonNumConstants.NUM_ZERO);
     }
 
-    /**
-     * 创建考试目录后的后置操作
-     *
-     * @param entity 考试目录对象
-     * @param userId 创建者ID
-     */
     @Override
     public void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId();
@@ -416,14 +407,33 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             questionService.createEntity(questionList, userId);
         }
-        String subjectId = entity.getSubjectId();
-        if (StrUtil.isEmpty(subjectId)) {
-            throw new CustomException("考试科目不能为空");
-        }
-    }
 
-    @Autowired
-    private ScoreTypeChildService scoreTypeChildService;
+        // 新增试卷时，创建空白成绩记录
+        List<SubjectClasses> subjectClassesList = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(entity.getSubjectId(), classIds);
+        List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        List<ScoreTypeChild> scoreTypeChildren = scoreTypeChildService.selectIds(entity.getSubjectId(), subjectClassesIds, NumberCodeEnum.TEST.getKey());
+        if (CollectionUtil.isEmpty(scoreTypeChildren)) {
+            throw new CustomException("没有科目对应的班级");
+        }
+        Map<String, List<ScoreTypeChild>> collect = scoreTypeChildren.stream().collect(Collectors.groupingBy(ScoreTypeChild::getSubClassLinkId));
+        List<ScoreTypeChild> list = new ArrayList<>();
+        for (String subjectClassesId : subjectClassesIds) {
+            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
+            scoreTypeChild.setSubjectId(entity.getSubjectId());
+            scoreTypeChild.setSubClassLinkId(subjectClassesId);
+            if (CollectionUtil.isEmpty(collect.get(subjectClassesId)) || ObjectUtil.isEmpty(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO))) {
+                throw new CustomException("没有科目对应的班级");
+            }
+
+            scoreTypeChild.setParentId(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO).getId());
+            scoreTypeChild.setName(entity.getSurveyName());
+            scoreTypeChild.setNameLinkId(entity.getId());
+            scoreTypeChild.setNameLinkKey(getServiceClassName());
+            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+            list.add(scoreTypeChild);
+        }
+        scoreTypeChildService.createEntity(list, userId);
+    }
 
     @Override
     public void updatePostpose(ExamSurveyDirectory entity, String userId) {
@@ -469,6 +479,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             questionService.updateEntity(questionsWithId, userId);
         }
         questionService.createEntity(questionsWithoutId, userId);
+
+        // 修改试卷时，修改成绩子类型名称
+        List<String> classIds = Arrays.asList(entity.getClassId().split(","));
+        List<SubjectClasses> subjectClassesList = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(entity.getSubjectId(), classIds);
+        List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        scoreTypeChildService.editNames(entity.getSubjectId(), subjectClassesIds, entity.getId(), entity.getSurveyName());
     }
 
     /**
@@ -490,13 +506,17 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     protected void deletePostpose(ExamSurveyDirectory entity) {
         String id = entity.getId();
+        // 删除试卷下的题目
         questionService.deleteBySurveyDirectoryId(id);
-        String subjectId = entity.getSubjectId();
-        String classId = entity.getClassId();
-        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
-        // 删除成绩子类型
-        scoreTypeChildService.delete(entity.getSubjectId(), subjectClasses.getId(), entity.getId());
 
+        examSurveyClassService.deleteSurveyClassBySurveyId(id);
+        examSurveyMarkExamService.deleteSurveyMarkExamBySurveyId(id);
+
+        // 删除成绩子类型
+        List<String> classIds = Arrays.asList(entity.getClassId().split(CommonCharConstants.COMMA_MARK));
+        List<SubjectClasses> subjectClassesList = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(entity.getSubjectId(), classIds);
+        List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        scoreTypeChildService.deletes(entity.getSubjectId(), subjectClassesIds, entity.getId());
     }
 
     /**
@@ -950,64 +970,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         return examSurveyDirectoryList.stream().collect(Collectors.groupingBy(ExamSurveyDirectory::getSubjectId));
     }
 
-    @Override
-    public void validatorEntity(List<ExamSurveyDirectory> entity) {
-        super.validatorEntity(entity);
-        ExamSurveyDirectory examSurveyDirectory = entity.get(CommonNumConstants.NUM_ZERO);
-        String realStartTime = examSurveyDirectory.getRealStartTime();
-        String realEndTime = examSurveyDirectory.getRealEndTime();
-        if (ObjUtil.isNotEmpty(realStartTime) && ObjUtil.isNotEmpty(realEndTime)) {
-            boolean compareTime = DateUtil.compareTime(realStartTime, realEndTime);
-            if (compareTime) {
-                throw new CustomException("实际开始时间不能晚于实际结束时间");
-            }
-        }
-    }
-
-    @Override
-    protected void deletePostpose(String id) {
-        examSurveyClassService.deleteSurveyClassBySurveyId(id);
-        examSurveyMarkExamService.deleteSurveyMarkExamBySurveyId(id);
-    }
-
-    /**
-     * 批量新增
-     *
-     * @param inputObject  输入对象，包含请求参数
-     * @param outputObject 输出对象，用于返回响应数据
-     */
-    @Override
-    public void createExamDirectory(InputObject inputObject, OutputObject outputObject) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        ExamSurveyDirectory examSurveyDirectory = inputObject.getParams(ExamSurveyDirectory.class);
-        String classIds = examSurveyDirectory.getClassId();
-        List<String> classsIds = Arrays.asList(classIds.split(","));
-        List<ExamSurveyDirectory> examSurveyDirectoryList = new ArrayList<>();
-        for (String classId : classsIds) {
-            examSurveyDirectory.setClassId(classId);
-            examSurveyDirectoryList.add(examSurveyDirectory);
-        }
-        createEntity(examSurveyDirectoryList, userId);
-    }
-
-    @Override
-    public void createPostpose(List<ExamSurveyDirectory> examSurveyDirectory, String userId) {
-        List<ExamSurveyMarkExam> surveyMarkExamList = new ArrayList<>();
-        List<ExamSurveyClass> surveyClassList = new ArrayList<>();
-
-        for (ExamSurveyDirectory entity : examSurveyDirectory) {
-            String id = entity.getId();
-            String reader = entity.getReaderList();
-            List<String> readerIds = Arrays.asList(reader.split(","));
-            // 创建考试班级
-            examSurveyMarkExamService.createExamSurveyMarkExam(id, readerIds, userId);
-            String classId = entity.getClassId();
-            List<String> classIds = Arrays.asList(classId.split(","));
-            // 创建考试试卷
-            examSurveyClassService.createExamSurveyClass(id, classIds, userId);
-        }
-    }
-
     private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
@@ -1165,5 +1127,23 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             examSurveyAnswerService.createEntity(examSurveyAnswerList1, userId);
         }
+    }
+
+    @Override
+    public void updateSurveyAnswerStatus(String id) {
+        ExamSurveyDirectory examSurveyDirectory = selectById(id);
+        //已经批阅的学生人数加一
+        if (examSurveyDirectory.getReadNum() == null) {
+            examSurveyDirectory.setReadNum(CommonNumConstants.NUM_ONE);
+        }
+        examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
+        if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
+            examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
+        }
+        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getReadNum), examSurveyDirectory.getReadNum());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getIsMarkState), examSurveyDirectory.getIsMarkState());
+        update(updateWrapper);
     }
 }
