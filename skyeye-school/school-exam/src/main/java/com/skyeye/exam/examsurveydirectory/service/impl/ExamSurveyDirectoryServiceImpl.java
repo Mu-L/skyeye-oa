@@ -57,6 +57,7 @@ import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.exam.service.ExamService;
