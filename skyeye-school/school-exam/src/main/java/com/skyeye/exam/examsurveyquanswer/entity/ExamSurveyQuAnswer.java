@@ -17,7 +17,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-//@RedisCacheField(name = "Exam:quanswer")
 @TableName(value = "exam_survey_qu_answer")
 @ApiModel("答卷 题目和所得分数的关联表实体类")
 public class ExamSurveyQuAnswer extends CommonInfo {
@@ -30,16 +29,12 @@ public class ExamSurveyQuAnswer extends CommonInfo {
     @ApiModelProperty(value = "问题id", required = "required")
     private String quId;
 
-    @TableField("answer_id")
-    @ApiModelProperty(value = "答案id")
-    private String answerId;
-
     @TableField("survey_id")
     @ApiModelProperty(value = "试卷id", required = "required")
     private String surveyId;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "试卷id", required = "required")
+    @ApiModelProperty(value = "答卷id", required = "required")
     private String belongAnswerId;
 
     @TableField("fraction")

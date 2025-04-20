@@ -1,5 +1,6 @@
 package com.skyeye.exam.examsurveyquanswer.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -9,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examsurveyquanswer.dao.ExamSurveyQuAnswerDao;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
+import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswerBox;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +62,12 @@ public class ExamSurveyQuAnswerServiceImpl extends SkyeyeBusinessServiceImpl<Exa
         Map<String, List<ExamSurveyQuAnswer>> quIdToFractionMap = examSurveyQuAnswerList.stream()
             .collect(Collectors.groupingBy(ExamSurveyQuAnswer::getQuId));
         return quIdToFractionMap;
+    }
+
+    @Override
+    public void batchWriteExamSurveyQuAnswer(InputObject inputObject, OutputObject outputObject) {
+        ExamSurveyQuAnswerBox examSurveyQuAnswerBox = inputObject.getParams(ExamSurveyQuAnswerBox.class);
+        List<ExamSurveyQuAnswer> examSurveyQuAnswerList = examSurveyQuAnswerBox.getExamSurveyQuAnswerList();
+        createEntity(examSurveyQuAnswerList, StrUtil.EMPTY);
     }
 }
