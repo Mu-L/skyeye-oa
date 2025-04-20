@@ -231,6 +231,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 entity.setMarkFraction(fraction);
                 ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
                 //已经批阅的学生人数加一
+                if (examSurveyDirectory.getReadNum() == null){
+                    examSurveyDirectory.setReadNum(CommonNumConstants.NUM_ONE);
+                }
                 examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
                 if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
                     examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);

@@ -313,6 +313,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectory.setCreateId(userId);
         examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
         examSurveyDirectory.setReaderList(userIdJoin);
+        examSurveyDirectory.setRealEndTime(null);
         examSurveyDirectory.setId(ToolUtil.randomStr(6, 12));
         examSurveyDirectory.setQuestionMation(new ArrayList<>());
         if (StrUtil.isEmpty(surveyName)) {
