@@ -186,8 +186,9 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
         List<String> examIdList = examList.stream().map(map -> map.get("id").toString()).collect(Collectors.toList());
         // 查出所有的考试提交记录
         List<Map<String, Object>> examAnswerList = examDirectoryAnService.queryExamAnserByExamIds(examIdList);
-        // 筛选出学生的
-        examAnswerList = examAnswerList.stream().filter(map -> stuNoList.contains(map.get("studentNumber").toString())).collect(Collectors.toList());
+        // 筛选出学生的、完成的答案
+        examAnswerList = examAnswerList.stream().filter(map ->
+                stuNoList.contains(map.get("studentNumber").toString()) && map.get("isComplete").equals(CommonNumConstants.NUM_ONE)).collect(Collectors.toList());
         // 计算应交的数量。如果没有试卷则直接为0，否则计算
         String shouldSubNum = CollectionUtil.isEmpty(examList) ? String.valueOf(CommonNumConstants.NUM_ZERO) :
             CalculationUtil.multiply(String.valueOf(examList.size()), String.valueOf(stuNoList.size()), CommonNumConstants.NUM_TWO);
