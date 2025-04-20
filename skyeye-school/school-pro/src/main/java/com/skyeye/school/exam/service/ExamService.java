@@ -8,4 +8,6 @@ public interface ExamService  {
     Long queryClassExamSurveyDirectoryNum(String id, String subjectId);
 
     List<Map<String, Object>> queryListBySubjectIdAndState(String subjectId, Integer state);
+
+    Double queryClassExamSurveyTotalAvgScore(String classesId, String subjectId);
 }

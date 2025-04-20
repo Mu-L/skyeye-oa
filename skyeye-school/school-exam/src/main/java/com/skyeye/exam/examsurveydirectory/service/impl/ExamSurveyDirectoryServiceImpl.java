@@ -763,6 +763,21 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
+    public Double queryClassExamSurveyTotalAvgScore(String classesId, String subjectId) {
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classesId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ZERO);
+        List<ExamSurveyDirectory> list = list(queryWrapper);
+        if(CollectionUtil.isEmpty(list)){
+            return 0.0;
+        }
+        // 求所有试卷的总分的平均分
+        double totalScore = list.stream().mapToDouble(ExamSurveyDirectory::getFraction).sum();
+        return totalScore / list.size();
+    }
+
+    @Override
     public List<String> queryDirectoryIdsByClassId(String classId, String subjectId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);

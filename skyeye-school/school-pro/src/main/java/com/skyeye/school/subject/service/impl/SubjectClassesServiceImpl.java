@@ -672,8 +672,10 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         stuMap.put("stuTestNum", stuTestNum);
         // 11. 测试平均数
         Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, stuId, subjectId);
-        stuMap.put("testAvgScore", testAvgScore);
-        stuMap.put("testTotalScore", testNum * 100);
+        stuMap.put("testAvgScore",  String.format("%.2f", testAvgScore));
+        // 测总分平均分
+        Double testTotalAvgScore = examService.queryClassExamSurveyTotalAvgScore(classesId, subjectId);
+        stuMap.put("testTotalScore",String.format("%.2f", testTotalAvgScore));
         // 12. 互动课件数
         Long coursewareNum = coursewareService.queryClassCoursewareNum(subjectId);
         stuMap.put("coursewareNum", coursewareNum);
