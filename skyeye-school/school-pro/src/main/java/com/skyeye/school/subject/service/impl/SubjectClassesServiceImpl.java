@@ -665,7 +665,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         double assignmentRate = getRate(stuAssignmentNum, assignmentNum);
         stuMap.put("assignmentRate", String.format("%.2f", assignmentRate) + "%");
         // 9. 测试
-        Long testNum = examService.queryClassExamSurveyDirectoryNum(id, subjectId);
+        Long testNum = examService.queryClassExamSurveyDirectoryNum(classesId, subjectId);
         stuMap.put("testNum", testNum);
         // 10.学生完成的测试数
         Long stuTestNum = examDirectoryAnService.queryClassExamSurveyAnswerNum(classesId, stuId, subjectId);
