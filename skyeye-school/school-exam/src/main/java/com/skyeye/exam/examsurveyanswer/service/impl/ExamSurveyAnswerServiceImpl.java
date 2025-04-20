@@ -679,9 +679,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         if (CollectionUtil.isEmpty(directorIds)) {
             return 0L;
         }
-        // 获取参与人次
+        // 获取参与人次、移除老师的记录
+        String createId = examSurveyDirectoryService.selectById(directorIds.get(CommonNumConstants.NUM_ZERO)).getCreateId();
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getIsComplete), CommonNumConstants.NUM_ONE);
+        queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
         if (StrUtil.isNotEmpty(stuId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), stuId);
         }

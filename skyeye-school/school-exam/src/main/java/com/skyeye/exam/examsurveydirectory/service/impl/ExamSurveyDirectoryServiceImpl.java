@@ -743,7 +743,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public Long queryClassExamSurveyDirectoryNum(String classId, String subjectId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
         queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ZERO);
         return count(queryWrapper);
@@ -765,7 +765,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public List<String> queryDirectoryIdsByClassId(String classId, String subjectId) {
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
+        queryWrapper.like(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getClassId), classId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
         return list(queryWrapper).stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
     }
