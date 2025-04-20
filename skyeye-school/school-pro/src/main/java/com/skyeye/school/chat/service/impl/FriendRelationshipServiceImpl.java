@@ -15,9 +15,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.school.chat.enums.ChatFriendType;
 import com.skyeye.school.chat.dao.FriendRelationshipDao;
 import com.skyeye.school.chat.entity.FriendRelationship;
+import com.skyeye.school.chat.enums.ChatFriendType;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
@@ -125,6 +125,11 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     public Map<String, Object> getAndCheckFriendShip(String userId, String friendId) {
         UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(friendId);
         Map<String, Object> dataMation = userOrStudent.getDataMation();
+        if (StrUtil.equals(userId, friendId)) {
+            // 自己不能添加自己为好友
+            dataMation.put("isFriend", true);
+            return dataMation;
+        }
         FriendRelationship friendRelationships = queryFriendRelationShip(userId, friendId);
         if (ObjectUtil.isNotEmpty(friendRelationships)) {
             dataMation.put("isFriend", true);
