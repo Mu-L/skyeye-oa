@@ -10,7 +10,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import lombok.Data;
 
 /**
@@ -57,5 +59,13 @@ public class ApiMation extends OperatorUserInfo {
     @TableField(value = "app_id", fill = FieldFill.INSERT)
     @ApiModelProperty(value = "appId", required = "required")
     private String appId;
+
+    @TableField(value = "delete_ip")
+    @Property(value = "删除操作的ip")
+    private String deleteIp;
+
+    @TableField(value = "delete_flag")
+    @Property(value = "删除标记", enumClass = DeleteFlagEnum.class)
+    private Integer deleteFlag;
 
 }

@@ -17,37 +17,25 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "公共接口", tags = "公共接口", modelName = "API模块")
+@Api(value = "api接口参数", tags = "api接口参数", modelName = "API模块")
 public class ApiMationController {
 
     @Autowired
     private ApiMationService apiMationService;
 
-    /**
-     * 新增/编辑api接口信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeApiMation", value = "新增/编辑api接口信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ApiMation.class)
     @RequestMapping("/post/ApiMationController/writeApiMation")
     public void writeApiMation(InputObject inputObject, OutputObject outputObject) {
-        apiMationService.writeApiMation(inputObject, outputObject);
+        apiMationService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除api接口信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteApiMationById", value = "删除api接口信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ApiMationController/deleteApiMationById")
     public void deleteApiMationById(InputObject inputObject, OutputObject outputObject) {
-        apiMationService.deleteApiMationById(inputObject, outputObject);
+        apiMationService.deleteById(inputObject, outputObject);
     }
 
 }

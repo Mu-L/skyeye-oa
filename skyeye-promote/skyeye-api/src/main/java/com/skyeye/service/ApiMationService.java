@@ -4,17 +4,15 @@
 
 package com.skyeye.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.api.ApiMation;
 
 import java.util.List;
 
-public interface ApiMationService {
-
-    void writeApiMation(InputObject inputObject, OutputObject outputObject);
+public interface ApiMationService extends SkyeyeBusinessService<ApiMation> {
 
     List<ApiMation> queryApiMationByAppIdAndUrlId(String appId, String urlId);
 
-    void deleteApiMationById(InputObject inputObject, OutputObject outputObject);
 }
