@@ -42,6 +42,10 @@ public class Material extends BaseGeneralInfo {
     @ApiModelProperty(value = "所属分类id", required = "required")
     private String categoryId;
 
+    @TableField(exist = false)
+    @Property(value = "所属分类信息")
+    private Map<String, Object> categoryMation;
+
     @TableField(value = "unit")
     @ApiModelProperty(value = "规格类型，参考#MaterialUnit", required = "required,num")
     private Integer unit;
