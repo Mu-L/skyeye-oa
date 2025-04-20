@@ -180,10 +180,10 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
                 // 通知举报人
                 ForumNotice forumNotice = new ForumNotice();
                 forumNotice.setNoticeTitle("违规");
+                forumNotice.setForumId(forumReport.getForumId());
                 forumNotice.setType(NotificationTypeEnum.REPLY.getKey());
                 forumNotice.setState(ReadEnum.NO_READ.getKey());
                 forumNotice.setReceiveId(forumReport.getReportId());
-                forumNotice.setNoticeTitle("违规");
                 forumNotice.setNoticeContent("举报审核通过，已惩罚！！！");
                 forumNoticeService.createEntity(forumNotice, null);
             } else if (ExamineStateEnum.EXAMINE_NO_PASS.getKey().equals(forumReport.getExamineState())) {// 审核不通过
