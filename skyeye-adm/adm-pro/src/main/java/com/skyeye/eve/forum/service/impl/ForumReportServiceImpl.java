@@ -149,6 +149,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
             map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
         }
+        iAuthUserService.setMationForMap(beans, "reportId", "reportMation");
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
