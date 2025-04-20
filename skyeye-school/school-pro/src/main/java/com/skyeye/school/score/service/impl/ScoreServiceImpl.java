@@ -259,7 +259,18 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
                 .filter(s -> s.getObjectId().equals(nodeId))
                 .findFirst()
                 .orElse(null);
-            return score == null ? 0.0 : Double.parseDouble(score.getScore());
+            if (score == null) {
+                return 0.0;
+            }
+            String scoreValue = score.getScore();
+            if (StrUtil.isEmpty(scoreValue)) {
+                return 0.0;
+            }
+            try {
+                return Double.parseDouble(scoreValue);
+            } catch (NumberFormatException e) {
+                return 0.0;
+            }
         }
 
         // 计算子节点的加权平均分
@@ -285,7 +296,6 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         if (currentScore != null) {
             currentScore.setScore(String.format("%.2f", finalScore));
         }
-
         return finalScore;
     }
 
