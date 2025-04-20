@@ -591,7 +591,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         Double testAvgScore = examDirectoryAnService.queryClassExamSurveyAvgScore(classesId, null,subjectId);
         resultMap.put("testAvgScore", testAvgScore);
         // 测试提交率
-        Double testSubRate = getRate(testJoinNum, joinNum * examNum);
+        Double testSubRate = getRate(testJoinNum, (joinNum+1) * examNum);
         resultMap.put("testSubRate", String.format("%.2f", testSubRate) + '%');
         // 表现榜
         List<Map<String, Object>> rewordList = subjectClassesStuService.queryStuRewordList(subjectClassId);
