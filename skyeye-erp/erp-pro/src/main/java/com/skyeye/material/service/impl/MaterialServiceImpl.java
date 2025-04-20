@@ -324,6 +324,7 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
         for (Material bean : beans) {
             bean.setMaterialNorms(materialNormsMap.get(bean.getId()));
         }
+        iSysDictDataService.setDataMation(beans, Material::getCategoryId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }

@@ -21,4 +21,6 @@ public interface ForumReportService extends SkyeyeBusinessService<ForumReport> {
     void queryForumReportMationToDetails(InputObject inputObject, OutputObject outputObject);
 
     void checkForumReport(InputObject inputObject, OutputObject outputObject);
+
+    void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject);
 }

@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -68,6 +67,9 @@ import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
+import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
@@ -75,10 +77,7 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectService;
-import com.xxl.job.core.context.XxlJobHelper;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -201,7 +200,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
                     updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
                     // 更新数据库
                     update(updateWrapper);
-                    if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)){
+                    if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
                         // 创建定时任务
                         startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
                     }
@@ -314,6 +313,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         examSurveyDirectory.setCreateId(userId);
         examSurveyDirectory.setCreateTime(DateUtil.getTimeAndToString());
         examSurveyDirectory.setReaderList(userIdJoin);
+        examSurveyDirectory.setRealEndTime(null);
         examSurveyDirectory.setId(ToolUtil.randomStr(6, 12));
         examSurveyDirectory.setQuestionMation(new ArrayList<>());
         if (StrUtil.isEmpty(surveyName)) {
@@ -394,6 +394,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         entity.setReadNum(CommonNumConstants.NUM_ZERO);
     }
 
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
+
     /**
      * 创建考试目录后的后置操作
      *
@@ -416,6 +419,44 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             questionService.createEntity(questionList, userId);
         }
+        String subjectId = entity.getSubjectId();
+        if (StrUtil.isEmpty(subjectId)) {
+            throw new CustomException("考试科目不能为空");
+        }
+
+        List<SubjectClasses> subjectClassesList = subjectClassesService.selectIdBySubAndClassIds(subjectId, classIds);
+        if (ObjectUtil.isEmpty(subjectClassesList)) {
+            throw new CustomException("没有科目对应的班级");
+        }
+
+        String testKey = NumberCodeEnum.TEST.getKey();
+        List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        List<ScoreTypeChild> scoreTypeChildren = scoreTypeChildService.selectIds(subjectId, subjectClassesIds, testKey);
+        if (CollectionUtil.isEmpty(scoreTypeChildren)) {
+            throw new CustomException("没有科目对应的班级");
+        }
+        Map<String, List<ScoreTypeChild>> collect = scoreTypeChildren.stream().collect(Collectors.groupingBy(ScoreTypeChild::getSubClassLinkId));
+        List<ScoreTypeChild> list = new ArrayList<>();
+        for (String subjectClassesId : subjectClassesIds) {
+            ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
+            scoreTypeChild.setSubjectId(subjectId);
+            scoreTypeChild.setSubClassLinkId(subjectClassesId);
+            if (CollectionUtil.isEmpty(collect.get(subjectClassesId))) {
+                throw new CustomException("没有科目对应的班级");
+            }
+
+            if (ObjectUtil.isEmpty(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO))) {
+                throw new CustomException("没有科目对应的班级");
+            }
+
+            scoreTypeChild.setParentId(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO).getId());
+            scoreTypeChild.setName(entity.getSurveyName());
+            scoreTypeChild.setNameLinkId(entity.getId());
+            scoreTypeChild.setNameLinkKey(getServiceClassName());
+            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+            list.add(scoreTypeChild);
+        }
+        scoreTypeChildService.createEntity(list, userId);
     }
 
     @Override
@@ -462,7 +503,17 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             questionService.updateEntity(questionsWithId, userId);
         }
         questionService.createEntity(questionsWithoutId, userId);
-
+        ExamSurveyDirectory examSurveyDirectory = selectById(entity.getId());
+        String subjectId = examSurveyDirectory.getSubjectId();
+        String classId = examSurveyDirectory.getClassId();
+        String[] classIdArray = classId.split(",");
+        List<String> classIdList = Arrays.asList(classIdArray);
+        List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIdList);
+        List<String> collect = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(collect)) {
+            // 修改成绩子类型名称
+            scoreTypeChildService.editNames(examSurveyDirectory.getSubjectId(), collect, examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName());
+        }
     }
 
     /**
@@ -485,6 +536,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     protected void deletePostpose(ExamSurveyDirectory entity) {
         String id = entity.getId();
         questionService.deleteBySurveyDirectoryId(id);
+        String subjectId = entity.getSubjectId();
+        String classId = entity.getClassId();
+        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
+        // 删除成绩子类型
+        scoreTypeChildService.delete(entity.getSubjectId(), subjectClasses.getId(), entity.getId());
+
     }
 
     /**
@@ -690,8 +747,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             return new HashMap<>();
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, surveyIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+        queryWrapper.in(CommonConstants.ID, surveyIds)
+            .and(wrapper -> wrapper
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE)
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO)
+            );
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {

@@ -33,7 +33,11 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     void editName(String subjectId, String subjectClassesId, String nameLinkId, String name);
 
+    void editNames(String subjectId, List<String> subjectClassesId, String nameLinkId, String name);
+
     void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject);
 
     void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject);
+
+    List<ScoreTypeChild> selectIds(String subjectId, List<String> collect, String testKey);
 }

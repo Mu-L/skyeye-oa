@@ -3,6 +3,7 @@ package com.skyeye.exam.examsurveyanswer.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -230,6 +231,9 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
                 entity.setMarkFraction(fraction);
                 ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
                 //已经批阅的学生人数加一
+                if (examSurveyDirectory.getReadNum() == null){
+                    examSurveyDirectory.setReadNum(CommonNumConstants.NUM_ONE);
+                }
                 examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
                 if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
                     examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
@@ -744,7 +748,7 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         }
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), examIdList);
-        return listMaps(queryWrapper);
+        return JSONUtil.toList(JSONUtil.toJsonStr(list(queryWrapper)), null);
     }
 
     @Override
