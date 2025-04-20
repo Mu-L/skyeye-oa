@@ -183,37 +183,33 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @Override
     public void setUpExamDirectory(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString(); // 获取试卷ID
+        String id = map.get("id").toString();
         ExamSurveyDirectory examSurveyDirectory = selectById(id);
-        if (StrUtil.isEmpty(examSurveyDirectory.getId())) {
+        if (ObjUtil.isEmpty(examSurveyDirectory)) {
             throw new CustomException("该试卷信息不存在。");
         }
-        if (ObjUtil.isNotEmpty(examSurveyDirectory)) {
-            // 判断试卷是否未发布
-            if (examSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ZERO)) {
-                String belongId = examSurveyDirectory.getId();
-                Integer fractionNumber = getFractionNumber(belongId);
-                if (fractionNumber == null || fractionNumber == 0) {
-                    throw new CustomException("该试卷没有题目，请添加题目。");
+        Integer surveyState = examSurveyDirectory.getSurveyState();
+        if (surveyState == null || !surveyState.equals(CommonNumConstants.NUM_ZERO)) {
+            throw new CustomException("该试卷已发布，请刷新数据。");
+        }
+        String belongId = examSurveyDirectory.getId();
+        Integer fractionNumber = getFractionNumber(belongId);
+        if (fractionNumber == null || fractionNumber == 0) {
+            throw new CustomException("该试卷没有题目，请添加题目。");
+        }
+        if (fractionNumber != 0) {
+            UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
+            update(updateWrapper);
+            if (examSurveyDirectory.getEndType() != null){
+                if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
+                    startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
                 }
-                if (fractionNumber != 0) {
-                    UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-                    updateWrapper.eq(CommonConstants.ID, id);
-                    updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE);
-                    // 更新数据库
-                    update(updateWrapper);
-                    if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
-                        // 创建定时任务
-                        startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
-                    }
-                }
-            } else {
-                throw new CustomException("该试卷已发布，请刷新数据。");
             }
-        } else {
-            throw new CustomException("该试卷信息不存在。");
         }
     }
+
 
     private void startUpTaskQuartz(String name, String title, String startTime) {
         /// 处理日期  此处delayedTime为当前日期
@@ -233,20 +229,18 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @NotNull
     private Integer getFractionNumber(String belongId) {
         List<Question> questions = questionService.QueryQuestionByBelongId(belongId);
-        // 判断是否有题目
+        if (CollectionUtil.isEmpty(questions)) {
+            throw new CustomException("该试卷没有题目，请添加题目。");
+        }
         int fraction = 0;
-        // 题目总数
         int questionNum = 0;
-        if (CollectionUtil.isNotEmpty(questions)) {
-            for (Question question : questions) {
-                int questionType = question.getQuType();
-                if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
-                    fraction += question.getFraction();
-                    questionNum++;
-                }
+        for (Question question : questions) {
+            int questionType = question.getQuType();
+            if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                fraction += question.getFraction();
+                questionNum++;
             }
         }
-        // 总分数
         UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, belongId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), fraction);
@@ -789,7 +783,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSubjectId), subjectId);
         queryWrapper.ne(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ZERO);
         List<ExamSurveyDirectory> list = list(queryWrapper);
-        if(CollectionUtil.isEmpty(list)){
+        if (CollectionUtil.isEmpty(list)) {
             return 0.0;
         }
         // 求所有试卷的总分的平均分
