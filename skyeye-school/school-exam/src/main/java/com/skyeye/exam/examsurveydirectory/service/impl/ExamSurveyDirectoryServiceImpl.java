@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -58,7 +57,6 @@ import com.skyeye.exam.examsurveymarkexam.service.ExamSurveyMarkExamService;
 import com.skyeye.exam.examsurveyquanswer.entity.ExamSurveyQuAnswer;
 import com.skyeye.exam.examsurveyquanswer.service.ExamSurveyQuAnswerService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
 import com.skyeye.school.exam.service.ExamService;
@@ -68,6 +66,9 @@ import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.major.entity.Major;
 import com.skyeye.school.major.service.MajorService;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
+import com.skyeye.school.score.entity.ScoreTypeChild;
+import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.semester.service.SemesterService;
 import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.subject.entity.SubjectClasses;
@@ -75,10 +76,7 @@ import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
 import com.skyeye.school.subject.service.SubjectService;
-import com.xxl.job.core.context.XxlJobHelper;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -394,6 +392,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         entity.setReadNum(CommonNumConstants.NUM_ZERO);
     }
 
+    @Autowired
+    private ScoreTypeChildService scoreTypeChildService;
+
     /**
      * 创建考试目录后的后置操作
      *
@@ -416,6 +417,20 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
             questionService.createEntity(questionList, userId);
         }
+        String subjectId = entity.getSubjectId();
+        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
+        // 新增试卷时，创建空白成绩记录
+        ScoreTypeChild scoreTypeChild = scoreTypeChildService.select(subjectId, subjectClasses.getId(), NumberCodeEnum.TEST.getKey());
+
+        ScoreTypeChild scoreTypeChild1 = new ScoreTypeChild();
+        scoreTypeChild1.setSubjectId(subjectId);
+        scoreTypeChild1.setSubClassLinkId(subjectClasses.getId());
+        scoreTypeChild1.setName(entity.getSurveyName());
+        scoreTypeChild1.setNameLinkId(entity.getId());
+        scoreTypeChild1.setNameLinkKey(getServiceClassName());
+        scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
 
     @Override
@@ -462,7 +477,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             questionService.updateEntity(questionsWithId, userId);
         }
         questionService.createEntity(questionsWithoutId, userId);
-
+        ExamSurveyDirectory examSurveyDirectory = selectById(entity.getId());
+        String subjectId = examSurveyDirectory.getSubjectId();
+        String classId = examSurveyDirectory.getClassId();
+        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
+        // 修改成绩子类型名称
+        scoreTypeChildService.editName(examSurveyDirectory.getSubjectId(), subjectClasses.getId(), examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName());
     }
 
     /**
@@ -485,6 +505,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     protected void deletePostpose(ExamSurveyDirectory entity) {
         String id = entity.getId();
         questionService.deleteBySurveyDirectoryId(id);
+        String subjectId = entity.getSubjectId();
+        String classId = entity.getClassId();
+        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
+        // 删除成绩子类型
+        scoreTypeChildService.delete(entity.getSubjectId(), subjectClasses.getId(), entity.getId());
+
     }
 
     /**
