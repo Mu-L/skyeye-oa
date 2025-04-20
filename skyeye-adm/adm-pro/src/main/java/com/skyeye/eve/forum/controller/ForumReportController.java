@@ -55,7 +55,7 @@ public class ForumReportController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumReportController/queryReportNoCheckList")
     public void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject) {
-        forumReportService.queryPageList(inputObject, outputObject);
+        forumReportService.queryReportNoCheckList(inputObject, outputObject);
     }
 
     /**

@@ -4,8 +4,12 @@
 
 package com.skyeye.eve.forum.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.json.JSONUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -97,16 +101,23 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
     }
 
     @Override
-    public QueryWrapper<ForumReport> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<ForumReport> queryWrapper = super.getQueryWrapper(commonPageInfo);
+    public void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        MPJLambdaWrapper<ForumReport> mpjLambdaWrapper = new MPJLambdaWrapper<ForumReport>()
+            .innerJoin(ForumContent.class, ForumContent::getId, ForumReport::getForumId);
+        // keyword查询条件
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            mpjLambdaWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), commonPageInfo.getKeyword());
+        }
         // 状态查询条件
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             // 未审核
             if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_ONE.toString())){
-                queryWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getExamineState), ExamineStateEnum.NOT_EXAMINE.getKey());
+                mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getExamineState), ExamineStateEnum.NOT_EXAMINE.getKey());
             }else if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_TWO.toString())){
                 // 已审核
-                queryWrapper.in(MybatisPlusUtil.toColumns(ForumReport::getExamineState), Arrays.asList(ExamineStateEnum.EXAMINE_PASS.getKey(), ExamineStateEnum.EXAMINE_NO_PASS.getKey()));
+                mpjLambdaWrapper.in(MybatisPlusUtil.toColumns(ForumReport::getExamineState), Arrays.asList(ExamineStateEnum.EXAMINE_PASS.getKey(), ExamineStateEnum.EXAMINE_NO_PASS.getKey()));
             }
         }
         // 时间查询条件
@@ -115,31 +126,31 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             if (!DateUtil.compare(commonPageInfo.getStartTime(), commonPageInfo.getEndTime())){
                 throw new CustomException("结束时间不能早于开始时间");
             }
-            queryWrapper.between(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
+            mpjLambdaWrapper.between(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
         }else {
             // 只传了一个时间
             if (StrUtil.isNotEmpty(commonPageInfo.getStartTime())){
-                queryWrapper.ge(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime());
+                mpjLambdaWrapper.ge(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime());
             }
             if (StrUtil.isNotEmpty(commonPageInfo.getEndTime())){
-                queryWrapper.le(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getEndTime());
+                mpjLambdaWrapper.le(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getEndTime());
             }
         }
         // 类型id查询条件
         if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getReportTypeId), commonPageInfo.getTypeId());
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getReportTypeId), commonPageInfo.getTypeId());
         }
-        return queryWrapper;
-    }
-
-    @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
-        for (Map<String, Object> map : maps) {
+        List<ForumReport> forumReportList = skyeyeBaseMapper.selectJoinList(ForumReport.class, mpjLambdaWrapper);
+        if (CollectionUtil.isEmpty(forumReportList)){
+            return;
+        }
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(forumReportList),null);
+        for (Map<String, Object> map : beans) {
             map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
             map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
         }
-        return maps;
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
     }
 
     @Override
