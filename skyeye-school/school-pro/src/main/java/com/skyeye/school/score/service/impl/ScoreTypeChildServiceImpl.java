@@ -174,6 +174,16 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     }
 
     @Override
+    public void editNames(String subjectId, List<String> subjectClassesId, String nameLinkId, String name) {
+        UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getName), name);
+        update(updateWrapper);
+    }
+
+    @Override
     public void queryScoreTypeChildFirstList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String subjectId = params.get("subjectId").toString();
@@ -272,6 +282,4 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
     }
-
-
 }

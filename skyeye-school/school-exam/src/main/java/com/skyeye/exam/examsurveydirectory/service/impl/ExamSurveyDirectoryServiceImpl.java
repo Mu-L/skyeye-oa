@@ -505,9 +505,14 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory examSurveyDirectory = selectById(entity.getId());
         String subjectId = examSurveyDirectory.getSubjectId();
         String classId = examSurveyDirectory.getClassId();
-        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(subjectId, classId);
-        // 修改成绩子类型名称
-        scoreTypeChildService.editName(examSurveyDirectory.getSubjectId(), subjectClasses.getId(), examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName());
+        String[] classIdArray = classId.split(",");
+        List<String> classIdList = Arrays.asList(classIdArray);
+        List<SubjectClasses> subjectClassesByObjectIdAndClassesIds = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, classIdList);
+        List<String> collect = subjectClassesByObjectIdAndClassesIds.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(collect)) {
+            // 修改成绩子类型名称
+            scoreTypeChildService.editNames(examSurveyDirectory.getSubjectId(), collect, examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName());
+        }
     }
 
     /**
