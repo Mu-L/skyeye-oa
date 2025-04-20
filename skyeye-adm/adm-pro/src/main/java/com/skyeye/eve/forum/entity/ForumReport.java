@@ -53,7 +53,7 @@ public class ForumReport extends OperatorUserInfo {
     private Map<String, Object> reportTypeMation;
 
     @TableField(value = "report_other_content")
-    @ApiModelProperty(value = "举报类型为'其他'时，需要填写内容", fuzzyLike = true)
+    @ApiModelProperty(value = "举报类型为'其他'时，需要填写内容")
     private String reportOtherContent;
 
     @TableField(value = "report_desc")
