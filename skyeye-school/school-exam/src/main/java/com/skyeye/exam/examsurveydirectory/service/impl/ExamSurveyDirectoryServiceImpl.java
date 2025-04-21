@@ -240,16 +240,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     @NotNull
     private Integer getFractionNumber(String belongId) {
         List<Question> questions = questionService.QueryQuestionByBelongId(belongId);
-        if (CollectionUtil.isEmpty(questions)) {
-            throw new CustomException("该试卷没有题目，请添加题目。");
-        }
         int fraction = 0;
-        int questionNum = 0;
-        for (Question question : questions) {
-            int questionType = question.getQuType();
-            if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
-                fraction += question.getFraction();
-                questionNum++;
+        if (CollectionUtil.isNotEmpty(questions)) {
+            for (Question question : questions) {
+                int questionType = question.getQuType();
+                if (questionType != QuType.PAGETAG.getIndex() && questionType != QuType.PARAGRAPH.getIndex()) {
+                    fraction += question.getFraction();
+                }
             }
         }
         return fraction;
