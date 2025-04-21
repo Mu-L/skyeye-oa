@@ -198,6 +198,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
                 forumNotice.setState(ReadEnum.NO_READ.getKey());
                 forumNoticeService.createEntity(forumNotice, null);
             }
+            refreshCache(forumReport.getId());
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
         }
