@@ -1063,6 +1063,8 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         Map<String, ExamSurveyDirectory> stringExamSurveyDirectoryMap = selectMapBysurveyIds(surveyIds);
         //作为批阅人需要批阅的试卷
         List<ExamSurveyDirectory> examSurveyDirectoryList = stringExamSurveyDirectoryMap.values().stream().collect(Collectors.toList());
+        List<String> collect = examSurveyDirectoryList.stream().map(ExamSurveyDirectory::getId).collect(Collectors.toList());
+
         for (ExamSurveyDirectory examSurveyDirectory : examSurveyDirectoryList) {
             if (examSurveyDirectory.getCreateId().equals(userId)) {
                 examSurveyDirectory.setIsCreated(true);
@@ -1133,14 +1135,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         if (examSurveyDirectory.getReadNum() == null) {
             examSurveyDirectory.setReadNum(CommonNumConstants.NUM_ONE);
         }
-        examSurveyDirectory.setReadNum(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
+        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getReadNum), examSurveyDirectory.getReadNum()+CommonNumConstants.NUM_ONE);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getIsMarkState), examSurveyDirectory.getIsMarkState());
+        update(updateWrapper);
         if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
             examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
         }
-        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getReadNum), examSurveyDirectory.getReadNum());
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getIsMarkState), examSurveyDirectory.getIsMarkState());
-        update(updateWrapper);
     }
 }
