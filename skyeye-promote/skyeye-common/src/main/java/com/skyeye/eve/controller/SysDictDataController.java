@@ -122,7 +122,7 @@ public class SysDictDataController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDictDataListByDictTypeCodeList", value = "根据所属类型Code批量获取数据字典列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryDictDataListByDictTypeCodeList", value = "根据所属类型Code批量获取数据字典列表", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "dictTypeCodeList", name = "dictTypeCodeList", value = "所属类型Code，集合", required = "required,json"),
         @ApiImplicitParam(id = "enabled", name = "enabled", value = "是否启用", enumClass = EnableEnum.class)})

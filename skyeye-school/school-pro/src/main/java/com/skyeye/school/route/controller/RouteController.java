@@ -72,7 +72,7 @@ public class RouteController {
         routeService.queryRoutesByStartAndEnd(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryRoutesNavigationLists", value = "根据当前位置到终点的导航路线查询前3条路线（<=3）", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryRoutesNavigationLists", value = "根据当前位置到终点的导航路线查询前3条路线（<=3）", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "latitude", name = "latitude", value = "纬度", required = "required"),
             @ApiImplicitParam(id = "longitude", name = "longitude", value = "经度", required = "required"),

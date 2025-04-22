@@ -62,7 +62,7 @@ public class SchoolController {
         schoolService.selectByIds(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAllSchoolList", value = "获取所有学校列表展示为下拉选择框", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryAllSchoolList", value = "获取所有学校列表展示为下拉选择框", method = "GET", allUse = "0")
     @RequestMapping("/post/SchoolController/queryAllSchoolList")
     public void queryAllSchoolList(InputObject inputObject, OutputObject outputObject) {
         schoolService.queryAllSchoolList(inputObject, outputObject);
