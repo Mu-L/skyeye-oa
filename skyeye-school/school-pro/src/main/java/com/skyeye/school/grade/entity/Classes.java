@@ -62,7 +62,7 @@ public class Classes extends BaseGeneralInfo {
     private Major majorMation;
 
     @TableField("year")
-    @ApiModelProperty(value = "入学年份", required = "required")
+    @ApiModelProperty(value = "入学年份", required = "required,num")
     private Integer year;
 
     @TableField("master_user_id")

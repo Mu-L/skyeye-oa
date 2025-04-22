@@ -59,6 +59,7 @@ public class ClassesServiceImpl extends SkyeyeBusinessServiceImpl<ClassesDao, Cl
 
     @Override
     public void validatorEntity(Classes entity){
+        super.validatorEntity(entity);
         if (entity.getYear() < 1977){
             throw new CustomException("入学年份必须在1976年之后，不包括1976年");
         }

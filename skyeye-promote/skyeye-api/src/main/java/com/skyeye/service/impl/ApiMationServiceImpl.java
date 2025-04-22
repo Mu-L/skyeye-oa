@@ -4,13 +4,14 @@
 
 package com.skyeye.service.impl;
 
-import cn.hutool.core.net.NetUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
+import com.skyeye.common.object.PutObject;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.dao.ApiMationDao;
 import com.skyeye.eve.entity.api.ApiMation;
@@ -53,7 +54,7 @@ public class ApiMationServiceImpl extends SkyeyeBusinessServiceImpl<ApiMationDao
     protected void deletePreExecution(String id) {
         UpdateWrapper<ApiMation> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        String ip = NetUtil.getLocalhostStr();
+        String ip = ToolUtil.getIpByRequest(PutObject.getRequest());
         updateWrapper.set(MybatisPlusUtil.toColumns(ApiMation::getDeleteIp), ip);
         update(updateWrapper);
     }

@@ -169,6 +169,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             Map<String, Object> currentUser = inputObject.getLogParams();
             forumReport.setExamineId(currentUser.get("id").toString());
             forumReport.setExamineTime(DateUtil.getTimeAndToString());
+            forumReport.setExamineNopassReason(map.get("reason").toString());
             // 更新状态
             forumReport.setExamineState(Integer.parseInt(map.get("state").toString()));
             forumReportService.updateById(forumReport);
@@ -198,6 +199,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
                 forumNotice.setState(ReadEnum.NO_READ.getKey());
                 forumNoticeService.createEntity(forumNotice, null);
             }
+            refreshCache(forumReport.getId());
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
         }

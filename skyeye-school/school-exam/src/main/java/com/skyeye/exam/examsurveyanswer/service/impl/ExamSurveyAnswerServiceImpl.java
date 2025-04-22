@@ -645,6 +645,8 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), holderId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), Integer.valueOf(state));
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
         List<ExamSurveyAnswer> examSurveyAnswerList = list(queryWrapper);
         examSurveyAnswerList.forEach(
             examSurveyAnswer -> {
