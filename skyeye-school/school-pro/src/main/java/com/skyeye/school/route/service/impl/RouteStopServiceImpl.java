@@ -1,5 +1,6 @@
 package com.skyeye.school.route.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -27,6 +28,9 @@ import java.util.stream.Collectors;
 public class RouteStopServiceImpl extends SkyeyeBusinessServiceImpl<RouteStopDao, RouteStop> implements RouteStopService {
     @Override
     public Map<String, List<RouteStop>> queryStopListGroupByRoteIds(List<String> routeIds) {
+        if(CollectionUtil.isEmpty(routeIds)){
+            return Collections.emptyMap();
+        }
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(RouteStop::getRouteId), routeIds);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
