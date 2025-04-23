@@ -60,7 +60,7 @@ public class RouteController {
         routeService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryRoutesByStartAndEnd", value = "根据起点id--终点id 根据路线长度升序排序", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryRoutesByStartAndEnd", value = "根据起点id--终点id 根据路线长度升序排序", method = "GET", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "startId", name = "startId", value = "起点id", required = "required"),
             @ApiImplicitParam(id = "endId", name = "endId", value = "终点id", required = "required"),
