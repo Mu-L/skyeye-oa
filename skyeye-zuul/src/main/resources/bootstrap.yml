@@ -131,10 +131,10 @@ spring:
             - Path=/${spring.profiles.active}/project/**
           filters:
             - StripPrefix=2
-        - id: ai
-          uri: lb://skyeye-ai-${spring.profiles.active}
+        - id: auto
+          uri: lb://skyeye-auto-${spring.profiles.active}
           predicates:
-            - Path=/${spring.profiles.active}/ai/**
+            - Path=/${spring.profiles.active}/auto/**
           filters:
             - StripPrefix=2
       default-filters:
