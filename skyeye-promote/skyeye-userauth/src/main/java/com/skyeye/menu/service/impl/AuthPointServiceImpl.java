@@ -9,6 +9,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.TableSelectInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -33,7 +34,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "权限点管理", groupName = "菜单管理", teamAuth = true)
+@SkyeyeService(name = "权限点管理", groupName = "菜单管理", teamAuth = true, tenant = TenantEnum.PLATE)
 public class AuthPointServiceImpl extends SkyeyeBusinessServiceImpl<AuthPointDao, AuthPoint> implements AuthPointService {
 
     @Override
