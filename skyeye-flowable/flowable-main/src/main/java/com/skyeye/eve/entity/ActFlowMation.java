@@ -48,6 +48,10 @@ public class ActFlowMation extends OperatorUserInfo {
     @ApiModelProperty(value = "模型key", required = "required", fuzzyLike = true)
     private String modelKey;
 
+    @TableField(value = "apply_app_id")
+    @ApiModelProperty(value = "服务类所属的appId")
+    private String applyAppId;
+
     @TableField(value = "apply_service_class_name")
     @ApiModelProperty(value = "适用的服务类名")
     private String applyServiceClassName;
