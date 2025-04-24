@@ -45,9 +45,11 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
 
     @Override
     public void queryAllSchoolList(InputObject inputObject, OutputObject outputObject) {
-        List<School> schoolList = list();
-        outputObject.setBeans(schoolList);
-        outputObject.settotal(schoolList.size());
+        QueryWrapper<School> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(School::getCreateTime));
+        List<School> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     @Override

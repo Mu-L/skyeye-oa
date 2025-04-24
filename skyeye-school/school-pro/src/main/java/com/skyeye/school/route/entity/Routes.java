@@ -8,11 +8,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.eve.entity.School;
-import com.skyeye.school.building.entity.TeachBuilding;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: Routes
@@ -65,13 +64,13 @@ public class Routes extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "学校信息")
-    private School schoolMation;
+    private Map<String,Object> schoolMation;
 
     @TableField(exist = false)
     @Property(value = "起始地点信息")
-    private TeachBuilding startMation;
+    private Map<String,Object> startMation;
 
     @TableField(exist = false)
     @Property(value = "终点地点信息")
-    private TeachBuilding endMation;
+    private Map<String,Object> endMation;
 }

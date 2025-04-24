@@ -78,14 +78,13 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     @Override
     public Routes selectById(String id) {
         Routes routes = super.selectById(id);
-        School schoolMation = schoolService.selectById(routes.getSchoolId());
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id)
                     .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
         List<RouteStop> routeStops = routeStopService.list(queryWrapper);
-        routes.setStartMation(teachBuildingService.selectById(routes.getStartId()));
-        routes.setEndMation(teachBuildingService.selectById(routes.getEndId()));
-        routes.setSchoolMation(schoolMation);
+        teachBuildingService.setDataMation(routes,Routes::getStartId);
+        teachBuildingService.setDataMation(routes,Routes::getEndId);
+        schoolService.setDataMation(routes,Routes::getSchoolMation);
         routes.setRouteStopList(routeStops);
         iAuthUserService.setName(routes, "createId", "createName");
         iAuthUserService.setName(routes, "lastUpdateId", "lastUpdateName");
@@ -123,8 +122,8 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             List<RouteStop> routeStopList = routeStopListMap.get(routes.getId());
             routes.setRouteStopList(routeStopList);
         }
-        iAuthUserService.setDataMation(bean,Routes::getEndMation);
-        iAuthUserService.setDataMation(bean,Routes::getStartMation);
+        teachBuildingService.setDataMation(bean,Routes::getStartId);
+        teachBuildingService.setDataMation(bean,Routes::getEndId);
         iAuthUserService.setName(bean, "createId", "createName");
         iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
         return bean;
@@ -142,13 +141,11 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         List<Routes> routes = setBaseMation(queryWrapper);
         if(StrUtil.isNotEmpty(keyword)){
             routes = routes.stream()
-                    .filter(route -> route.getStartMation().getName().contains(keyword) ||
-                            route.getEndMation().getName().contains(keyword))
+                    .filter(route -> route.getStartMation().get("name").toString().contains(keyword) ||
+                            route.getEndMation().get("name").toString().contains(keyword))
                     .collect(Collectors.toList());
         }
-        for (Routes route : routes) {
-            route.setSchoolMation(schoolService.selectById(route.getSchoolId()));
-        }
+        schoolService.setDataMation(routes,Routes::getSchoolId);
         outputObject.setBeans(routes);
         outputObject.settotal(page.getTotal());
     }
@@ -165,7 +162,6 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         }
         double latitude = Double.parseDouble(params.get("latitude").toString()) ;
         double longitude = Double.parseDouble(params.get("longitude").toString()) ;
-        School schoolMation = schoolService.selectById(schoolId);
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
@@ -196,10 +192,10 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             routeStopList.add(CommonNumConstants.NUM_ZERO, routeStop);
 
             route.setRouteStopList(routeStopList);
-            route.setSchoolMation(schoolMation);
             map.put(route.getId(), start + end);
         }
         if(map.size() <= CommonNumConstants.NUM_THREE){
+            schoolService.setDataMation(routesList,Routes::getSchoolId);
             outputObject.setBeans(routesList);
             outputObject.settotal(routesList.size());
         }else {
@@ -216,6 +212,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
                 }
                 if(beans.size()==CommonNumConstants.NUM_THREE) break;
             }
+            schoolService.setDataMation(beans,Routes::getSchoolId);
             outputObject.setBeans(beans);
             outputObject.settotal(beans.size());
         }
