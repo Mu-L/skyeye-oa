@@ -79,7 +79,11 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         scoreTypeChild1.setName(entity.getName());
         scoreTypeChild1.setNameLinkId(entity.getId());
         scoreTypeChild1.setNameLinkKey(getServiceClassName());
-        scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        if(ObjectUtil.isNotEmpty(scoreTypeChild)){
+            scoreTypeChild1.setParentId(scoreTypeChild.getId());
+        }else {
+            scoreTypeChild1.setParentId(StrUtil.EMPTY);
+        }
         scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
         scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
