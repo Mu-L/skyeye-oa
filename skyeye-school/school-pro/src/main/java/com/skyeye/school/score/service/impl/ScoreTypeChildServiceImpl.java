@@ -17,10 +17,14 @@ import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
+import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.Score;
@@ -53,6 +57,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private ICertificationRest iCertificationRest;
+
+    @Autowired
+    private ICertificationService iCertificationService;
 
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
@@ -247,7 +254,19 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         outputObject.setCustomBeans("tableRows", JSONUtil.toList(JSONUtil.toJsonStr(scoreTypeChildList), null));
 
         List<String> ids = scoreTypeChildList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
-        List<Score> scoreList = scoreService.queryScoreList(ids, StrUtil.EMPTY);
+
+        List<Score> scoreList = null;
+        String userIdentity = PutObject.getRequest().getHeader(SchoolConstants.USER_IDENTITY_KEY);
+        if (StrUtil.equals(userIdentity, LoginIdentity.STUDENT.getKey())) {
+            // 学生身份信息
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            Map<String, Object> certification = iCertificationService.queryCertificationById(userId);
+            String studentNumber = certification.get("studentNumber").toString();
+            scoreList = scoreService.queryScoreList(ids, studentNumber);
+        } else {
+            // 教师身份信息
+            scoreList = scoreService.queryScoreList(ids, StrUtil.EMPTY);
+        }
         if (CollectionUtil.isEmpty(scoreList)) {
             return;
         }
