@@ -4,13 +4,14 @@
 
 package com.skyeye.eve.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.search.SearchMation;
 
 import java.util.Map;
 
-public interface SearchConfigService {
+public interface SearchConfigService extends SkyeyeBusinessService<SearchMation> {
 
     void querySearchParamsConfigToHtml(InputObject inputObject, OutputObject outputObject);
 
