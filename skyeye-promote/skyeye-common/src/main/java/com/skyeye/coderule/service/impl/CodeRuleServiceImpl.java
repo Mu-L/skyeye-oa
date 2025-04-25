@@ -35,10 +35,12 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.coderule.entity.CodeMation;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.tenant.context.TenantContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -74,6 +76,9 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
 
     @Autowired
     private Executor codeRuleExecutor;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void validatorEntity(CodeRule entity) {
@@ -262,8 +267,11 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
     }
 
     private String getCacheKey(String featureCode, String relationId) {
-        String cacheKey = String.format(Locale.ROOT, "%s:maxSerial:%s_%s", CacheConstants.CODE_RULE_CACHE_KEY, featureCode, relationId);
-        return cacheKey;
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            return String.format(Locale.ROOT, "%s:maxSerial:%s:%s_%s", CacheConstants.CODE_RULE_CACHE_KEY, tenantId, featureCode, relationId);
+        }
+        return String.format(Locale.ROOT, "%s:maxSerial:%s_%s", CacheConstants.CODE_RULE_CACHE_KEY, featureCode, relationId);
     }
 
     /**
