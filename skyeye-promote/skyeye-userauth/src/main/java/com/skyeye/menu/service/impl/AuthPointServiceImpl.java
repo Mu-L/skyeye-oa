@@ -6,6 +6,7 @@ package com.skyeye.menu.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.TableSelectInfo;
@@ -71,4 +72,9 @@ public class AuthPointServiceImpl extends SkyeyeBusinessServiceImpl<AuthPointDao
         }
     }
 
+    @Override
+    @IgnoreTenant
+    public List<AuthPoint> selectByIds(String... ids) {
+        return super.selectByIds(ids);
+    }
 }

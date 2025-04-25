@@ -71,7 +71,7 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         Role role = super.getDataFromDb(id);
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
-        // 1. 获取PC端菜单权限
+        // 1. 获取PC端菜单权限--强隔离
         List<String> menuAuthPointIds = sysEveRoleMenuService.querySysRoleMenuIdByRoleId(id);
         role.setMenuIds(menuAuthPointIds);
         // 根据menuIds从desktopList获取桌面信息的id集合
@@ -86,7 +86,7 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
             role.setPcAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(authPoints), null));
         }
 
-        // 2. 获取APP端菜单权限
+        // 2. 获取APP端菜单权限--强隔离
         List<String> appMenuIds = new ArrayList<>();
         List<String> appMenuIdList = sysEveRoleAppPageService.querySysRoleAppPageIdByRoleId(id);
         role.setAppMenuId(appMenuIdList);
