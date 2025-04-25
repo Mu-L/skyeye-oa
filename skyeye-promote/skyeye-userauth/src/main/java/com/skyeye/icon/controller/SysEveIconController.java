@@ -32,12 +32,6 @@ public class SysEveIconController {
     @Autowired
     private SysEveIconService sysEveIconService;
 
-    /**
-     * 获取ICON列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysIconList", value = "获取ICON列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveIconController/querySysIconList")
@@ -45,12 +39,6 @@ public class SysEveIconController {
         sysEveIconService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑ICON信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSysIcon", value = "新增/编辑ICON信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysEveIcon.class)
     @RequestMapping("/post/SysEveIconController/writeSysIcon")
@@ -58,12 +46,6 @@ public class SysEveIconController {
         sysEveIconService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询icon信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysIconById", value = "根据id查询icon信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class SysEveIconController {
         sysEveIconService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除ICON信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSysIconById", value = "删除ICON信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

@@ -5,8 +5,10 @@
 package com.skyeye.eve.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -38,6 +40,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "条形码管理", groupName = "条形码管理", tenant = TenantEnum.STRONG_ISOLATION)
 public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, BarCodeMation> implements BarCodeService {
 
     @Autowired
