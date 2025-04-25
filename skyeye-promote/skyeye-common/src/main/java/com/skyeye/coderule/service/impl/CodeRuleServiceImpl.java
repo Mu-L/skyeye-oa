@@ -11,6 +11,8 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
+import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.coderule.dao.CodeMaxSerialDao;
@@ -24,6 +26,7 @@ import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DataCommonUtil;
@@ -51,7 +54,7 @@ import java.util.concurrent.Executor;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "编码规则管理", groupName = "系统设置")
+@SkyeyeService(name = "编码规则管理", groupName = "系统设置", tenant = TenantEnum.PLATE)
 public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, CodeRule> implements CodeRuleService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodeRuleServiceImpl.class);
@@ -119,6 +122,12 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
         }
     }
 
+    @Override
+    @IgnoreTenant
+    public CodeRule selectById(String id) {
+        return super.selectById(id);
+    }
+
     /**
      * 获取编码
      *
@@ -126,6 +135,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void getNextCodes(InputObject inputObject, OutputObject outputObject) {
         CodeMation codeMation = inputObject.getParams(CodeMation.class);
         List<String> codes = this.getNextCodes(codeMation.getRuleCode(), codeMation.getBusinessData(), codeMation.getSize());
@@ -142,6 +152,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
         if (size > SERIAL_NO_MAX_SIZE) {
             size = SERIAL_NO_MAX_SIZE;
         }
+        // 获取编码规则--不隔离
         CodeRule codeRuleMation = selectById(ruleCode);
         if (codeRuleMation == null) {
             throw new CustomException("未找到命名规则或附加关系");
@@ -180,7 +191,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
     }
 
     private long getMaxSerialCode(String featureCode, String relationId, int size) {
-        Long serialCode = null;
+        Long serialCode;
         String lockKey = "";
         RedisLock lock = new RedisLock(lockKey);
         try {
@@ -188,6 +199,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
                 // 加锁失败
                 throw new CustomException("当前并发量较大，请稍后再次尝试.");
             }
+            // 获取最大序列号--强隔离
             Map<String, Object> codeMaxSerial = this.getCodeMaxSerial(featureCode, relationId);
             if (CollectionUtils.isEmpty(codeMaxSerial)) {
                 // 创建maxSerial数据
@@ -207,6 +219,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
         return serialCode;
     }
 
+    @TenantIsolation(TenantEnum.STRONG_ISOLATION)
     private void saveCodeMaxSerial(String featureCode, String relationId, int size) {
         CodeMaxSerial codeMaxSerialMation = new CodeMaxSerial();
         codeMaxSerialMation.setFeatureCode(featureCode);
@@ -217,6 +230,7 @@ public class CodeRuleServiceImpl extends SkyeyeBusinessServiceImpl<CodeRuleDao, 
         codeMaxSerialDao.insert(codeMaxSerialMation);
     }
 
+    @TenantIsolation(TenantEnum.STRONG_ISOLATION)
     private Map<String, Object> getCodeMaxSerial(String featureCode, String relationId) {
         String cacheKey = getCacheKey(featureCode, relationId);
         return redisCache.getMap(cacheKey, key -> {
