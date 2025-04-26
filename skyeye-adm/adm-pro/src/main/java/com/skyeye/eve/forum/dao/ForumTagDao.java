@@ -7,9 +7,6 @@ package com.skyeye.eve.forum.dao;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.forum.entity.ForumTag;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @ClassName: ForumTagDao
  * @Description: 论坛标签管理数据层
@@ -20,33 +17,5 @@ import java.util.Map;
  */
 
 public interface ForumTagDao extends SkyeyeBaseMapper<ForumTag> {
-
-    List<Map<String, Object>> queryForumTagList(Map<String, Object> map);
-
-    Map<String, Object> queryForumTagMationByName(Map<String, Object> map);
-
-    int insertForumTagMation(Map<String, Object> map);
-
-    Map<String, Object> queryForumTagBySimpleLevel(Map<String, Object> map);
-
-    int deleteForumTagById(Map<String, Object> map);
-
-    int updateUpForumTagById(Map<String, Object> map);
-
-    int updateDownForumTagById(Map<String, Object> map);
-
-    Map<String, Object> selectForumTagById(Map<String, Object> map);
-
-    int editForumTagMationById(Map<String, Object> map);
-
-    Map<String, Object> queryForumTagUpMationById(Map<String, Object> map);
-
-    int editForumTagMationOrderNumUpById(Map<String, Object> map);
-
-    Map<String, Object> queryForumTagDownMationById(Map<String, Object> map);
-
-    Map<String, Object> queryForumTagStateById(Map<String, Object> map);
-
-    List<Map<String, Object>> queryForumTagUpStateList(Map<String, Object> map);
 
 }
