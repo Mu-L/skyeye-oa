@@ -227,18 +227,25 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         sysEveRoleAppPageAuthService.deleteByRoleId(id);
     }
 
-    /**
-     * 获取角色需要绑定的手机端菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySysRoleBandAppMenuList(InputObject inputObject, OutputObject outputObject) {
+        // 获取APP端菜单信息--默认弱隔离
         List<Map<String, Object>> beans = appWorkPageDao.queryAllAppMenuList();
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
         beans.addAll(desktopList);
+
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.APP.getKey());
+                if (CollectionUtil.isEmpty(ids)) {
+                    return;
+                }
+                beans = beans.stream().filter(bean -> ids.contains(bean.get("id").toString())).collect(Collectors.toList());
+            }
+        }
+
         outputObject.setBeans(beans);
     }
 
