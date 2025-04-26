@@ -32,12 +32,6 @@ public class PayChannelController {
     @Autowired
     private PayChannelService payChannelService;
 
-    /**
-     * 新增/修改支付渠道信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writePayChannel", value = "新增/修改支付渠道信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PayChannel.class)
     @RequestMapping("/post/PayChannelController/writePayChannel")
@@ -45,12 +39,6 @@ public class PayChannelController {
         payChannelService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除支付渠道信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deletePayChannelById", value = "根据id删除支付渠道信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -59,12 +47,6 @@ public class PayChannelController {
         payChannelService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询支付渠道信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPayChannelById", value = "根据id查询支付渠道信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class PayChannelController {
         payChannelService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 分页查询支付渠道信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPayChannelList", value = "分页查询支付渠道信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PayChannelController/queryPayChannelList")

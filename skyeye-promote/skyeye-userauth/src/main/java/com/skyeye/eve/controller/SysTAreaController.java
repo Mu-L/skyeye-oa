@@ -31,12 +31,6 @@ public class SysTAreaController {
     @Autowired
     private SysTAreaService sysTAreaService;
 
-    /**
-     * 获取行政区划列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "systarea001", value = "获取行政区划列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/SysTAreaController/querySysTAreaList")
@@ -44,12 +38,6 @@ public class SysTAreaController {
         sysTAreaService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 根据父id获取子节点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAreaListByPId", value = "根据父id获取子节点信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "pId", name = "pId", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class SysTAreaController {
         sysTAreaService.queryAreaListByPId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取节点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAreaListByIds", value = "根据id批量获取节点信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
@@ -72,12 +54,6 @@ public class SysTAreaController {
         sysTAreaService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 查询省市区数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPartAreaList", value = "查询省市区数据", method = "GET", allUse = "2")
     @RequestMapping("/post/SysTAreaController/queryPartAreaList")
     public void queryPartAreaList(InputObject inputObject, OutputObject outputObject) {
