@@ -32,12 +32,6 @@ public class SysEveRoleController {
     @Autowired
     private SysEveRoleService sysEveRoleService;
 
-    /**
-     * 获取角色列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys013", value = "获取角色列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveRoleController/querySysRoleList")
@@ -45,12 +39,6 @@ public class SysEveRoleController {
         sysEveRoleService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑角色
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSysRole", value = "新增/编辑角色", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Role.class)
     @RequestMapping("/post/SysEveRoleController/writeSysRole")
@@ -58,12 +46,6 @@ public class SysEveRoleController {
         sysEveRoleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询角色信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysRoleById", value = "根据id查询角色信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "角色ID", required = "required")})
@@ -72,12 +54,6 @@ public class SysEveRoleController {
         sysEveRoleService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除角色
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteRoleById", value = "删除角色", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "角色ID", required = "required")})
@@ -86,24 +62,12 @@ public class SysEveRoleController {
         sysEveRoleService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有模块(桌面)/菜单/权限点/分组/数据权限列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys014", value = "获取所有模块(桌面)/菜单/权限点/分组/数据权限列表", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveRoleController/querySysRoleBandMenuList")
     public void querySysRoleBandMenuList(InputObject inputObject, OutputObject outputObject) {
         sysEveRoleService.querySysRoleBandMenuList(inputObject, outputObject);
     }
 
-    /**
-     * 编辑角色PC端权限
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editSysRolePCAuth", value = "编辑角色PC端权限", method = "PUT", allUse = "1")
     @ApiImplicitParams(classBean = Role.class, value = {
         @ApiImplicitParam(id = "rowId", name = "id", value = "主键id", required = "required")})
@@ -112,24 +76,12 @@ public class SysEveRoleController {
         sysEveRoleService.editSysRolePCAuth(inputObject, outputObject);
     }
 
-    /**
-     * 获取角色需要绑定的手机端菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys037", value = "获取角色需要绑定的手机端菜单列表", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveRoleController/querySysRoleBandAppMenuList")
     public void querySysRoleBandAppMenuList(InputObject inputObject, OutputObject outputObject) {
         sysEveRoleService.querySysRoleBandAppMenuList(inputObject, outputObject);
     }
 
-    /**
-     * 手机端菜单授权
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys039", value = "手机端菜单授权", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "menuIds", name = "menuIds", value = "菜单权限", required = "required"),
