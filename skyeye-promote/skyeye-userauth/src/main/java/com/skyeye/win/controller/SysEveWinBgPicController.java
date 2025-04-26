@@ -32,12 +32,6 @@ public class SysEveWinBgPicController {
     @Autowired
     private SysEveWinBgPicService sysEveWinBgPicService;
 
-    /**
-     * 获取win系统桌面图片列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysEveWinBgPicList", value = "获取win系统桌面图片列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveWinBgPicController/querySysEveWinBgPicList")
@@ -45,12 +39,6 @@ public class SysEveWinBgPicController {
         sysEveWinBgPicService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加win系统桌面图片信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSysEveWinBgPic", value = "添加win系统桌面图片信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SysEveWinBgPic.class)
     @RequestMapping("/post/SysEveWinBgPicController/insertSysEveWinBgPic")
@@ -58,12 +46,6 @@ public class SysEveWinBgPicController {
         sysEveWinBgPicService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除win系统桌面图片信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSysEveWinBgPicById", value = "删除win系统桌面图片信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class SysEveWinBgPicController {
         sysEveWinBgPicService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取用户自定义的win系统桌面图片列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysEveWinBgPicCustomList", value = "获取用户自定义的win系统桌面图片列表", method = "POST", allUse = "2")
     @RequestMapping("/post/SysEveWinBgPicController/querySysEveWinBgPicCustomList")
     public void querySysEveWinBgPicCustomList(InputObject inputObject, OutputObject outputObject) {

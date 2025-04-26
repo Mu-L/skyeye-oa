@@ -32,12 +32,6 @@ public class NoticeController {
     @Autowired
     private NoticeService noticeService;
 
-    /**
-     * 获取公告列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNoticeList", value = "获取公告列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/NoticeController/queryNoticeList")
@@ -45,12 +39,6 @@ public class NoticeController {
         noticeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑公告信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeNotice", value = "新增/编辑公告信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Notice.class)
     @RequestMapping("/post/NoticeController/writeNotice")
@@ -58,12 +46,6 @@ public class NoticeController {
         noticeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除公告
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteNoticeById", value = "根据ID删除公告", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class NoticeController {
         noticeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取用户收到的公告
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserReceivedNotice", value = "获取用户收到的公告", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/NoticeController/queryUserReceivedNotice")
@@ -85,12 +61,6 @@ public class NoticeController {
         noticeService.queryUserReceivedNotice(inputObject, outputObject);
     }
 
-    /**
-     * 获取用户收到的前8条公告
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserReceivedTopNotice", value = "获取用户收到的前8条公告", method = "GET", allUse = "2")
     @RequestMapping("/post/NoticeController/queryUserReceivedTopNotice")
     public void queryUserReceivedTopNotice(InputObject inputObject, OutputObject outputObject) {

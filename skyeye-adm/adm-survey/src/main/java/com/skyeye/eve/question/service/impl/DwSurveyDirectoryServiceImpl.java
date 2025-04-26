@@ -69,46 +69,67 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 
     @Autowired
     private DwQuestionService dwQuestionService;
+
     @Autowired
     private DwQuestionLogicService dwQuestionLogicService;
+
     @Autowired
     private DwQuRadioService dwQuRadioService;
+
     @Autowired
     private DwQuScoreService dwQuScoreService;
+
     @Autowired
     private DwQuCheckboxService dwQuCheckboxService;
+
     @Autowired
     private DwQuMultiFillblankService dwQuMultiFillblankService;
+
     @Autowired
     private DwQuOrderbyService dwQuOrderbyService;
+
     @Autowired
     private DwQuChenColumnService dwQuChenColumnService;
+
     @Autowired
     private DwQuChenRowService dwQuChenRowService;
+
     @Autowired
     private DwAnRadioService dwAnRadioService;
+
     @Autowired
     private DwAnCheckboxService dwAnCheckboxService;
+
     @Autowired
     private DwAnScoreService dwAnScoreService;
+
     @Autowired
     private DwAnOrderService dwAnOrderService;
+
     @Autowired
     private DwAnChenRadioService dwAnChenRadioService;
+
     @Autowired
     private DwAnChenCheckboxService dwAnChenCheckboxService;
+
     @Autowired
     private DwAnDfillblankService dwAnDfillblankService;
+
     @Autowired
     private DwAnChenFbkService dwAnChenFbkService;
+
     @Autowired
     private DwAnChenScoreService dwAnChenScoreService;
+
     @Autowired
     private DwSurveyAnswerService dwSurveyAnswerService;
+
     @Autowired
     private DwAnFillblankService dwAnFillblankService;
+
     @Autowired
     private DwAnAnswerService dwAnAnswerService;
+
     @Autowired
     private DwAnEnumquService dwAnEnumquService;
 
@@ -409,7 +430,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             throw new CustomException("该问卷信息不存在!");
         }
     }
-
 
     @Override
     public void queryFilterDwLists(InputObject inputObject, OutputObject outputObject) {

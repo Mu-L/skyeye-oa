@@ -22,35 +22,17 @@ public class CommonController {
     @Autowired
     private CommonService commonService;
 
-    /**
-     * 代码生成器生成下载文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/CommonController/downloadFileByJsonData")
     public void downloadFileByJsonData(InputObject inputObject, OutputObject outputObject) {
         commonService.downloadFileByJsonData(inputObject, outputObject);
     }
 
-    /**
-     * 获取win系统桌列表信息供展示
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysevewinmation001", value = "获取win系统桌列表信息供展示", method = "POST", allUse = "2")
     @RequestMapping("/post/CommonController/querySysWinMationById")
     public void querySysWinMationById(InputObject inputObject, OutputObject outputObject) {
         commonService.querySysWinMationById(inputObject, outputObject);
     }
 
-    /**
-     * 根据文件类型获取文件的保存地址以及访问地址
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFilePathByFileType", value = "根据文件类型获取文件的保存地址以及访问地址", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "fileType", name = "fileType", value = "文件类型", required = "required,num")})
@@ -59,12 +41,6 @@ public class CommonController {
         commonService.queryFilePathByFileType(inputObject, outputObject);
     }
 
-    /**
-     * 验证接口是否正确
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "dsformpage010", value = "验证接口是否正确", method = "P0ST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "interfa", name = "interfa", value = "数据")})
@@ -73,12 +49,6 @@ public class CommonController {
         commonService.queryInterfaceIsTrueOrNot(inputObject, outputObject);
     }
 
-    /**
-     * 获取接口中的值
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "dsformpage011", value = "获取接口中的值", method = "P0ST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "interfa", name = "interfa", value = "数据")})

@@ -6,8 +6,10 @@ package com.skyeye.eve.service.impl;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -72,6 +74,7 @@ public class CommonServiceImpl implements CommonService {
      */
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @TenantIsolation(TenantEnum.PLATE)
     public void downloadFileByJsonData(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         List<Map<String, Object>> array = JSONUtil.toList(map.get("jsonData").toString(), null);
