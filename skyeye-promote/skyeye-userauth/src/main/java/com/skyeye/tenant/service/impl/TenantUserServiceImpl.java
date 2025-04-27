@@ -28,18 +28,18 @@ import org.springframework.stereotype.Service;
 public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserDao, TenantUser> implements TenantUserService {
 
     @Override
-    public void removeTenantUserByUserId(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getParams().get("userId").toString();
+    public void removeTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
+        String staffId = inputObject.getParams().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         remove(queryWrapper);
     }
 
     @Override
     public void exitTenantUser(InputObject inputObject, OutputObject outputObject) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         remove(queryWrapper);
     }
 

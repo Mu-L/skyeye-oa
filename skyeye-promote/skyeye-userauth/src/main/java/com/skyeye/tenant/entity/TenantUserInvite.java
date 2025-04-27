@@ -4,47 +4,54 @@
 
 package com.skyeye.tenant.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
+import com.skyeye.tenant.classenum.TenantUserJoinType;
 import lombok.Data;
 
 /**
- * @ClassName: TenantUser
- * @Description: 租户下的用户实体类
+ * @ClassName: TenantUserInvite
+ * @Description: 租户下的用户邀请信息实体类
  * @author: skyeye云系列--卫志强
  * @date: 2025/4/26 22:42
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"userId"})
-@TableName(value = "tenant_user")
-@ApiModel("租户下的用户实体类")
-public class TenantUser extends OperatorUserInfo {
+@TableName(value = "tenant_user_invite")
+@ApiModel("租户下的用户邀请信息实体类")
+public class TenantUserInvite extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField(value = "job_number", updateStrategy = FieldStrategy.NEVER)
-    @Property(value = "员工工号", fuzzyLike = true)
-    private String jobNumber;
+    @TableField(value = "email")
+    @ApiModelProperty(value = "接受邀请链接的邮箱", required = "required")
+    private String email;
 
-    @TableField(value = "staff_id")
-    @ApiModelProperty(value = "员工id", required = "required")
-    private String staffId;
+    @TableField(value = "phone")
+    @ApiModelProperty(value = "联系方式", required = "required,phone")
+    private String phone;
+
+    @TableField("is_used")
+    @Property(value = "是否使用", enumClass = IsUsedEnum.class)
+    private Integer isUsed;
+
+    @TableField("join_type")
+    @Property(value = "加入类型", enumClass = TenantUserJoinType.class)
+    private Integer joinType;
 
     @TableField(value = "company_id")
     @ApiModelProperty(value = "企业id", required = "required")

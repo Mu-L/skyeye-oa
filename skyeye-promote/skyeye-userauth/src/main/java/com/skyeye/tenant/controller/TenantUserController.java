@@ -30,12 +30,12 @@ public class TenantUserController {
     @Autowired
     private TenantUserService tenantUserService;
 
-    @ApiOperation(id = "removeTenantUserByUserId", value = "根据用户id移除租户用户", method = "POST", allUse = "1")
+    @ApiOperation(id = "removeTenantUserByStaffId", value = "根据员工ID移除租户用户", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "userId", name = "userId", value = "用户ID", required = "required")})
-    @RequestMapping("/post/TenantUserController/removeTenantUserByUserId")
-    public void removeTenantUserByUserId(InputObject inputObject, OutputObject outputObject) {
-        tenantUserService.removeTenantUserByUserId(inputObject, outputObject);
+        @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工ID", required = "required")})
+    @RequestMapping("/post/TenantUserController/removeTenantUserByStaffId")
+    public void removeTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.removeTenantUserByStaffId(inputObject, outputObject);
     }
 
     @ApiOperation(id = "exitTenantUser", value = "用户自主退出租户", method = "POST", allUse = "2")

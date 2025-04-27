@@ -158,6 +158,7 @@ public class ArrangementController {
         @ApiImplicitParam(id = "workTime", name = "workTime", value = "参加工作时间，格式为yyyy-MM-dd。同意入职后必填"),
         @ApiImplicitParam(id = "entryTime", name = "entryTime", value = "入职时间，格式为yyyy-MM-dd。同意入职后必填"),
         @ApiImplicitParam(id = "userIdCard", name = "userIdCard", value = "身份证。同意入职后必填"),
+        @ApiImplicitParam(id = "email", name = "email", value = "邮箱。同意入职后必填"),
         @ApiImplicitParam(id = "inductionState", name = "inductionState", value = "员工入职状态"),
         @ApiImplicitParam(id = "trialTime", name = "trialTime", value = "如果有试用期，则为试用期到期时间。当state=4时，该字段必填")})
     @RequestMapping("/post/ArrangementController/setInductionResult")
