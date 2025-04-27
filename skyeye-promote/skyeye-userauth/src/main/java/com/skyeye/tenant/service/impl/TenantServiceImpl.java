@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -96,6 +97,7 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     }
 
     @Override
+    @IgnoreTenant
     public List<String> queryAllMenuListByTenantId(String tenantId, int type) {
         if (StrUtil.isEmpty(tenantId)) {
             return null;

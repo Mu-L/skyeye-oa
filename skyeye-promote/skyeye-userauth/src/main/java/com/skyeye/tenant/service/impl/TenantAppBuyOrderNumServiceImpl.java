@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.tenant.dao.TenantAppBuyOrderNumDao;
 import com.skyeye.tenant.entity.TenantAppBuyOrderNum;
@@ -26,7 +27,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "订单-购买租户数量管理", groupName = "租户管理", manageShow = false)
+@SkyeyeService(name = "订单-购买租户数量管理", groupName = "租户管理", manageShow = false, tenant = TenantEnum.PLATE)
 public class TenantAppBuyOrderNumServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppBuyOrderNumDao, TenantAppBuyOrderNum> implements TenantAppBuyOrderNumService {
 
     @Override
