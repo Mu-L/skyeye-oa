@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -113,6 +114,9 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isEmpty(beans)) {
+            return beans;
+        }
         String userId = inputObject.getLogParams().get("id").toString();
         List<String> groupIds = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         Map<String, String> groupUserIsExit = companyTalkGroupUserService.batchCheckGroupUserIsExit(groupIds, userId);
