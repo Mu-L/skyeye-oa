@@ -32,12 +32,6 @@ public class SmsTemplateController {
     @Autowired
     private SmsTemplateService smsTemplateService;
 
-    /**
-     * 获取短信模板列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySmsTemplatelList", value = "获取短信模板列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SmsTemplatelController/querySmsTemplatelList")
@@ -45,12 +39,6 @@ public class SmsTemplateController {
         smsTemplateService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑短信模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSmsTemplatel", value = "新增/编辑短信模板", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SmsTemplate.class)
     @RequestMapping("/post/SmsTemplatelController/writeSmsTemplatel")
@@ -58,12 +46,6 @@ public class SmsTemplateController {
         smsTemplateService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除短信模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSmsTemplatelById", value = "删除短信模板", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

@@ -20,6 +20,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -110,6 +111,9 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
     @Autowired
     private ActUserProcessService actUserProcessService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 新建一个空模型
      *
@@ -129,6 +133,8 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         model.setName(modelName);
         model.setKey(ToolUtil.getSurFaceId());
         model.setMetaInfo(modelNode.toString());
+        String tenantId = TenantContext.getTenantId();
+        model.setTenantId(tenantId);
 
         ObjectNode editorNode = objectMapper.createObjectNode();
         editorNode.put("id", "canvas");
@@ -221,7 +227,14 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
 
             // 发布流程
             String processName = modelData.getName() + ".bpmn20.xml";
-            Deployment deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
+            if (tenantEnable) {
+                // 添加租户信息
+                processName = modelData.getTenantId() + ":" + processName;
+            }
+            Deployment deployment = repositoryService.createDeployment()
+                .name(modelData.getName())
+                .tenantId(modelData.getTenantId())
+                .addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
 
             // 发布版本+1
             Integer version = modelData.getVersion();

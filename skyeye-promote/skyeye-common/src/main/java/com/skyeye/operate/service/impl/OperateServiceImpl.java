@@ -7,12 +7,14 @@ package com.skyeye.operate.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.attr.classenum.AttrSymbols;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.business.service.BusinessApiService;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@SkyeyeService(name = "操作管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class OperateServiceImpl extends SkyeyeBusinessServiceImpl<OperateDao, Operate> implements OperateService {
 
     @Autowired
@@ -67,12 +70,6 @@ public class OperateServiceImpl extends SkyeyeBusinessServiceImpl<OperateDao, Op
     @Autowired
     private IReportPageService iReportPageService;
 
-    /**
-     * 获取操作列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryOperateList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();

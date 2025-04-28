@@ -32,12 +32,6 @@ public class KnowledgeContentController {
     @Autowired
     private KnowledgeContentService knowledgeContentService;
 
-    /**
-     * 获取我的知识库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "knowledgecontent001", value = "获取我的知识库列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KnowledgeContentController/queryKnowledgeContentList")
@@ -46,12 +40,6 @@ public class KnowledgeContentController {
     }
 
 
-    /**
-     * 新增/编辑知识库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeKnowledgeContent", value = "新增/编辑知识库", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = KnowledgeContent.class)
     @RequestMapping("/post/KnowledgeContentController/writeKnowledgeContent")
@@ -59,12 +47,6 @@ public class KnowledgeContentController {
         knowledgeContentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除知识库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteKnowledgeContentById", value = "删除知识库", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "知识库id", required = "required")})
@@ -73,12 +55,6 @@ public class KnowledgeContentController {
         knowledgeContentService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 知识库详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryKnowledgeContentById", value = "知识库详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "知识库id", required = "required")})
@@ -87,12 +63,6 @@ public class KnowledgeContentController {
         knowledgeContentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取知识库列表用于审核
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "knowledgecontent010", value = "获取待审核的知识库列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KnowledgeContentController/queryAllKnowledgeContentList")
@@ -100,12 +70,6 @@ public class KnowledgeContentController {
         knowledgeContentService.queryAllKnowledgeContentList(inputObject, outputObject);
     }
 
-    /**
-     * 审核知识库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "knowledgecontent012", value = "获取知识库信息用于回显审核", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "知识库id", required = "required"),
@@ -116,12 +80,6 @@ public class KnowledgeContentController {
         knowledgeContentService.editKnowledgeContentToCheck(inputObject, outputObject);
     }
 
-    /**
-     * 获取企业知识库列表(已审核通过)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "knowledgecontent016", value = "获取企业知识库列表(已审核通过)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KnowledgeContentController/queryAllPassKnowledgeContentList")
@@ -129,12 +87,6 @@ public class KnowledgeContentController {
         knowledgeContentService.queryAllPassKnowledgeContentList(inputObject, outputObject);
     }
 
-    /**
-     * 获取近期八条已审核的知识库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEightPassKnowlgList", value = "获取近期八条已审核的知识库", method = "GET", allUse = "2")
     @RequestMapping("/post/KnowledgeContentController/queryEightPassKnowlgList")
     public void queryEightPassKnowlgList(InputObject inputObject, OutputObject outputObject) {

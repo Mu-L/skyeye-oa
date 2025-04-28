@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.activiti.service.ActivitiModelService;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -25,13 +26,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActFlowServiceImpl
- * @Description: 流程模型管理服务类
+ * @Description: 流程模型管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/10/4 22:53
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "流程模型管理", groupName = "流程模型管理")
 public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, ActFlowMation> implements ActFlowService {
 
     @Autowired

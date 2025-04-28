@@ -7,6 +7,7 @@ package com.skyeye.team.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "团队角色管理", groupName = "团队管理")
 public class TeamRoleServiceImpl extends SkyeyeBusinessServiceImpl<TeamRoleDao, TeamRole> implements TeamRoleService {
 
     @Autowired

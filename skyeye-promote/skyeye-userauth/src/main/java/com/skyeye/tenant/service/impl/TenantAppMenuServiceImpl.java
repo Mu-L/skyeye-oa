@@ -8,7 +8,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.tenant.dao.TenantAppMenuDao;
 import com.skyeye.tenant.entity.TenantAppMenu;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "应用与菜单的关系管理", groupName = "租户管理", manageShow = false)
+@SkyeyeService(name = "应用与菜单的关系管理", groupName = "租户管理", manageShow = false, tenant = TenantEnum.PLATE)
 public class TenantAppMenuServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppMenuDao, TenantAppMenu> implements TenantAppMenuService {
 
     @Override
@@ -73,5 +75,15 @@ public class TenantAppMenuServiceImpl extends SkyeyeBusinessServiceImpl<TenantAp
             return list.stream().map(TenantAppMenu::getObjectId).collect(Collectors.toList());
         }
         return CollectionUtil.newArrayList();
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<String> selectObjectIdsByAppId(List<String> appId, Integer type) {
+        QueryWrapper<TenantAppMenu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TenantAppMenu::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppMenu::getType), type);
+        List<TenantAppMenu> list = list(queryWrapper);
+        return list.stream().map(TenantAppMenu::getObjectId).collect(Collectors.toList());
     }
 }

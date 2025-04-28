@@ -29,4 +29,7 @@ public interface TenantAppMenuService extends SkyeyeBusinessService<TenantAppMen
 
     List<String> selectObjectIdsByAppId(String appId, Integer type);
 
+    List<String> selectObjectIdsByAppId(List<String> appId, Integer type);
+
+
 }

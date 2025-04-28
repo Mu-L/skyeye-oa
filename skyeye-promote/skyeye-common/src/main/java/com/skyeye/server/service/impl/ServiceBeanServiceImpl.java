@@ -11,11 +11,13 @@ import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.application.service.ApplicationService;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.MapUtil;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "服务类注册", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBeanDao, ServiceBean> implements ServiceBeanService {
 
     @Autowired

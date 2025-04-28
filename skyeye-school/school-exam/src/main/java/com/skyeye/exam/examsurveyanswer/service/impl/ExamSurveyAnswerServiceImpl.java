@@ -249,8 +249,14 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     protected void updatePostpose(ExamSurveyAnswer entity, String userId) {
         if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-            // 修改试卷批阅状态和已批阅数量
-            examSurveyDirectoryService.updateSurveyAnswerStatus(entity.getSurveyId());
+            String surveyId = entity.getSurveyId();
+            ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(surveyId);
+            ExamSurveyAnswer examSurveyAnswer = selectById(entity.getId());
+            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(examSurveyAnswer.getCreateId());
+            if (userOrStudent.getUserOrStudent()) {
+                // 修改试卷批阅状态和已批阅数量
+                examSurveyDirectoryService.updateSurveyAnswerStatus(entity.getSurveyId());
+            }
             // 修改成绩
             ExamSurveyAnswer oldExamSurveyAnswer = selectById(entity.getId());
             List<Map<String, Object>> userList = iUserService.queryEntityMationByIds(oldExamSurveyAnswer.getCreateId());
@@ -262,7 +268,6 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             if (ObjectUtil.isNull(students)) {
                 return;
             }
-            ExamSurveyDirectory examSurveyDirectory = examSurveyDirectoryService.selectById(entity.getSurveyId());
             SubjectClasses subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(examSurveyDirectory.getSubjectId(),
                 students.getClassId());
             scorePartService.updateStudentScore(examSurveyDirectory.getSubjectId(), subjectClasses.getId(),

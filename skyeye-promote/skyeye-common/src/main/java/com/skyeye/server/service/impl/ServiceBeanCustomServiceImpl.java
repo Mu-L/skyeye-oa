@@ -6,10 +6,12 @@ package com.skyeye.server.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.coderule.entity.CodeRule;
 import com.skyeye.coderule.service.CodeRuleService;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -32,6 +34,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "自定义服务管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class ServiceBeanCustomServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBeanCustomDao, ServiceBeanCustom> implements ServiceBeanCustomService {
 
     @Autowired

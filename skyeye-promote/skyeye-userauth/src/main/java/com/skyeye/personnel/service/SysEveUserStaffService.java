@@ -61,6 +61,8 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
      */
     boolean checkPhoneExists(String phone);
 
+    String queryUserStaffByPhone(String phone);
+
     void querySysUserStaffByUserId(InputObject inputObject, OutputObject outputObject);
 
     void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject);

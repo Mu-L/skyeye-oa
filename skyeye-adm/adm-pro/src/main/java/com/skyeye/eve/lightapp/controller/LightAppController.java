@@ -32,12 +32,6 @@ public class LightAppController {
     @Autowired
     private LightAppService lightAppService;
 
-    /**
-     * 获取轻应用列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLightAppList", value = "获取轻应用列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LightAppController/queryLightAppList")
@@ -45,12 +39,6 @@ public class LightAppController {
         lightAppService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑轻应用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeLightApp", value = "新增/编辑轻应用", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = LightApp.class)
     @RequestMapping("/post/LightAppController/writeLightApp")
@@ -58,12 +46,6 @@ public class LightAppController {
         lightAppService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除轻应用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteLightAppById", value = "删除轻应用", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class LightAppController {
         lightAppService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取启用的轻应用列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLightAppUpList", value = "获取启用的轻应用列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "typeId", name = "typeId", value = "类型id")})
@@ -86,12 +62,6 @@ public class LightAppController {
         lightAppService.queryLightAppUpList(inputObject, outputObject);
     }
 
-    /**
-     * 添加轻应用到桌面
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertLightAppToWin", value = "添加轻应用到桌面", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

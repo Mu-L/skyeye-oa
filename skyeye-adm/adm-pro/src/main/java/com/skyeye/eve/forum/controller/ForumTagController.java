@@ -34,12 +34,6 @@ public class ForumTagController {
     @Autowired
     private ForumTagService forumTagService;
 
-    /**
-     * 获取论坛标签列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumTagList", value = "获取论坛标签列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumTagController/queryForumTagList")
@@ -47,13 +41,6 @@ public class ForumTagController {
         forumTagService.queryPageList(inputObject, outputObject);
     }
 
-
-    /**
-     * 添加论坛标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertForumTagMation", value = "添加/编辑论坛标签", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ForumTag.class)
     @RequestMapping("/post/ForumTagController/insertForumTagMation")
@@ -61,12 +48,6 @@ public class ForumTagController {
         forumTagService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除论坛标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteForumTagById", value = "删除论坛标签", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "标签id", required = "required")})
@@ -75,12 +56,6 @@ public class ForumTagController {
         forumTagService.deleteForumTagById(inputObject, outputObject);
     }
 
-    /**
-     * 通过id查找对应的论坛标签信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumTagById", value = "通过id查找对应的论坛标签信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "标签id", required = "required")})
@@ -89,12 +64,6 @@ public class ForumTagController {
         forumTagService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取已经上线的论坛标签列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumTagUpStateList", value = "获取已经上线的论坛标签列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumTagController/queryForumTagUpStateList")

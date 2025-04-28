@@ -32,12 +32,6 @@ public class SysEveMenuController {
     @Autowired
     private SysEveMenuService sysEveMenuService;
 
-    /**
-     * 获取菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys006", value = "获取菜单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysMenuQueryDo.class)
     @RequestMapping("/post/SysEveMenuController/querySysMenuList")
@@ -45,12 +39,6 @@ public class SysEveMenuController {
         sysEveMenuService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMenu", value = "添加/编辑菜单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysMenu.class)
     @RequestMapping("/post/SysEveMenuController/writeMenu")
@@ -58,12 +46,6 @@ public class SysEveMenuController {
         sysEveMenuService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 系统菜单详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys040", value = "系统菜单详情", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "菜单ID", required = "required")})
@@ -72,12 +54,6 @@ public class SysEveMenuController {
         sysEveMenuService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据父菜单ID查看子菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys009", value = "根据父菜单ID查看子菜单", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "parentId", name = "parentId", value = "父菜单ID", required = "required")})
@@ -86,12 +62,6 @@ public class SysEveMenuController {
         sysEveMenuService.querySysMenuMationBySimpleLevel(inputObject, outputObject);
     }
 
-    /**
-     * 删除菜单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMenuById", value = "删除菜单信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "菜单ID", required = "required")})

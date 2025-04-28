@@ -123,16 +123,14 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public void validatorEntity(SysEveUserStaff entity) {
         super.validatorEntity(entity);
-        if (StrUtil.isNotEmpty(entity.getPhone())) {
-            QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), entity.getPhone());
-            if (StringUtils.isNotEmpty(entity.getId())) {
-                queryWrapper.ne(CommonConstants.ID, entity.getId());
-            }
-            SysEveUserStaff checkUserStaff = getOne(queryWrapper, false);
-            if (ObjectUtil.isNotEmpty(checkUserStaff)) {
-                throw new CustomException("该手机号已存在，请更换.");
-            }
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), entity.getPhone());
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        SysEveUserStaff checkUserStaff = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(checkUserStaff)) {
+            throw new CustomException("该手机号已存在，请更换.");
         }
     }
 
@@ -508,6 +506,14 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), phone);
         long count = count(queryWrapper);
         return count == 0 ? false : true;
+    }
+
+    @Override
+    public String queryUserStaffByPhone(String phone) {
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), phone);
+        SysEveUserStaff sysEveUserStaff = getOne(queryWrapper, false);
+        return null == sysEveUserStaff ? null : sysEveUserStaff.getId();
     }
 
     @Override

@@ -7,16 +7,17 @@ package com.skyeye.organization.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.organization.dao.CompanyJobScoreDao;
 import com.skyeye.organization.entity.JobScore;
 import com.skyeye.organization.entity.JobScoreField;
 import com.skyeye.organization.entity.JobScoreQueryDo;
-import com.skyeye.organization.dao.CompanyJobScoreDao;
 import com.skyeye.organization.service.CompanyJobScoreFieldService;
 import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.wages.service.IWagesFieldTypeService;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "职位定级管理", groupName = "组织模块")
 public class CompanyJobScoreServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobScoreDao, JobScore> implements CompanyJobScoreService {
 
     @Autowired

@@ -11,6 +11,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -19,10 +20,10 @@ import com.skyeye.eve.forum.dao.ForumSensitiveWordsDao;
 import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 import com.skyeye.eve.forum.service.ForumSensitiveWordsService;
 import com.skyeye.exception.CustomException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: ForumSensitiveWordsServiceImpl
@@ -40,11 +41,13 @@ public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<Fo
         super.validatorEntity(forumSensitiveWords);
         QueryWrapper<ForumSensitiveWords> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumSensitiveWords::getSensitiveWord), forumSensitiveWords.getSensitiveWord());
+
+        if (StringUtils.isNotEmpty(forumSensitiveWords.getId())) {
+            queryWrapper.ne(CommonConstants.ID, forumSensitiveWords.getId());
+        }
         ForumSensitiveWords one = getOne(queryWrapper);
-        if (ObjectUtil.isNotEmpty(one) && StrUtil.isEmpty(forumSensitiveWords.getId())) {
-            throw new CustomException("该论坛敏感词名称已存在，请更换");
-        } else if (ObjectUtil.isNotEmpty(one) && !one.getId().equals(forumSensitiveWords.getId())) {
-            throw new CustomException("该论坛敏感词名称已存在，请更换");
+        if (ObjectUtil.isNotEmpty(one)) {
+            throw new CustomException("该敏感词已存在，请更换");
         }
     }
 
@@ -59,7 +62,7 @@ public class ForumSensitiveWordsServiceImpl extends SkyeyeBusinessServiceImpl<Fo
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumSensitiveWords::getCreateTime));
         List<ForumSensitiveWords> beans = list(queryWrapper);
         iAuthUserService.setName(beans, "createId", "createName");
-        iAuthUserService.setName(beans,"lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

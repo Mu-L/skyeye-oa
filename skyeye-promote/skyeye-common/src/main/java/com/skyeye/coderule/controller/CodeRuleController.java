@@ -33,12 +33,6 @@ public class CodeRuleController {
     @Autowired
     private CodeRuleService codeRuleService;
 
-    /**
-     * 获取编码规则列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCodeRuleList", value = "获取编码规则列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CodeRuleController/queryCodeRuleList")
@@ -46,12 +40,6 @@ public class CodeRuleController {
         codeRuleService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑编码规则
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCodeRuleMation", value = "新增/编辑编码规则", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CodeRule.class)
     @RequestMapping("/post/CodeRuleController/writeCodeRuleMation")
@@ -59,12 +47,6 @@ public class CodeRuleController {
         codeRuleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID获取编码规则信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCodeRuleMationById", value = "根据ID获取编码规则信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class CodeRuleController {
         codeRuleService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除编码规则
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCodeRuleMationById", value = "根据ID删除编码规则", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class CodeRuleController {
         codeRuleService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取编码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getNextCodes", value = "获取编码", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CodeMation.class)
     @RequestMapping("/post/CodeRuleController/getNextCodes")
@@ -100,12 +70,6 @@ public class CodeRuleController {
         codeRuleService.getNextCodes(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有的编码规则
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getAllCodeRuleList", value = "获取所有的编码规则", method = "GET", allUse = "2")
     @RequestMapping("/post/CodeRuleController/getAllCodeRuleList")
     public void getAllCodeRuleList(InputObject inputObject, OutputObject outputObject) {

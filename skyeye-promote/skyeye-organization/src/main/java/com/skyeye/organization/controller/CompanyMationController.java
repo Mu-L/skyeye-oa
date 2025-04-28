@@ -33,12 +33,6 @@ public class CompanyMationController {
     @Autowired
     private CompanyMationService companyMationService;
 
-    /**
-     * 获取公司信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "companymation001", value = "获取公司信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/CompanyMationController/queryCompanyMationList")
@@ -46,12 +40,6 @@ public class CompanyMationController {
         companyMationService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCompanyMation", value = "添加/编辑公司信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Company.class)
     @RequestMapping("/post/CompanyMationController/writeCompanyMation")
@@ -59,12 +47,6 @@ public class CompanyMationController {
         companyMationService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCompanyMationById", value = "删除公司信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class CompanyMationController {
         companyMationService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCompanyMationById", value = "根据id查询公司信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class CompanyMationController {
         companyMationService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取总公司信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "companymation006", value = "获取总公司信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "notId", name = "notId", value = "不包含的企业id")})
@@ -101,48 +71,24 @@ public class CompanyMationController {
         companyMationService.queryOverAllCompanyMationList(inputObject, outputObject);
     }
 
-    /**
-     * 获取公司信息列表展示为树
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCompanyMationListTree", value = "获取公司信息列表展示为树", method = "POST", allUse = "2")
     @RequestMapping("/post/CompanyMationController/queryCompanyMationListTree")
     public void queryCompanyMationListTree(InputObject inputObject, OutputObject outputObject) {
         companyMationService.queryCompanyMationListTree(inputObject, outputObject);
     }
 
-    /**
-     * 获取公司列表展示为下拉选择框
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "companymation008", value = "获取公司列表展示为下拉选择框", method = "GET", allUse = "2")
     @RequestMapping("/post/CompanyMationController/queryCompanyListToSelect")
     public void queryCompanyListToSelect(InputObject inputObject, OutputObject outputObject) {
         companyMationService.queryCompanyListToSelect(inputObject, outputObject);
     }
 
-    /**
-     * 获取企业组织机构图
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "companymation009", value = "获取公司列表展示为下拉选择框", method = "GET", allUse = "1")
     @RequestMapping("/post/CompanyMationController/queryCompanyOrganization")
     public void queryCompanyOrganization(InputObject inputObject, OutputObject outputObject) {
         companyMationService.queryCompanyOrganization(inputObject, outputObject);
     }
 
-    /**
-     * 获取公司信息列表展示为表格供其他需要选择
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "companymation010", value = "获取公司信息列表展示为表格供其他需要选择", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CompanyMationController/queryCompanyMationListToChoose")
@@ -150,35 +96,12 @@ public class CompanyMationController {
         companyMationService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量查询公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCompanyListByIds", value = "根据id批量查询公司信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
     @RequestMapping("/post/CompanyMationController/queryCompanyListByIds")
     public void queryCompanyListByIds(InputObject inputObject, OutputObject outputObject) {
         companyMationService.selectByIds(inputObject, outputObject);
-    }
-
-
-    /**
-     * 根据企业Id，部门Id，职位Id查询公司等信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId", value = "根据企业Id，部门Id，职位Id查询公司等信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "companyId", name = "companyId", value = "企业Id"),
-            @ApiImplicitParam(id = "departmentId", name = "departmentId", value = "部门Id"),
-            @ApiImplicitParam(id = "jobId", name = "jobId", value = "职位Id")})
-    @RequestMapping("/post/CompanyMationController/queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId")
-    public void queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(InputObject inputObject, OutputObject outputObject) {
-        companyMationService.queryCompanyInfoByCompanyIdAndDepartmentIdAndJobId(inputObject, outputObject);
     }
 
 }

@@ -4,7 +4,9 @@
 
 package com.skyeye.dsform.service.impl;
 
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.dsform.dao.DsFormDisplayTemplateDao;
@@ -24,6 +26,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "动态表单数据展示模板管理", groupName = "动态表单数据展示模板管理", tenant = TenantEnum.PLATE)
 public class DsFormDisplayTemplateServiceImpl extends SkyeyeBusinessServiceImpl<DsFormDisplayTemplateDao, DsFormDisplayTemplate> implements DsFormDisplayTemplateService {
 
     @Override
@@ -33,12 +36,6 @@ public class DsFormDisplayTemplateServiceImpl extends SkyeyeBusinessServiceImpl<
         return beans;
     }
 
-    /**
-     * 获取动态表单数据展示模板
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDisplayTemplateListToShow(InputObject inputObject, OutputObject outputObject) {
         List<DsFormDisplayTemplate> beans = list();

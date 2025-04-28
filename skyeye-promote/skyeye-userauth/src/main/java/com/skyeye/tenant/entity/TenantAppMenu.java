@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.tenant.classenum.TenantAppMenuType;
 import lombok.Data;
 
 /**
@@ -39,7 +40,7 @@ public class TenantAppMenu extends CommonInfo {
     private String objectId;
 
     @TableField(value = "type")
-    @Property(value = "类型")
+    @Property(value = "类型", enumClass = TenantAppMenuType.class)
     private Integer type;
 
 }

@@ -32,12 +32,6 @@ public class ForumContentController {
     @Autowired
     private ForumContentService forumContentService;
 
-    /**
-     * 获取我的帖子列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyForumContentList", value = "获取我的帖子列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryMyForumContentList")
@@ -45,12 +39,6 @@ public class ForumContentController {
         forumContentService.queryMyForumContentList(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有帖子列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllForumContentList", value = "获取所有帖子列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryAllForumContentList")
@@ -58,12 +46,6 @@ public class ForumContentController {
         forumContentService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑我的帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "saveOrUpdateEntity", value = "新增/编辑我的帖子", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ForumContent.class)
     @RequestMapping("/post/ForumContentController/saveOrUpdateEntity")
@@ -71,12 +53,6 @@ public class ForumContentController {
         forumContentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteForumContentById", value = "删除帖子", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -85,12 +61,6 @@ public class ForumContentController {
         forumContentService.deleteForumContentById(inputObject, outputObject);
     }
 
-    /**
-     * 帖子详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumContentById", value = "帖子详情", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -99,24 +69,12 @@ public class ForumContentController {
         forumContentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取最新帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNewForumContentList", value = "获取最新帖子", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryNewForumContentList")
     public void queryNewForumContentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewForumContentList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的浏览信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumMyBrowerList", value = "获取我的浏览信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryForumMyBrowerList")
@@ -124,24 +82,12 @@ public class ForumContentController {
         forumContentService.queryForumMyBrowerList(inputObject, outputObject);
     }
 
-    /**
-     * 获取最新的前15条评论
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNewCommentList", value = "获取最新的前15条评论", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryNewCommentList")
     public void queryNewCommentList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryNewCommentList(inputObject, outputObject);
     }
 
-    /**
-     * 根据标签id获取帖子列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryForumListByTagId", value = "根据标签id获取帖子列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumContentController/queryForumListByTagId")
@@ -149,27 +95,10 @@ public class ForumContentController {
         forumContentService.queryForumListByTagId(inputObject, outputObject);
     }
 
-    /**
-     * 获取活跃用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryActiveUsersList", value = "获取活跃用户", method = "POST", allUse = "2")
     @RequestMapping("/post/ForumContentController/queryActiveUsersList")
     public void queryActiveUsersList(InputObject inputObject, OutputObject outputObject) {
         forumContentService.queryActiveUsersList(inputObject, outputObject);
-    }
-
-    /**
-     * 获取用户搜索的帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ForumContentController/querySearchForumList")
-    public void querySearchForumList(InputObject inputObject, OutputObject outputObject) {
-        forumContentService.querySearchForumList(inputObject, outputObject);
     }
 
 }

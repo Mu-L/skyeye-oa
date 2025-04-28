@@ -18,8 +18,6 @@ import com.skyeye.eve.forum.entity.ForumReport;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ForumReportService extends SkyeyeBusinessService<ForumReport> {
-    void queryForumReportMationToDetails(InputObject inputObject, OutputObject outputObject);
-
     void checkForumReport(InputObject inputObject, OutputObject outputObject);
 
     void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject);

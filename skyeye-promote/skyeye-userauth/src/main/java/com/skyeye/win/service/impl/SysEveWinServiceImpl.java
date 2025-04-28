@@ -7,6 +7,7 @@ package com.skyeye.win.service.impl;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.exception.CustomException;
@@ -27,7 +28,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "前台服务管理", groupName = "基础模块")
+@SkyeyeService(name = "前台服务管理", groupName = "基础模块", tenant = TenantEnum.PLATE)
 public class SysEveWinServiceImpl extends SkyeyeBusinessServiceImpl<SysEveWinDao, SysWin> implements SysEveWinService {
 
     @Override

@@ -367,9 +367,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         String realStartTime = examSurveyDirectory.getRealStartTime();
         String realEndTime = examSurveyDirectory.getRealEndTime();
         if (StrUtil.isNotEmpty(realStartTime) && StrUtil.isNotEmpty(realEndTime)) {
-            boolean compareTime = DateUtil.compareTime(realStartTime, realEndTime);
-            if (compareTime) {
-                throw new CustomException("实际开始时间不能晚于实际结束时间");
+            boolean compare = DateUtil.compare(realStartTime, realEndTime);
+            if (!compare) {
+                throw new CustomException("开始时间不能大于结束时间");
             }
         }
     }
@@ -421,7 +421,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             if (CollectionUtil.isEmpty(collect.get(subjectClassesId)) || ObjectUtil.isEmpty(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO))) {
                 throw new CustomException("没有科目对应的班级");
             }
-
             scoreTypeChild.setParentId(collect.get(subjectClassesId).get(CommonNumConstants.NUM_ZERO).getId());
             scoreTypeChild.setName(entity.getSurveyName());
             scoreTypeChild.setNameLinkId(entity.getId());
@@ -478,7 +477,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         questionService.createEntity(questionsWithoutId, userId);
 
         // 修改试卷时，修改成绩子类型名称
-        List<String> classIds = Arrays.asList(entity.getClassId().split(","));
+        List<String> classIds = Arrays.asList(entity.getClassId().split(CommonCharConstants.COMMA_MARK));
         List<SubjectClasses> subjectClassesList = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(entity.getSubjectId(), classIds);
         List<String> subjectClassesIds = subjectClassesList.stream().map(SubjectClasses::getId).collect(Collectors.toList());
         scoreTypeChildService.editNames(entity.getSubjectId(), subjectClassesIds, entity.getId(), entity.getSurveyName());
@@ -998,7 +997,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         outputObject.settotal(page.getTotal());
     }
 
-
     @Override
     public ExamSurveyDirectory selectById(String id) {
         ExamSurveyDirectory bean = getExamSurveyDirectory(id);
@@ -1137,11 +1135,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getReadNum), examSurveyDirectory.getReadNum()+CommonNumConstants.NUM_ONE);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getIsMarkState), examSurveyDirectory.getIsMarkState());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getReadNum), examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE);
         update(updateWrapper);
         if (examSurveyDirectory.getAllNumber().equals(examSurveyDirectory.getReadNum() + CommonNumConstants.NUM_ONE)) {
-            examSurveyDirectory.setIsMarkState(CommonNumConstants.NUM_ONE);
+            UpdateWrapper<ExamSurveyDirectory> updateWrapper1 = new UpdateWrapper<>();
+            updateWrapper1.eq(CommonConstants.ID, id);
+            updateWrapper1.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getIsMarkState), CommonNumConstants.NUM_ONE);
+            update(updateWrapper1);
         }
     }
 }
