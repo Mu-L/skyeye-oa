@@ -11,6 +11,7 @@ import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.constans.SocketConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.dao.JobMateMationDao;
@@ -118,6 +119,8 @@ public class JobMateMationServiceImpl implements JobMateMationService {
             LOGGER.info("create job mation is {}", JSONUtil.toJsonStr(parentJob));
             // 重置请求体中的任务id
             jobBody.put("jobMateId", parentJob.get("jobId"));
+            String tenantId = TenantContext.getTenantId();
+            jobBody.put("tenantId", tenantId);
             parentJob.put("requestBody", JSONUtil.toJsonStr(jobBody));
             jobMateMationDao.editJobRequestBodyMation(parentJob);
             String jobType = parentJob.get("jobType").toString();

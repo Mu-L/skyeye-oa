@@ -83,7 +83,7 @@ public class SmsCodeServiceImpl implements SmsCodeService {
         String code = createSmsCode(smsCodeSendReq.getMobile(), smsCodeSendReq.getScene());
         // 发送验证码
         smsSendService.sendSingleSms(smsCodeSendReq.getMobile(), null,
-            sceneEnum.getValue(), MapUtil.of("code", code));
+            sceneEnum.getKey().toString(), MapUtil.of("code", code));
     }
 
     private String createSmsCode(String mobile, Integer scene) {

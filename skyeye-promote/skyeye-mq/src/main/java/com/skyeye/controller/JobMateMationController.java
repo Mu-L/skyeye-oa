@@ -25,12 +25,6 @@ public class JobMateMationController {
     @Autowired
     private JobMateMationService jobMateMationService;
 
-    /**
-     * 根据大类获取任务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "jobmatemation001", value = "根据大类获取任务信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = JobMateQueryDO.class)
     @RequestMapping("/post/JobMateMationController/queryJobMateMationByBigTypeList")
@@ -38,12 +32,6 @@ public class JobMateMationController {
         jobMateMationService.queryJobMateMationByBigTypeList(inputObject, outputObject);
     }
 
-    /**
-     * 其他模块同步生产消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sendMQProducer", value = "其他模块同步生产消息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = JobMateMation.class)
     @RequestMapping("/post/JobMateMationController/sendMQProducer")
@@ -51,12 +39,6 @@ public class JobMateMationController {
         jobMateMationService.sendMQProducer(inputObject, outputObject);
     }
 
-    /**
-     * 修改任务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "comMQJobMation", value = "修改任务信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = JobMateUpdateMation.class)
     @RequestMapping("/post/JobMateMationController/comMQJobMation")
