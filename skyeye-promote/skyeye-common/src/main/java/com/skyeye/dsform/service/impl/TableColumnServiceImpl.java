@@ -10,6 +10,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.dsform.dao.TableColumnDao;
 import com.skyeye.dsform.entity.TableColumn;
@@ -32,7 +33,7 @@ import java.util.Locale;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "表格布局的列属性", groupName = "动态表单", manageShow = false)
+@SkyeyeService(name = "表格布局的列属性", groupName = "动态表单", manageShow = false, tenant = TenantEnum.NO_ISOLATION)
 public class TableColumnServiceImpl extends SkyeyeBusinessServiceImpl<TableColumnDao, TableColumn> implements TableColumnService {
 
     @Autowired

@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.attr.classenum.AttrKeyDataType;
 import com.skyeye.attr.dao.AttrDefinitionCustomDao;
 import com.skyeye.attr.entity.AttrDefinition;
@@ -19,6 +20,7 @@ import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.business.service.BusinessApiService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "自定义服务管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class AttrDefinitionCustomServiceImpl extends SkyeyeBusinessServiceImpl<AttrDefinitionCustomDao, AttrDefinitionCustom> implements AttrDefinitionCustomService {
 
     @Autowired

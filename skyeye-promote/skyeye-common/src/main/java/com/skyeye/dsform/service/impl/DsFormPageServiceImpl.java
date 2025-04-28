@@ -17,6 +17,7 @@ import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.business.service.BusinessApiService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "表单布局管理", groupName = "动态表单")
+@SkyeyeService(name = "表单布局管理", groupName = "动态表单", tenant = TenantEnum.NO_ISOLATION)
 public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageDao, DsFormPage> implements DsFormPageService {
 
     @Autowired

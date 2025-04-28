@@ -7,10 +7,12 @@ package com.skyeye.business.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.dao.BusinessApiDao;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.business.service.BusinessApiService;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "业务对象对应的接口信息", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class BusinessApiServiceImpl extends SkyeyeBusinessServiceImpl<BusinessApiDao, BusinessApi> implements BusinessApiService {
 
     @Override

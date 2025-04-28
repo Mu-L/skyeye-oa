@@ -7,7 +7,8 @@ package com.skyeye.clazz.service.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.clazz.dao.SkyeyeClassEnumDao;
 import com.skyeye.clazz.entity.classenum.SkyeyeClassEnumApiMation;
 import com.skyeye.clazz.entity.classenum.SkyeyeClassEnumMation;
@@ -15,6 +16,7 @@ import com.skyeye.clazz.service.SkyeyeClassEnumService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DataCommonUtil;
@@ -36,19 +38,14 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-public class SkyeyeClassEnumServiceImpl extends ServiceImpl<SkyeyeClassEnumDao, SkyeyeClassEnumMation> implements SkyeyeClassEnumService {
+@SkyeyeService(name = "枚举类管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
+public class SkyeyeClassEnumServiceImpl extends SkyeyeBusinessServiceImpl<SkyeyeClassEnumDao, SkyeyeClassEnumMation> implements SkyeyeClassEnumService {
 
     @Autowired
     private SkyeyeClassEnumDao skyeyeClassEnumDao;
 
-    /**
-     * 批量新增枚举类
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void writeClassEnum(InputObject inputObject, OutputObject outputObject) {
         SkyeyeClassEnumApiMation skyeyeClassEnumApiMation = inputObject.getParams(SkyeyeClassEnumApiMation.class);
 

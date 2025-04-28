@@ -122,4 +122,15 @@ public class DsFormComponentServiceImpl extends SkyeyeBusinessServiceImpl<DsForm
         return treeNodes;
     }
 
+    @Override
+    @IgnoreTenant
+    public DsFormComponent selectById(String id) {
+        return super.selectById(id);
+    }
+
+    @Override
+    @IgnoreTenant
+    public Map<String, DsFormComponent> selectMapByIds(List<String> ids) {
+        return super.selectMapByIds(ids);
+    }
 }

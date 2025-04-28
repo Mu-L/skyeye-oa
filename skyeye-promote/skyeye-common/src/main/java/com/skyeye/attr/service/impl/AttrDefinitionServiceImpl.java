@@ -16,6 +16,7 @@ import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "属性管理", groupName = "系统公共模块")
+@SkyeyeService(name = "属性管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDefinitionDao, AttrDefinition> implements AttrDefinitionService {
 
     @Autowired

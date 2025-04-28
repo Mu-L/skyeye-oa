@@ -6,9 +6,11 @@ package com.skyeye.dsform.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.dsform.dao.DsFormPageContentDao;
 import com.skyeye.dsform.entity.DsFormComponent;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "动态表单页面内容项", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class DsFormPageContentServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageContentDao, DsFormPageContent> implements DsFormPageContentService {
 
     @Autowired

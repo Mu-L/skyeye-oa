@@ -8,10 +8,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.application.dao.ApplicationDao;
 import com.skyeye.application.entity.Application;
 import com.skyeye.application.service.ApplicationService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -31,14 +33,9 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "应用管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class ApplicationServiceImpl extends SkyeyeBusinessServiceImpl<ApplicationDao, Application> implements ApplicationService {
 
-    /**
-     * 应用注册
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void registerApplication(InputObject inputObject, OutputObject outputObject) {
         Application application = inputObject.getParams(Application.class);
