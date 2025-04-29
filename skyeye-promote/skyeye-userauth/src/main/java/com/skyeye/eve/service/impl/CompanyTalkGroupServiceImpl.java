@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: CompanyTalkGroupServiceImpl
- * @Description: 群组信息管理服务类
+ * @Description: 群组信息管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/7 22:51
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -113,6 +114,9 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isEmpty(beans)) {
+            return beans;
+        }
         String userId = inputObject.getLogParams().get("id").toString();
         List<String> groupIds = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         Map<String, String> groupUserIsExit = companyTalkGroupUserService.batchCheckGroupUserIsExit(groupIds, userId);
@@ -141,8 +145,9 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
         }
 
         CompanyTalkGroup companyTalkGroup = selectById(groupId);
+        // 判断群组人数是否已达上限
         long userCount = companyTalkGroupUserService.countByGroupId(companyTalkGroup.getId());
-        if (companyTalkGroup.getGroupUserNum() >= userCount) {
+        if (companyTalkGroup.getGroupUserNum() <= userCount) {
             throw new CustomException("群组人数已达上限！");
         }
         CompanyTalkGroupInvite companyTalkGroupInvite = new CompanyTalkGroupInvite();

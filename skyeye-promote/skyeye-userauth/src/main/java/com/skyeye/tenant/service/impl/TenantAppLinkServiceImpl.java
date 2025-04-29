@@ -8,7 +8,9 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.tenant.dao.TenantAppLinkDo;
@@ -27,7 +29,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "租户与应用的关系管理", groupName = "租户管理")
+@SkyeyeService(name = "租户与应用的关系管理", groupName = "租户管理", tenant = TenantEnum.PLATE)
 public class TenantAppLinkServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppLinkDo, TenantAppLink> implements TenantAppLinkService {
 
     @Override
@@ -53,6 +55,7 @@ public class TenantAppLinkServiceImpl extends SkyeyeBusinessServiceImpl<TenantAp
     }
 
     @Override
+    @IgnoreTenant
     public List<TenantAppLink> selectByTenantId(String tenantId) {
         QueryWrapper<TenantAppLink> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppLink::getBuyTenantId), tenantId);

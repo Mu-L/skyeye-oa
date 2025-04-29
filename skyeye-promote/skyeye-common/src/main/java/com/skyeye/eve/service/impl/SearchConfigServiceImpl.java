@@ -6,8 +6,12 @@ package com.skyeye.eve.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DataCommonUtil;
@@ -32,7 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class SearchConfigServiceImpl implements SearchConfigService {
+@SkyeyeService(name = "高级查询配置", groupName = "系统公共模块", tenant = TenantEnum.PLATE)
+public class SearchConfigServiceImpl extends SkyeyeBusinessServiceImpl<SearchDao, SearchMation> implements SearchConfigService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchConfigServiceImpl.class);
 
@@ -99,6 +104,7 @@ public class SearchConfigServiceImpl implements SearchConfigService {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void querySearchParamsConfig(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String urlId = params.get("urlId").toString();
@@ -125,14 +131,8 @@ public class SearchConfigServiceImpl implements SearchConfigService {
         return null;
     }
 
-    /**
-     * 新增/编辑高级查询配置
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void writeSearchConfigMation(InputObject inputObject, OutputObject outputObject) {
         SearchMation searchMation = inputObject.getParams(SearchMation.class);
         // 1.根据appId和urlId进行校验

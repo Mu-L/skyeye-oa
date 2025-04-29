@@ -5,13 +5,14 @@
 package com.skyeye.organization.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.dao.CompanyJobDao;
+import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.ICompanyService;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "职位管理", groupName = "组织模块")
 public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobDao, CompanyJob> implements CompanyJobService {
 
     @Autowired

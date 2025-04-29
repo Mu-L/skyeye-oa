@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.Tenant;
 
+import java.util.List;
+
 /**
  * @ClassName: TenantService
  * @Description: 租户服务接口层
@@ -22,4 +24,13 @@ public interface TenantService extends SkyeyeBusinessService<Tenant> {
     void editTenantAccountNumber(String tenantId, Integer accountNumber);
 
     void queryAllTenantList(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 根据租户id查询所有菜单id列表
+     *
+     * @param tenantId 租户id
+     * @param type     菜单类型 {@link com.skyeye.tenant.classenum.TenantAppMenuType}
+     * @return
+     */
+    List<String> queryAllMenuListByTenantId(String tenantId, int type);
 }

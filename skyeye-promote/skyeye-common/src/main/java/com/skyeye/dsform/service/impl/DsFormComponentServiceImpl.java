@@ -7,10 +7,13 @@ package com.skyeye.dsform.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.tree.Tree;
 import com.google.common.base.Joiner;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.dsform.classenum.ComponentApplyRange;
@@ -34,6 +37,7 @@ import java.util.stream.Collectors;
  * 注意：本组件仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "表单组件管理", groupName = "动态表单模块", tenant = TenantEnum.PLATE)
 public class DsFormComponentServiceImpl extends SkyeyeBusinessServiceImpl<DsFormComponentDao, DsFormComponent> implements DsFormComponentService {
 
     @Autowired
@@ -54,6 +58,7 @@ public class DsFormComponentServiceImpl extends SkyeyeBusinessServiceImpl<DsForm
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryAllDsFormComponentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String serviceClassName = params.get("serviceClassName").toString();
@@ -117,4 +122,15 @@ public class DsFormComponentServiceImpl extends SkyeyeBusinessServiceImpl<DsForm
         return treeNodes;
     }
 
+    @Override
+    @IgnoreTenant
+    public DsFormComponent selectById(String id) {
+        return super.selectById(id);
+    }
+
+    @Override
+    @IgnoreTenant
+    public Map<String, DsFormComponent> selectMapByIds(List<String> ids) {
+        return super.selectMapByIds(ids);
+    }
 }

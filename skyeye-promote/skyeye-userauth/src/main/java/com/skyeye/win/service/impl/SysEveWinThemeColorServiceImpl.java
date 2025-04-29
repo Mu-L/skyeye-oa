@@ -5,10 +5,12 @@
 package com.skyeye.win.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.Constants;
 import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.win.dao.SysEveWinThemeColorDao;
 import com.skyeye.win.entity.SysEveWinThemeColor;
 import com.skyeye.win.service.SysEveWinThemeColorService;
@@ -26,7 +28,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "win系统主题颜色", groupName = "win系统主题颜色")
+@SkyeyeService(name = "win系统主题颜色", groupName = "win系统主题颜色", tenant = TenantEnum.PLATE)
 public class SysEveWinThemeColorServiceImpl extends SkyeyeBusinessServiceImpl<SysEveWinThemeColorDao, SysEveWinThemeColor> implements SysEveWinThemeColorService {
 
     @Autowired
@@ -43,6 +45,7 @@ public class SysEveWinThemeColorServiceImpl extends SkyeyeBusinessServiceImpl<Sy
     }
 
     @Override
+    @IgnoreTenant
     public List<SysEveWinThemeColor> querySysEveWinThemeColorList() {
         return redisCache.getList(Constants.SYS_WIN_THEME_COLOR_REDIS_KEY, key -> {
             return list();

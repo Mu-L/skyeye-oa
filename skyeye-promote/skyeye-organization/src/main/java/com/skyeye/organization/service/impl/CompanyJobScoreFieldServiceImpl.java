@@ -6,6 +6,7 @@ package com.skyeye.organization.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -30,13 +31,14 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "职位定级薪资字段管理", groupName = "组织模块")
 public class CompanyJobScoreFieldServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobScoreFieldDao, JobScoreField> implements CompanyJobScoreFieldService {
 
     @Autowired
     private CompanyJobScoreFieldDao companyJobScoreFieldDao;
 
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void saveJobScoreFieldList(String jobScoreId, List<JobScoreField> scoreFields, String userId) {
         deleteJobScoreFieldByJobScoreId(jobScoreId);
         scoreFields.forEach(jobScoreField -> jobScoreField.setJobScoreId(jobScoreId));

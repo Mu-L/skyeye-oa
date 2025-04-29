@@ -29,8 +29,6 @@ import com.skyeye.eve.forum.entity.ForumReport;
 import com.skyeye.eve.forum.service.ForumContentService;
 import com.skyeye.eve.forum.service.ForumNoticeService;
 import com.skyeye.eve.forum.service.ForumReportService;
-import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.eve.service.ISysDictDataService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,23 +51,13 @@ import java.util.Map;
 public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumReportDao, ForumReport> implements ForumReportService {
 
     @Autowired
-    private ForumReportDao forumReportDao;
-
-    @Autowired
     private ForumReportService forumReportService;
 
     @Autowired
     private ForumNoticeService forumNoticeService;
 
     @Autowired
-    private ISysDictDataService iSysDictDataService;
-
-    @Autowired
     private ForumContentService forumContentService;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
 
     @Override
     public void createPrepose(ForumReport forumReport) {
@@ -107,44 +95,44 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         MPJLambdaWrapper<ForumReport> mpjLambdaWrapper = new MPJLambdaWrapper<ForumReport>()
             .innerJoin(ForumContent.class, ForumContent::getId, ForumReport::getForumId);
         // keyword查询条件
-        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             mpjLambdaWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), commonPageInfo.getKeyword());
         }
         // 状态查询条件
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             // 未审核
-            if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_ONE.toString())){
+            if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_ONE.toString())) {
                 mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getExamineState), ExamineStateEnum.NOT_EXAMINE.getKey());
-            }else if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_TWO.toString())){
+            } else if (StrUtil.equals(commonPageInfo.getState(), CommonNumConstants.NUM_TWO.toString())) {
                 // 已审核
                 mpjLambdaWrapper.in(MybatisPlusUtil.toColumns(ForumReport::getExamineState), Arrays.asList(ExamineStateEnum.EXAMINE_PASS.getKey(), ExamineStateEnum.EXAMINE_NO_PASS.getKey()));
             }
         }
         // 时间查询条件
-        if (StrUtil.isNotEmpty(commonPageInfo.getStartTime()) && StrUtil.isNotEmpty(commonPageInfo.getEndTime())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getStartTime()) && StrUtil.isNotEmpty(commonPageInfo.getEndTime())) {
             // 两个时间都传了
-            if (!DateUtil.compare(commonPageInfo.getStartTime(), commonPageInfo.getEndTime())){
+            if (!DateUtil.compare(commonPageInfo.getStartTime(), commonPageInfo.getEndTime())) {
                 throw new CustomException("结束时间不能早于开始时间");
             }
             mpjLambdaWrapper.between(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
-        }else {
+        } else {
             // 只传了一个时间
-            if (StrUtil.isNotEmpty(commonPageInfo.getStartTime())){
+            if (StrUtil.isNotEmpty(commonPageInfo.getStartTime())) {
                 mpjLambdaWrapper.ge(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getStartTime());
             }
-            if (StrUtil.isNotEmpty(commonPageInfo.getEndTime())){
+            if (StrUtil.isNotEmpty(commonPageInfo.getEndTime())) {
                 mpjLambdaWrapper.le(MybatisPlusUtil.toColumns(ForumReport::getReportTime), commonPageInfo.getEndTime());
             }
         }
         // 类型id查询条件
-        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
             mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getReportTypeId), commonPageInfo.getTypeId());
         }
         List<ForumReport> forumReportList = skyeyeBaseMapper.selectJoinList(ForumReport.class, mpjLambdaWrapper);
-        if (CollectionUtil.isEmpty(forumReportList)){
+        if (CollectionUtil.isEmpty(forumReportList)) {
             return;
         }
-        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(forumReportList),null);
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(forumReportList), null);
         for (Map<String, Object> map : beans) {
             map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
             map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
@@ -160,7 +148,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         // 校验数据
         Map<String, Object> map = inputObject.getParams();
         if (StrUtil.isEmpty(map.get("reason").toString())
-                && ExamineStateEnum.EXAMINE_NO_PASS.getKey().toString().equals(map.get("state").toString())) {
+            && ExamineStateEnum.EXAMINE_NO_PASS.getKey().toString().equals(map.get("state").toString())) {
             throw new CustomException("审核不通过需要填写未通过的原因");
         }
 
@@ -191,7 +179,7 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             } else if (ExamineStateEnum.EXAMINE_NO_PASS.getKey().equals(forumReport.getExamineState())) {// 审核不通过
                 // 审核不通过，通知举报人
                 ForumNotice forumNotice = new ForumNotice();
-                forumNotice.setNoticeContent("举报审核不通过,原因:"+ map.get("reason").toString());
+                forumNotice.setNoticeContent("举报审核不通过,原因:" + map.get("reason").toString());
                 forumNotice.setNoticeTitle("举报");
                 forumNotice.setForumId(forumReport.getForumId());
                 forumNotice.setReceiveId(forumReport.getReportId());
@@ -203,21 +191,6 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
         }
-    }
-
-    /**
-     * 举报详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryForumReportMationToDetails(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> bean = forumReportDao.queryForumReportMationToDetails(map);
-        iSysDictDataService.setNameForMap(bean, "reportTypeId", "reportType");
-        outputObject.setBean(bean);
-        outputObject.settotal(1);
     }
 
     @Override

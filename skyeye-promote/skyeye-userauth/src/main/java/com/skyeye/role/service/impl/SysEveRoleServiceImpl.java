@@ -5,11 +5,15 @@
 package com.skyeye.role.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.menu.dao.AppWorkPageDao;
@@ -22,8 +26,11 @@ import com.skyeye.role.service.SysEveRoleAppPageAuthService;
 import com.skyeye.role.service.SysEveRoleAppPageService;
 import com.skyeye.role.service.SysEveRoleMenuService;
 import com.skyeye.role.service.SysEveRoleService;
+import com.skyeye.tenant.classenum.TenantAppMenuType;
+import com.skyeye.tenant.service.TenantService;
 import com.skyeye.win.service.SysEveDesktopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,12 +73,18 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
     @Autowired
     private AuthPointService authPointService;
 
+    @Autowired
+    private TenantService tenantService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public Role getDataFromDb(String id) {
         Role role = super.getDataFromDb(id);
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
-        // 1. 获取PC端菜单权限
+        // 1. 获取PC端菜单权限--强隔离
         List<String> menuAuthPointIds = sysEveRoleMenuService.querySysRoleMenuIdByRoleId(id);
         role.setMenuIds(menuAuthPointIds);
         // 根据menuIds从desktopList获取桌面信息的id集合
@@ -86,7 +99,7 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
             role.setPcAuthNum(JSONUtil.toList(JSONUtil.toJsonStr(authPoints), null));
         }
 
-        // 2. 获取APP端菜单权限
+        // 2. 获取APP端菜单权限--强隔离
         List<String> appMenuIds = new ArrayList<>();
         List<String> appMenuIdList = sysEveRoleAppPageService.querySysRoleAppPageIdByRoleId(id);
         role.setAppMenuId(appMenuIdList);
@@ -165,18 +178,24 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         return roles;
     }
 
-    /**
-     * 获取所有模块(桌面)/菜单/权限点/分组/数据权限列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void querySysRoleBandMenuList(InputObject inputObject, OutputObject outputObject) {
         List<Map<String, Object>> beans = sysEveMenuDao.queryAllMenuList();
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
         beans.addAll(desktopList);
+
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.PC.getKey());
+                if (CollectionUtil.isEmpty(ids)) {
+                    return;
+                }
+                beans = beans.stream().filter(bean -> ids.contains(bean.get("id").toString())).collect(Collectors.toList());
+            }
+        }
 
         String[] str;
         for (Map<String, Object> bean : beans) {
@@ -186,12 +205,6 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 编辑角色PC端权限
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysRolePCAuth(InputObject inputObject, OutputObject outputObject) {
@@ -214,18 +227,25 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         sysEveRoleAppPageAuthService.deleteByRoleId(id);
     }
 
-    /**
-     * 获取角色需要绑定的手机端菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySysRoleBandAppMenuList(InputObject inputObject, OutputObject outputObject) {
+        // 获取APP端菜单信息--默认弱隔离
         List<Map<String, Object>> beans = appWorkPageDao.queryAllAppMenuList();
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();
         beans.addAll(desktopList);
+
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.APP.getKey());
+                if (CollectionUtil.isEmpty(ids)) {
+                    return;
+                }
+                beans = beans.stream().filter(bean -> ids.contains(bean.get("id").toString())).collect(Collectors.toList());
+            }
+        }
+
         outputObject.setBeans(beans);
     }
 

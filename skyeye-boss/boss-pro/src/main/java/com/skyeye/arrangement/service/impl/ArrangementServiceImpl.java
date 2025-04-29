@@ -18,7 +18,9 @@ import com.skyeye.arrangement.entity.Arrangement;
 import com.skyeye.arrangement.service.ArrangementService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.centerrest.entity.staff.UserStaffRest;
+import com.skyeye.centerrest.entity.tenant.TenantUserInviteRest;
 import com.skyeye.centerrest.user.SysEveUserStaffService;
+import com.skyeye.centerrest.user.TenantUserInviteService;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -35,6 +37,7 @@ import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.personrequire.service.PersonRequireService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +71,12 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
 
     @Autowired
     private PersonRequireService personRequireService;
+
+    @Autowired
+    private TenantUserInviteService tenantUserInviteService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -313,9 +322,15 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
                 intervieweeService.editStateById(arrangement.getInterviewId(), IntervieweeStatusEnum.INTERVIEW_PASS_STATUS.getKey());
                 // 修改人员需求申请单信息
                 personRequireService.updatePersonRequireNum(arrangement.getPersonRequireId(), CommonNumConstants.NUM_ONE);
-                // 添加员工信息
-                UserStaffRest sysUserStaff = getSysUserStaffMation(arrangement, map);
-                ExecuteFeignClient.get(() -> sysEveUserStaffService.insertNewUserStaff(sysUserStaff));
+                if (!tenantEnable) {
+                    // 未开启租户模式，添加员工信息
+                    UserStaffRest sysUserStaff = getSysUserStaffMation(arrangement, map);
+                    ExecuteFeignClient.get(() -> sysEveUserStaffService.insertNewUserStaff(sysUserStaff));
+                } else {
+                    // 开启租户模式，邀请用户加入
+                    TenantUserInviteRest tenantUserInviteRest = getTenantUserInviteRest(arrangement, map);
+                    ExecuteFeignClient.get(() -> tenantUserInviteService.inviteUsersToJoin(tenantUserInviteRest));
+                }
             } else {
                 // 拒绝入职
                 if (ToolUtil.isBlank(reason)) {
@@ -366,6 +381,31 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         sysUserStaff.setTrialTime(map.get("trialTime").toString());
         sysUserStaff.setInterviewArrangementId(arrangement.getId());
         return sysUserStaff;
+    }
+
+    private TenantUserInviteRest getTenantUserInviteRest(Arrangement arrangement, Map<String, Object> map) {
+        String email = map.get("email").toString();
+        if (StrUtil.isEmpty(email)) {
+            throw new CustomException("邮箱不能为空。");
+        }
+        TenantUserInviteRest tenantUserInviteRest = new TenantUserInviteRest();
+        tenantUserInviteRest.setEmail(email);
+        tenantUserInviteRest.setPhone(arrangement.getInterviewMation().getPhone());
+
+        String departmentId = arrangement.getPersonRequireMation().getRecruitDepartmentId();
+        Map<String, Object> department = iDepmentService.queryDataMationById(departmentId);
+        tenantUserInviteRest.setCompanyId(department.get("companyId").toString());
+        tenantUserInviteRest.setDepartmentId(departmentId);
+        tenantUserInviteRest.setJobId(arrangement.getPersonRequireMation().getRecruitJobId());
+        tenantUserInviteRest.setWorkTime(map.get("workTime").toString());
+        tenantUserInviteRest.setEntryTime(map.get("entryTime").toString());
+        if (StrUtil.isEmpty(map.get("inductionState").toString())) {
+            throw new CustomException("员工入职状态不能为空。");
+        }
+        tenantUserInviteRest.setState(Integer.parseInt(map.get("inductionState").toString()));
+        tenantUserInviteRest.setTrialTime(map.get("trialTime").toString());
+        tenantUserInviteRest.setInterviewArrangementId(arrangement.getId());
+        return tenantUserInviteRest;
     }
 
 }

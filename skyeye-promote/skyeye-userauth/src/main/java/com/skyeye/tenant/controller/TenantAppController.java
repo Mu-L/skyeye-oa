@@ -32,12 +32,6 @@ public class TenantAppController {
     @Autowired
     private TenantAppService tenantAppService;
 
-    /**
-     * 获取租户应用列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantAppList", value = "获取租户应用列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/TenantAppController/queryTenantAppList")
@@ -45,12 +39,6 @@ public class TenantAppController {
         tenantAppService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑租户应用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTenantApp", value = "新增/编辑租户应用", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TenantApp.class)
     @RequestMapping("/post/TenantAppController/writeTenantApp")
@@ -58,12 +46,6 @@ public class TenantAppController {
         tenantAppService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询租户应用信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantAppById", value = "根据id查询租户应用信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户应用ID", required = "required")})
@@ -72,12 +54,6 @@ public class TenantAppController {
         tenantAppService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除租户应用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTenantAppById", value = "删除租户应用", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户应用ID", required = "required")})
@@ -86,24 +62,12 @@ public class TenantAppController {
         tenantAppService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有模块(桌面)/菜单/权限点/分组/数据权限列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantAppBandMenuList", value = "获取所有模块(桌面)/菜单/权限点/分组/数据权限列表", method = "GET", allUse = "2")
     @RequestMapping("/post/TenantAppController/queryTenantAppBandMenuList")
     public void queryTenantAppBandMenuList(InputObject inputObject, OutputObject outputObject) {
         tenantAppService.queryTenantAppBandMenuList(inputObject, outputObject);
     }
 
-    /**
-     * 编辑租户应用PC端权限
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editTenantAppPCAuth", value = "编辑租户应用PC端权限", method = "PUT", allUse = "1")
     @ApiImplicitParams(classBean = TenantApp.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -112,24 +76,12 @@ public class TenantAppController {
         tenantAppService.editTenantAppPCAuth(inputObject, outputObject);
     }
 
-    /**
-     * 获取租户应用需要绑定的手机端菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantAppBandAppMenuList", value = "获取租户应用需要绑定的手机端菜单列表", method = "GET", allUse = "2")
     @RequestMapping("/post/TenantAppController/queryTenantAppBandAppMenuList")
     public void queryTenantAppBandAppMenuList(InputObject inputObject, OutputObject outputObject) {
         tenantAppService.queryTenantAppBandAppMenuList(inputObject, outputObject);
     }
 
-    /**
-     * 手机端菜单授权
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editTenantAppAppMenuById", value = "手机端菜单授权", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TenantApp.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -138,12 +90,6 @@ public class TenantAppController {
         tenantAppService.editTenantAppAppMenuById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有租户应用列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllTenantAppList", value = "获取所有租户应用列表", method = "GET", allUse = "2")
     @RequestMapping("/post/TenantAppController/queryAllTenantAppList")
     public void queryAllTenantAppList(InputObject inputObject, OutputObject outputObject) {

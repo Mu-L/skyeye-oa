@@ -39,12 +39,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "聊天历史", groupName = "聊天历史")
 public class ChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<ChatHistoryDao, ChatHistory> implements ChatHistoryService {
 
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserService;
-
-    @Autowired
-    private IUserService iUserService;
-
     @Override
     public String createEntity(JSONObject jsonObject, Integer chatType, Integer readType) {
         ChatHistory chatHistory = new ChatHistory();

@@ -31,7 +31,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+@UniqueField(value = {"name","schoolId"})
 @RedisCacheField(name = CacheConstants.SC_CLASS_CACHE_KEY, cacheTime = RedisConstants.A_YEAR_SECONDS)
 @TableName(value = "school_classes")
 @ApiModel(value = "班级实体类")

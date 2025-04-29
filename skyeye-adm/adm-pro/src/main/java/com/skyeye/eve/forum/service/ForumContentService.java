@@ -8,7 +8,6 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.forum.entity.ForumContent;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,8 +34,6 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
     void queryForumListByTagId(InputObject inputObject, OutputObject outputObject);
 
     void queryActiveUsersList(InputObject inputObject, OutputObject outputObject);
-
-    void querySearchForumList(InputObject inputObject, OutputObject outputObject);
 
     void setAnonymous(List<ForumContent> forumContentList);
 

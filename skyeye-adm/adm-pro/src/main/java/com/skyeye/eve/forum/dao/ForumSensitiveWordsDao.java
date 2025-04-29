@@ -7,11 +7,8 @@ package com.skyeye.eve.forum.dao;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.forum.entity.ForumSensitiveWords;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * @ClassName: ForumReportDao
+ * @ClassName: ForumSensitiveWordsDao
  * @Description: 论坛敏感词管理数据层
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/7 11:06
@@ -20,17 +17,4 @@ import java.util.Map;
  */
 public interface ForumSensitiveWordsDao extends SkyeyeBaseMapper<ForumSensitiveWords> {
 
-    List<Map<String, Object>> queryForumSensitiveWordsList(Map<String, Object> map);
-
-    Map<String, Object> queryForumSensitiveWordsMationByName(Map<String, Object> map);
-
-    int insertForumSensitiveWordsMation(Map<String, Object> map);
-
-    int deleteForumSensitiveWordsById(Map<String, Object> map);
-
-    Map<String, Object> selectForumSensitiveWordsById(Map<String, Object> map);
-
-    int editForumSensitiveWordsMationById(Map<String, Object> map);
-
-    List<Map<String, Object>> queryForumSensitiveWordsListAll();
 }

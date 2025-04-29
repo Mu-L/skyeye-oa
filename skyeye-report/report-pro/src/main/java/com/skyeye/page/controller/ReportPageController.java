@@ -32,12 +32,6 @@ public class ReportPageController {
     @Autowired
     private ReportPageService reportPageService;
 
-    /**
-     * 获取报表页面信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportPageList", value = "获取报表页面信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReportPageController/queryReportPageList")
@@ -45,12 +39,6 @@ public class ReportPageController {
         reportPageService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑报表页面
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeReportPage", value = "新增/编辑报表页面", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ReportPage.class)
     @RequestMapping("/post/ReportPageController/writeReportPage")
@@ -58,12 +46,6 @@ public class ReportPageController {
         reportPageService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除报表页面信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteReportPageById", value = "删除报表页面信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ReportPageController {
         reportPageService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询报表页面信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportPageById", value = "根据id查询报表页面信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ReportPageController {
         reportPageService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑报表页面包含的模型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editReportPageContentById", value = "编辑报表页面包含的模型信息", method = "POST", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

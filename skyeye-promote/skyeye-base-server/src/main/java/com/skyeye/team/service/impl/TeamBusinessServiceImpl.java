@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "团队管理", groupName = "团队管理")
+@SkyeyeService(name = "业务团队管理", groupName = "团队管理")
 public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusinessDao, TeamBusiness> implements TeamBusinessService {
 
     @Autowired

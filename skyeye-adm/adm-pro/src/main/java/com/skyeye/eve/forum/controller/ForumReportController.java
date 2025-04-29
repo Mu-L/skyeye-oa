@@ -32,12 +32,6 @@ public class ForumReportController {
     @Autowired
     private ForumReportService forumReportService;
 
-    /**
-     * 添加举报信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertForumReportMation", value = "添加举报信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ForumReport.class)
     @RequestMapping("/post/ForumReportController/insertForumReportMation")
@@ -45,12 +39,6 @@ public class ForumReportController {
         forumReportService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取论坛举报列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportNoCheckList", value = "根据审核状态获取论坛举报列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumReportController/queryReportNoCheckList")
@@ -58,12 +46,6 @@ public class ForumReportController {
         forumReportService.queryReportNoCheckList(inputObject, outputObject);
     }
 
-    /**
-     * 举报信息审核
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkForumReport", value = "举报信息审核", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -72,28 +54,6 @@ public class ForumReportController {
     @RequestMapping("/post/ForumReportController/checkForumReport")
     public void checkForumReport(InputObject inputObject, OutputObject outputObject) {
         forumReportService.checkForumReport(inputObject, outputObject);
-    }
-
-//    /**
-//     * 获取论坛举报已审核列表
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @RequestMapping("/post/ForumReportController/queryReportCheckedList")
-//    public void queryReportCheckedList(InputObject inputObject, OutputObject outputObject) {
-//        forumReportService.queryReportCheckedList(inputObject, outputObject);
-//    }
-
-    /**
-     * 举报详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ForumReportController/queryForumReportMationToDetails")
-    public void queryForumReportMationToDetails(InputObject inputObject, OutputObject outputObject) {
-        forumReportService.queryForumReportMationToDetails(inputObject, outputObject);
     }
 
     @ApiOperation(id = "selectReportById", value = "举报详情", method = "POST", allUse = "2")

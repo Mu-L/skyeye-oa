@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "手机端菜单管理", groupName = "菜单管理")
+@SkyeyeService(name = "手机端菜单管理", groupName = "菜单管理", tenant = TenantEnum.PLATE)
 public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPageDao, AppWorkPage> implements AppWorkPageService {
 
     @Autowired

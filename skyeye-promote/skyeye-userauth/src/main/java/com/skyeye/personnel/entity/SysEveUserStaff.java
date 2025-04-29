@@ -72,7 +72,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String email;
 
     @TableField("phone")
-    @ApiModelProperty(value = "手机号", required = "phone")
+    @ApiModelProperty(value = "手机号", required = "required,phone")
     private String phone;
 
     @TableField("home_phone")

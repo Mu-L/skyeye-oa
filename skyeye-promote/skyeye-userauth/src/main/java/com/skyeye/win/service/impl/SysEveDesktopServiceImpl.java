@@ -7,10 +7,12 @@ package com.skyeye.win.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -36,7 +38,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "桌面信息管理", groupName = "基础模块")
+@SkyeyeService(name = "桌面信息管理", groupName = "基础模块", tenant = TenantEnum.PLATE)
 public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDesktopDao, SysDesktop> implements SysEveDesktopService {
 
     @Autowired
@@ -88,6 +90,7 @@ public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDe
     }
 
     @Override
+    @IgnoreTenant
     public List<Map<String, Object>> queryAllDataForMap() {
         List<Map<String, Object>> desktopList = super.queryAllDataForMap();
         desktopList.forEach(desktop -> {
@@ -99,5 +102,11 @@ public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDe
         desktopList = desktopList.stream()
             .sorted(Comparator.comparing(bean -> Integer.parseInt(bean.get("orderBy").toString()))).collect(Collectors.toList());
         return desktopList;
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<SysDesktop> queryAllData() {
+        return super.queryAllData();
     }
 }

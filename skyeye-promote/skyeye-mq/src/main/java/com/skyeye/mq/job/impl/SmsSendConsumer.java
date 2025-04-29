@@ -6,6 +6,7 @@ package com.skyeye.mq.job.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.service.JobMateMationService;
 import com.skyeye.sms.entity.SmsSendMessage;
 import com.skyeye.sms.service.SmsSendService;
@@ -47,6 +48,7 @@ public class SmsSendConsumer implements RocketMQListener<String> {
         String jobId = map.get("jobMateId").toString();
         String content = map.get("content").toString();
         try {
+            TenantContext.setTenantId(map.get("tenantId").toString());
             // 任务开始
             jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
             // 发送短信

@@ -32,12 +32,6 @@ public class DsFormComponentController {
     @Autowired
     private DsFormComponentService dsFormComponentService;
 
-    /**
-     * 获取动态表单组件列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDsFormComponentList", value = "获取动态表单组件列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DsFormComponentController/queryDsFormComponentList")
@@ -45,12 +39,6 @@ public class DsFormComponentController {
         dsFormComponentService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑表单组件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDsFormComponent", value = "添加/编辑表单组件", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = DsFormComponent.class)
     @RequestMapping("/post/DsFormComponentController/writeDsFormComponent")
@@ -58,12 +46,6 @@ public class DsFormComponentController {
         dsFormComponentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除动态表单组件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDsFormComponentMationById", value = "删除动态表单组件信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class DsFormComponentController {
         dsFormComponentService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取动态表单组件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDsFormComponentMationById", value = "根据id获取动态表单组件信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class DsFormComponentController {
         dsFormComponentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有的动态表单组件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllDsFormComponentList", value = "获取所有的动态表单组件", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "业务对象的服务层className", required = "required")})

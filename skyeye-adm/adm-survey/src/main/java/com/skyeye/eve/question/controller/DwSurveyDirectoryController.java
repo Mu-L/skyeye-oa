@@ -20,12 +20,6 @@ public class DwSurveyDirectoryController {
     @Autowired
     private DwSurveyDirectoryService dwSurveyDirectoryService;
 
-    /**
-     * 新增/编辑问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDwDirectory", value = "新增/编辑问卷", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwSurveyDirectory.class)
     @RequestMapping("/post/DwSurveyDirectoryController/writeDwDirectory")
@@ -33,12 +27,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 发布问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setUpDwDirectory", value = "发布问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -47,12 +35,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.setUpDwDirectory(inputObject, outputObject);
     }
 
-    /**
-     * 复制问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "copyDwDirectory", value = "复制问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required"),
@@ -62,12 +44,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.copyDwDirectory(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取问卷信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDirectoryById", value = "根据id获取问卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -76,12 +52,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 逻辑删除问卷信息,及改变whether_delete字段为2
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "changeWhetherDeleteById", value = "删除问卷信息,及改变whether_delete字段为2", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -90,12 +60,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.changeWhetherDeleteById(inputObject, outputObject);
     }
 
-    /**
-     * 物理删除问卷信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSurvey", value = "物理删除问卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -104,12 +68,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 是否可以参加考试
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "takeExam", value = "是否可以参加考试", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -118,12 +76,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.takeExam(inputObject, outputObject);
     }
 
-    /**
-     * 手动结束问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateDwMationEndById", value = "手动结束问卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -132,12 +84,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.updateDwMationEndById(inputObject, outputObject);
     }
 
-    /**
-     * 分页筛选问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFilterDwLists", value = "分页筛选问卷", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwSurveyDirectoryController/queryFilterDwLists")
@@ -145,12 +91,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryFilterDwLists(inputObject, outputObject);
     }
 
-    /**
-     * 筛选我的问卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyDwurvey", value = "筛选我的问卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwSurveyDirectoryController/queryMyDwurvey")
@@ -158,12 +98,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryMyDwurvey(inputObject, outputObject);
     }
 
-    /**
-     * 分析报告问卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDwurveyMationById", value = "分析报告试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
@@ -172,12 +106,6 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.queryDwurveyMationById(inputObject, outputObject);
     }
 
-    /**
-     * 获取调查问卷题目信息用来生成html页面
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDwSurveyDirectoryMationByIdToHTML", value = "获取调查问卷题目信息用来生成html页面", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})

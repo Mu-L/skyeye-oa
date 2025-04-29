@@ -16,7 +16,6 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -30,7 +29,6 @@ import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumHistoryView;
 import com.skyeye.eve.forum.service.*;
 import com.skyeye.exception.CustomException;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,7 +158,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE);
         queryWrapper.or(
             w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                    .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
         );
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
@@ -215,7 +213,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         if (forumCommentList.size() > 15) {
             forumCommentList = forumCommentList.subList(0, 15);
         }
-        iAuthUserService.setDataMation(forumCommentList,ForumComment::getCreateId);
+        iAuthUserService.setDataMation(forumCommentList, ForumComment::getCreateId);
         iAuthUserService.setDataMation(forumCommentList, ForumComment::getReplyId);
         outputObject.setBeans(forumCommentList);
         outputObject.settotal(forumCommentList.size());
@@ -313,28 +311,6 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         }
         outputObject.setBeans(userInfos);
         outputObject.settotal(userInfos.size());
-    }
-
-    /**
-     * 获取用户搜索的帖子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void querySearchForumList(InputObject inputObject, OutputObject outputObject) {
-        String searchValue = inputObject.getParams().get("searchValue").toString();
-        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
-        queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), searchValue);
-        List<ForumContent> beans = list(queryWrapper);
-        if (CollectionUtil.isEmpty(beans)) {
-            return;
-        }
-        forumTagService.setTagMationForContentList(beans);
-        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
-        setAnonymous(beans);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
     }
 
     /**

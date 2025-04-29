@@ -5,8 +5,11 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.TableSelectInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.ToolUtil;
@@ -28,6 +31,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "行政区划", groupName = "基础模块", tenant = TenantEnum.PLATE)
 public class SysTAreaServiceImpl extends SkyeyeBusinessServiceImpl<SysTAreaDao, SysTArea> implements SysTAreaService {
 
     public static String SYS_ALL_T_AREA_LIST = "sys_all_t_area_list";
@@ -38,13 +42,8 @@ public class SysTAreaServiceImpl extends SkyeyeBusinessServiceImpl<SysTAreaDao, 
         return skyeyeBaseMapper.querySysTAreaList(selectInfo);
     }
 
-    /**
-     * 根据父id获取子节点信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryAreaListByPId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String pId = map.get("pId").toString();
@@ -59,13 +58,8 @@ public class SysTAreaServiceImpl extends SkyeyeBusinessServiceImpl<SysTAreaDao, 
         outputObject.settotal(beans.size());
     }
 
-    /**
-     * 查询省市区数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryPartAreaList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         List<Map<String, Object>> beans;
