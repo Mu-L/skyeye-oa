@@ -296,19 +296,6 @@ public class ChapterServiceImpl extends SkyeyeBusinessServiceImpl<ChapterDao, Ch
                 bean.put("examCompleteRate", examCompleteRate.equals(zeroDouble) ? CommonNumConstants.NUM_ZERO :
                     examCompleteRate.equals(oneHundredDouble) ? "100%" : CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
             }
-
-//            if (!assignmentCompleteRate.equals(zeroDouble)) {
-//                bean.put("assignmentCompleteRate", CalculationUtil.multiply(assignmentCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-//            }
-//            if (!coursewareCompleteRate.equals(zeroDouble)) {
-//                bean.put("coursewareCompleteRate", CalculationUtil.multiply(coursewareCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-//            }
-//            if (bean.containsKey("examCompleteRate")) {
-//                String examCompleteRate = bean.get("examCompleteRate").toString();
-//                if (!examCompleteRate.equals(zeroDouble)) {
-//                    bean.put("examCompleteRate", CalculationUtil.multiply(examCompleteRate, "100", CommonNumConstants.NUM_TWO) + "%");
-//                }
-//            }
             return bean;
         }).sorted(Comparator.comparing(bean -> (Integer) bean.get("sort"))).collect(Collectors.toList());
     }

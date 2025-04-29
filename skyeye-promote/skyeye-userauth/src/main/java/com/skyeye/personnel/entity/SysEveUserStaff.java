@@ -88,7 +88,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userSign;
 
     @TableField("state")
-    @ApiModelProperty(value = "员工在职状态", enumClass = UserStaffState.class, required = "required,num")
+    @ApiModelProperty(value = "员工在职状态", enumClass = UserStaffState.class)
     private Integer state;
 
     @TableField(exist = false)
@@ -100,7 +100,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userId;
 
     @TableField("company_id")
-    @ApiModelProperty(value = "所属公司id", required = "required")
+    @ApiModelProperty(value = "所属公司id")
     private String companyId;
 
     @TableField(exist = false)
@@ -112,7 +112,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String companyName;
 
     @TableField("department_id")
-    @ApiModelProperty(value = "所属部门id", required = "required")
+    @ApiModelProperty(value = "所属部门id")
     private String departmentId;
 
     @TableField(exist = false)
@@ -124,7 +124,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String departmentName;
 
     @TableField("job_id")
-    @ApiModelProperty(value = "所属职位id", required = "required")
+    @ApiModelProperty(value = "所属职位id")
     private String jobId;
 
     @TableField(exist = false)
@@ -172,7 +172,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String becomeWorkerTime;
 
     @TableField("type")
-    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, required = "required,num", defaultValue = "1")
+    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, defaultValue = "1")
     private Integer type;
 
     @TableField("native_place")
@@ -192,7 +192,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String highestEducation;
 
     @TableField("design_wages")
-    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, required = "num", defaultValue = "1")
+    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, defaultValue = "1")
     private Integer designWages;
 
     @TableField("act_wages")

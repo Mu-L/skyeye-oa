@@ -15,6 +15,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.*;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.*;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -54,7 +55,7 @@ import java.util.*;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "用户管理", groupName = "用户管理")
+@SkyeyeService(name = "用户管理", groupName = "用户管理", tenant = TenantEnum.NO_ISOLATION)
 public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserDao, SysEveUser> implements SysEveUserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SysEveUserServiceImpl.class);

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.TenantUserInvite;
@@ -30,6 +31,13 @@ public class TenantUserInviteController {
 
     @Autowired
     private TenantUserInviteService tenantUserInviteService;
+
+    @ApiOperation(id = "queryTenantUserInviteList", value = "分页查询租户与用户邀请关系列表", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/TenantUserInviteController/queryTenantUserInviteList")
+    public void queryTenantUserInviteList(InputObject inputObject, OutputObject outputObject) {
+        tenantUserInviteService.queryPageList(inputObject, outputObject);
+    }
 
     @ApiOperation(id = "inviteUsersToJoin", value = "邀请用户加入租户", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TenantUserInvite.class)

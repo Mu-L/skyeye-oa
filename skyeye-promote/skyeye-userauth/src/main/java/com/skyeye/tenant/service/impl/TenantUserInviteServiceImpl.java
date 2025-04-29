@@ -18,6 +18,10 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.organization.service.CompanyDepartmentService;
+import com.skyeye.organization.service.CompanyJobScoreService;
+import com.skyeye.organization.service.CompanyJobService;
+import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.tenant.classenum.TenantUserJoinType;
@@ -32,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,6 +63,30 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     @Value("${skyeye.tenantInvite.url}")
     private String tenantInviteUrl;
 
+    @Autowired
+    private CompanyMationService companyMationService;
+
+    @Autowired
+    private CompanyDepartmentService companyDepartmentService;
+
+    @Autowired
+    private CompanyJobService companyJobService;
+
+    @Autowired
+    private CompanyJobScoreService companyJobScoreService;
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+
+        // 设置组织信息
+        companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
+        companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
+        return beans;
+    }
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void inviteUsersToJoin(InputObject inputObject, OutputObject outputObject) {
@@ -69,7 +98,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             // 手机号已存在，则直接加入租户
             tenantUserInvite.setIsUsed(IsUsedEnum.IN_USE.getKey());
             tenantUserInvite.setJoinType(TenantUserJoinType.AUTO.getKey());
-            createEntity(tenantUserInvite, userId);
+            String id = createEntity(tenantUserInvite, userId);
             // 加入租户
             TenantUser tenantUser = new TenantUser();
             tenantUser.setStaffId(userStaffId);
@@ -82,6 +111,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             tenantUser.setEntryTime(tenantUserInvite.getEntryTime());
             tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
             tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
+            tenantUser.setTenantUserInviteId(id);
             tenantUserService.createEntity(tenantUser, userId);
         } else {
             // 手机号不存在，则发起邀请
@@ -138,6 +168,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinTenantByInvite(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
@@ -171,6 +202,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         tenantUser.setEntryTime(tenantUserInvite.getEntryTime());
         tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
         tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
+        tenantUser.setTenantUserInviteId(tenantUserInvite.getId());
         tenantUserService.createEntity(tenantUser, tenantUserInvite.getCreateId());
     }
 
@@ -181,15 +213,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         sysEveUserStaff.setPhone(tenantUserInvite.getPhone());
         sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
         sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
-        sysEveUserStaff.setCompanyId(tenantUserInvite.getCompanyId());
-        sysEveUserStaff.setDepartmentId(tenantUserInvite.getDepartmentId());
-        sysEveUserStaff.setJobId(tenantUserInvite.getJobId());
-        sysEveUserStaff.setJobScoreId(tenantUserInvite.getJobScoreId());
-        sysEveUserStaff.setState(tenantUserInvite.getState());
-        sysEveUserStaff.setWorkTime(tenantUserInvite.getWorkTime());
-        sysEveUserStaff.setEntryTime(tenantUserInvite.getEntryTime());
-        sysEveUserStaff.setTrialTime(tenantUserInvite.getTrialTime());
-        sysEveUserStaff.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
         // 保存用户信息
         return sysEveUserStaffService.createEntity(sysEveUserStaff, tenantUserInvite.getCreateId());
     }
