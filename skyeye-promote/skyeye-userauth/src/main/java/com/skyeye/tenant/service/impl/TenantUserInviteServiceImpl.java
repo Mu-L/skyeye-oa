@@ -213,15 +213,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         sysEveUserStaff.setPhone(tenantUserInvite.getPhone());
         sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
         sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
-        sysEveUserStaff.setCompanyId(tenantUserInvite.getCompanyId());
-        sysEveUserStaff.setDepartmentId(tenantUserInvite.getDepartmentId());
-        sysEveUserStaff.setJobId(tenantUserInvite.getJobId());
-        sysEveUserStaff.setJobScoreId(tenantUserInvite.getJobScoreId());
-        sysEveUserStaff.setState(tenantUserInvite.getState());
-        sysEveUserStaff.setWorkTime(tenantUserInvite.getWorkTime());
-        sysEveUserStaff.setEntryTime(tenantUserInvite.getEntryTime());
-        sysEveUserStaff.setTrialTime(tenantUserInvite.getTrialTime());
-        sysEveUserStaff.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
         // 保存用户信息
         return sysEveUserStaffService.createEntity(sysEveUserStaff, tenantUserInvite.getCreateId());
     }

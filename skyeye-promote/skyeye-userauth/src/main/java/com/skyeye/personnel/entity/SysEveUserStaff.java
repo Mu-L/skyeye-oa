@@ -88,7 +88,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userSign;
 
     @TableField("state")
-    @ApiModelProperty(value = "员工在职状态", enumClass = UserStaffState.class, required = "required,num")
+    @ApiModelProperty(value = "员工在职状态", enumClass = UserStaffState.class)
     private Integer state;
 
     @TableField(exist = false)
