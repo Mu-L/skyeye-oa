@@ -20,6 +20,8 @@ import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: TenantUser
  * @Description: 租户下的用户实体类
@@ -45,6 +47,10 @@ public class TenantUser extends OperatorUserInfo {
     @TableField(value = "staff_id")
     @ApiModelProperty(value = "员工id", required = "required")
     private String staffId;
+
+    @TableField(exist = false)
+    @Property(value = "员工信息")
+    private Map<String, Object> staffMation;
 
     @TableField(value = "company_id")
     @ApiModelProperty(value = "企业id", required = "required")
@@ -101,5 +107,13 @@ public class TenantUser extends OperatorUserInfo {
     @TableField("interview_arrangement_id")
     @ApiModelProperty(value = "关联的面试安排信息id")
     private String interviewArrangementId;
+
+    @TableField("tenant_user_invite_id")
+    @ApiModelProperty(value = "用户邀请信息id")
+    private String tenantUserInviteId;
+
+    @TableField(exist = false)
+    @Property(value = "用户邀请信息")
+    private Map<String, Object> tenantUserInviteMation;
 
 }

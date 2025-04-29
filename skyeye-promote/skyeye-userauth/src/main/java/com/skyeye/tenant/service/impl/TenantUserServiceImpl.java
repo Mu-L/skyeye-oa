@@ -4,16 +4,29 @@
 
 package com.skyeye.tenant.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.organization.service.CompanyDepartmentService;
+import com.skyeye.organization.service.CompanyJobScoreService;
+import com.skyeye.organization.service.CompanyJobService;
+import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: TenantUserServiceImpl
@@ -26,6 +39,63 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "租户下的用户管理", groupName = "租户下的用户管理")
 public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserDao, TenantUser> implements TenantUserService {
+
+    @Autowired
+    private CompanyMationService companyMationService;
+
+    @Autowired
+    private CompanyDepartmentService companyDepartmentService;
+
+    @Autowired
+    private CompanyJobService companyJobService;
+
+    @Autowired
+    private CompanyJobScoreService companyJobScoreService;
+
+    @Override
+    protected void createPrepose(TenantUser entity) {
+        super.createPrepose(entity);
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        String jobNumberKey = MybatisPlusUtil.toColumns(TenantUser::getJobNumber);
+        queryWrapper.select("max(0 + RIGHT(" + jobNumberKey + ", 6)) AS " + jobNumberKey);
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        entity.setJobNumber(CalculationUtil.add(tenantUser.getJobNumber(), CommonNumConstants.NUM_ONE.toString(), CommonNumConstants.NUM_ZERO));
+    }
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        beans.forEach(bean -> {
+            String transferStaffId = bean.get("staffId").toString();
+            bean.put("staffMation", staffMap.get(transferStaffId));
+        });
+
+        // 设置组织信息
+        companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
+        companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
+        return beans;
+    }
+
+    @Override
+    public TenantUser selectById(String id) {
+        TenantUser tenantUser = super.selectById(id);
+
+        // 获取用户的信息
+        Map<String, Map<String, Object>> staffMap = iAuthUserService
+            .queryUserMationListByStaffIds(Arrays.asList(tenantUser.getStaffId()));
+        tenantUser.setStaffMation(staffMap.get(tenantUser.getStaffId()));
+
+        // 设置组织信息
+        companyMationService.setDataMation(tenantUser, TenantUser::getCompanyId);
+        companyDepartmentService.setDataMation(tenantUser, TenantUser::getDepartmentId);
+        companyJobService.setDataMation(tenantUser, TenantUser::getJobId);
+        companyJobScoreService.setDataMation(tenantUser, TenantUser::getJobScoreId);
+        return tenantUser;
+    }
 
     @Override
     public void removeTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
