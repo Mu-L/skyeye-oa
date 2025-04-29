@@ -137,6 +137,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             if (StrUtil.isEmpty(entity.getJobId())) {
                 throw new CustomException("请选择职位.");
             }
+            if (entity.getType() == null) {
+                throw new CustomException("请传入员工类型.");
+            }
         }
         QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), entity.getPhone());

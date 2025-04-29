@@ -172,7 +172,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String becomeWorkerTime;
 
     @TableField("type")
-    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, required = "required,num", defaultValue = "1")
+    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, defaultValue = "1")
     private Integer type;
 
     @TableField("native_place")
@@ -192,7 +192,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String highestEducation;
 
     @TableField("design_wages")
-    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, required = "num", defaultValue = "1")
+    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, defaultValue = "1")
     private Integer designWages;
 
     @TableField("act_wages")
