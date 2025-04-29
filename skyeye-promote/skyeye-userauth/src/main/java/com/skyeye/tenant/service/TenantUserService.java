@@ -22,4 +22,6 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     void removeTenantUserByStaffId(InputObject inputObject, OutputObject outputObject);
 
     void exitTenantUser(InputObject inputObject, OutputObject outputObject);
+
+    void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject);
 }

@@ -51,4 +51,10 @@ public class TenantUserController {
     public void exitTenantUser(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.exitTenantUser(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryTenantUserByStaffId", value = "获取当前用户所属的租户信息", method = "GET", allUse = "2")
+    @RequestMapping("/post/TenantUserController/queryTenantUserByStaffId")
+    public void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.queryTenantUserByStaffId(inputObject, outputObject);
+    }
 }

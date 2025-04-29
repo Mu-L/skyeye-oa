@@ -109,4 +109,7 @@ public class TenantUserInvite extends OperatorUserInfo {
     @ApiModelProperty(value = "关联的面试安排信息id")
     private String interviewArrangementId;
 
+    @TableField(value = "tenant_id")
+    @ApiModelProperty(value = "租户id", required = "required")
+    private String tenantId;
 }

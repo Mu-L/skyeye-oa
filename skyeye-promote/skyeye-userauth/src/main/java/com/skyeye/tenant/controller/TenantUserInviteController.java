@@ -67,7 +67,9 @@ public class TenantUserInviteController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
         @ApiImplicitParam(id = "userSex", name = "userSex", value = "性别", required = "required"),
-        @ApiImplicitParam(id = "userIdCard", name = "userIdCard", value = "身份证号", required = "required")})
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required"),
+        @ApiImplicitParam(id = "userIdCard", name = "userIdCard", value = "身份证号", required = "required"),
+        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required"),})
     @RequestMapping("/post/TenantUserInviteController/joinTenantByInvite")
     public void joinTenantByInvite(InputObject inputObject, OutputObject outputObject) {
         tenantUserInviteService.joinTenantByInvite(inputObject, outputObject);

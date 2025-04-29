@@ -4,7 +4,6 @@
 
 package com.skyeye.personnel.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -32,7 +31,6 @@ import com.skyeye.personnel.classenum.UserLockState;
 import com.skyeye.personnel.dao.SysEveUserDao;
 import com.skyeye.personnel.entity.SysEveUser;
 import com.skyeye.personnel.entity.SysEveUserInstall;
-import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserInstallService;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
@@ -87,12 +85,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Autowired
     private RoleMenuService roleMenuService;
 
-    /**
-     * 获取管理员用户列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySysUserList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -147,26 +139,23 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void insertSysUserMationById(InputObject inputObject, OutputObject outputObject) {
         SysEveUser sysEveUser = inputObject.getParams(SysEveUser.class);
+
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        addNewUser(currentUserId, sysEveUser);
+    }
+
+    @Override
+    public void addNewUser(String currentUserId, SysEveUser sysEveUser) {
         // 判断账号是否存在
         QueryWrapper<SysEveUser> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(SysEveUser::getUserCode), sysEveUser.getUserCode());
         long count = count(wrapper);
         if (count == 0) {
-            String currentUserId = inputObject.getLogParams().get("id").toString();
             int pwdNum = (int) (Math.random() * 100);
             sysEveUser.setPwdNumEnc(pwdNum);
             sysEveUser.setPassword(getCalcPaswword(sysEveUser.getPassword(), pwdNum));
             sysEveUser.setUserLock(UserLockState.SYS_USER_LOCK_STATE_ISUNLOCK.getKey());
 
-            // 根据员工id获取员工所属部门
-            SysEveUserStaff staff = sysEveUserStaffService.selectById(sysEveUser.getStaffId());
-            if (ObjectUtil.isNotEmpty(staff) && StrUtil.isNotEmpty(staff.getId())) {
-                // 删除redis中缓存的单位下的用户
-                jedisClientService.delKeys(Constants.getSysTalkGroupUserListMationById(staff.getDepartmentId()) + "*");
-            } else {
-                outputObject.setreturnMessage("员工信息不存在.");
-                return;
-            }
             // 1.新增用户信息
             String id = createEntity(sysEveUser, currentUserId);
             // 2.新增用户设置信息
@@ -176,7 +165,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
             // 3.修改员工与账号的关系
             sysEveUserStaffService.editSysUserStaffBindUserId(sysEveUser.getStaffId(), id);
         } else {
-            outputObject.setreturnMessage("该账号已存在，请更换！");
+            throw new CustomException("该账号已存在，请更换！");
         }
     }
 

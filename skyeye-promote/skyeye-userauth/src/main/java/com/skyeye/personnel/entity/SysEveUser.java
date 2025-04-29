@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.personnel.classenum.UserIsTermOfValidity;
 import com.skyeye.personnel.classenum.UserLockState;
 import lombok.Data;
 
@@ -48,7 +49,7 @@ public class SysEveUser extends OperatorUserInfo {
     private String password;
 
     @TableField("role_id")
-    @ApiModelProperty(value = "角色ID")
+    @ApiModelProperty(value = "角色ID，多个逗号隔开")
     private String roleId;
 
     @TableField("user_lock")
@@ -56,7 +57,7 @@ public class SysEveUser extends OperatorUserInfo {
     private Integer userLock;
 
     @TableField("is_term_of_validity")
-    @ApiModelProperty(value = "是否长期有效，参考#UserIsTermOfValidity", required = "required,num")
+    @ApiModelProperty(value = "是否长期有效", enumClass = UserIsTermOfValidity.class, required = "required,num")
     private Integer isTermOfValidity;
 
     @TableField("start_time")

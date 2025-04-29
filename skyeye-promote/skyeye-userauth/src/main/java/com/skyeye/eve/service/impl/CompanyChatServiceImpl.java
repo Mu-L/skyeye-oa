@@ -57,7 +57,7 @@ public class CompanyChatServiceImpl implements CompanyChatService {
         String userId = user.get("id").toString();
         map.put("userId", userId);
         //获取个人信息
-        Map<String, Object> mine = null;
+        Map<String, Object> mine;
         if (ToolUtil.isBlank(jedisService.get(Constants.getSysTalkUserThisMainMationById(userId)))) {
             mine = companyChatDao.queryUserMineByUserId(map);
             iCompanyService.setNameForMap(mine, "companyId", "companyName");
@@ -68,7 +68,7 @@ public class CompanyChatServiceImpl implements CompanyChatService {
         }
 
         //获取聊天组
-        List<Map<String, Object>> group = null;
+        List<Map<String, Object>> group;
         if (ToolUtil.isBlank(jedisService.get(Constants.getSysTalkUserHasGroupListMationById(userId)))) {
             group = companyChatDao.queryUserGroupByUserId(map);
             jedisService.set(Constants.getSysTalkUserHasGroupListMationById(userId), JSONUtil.toJsonStr(group));
@@ -81,17 +81,12 @@ public class CompanyChatServiceImpl implements CompanyChatService {
 
         //循环获取分组的人列表
         for (Map<String, Object> depart : companyDepartment) {
-            List<Map<String, Object>> userList = null;
-            if (ToolUtil.isBlank(jedisService.get(Constants.getSysTalkGroupUserListMationById(depart.get("id").toString() + "_" + userId)))) {
-                depart.put("notUserId", CommonConstants.ADMIN_USER_ID);
-                userList = companyChatDao.queryDepartmentUserByDepartId(depart);
-                iCompanyService.setNameForMap(userList, "companyId", "companyName");
-                iDepmentService.setNameForMap(userList, "departmentId", "departmentName");
-                iCompanyJobService.setNameForMap(userList, "jobId", "jobName");
-                jedisService.set(Constants.getSysTalkGroupUserListMationById(depart.get("id").toString() + "_" + userId), JSONUtil.toJsonStr(userList));
-            } else {
-                userList = JSONUtil.toList(jedisService.get(Constants.getSysTalkGroupUserListMationById(depart.get("id").toString() + "_" + userId)), null);
-            }
+            depart.put("notUserId", CommonConstants.ADMIN_USER_ID);
+            List<Map<String, Object>> userList = companyChatDao.queryDepartmentUserByDepartId(depart);
+            iCompanyService.setNameForMap(userList, "companyId", "companyName");
+            iDepmentService.setNameForMap(userList, "departmentId", "departmentName");
+            iCompanyJobService.setNameForMap(userList, "jobId", "jobName");
+
             if (CollectionUtil.isNotEmpty(userList)) {
                 Set<String> uId = TalkWebSocket.getOnlineUserId();
                 for (Map<String, Object> u : userList) {

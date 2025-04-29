@@ -54,6 +54,8 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
 
     void insertSysUserMationById(InputObject inputObject, OutputObject outputObject);
 
+    void addNewUser(String currentUserId, SysEveUser sysEveUser);
+
     void editUserPassword(InputObject inputObject, OutputObject outputObject);
 
     void queryUserLockByLockPwd(InputObject inputObject, OutputObject outputObject);

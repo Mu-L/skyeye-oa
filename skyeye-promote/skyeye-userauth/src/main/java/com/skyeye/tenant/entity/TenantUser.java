@@ -116,4 +116,12 @@ public class TenantUser extends OperatorUserInfo {
     @Property(value = "用户邀请信息")
     private Map<String, Object> tenantUserInviteMation;
 
+    @TableField("role_id")
+    @ApiModelProperty(value = "角色ID，多个逗号隔开")
+    private String roleId;
+
+    @TableField(value = "tenant_id")
+    @ApiModelProperty(value = "租户id", required = "required")
+    private String tenantId;
+
 }

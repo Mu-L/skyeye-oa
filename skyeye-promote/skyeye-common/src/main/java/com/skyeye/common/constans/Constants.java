@@ -46,13 +46,6 @@ public class Constants {
         return SYS_TALK_USER_HAS_GROUP_LIST_MATION + id;
     }
 
-    // 聊天获取分组下的用户列表信息在redis中的key
-    public static final String SYS_TALK_GROUP_USER_LIST_MATION = "sys_talk_group_user_list_mation_";
-
-    public static String getSysTalkGroupUserListMationById(String id) {
-        return SYS_TALK_GROUP_USER_LIST_MATION + id;
-    }
-
     // 获取群组成员列表
     public static final String SYS_EVE_TALK_GROUP_USER_LIST = "sys_eve_talk_group_user_list_";
 

@@ -33,12 +33,6 @@ public class SysEveUserController {
     @Autowired
     public SysEveUserService sysEveUserService;
 
-    /**
-     * 获取管理员用户列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys001", value = "获取用户列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveUserController/querySysUserList")
@@ -46,12 +40,6 @@ public class SysEveUserController {
         sysEveUserService.querySysUserList(inputObject, outputObject);
     }
 
-    /**
-     * 锁定账号
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys002", value = "锁定账号", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "账号ID", required = "required")})
@@ -60,12 +48,6 @@ public class SysEveUserController {
         sysEveUserService.editSysUserLockStateToLockById(inputObject, outputObject);
     }
 
-    /**
-     * 解锁账号
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sys003", value = "解锁账号", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "账号ID", required = "required")})

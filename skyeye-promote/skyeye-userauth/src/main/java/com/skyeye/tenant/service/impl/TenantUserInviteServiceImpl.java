@@ -12,8 +12,10 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.IsUsedEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
@@ -94,6 +96,8 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         // 校验手机号
         String userStaffId = sysEveUserStaffService.queryUserStaffByPhone(tenantUserInvite.getPhone());
         String userId = inputObject.getLogParams().get("id").toString();
+        String tenantId = TenantContext.getTenantId();
+        tenantUserInvite.setTenantId(tenantId);
         if (StrUtil.isNotEmpty(userStaffId)) {
             // 手机号已存在，则直接加入租户
             tenantUserInvite.setIsUsed(IsUsedEnum.IN_USE.getKey());
@@ -112,6 +116,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
             tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
             tenantUser.setTenantUserInviteId(id);
+            tenantUser.setTenantId(tenantUserInvite.getTenantId());
             tenantUserService.createEntity(tenantUser, userId);
         } else {
             // 手机号不存在，则发起邀请
@@ -124,7 +129,8 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     }
 
     private void sendEmail(TenantUserInvite tenantUserInvite, String userId, String id) {
-        String content = "您好，欢迎加入，请点击下面的链接完成注册：\n" + tenantInviteUrl + "?id=" + id;
+        String tenantId = TenantContext.getTenantId();
+        String content = "您好，欢迎加入，请点击下面的链接完成注册：\n" + tenantInviteUrl + "?id=" + id + "&tenantId=" + tenantId;
         Map<String, Object> emailNotice = new HashMap<>();
         emailNotice.put("title", "新用户邀请");
         emailNotice.put("content", content);
@@ -172,6 +178,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     public void joinTenantByInvite(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
+        String tenantId = params.get("tenantId").toString();
         TenantUserInvite tenantUserInvite = selectById(id);
         if (tenantUserInvite == null || StrUtil.isEmpty(tenantUserInvite.getId())) {
             throw new CustomException("邀请信息不存在");
@@ -181,6 +188,9 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         }
         if (tenantUserInvite.getIsUsed().equals(IsUsedEnum.INVALID.getKey())) {
             throw new CustomException("该邀请已作废");
+        }
+        if (!StrUtil.equals(tenantId, tenantUserInvite.getTenantId())) {
+            throw new CustomException("邀请信息错误，请重新邀请");
         }
         // 新增用户信息
         String staffId = saveUserStaff(params, tenantUserInvite);
@@ -203,6 +213,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
         tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
         tenantUser.setTenantUserInviteId(tenantUserInvite.getId());
+        tenantUser.setTenantId(tenantUserInvite.getTenantId());
         tenantUserService.createEntity(tenantUser, tenantUserInvite.getCreateId());
     }
 
@@ -213,6 +224,9 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         sysEveUserStaff.setPhone(tenantUserInvite.getPhone());
         sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
         sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
+        sysEveUserStaff.setPassword(params.get("password").toString());
+        // 开启自动注册账号
+        sysEveUserStaff.setWhetherRegister(WhetherEnum.ENABLE_USING.getKey());
         // 保存用户信息
         return sysEveUserStaffService.createEntity(sysEveUserStaff, tenantUserInvite.getCreateId());
     }

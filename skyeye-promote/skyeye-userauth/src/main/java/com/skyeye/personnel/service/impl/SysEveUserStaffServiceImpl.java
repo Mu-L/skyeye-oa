@@ -31,8 +31,10 @@ import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
+import com.skyeye.personnel.classenum.UserIsTermOfValidity;
 import com.skyeye.personnel.classenum.UserLockState;
 import com.skyeye.personnel.dao.SysEveUserStaffDao;
+import com.skyeye.personnel.entity.SysEveUser;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.entity.SysEveUserStaffQuery;
 import com.skyeye.personnel.service.SysEveUserService;
@@ -171,6 +173,19 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public void createPostpose(SysEveUserStaff entity, String userId) {
         // 新增员工薪资字段信息
         createUserStaffWagesFieldType(entity.getId());
+        // 是否自动注册账号
+        if (entity.getWhetherRegister() == WhetherEnum.ENABLE_USING.getKey()) {
+            // 自动注册账号
+            if (StrUtil.isEmpty(entity.getPassword())) {
+                throw new CustomException("请输入密码.");
+            }
+            SysEveUser sysEveUser = new SysEveUser();
+            sysEveUser.setStaffId(entity.getId());
+            sysEveUser.setUserCode(entity.getPhone());
+            sysEveUser.setPassword(entity.getPassword());
+            sysEveUser.setIsTermOfValidity(UserIsTermOfValidity.LONG_TERM.getKey());
+            sysEveUserService.addNewUser(entity.getCreateId(), sysEveUser);
+        }
     }
 
     @Override
@@ -190,17 +205,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         entity.setRetiredHolidayNumber(oldData.getRetiredHolidayNumber());
         entity.setRetiredHolidayStatisTime(oldData.getRetiredHolidayStatisTime());
         entity.setInterviewArrangementId(oldData.getInterviewArrangementId());
-    }
-
-    @Override
-    public void updatePostpose(SysEveUserStaff entity, String userId) {
-        SysEveUserStaff oldData = selectById(entity.getId());
-        if (!StrUtil.equals(oldData.getDepartmentId(), entity.getDepartmentId())) {
-            // 新旧部门不一致，删除用户在redis中存储的好友组信息(旧的部门)
-            jedisClientService.delKeys(Constants.getSysTalkGroupUserListMationById(oldData.getDepartmentId()) + "*");
-            // 删除用户在redis中存储的好友组信息(新的部门)
-            jedisClientService.delKeys(Constants.getSysTalkGroupUserListMationById(entity.getDepartmentId()) + "*");
-        }
     }
 
     @Override
@@ -345,8 +349,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
 
         SysEveUserStaff staffMation = selectById(staffId);
         if (!ToolUtil.isBlank(staffMation.getUserId())) {
-            // 删除redis中缓存的单位下的用户
-            jedisClientService.delKeys(Constants.getSysTalkGroupUserListMationById(staffMation.getDepartmentId()) + "*");
             // 锁定帐号
             sysEveUserService.editUserLockState(staffMation.getUserId(), UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey());
             // 退出登录

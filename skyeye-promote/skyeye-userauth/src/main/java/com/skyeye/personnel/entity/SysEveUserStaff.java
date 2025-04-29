@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
@@ -238,5 +239,13 @@ public class SysEveUserStaff extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "员工考勤时间段信息")
     private List<Map<String, Object>> timeList;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "是否自动注册账号", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer whetherRegister;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "当开启自动注册账号时，密码必填")
+    private String password;
 
 }

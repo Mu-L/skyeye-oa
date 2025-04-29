@@ -4,6 +4,7 @@
 
 package com.skyeye.tenant.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -18,7 +19,9 @@ import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.tenant.dao.TenantUserDao;
+import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantUser;
+import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,6 +54,9 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Autowired
     private CompanyJobScoreService companyJobScoreService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Override
     protected void createPrepose(TenantUser entity) {
@@ -111,6 +117,21 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         remove(queryWrapper);
+    }
+
+    @Override
+    public void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
+        String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        List<TenantUser> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        List<String> tenantIds = list.stream().map(bean -> bean.getTenantId()).distinct().collect(Collectors.toList());
+        List<Tenant> tenantList = tenantService.selectByIds(tenantIds.toArray(new String[tenantIds.size()]));
+        outputObject.setBeans(tenantList);
+        outputObject.settotal(tenantList.size());
     }
 
 }
