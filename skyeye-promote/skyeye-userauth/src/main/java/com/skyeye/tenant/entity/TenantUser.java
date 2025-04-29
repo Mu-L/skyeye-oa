@@ -18,6 +18,8 @@ import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
+import com.skyeye.personnel.classenum.StaffWagesStateEnum;
+import com.skyeye.personnel.classenum.UserStaffType;
 import lombok.Data;
 
 import java.util.Map;
@@ -103,6 +105,58 @@ public class TenantUser extends OperatorUserInfo {
     @TableField("trial_time")
     @ApiModelProperty(value = "如果有试用期，则为试用期到期时间。当state=4时，该字段必填")
     private String trialTime;
+
+    @TableField("type")
+    @ApiModelProperty(value = "员工类型", enumClass = UserStaffType.class, defaultValue = "1")
+    private Integer type;
+
+    @TableField("native_place")
+    @ApiModelProperty(value = "籍贯")
+    private String nativePlace;
+
+    @TableField("marital_status")
+    @ApiModelProperty(value = "婚姻状况  1.已婚  2.未婚")
+    private Integer maritalStatus;
+
+    @TableField("politic_id")
+    @ApiModelProperty(value = "政治面貌id")
+    private String politicId;
+
+    @TableField("highest_education")
+    @ApiModelProperty(value = "最高学历id")
+    private String highestEducation;
+
+    @TableField("design_wages")
+    @ApiModelProperty(value = "薪资设定情况", enumClass = StaffWagesStateEnum.class, defaultValue = "1")
+    private Integer designWages;
+
+    @TableField("act_wages")
+    @ApiModelProperty(value = "员工的月标准薪资")
+    private String actWages;
+
+    @TableField("annual_leave")
+    @ApiModelProperty(value = "员工剩余年假")
+    private String annualLeave;
+
+    @TableField("annual_leave_statis_time")
+    @ApiModelProperty(value = "员工剩余年假最近的刷新日期")
+    private String annualLeaveStatisTime;
+
+    @TableField("holiday_number")
+    @ApiModelProperty(value = "当前员工剩余补休天数")
+    private String holidayNumber;
+
+    @TableField("holiday_statis_time")
+    @ApiModelProperty(value = "补休池剩余补休天数数据刷新时间")
+    private String holidayStatisTime;
+
+    @TableField("retired_holiday_number")
+    @ApiModelProperty(value = "当前员工已休补休天数")
+    private String retiredHolidayNumber;
+
+    @TableField("retired_holiday_statis_time")
+    @ApiModelProperty(value = "补休池已休补休天数数据刷新时间")
+    private String retiredHolidayStatisTime;
 
     @TableField("interview_arrangement_id")
     @ApiModelProperty(value = "关联的面试安排信息id")

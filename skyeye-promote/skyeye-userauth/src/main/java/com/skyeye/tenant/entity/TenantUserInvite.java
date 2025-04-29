@@ -38,11 +38,11 @@ public class TenantUserInvite extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "email")
-    @ApiModelProperty(value = "接受邀请链接的邮箱", required = "required")
+    @ApiModelProperty(value = "接受邀请链接的邮箱", required = "required", fuzzyLike = true)
     private String email;
 
     @TableField(value = "phone")
-    @ApiModelProperty(value = "联系方式", required = "required,phone")
+    @ApiModelProperty(value = "联系方式", required = "required,phone", fuzzyLike = true)
     private String phone;
 
     @TableField("is_used")

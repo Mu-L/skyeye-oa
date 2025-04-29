@@ -18,6 +18,7 @@ import com.skyeye.organization.service.CompanyDepartmentService;
 import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
+import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantUser;
@@ -66,6 +67,11 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         queryWrapper.select("max(0 + RIGHT(" + jobNumberKey + ", 6)) AS " + jobNumberKey);
         TenantUser tenantUser = getOne(queryWrapper, false);
         entity.setJobNumber(CalculationUtil.add(tenantUser.getJobNumber(), CommonNumConstants.NUM_ONE.toString(), CommonNumConstants.NUM_ZERO));
+        entity.setActWages(CommonNumConstants.NUM_ZERO.toString());
+        entity.setAnnualLeave(CommonNumConstants.NUM_ZERO.toString());
+        entity.setHolidayNumber(CommonNumConstants.NUM_ZERO.toString());
+        entity.setRetiredHolidayNumber(CommonNumConstants.NUM_ZERO.toString());
+        entity.setDesignWages(StaffWagesStateEnum.WAIT_DESIGN_WAGES.getKey());
     }
 
     @Override
