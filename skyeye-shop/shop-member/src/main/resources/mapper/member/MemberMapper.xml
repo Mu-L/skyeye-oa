@@ -27,8 +27,8 @@
             <if test="keyword != null and keyword != ''">
                 AND (s.`name` like '%${keyword}%' OR s.phone like '%${keyword}%')
             </if>
-            <if test="phone != null and phone != ''">
-                AND s.phone = #{phone}
+            <if test="objectId != null and objectId != ''">
+                AND s.phone = #{objectId}
             </if>
         </where>
         ORDER BY s.create_time DESC
