@@ -75,6 +75,23 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     }
 
     @Override
+    public void updatePrepose(TenantUser entity) {
+        TenantUser oldData = selectById(entity.getId());
+        entity.setTenantId(oldData.getTenantId());
+        entity.setStaffId(oldData.getStaffId());
+        entity.setType(oldData.getType());
+        entity.setDesignWages(oldData.getDesignWages());
+        entity.setActWages(oldData.getActWages());
+        entity.setAnnualLeave(oldData.getAnnualLeave());
+        entity.setAnnualLeaveStatisTime(oldData.getAnnualLeaveStatisTime());
+        entity.setHolidayNumber(oldData.getHolidayNumber());
+        entity.setHolidayStatisTime(oldData.getHolidayStatisTime());
+        entity.setRetiredHolidayNumber(oldData.getRetiredHolidayNumber());
+        entity.setRetiredHolidayStatisTime(oldData.getRetiredHolidayStatisTime());
+        entity.setInterviewArrangementId(oldData.getInterviewArrangementId());
+    }
+
+    @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
