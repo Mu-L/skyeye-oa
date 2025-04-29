@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.enumeration.SmsSceneEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.service.ShopAppAuthService;
@@ -75,7 +76,7 @@ public class ShopAppAuthController {
     @ApiOperation(id = "sendShopSmsCode", value = "发送手机验证码", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "mobile", name = "mobile", value = "手机号"),
-        @ApiImplicitParam(id = "scene", name = "scene", value = "发送场景，参考#SmsSceneEnum", required = "required")})
+        @ApiImplicitParam(id = "scene", name = "scene", value = "发送场景", enumClass = SmsSceneEnum.class, required = "required")})
     @RequestMapping("/post/ShopAppAuthController/sendShopSmsCode")
     public void sendShopSmsCode(InputObject inputObject, OutputObject outputObject) {
         shopAppAuthService.sendShopSmsCode(inputObject, outputObject);
