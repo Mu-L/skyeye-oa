@@ -82,6 +82,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Autowired
     private CompanyJobScoreService companyJobScoreService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<SysEveUserStaff> wrapper) {
         SysEveUserStaffQuery sysEveUserStaffQuery = inputObject.getParams(SysEveUserStaffQuery.class);
@@ -124,6 +127,17 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public void validatorEntity(SysEveUserStaff entity) {
         super.validatorEntity(entity);
+        if (!tenantEnable) {
+            if (StrUtil.isEmpty(entity.getCompanyId())) {
+                throw new CustomException("请选择公司.");
+            }
+            if (StrUtil.isEmpty(entity.getDepartmentId())) {
+                throw new CustomException("请选择部门.");
+            }
+            if (StrUtil.isEmpty(entity.getJobId())) {
+                throw new CustomException("请选择职位.");
+            }
+        }
         QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getPhone), entity.getPhone());
         if (StringUtils.isNotEmpty(entity.getId())) {

@@ -100,7 +100,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String userId;
 
     @TableField("company_id")
-    @ApiModelProperty(value = "所属公司id", required = "required")
+    @ApiModelProperty(value = "所属公司id")
     private String companyId;
 
     @TableField(exist = false)
@@ -112,7 +112,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String companyName;
 
     @TableField("department_id")
-    @ApiModelProperty(value = "所属部门id", required = "required")
+    @ApiModelProperty(value = "所属部门id")
     private String departmentId;
 
     @TableField(exist = false)
@@ -124,7 +124,7 @@ public class SysEveUserStaff extends OperatorUserInfo {
     private String departmentName;
 
     @TableField("job_id")
-    @ApiModelProperty(value = "所属职位id", required = "required")
+    @ApiModelProperty(value = "所属职位id")
     private String jobId;
 
     @TableField(exist = false)
