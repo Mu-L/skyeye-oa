@@ -32,12 +32,6 @@ public class WagesFieldTypeController {
     @Autowired
     private WagesFieldTypeService wagesFieldTypeService;
 
-    /**
-     * 获取薪资字段列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wages001", value = "获取薪资字段列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesFieldTypeController/queryWagesFieldTypeList")
@@ -45,12 +39,6 @@ public class WagesFieldTypeController {
         wagesFieldTypeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑薪资字段信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeWagesFieldTypeMation", value = "新增/编辑薪资字段信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = FieldType.class)
     @RequestMapping("/post/WagesFieldTypeController/writeWagesFieldTypeMation")
@@ -58,12 +46,6 @@ public class WagesFieldTypeController {
         wagesFieldTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除薪资字段信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteWagesFieldTypeMationById", value = "删除薪资字段信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class WagesFieldTypeController {
         wagesFieldTypeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取已经启用的薪资字段列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnableWagesFieldTypeList", value = "获取已经启用的薪资字段列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesFieldTypeController/queryEnableWagesFieldTypeList")
@@ -85,24 +61,12 @@ public class WagesFieldTypeController {
         wagesFieldTypeService.queryEnableWagesFieldTypeList(inputObject, outputObject);
     }
 
-    /**
-     * 获取系统薪资字段列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysWagesFieldTypeList", value = "获取系统薪资字段列表", method = "POST", allUse = "2")
     @RequestMapping("/post/WagesFieldTypeController/querySysWagesFieldTypeList")
     public void querySysWagesFieldTypeList(InputObject inputObject, OutputObject outputObject) {
         wagesFieldTypeService.querySysWagesFieldTypeList(inputObject, outputObject);
     }
 
-    /**
-     * 根据字段key批量获取薪资字段信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryWagesFieldListByKeys", value = "根据字段key批量获取薪资字段信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "keys", name = "keys", value = "字段key，逗号隔开", required = "required")})

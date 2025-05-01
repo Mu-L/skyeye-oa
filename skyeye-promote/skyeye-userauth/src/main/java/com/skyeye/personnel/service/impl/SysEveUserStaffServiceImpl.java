@@ -22,7 +22,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.dao.WagesFieldTypeDao;
 import com.skyeye.exception.CustomException;
 import com.skyeye.organization.service.CompanyDepartmentService;
 import com.skyeye.organization.service.CompanyJobScoreService;
@@ -38,6 +37,7 @@ import com.skyeye.personnel.entity.SysEveUserStaffQuery;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
+import com.skyeye.rest.wages.service.IWagesService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +66,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Autowired
     private SysEveUserService sysEveUserService;
 
-    @Autowired
-    private WagesFieldTypeDao wagesFieldTypeDao;
-
     @Value("${skyeye.jobNumberPrefix}")
     private String jobNumberPrefix;
 
@@ -92,6 +89,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
 
     @Autowired
     private SysEveUserStaffTimeService sysEveUserStaffTimeService;
+
+    @Autowired
+    private IWagesService iWagesService;
 
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<SysEveUserStaff> wrapper) {
@@ -178,7 +178,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public void createPostpose(SysEveUserStaff entity, String userId) {
         // 新增员工薪资字段信息
-        createUserStaffWagesFieldType(entity.getId());
+        if (!tenantEnable) {
+            // 单租户模式才去新增员工薪资字段信息，多租户模式在其他地方保存
+            iWagesService.addWagesStaffMationByStaffId(entity.getId());
+        }
         // 是否自动注册账号
         if (entity.getWhetherRegister() == WhetherEnum.ENABLE_USING.getKey()) {
             // 自动注册账号
@@ -220,21 +223,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         if (!tenantEnable) {
             // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方保存
             sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
-        }
-    }
-
-    /**
-     * 新增员工薪资字段信息
-     *
-     * @param staffId
-     */
-    private void createUserStaffWagesFieldType(String staffId) {
-        List<Map<String, Object>> fieldType = wagesFieldTypeDao.queryAllWagesFieldTypeList();
-        if (fieldType != null && !fieldType.isEmpty()) {
-            fieldType.stream().forEach(bean -> {
-                bean.put("id", staffId);
-            });
-            wagesFieldTypeDao.insertWagesFieldTypeKeyToStaff(fieldType);
         }
     }
 

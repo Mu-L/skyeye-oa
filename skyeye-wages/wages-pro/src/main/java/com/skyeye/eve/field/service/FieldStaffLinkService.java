@@ -52,4 +52,5 @@ public interface FieldStaffLinkService extends SkyeyeBusinessService<FieldStaffL
      */
     void deleteStaffFiledKey(String key);
 
+    void addWagesStaffMationByStaffId(InputObject inputObject, OutputObject outputObject);
 }

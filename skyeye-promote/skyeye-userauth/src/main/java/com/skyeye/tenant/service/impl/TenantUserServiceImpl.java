@@ -15,17 +15,20 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.organization.service.CompanyDepartmentService;
 import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
+import com.skyeye.personnel.service.SysEveUserStaffTimeService;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -60,6 +63,19 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     @Autowired
     private TenantService tenantService;
 
+    @Autowired
+    private SysEveUserStaffTimeService sysEveUserStaffTimeService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
+    @Override
+    protected void validatorEntity(TenantUser entity) {
+        if (!tenantEnable) {
+            throw new CustomException("租户模式未开启.");
+        }
+    }
+
     @Override
     protected void createPrepose(TenantUser entity) {
         super.createPrepose(entity);
@@ -90,6 +106,12 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         entity.setRetiredHolidayNumber(oldData.getRetiredHolidayNumber());
         entity.setRetiredHolidayStatisTime(oldData.getRetiredHolidayStatisTime());
         entity.setInterviewArrangementId(oldData.getInterviewArrangementId());
+    }
+
+    @Override
+    protected void updatePostpose(TenantUser entity, String userId) {
+        // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方保存
+        sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
     }
 
     @Override

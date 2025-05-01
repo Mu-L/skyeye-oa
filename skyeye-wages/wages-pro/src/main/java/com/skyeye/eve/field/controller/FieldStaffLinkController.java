@@ -31,12 +31,6 @@ public class FieldStaffLinkController {
     @Autowired
     private FieldStaffLinkService wagesStaffMationService;
 
-    /**
-     * 根据员工id获取该员工拥有的薪资字段
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wagesstaff002", value = "根据员工id获取该员工拥有的薪资字段", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
@@ -45,12 +39,6 @@ public class FieldStaffLinkController {
         wagesStaffMationService.queryStaffWagesModelFieldMationListByStaffId(inputObject, outputObject);
     }
 
-    /**
-     * 保存员工薪资设定
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wagesstaff003", value = "保存员工薪资设定", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -61,17 +49,19 @@ public class FieldStaffLinkController {
         wagesStaffMationService.saveStaffWagesModelFieldMation(inputObject, outputObject);
     }
 
-    /**
-     * 获取应出勤的班次以及小时
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setLastMonthBe", value = "获取应出勤的班次以及小时", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = WagesStaffWorkTimeMation.class)
     @RequestMapping("/post/WagesStaffMationController/setLastMonthBe")
     public void setLastMonthBe(InputObject inputObject, OutputObject outputObject) {
         wagesStaffMationService.setLastMonthBe(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "addWagesStaffMationByStaffId", value = "保存员工与薪资字段关系", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
+    @RequestMapping("/post/WagesStaffMationController/addWagesStaffMationByStaffId")
+    public void addWagesStaffMationByStaffId(InputObject inputObject, OutputObject outputObject) {
+        wagesStaffMationService.addWagesStaffMationByStaffId(inputObject, outputObject);
     }
 
 }

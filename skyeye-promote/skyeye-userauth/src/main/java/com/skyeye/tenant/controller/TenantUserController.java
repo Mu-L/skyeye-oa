@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +37,13 @@ public class TenantUserController {
     @RequestMapping("/post/TenantUserController/queryTenantUserList")
     public void queryTenantUserList(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "editTenantUserById", value = "编辑租户下的用户信息", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = TenantUser.class)
+    @RequestMapping("/post/TenantUserController/editTenantUserById")
+    public void editTenantUserById(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.updateEntity(inputObject, outputObject);
     }
 
     @ApiOperation(id = "removeTenantUserByStaffId", value = "根据员工ID移除租户用户", method = "POST", allUse = "1")

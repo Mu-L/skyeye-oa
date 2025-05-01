@@ -9,6 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.field.entity.FieldType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,4 +29,6 @@ public interface WagesFieldTypeService extends SkyeyeBusinessService<FieldType> 
     void queryWagesFieldListByKeys(InputObject inputObject, OutputObject outputObject);
 
     Map<String, FieldType> queryAllFieldTypeMap();
+
+    List<FieldType> queryAllWagesFieldTypeList();
 }

@@ -22,6 +22,7 @@ import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.personnel.classenum.UserStaffType;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -177,5 +178,9 @@ public class TenantUser extends OperatorUserInfo {
     @TableField(value = "tenant_id")
     @ApiModelProperty(value = "租户id", required = "required")
     private String tenantId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "员工考勤时间段", required = "json")
+    private List<String> timeIdList;
 
 }

@@ -5,6 +5,7 @@
 package com.skyeye.eve.field.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -20,7 +21,9 @@ import com.skyeye.eve.entity.wages.WagesStaffWorkTimeMation;
 import com.skyeye.eve.field.classenum.WagesTypeEnum;
 import com.skyeye.eve.field.dao.FieldStaffLinkDao;
 import com.skyeye.eve.field.entity.FieldStaffLink;
+import com.skyeye.eve.field.entity.FieldType;
 import com.skyeye.eve.field.service.FieldStaffLinkService;
+import com.skyeye.eve.field.service.WagesFieldTypeService;
 import com.skyeye.eve.model.dao.WagesModelDao;
 import com.skyeye.eve.model.dao.WagesModelFieldDao;
 import com.skyeye.eve.service.IScheduleDayService;
@@ -36,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: FieldStaffLinkServiceImpl
- * @Description: 员工与薪资字段关系管理服务层
+ * @Description: 员工与薪资字段关系管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/7 23:18
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -59,6 +62,9 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
 
     @Autowired
     private ISysUserStaffService iSysUserStaffService;
+
+    @Autowired
+    private WagesFieldTypeService wagesFieldTypeService;
 
     /**
      * 根据员工id获取该员工拥有的薪资字段
@@ -196,6 +202,23 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         QueryWrapper<FieldStaffLink> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FieldStaffLink::getFieldTypeKey), key);
         remove(queryWrapper);
+    }
+
+    @Override
+    public void addWagesStaffMationByStaffId(InputObject inputObject, OutputObject outputObject) {
+        String staffId = inputObject.getParams().get("staffId").toString();
+        // 获取所有薪资要素字段类型(不包含默认字段)
+        List<FieldType> fieldTypes = wagesFieldTypeService.queryAllWagesFieldTypeList();
+        // 封装成FieldStaffLink对象
+        List<FieldStaffLink> fieldStaffLinkList = fieldTypes.stream().map(fieldType -> {
+            FieldStaffLink fieldStaffLink = new FieldStaffLink();
+            fieldStaffLink.setStaffId(staffId);
+            fieldStaffLink.setFieldTypeKey(fieldType.getKey());
+            return fieldStaffLink;
+        }).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(fieldStaffLinkList)) {
+            createEntity(fieldStaffLinkList, StrUtil.EMPTY);
+        }
     }
 
 }

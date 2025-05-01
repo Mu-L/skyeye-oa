@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.WagesConstant;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: WagesFieldTypeServiceImpl
- * @Description: 薪资字段管理服务层
+ * @Description: 薪资字段管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/11/26 9:11
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -118,6 +119,7 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
     }
 
     @Override
+    @IgnoreTenant
     public void querySysWagesFieldTypeList(InputObject inputObject, OutputObject outputObject) {
         List<Map<String, Object>> beans = WagesConstant.DEFAULT_WAGES_FIELD_TYPE.getList();
         outputObject.setBeans(beans);
@@ -158,8 +160,13 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
 
     @Override
     public Map<String, FieldType> queryAllFieldTypeMap() {
-        List<FieldType> fieldTypes = list();
+        List<FieldType> fieldTypes = queryAllWagesFieldTypeList();
         return fieldTypes.stream().collect(Collectors.toMap(FieldType::getKey, bean -> bean));
+    }
+
+    @Override
+    public List<FieldType> queryAllWagesFieldTypeList() {
+        return list();
     }
 
 }
