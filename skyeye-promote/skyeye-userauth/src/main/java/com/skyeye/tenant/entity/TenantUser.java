@@ -95,6 +95,14 @@ public class TenantUser extends OperatorUserInfo {
     @Property(value = "员工在职状态名称")
     private String stateName;
 
+    @TableField("quit_time")
+    @ApiModelProperty(value = "离职时间")
+    private String quitTime;
+
+    @TableField("quit_reason")
+    @ApiModelProperty(value = "离职原因 最多50字")
+    private String quitReason;
+
     @TableField("work_time")
     @ApiModelProperty(value = "参加工作时间")
     private String workTime;

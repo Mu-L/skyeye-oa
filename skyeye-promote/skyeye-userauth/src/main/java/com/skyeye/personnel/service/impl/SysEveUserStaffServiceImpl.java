@@ -7,6 +7,7 @@ package com.skyeye.personnel.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -59,9 +60,6 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "员工管理", groupName = "员工管理", tenant = TenantEnum.NO_ISOLATION)
 public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserStaffDao, SysEveUserStaff> implements SysEveUserStaffService {
-
-    @Autowired
-    private SysEveUserStaffDao sysEveUserStaffDao;
 
     @Autowired
     private SysEveUserService sysEveUserService;
@@ -136,6 +134,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public void validatorEntity(SysEveUserStaff entity) {
         super.validatorEntity(entity);
         if (!tenantEnable) {
+            // 单租模式下，校验公司、部门、职位、类型是否为空
             if (StrUtil.isEmpty(entity.getCompanyId())) {
                 throw new CustomException("请选择公司.");
             }
@@ -229,8 +228,15 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public SysEveUserStaff selectById(String id) {
         SysEveUserStaff sysEveUserStaff = super.selectById(id);
+        if (tenantEnable) {
+            // 设置当前默认租户下的用户信息
+            sysEveUserStaff = tenantUserService.setThisTenantUserToDefault(sysEveUserStaff);
+            if (ObjectUtil.isEmpty(sysEveUserStaff)) {
+                return null;
+            }
+        }
         sysEveUserStaff.setStateName(UserStaffState.getNameByState(sysEveUserStaff.getState()));
-        // 员工考勤时间段信息
+        // 员工考勤时间段信息--一已适配多租户
         List<Map<String, Object>> staffTimeMation = sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(id);
         sysEveUserStaff.setTimeList(staffTimeMation);
         // 设置组织信息
@@ -317,15 +323,65 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Override
     public List<Map<String, Object>> queryUserMationList(String userIds, String staffIds) {
         List<Map<String, Object>> beans = new ArrayList<>();
-        if (!ToolUtil.isBlank(userIds) || !ToolUtil.isBlank(staffIds)) {
-            beans = sysEveUserStaffDao.queryUserMationList(userIds, staffIds);
-            // 设置组织信息
-            companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
-            companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
-            companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
-            companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
+        List<SysEveUserStaff> userStaffList = queryUserMationEntityList(userIds, staffIds);
+        if (CollectionUtil.isEmpty(userStaffList)) {
+            return beans;
         }
+        if (tenantEnable) {
+            // 多租户模式，获取当前租户下的用户信息
+            userStaffList = tenantUserService.setThisTenantUserToDefault(userStaffList);
+            beans = JSONUtil.toList(JSONUtil.toJsonStr(userStaffList), null);
+        }
+        if (CollectionUtil.isEmpty(beans)) {
+            return new ArrayList<>();
+        }
+
+        Map<String, String> userId2UserCodeMap = new HashMap<>();
+        // 获取用户信息
+        List<String> userIdsList = beans.stream().map(bean -> bean.getOrDefault("userId", StrUtil.EMPTY).toString())
+            .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(userIdsList)) {
+            List<SysEveUser> userList = sysEveUserService.selectByIds(userIdsList.toArray(new String[]{}));
+            userId2UserCodeMap = userList.stream().collect(Collectors.toMap(SysEveUser::getId, SysEveUser::getUserCode));
+        }
+
+        // 设置员工信息
+        for (Map<String, Object> bean : beans) {
+            bean.put("name", bean.getOrDefault("jobNumber", StrUtil.EMPTY).toString() + "_"
+                + bean.getOrDefault("userName", StrUtil.EMPTY).toString());
+            bean.put("staffId", bean.get("id"));
+
+            String userId = bean.getOrDefault("userId", StrUtil.EMPTY).toString();
+            bean.put("id", userId);
+            if (StrUtil.isNotEmpty(userId)) {
+                bean.put("userCode", userId2UserCodeMap.getOrDefault(userId, StrUtil.EMPTY));
+            }
+
+            Integer state = (Integer) bean.getOrDefault("state", CommonNumConstants.NUM_ZERO);
+            bean.put("colorClass", UserStaffState.getColorClassByState(state));
+        }
+        // 设置组织信息
+        companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
+        companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
         return beans;
+    }
+
+    private List<SysEveUserStaff> queryUserMationEntityList(String userIds, String staffIds) {
+        if (!ToolUtil.isBlank(userIds) || !ToolUtil.isBlank(staffIds)) {
+            QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+            if (StrUtil.isNotEmpty(userIds)) {
+                queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), Arrays.asList(userIds.split(",")));
+            }
+
+            if (StrUtil.isNotEmpty(staffIds)) {
+                queryWrapper.in(CommonConstants.ID, Arrays.asList(staffIds.split(",")));
+            }
+            List<SysEveUserStaff> userStaffList = list(queryWrapper);
+            return userStaffList;
+        }
+        return CollectionUtil.newArrayList();
     }
 
     @Override

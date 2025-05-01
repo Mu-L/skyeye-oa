@@ -5,6 +5,7 @@
 package com.skyeye.tenant.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -21,6 +22,7 @@ import com.skyeye.organization.service.CompanyJobScoreService;
 import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
+import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
@@ -218,6 +220,73 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getRetiredHolidayNumber), retiredHolidayNumber);
         updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getRetiredHolidayStatisTime), retiredHolidayStatisTime);
         update(updateWrapper);
+    }
+
+    @Override
+    public SysEveUserStaff setThisTenantUserToDefault(SysEveUserStaff sysEveUserStaff) {
+        if (ObjectUtil.isEmpty(sysEveUserStaff)) {
+            return null;
+        }
+        // 默认查询当前租户下的
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), sysEveUserStaff.getId());
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(tenantUser)) {
+            return null;
+        }
+        // 设置默认值
+        setTenantUserMation(sysEveUserStaff, tenantUser);
+        return sysEveUserStaff;
+    }
+
+    private void setTenantUserMation(SysEveUserStaff sysEveUserStaff, TenantUser tenantUser) {
+        sysEveUserStaff.setState(tenantUser.getState());
+        sysEveUserStaff.setCompanyId(tenantUser.getCompanyId());
+        sysEveUserStaff.setDepartmentId(tenantUser.getDepartmentId());
+        sysEveUserStaff.setJobId(tenantUser.getJobId());
+        sysEveUserStaff.setJobScoreId(tenantUser.getJobScoreId());
+        sysEveUserStaff.setWorkTime(tenantUser.getWorkTime());
+        sysEveUserStaff.setEntryTime(tenantUser.getEntryTime());
+        sysEveUserStaff.setQuitTime(tenantUser.getQuitTime());
+        sysEveUserStaff.setQuitReason(tenantUser.getQuitReason());
+        sysEveUserStaff.setInterviewArrangementId(tenantUser.getInterviewArrangementId());
+        sysEveUserStaff.setHolidayNumber(tenantUser.getHolidayNumber());
+        sysEveUserStaff.setHolidayStatisTime(tenantUser.getHolidayStatisTime());
+        sysEveUserStaff.setRetiredHolidayNumber(tenantUser.getRetiredHolidayNumber());
+        sysEveUserStaff.setRetiredHolidayStatisTime(tenantUser.getRetiredHolidayStatisTime());
+        sysEveUserStaff.setAnnualLeave(tenantUser.getAnnualLeave());
+        sysEveUserStaff.setAnnualLeaveStatisTime(tenantUser.getAnnualLeaveStatisTime());
+        sysEveUserStaff.setDesignWages(tenantUser.getDesignWages());
+        sysEveUserStaff.setActWages(tenantUser.getActWages());
+        sysEveUserStaff.setJobNumber(tenantUser.getJobNumber());
+    }
+
+    @Override
+    public List<SysEveUserStaff> setThisTenantUserToDefault(List<SysEveUserStaff> userStaffList) {
+        if (CollectionUtil.isEmpty(userStaffList)) {
+            return CollectionUtil.newArrayList();
+        }
+        List<String> staffIds = userStaffList.stream().map(SysEveUserStaff::getId).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(staffIds)) {
+            return CollectionUtil.newArrayList();
+        }
+        // 开启多租户模式时，默认加上租户id
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffIds);
+        List<TenantUser> tenantUserList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(tenantUserList)) {
+            return CollectionUtil.newArrayList();
+        }
+        // 过滤出当前租户下的用户
+        List<String> tenantStaffIdList = tenantUserList.stream().map(TenantUser::getStaffId).distinct().collect(Collectors.toList());
+        userStaffList = userStaffList.stream().filter(userStaff -> tenantStaffIdList.contains(userStaff.getId())).collect(Collectors.toList());
+        Map<String, TenantUser> collect = tenantUserList.stream().collect(Collectors.toMap(TenantUser::getStaffId, tenantUser -> tenantUser, (k, v) -> v));
+        userStaffList.forEach(userStaff -> {
+            TenantUser tenantUser = collect.get(userStaff.getId());
+            // 默认查询当前租户下的
+            setTenantUserMation(userStaff, tenantUser);
+        });
+        return userStaffList;
     }
 
 }

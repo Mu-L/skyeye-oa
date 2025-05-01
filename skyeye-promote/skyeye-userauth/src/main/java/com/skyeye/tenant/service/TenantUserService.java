@@ -7,7 +7,10 @@ package com.skyeye.tenant.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.tenant.entity.TenantUser;
+
+import java.util.List;
 
 /**
  * @ClassName: TenantUserService
@@ -32,4 +35,8 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     void editUserStaffHolidayByStaffId(String staffId, String holidayNumber, String holidayStatisTime);
 
     void editUserStaffRetiredHolidayByStaffId(String staffId, String retiredHolidayNumber, String retiredHolidayStatisTime);
+
+    SysEveUserStaff setThisTenantUserToDefault(SysEveUserStaff sysEveUserStaff);
+
+    List<SysEveUserStaff> setThisTenantUserToDefault(List<SysEveUserStaff> userStaffList);
 }

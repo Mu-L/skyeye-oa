@@ -6,10 +6,6 @@ package com.skyeye.personnel.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.personnel.entity.SysEveUserStaff;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: SysEveUserStaffDao
@@ -20,7 +16,5 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface SysEveUserStaffDao extends SkyeyeBaseMapper<SysEveUserStaff> {
-
-    List<Map<String, Object>> queryUserMationList(@Param("userIds") String userIds, @Param("staffIds") String staffIds);
 
 }
