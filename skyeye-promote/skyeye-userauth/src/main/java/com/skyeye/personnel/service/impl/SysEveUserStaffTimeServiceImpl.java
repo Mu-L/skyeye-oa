@@ -11,6 +11,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -87,6 +88,40 @@ public class SysEveUserStaffTimeServiceImpl extends SkyeyeBusinessServiceImpl<Sy
                 createEntity(staffTimeMation, StrUtil.EMPTY);
             }
         }
+    }
+
+    @Override
+    public void getStaffCheckWorkTimeByStaffId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String staffId = map.get("staffId").toString();
+        List<Map<String, Object>> timeList = getStaffCheckWorkTimeByStaffId(staffId);
+
+        outputObject.setBeans(timeList);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public List<Map<String, Object>> getStaffCheckWorkTimeByStaffId(String staffId) {
+        QueryWrapper<SysEveUserStaffTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getStaffId), staffId);
+        List<SysEveUserStaffTime> sysEveUserStaffTimeList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(sysEveUserStaffTimeList)) {
+            return new ArrayList<>();
+        }
+
+        // 获取考勤班次信息
+        List<String> timeIds = sysEveUserStaffTimeList.stream().map(SysEveUserStaffTime::getCheckWorkTimeId).collect(Collectors.toList());
+        List<Map<String, Object>> timeList = iCheckWorkTimeService.queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(timeIds));
+
+        if (CollectionUtil.isEmpty(timeList)) {
+            return new ArrayList<>();
+        }
+
+        timeList.forEach(t -> {
+            t.put("staffId", staffId);
+            t.put("timeId", t.get("id"));
+        });
+        return timeList;
     }
 
     private boolean judgeRepeatShift(List<String> timeIds) {

@@ -118,14 +118,6 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.updateSysUserStaffRetiredHolidayNumberById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStaffCheckWorkTimeRelationNameByStaffId", value = "根据员工id获取该员工的考勤时间段", method = "GET", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
-    @RequestMapping("/post/SysEveUserStaffController/queryStaffCheckWorkTimeRelationNameByStaffId")
-    public void queryStaffCheckWorkTimeRelationNameByStaffId(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserStaffService.queryStaffCheckWorkTimeRelationNameByStaffId(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "commonselpeople007", value = "获取所有在职的，拥有账号的员工", method = "POST", allUse = "2")
     @RequestMapping("/post/SysEveUserStaffController/queryAllSysUserIsIncumbency")
     public void queryAllSysUserIsIncumbency(InputObject inputObject, OutputObject outputObject) {

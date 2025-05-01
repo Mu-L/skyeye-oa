@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.personnel.entity.SysEveUserStaffTime;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: SysEveUserStaffTimeService
@@ -26,4 +27,9 @@ public interface SysEveUserStaffTimeService extends SkyeyeBusinessService<SysEve
     void deleteByStaffId(String staffId);
 
     void saveUserStaffCheckWorkTime(List<String> timeIdList, String staffId);
+
+    void getStaffCheckWorkTimeByStaffId(InputObject inputObject, OutputObject outputObject);
+
+    List<Map<String, Object>> getStaffCheckWorkTimeByStaffId(String staffId);
+
 }

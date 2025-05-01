@@ -47,8 +47,6 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
 
     void updateSysUserStaffRetiredHolidayNumberById(InputObject inputObject, OutputObject outputObject);
 
-    void queryStaffCheckWorkTimeRelationNameByStaffId(InputObject inputObject, OutputObject outputObject);
-
     void editSysUserStaffBindUserId(String staffId, String userId);
 
     void queryAllSysUserIsIncumbency(InputObject inputObject, OutputObject outputObject);

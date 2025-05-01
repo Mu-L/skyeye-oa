@@ -23,6 +23,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.promote.rest.ISysEveUserStaffTimeRest;
+import com.skyeye.worktime.classenum.CheckWorkTimeType;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.dao.CheckWorkTimeDao;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -91,6 +92,13 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     }
 
     @Override
+    public CheckWorkTime selectById(String id) {
+        CheckWorkTime checkWorkTime = super.selectById(id);
+        checkWorkTime.setTypeName(CheckWorkTimeType.getShowName(checkWorkTime.getType()));
+        return checkWorkTime;
+    }
+
+    @Override
     protected List<CheckWorkTime> getDataFromDb(List<String> idList) {
         List<CheckWorkTime> checkWorkTimeList = super.getDataFromDb(idList);
         Map<String, List<CheckWorkTimeWeek>> weekMap = checkWorkTimeWeekService.selectByTimeId(idList);
@@ -98,6 +106,15 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
             checkWorkTime.setCheckWorkTimeWeekList(weekMap.get(checkWorkTime.getId()));
         });
         return checkWorkTimeList;
+    }
+
+    @Override
+    public List<CheckWorkTime> selectByIds(String... ids) {
+        List<CheckWorkTime> checkWorkTimes = super.selectByIds(ids);
+        checkWorkTimes.forEach(checkWorkTime -> {
+            checkWorkTime.setTypeName(CheckWorkTimeType.getShowName(checkWorkTime.getType()));
+        });
+        return checkWorkTimes;
     }
 
     @Override

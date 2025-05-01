@@ -38,4 +38,12 @@ public class SysEveUserStaffTimeController {
         sysEveUserStaffTimeService.querySysEveUserStaffTimeListByTimeId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryStaffCheckWorkTimeRelationNameByStaffId", value = "根据员工id获取该员工的考勤时间段", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
+    @RequestMapping("/post/SysEveUserStaffTimeController/queryStaffCheckWorkTimeRelationNameByStaffId")
+    public void queryStaffCheckWorkTimeRelationNameByStaffId(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(inputObject, outputObject);
+    }
+
 }

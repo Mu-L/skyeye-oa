@@ -8,6 +8,7 @@ import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @ClassName: CheckWorkTimeType
@@ -34,5 +35,14 @@ public enum CheckWorkTimeType implements SkyeyeEnumClass {
     private Boolean show;
 
     private Boolean isDefault;
+
+    public static String getShowName(Integer type) {
+        for (CheckWorkTimeType value : CheckWorkTimeType.values()) {
+            if (value.getKey().equals(type)) {
+                return value.getValue();
+            }
+        }
+        return StringUtils.EMPTY;
+    }
 
 }

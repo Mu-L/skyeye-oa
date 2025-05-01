@@ -15,6 +15,8 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.worktime.classenum.CheckWorkTimeType;
 import lombok.Data;
 
 import java.util.List;
@@ -66,11 +68,15 @@ public class CheckWorkTime extends AreaInfo implements EnclosureFace {
     private String restEndTime;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "时间段类型，参考#CheckWorkTimeType", required = "required,num")
+    @ApiModelProperty(value = "时间段类型", enumClass = CheckWorkTimeType.class, required = "required,num")
     private Integer type;
 
+    @TableField(exist = false)
+    @Property("时间段类型名称")
+    private String typeName;
+
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "启用状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
     @TableField(exist = false)

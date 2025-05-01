@@ -231,7 +231,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         SysEveUserStaff sysEveUserStaff = super.selectById(id);
         sysEveUserStaff.setStateName(UserStaffState.getNameByState(sysEveUserStaff.getState()));
         // 员工考勤时间段信息
-        List<Map<String, Object>> staffTimeMation = sysEveUserStaffDao.queryStaffCheckWorkTimeRelationNameByStaffId(id);
+        List<Map<String, Object>> staffTimeMation = sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(id);
         sysEveUserStaff.setTimeList(staffTimeMation);
         // 设置组织信息
         companyMationService.setNameDataMation(sysEveUserStaff, SysEveUserStaff::getCompanyId, StrUtil.EMPTY);
@@ -398,22 +398,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             // 多租户模式
             tenantUserService.editUserStaffRetiredHolidayByStaffId(staffId, retiredHolidayNumber, retiredHolidayStatisTime);
         }
-    }
-
-    /**
-     * 根据员工id获取该员工的考勤时间段
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryStaffCheckWorkTimeRelationNameByStaffId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String staffId = map.get("staffId").toString();
-        // 员工考勤时间段信息
-        List<Map<String, Object>> staffTimeMation = sysEveUserStaffDao.queryStaffCheckWorkTimeRelationNameByStaffId(staffId);
-        outputObject.setBeans(staffTimeMation);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
