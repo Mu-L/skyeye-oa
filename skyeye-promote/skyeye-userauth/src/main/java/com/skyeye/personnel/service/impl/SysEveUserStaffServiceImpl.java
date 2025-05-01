@@ -20,7 +20,6 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.WagesFieldTypeDao;
@@ -38,6 +37,8 @@ import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.entity.SysEveUserStaffQuery;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
+import com.skyeye.personnel.service.SysEveUserStaffTimeService;
+import com.skyeye.tenant.service.TenantUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,6 +86,12 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
 
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
+
+    @Autowired
+    private TenantUserService tenantUserService;
+
+    @Autowired
+    private SysEveUserStaffTimeService sysEveUserStaffTimeService;
 
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<SysEveUserStaff> wrapper) {
@@ -210,7 +217,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public void writePostpose(SysEveUserStaff entity, String userId) {
         super.writePostpose(entity, userId);
         // 员工考勤时间段
-        saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
+        if (!tenantEnable) {
+            // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方保存
+            sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
+        }
     }
 
     /**
@@ -225,90 +235,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 bean.put("id", staffId);
             });
             wagesFieldTypeDao.insertWagesFieldTypeKeyToStaff(fieldType);
-        }
-    }
-
-    /**
-     * 新增员工考勤时间段
-     *
-     * @param timeIdList 班次id
-     * @param staffId    员工id
-     */
-    private void saveUserStaffCheckWorkTime(List<String> timeIdList, String staffId) {
-        // 删除员工考勤时间段信息再重新添加
-        sysEveUserStaffDao.deleteStaffCheckWorkTimeRelationByStaffId(staffId);
-        // 逗号隔开的多班次考勤
-        if (CollectionUtil.isNotEmpty(timeIdList)) {
-            // 校验多班次考勤是否有重复时间段
-            boolean repeat = judgeRepeatShift(timeIdList);
-            if (repeat) {
-                // 存在冲突的工作时间段
-                throw new CustomException("Conflicting working hours.");
-            }
-            List<Map<String, Object>> staffTimeMation = new ArrayList<>();
-            timeIdList.stream().forEach(timeId -> {
-                if (!ToolUtil.isBlank(timeId)) {
-                    Map<String, Object> bean = new HashMap<>();
-                    bean.put("staffId", staffId);
-                    bean.put("timeId", timeId);
-                    staffTimeMation.add(bean);
-                }
-            });
-            if (!staffTimeMation.isEmpty()) {
-                sysEveUserStaffDao.insertStaffCheckWorkTimeRelation(staffTimeMation);
-            }
-        }
-    }
-
-    private boolean judgeRepeatShift(List<String> timeIds) {
-        // 1.获取班次的上下班打卡时间
-        List<Map<String, Object>> timeMation = sysEveUserStaffDao.queryCheckTimeMationByTimeIds(timeIds);
-        // 2.获取班次的工作日
-        List<Map<String, Object>> timeDayMation = sysEveUserStaffDao.queryCheckTimeDaysMationByTimeIds(timeIds);
-        timeMation.forEach(bean -> {
-            List<Map<String, Object>> thisDayMation = timeDayMation.stream()
-                .filter(item -> item.get("timeId").toString().equals(bean.get("timeId").toString()))
-                .collect(Collectors.toList());
-            bean.put("days", thisDayMation);
-        });
-        // 3.校验工作日是否冲突
-        return judgeRepeatWorking(timeMation);
-    }
-
-    private boolean judgeRepeatWorking(List<Map<String, Object>> timeMation) {
-        if (timeMation.size() > 1) {
-            for (int i = 0; i < timeMation.size(); i++) {
-                for (int j = (i + 1); j < timeMation.size(); j++) {
-                    List<String> times = new ArrayList<>();
-                    times.add(timeMation.get(i).get("startTime").toString() + "-"
-                        + timeMation.get(i).get("endTime").toString());
-                    times.add(timeMation.get(j).get("startTime").toString() + "-"
-                        + timeMation.get(j).get("endTime").toString());
-                    // 1.首先判断每天的工作日的开始时间和结束时间是否有重复
-                    boolean flag = DateUtil.checkOverlap(times);
-                    if (flag) {
-                        // 开始时间和结束时间是否有重复
-                        List<Map<String, Object>> iDayMation = (List<Map<String, Object>>) timeMation.get(i)
-                            .get("days");
-                        List<Map<String, Object>> jDayMation = (List<Map<String, Object>>) timeMation.get(j)
-                            .get("days");
-                        // 求这两个班次的工作日冲突的天数，根据类型和工作日(周几)判断
-                        int size = iDayMation.stream()
-                            .map(t -> jDayMation.stream()
-                                .filter(s -> (Objects.equals(t.get("type").toString(), s.get("type").toString())
-                                    || Objects.equals(t.get("type").toString(), "1")
-                                    || Objects.equals(s.get("type").toString(), "1"))
-                                    && Objects.equals(t.get("day").toString(), s.get("day").toString()))
-                                .findAny().orElse(null)).filter(Objects::nonNull).collect(Collectors.toList()).size();
-                        if (size > 0) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        } else {
-            return false;
         }
     }
 
@@ -414,49 +340,76 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         return beans;
     }
 
-    /**
-     * 修改员工剩余年假信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysUserStaffAnnualLeaveById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         String quarterYearHour = map.get("quarterYearHour").toString();
         String annualLeaveStatisTime = map.get("annualLeaveStatisTime").toString();
-        sysEveUserStaffDao.editSysUserStaffAnnualLeaveById(staffId, quarterYearHour, annualLeaveStatisTime);
+
+        // 修改员工剩余年假信息
+        updateStaffAnnualLeave(staffId, quarterYearHour, annualLeaveStatisTime);
     }
 
-    /**
-     * 修改员工的补休池剩余补休信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    public void updateStaffAnnualLeave(String staffId, String quarterYearHour, String annualLeaveStatisTime) {
+        // 修改员工剩余年假信息
+        if (!tenantEnable) {
+            // 单租户模式
+            UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, staffId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getAnnualLeave), quarterYearHour);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getAnnualLeaveStatisTime), annualLeaveStatisTime);
+            update(updateWrapper);
+        } else {
+            // 多租户模式
+            tenantUserService.editUserStaffAnnualLeaveByStaffId(staffId, quarterYearHour, annualLeaveStatisTime);
+        }
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void updateSysUserStaffHolidayNumberById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         String holidayNumber = map.get("holidayNumber").toString();
         String holidayStatisTime = map.get("holidayStatisTime").toString();
-        sysEveUserStaffDao.updateSysUserStaffHolidayNumberById(staffId, holidayNumber, holidayStatisTime);
+
+        // 修改员工的补休池剩余补休信息
+        if (!tenantEnable) {
+            // 单租户模式
+            UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, staffId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getHolidayNumber), holidayNumber);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getHolidayStatisTime), holidayStatisTime);
+            update(updateWrapper);
+        } else {
+            // 多租户模式
+            tenantUserService.editUserStaffHolidayByStaffId(staffId, holidayNumber, holidayStatisTime);
+        }
     }
 
-    /**
-     * 修改员工的补休池已休补休信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void updateSysUserStaffRetiredHolidayNumberById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         String retiredHolidayNumber = map.get("retiredHolidayNumber").toString();
         String retiredHolidayStatisTime = map.get("retiredHolidayStatisTime").toString();
-        sysEveUserStaffDao.updateSysUserStaffRetiredHolidayNumberById(staffId, retiredHolidayNumber, retiredHolidayStatisTime);
+
+        // 修改员工的补休池已休补休信息
+        if (!tenantEnable) {
+            // 单租户模式
+            UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, staffId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getRetiredHolidayNumber), retiredHolidayNumber);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getRetiredHolidayStatisTime), retiredHolidayStatisTime);
+            update(updateWrapper);
+        } else {
+            // 多租户模式
+            tenantUserService.editUserStaffRetiredHolidayByStaffId(staffId, retiredHolidayNumber, retiredHolidayStatisTime);
+        }
     }
 
     /**
@@ -508,15 +461,23 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysUserStaffActMoneyById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         String actMoney = map.get("actMoney").toString();
-        UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, staffId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getDesignWages), StaffWagesStateEnum.TOO_DESIGN_WAGES.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getActWages), actMoney);
-        update(updateWrapper);
+        // 修改员工薪资设定信息
+        if (!tenantEnable) {
+            // 单租户模式
+            UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, staffId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getDesignWages), StaffWagesStateEnum.TOO_DESIGN_WAGES.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getActWages), actMoney);
+            update(updateWrapper);
+        } else {
+            // 多租户模式
+            tenantUserService.editUserStaffActMoneyByStaffId(staffId, actMoney);
+        }
     }
 
     @Override
@@ -586,6 +547,18 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         sysEveUserService.setUserLoginRedisMation(userId, user);
 
         iAuthUserService.removeCacheById(userId);
+    }
+
+    @Override
+    public List<SysEveUserStaff> queryUserStaffByState(Integer... state) {
+        List<Integer> stateList = Arrays.asList(state).stream()
+            .filter(st -> st != null).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(stateList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getState), stateList);
+        return list(queryWrapper);
     }
 
 }

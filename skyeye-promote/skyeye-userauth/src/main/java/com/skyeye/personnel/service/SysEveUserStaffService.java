@@ -41,6 +41,8 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
 
     void editSysUserStaffAnnualLeaveById(InputObject inputObject, OutputObject outputObject);
 
+    void updateStaffAnnualLeave(String staffId, String quarterYearHour, String annualLeaveStatisTime);
+
     void updateSysUserStaffHolidayNumberById(InputObject inputObject, OutputObject outputObject);
 
     void updateSysUserStaffRetiredHolidayNumberById(InputObject inputObject, OutputObject outputObject);
@@ -68,4 +70,6 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
     void updateCurrentUserStaff(InputObject inputObject, OutputObject outputObject);
 
     void updateCurrentUserBgImg(InputObject inputObject, OutputObject outputObject);
+
+    List<SysEveUserStaff> queryUserStaffByState(Integer... state);
 }

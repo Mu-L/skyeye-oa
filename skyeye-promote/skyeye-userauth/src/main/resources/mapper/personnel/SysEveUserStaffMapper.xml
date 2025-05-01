@@ -48,22 +48,6 @@
 		</where>
 	</select>
 	
-	<insert id="insertStaffCheckWorkTimeRelation" parameterType="java.util.Map">
-	     INSERT INTO sys_eve_user_staff_time
-	     (staff_id, check_work_time_id)
-	     VALUES
-		<foreach collection="list" item="item" index="index" separator="," >  
-			(#{item.staffId}, #{item.timeId})  
-		</foreach>  
-	</insert>
-	
-	<delete id="deleteStaffCheckWorkTimeRelationByStaffId">
-		DELETE
-		FROM
-			sys_eve_user_staff_time
-		WHERE staff_id = #{staffId}
-	</delete>
-	
 	<select id="queryStaffCheckWorkTimeRelationNameByStaffId" resultType="java.util.Map">
 		SELECT
 			a.staff_id staffId,
@@ -83,72 +67,5 @@
 			a.staff_id = #{staffId}
 		AND a.check_work_time_id = b.id
 	</select>
-	
-	<select id="queryCheckTimeMationByTimeIds" resultType="java.util.Map">
-		SELECT
-			a.id timeId,
-			a.start_time startTime,
-			a.end_time endTime
-		FROM
-			check_work_time a
-		WHERE a.id IN
-			<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
-	            #{item}
-	        </foreach>
-	</select>
-	
-	<select id="queryCheckTimeDaysMationByTimeIds" resultType="java.util.Map">
-		SELECT
-			a.time_id timeId,
-			a.week_number `day`,
-			a.`type`
-		FROM
-			check_work_time_week a
-		WHERE a.time_id IN
-			<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
-	            #{item}
-	        </foreach>
-	</select>
-
-	<select id="queryAllSysUserStaffListByState" resultType="java.util.Map">
-		SELECT
-			a.id,
-			a.work_time workTime,
-			a.entry_time entryTime,
-			a.annual_leave annualLeave
-		FROM
-			sys_eve_user_staff a
-		WHERE a.state IN
-		<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
-			#{item}
-		</foreach>
-	</select>
-
-	<update id="editSysUserStaffAnnualLeaveById">
-		UPDATE sys_eve_user_staff
-		<set>
-			annual_leave = #{quarterYearHour},
-			annual_leave_statis_time = #{annualLeaveStatisTime}
-		</set>
-		WHERE id = #{staffId}
-	</update>
-
-	<update id="updateSysUserStaffHolidayNumberById">
-		UPDATE sys_eve_user_staff
-		<set>
-			holiday_number = #{holidayNumber},
-			holiday_statis_time = #{holidayStatisTime}
-		</set>
-		WHERE id = #{staffId}
-	</update>
-
-	<update id="updateSysUserStaffRetiredHolidayNumberById">
-		UPDATE sys_eve_user_staff
-		<set>
-			retired_holiday_number = #{retiredHolidayNumber},
-			retired_holiday_statis_time = #{retiredHolidayStatisTime}
-		</set>
-		WHERE id = #{staffId}
-	</update>
 
 </mapper>

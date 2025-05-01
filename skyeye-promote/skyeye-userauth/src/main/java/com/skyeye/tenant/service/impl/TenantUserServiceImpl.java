@@ -7,6 +7,7 @@ package com.skyeye.tenant.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -155,6 +156,46 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         List<Tenant> tenantList = tenantService.selectByIds(tenantIds.toArray(new String[tenantIds.size()]));
         outputObject.setBeans(tenantList);
         outputObject.settotal(tenantList.size());
+    }
+
+    @Override
+    public void editUserStaffActMoneyByStaffId(String staffId, String actMoney) {
+        // 开启多租户模式时，默认加上租户id
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getDesignWages), StaffWagesStateEnum.TOO_DESIGN_WAGES.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getActWages), actMoney);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void editUserStaffAnnualLeaveByStaffId(String staffId, String quarterYearHour, String annualLeaveStatisTime) {
+        // 开启多租户模式时，默认加上租户id
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getAnnualLeave), quarterYearHour);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getAnnualLeaveStatisTime), annualLeaveStatisTime);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void editUserStaffHolidayByStaffId(String staffId, String holidayNumber, String holidayStatisTime) {
+        // 开启多租户模式时，默认加上租户id
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getHolidayNumber), holidayNumber);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getHolidayStatisTime), holidayStatisTime);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void editUserStaffRetiredHolidayByStaffId(String staffId, String retiredHolidayNumber, String retiredHolidayStatisTime) {
+        // 开启多租户模式时，默认加上租户id
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getRetiredHolidayNumber), retiredHolidayNumber);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getRetiredHolidayStatisTime), retiredHolidayStatisTime);
+        update(updateWrapper);
     }
 
 }

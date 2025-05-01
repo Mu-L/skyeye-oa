@@ -69,6 +69,14 @@ public class CheckWorkTimeController {
         checkWorkTimeService.selectById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryCheckWorkTimeByIds", value = "根据id批量查询考勤班次信息", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
+    @RequestMapping("/post/CheckWorkTimeController/queryCheckWorkTimeByIds")
+    public void queryCheckWorkTimeByIds(InputObject inputObject, OutputObject outputObject) {
+        checkWorkTimeService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "deleteCheckWorkTimeById", value = "根据id删除考勤班次信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

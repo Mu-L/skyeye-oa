@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import lombok.Data;
 
 /**
@@ -34,7 +35,7 @@ public class CheckWorkTimeWeek extends CommonInfo {
     private Integer weekNumber;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "上班类型，参考#CheckWorkTimeWeekType", required = "required,num")
+    @ApiModelProperty(value = "上班类型", enumClass = CheckWorkTimeWeekType.class, required = "required,num")
     private Integer type;
 
 }

@@ -2,7 +2,7 @@
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
 
-package com.skyeye.checkwork.entity;
+package com.skyeye.personnel.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,7 +10,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
-import com.skyeye.worktime.entity.CheckWorkTime;
 import lombok.Data;
 
 import java.util.Map;
@@ -42,6 +41,6 @@ public class SysEveUserStaffTime extends CommonInfo {
 
     @TableField(exist = false)
     @Property(value = "班次信息")
-    private CheckWorkTime checkWorkTimeMation;
+    private Map<String, Object> checkWorkTimeMation;
 
 }

@@ -23,52 +23,6 @@ public interface SysEveUserStaffDao extends SkyeyeBaseMapper<SysEveUserStaff> {
 
     List<Map<String, Object>> queryUserMationList(@Param("userIds") String userIds, @Param("staffIds") String staffIds);
 
-    int insertStaffCheckWorkTimeRelation(List<Map<String, Object>> staffTimeMation);
-
-    int deleteStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId);
-
     List<Map<String, Object>> queryStaffCheckWorkTimeRelationNameByStaffId(@Param("staffId") String staffId);
-
-    List<Map<String, Object>> queryCheckTimeMationByTimeIds(@Param("list") List<String> timeIds);
-
-    List<Map<String, Object>> queryCheckTimeDaysMationByTimeIds(@Param("list") List<String> timeIds);
-
-    /**
-     * 根据状态获取对应状态的员工
-     *
-     * @param state 状态 1在职  2离职  3.见习  4.试用  5.退休
-     * @return
-     */
-    List<Map<String, Object>> queryAllSysUserStaffListByState(@Param("list") List<Integer> state);
-
-    /**
-     * 修改员工的年假信息
-     *
-     * @param staffId               员工id
-     * @param quarterYearHour       年假,精确到6位
-     * @param annualLeaveStatisTime 员工剩余年假数据刷新日期
-     */
-    void editSysUserStaffAnnualLeaveById(@Param("staffId") String staffId,
-                                         @Param("quarterYearHour") String quarterYearHour, @Param("annualLeaveStatisTime") String annualLeaveStatisTime);
-
-    /**
-     * 修改员工的补休池剩余补休信息
-     *
-     * @param staffId           员工id
-     * @param holidayNumber     当前员工剩余补休天数
-     * @param holidayStatisTime 刷新时间
-     */
-    void updateSysUserStaffHolidayNumberById(@Param("staffId") String staffId,
-                                             @Param("holidayNumber") String holidayNumber, @Param("holidayStatisTime") String holidayStatisTime);
-
-    /**
-     * 修改员工的补休池已休补休信息
-     *
-     * @param staffId                  员工id
-     * @param retiredHolidayNumber     当前员工已休补休天数
-     * @param retiredHolidayStatisTime 刷新时间
-     */
-    void updateSysUserStaffRetiredHolidayNumberById(@Param("staffId") String staffId,
-                                                    @Param("retiredHolidayNumber") String retiredHolidayNumber, @Param("retiredHolidayStatisTime") String retiredHolidayStatisTime);
 
 }

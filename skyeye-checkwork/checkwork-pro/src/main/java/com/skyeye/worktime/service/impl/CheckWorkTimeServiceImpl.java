@@ -4,12 +4,12 @@
 
 package com.skyeye.worktime.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.checkwork.service.SysEveUserStaffTimeService;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -22,6 +22,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.rest.ISysEveUserStaffTimeRest;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.dao.CheckWorkTimeDao;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: CheckWorkTimeServiceImpl
- * @Description: 考勤班次管理服务层
+ * @Description: 考勤班次管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2023/4/3 14:38
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -55,7 +56,7 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     private SysEveUserService sysEveUserService;
 
     @Autowired
-    private SysEveUserStaffTimeService sysEveUserStaffTimeService;
+    private ISysEveUserStaffTimeRest iSysEveUserStaffTimeRest;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -73,9 +74,11 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
 
     @Override
     protected void deletePreExecution(String id) {
-        // 判断该考勤班次是否被员工使用
-        boolean exist = sysEveUserStaffTimeService.checkIsExistByTimeId(id);
-        if (exist) {
+        // 获取这个考勤班次与员工的绑定关系
+        List<Map<String, Object>> beans = ExecuteFeignClient.get(() ->
+            iSysEveUserStaffTimeRest.querySysEveUserStaffTimeListByTimeId(id)).getRows();
+
+        if (CollectionUtil.isNotEmpty(beans)) {
             throw new CustomException("该考勤班次已被员工使用，无法删除。");
         }
     }
