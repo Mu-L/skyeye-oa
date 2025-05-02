@@ -42,6 +42,10 @@ webroot:
   skyeye-flowable: skyeye-flowable-${spring.profiles.active}
   # 报表
   skyeye-report: skyeye-report-${spring.profiles.active}
+  # 考勤
+  skyeye-checkwork: skyeye-checkwork-${spring.profiles.active}
+  # 薪资
+  skyeye-wages: skyeye-wages-${spring.profiles.active}
   # xxl-job
   xxl-job: xxl-job-${spring.profiles.active}
 
