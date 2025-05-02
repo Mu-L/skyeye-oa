@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.personnel.service.AppAuthService;
@@ -33,6 +34,18 @@ public class AppAuthController {
 
     @Autowired
     private AppAuthService appAuthService;
+
+    @ApiOperation(id = "registerUser", value = "注册用户", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "phone", name = "phone", value = "手机号", required = "required"),
+        @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
+        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required"),
+        @ApiImplicitParam(id = "userPhoto", name = "userPhoto", value = "头像", required = "required"),
+        @ApiImplicitParam(id = "userSex", name = "userSex", value = "性别", enumClass = SexEnum.class, required = "required,num")})
+    @RequestMapping("/post/AppAuthController/registerUser")
+    public void registerUser(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserService.registerUser(inputObject, outputObject);
+    }
 
     @ApiOperation(id = "login001", value = "PC端用户登录", method = "POST", allUse = "0")
     @ApiImplicitParams({

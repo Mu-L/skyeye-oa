@@ -89,4 +89,6 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
     void editUserLockState(String id, Integer userLock);
 
     void resetUserEffectiveDate(InputObject inputObject, OutputObject outputObject);
+
+    void registerUser(InputObject inputObject, OutputObject outputObject);
 }

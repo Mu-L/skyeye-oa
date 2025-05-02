@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.*;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.*;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -31,6 +32,7 @@ import com.skyeye.personnel.classenum.UserLockState;
 import com.skyeye.personnel.dao.SysEveUserDao;
 import com.skyeye.personnel.entity.SysEveUser;
 import com.skyeye.personnel.entity.SysEveUserInstall;
+import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserInstallService;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
@@ -39,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,6 +87,9 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
 
     @Autowired
     private RoleMenuService roleMenuService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void querySysUserList(InputObject inputObject, OutputObject outputObject) {
@@ -887,6 +893,32 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUser::getStartTime), startTime);
         updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUser::getEndTime), endTime);
         update(updateWrapper);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void registerUser(InputObject inputObject, OutputObject outputObject) {
+        if (!tenantEnable) {
+            throw new CustomException("未开启租户模式，暂不支持注册用户！");
+        }
+        Map<String, Object> map = inputObject.getParams();
+        String phone = map.get("phone").toString();
+        String userName = map.get("userName").toString();
+        String password = map.get("password").toString();
+        String userPhoto = map.get("userPhoto").toString();
+        Integer userSex = Integer.parseInt(map.get("userSex").toString());
+
+        SysEveUserStaff sysEveUserStaff = new SysEveUserStaff();
+        sysEveUserStaff.setUserName(userName);
+        sysEveUserStaff.setUserSex(userSex);
+        sysEveUserStaff.setPhone(phone);
+        sysEveUserStaff.setUserPhoto(userPhoto);
+        sysEveUserStaff.setPassword(password);
+        // 开启自动注册账号
+        sysEveUserStaff.setWhetherRegister(WhetherEnum.ENABLE_USING.getKey());
+        // 保存用户信息
+        sysEveUserStaffService.createEntity(sysEveUserStaff, CommonNumConstants.NUM_ZERO.toString());
+
     }
 
 }
