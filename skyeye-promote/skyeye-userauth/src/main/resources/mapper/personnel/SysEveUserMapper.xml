@@ -105,7 +105,7 @@
 				c.icon_pic iconPic,
 				c.icon_type iconType,
 				IFNULL(c.desktop_id, '') desktopId,
-			    IFNULL(g.sys_url, '') sysWinUrl # 分布式开发时，其他前台服务的域名地址
+			    IFNULL(g.sys_url, '') sysWinUrl
 			FROM
 				sys_eve_user a,
 				sys_eve_role_menu b,
