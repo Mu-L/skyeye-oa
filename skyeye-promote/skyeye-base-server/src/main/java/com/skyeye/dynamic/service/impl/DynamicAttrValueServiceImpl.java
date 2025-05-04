@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DataCommonUtil;
@@ -25,14 +26,14 @@ import java.util.Map;
 
 /**
  * @ClassName: DynamicAttrValueServiceImpl
- * @Description: 动态属性值服务层实现类
+ * @Description: 动态属性值服务层实现类--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2025/4/13 14:14
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "动态属性值管理", groupName = "动态属性值管理")
+@SkyeyeService(name = "动态属性值管理", groupName = "动态属性值管理", tenant = TenantEnum.NO_ISOLATION)
 public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<DynamicAttrValueDao, DynamicAttrValue> implements DynamicAttrValueService {
 
     @Override
