@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.TenantUser;
@@ -64,5 +65,18 @@ public class TenantUserController {
     @RequestMapping("/post/TenantUserController/queryTenantUserByStaffId")
     public void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.queryTenantUserByStaffId(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "addTenantAdminUser", value = "新增租户管理员", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
+        @ApiImplicitParam(id = "phone", name = "phone", value = "手机号", required = "required"),
+        @ApiImplicitParam(id = "userSex", name = "userSex", value = "性别", enumClass = SexEnum.class, required = "required"),
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required"),
+        @ApiImplicitParam(id = "userIdCard", name = "userIdCard", value = "身份证号", required = "required"),
+        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required"),})
+    @RequestMapping("/post/TenantUserController/addTenantAdminUser")
+    public void addTenantAdminUser(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.addTenantAdminUser(inputObject, outputObject);
     }
 }
