@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.TenantUserInvite;
@@ -66,7 +67,7 @@ public class TenantUserInviteController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "userName", name = "userName", value = "姓名", required = "required"),
-        @ApiImplicitParam(id = "userSex", name = "userSex", value = "性别", required = "required"),
+        @ApiImplicitParam(id = "userSex", name = "userSex", value = "性别", enumClass = SexEnum.class, required = "required"),
         @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required"),
         @ApiImplicitParam(id = "userIdCard", name = "userIdCard", value = "身份证号", required = "required"),
         @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required"),})
