@@ -19,6 +19,7 @@ import com.skyeye.dynamic.dao.DynamicAttrValueDao;
 import com.skyeye.dynamic.entity.DynamicAttrValue;
 import com.skyeye.dynamic.entity.DynamicAttrValueApi;
 import com.skyeye.dynamic.service.DynamicAttrValueService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Map;
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "动态属性值管理", groupName = "动态属性值管理", tenant = TenantEnum.NO_ISOLATION)
 public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<DynamicAttrValueDao, DynamicAttrValue> implements DynamicAttrValueService {
@@ -51,6 +53,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
 
     private void remove(String appId, String objectId, String objectKey) {
         QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
+        log.info("appId:{}, objectId:{}, objectKey:{}", appId, objectId, objectKey);
         deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), appId);
         deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), objectId);
         deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
