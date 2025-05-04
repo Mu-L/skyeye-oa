@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -372,11 +373,11 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         if (!ToolUtil.isBlank(userIds) || !ToolUtil.isBlank(staffIds)) {
             QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
             if (StrUtil.isNotEmpty(userIds)) {
-                queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), Arrays.asList(userIds.split(",")));
+                queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserId), Arrays.asList(userIds.split(CommonCharConstants.COMMA_MARK)));
             }
 
             if (StrUtil.isNotEmpty(staffIds)) {
-                queryWrapper.in(CommonConstants.ID, Arrays.asList(staffIds.split(",")));
+                queryWrapper.in(CommonConstants.ID, Arrays.asList(staffIds.split(CommonCharConstants.COMMA_MARK)));
             }
             List<SysEveUserStaff> userStaffList = list(queryWrapper);
             return userStaffList;

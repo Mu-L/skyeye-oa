@@ -104,10 +104,6 @@
 	<!-- 自定义菜单结束 -->
 	
     <!-- 系统管理开始 -->
-	<url id="sys019" path="/post/SysEveUserController/queryRoleAndBindRoleByUserId" val="获取角色和当前已经绑定的角色信息" allUse="2" groupName="角色管理">
-		<property id="rowId" name="id" ref="required" var="账号ID" />
-	</url>
-
 	<url id="sys033" path="/post/SysEveUserController/editUserDetailsMationByUserId" val="修改个人信息" allUse="2" groupName="系统管理">
 		<property id="userSex" name="userSex" ref="required,num" var="性别" />
 		<property id="userIdCard" name="userIdCard" ref="idcard" var="身份证" />

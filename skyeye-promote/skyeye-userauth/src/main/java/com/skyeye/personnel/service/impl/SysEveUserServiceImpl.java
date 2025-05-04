@@ -4,6 +4,7 @@
 
 package com.skyeye.personnel.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -11,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.*;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -108,6 +110,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     @Override
+    @TenantIsolation(TenantEnum.PLATE)
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysUserLockStateToLockById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -122,6 +125,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     @Override
+    @TenantIsolation(TenantEnum.PLATE)
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editSysUserLockStateToUnLockById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -385,8 +389,8 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         // 获取角色列表
         List<Map<String, Object>> roles = sysEveRoleService.queryAllDataForMap();
         // 获取用户绑定的角色ID串
-        Map<String, Object> userRole = sysEveUserDao.queryBindRoleMationByUserId(map);
-        String[] roleIds = userRole.get("roleIds").toString().split(",");
+        String userRoleIds = queryBindRolesByUserId(map.get("id").toString());
+        String[] roleIds = userRoleIds.split(CommonCharConstants.COMMA_MARK);
         for (Map<String, Object> bean : roles) {
             if (Arrays.asList(roleIds).contains(bean.get("id").toString())) {
                 bean.put("isCheck", "checked");
@@ -394,6 +398,16 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         }
         outputObject.setBeans(roles);
         outputObject.settotal(roles.size());
+    }
+
+    private String queryBindRolesByUserId(String userId) {
+        QueryWrapper<SysEveUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, userId);
+        SysEveUser user = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new CustomException("用户不存在！");
+        }
+        return StrUtil.isEmpty(user.getRoleId()) ? StrUtil.EMPTY : user.getRoleId();
     }
 
     /**

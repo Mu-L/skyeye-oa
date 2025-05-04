@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: CompanyJobScoreServiceImpl
- * @Description: 职位定级信息管理服务类
+ * @Description: 职位定级信息管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:57
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

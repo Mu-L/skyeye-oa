@@ -78,12 +78,9 @@ public class SysEveUserController {
         sysEveUserService.queryUserMationBySession(inputObject, outputObject);
     }
 
-    /**
-     * 获取角色和当前已经绑定的角色信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sys019", value = "获取角色和指定用户已经绑定的角色信息", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "用户ID", required = "required")})
     @RequestMapping("/post/SysEveUserController/queryRoleAndBindRoleByUserId")
     public void queryRoleAndBindRoleByUserId(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.queryRoleAndBindRoleByUserId(inputObject, outputObject);

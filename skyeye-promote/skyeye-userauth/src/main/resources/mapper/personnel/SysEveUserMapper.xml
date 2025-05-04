@@ -74,15 +74,6 @@
 		AND a.id = c.user_id
 	</select>
 	
-	<select id="queryBindRoleMationByUserId" parameterType="java.util.Map" resultType="java.util.Map">
-		SELECT
-			IFNULL(a.role_id, '') roleIds
-		FROM
-			sys_eve_user a
-		WHERE
-			a.id = #{id}
-	</select>
-	
 	<update id="editRoleIdsByUserId" parameterType="java.util.Map">
 		UPDATE sys_eve_user
 		<set>
