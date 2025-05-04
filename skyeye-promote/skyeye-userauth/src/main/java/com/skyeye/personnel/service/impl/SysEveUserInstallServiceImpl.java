@@ -7,6 +7,7 @@ package com.skyeye.personnel.service.impl;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -24,14 +25,14 @@ import java.util.Map;
 
 /**
  * @ClassName: SysEveUserInstallServiceImpl
- * @Description: 用户个人配置信息服务层
+ * @Description: 用户个人配置信息服务层--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/8/28 12:10
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "用户个人配置信息", groupName = "用户个人配置信息")
+@SkyeyeService(name = "用户个人配置信息", groupName = "用户个人配置信息", tenant = TenantEnum.NO_ISOLATION)
 public class SysEveUserInstallServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserInstallDao, SysEveUserInstall> implements SysEveUserInstallService {
 
     @Autowired

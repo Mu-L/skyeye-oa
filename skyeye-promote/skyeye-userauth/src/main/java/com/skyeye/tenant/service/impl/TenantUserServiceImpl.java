@@ -85,6 +85,10 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         String jobNumberKey = MybatisPlusUtil.toColumns(TenantUser::getJobNumber);
         queryWrapper.select("max(0 + RIGHT(" + jobNumberKey + ", 6)) AS " + jobNumberKey);
         TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isNull(tenantUser)) {
+            tenantUser = new TenantUser();
+            tenantUser.setJobNumber(CommonNumConstants.NUM_ZERO.toString());
+        }
         entity.setJobNumber(CalculationUtil.add(tenantUser.getJobNumber(), CommonNumConstants.NUM_ONE.toString(), CommonNumConstants.NUM_ZERO));
         entity.setActWages(CommonNumConstants.NUM_ZERO.toString());
         entity.setAnnualLeave(CommonNumConstants.NUM_ZERO.toString());
