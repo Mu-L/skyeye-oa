@@ -37,4 +37,9 @@ public class UserTreeQueryDo extends TableSelectInfo {
      */
     private Integer hasEmail;
 
+    /**
+     * 租户id
+     */
+    private String tenantId;
+
 }

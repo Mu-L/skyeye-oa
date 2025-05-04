@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.*;
@@ -19,6 +20,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.*;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -578,6 +580,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryAllPeopleToTree(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -608,6 +611,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryCompanyPeopleToTreeByUserBelongCompany(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -629,6 +633,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryDepartmentPeopleToTreeByUserBelongDepartment(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -650,6 +655,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryJobPeopleToTreeByUserBelongJob(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -670,6 +676,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void querySimpleDepPeopleToTreeByUserBelongSimpleDep(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -688,6 +695,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryTalkGroupUserListByUserId(InputObject inputObject, OutputObject outputObject) {
         UserTreeQueryDo queryDo = inputObject.getParams(UserTreeQueryDo.class);
         compareSelUserListByParams(queryDo, inputObject);
@@ -714,6 +722,11 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         // 人员列表中是否必须绑定邮箱--1.必须；其他参数没必要
         if (queryDo.getChooseOrNotEmail() == 1) {
             queryDo.setHasEmail(1);
+        }
+        // 租户相关
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            queryDo.setTenantId(tenantId);
         }
     }
 
