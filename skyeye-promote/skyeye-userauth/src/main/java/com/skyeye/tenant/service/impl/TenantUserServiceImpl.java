@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.UserStaffState;
@@ -182,6 +183,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
@@ -342,6 +344,29 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         sysEveUserStaff.setWhetherRegister(WhetherEnum.ENABLE_USING.getKey());
         // 保存用户信息
         return sysEveUserStaffService.createEntity(sysEveUserStaff, userId);
+    }
+
+    @Override
+    public boolean checkStaffIdIsAdmin(String staffId) {
+        // 默认强隔离
+        TenantUser tenantUser = getTenantUserByStaffId(staffId);
+        return checkStaffIdIsAdmin(tenantUser);
+    }
+
+    @Override
+    public boolean checkStaffIdIsAdmin(TenantUser tenantUser) {
+        return tenantUser.getIsAdmin() == WhetherEnum.ENABLE_USING.getKey();
+    }
+
+    @Override
+    public TenantUser getTenantUserByStaffId(String staffId) {
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(tenantUser)) {
+            throw new CustomException("该租户下不存在该员工");
+        }
+        return tenantUser;
     }
 
 }

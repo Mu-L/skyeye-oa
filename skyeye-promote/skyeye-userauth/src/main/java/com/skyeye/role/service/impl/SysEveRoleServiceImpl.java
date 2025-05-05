@@ -189,6 +189,7 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
         if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
             if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                // 开启租户功能，并且不是平台租户
                 List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.PC.getKey());
                 if (CollectionUtil.isEmpty(ids)) {
                     return;

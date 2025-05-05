@@ -20,6 +20,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.*;
+import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -41,6 +42,10 @@ import com.skyeye.personnel.service.SysEveUserInstallService;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.role.service.SysEveRoleService;
+import com.skyeye.tenant.classenum.TenantAppMenuType;
+import com.skyeye.tenant.entity.TenantUser;
+import com.skyeye.tenant.service.TenantService;
+import com.skyeye.tenant.service.TenantUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +99,12 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
 
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
+
+    @Autowired
+    private TenantUserService tenantUserService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Override
     public void querySysUserList(InputObject inputObject, OutputObject outputObject) {
@@ -246,10 +257,14 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         chectUserEffectiveDate(userMation);
 
         String userId = userMation.get("id").toString();
-        setUserOtherMation(userMation);
-        setMenuToRedis(userMation, userId);
-        judgeAndGetSchoolMation(userMation, userId);
-        LOGGER.info("set userMation to redis cache start.");
+        if (!tenantEnable) {
+            // 单租户模式
+            setUserOtherMation(userMation);
+            LOGGER.info("set userMation to redis cache start.");
+            setMenuToRedis(userMation, userId);
+            judgeAndGetSchoolMation(userMation, userId);
+        }
+
         setUserLoginRedisMation(userId, userMation);
         LOGGER.info("set userMation to redis cache end.");
         String userToken = GetUserToken.createNewToken(userId, userDBPassword);
@@ -446,11 +461,34 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
         String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        // 获取角色id(逗号隔开的字符串)
-        String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
-            userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
-        List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
-        outputObject.setBeans(menuList);
+        if (!tenantEnable) {
+            // 单租户模式，获取角色id(逗号隔开的字符串)
+            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
+                userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+            List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
+            outputObject.setBeans(menuList);
+        } else {
+            // 多租户模式
+            Map<String, Object> user = InputObject.getLogParamsStatic();
+            String staffId = user.get("staffId").toString();
+            TenantUser tenantUser = tenantUserService.getTenantUserByStaffId(staffId);
+            boolean isAdmin = tenantUserService.checkStaffIdIsAdmin(tenantUser);
+            if (isAdmin) {
+                // 管理员获取所有菜单
+                String tenantId = TenantContext.getTenantId();
+                if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                    // 开启租户功能，并且不是平台租户
+                    List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.PC.getKey());
+                    List<Map<String, Object>> menuList = roleMenuService.queryMenuListByMenuIds(ids, userIdAndType);
+                    outputObject.setBeans(menuList);
+                }
+            } else {
+                // 非管理员获取当前用户的菜单
+                String roleIds = tenantUser.getRoleId();
+                List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
+                outputObject.setBeans(menuList);
+            }
+        }
     }
 
     /**

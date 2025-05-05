@@ -16,6 +16,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.dao.TenantDao;
@@ -60,6 +61,15 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     }
 
     @Override
+    protected void deletePreExecution(String id) {
+        if (StrUtil.equals(id, TenantTypeEnum.PLATFORM.getCode())) {
+            throw new CustomException("平台租户不能删除");
+        }
+        super.deletePreExecution(id);
+    }
+
+    @Override
+    @IgnoreTenant
     public Tenant selectById(String id) {
         Tenant tenant = super.selectById(id);
         List<TenantAppLink> tenantAppLinkList = tenantAppLinkService.selectByTenantId(id);
@@ -72,6 +82,12 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         }
         tenant.setTenantAppLinkList(tenantAppLinkList);
         return tenant;
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<Tenant> selectByIds(String... ids) {
+        return super.selectByIds(ids);
     }
 
     @Override

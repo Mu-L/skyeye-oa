@@ -5,6 +5,7 @@
 package com.skyeye.win.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -46,12 +47,6 @@ public class SysEveWinServiceImpl extends SkyeyeBusinessServiceImpl<SysEveWinDao
         }
     }
 
-    /**
-     * 获取所有的服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySysEveWinList(InputObject inputObject, OutputObject outputObject) {
         List<Map<String, Object>> beans = skyeyeBaseMapper.querySysEveWinList();
@@ -59,4 +54,9 @@ public class SysEveWinServiceImpl extends SkyeyeBusinessServiceImpl<SysEveWinDao
         outputObject.settotal(beans.size());
     }
 
+    @Override
+    @IgnoreTenant
+    public List<SysWin> selectByIds(String... ids) {
+        return super.selectByIds(ids);
+    }
 }

@@ -27,4 +27,6 @@ public interface RoleMenuService {
      */
     List<Map<String, Object>> getRoleHasMenuListByRoleIds(String roleIds, String userIdAndType);
 
+    List<Map<String, Object>> queryMenuListByMenuIds(List<String> menuIds, String userIdAndType);
+
 }

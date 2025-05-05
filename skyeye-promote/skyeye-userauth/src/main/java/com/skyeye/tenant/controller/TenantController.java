@@ -32,12 +32,6 @@ public class TenantController {
     @Autowired
     private TenantService tenantService;
 
-    /**
-     * 获取租户列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantList", value = "获取租户列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/TenantController/queryTenantList")
@@ -45,12 +39,6 @@ public class TenantController {
         tenantService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑租户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTenant", value = "新增/编辑租户", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Tenant.class)
     @RequestMapping("/post/TenantController/writeTenant")
@@ -58,12 +46,6 @@ public class TenantController {
         tenantService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询租户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantById", value = "根据id查询租户信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户ID", required = "required")})
@@ -72,12 +54,6 @@ public class TenantController {
         tenantService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除租户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTenantById", value = "删除租户", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户ID", required = "required")})
@@ -86,12 +62,6 @@ public class TenantController {
         tenantService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有租户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllTenantList", value = "获取所有租户信息", method = "GET", allUse = "2")
     @RequestMapping("/post/TenantController/queryAllTenantList")
     public void queryAllTenantList(InputObject inputObject, OutputObject outputObject) {

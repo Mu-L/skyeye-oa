@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveDesktopServiceImpl
- * @Description: 桌面信息管理服务层
+ * @Description: 桌面信息管理服务层--平台隔离
  * @author: skyeye云系列--卫志强
  * @date: 2023/2/22 19:22
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -87,6 +87,12 @@ public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDe
         List<Map<String, Object>> beans = queryAllDataForMap();
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<SysDesktop> selectByIds(String... ids) {
+        return super.selectByIds(ids);
     }
 
     @Override

@@ -67,17 +67,10 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端
-            menuResult = this.getRoleHasMenuListByRoleId(roleIdList);
+            menuResult = this.getRoleHasMenuListByRoleId(roleIdList, userIdAndType);
         } else {
             // 手机端
-            menuResult = this.getRoleHasAPPMenuListByRoleId(roleIdList);
-        }
-        for (Map<String, Object> authPoint : menuResult) {
-            authPoint.remove("createId");
-            authPoint.remove("createTime");
-            authPoint.remove("lastUpdateId");
-            authPoint.remove("lastUpdateTime");
-            authPoint.remove("serviceClassName");
+            menuResult = this.getRoleHasAPPMenuListByRoleId(roleIdList, userIdAndType);
         }
         // 去重
         menuResult = menuResult.stream().collect(
@@ -111,7 +104,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @return 该角色拥有的菜单列表
      * @throws Exception
      */
-    private List<Map<String, Object>> getRoleHasMenuListByRoleId(List<String> roleId) {
+    private List<Map<String, Object>> getRoleHasMenuListByRoleId(List<String> roleId, String userIdAndType) {
         List<Role> roleList = sysEveRoleService.selectByIds(roleId.toArray(new String[]{}));
         if (CollectionUtil.isEmpty(roleList)) {
             return new ArrayList<>();
@@ -119,19 +112,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         // 获取menuId集合并合并去重
         List<String> menuIdList = roleList.stream().filter(role -> CollectionUtil.isNotEmpty(role.getMenuIds()))
             .map(Role::getMenuIds).flatMap(List::stream).distinct().collect(Collectors.toList());
-        List<SysMenu> menuEntityList = sysEveMenuService.selectByIds(menuIdList.toArray(new String[]{}));
-        List<Map<String, Object>> menuList = menuEntityList.stream().map(menu -> {
-            Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
-            menuMapResult.put("childs", null);
-            menuMapResult.put("maxOpen", "-1");
-            menuMapResult.put("extend", "false");
-            if (menu.getSysWinMation() != null) {
-                menuMapResult.put("sysWinUrl", menu.getSysWinMation().getSysUrl());
-            }
-            return menuMapResult;
-        }).collect(Collectors.toList());
 
-        return menuList;
+        return queryMenuListByMenuIds(menuIdList, userIdAndType);
     }
 
     /**
@@ -141,7 +123,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
      * @return 该角色拥有的菜单列表
      * @throws Exception
      */
-    private List<Map<String, Object>> getRoleHasAPPMenuListByRoleId(List<String> roleId) {
+    private List<Map<String, Object>> getRoleHasAPPMenuListByRoleId(List<String> roleId, String userIdAndType) {
         List<Role> roleList = sysEveRoleService.selectByIds(roleId.toArray(new String[]{}));
         if (CollectionUtil.isEmpty(roleList)) {
             return new ArrayList<>();
@@ -150,18 +132,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         // 获取menuId集合并合并去重
         List<String> menuIdList = roleList.stream().filter(role -> CollectionUtil.isNotEmpty(role.getAppMenuId()))
             .map(Role::getAppMenuId).flatMap(List::stream).distinct().collect(Collectors.toList());
-        List<AppWorkPage> menuEntityList = appWorkPageService.selectByIds(menuIdList.toArray(new String[]{}));
-        List<Map<String, Object>> menuList = menuEntityList.stream().map(menu -> {
-            Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
-            if (StrUtil.equals(menu.getParentId(), CommonNumConstants.NUM_ZERO.toString())) {
-                menuMapResult.put("pId", menu.getDesktopId());
-            } else {
-                menuMapResult.put("pId", menu.getParentId());
-            }
-            menuMapResult.put("orderNum", menu.getOrderBy());
-            menuMapResult.put("type", "page");
-            return menuMapResult;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> menuList = queryMenuListByMenuIds(menuIdList, userIdAndType);
         if (CollectionUtil.isNotEmpty(menuList)) {
             result.addAll(menuList);
         }
@@ -180,6 +151,48 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             result.addAll(desktopList);
         }
         return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryMenuListByMenuIds(List<String> menuIds, String userIdAndType) {
+        List<Map<String, Object>> menuList;
+        if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+            // PC端--包含菜单
+            List<SysMenu> menuEntityList = sysEveMenuService.selectByIds(menuIds.toArray(new String[]{}));
+            menuList = menuEntityList.stream().map(menu -> {
+                Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
+                menuMapResult.put("childs", null);
+                menuMapResult.put("maxOpen", "-1");
+                menuMapResult.put("extend", "false");
+                if (menu.getSysWinMation() != null) {
+                    menuMapResult.put("sysWinUrl", menu.getSysWinMation().getSysUrl());
+                }
+                return menuMapResult;
+            }).collect(Collectors.toList());
+        } else {
+            // 手机端--包含菜单
+            List<AppWorkPage> menuEntityList = appWorkPageService.selectByIds(menuIds.toArray(new String[]{}));
+            menuList = menuEntityList.stream().map(menu -> {
+                Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
+                if (StrUtil.equals(menu.getParentId(), CommonNumConstants.NUM_ZERO.toString())) {
+                    menuMapResult.put("pId", menu.getDesktopId());
+                } else {
+                    menuMapResult.put("pId", menu.getParentId());
+                }
+                menuMapResult.put("orderNum", menu.getOrderBy());
+                menuMapResult.put("type", "page");
+                return menuMapResult;
+            }).collect(Collectors.toList());
+        }
+        for (Map<String, Object> authPoint : menuList) {
+            authPoint.remove("createId");
+            authPoint.remove("createTime");
+            authPoint.remove("lastUpdateId");
+            authPoint.remove("lastUpdateTime");
+            authPoint.remove("serviceClassName");
+        }
+
+        return menuList;
     }
 
 }
