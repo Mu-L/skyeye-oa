@@ -72,14 +72,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             // 手机端
             menuResult = this.getRoleHasAPPMenuListByRoleId(roleIdList, userIdAndType);
         }
-        // 去重
-        menuResult = menuResult.stream().collect(
-            Collectors.collectingAndThen(Collectors.toCollection(
-                () -> new TreeSet<>(Comparator.comparing(m -> m.get("id").toString()))), ArrayList::new));
-        // 排序
-        menuResult = menuResult.stream()
-            .sorted(Comparator.comparingInt(RoleMenuServiceImpl::comparingByOrderNum))
-            .collect(Collectors.toList());
+        menuResult = distinctAndSortMenuList(menuResult);
         // 转成树结构
         if (!CollectionUtil.isEmpty(menuResult)) {
             if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
@@ -192,6 +185,22 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             authPoint.remove("serviceClassName");
         }
 
+        return menuList;
+    }
+
+    @Override
+    public List<Map<String, Object>> distinctAndSortMenuList(List<Map<String, Object>> menuList) {
+        if (CollectionUtil.isEmpty(menuList)) {
+            return new ArrayList<>();
+        }
+        // 去重
+        menuList = menuList.stream().collect(
+            Collectors.collectingAndThen(Collectors.toCollection(
+                () -> new TreeSet<>(Comparator.comparing(m -> m.get("id").toString()))), ArrayList::new));
+        // 排序
+        menuList = menuList.stream()
+            .sorted(Comparator.comparingInt(RoleMenuServiceImpl::comparingByOrderNum))
+            .collect(Collectors.toList());
         return menuList;
     }
 

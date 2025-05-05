@@ -29,4 +29,6 @@ public interface RoleMenuService {
 
     List<Map<String, Object>> queryMenuListByMenuIds(List<String> menuIds, String userIdAndType);
 
+    List<Map<String, Object>> distinctAndSortMenuList(List<Map<String, Object>> menuList);
+
 }
