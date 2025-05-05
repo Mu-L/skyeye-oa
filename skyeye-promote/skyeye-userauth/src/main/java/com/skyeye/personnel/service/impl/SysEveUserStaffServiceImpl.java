@@ -590,4 +590,14 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         return list(queryWrapper);
     }
 
+    @Override
+    public void queryAllStaffList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.notIn(MybatisPlusUtil.toColumns(SysEveUserStaff::getState),
+            Arrays.asList(CommonNumConstants.NUM_TWO, CommonNumConstants.NUM_FIVE));
+        List<SysEveUserStaff> sysEveUserStaffList = list(queryWrapper);
+        outputObject.setBeans(sysEveUserStaffList);
+        outputObject.settotal(sysEveUserStaffList.size());
+    }
+
 }

@@ -70,4 +70,6 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
     void updateCurrentUserBgImg(InputObject inputObject, OutputObject outputObject);
 
     List<SysEveUserStaff> queryUserStaffByState(Integer... state);
+
+    void queryAllStaffList(InputObject inputObject, OutputObject outputObject);
 }

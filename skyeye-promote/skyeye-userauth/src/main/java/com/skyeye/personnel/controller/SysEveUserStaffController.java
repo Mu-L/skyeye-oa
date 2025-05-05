@@ -152,4 +152,10 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.updateCurrentUserBgImg(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryAllStaffList", value = "查询所有未离职员工", method = "POST", allUse = "2")
+    @RequestMapping("/post/SysEveUserStaffController/queryAllStaffList")
+    public void queryAllStaffList(InputObject inputObject, OutputObject outputObject) {
+        sysEveUserStaffService.queryAllStaffList(inputObject, outputObject);
+    }
+
 }
