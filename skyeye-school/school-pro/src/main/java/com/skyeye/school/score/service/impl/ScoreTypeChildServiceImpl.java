@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -107,7 +108,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public void deleteBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
         List<ScoreTypeChild> list = list(queryWrapper);
         if (CollectionUtil.isEmpty(list)) {
             return;
@@ -129,8 +130,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public ScoreTypeChild select(String subjectId, String subjectClassesId, String nameLinkId) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
         return getOne(queryWrapper);
     }
 
@@ -138,8 +139,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public List<ScoreTypeChild> selectIds(String subjectId, List<String> subjectClassesIdList, String testKey) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), testKey);
+                .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList)
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), testKey);
         return list(queryWrapper);
     }
 
@@ -172,7 +173,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, String subjectClassesId) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId);
         return list(queryWrapper);
     }
 
@@ -180,7 +181,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public List<ScoreTypeChild> queryBySubjectIdAndSubjectClassId(String subjectId, List<String> subjectClassesIdList) {
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList);
+                .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesIdList);
         return list(queryWrapper);
     }
 
@@ -188,8 +189,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public void editName(String subjectId, String subjectClassesId, String nameLinkId, String name) {
         UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getName), name);
         update(updateWrapper);
     }
@@ -198,8 +199,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public void editNames(String subjectId, List<String> subjectClassesId, String nameLinkId, String name) {
         UpdateWrapper<ScoreTypeChild> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
+                .in(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subjectClassesId)
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), nameLinkId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ScoreTypeChild::getName), name);
         update(updateWrapper);
     }
@@ -211,7 +212,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         String subClassLinkId = params.get("subClassLinkId").toString();
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
         String parentIdKey = MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId);
         queryWrapper.and(wra -> {
             wra.isNull(parentIdKey).or().eq(parentIdKey, StrUtil.EMPTY);
@@ -229,10 +230,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         String parentId = params.get("parentId").toString();
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
-            .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
         queryWrapper.and(wra -> {
             wra.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), parentId)
-                .or().eq(CommonConstants.ID, parentId);
+                    .or().eq(CommonConstants.ID, parentId);
         });
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ScoreTypeChild::getCreateTime));
 
@@ -284,14 +285,15 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         scoreList = scoreList.stream().filter(score -> finalStuNoList.contains(score.getStuNo())).collect(Collectors.toList());
 
         List<Map<String, Object>> userList = ExecuteFeignClient.get(() ->
-            iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(finalStuNoList))).getRows();
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(finalStuNoList))).getRows();
         if (CollectionUtil.isEmpty(userList)) {
             return;
         }
         Map<String, String> userMap = userList.stream()
-            .collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.getOrDefault("realName", StrUtil.EMPTY).toString()));
+                .collect(Collectors.toMap(user -> user.get("studentNumber").toString(), user -> user.getOrDefault("realName", StrUtil.EMPTY).toString()));
 
         Map<String, List<Score>> collect = scoreList.stream().collect(Collectors.groupingBy(Score::getObjectId));
+        Map<String, List<Score>> stuCollect = scoreList.stream().collect(Collectors.groupingBy(Score::getStuNo));
         Map<String, Map<String, Object>> stuScoreMap = new HashMap<>();
         for (ScoreTypeChild scoreTypeChild : scoreTypeChildList) {
             List<Score> scores = collect.get(scoreTypeChild.getId());
@@ -316,6 +318,20 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                     stuScoreMap.put(score.getStuNo(), map);
                 }
             });
+        }
+        float sum =0;
+        for (Map<String, Object> student : userList) {
+            String stuNo = student.get("studentNumber").toString();
+            List<Score> scores = stuCollect.get(stuNo);
+            if (CollectionUtil.isEmpty(scores)) {
+                stuScoreMap.get(stuNo).put("avg", String.format("%.2f",sum) );
+                continue;
+            }
+            for (Score score : scores) {
+                sum += Float.parseFloat(score.getScore());
+            }
+            stuScoreMap.get(stuNo).put("avg", String.format("%.2f",sum/scoreTypeChildList.size()) );
+            sum = 0;
         }
         List<Map<String, Object>> result = stuScoreMap.values().stream().collect(Collectors.toList());
         outputObject.setBeans(result);

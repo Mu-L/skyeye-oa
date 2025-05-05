@@ -43,7 +43,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "setUpExamDirectory", value = "发布试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/setUpExamDirectory")
     public void setUpExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.setUpExamDirectory(inputObject, outputObject);
@@ -57,8 +57,8 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "copyExamDirectory", value = "复制试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
-        @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "试卷名称")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
+            @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "试卷名称")})
     @RequestMapping("/post/ExamSurveyDirectoryController/copyExamDirectory")
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.copyExamDirectory(inputObject, outputObject);
@@ -98,7 +98,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "queryDirectoryById", value = "根据id获取试卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/queryDirectoryById")
     public void queryDirectoryById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.selectById(inputObject, outputObject);
@@ -112,7 +112,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "changeWhetherDeleteById", value = "删除试卷信息,及改变whether_delete字段为2", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/changeWhetherDeleteById")
     public void changeWhetherDeleteById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.changeWhetherDeleteById(inputObject, outputObject);
@@ -126,7 +126,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "deleteSurvey", value = "删除试卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/deleteSurvey")
     public void deleteSurvey(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.deleteById(inputObject, outputObject);
@@ -140,7 +140,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "takeExam", value = "是否可以参加考试", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/takeExam")
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.takeExam(inputObject, outputObject);
@@ -154,7 +154,7 @@ public class ExamSurveyDirectoryController {
      */
     @ApiOperation(id = "updateExamMationEndById", value = "手动结束试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/updateExamMationEndById")
     public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.updateExamMationEndById(inputObject, outputObject);

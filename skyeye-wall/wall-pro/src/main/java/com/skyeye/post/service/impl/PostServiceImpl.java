@@ -31,6 +31,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.historypost.entity.HistoryPost;
 import com.skyeye.historypost.service.HistoryPostService;
+import com.skyeye.joincircle.entity.JoinCircle;
 import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
@@ -91,7 +92,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void validatorEntity(Post entity) {
         super.validatorEntity(entity);
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if(StrUtil.isEmpty(userToken)){
+        if (StrUtil.isEmpty(userToken)) {
             throw new CustomException("请先完成登录！");
         }
     }
@@ -133,7 +134,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         for (Post post : posts) {
             post.setCheckUpvote(checkUpvote.get(post.getId()));
             if (post.getAnonymity() == WhetherEnum.ENABLE_USING.getKey()) {
-               continue;
+                continue;
             }
             if (LoginIdentity.STUDENT.getKey().equals(post.getLoginIdentity())) {
                 userService.setDataMation(post, Post::getCreateId);
@@ -153,9 +154,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         String type = commonPageInfo.getType();
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         String userId;
-        if(StrUtil.isEmpty(userToken)){
+        if (StrUtil.isEmpty(userToken)) {
             userId = null;
-        }else {
+        } else {
             userId = InputObject.getLogParamsStatic().get("id").toString();
         }
         List<Post> bean;
@@ -175,10 +176,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return StrUtil.isEmpty(createId) ? CollectionUtil.sub(beans, CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE) : beans;
         } else if (StrUtil.isNotEmpty(type)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
-            if(type.equals(userId)){
+            if (type.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), type);
-            }else {
-                queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId),StrUtil.EMPTY)
+            } else {
+                queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId), StrUtil.EMPTY)
                         .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
             }
             bean = list(queryWrapper);
@@ -193,7 +194,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
         }
-        if(CollectionUtil.isEmpty(bean)){
+        if (CollectionUtil.isEmpty(bean)) {
             return new ArrayList<>();
         }
         setUserMations(bean);
@@ -325,9 +326,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return;
         }
         List<String> postIds = upvoteList.stream().map(Upvote::getObjectId).collect(Collectors.toList());
+        // 获取用户加入的圈子
+        List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
+        List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
         //分页
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Post> list = commentAndUpvoteOperationPost(postIds);
+        List<Post> list = commentAndUpvoteOperationPost(postIds, circleIds);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
@@ -342,17 +346,28 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             return;
         }
         List<String> postIds = myCommentList.stream().map(Comment::getPostId).collect(Collectors.toList());
+        // 获取用户加入的圈子
+        List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
+        List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
         //分页
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Post> list = commentAndUpvoteOperationPost(postIds);
+        List<Post> list = commentAndUpvoteOperationPost(postIds, circleIds);
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
 
-    public List<Post> commentAndUpvoteOperationPost(List<String> postIds) {
+    public List<Post> commentAndUpvoteOperationPost(List<String> postIds, List<String> circleIds) {
+
         //查询post
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, postIds);
+        if (CollectionUtil.isEmpty(circleIds)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+        } else {
+            queryWrapper.and(wrapper -> wrapper.in(MybatisPlusUtil.toColumns(Post::getCircleId), circleIds)
+                    .or()
+                    .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
         //查询PictureList、commentList

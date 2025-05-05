@@ -86,7 +86,7 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
             Integer flag = Integer.parseInt(post.getViewNum()) + CommonNumConstants.NUM_ONE;
             postService.updateViewCount(historyPost.getPostId(), String.valueOf(flag));
         } else {
-            postService.updateViewCount(historyPost.getPostId(), String.valueOf(CommonNumConstants.NUM_ZERO));
+            postService.updateViewCount(historyPost.getPostId(), String.valueOf(CommonNumConstants.NUM_ONE));
         }
     }
 
