@@ -9,6 +9,9 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.store.entity.ShopAddress;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: ShopAddressService
  * @Description: 收件地址管理服务接口层
@@ -19,4 +22,6 @@ import com.skyeye.store.entity.ShopAddress;
  */
 public interface ShopAddressService extends SkyeyeBusinessService<ShopAddress> {
     void queryDefaultShopAddress(InputObject inputObject, OutputObject outputObject);
+
+    Map<String,Map<String, Object>> queryListByIds(List<String> addressTableIdList);
 }

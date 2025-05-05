@@ -13,6 +13,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.service.OrderService;
+import com.skyeye.store.entity.ShopAddressHistory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,6 +59,13 @@ public class OrderController {
         orderService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "changeOrderAddress", value = "修改订单的收件地址", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ShopAddressHistory.class)
+    @RequestMapping("/post/OrderController/changeOrderAddress")
+    public void changeOrderAddress(InputObject inputObject, OutputObject outputObject) {
+        orderService.changeOrderAddress(inputObject, outputObject);
+    }
+
     /**
      * 订单调价
      *
@@ -66,8 +74,8 @@ public class OrderController {
      */
     @ApiOperation(id = "changeOrderAdjustPrice", value = "订单调价", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "adjustPrice", name = "adjustPrice", value = "调整的价格，不可为负数", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "adjustPrice", name = "adjustPrice", value = "调整的价格，不可为负数", required = "required")})
     @RequestMapping("/post/OrderController/changeOrderAdjustPrice")
     public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
         orderService.changeOrderAdjustPrice(inputObject, outputObject);
@@ -120,8 +128,8 @@ public class OrderController {
      */
     @ApiOperation(id = "cancelOrder", value = "商品订单取消", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "cancelType", name = "cancelType", value = "取消类型", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "cancelType", name = "cancelType", value = "取消类型", required = "required")})
     @RequestMapping("/post/OrderController/cancelOrder")
     public void cancelOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.cancelOrder(inputObject, outputObject);
@@ -135,7 +143,7 @@ public class OrderController {
      */
     @ApiOperation(id = "finishOrder", value = "商品订单完成", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/finishOrder")
     public void finishOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.finishOrder(inputObject, outputObject);
@@ -149,9 +157,9 @@ public class OrderController {
      */
     @ApiOperation(id = "payOrder", value = "商品订单支付", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required"),
-        @ApiImplicitParam(id = "channelExtras", name = "channelExtras", value = "支付渠道的额外参数，例如说，微信公众号需要传递 openid 参数", required = "json")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required"),
+            @ApiImplicitParam(id = "channelExtras", name = "channelExtras", value = "支付渠道的额外参数，例如说，微信公众号需要传递 openid 参数", required = "json")})
     @RequestMapping("/post/OrderController/payOrder")
     public void payOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.payOrder(inputObject, outputObject);
@@ -165,7 +173,7 @@ public class OrderController {
      */
     @ApiOperation(id = "deliverGoodsByOrderId", value = "商品订单发货", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/deliverGoodsByOrderId")
     public void deliverGoodsByOrderId(InputObject inputObject, OutputObject outputObject) {
         orderService.deliverGoodsByOrderId(inputObject, outputObject);
@@ -179,8 +187,8 @@ public class OrderController {
      */
     @ApiOperation(id = "generatePayOrderRrCode", value = "生成支付订单的二维码", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required")})
     @RequestMapping("/post/OrderController/generatePayOrderRrCode")
     public void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject) {
         orderService.generatePayOrderRrCode(inputObject, outputObject);
@@ -194,7 +202,7 @@ public class OrderController {
      */
     @ApiOperation(id = "updateOrderToPayState", value = "后台修改支付状态", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/updateOrderToPayState")
     public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
         orderService.updateOrderToPayState(inputObject, outputObject);

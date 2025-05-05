@@ -128,6 +128,10 @@ public class Order extends AreaInfo {
     @Property(value = "收货地址信息")
     private Map<String, Object> addressMation;
 
+    @TableField("address_from_type")
+    @ApiModelProperty(value = "收货地址信息来源类型，0：address表；1address_history表,默认0")
+    private Integer addressFromType;
+
     @TableField("receiver_name")
     @Property(value = "收件人姓名")
     private String receiverName;

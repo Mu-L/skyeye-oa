@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.order.entity.Order;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: OrderService
@@ -45,4 +46,8 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void updateOrderState(String orderId, Integer partiallydoneKey);
 
     List<Order> queryOrderList(String orderId);
+
+    void updateByAddressId(Map<String, String> map);
+
+    void changeOrderAddress(InputObject inputObject, OutputObject outputObject);
 }

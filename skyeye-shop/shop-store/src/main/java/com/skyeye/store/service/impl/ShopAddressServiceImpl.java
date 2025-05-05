@@ -4,6 +4,7 @@
 
 package com.skyeye.store.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
@@ -18,18 +19,21 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAreaService;
+import com.skyeye.order.service.OrderService;
 import com.skyeye.store.dao.ShopAddressDao;
 import com.skyeye.store.entity.ShopAddress;
-import com.skyeye.store.entity.ShopAddressLabel;
+import com.skyeye.store.entity.ShopAddressHistory;
+import com.skyeye.store.service.ShopAddressHistoryService;
 import com.skyeye.store.service.ShopAddressLabelService;
 import com.skyeye.store.service.ShopAddressService;
-import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopAddressServiceImpl
@@ -49,6 +53,12 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
     @Autowired
     private ShopAddressLabelService shopAddressLabelService;
 
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private ShopAddressHistoryService shopAddressHistoryService;
+
     @Override
     public void writePostpose(ShopAddress shopAddress, String userId) {
         if (WhetherEnum.ENABLE_USING.getKey().equals(shopAddress.getIsDefault())) {
@@ -67,6 +77,18 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
     }
 
     @Override
+    public void updatePostpose(ShopAddress entity, String userId) {
+        ShopAddressHistory shopAddressHistory = new ShopAddressHistory();
+        BeanUtil.copyProperties(entity, shopAddressHistory);
+        shopAddressHistory.setId(null);
+        shopAddressHistory.setParentId(entity.getId());
+        shopAddressHistoryService.createEntity(shopAddressHistory, userId);
+        Map<String, String> addressOldNew = new HashMap<>();
+        addressOldNew.put(shopAddressHistory.getParentId(), shopAddressHistory.getId());
+        orderService.updateByAddressId(addressOldNew);
+    }
+
+    @Override
     public ShopAddress selectById(String id) {
         ShopAddress shopAddress = super.selectById(id);
         iAreaService.setDataMation(shopAddress, ShopAddress::getProvinceId);
@@ -76,6 +98,7 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
         shopAddressLabelService.setDataMation(shopAddress, ShopAddress::getLabelId);
         return shopAddress;
     }
+
     @Override
     public void queryDefaultShopAddress(InputObject inputObject, OutputObject outputObject) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
@@ -96,6 +119,19 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
     }
 
     @Override
+    public Map<String, Map<String, Object>> queryListByIds(List<String> addressTableIdList) {
+        List<ShopAddress> list = selectByIds(addressTableIdList.toArray(new String[]{}));
+        iAreaService.setDataMation(list, ShopAddress::getProvinceId);
+        iAreaService.setDataMation(list, ShopAddress::getCityId);
+        iAreaService.setDataMation(list, ShopAddress::getAreaId);
+        iAreaService.setDataMation(list, ShopAddress::getTownshipId);
+        shopAddressLabelService.setDataMation(list, ShopAddress::getLabelId);
+        Map<String, Map<String, Object>> result = list.stream().collect(
+                Collectors.toMap(ShopAddress::getId, shopAddress -> JSONUtil.toBean(JSONUtil.toJsonStr(shopAddress), null), (key1, key2) -> key2));
+        return result;
+    }
+
+    @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<ShopAddress> queryWrapper = new QueryWrapper<>();
@@ -111,5 +147,21 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
         iAreaService.setDataMation(list, ShopAddress::getTownshipId);
         shopAddressLabelService.setDataMation(list, ShopAddress::getLabelId);
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+    }
+
+    @Override
+    public void deletePreExecution(List<String> ids) {
+        List<ShopAddress> shopAddresses = selectByIds(ids.toArray(new String[]{}));
+        List<ShopAddressHistory> shopAddressHistories = new ArrayList<>();
+        for (ShopAddress shopAddress : shopAddresses) {
+            ShopAddressHistory shopAddressHistory = new ShopAddressHistory();
+            BeanUtil.copyProperties(shopAddressHistory, shopAddress);
+            shopAddressHistory.setId(null);
+            shopAddressHistory.setParentId(shopAddress.getId());
+            shopAddressHistories.add(shopAddressHistory);
+        }
+        shopAddressHistoryService.createEntity(shopAddressHistories, InputObject.getLogParamsStatic().get("id").toString());
+        Map<String, String> addressOldNew = shopAddressHistories.stream().collect(Collectors.toMap(ShopAddressHistory::getParentId, ShopAddressHistory::getId, (key1, key2) -> key2));
+        orderService.updateByAddressId(addressOldNew);
     }
 }
