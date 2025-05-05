@@ -461,12 +461,12 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
         String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        List<Map<String, Object>> menuList;
         if (!tenantEnable) {
             // 单租户模式，获取角色id(逗号隔开的字符串)
             String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
                 userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
-            List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
-            outputObject.setBeans(menuList);
+            menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
         } else {
             // 多租户模式
             Map<String, Object> user = InputObject.getLogParamsStatic();
@@ -478,17 +478,21 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                 String tenantId = TenantContext.getTenantId();
                 if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
                     // 开启租户功能，并且不是平台租户
-                    List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, TenantAppMenuType.PC.getKey());
-                    List<Map<String, Object>> menuList = roleMenuService.queryMenuListByMenuIds(ids, userIdAndType);
-                    outputObject.setBeans(menuList);
+                    int type = userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0 ?
+                        TenantAppMenuType.PC.getKey() : TenantAppMenuType.APP.getKey();
+                    List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, type);
+                    menuList = roleMenuService.queryMenuListByMenuIds(ids, userIdAndType);
+                } else {
+                    menuList = roleMenuService.queryAllMenuList(userIdAndType);
                 }
+                menuList = roleMenuService.distinctAndSortMenuList(menuList, userIdAndType);
             } else {
                 // 非管理员获取当前用户的菜单
                 String roleIds = tenantUser.getRoleId();
-                List<Map<String, Object>> menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
-                outputObject.setBeans(menuList);
+                menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
             }
         }
+        outputObject.setBeans(menuList);
     }
 
     /**

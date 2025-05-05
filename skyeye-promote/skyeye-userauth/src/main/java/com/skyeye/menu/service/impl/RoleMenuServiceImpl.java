@@ -20,6 +20,7 @@ import com.skyeye.role.entity.Role;
 import com.skyeye.role.service.SysEveRoleService;
 import com.skyeye.win.entity.SysDesktop;
 import com.skyeye.win.service.SysEveDesktopService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,17 +73,7 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             // 手机端
             menuResult = this.getRoleHasAPPMenuListByRoleId(roleIdList, userIdAndType);
         }
-        menuResult = distinctAndSortMenuList(menuResult);
-        // 转成树结构
-        if (!CollectionUtil.isEmpty(menuResult)) {
-            if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
-                // PC端
-                menuResult = ToolUtil.listToTree(menuResult, "id", "parentId", "childs");
-            } else {
-                // 手机端
-                menuResult = ToolUtil.listToTree(menuResult, "id", "pId", "children");
-            }
-        }
+        menuResult = distinctAndSortMenuList(menuResult, userIdAndType);
         return menuResult;
     }
 
@@ -132,6 +123,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         // 获取桌面
         List<String> desktopIdList = roleList.stream().filter(role -> CollectionUtil.isNotEmpty(role.getAppDesktopId()))
             .map(Role::getAppDesktopId).flatMap(List::stream).distinct().collect(Collectors.toList());
+        resetDesktop(result, desktopIdList);
+        return result;
+    }
+
+    private void resetDesktop(List<Map<String, Object>> result, List<String> desktopIdList) {
         List<SysDesktop> desktopEntityList = sysEveDesktopService.selectByIds(desktopIdList.toArray(new String[]{}));
         List<Map<String, Object>> desktopList = desktopEntityList.stream().map(desktop -> {
             Map<String, Object> desktopMapResult = BeanUtil.beanToMap(desktop);
@@ -143,7 +139,6 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         if (CollectionUtil.isNotEmpty(desktopList)) {
             result.addAll(desktopList);
         }
-        return result;
     }
 
     @Override
@@ -152,30 +147,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端--包含菜单
             List<SysMenu> menuEntityList = sysEveMenuService.selectByIds(menuIds.toArray(new String[]{}));
-            menuList = menuEntityList.stream().map(menu -> {
-                Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
-                menuMapResult.put("childs", null);
-                menuMapResult.put("maxOpen", "-1");
-                menuMapResult.put("extend", "false");
-                if (menu.getSysWinMation() != null) {
-                    menuMapResult.put("sysWinUrl", menu.getSysWinMation().getSysUrl());
-                }
-                return menuMapResult;
-            }).collect(Collectors.toList());
+            menuList = turnPCMenu(menuEntityList);
         } else {
             // 手机端--包含菜单
             List<AppWorkPage> menuEntityList = appWorkPageService.selectByIds(menuIds.toArray(new String[]{}));
-            menuList = menuEntityList.stream().map(menu -> {
-                Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
-                if (StrUtil.equals(menu.getParentId(), CommonNumConstants.NUM_ZERO.toString())) {
-                    menuMapResult.put("pId", menu.getDesktopId());
-                } else {
-                    menuMapResult.put("pId", menu.getParentId());
-                }
-                menuMapResult.put("orderNum", menu.getOrderBy());
-                menuMapResult.put("type", "page");
-                return menuMapResult;
-            }).collect(Collectors.toList());
+            menuList = turnAPPMenu(menuEntityList);
         }
         for (Map<String, Object> authPoint : menuList) {
             authPoint.remove("createId");
@@ -188,8 +164,36 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         return menuList;
     }
 
+    @NotNull
+    private static List<Map<String, Object>> turnAPPMenu(List<AppWorkPage> menuEntityList) {
+        return menuEntityList.stream().map(menu -> {
+            Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
+            if (StrUtil.equals(menu.getParentId(), CommonNumConstants.NUM_ZERO.toString())) {
+                menuMapResult.put("pId", menu.getDesktopId());
+            } else {
+                menuMapResult.put("pId", menu.getParentId());
+            }
+            menuMapResult.put("orderNum", menu.getOrderBy());
+            menuMapResult.put("type", "page");
+            return menuMapResult;
+        }).collect(Collectors.toList());
+    }
+
+    private static List<Map<String, Object>> turnPCMenu(List<SysMenu> menuEntityList) {
+        return menuEntityList.stream().map(menu -> {
+            Map<String, Object> menuMapResult = BeanUtil.beanToMap(menu);
+            menuMapResult.put("childs", null);
+            menuMapResult.put("maxOpen", "-1");
+            menuMapResult.put("extend", "false");
+            if (menu.getSysWinMation() != null) {
+                menuMapResult.put("sysWinUrl", menu.getSysWinMation().getSysUrl());
+            }
+            return menuMapResult;
+        }).collect(Collectors.toList());
+    }
+
     @Override
-    public List<Map<String, Object>> distinctAndSortMenuList(List<Map<String, Object>> menuList) {
+    public List<Map<String, Object>> distinctAndSortMenuList(List<Map<String, Object>> menuList, String userIdAndType) {
         if (CollectionUtil.isEmpty(menuList)) {
             return new ArrayList<>();
         }
@@ -201,6 +205,44 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         menuList = menuList.stream()
             .sorted(Comparator.comparingInt(RoleMenuServiceImpl::comparingByOrderNum))
             .collect(Collectors.toList());
+
+        // 转成树结构
+        if (!CollectionUtil.isEmpty(menuList)) {
+            if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+                // PC端
+                menuList = ToolUtil.listToTree(menuList, "id", "parentId", "childs");
+            } else {
+                // 手机端
+                menuList = ToolUtil.listToTree(menuList, "id", "pId", "children");
+            }
+        }
+        return menuList;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryAllMenuList(String userIdAndType) {
+        List<Map<String, Object>> menuList;
+        if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+            // PC端--包含菜单
+            List<SysMenu> menuEntityList = sysEveMenuService.queryAllData();
+            menuList = turnPCMenu(menuEntityList);
+        } else {
+            // 手机端--包含菜单
+            List<AppWorkPage> menuEntityList = appWorkPageService.queryAllData();
+            menuList = turnAPPMenu(menuEntityList);
+
+            // 获取桌面
+            List<String> desktopIdList = menuEntityList.stream()
+                .map(AppWorkPage::getDesktopId).distinct().collect(Collectors.toList());
+            resetDesktop(menuList, desktopIdList);
+        }
+        for (Map<String, Object> authPoint : menuList) {
+            authPoint.remove("createId");
+            authPoint.remove("createTime");
+            authPoint.remove("lastUpdateId");
+            authPoint.remove("lastUpdateTime");
+            authPoint.remove("serviceClassName");
+        }
         return menuList;
     }
 
