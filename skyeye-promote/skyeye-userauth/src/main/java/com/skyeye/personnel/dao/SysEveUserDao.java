@@ -4,6 +4,7 @@
 
 package com.skyeye.personnel.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.entity.userauth.user.UserTreeQueryDo;
@@ -29,6 +30,7 @@ public interface SysEveUserDao extends SkyeyeBaseMapper<SysEveUser> {
 
     int editRoleIdsByUserId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryDeskTopsMenuByUserId(@Param("userId") String userId);
 
     Map<String, Object> queryUserDetailsMationByUserId(@Param("userId") String userId);

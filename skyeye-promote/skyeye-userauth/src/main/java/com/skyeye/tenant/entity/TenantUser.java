@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
@@ -190,5 +191,9 @@ public class TenantUser extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "员工考勤时间段", required = "json")
     private List<String> timeIdList;
+
+    @TableField("is_admin")
+    @ApiModelProperty(value = "是否是管理员", enumClass = WhetherEnum.class, required = "required,num")
+    private Integer isAdmin;
 
 }

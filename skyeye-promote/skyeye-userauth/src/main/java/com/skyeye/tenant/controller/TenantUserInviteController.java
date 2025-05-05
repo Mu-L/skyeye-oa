@@ -55,6 +55,14 @@ public class TenantUserInviteController {
         tenantUserInviteService.cancelInviteUsersToJoin(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryTenantUserInviteById", value = "根据id查询租户与用户邀请关系", method = "GET", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/TenantUserInviteController/queryTenantUserInviteById")
+    public void queryTenantUserInviteById(InputObject inputObject, OutputObject outputObject) {
+        tenantUserInviteService.selectById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "resendInviteUsersToJoin", value = "重新发送邀请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

@@ -12,9 +12,13 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.organization.service.CompanyDepartmentService;
@@ -23,6 +27,7 @@ import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.personnel.entity.SysEveUserStaff;
+import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
@@ -32,6 +37,7 @@ import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -71,6 +77,9 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
+    @Autowired
+    private SysEveUserStaffService sysEveUserStaffService;
+
     @Override
     protected void validatorEntity(TenantUser entity) {
         if (!tenantEnable) {
@@ -85,6 +94,10 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         String jobNumberKey = MybatisPlusUtil.toColumns(TenantUser::getJobNumber);
         queryWrapper.select("max(0 + RIGHT(" + jobNumberKey + ", 6)) AS " + jobNumberKey);
         TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isNull(tenantUser)) {
+            tenantUser = new TenantUser();
+            tenantUser.setJobNumber(CommonNumConstants.NUM_ZERO.toString());
+        }
         entity.setJobNumber(CalculationUtil.add(tenantUser.getJobNumber(), CommonNumConstants.NUM_ONE.toString(), CommonNumConstants.NUM_ZERO));
         entity.setActWages(CommonNumConstants.NUM_ZERO.toString());
         entity.setAnnualLeave(CommonNumConstants.NUM_ZERO.toString());
@@ -108,6 +121,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         entity.setRetiredHolidayNumber(oldData.getRetiredHolidayNumber());
         entity.setRetiredHolidayStatisTime(oldData.getRetiredHolidayStatisTime());
         entity.setInterviewArrangementId(oldData.getInterviewArrangementId());
+        entity.setIsAdmin(oldData.getIsAdmin());
     }
 
     @Override
@@ -287,6 +301,47 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             setTenantUserMation(userStaff, tenantUser);
         });
         return userStaffList;
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void addTenantAdminUser(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String tenantId = params.get("tenantId").toString();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String phone = params.get("phone").toString();
+        // 校验手机号
+        String userStaffId = sysEveUserStaffService.queryUserStaffByPhone(phone);
+        if (StrUtil.isEmpty(userStaffId)) {
+            // 手机号不存在，新增用户信息
+            userStaffId = saveUserStaff(params, userId);
+        }
+
+        // 加入租户
+        TenantContext.setTenantId(tenantId);
+        TenantUser tenantUser = new TenantUser();
+        tenantUser.setStaffId(userStaffId);
+        tenantUser.setState(UserStaffState.ON_THE_JOB.getKey());
+        String currentTime = DateUtil.getTimeAndToString();
+        tenantUser.setWorkTime(currentTime);
+        tenantUser.setEntryTime(currentTime);
+        tenantUser.setTrialTime(currentTime);
+        tenantUser.setTenantId(tenantId);
+        createEntity(tenantUser, userId);
+    }
+
+    private String saveUserStaff(Map<String, Object> params, String userId) {
+        SysEveUserStaff sysEveUserStaff = new SysEveUserStaff();
+        sysEveUserStaff.setUserName(params.get("userName").toString());
+        sysEveUserStaff.setUserSex(Integer.parseInt(params.get("userSex").toString()));
+        sysEveUserStaff.setPhone(params.get("phone").toString());
+        sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
+        sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
+        sysEveUserStaff.setPassword(params.get("password").toString());
+        // 开启自动注册账号
+        sysEveUserStaff.setWhetherRegister(WhetherEnum.ENABLE_USING.getKey());
+        // 保存用户信息
+        return sysEveUserStaffService.createEntity(sysEveUserStaff, userId);
     }
 
 }

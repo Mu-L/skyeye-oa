@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.MqConstants;
@@ -43,7 +44,7 @@ import java.util.Map;
 
 /**
  * @ClassName: TenantUserInviteServiceImpl
- * @Description: 租户下的用户邀请信息管理服务类
+ * @Description: 租户下的用户邀请信息管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2025/4/27 8:30
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -180,6 +181,13 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     }
 
     @Override
+    @IgnoreTenant
+    public TenantUserInvite selectById(String id) {
+        return super.selectById(id);
+    }
+
+    @Override
+    @IgnoreTenant
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void joinTenantByInvite(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -201,6 +209,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         // 新增用户信息
         String staffId = saveUserStaff(params, tenantUserInvite);
         // 更新邀请信息
+        TenantContext.setTenantId(tenantId);
         UpdateWrapper<TenantUserInvite> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getIsUsed), IsUsedEnum.NOT_USED.getKey());

@@ -39,4 +39,6 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     SysEveUserStaff setThisTenantUserToDefault(SysEveUserStaff sysEveUserStaff);
 
     List<SysEveUserStaff> setThisTenantUserToDefault(List<SysEveUserStaff> userStaffList);
+
+    void addTenantAdminUser(InputObject inputObject, OutputObject outputObject);
 }
