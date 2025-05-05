@@ -4,8 +4,15 @@
 
 package com.skyeye.win.controller;
 
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.win.entity.SysEveUserCustomMenu;
+import com.skyeye.win.entity.SysEveUserCustomMenubox;
+import com.skyeye.win.service.SysEveUserCustomMenuService;
+import com.skyeye.win.service.SysEveUserCustomMenuboxService;
 import com.skyeye.win.service.SysEveWinDragDropService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,114 +24,79 @@ public class SysEveWinDragDropController {
     @Autowired
     private SysEveWinDragDropService sysEveWinDragDropService;
 
-    /**
-     * 用户自定义创建菜单盒子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Autowired
+    private SysEveUserCustomMenuService sysEveUserCustomMenuService;
+
+    @Autowired
+    private SysEveUserCustomMenuboxService sysEveUserCustomMenuboxService;
+
+    @ApiOperation(id = "sysevewindragdrop001", value = "用户自定义创建菜单盒子", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SysEveUserCustomMenubox.class)
     @RequestMapping("/post/SysEveWinDragDropController/insertWinCustomMenuBox")
     public void insertWinCustomMenuBox(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.insertWinCustomMenuBox(inputObject, outputObject);
+        sysEveUserCustomMenuboxService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 用户自定义创建菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop002", value = "用户自定义创建菜单", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SysEveUserCustomMenu.class)
     @RequestMapping("/post/SysEveWinDragDropController/insertWinCustomMenu")
     public void insertWinCustomMenu(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.insertWinCustomMenu(inputObject, outputObject);
+        sysEveUserCustomMenuService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 用户删除自定义菜单或文件夹
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop003", value = "用户删除自定义菜单或文件夹", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SysEveWinDragDropController/deleteWinMenuOrBoxById")
     public void deleteWinMenuOrBoxById(InputObject inputObject, OutputObject outputObject) {
         sysEveWinDragDropService.deleteWinMenuOrBoxById(inputObject, outputObject);
     }
 
-    /**
-     * 用户自定义父菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop004", value = "用户自定义父菜单", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "菜单id", required = "required"),
+        @ApiImplicitParam(id = "parentId", name = "parentId", value = "菜单父id")})
     @RequestMapping("/post/SysEveWinDragDropController/editMenuParentIdById")
     public void editMenuParentIdById(InputObject inputObject, OutputObject outputObject) {
         sysEveWinDragDropService.editMenuParentIdById(inputObject, outputObject);
     }
 
-    /**
-     * 获取菜单类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop005", value = "获取菜单类型", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SysEveWinDragDropController/queryMenuMationTypeById")
     public void queryMenuMationTypeById(InputObject inputObject, OutputObject outputObject) {
         sysEveWinDragDropService.queryMenuMationTypeById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑自定义盒子时回显信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop006", value = "根据id获取自定义盒子信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SysEveWinDragDropController/queryCustomMenuBoxMationEditById")
     public void queryCustomMenuBoxMationEditById(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.queryCustomMenuBoxMationEditById(inputObject, outputObject);
+        sysEveUserCustomMenuboxService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑自定义盒子
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop007", value = "编辑自定义盒子", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SysEveUserCustomMenubox.class)
     @RequestMapping("/post/SysEveWinDragDropController/editCustomMenuBoxMationById")
     public void editCustomMenuBoxMationById(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.editCustomMenuBoxMationById(inputObject, outputObject);
+        sysEveUserCustomMenuboxService.updateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 编辑快捷方式时回显信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop008", value = "编辑快捷方式时回显信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SysEveWinDragDropController/queryCustomMenuMationEditById")
     public void queryCustomMenuMationEditById(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.queryCustomMenuMationEditById(inputObject, outputObject);
+        sysEveUserCustomMenuService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑快捷方式
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "sysevewindragdrop009", value = "用户编辑自定义菜单", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SysEveUserCustomMenu.class)
     @RequestMapping("/post/SysEveWinDragDropController/editCustomMenuMationById")
     public void editCustomMenuMationById(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.editCustomMenuMationById(inputObject, outputObject);
-    }
-
-    /**
-     * 系统菜单发送到桌面快捷方式
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/SysEveWinDragDropController/editCustomMenuToDeskTopById")
-    public void editCustomMenuToDeskTopById(InputObject inputObject, OutputObject outputObject) {
-        sysEveWinDragDropService.editCustomMenuToDeskTopById(inputObject, outputObject);
+        sysEveUserCustomMenuService.updateEntity(inputObject, outputObject);
     }
 
 }

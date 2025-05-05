@@ -50,59 +50,6 @@
 	</url>
 	<!-- 系统数据库管理结束 -->
 	
-	<!-- 自定义菜单开始 -->
-	<url id="sysevewindragdrop001" path="/post/SysEveWinDragDropController/insertWinCustomMenuBox" val="用户自定义创建菜单盒子" allUse="2" groupName="自定义菜单">
-		<property id="menuBoxName" name="menuBoxName" ref="required" var="菜单盒子名称"/>
-		<property id="desktopId" name="desktopId" ref="required" var="所属桌面id"/>
-	</url>
-	<url id="sysevewindragdrop002" path="/post/SysEveWinDragDropController/insertWinCustomMenu" val="用户自定义创建菜单" allUse="2" groupName="自定义菜单">
-		<property id="menuName" name="menuName" ref="required" var="菜单盒子名称"/>
-		<property id="menuNameEn" name="menuNameEn" ref="required" var="英文名称" />
-		<property id="menuIconType" name="menuIconType" ref="required,num" var="菜单图标类型"/>
-		<property id="menuIconPic" name="menuIconPic" ref="" var="菜单图片地址"/>
-		<property id="menuIcon" name="menuIcon" ref="" var="菜单图标"/>
-		<property id="menuUrl" name="menuUrl" ref="required" var="菜单链接"/>
-		<property id="menuIconBg" name="menuIconBg" ref="" var="菜单图标背景颜色"/>
-		<property id="menuIconColor" name="menuIconColor" ref="" var="菜单图标颜色"/>
-		<property id="desktopId" name="desktopId" ref="required" var="所属桌面id"/>
-		<property id="lightAppId" name="lightAppId" ref="" var="轻应用id"/>
-	</url>
-	<url id="sysevewindragdrop003" path="/post/SysEveWinDragDropController/deleteWinMenuOrBoxById" val="用户删除自定义菜单或文件夹" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="id" ref="required" var="要删除的菜单或者文件夹id"/>
-	</url>
-	<url id="sysevewindragdrop004" path="/post/SysEveWinDragDropController/editMenuParentIdById" val="用户自定义父菜单" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="menuId" ref="required" var="菜单id"/>
-		<property id="parentId" name="parentId" ref="" var="菜单父id"/>
-	</url>
-	<url id="sysevewindragdrop005" path="/post/SysEveWinDragDropController/queryMenuMationTypeById" val="获取菜单类型" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="id" ref="required" var="要修改的菜单或者文件夹id"/>
-	</url>
-	<url id="sysevewindragdrop006" path="/post/SysEveWinDragDropController/queryCustomMenuBoxMationEditById" val="编辑自定义盒子时回显信息" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="id" ref="required" var="菜单盒子id"/>
-	</url>
-	<url id="sysevewindragdrop007" path="/post/SysEveWinDragDropController/editCustomMenuBoxMationById" val="编辑自定义盒子" allUse="2" groupName="自定义菜单">
-		<property id="menuBoxName" name="menuBoxName" ref="required" var="菜单盒子名称"/>
-		<property id="rowId" name="id" ref="required" var="菜单盒子id"/>
-	</url>
-	<url id="sysevewindragdrop008" path="/post/SysEveWinDragDropController/queryCustomMenuMationEditById" val="编辑快捷方式时回显信息" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="id" ref="required" var="快捷方式id"/>
-	</url>
-	<url id="sysevewindragdrop009" path="/post/SysEveWinDragDropController/editCustomMenuMationById" val="编辑快捷方式" allUse="2" groupName="自定义菜单">
-		<property id="menuName" name="menuName" ref="required" var="菜单盒子名称"/>
-		<property id="menuNameEn" name="menuNameEn" ref="required" var="英文名称" />
-		<property id="menuIconType" name="menuIconType" ref="required,num" var="菜单图标类型"/>
-		<property id="menuIconPic" name="menuIconPic" ref="" var="菜单图片地址"/>
-		<property id="menuIcon" name="menuIcon" ref="" var="菜单图标"/>
-		<property id="menuUrl" name="menuUrl" ref="required" var="菜单链接"/>
-		<property id="menuIconBg" name="menuIconBg" ref="" var="菜单图标背景颜色"/>
-		<property id="menuIconColor" name="menuIconColor" ref="" var="菜单图标颜色"/>
-		<property id="rowId" name="id" ref="required" var="快捷方式id"/>
-	</url>
-	<url id="sysevewindragdrop010" path="/post/SysEveWinDragDropController/editCustomMenuToDeskTopById" val="系统菜单发送到桌面快捷方式" allUse="2" groupName="自定义菜单">
-		<property id="rowId" name="id" ref="required" var="系统菜单id"/>
-	</url>
-	<!-- 自定义菜单结束 -->
-	
     <!-- 系统管理开始 -->
 	<url id="sys033" path="/post/SysEveUserController/editUserDetailsMationByUserId" val="修改个人信息" allUse="2" groupName="系统管理">
 		<property id="userSex" name="userSex" ref="required,num" var="性别" />
