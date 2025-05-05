@@ -79,4 +79,11 @@ public class SysEveUserCustomParentServiceImpl extends SkyeyeBusinessServiceImpl
         remove(queryWrapper);
     }
 
+    @Override
+    public List<SysEveUserCustomParent> querySysEveUserCustomParentByUserId(String userId) {
+        QueryWrapper<SysEveUserCustomParent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserCustomParent::getCreateId), userId);
+        return list(queryWrapper);
+    }
+
 }

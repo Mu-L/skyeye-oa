@@ -41,4 +41,55 @@
 		WHERE c.id = #{id}
 	</select>
 
+	<select id="queryCustomDeskTopsMenuByUserId" resultType="java.util.Map">
+		SELECT
+			a.id,
+			a.`name`,
+			a.icon,
+			'1' pageType,
+			a.url pageUrl,
+			'' path,
+			a.open_type openType,
+			a.type menuType,
+			'-1' maxOpen,
+			'false' extend,
+			null childs,
+			IFNULL(e.parent_id, a.parent_id) parentId,
+			IFNULL(e.level, 1) menuLevel,
+			a.icon_color iconColor,
+			a.icon_bg iconBg,
+			a.icon_pic iconPic,
+			a.icon_type iconType,
+			IFNULL(a.desktop_id, '') desktopId,
+			'' sysWinUrl
+		FROM
+			sys_eve_user_custom_menu a
+			LEFT JOIN sys_eve_user_custom_parent e ON e.menu_id = a.id AND e.create_id = #{userId}
+		WHERE a.create_id = #{userId}
+		UNION
+		SELECT
+			a.id,
+			a.`name`,
+			'' icon,
+			'1' pageType,
+			'--' pageUrl,
+			'' path,
+			2 openType,
+			'' menuType,
+			'-1' maxOpen,
+			'false' extend,
+			null childs,
+			'0' parentId,
+			0 menuLevel,
+			'' iconColor,
+			'' iconBg,
+			'' iconPic,
+			'' iconType,
+			IFNULL(a.desktop_id, '') desktopId,
+			'' sysWinUrl
+		FROM
+			sys_eve_user_custom_menubox a
+		WHERE a.create_id = #{userId}
+	</select>
+
 </mapper>

@@ -99,4 +99,9 @@ public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
         outputObject.setBean(bean);
     }
 
+    @Override
+    public List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(String userId) {
+        return sysEveWinDragDropDao.queryCustomDeskTopsMenuByUserId(userId);
+    }
+
 }

@@ -4,6 +4,7 @@
 
 package com.skyeye.personnel.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -46,6 +47,10 @@ import com.skyeye.tenant.classenum.TenantAppMenuType;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserService;
+import com.skyeye.win.entity.SysEveUserCustomParent;
+import com.skyeye.win.entity.SysWin;
+import com.skyeye.win.service.SysEveUserCustomParentService;
+import com.skyeye.win.service.SysEveWinDragDropService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +60,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveUserServiceImpl
@@ -104,7 +111,13 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     private TenantUserService tenantUserService;
 
     @Autowired
+    private SysEveWinDragDropService sysEveWinDragDropService;
+
+    @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private SysEveUserCustomParentService sysEveUserCustomParentService;
 
     @Override
     public void querySysUserList(InputObject inputObject, OutputObject outputObject) {
@@ -448,10 +461,48 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
             deskTops = inputObject.getLogDeskTopMenuParams();
         } else {
             // 多租户模式
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
             String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
             deskTops = getMenuListForSaas(userIdAndType);
+            // 获取用户自定义的菜单和盒子
+            List<Map<String, Object>> customMenuAndBox = sysEveWinDragDropService.queryCustomDeskTopsMenuByUserId(userId);
+            if (CollectionUtil.isNotEmpty(customMenuAndBox)) {
+                deskTops.addAll(customMenuAndBox);
+                deskTops = ToolUtil.listToTree(deskTops, "id", "parentId", "childs");
+            }
+            // 获取用户自定义的父级菜单
+            List<SysEveUserCustomParent> sysEveUserCustomParents = sysEveUserCustomParentService.querySysEveUserCustomParentByUserId(userId);
+            Map<String, SysEveUserCustomParent> userCustomParentMap = sysEveUserCustomParents.stream()
+                .collect(Collectors.toMap(SysEveUserCustomParent::getMenuId, Function.identity(), (k1, k2) -> k1));
+            // 递归给deskTops里面的每一个子项添加额外的属性
+            setWin10OtherAttr(deskTops, userCustomParentMap);
         }
         outputObject.setBeans(deskTops);
+    }
+
+    private void setWin10OtherAttr(List<Map<String, Object>> deskTops, Map<String, SysEveUserCustomParent> userCustomParentMap) {
+        if (CollectionUtil.isEmpty(deskTops)) {
+            return;
+        }
+        for (Map<String, Object> deskTop : deskTops) {
+            List<Map<String, Object>> childs = (List<Map<String, Object>>) deskTop.get("childs");
+            if (CollectionUtil.isNotEmpty(childs)) {
+                setWin10OtherAttr(childs, userCustomParentMap);
+            }
+            deskTop.put("maxOpen", "-1");
+            deskTop.put("extend", "false");
+            deskTop.put("menuLevel", deskTop.get("level"));
+            deskTop.put("menuType", deskTop.get("type"));
+            if (userCustomParentMap.containsKey(deskTop.get("id").toString())) {
+                SysEveUserCustomParent sysEveUserCustomParent = userCustomParentMap.get(deskTop.get("id").toString());
+                deskTop.put("parentId", sysEveUserCustomParent.getParentId());
+                deskTop.put("menuLevel", sysEveUserCustomParent.getLevel());
+            }
+            SysWin sysWinMation = (SysWin) deskTop.get("sysWinMation");
+            if (ObjectUtil.isNotEmpty(sysWinMation)) {
+                deskTop.put("sysWinUrl", sysWinMation.getSysUrl());
+            }
+        }
     }
 
     @Override
@@ -483,6 +534,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                 // 开启租户功能，并且不是平台租户
                 int type = userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0 ?
                     TenantAppMenuType.PC.getKey() : TenantAppMenuType.APP.getKey();
+                // 查询当前租户下所有菜单的id
                 List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, type);
                 menuList = roleMenuService.queryMenuListByMenuIds(ids, userIdAndType);
             } else {

@@ -7,6 +7,8 @@ package com.skyeye.win.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.win.entity.SysEveUserCustomParent;
 
+import java.util.List;
+
 /**
  * @ClassName: SysEveUserCustomParentService
  * @Description: 用户菜单自定义拖拽组合服务接口层
@@ -20,5 +22,7 @@ public interface SysEveUserCustomParentService extends SkyeyeBusinessService<Sys
     void deleteByParentId(String parentId);
 
     void deleteByMenuId(String menuId, String userId);
+
+    List<SysEveUserCustomParent> querySysEveUserCustomParentByUserId(String userId);
 
 }

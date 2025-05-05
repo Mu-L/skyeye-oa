@@ -7,6 +7,9 @@ package com.skyeye.win.service;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
+import java.util.List;
+import java.util.Map;
+
 public interface SysEveWinDragDropService {
 
     void deleteWinMenuOrBoxById(InputObject inputObject, OutputObject outputObject);
@@ -14,5 +17,7 @@ public interface SysEveWinDragDropService {
     void editMenuParentIdById(InputObject inputObject, OutputObject outputObject);
 
     void queryMenuMationTypeById(InputObject inputObject, OutputObject outputObject);
+
+    List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(String userId);
 
 }

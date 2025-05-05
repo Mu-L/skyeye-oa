@@ -4,6 +4,9 @@
 
 package com.skyeye.win.dao;
 
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 import java.util.Map;
 
 public interface SysEveWinDragDropDao {
@@ -11,5 +14,7 @@ public interface SysEveWinDragDropDao {
     Map<String, Object> queryMenuMationFromSysById(Map<String, Object> map);
 
     Map<String, Object> queryMenuMationTypeById(Map<String, Object> map);
+
+    List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(@Param("userId") String userId);
 
 }
