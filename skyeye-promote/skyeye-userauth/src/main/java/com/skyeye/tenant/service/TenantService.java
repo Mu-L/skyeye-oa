@@ -32,5 +32,5 @@ public interface TenantService extends SkyeyeBusinessService<Tenant> {
      * @param type     菜单类型 {@link com.skyeye.tenant.classenum.TenantAppMenuType}
      * @return
      */
-    List<String> queryAllMenuListByTenantId(String tenantId, int type);
+    List<String> queryAllMenuListByTenantId(String tenantId, Integer type);
 }
