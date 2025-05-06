@@ -130,10 +130,10 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         List<HistoryPost> bean = list(queryWrapper);
         List<String> postIds = bean.stream().map(HistoryPost::getPostId).distinct().collect(Collectors.toList());
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Post> posts = postService.selectByIds(postIds.toArray(new String[]{}));
+        List<Post> beans =  postService.queryPostListByIds(postIds);
         // 设置当前用户是否点赞
-        postService.setUserMations(posts);
-        outputObject.setBean(posts);
+        postService.setUserMations(beans);
         outputObject.settotal(page.getTotal());
+        outputObject.setBeans(beans);
     }
 }

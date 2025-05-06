@@ -34,9 +34,13 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.dao.UserDao;
 import com.skyeye.user.entity.User;
+import com.skyeye.user.entity.UserView;
 import com.skyeye.user.service.UserService;
+import com.skyeye.user.service.UserViewService;
+import com.skyeye.video.entity.VideoView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,6 +68,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     
     @Autowired
     private IAuthUserService iAuthUserService;
+
+    @Autowired
+    private UserViewService userViewService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -278,10 +285,19 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void queryUserById(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getParams().get("id").toString();
         boolean isCheck = focusService.checkFocus(userId);
         User user = selectById(userId);
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isNotEmpty(userToken)) {
+            String visitorUserId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
+            UserView userView = new UserView();
+            userView.setUserId(userId);
+            userView.setVisitorUserId(visitorUserId);
+            userViewService.createEntity(userView,visitorUserId);
+        }
         if (StrUtil.isEmpty(user.getId())) {
             Map<String, Object> teacherUser = new HashMap<>();
             teacherUser.put("createId", userId);

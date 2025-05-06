@@ -86,7 +86,8 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         return video;
     }
 
-    private void setUserMations(List<Video> videos) {
+    @Override
+    public void setUserMations(List<Video> videos) {
         videoTagService.setTagMationForVideoList(videos.toArray(new Video[0]));
         List<String> videoIds = videos.stream().map(Video::getId).collect(Collectors.toList());
         List<String> videoCreateIds = videos.stream().map(Video::getCreateId).collect(Collectors.toList());

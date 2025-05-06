@@ -33,7 +33,7 @@ public class VideoViewController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeVideoView", value = "新增浏览记录", method = "POST", allUse = "0")
+    @ApiOperation(id = "writeVideoView", value = "新增浏览记录", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = VideoView.class)
     @RequestMapping("/post/VideoViewController/writeVideoView")
     public void writeVideoView(InputObject inputObject, OutputObject outputObject) {

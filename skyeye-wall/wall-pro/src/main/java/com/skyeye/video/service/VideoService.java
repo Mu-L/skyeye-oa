@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.video.entity.Video;
 
+import java.util.List;
+
 /**
  * @ClassName: VideoService
  * @Description: 视频管理服务接口层
@@ -21,6 +23,8 @@ public interface VideoService extends SkyeyeBusinessService<Video> {
     void collectOrNotVideo(InputObject inputObject, OutputObject outputObject);
 
     void refreshVisitVideo(InputObject inputObject, OutputObject outputObject);
+
+    void setUserMations(List<Video> videos);
 
     void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject);
 

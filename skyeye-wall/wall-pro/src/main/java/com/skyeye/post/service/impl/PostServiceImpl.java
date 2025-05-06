@@ -492,4 +492,14 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
     }
+
+    @Override
+    public List<Post> queryPostListByIds(List<String> postIds) {
+        if(CollectionUtil.isEmpty(postIds)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, postIds);
+        return list(queryWrapper);
+    }
 }

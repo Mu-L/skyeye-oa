@@ -14,15 +14,18 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.focus.service.FocusService;
 import com.skyeye.video.dao.VideoViewDao;
 import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoView;
 import com.skyeye.video.service.VideoService;
 import com.skyeye.video.service.VideoViewService;
+import com.skyeye.videotag.service.VideoTagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,12 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
     }
 
     @Override
+    public void createPrepose(VideoView entity) {
+        super.createPrepose(entity);
+        entity.setViewCount(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
     public void deleteAllVideoView(InputObject inputObject, OutputObject outputObject) {
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
@@ -79,7 +88,8 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
         List<String> videoIds = videoViews.stream().map(VideoView::getVideoId).collect(Collectors.toList());
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Video> videos = videoService.selectByIds(videoIds.toArray(new String[]{}));
-        outputObject.setBean(videos);
+        videoService.setUserMations(videos);
+        outputObject.setBeans(videos);
         outputObject.settotal(page.getTotal());
     }
 

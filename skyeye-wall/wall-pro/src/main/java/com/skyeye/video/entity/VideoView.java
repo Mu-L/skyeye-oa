@@ -37,6 +37,6 @@ public class VideoView extends OperatorUserInfo {
     private Integer viewCount;
 
     @TableField("view_duration")
-    @ApiModelProperty(value = "观看时间", required = "required")
+    @ApiModelProperty(value = "观看时间")
     private Integer viewDuration;
 }

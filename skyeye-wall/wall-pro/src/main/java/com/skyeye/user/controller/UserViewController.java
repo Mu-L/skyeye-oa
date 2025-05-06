@@ -43,7 +43,7 @@ public class UserViewController {
     }
 
 
-    @ApiOperation(id = "deleteAllUserVisitors", value = "一键删除访客记录", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteAllUserVisitors", value = "一键删除访客记录", method = "POST", allUse = "2")
     @RequestMapping("/post/UserViewController/deleteAllUserVisitors")
     public void deleteAllUserVisitors(InputObject inputObject, OutputObject outputObject) {
         userViewService.deleteAllUserVisitors(inputObject, outputObject);
