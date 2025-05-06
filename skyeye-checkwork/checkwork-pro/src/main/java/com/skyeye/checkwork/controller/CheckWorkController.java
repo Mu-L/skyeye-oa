@@ -33,12 +33,6 @@ public class CheckWorkController {
     @Autowired
     private CheckWorkService checkWorkService;
 
-    /**
-     * 上班打卡
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork001", value = "上班打卡", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required"),
@@ -50,12 +44,6 @@ public class CheckWorkController {
         checkWorkService.insertCheckWorkStartWork(inputObject, outputObject);
     }
 
-    /**
-     * 下班打卡
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork002", value = "下班打卡", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required"),
@@ -67,12 +55,6 @@ public class CheckWorkController {
         checkWorkService.editCheckWorkEndWork(inputObject, outputObject);
     }
 
-    /**
-     * 查看我的考勤列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork003", value = "查看我的考勤列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CheckWorkController/queryCheckWorkList")
@@ -80,24 +62,12 @@ public class CheckWorkController {
         checkWorkService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 当前登录用户可以进行申诉的打卡信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork004", value = "当前登录用户可以进行申诉的打卡信息列表", method = "GET", allUse = "2")
     @RequestMapping("/post/CheckWorkController/queryCheckWorkIdByAppealType")
     public void queryCheckWorkIdByAppealType(InputObject inputObject, OutputObject outputObject) {
         checkWorkService.queryCheckWorkIdByAppealType(inputObject, outputObject);
     }
 
-    /**
-     * 判断显示打上班卡或者下班卡
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork013", value = "判断显示打上班卡或者下班卡", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required")})
@@ -106,12 +76,6 @@ public class CheckWorkController {
         checkWorkService.queryCheckWorkTimeToShowButton(inputObject, outputObject);
     }
 
-    /**
-     * 根据月份查询当月的考勤信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork014", value = "根据月份查询当月的考勤信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required"),
@@ -121,12 +85,6 @@ public class CheckWorkController {
         checkWorkService.queryCheckWorkMationByMonth(inputObject, outputObject);
     }
 
-    /**
-     * 获取考勤报表数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork015", value = "获取考勤报表数据", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "limit", name = "limit", value = "分页参数,每页多少条数据", required = "required,num"),
@@ -140,12 +98,6 @@ public class CheckWorkController {
         checkWorkService.queryCheckWorkReport(inputObject, outputObject);
     }
 
-    /**
-     * 获取考勤图表数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork016", value = "获取考勤报表数据", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userName", name = "userName", value = "员工姓名"),
@@ -156,12 +108,6 @@ public class CheckWorkController {
         checkWorkService.queryCheckWorkEcharts(inputObject, outputObject);
     }
 
-    /**
-     * 获取表格数据详情信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkwork018", value = "获取表格数据详情信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userId", name = "userId", value = "用户id"),
@@ -175,12 +121,6 @@ public class CheckWorkController {
         checkWorkService.queryReportDetail(inputObject, outputObject);
     }
 
-    /**
-     * 获取指定天中的工作日
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDayWorkMation", value = "获取指定天中的工作日", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DayWork.class)
     @RequestMapping("/post/CheckWorkController/queryDayWorkMation")
@@ -188,12 +128,6 @@ public class CheckWorkController {
         checkWorkService.queryDayWorkMation(inputObject, outputObject);
     }
 
-    /**
-     * 获取用户指定班次在指定月份的其他日期信息[审核通过的](例如：请假，出差，加班等)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getUserOtherDayMation", value = "获取用户指定班次在指定月份的其他日期信息[审核通过的](例如：请假，出差，加班等)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = UserOtherDayMation.class)
     @RequestMapping("/post/CheckWorkController/getUserOtherDayMation")
