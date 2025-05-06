@@ -5,23 +5,34 @@
 package com.skyeye.personnel.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.SmsSceneEnum;
 import com.skyeye.common.object.*;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.authority.service.SysAuthorityService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
+import com.skyeye.menu.service.AuthPointService;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.AppAuthService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.sms.entity.SmsCodeSendReq;
 import com.skyeye.sms.entity.SmsCodeValidateReq;
 import com.skyeye.sms.service.SmsCodeService;
+import com.skyeye.tenant.entity.TenantUser;
+import com.skyeye.tenant.service.TenantService;
+import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: AppAuthServiceImpl
@@ -45,6 +56,18 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Autowired
     protected JedisClientService jedisClientService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
+    @Autowired
+    private TenantUserService tenantUserService;
+
+    @Autowired
+    private AuthPointService authPointService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Override
     public void sendSmsCode(InputObject inputObject, OutputObject outputObject) {
@@ -97,11 +120,61 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public void queryAuthPointByUserId(InputObject inputObject, OutputObject outputObject) {
         String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        // 获取角色id(逗号隔开的字符串)
-        String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
-            userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
-        List<Map<String, Object>> authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userIdAndType);
+        List<Map<String, Object>> authPoints = new ArrayList<>();
+        if (!tenantEnable) {
+            // 单租户模式，获取角色id(逗号隔开的字符串)
+            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
+                userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+            authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userIdAndType);
+        } else {
+            // 多租户模式
+            Map<String, Object> user = InputObject.getLogParamsStatic();
+            String staffId = user.get("staffId").toString();
+            TenantUser tenantUser = tenantUserService.getTenantUserByStaffId(staffId);
+            boolean isAdmin = tenantUserService.checkStaffIdIsAdmin(tenantUser);
+            if (isAdmin) {
+                // 管理员获取所有权限点
+                String tenantId = TenantContext.getTenantId();
+                String cacheKey = TenantContext.getTenantAuthPointCacheKey(tenantId);
+                String authPointListStr = jedisClientService.get(cacheKey);
+                if (StrUtil.isNotEmpty(authPointListStr)) {
+                    authPoints = JSONUtil.toList(authPointListStr, null);
+                }
+            } else {
+                // 非管理员获取当前用户的权限点
+                String roleIds = tenantUser.getRoleId();
+                authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userIdAndType);
+            }
+        }
         outputObject.setBeans(authPoints);
         outputObject.settotal(authPoints.size());
+    }
+
+    @Override
+    public void switchTenantSetAuthPoint(InputObject inputObject, OutputObject outputObject) {
+        if (!tenantEnable) {
+            throw new CustomException("多租户功能未开启");
+        }
+        String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        Map<String, Object> params = inputObject.getParams();
+        String tenantId = params.get("tenantId").toString();
+        Map<String, Object> user = InputObject.getLogParamsStatic();
+        String staffId = user.get("staffId").toString();
+        TenantUser tenantUser = tenantUserService.getTenantUserByStaffId(staffId);
+        boolean isAdmin = tenantUserService.checkStaffIdIsAdmin(tenantUser);
+        if (isAdmin) {
+            // 管理员获取所有权限点
+            String cacheKey = TenantContext.getTenantAuthPointCacheKey(tenantId);
+            List<Map<String, Object>> authPointList = authPointService.queryAllDataForMap();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                // 开启租户功能，并且不是平台租户
+                // 查询当前租户下所有权限点的id
+                List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, null);
+                authPointList = authPointList.stream().filter(authPoint -> ids.contains(authPoint.get("id").toString())).collect(Collectors.toList());
+            } else {
+                // 平台租户，获取所有权限点(包括PC端和移动端)
+            }
+            jedisClientService.set(cacheKey, JSON.toJSONString(authPointList));
+        }
     }
 }

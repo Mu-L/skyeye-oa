@@ -114,7 +114,7 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
 
     @Override
     @IgnoreTenant
-    public List<String> queryAllMenuListByTenantId(String tenantId, int type) {
+    public List<String> queryAllMenuListByTenantId(String tenantId, Integer type) {
         if (StrUtil.isEmpty(tenantId)) {
             return null;
         }

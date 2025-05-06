@@ -82,7 +82,9 @@ public class TenantAppMenuServiceImpl extends SkyeyeBusinessServiceImpl<TenantAp
     public List<String> selectObjectIdsByAppId(List<String> appId, Integer type) {
         QueryWrapper<TenantAppMenu> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(TenantAppMenu::getAppId), appId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppMenu::getType), type);
+        if (type != null) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppMenu::getType), type);
+        }
         List<TenantAppMenu> list = list(queryWrapper);
         return list.stream().map(TenantAppMenu::getObjectId).collect(Collectors.toList());
     }

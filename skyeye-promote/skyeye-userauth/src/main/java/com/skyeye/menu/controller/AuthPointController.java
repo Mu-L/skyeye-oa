@@ -34,12 +34,6 @@ public class AuthPointController {
     @Autowired
     private AuthPointService authPointService;
 
-    /**
-     * 根据菜单id获取菜单权限点列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAuthPointList", value = "根据菜单id获取菜单权限点列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/AuthPointController/queryAuthPointList")
@@ -47,12 +41,6 @@ public class AuthPointController {
         authPointService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑菜单权限点
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAuthPoint", value = "新增/编辑菜单权限点", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AuthPoint.class)
     @RequestMapping("/post/AuthPointController/writeAuthPoint")
@@ -60,12 +48,6 @@ public class AuthPointController {
         authPointService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询菜单权限点
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAuthPointById", value = "根据id查询菜单权限点", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -74,12 +56,6 @@ public class AuthPointController {
         authPointService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除菜单权限点
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAuthPointById", value = "根据id删除菜单权限点", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

@@ -23,4 +23,5 @@ public interface AppAuthService {
 
     void queryAuthPointByUserId(InputObject inputObject, OutputObject outputObject);
 
+    void switchTenantSetAuthPoint(InputObject inputObject, OutputObject outputObject);
 }

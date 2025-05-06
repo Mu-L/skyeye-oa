@@ -105,4 +105,12 @@ public class AppAuthController {
         appAuthService.queryAuthPointByUserId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "switchTenantSetAuthPoint", value = "用户切换租户重新设置权限点(PC+APP)", method = "POST", allUse = "2")
+    @RequestMapping("/post/AppAuthController/switchTenantSetAuthPoint")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required")})
+    public void switchTenantSetAuthPoint(InputObject inputObject, OutputObject outputObject) {
+        appAuthService.switchTenantSetAuthPoint(inputObject, outputObject);
+    }
+
 }
