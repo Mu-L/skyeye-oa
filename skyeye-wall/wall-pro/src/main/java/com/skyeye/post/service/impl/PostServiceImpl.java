@@ -13,6 +13,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.circle.service.CircleService;
 import com.skyeye.comment.entity.Comment;
 import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.WallConstants;
@@ -42,11 +43,9 @@ import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
-import com.skyeye.user.entity.User;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
-import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +87,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Autowired
     private JoinCircleService joinCircleService;
 
+    @Autowired
+    private CircleService circleService;
+
     @Override
     public void validatorEntity(Post entity) {
         super.validatorEntity(entity);
@@ -97,7 +99,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
     }
 
-    private Post setUserMation(Post post) {
+        private Post setUserMation(Post post) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         Map<String, Boolean> checkUpvote = new HashMap<>();
         if (StrUtil.isNotEmpty(userToken)) {
@@ -121,7 +123,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         return post;
     }
 
-    private void setUserMations(List<Post> posts) {
+    @Override
+    public void setUserMations(List<Post> posts) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         List<String> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
         Map<String, Boolean> checkUpvote = new HashMap<>();
@@ -381,6 +384,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             String serviceClassName = getServiceClassName();
             post.setObjectKey(serviceClassName);
         });
+        circleService.setDataMation(bean, Post::getCreateId);
         return bean;
     }
 

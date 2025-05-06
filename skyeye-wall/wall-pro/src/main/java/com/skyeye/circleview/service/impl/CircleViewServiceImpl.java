@@ -68,6 +68,28 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
         remove(queryWrapper);
     }
 
+    @Override
+    public void queryUserViewCircleList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String userId = commonPageInfo.getHolderId();
+        if(StrUtil.isEmpty(userId)){
+            throw new CustomException("用户id不能为空");
+        }
+        QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCreateId), userId);
+        List<CircleView> circleViewList = list(queryWrapper);
+        if(CollectionUtil.isEmpty(circleViewList)){
+            return;
+        }
+        // 去重
+        List<String> circleIds = circleViewList.stream().map(CircleView::getCircleId).distinct().collect(Collectors.toList());
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<Circle> circleList = circleService.selectByIds(circleIds.toArray(new String[]{}));
+        circleService.setUserIsJoin(circleList);
+        outputObject.setBean(circleList);
+        outputObject.settotal(page.getTotal());
+    }
+
 
     @Override
     public void validatorEntity(CircleView circleView) {

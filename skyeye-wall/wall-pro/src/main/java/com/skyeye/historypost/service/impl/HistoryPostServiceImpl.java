@@ -7,15 +7,19 @@ package com.skyeye.historypost.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.historypost.dao.HistoryPostDao;
 import com.skyeye.historypost.entity.HistoryPost;
 import com.skyeye.historypost.service.HistoryPostService;
@@ -111,5 +115,25 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         remove(queryWrapper);
         outputObject.setBeans(idList);
         outputObject.settotal(idList.size());
+    }
+
+    @Override
+    public void queryUserHisPostList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String userId = commonPageInfo.getHolderId();
+        if(StrUtil.isEmpty(userId)){
+            throw new CustomException("用户id不能为空");
+        }
+        QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId)
+                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime));
+        List<HistoryPost> bean = list(queryWrapper);
+        List<String> postIds = bean.stream().map(HistoryPost::getPostId).distinct().collect(Collectors.toList());
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<Post> posts = postService.selectByIds(postIds.toArray(new String[]{}));
+        // 设置当前用户是否点赞
+        postService.setUserMations(posts);
+        outputObject.setBean(posts);
+        outputObject.settotal(page.getTotal());
     }
 }

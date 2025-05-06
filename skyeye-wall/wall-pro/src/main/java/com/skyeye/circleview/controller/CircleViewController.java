@@ -44,6 +44,18 @@ public class CircleViewController {
     public void queryMyCircleList(InputObject inputObject, OutputObject outputObject) {
         circleViewService.queryMyCircleList(inputObject, outputObject);
     }
+    /**
+     * 获取圈子浏览信息列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryUserViewCircleList", value = "获取用户浏览圈子信息列表", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/CircleViewController/queryUserViewCircleList")
+    public void queryUserViewCircleList(InputObject inputObject, OutputObject outputObject) {
+        circleViewService.queryUserViewCircleList(inputObject, outputObject);
+    }
 
     /**
      * 新增圈子浏览信息

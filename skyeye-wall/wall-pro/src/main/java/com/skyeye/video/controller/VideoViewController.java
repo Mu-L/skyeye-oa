@@ -46,11 +46,11 @@ public class VideoViewController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryAllVideoView", value = "获取用户userId（objectId）浏览记录", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryUserVideoView", value = "获取用户视频的浏览记录", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/VideoViewController/queryAllVideoView")
-    public void queryAllVideoView(InputObject inputObject, OutputObject outputObject) {
-        videoViewService.queryAllVideoView(inputObject, outputObject);
+    @RequestMapping("/post/VideoViewController/queryUserVideoView")
+    public void queryUserVideoView(InputObject inputObject, OutputObject outputObject) {
+        videoViewService.queryUserVideoView(inputObject, outputObject);
     }
 
 

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.historypost.entity.HistoryPost;
@@ -42,6 +43,19 @@ public class HistoryPostController {
     @RequestMapping("/post/HistoryPostController/insertHistoryPost")
     public void insertHistoryPost(InputObject inputObject, OutputObject outputObject) {
         historyPostService.createEntity(inputObject, outputObject);
+    }
+
+    /**
+     * 获取用户的浏览帖子
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryUserHisPostList", value = "获取用户的浏览帖子", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/HistoryPostController/queryUserHisPostList")
+    public void queryUserHisPostList(InputObject inputObject, OutputObject outputObject) {
+        historyPostService.queryUserHisPostList(inputObject, outputObject);
     }
 
     /**

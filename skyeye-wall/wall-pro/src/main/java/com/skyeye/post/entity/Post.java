@@ -18,6 +18,7 @@ import com.skyeye.picture.entity.Picture;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: Post
@@ -80,6 +81,10 @@ public class Post extends OperatorUserInfo {
     @TableField("circle_id")
     @ApiModelProperty(value = "圈子id")
     private String circleId;
+
+    @TableField(exist = false)
+    @Property(value = "圈子信息")
+    private Map<String,Object> circleMation;
 
     @TableField("login_identity")
     @Property(value = "登录身份")

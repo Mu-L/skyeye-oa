@@ -23,4 +23,6 @@ public interface CircleViewService extends SkyeyeBusinessService<CircleView> {
      * 根据圈子id删除圈子浏览记录
      * */
     void deleteCircleViewByCircleId(String circleId);
+
+    void queryUserViewCircleList(InputObject inputObject, OutputObject outputObject);
 }

@@ -21,6 +21,8 @@ import java.util.List;
  */
 public interface PostService extends SkyeyeBusinessService<Post> {
 
+    void setUserMations(List<Post> posts);
+
     void updateCommentCount(String id, String count);
 
     void updateUpvoteCount(String id, String count);

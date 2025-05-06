@@ -11,6 +11,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.hankcs.hanlp.seg.common.Term;
 import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -28,14 +30,11 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.joincircle.entity.JoinCircle;
 import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.post.service.PostService;
-import com.skyeye.user.service.UserService;
-import com.skyeye.user.userenum.LoginIdentity;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -113,7 +112,8 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         joinCircleService.deleteJoinByCircleId(id);
     }
 
-    private List<Circle> setUserIsJoin(List<Circle> circles) {
+    @Override
+    public List<Circle> setUserIsJoin(List<Circle> circles) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         if(StrUtil.isEmpty(userToken)){
             return circles.stream().map(circle -> {
@@ -382,5 +382,23 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         Double scale = (1 - hammingDistance / 64) * 100;
         Double formatScale = Double.parseDouble(String.format("%.2f", scale));
         return formatScale;
+    }
+
+    @Override
+    public void queryUserCircleList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String userId = commonPageInfo.getHolderId();
+        if(StrUtil.isEmpty(userId)){
+            throw new CustomException("用户id不能为空");
+        }
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Circle::getCreateId),userId)
+                .orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
+        List<Circle> circleList = list(queryWrapper);
+        // 设置是否加入圈子
+        setUserIsJoin(circleList);
+        outputObject.setBean(circleList);
+        outputObject.settotal(page.getTotal());
     }
 }

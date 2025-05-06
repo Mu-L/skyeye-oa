@@ -19,7 +19,7 @@ public interface VideoViewService extends SkyeyeBusinessService<VideoView> {
 
     void deleteAllVideoView(InputObject inputObject, OutputObject outputObject);
 
-    void queryAllVideoView(InputObject inputObject, OutputObject outputObject);
+    void queryUserVideoView(InputObject inputObject, OutputObject outputObject);
 
     List<VideoView> queryVideoViewByUserId(String userId);
 

@@ -15,14 +15,18 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.video.dao.VideoViewDao;
+import com.skyeye.video.entity.Video;
 import com.skyeye.video.entity.VideoView;
+import com.skyeye.video.service.VideoService;
 import com.skyeye.video.service.VideoViewService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: VideoViewServiceImpl
@@ -35,6 +39,9 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "视频浏览记录管理", groupName = "视频浏览记录管理")
 public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao, VideoView> implements VideoViewService {
+
+    @Autowired
+    private VideoService videoService;
 
     @Override
     public String createEntity(VideoView entity, String userId) {
@@ -59,18 +66,20 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
     }
 
     @Override
-    public void queryAllVideoView(InputObject inputObject, OutputObject outputObject) {
+    public void queryUserVideoView(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String objectId = commonPageInfo.getObjectId();
-        if(StrUtil.isEmpty(objectId)){
-            throw new CustomException("用户id（objectId）不能为空");
+        String userId = commonPageInfo.getHolderId();
+        if(StrUtil.isEmpty(userId)){
+            throw new CustomException("用户id不能为空");
         }
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getUserId), objectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getUserId), userId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getCreateTime));
         List<VideoView> videoViews = list(queryWrapper);
-        outputObject.setBean(videoViews);
+        List<String> videoIds = videoViews.stream().map(VideoView::getVideoId).collect(Collectors.toList());
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<Video> videos = videoService.selectByIds(videoIds.toArray(new String[]{}));
+        outputObject.setBean(videos);
         outputObject.settotal(page.getTotal());
     }
 
