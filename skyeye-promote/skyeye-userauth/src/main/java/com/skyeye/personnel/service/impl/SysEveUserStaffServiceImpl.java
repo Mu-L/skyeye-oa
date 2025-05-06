@@ -328,6 +328,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         if (CollectionUtil.isEmpty(userStaffList)) {
             return beans;
         }
+        beans = JSONUtil.toList(JSONUtil.toJsonStr(userStaffList), null);
         if (tenantEnable) {
             // 多租户模式，获取当前租户下的用户信息
             userStaffList = tenantUserService.setThisTenantUserToDefault(userStaffList);
