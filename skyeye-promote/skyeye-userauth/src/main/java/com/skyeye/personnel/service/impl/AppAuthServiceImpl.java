@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.SmsSceneEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.*;
 import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
@@ -18,6 +19,7 @@ import com.skyeye.jedis.JedisClientService;
 import com.skyeye.menu.service.AuthPointService;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.AppAuthService;
+import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.sms.entity.SmsCodeSendReq;
 import com.skyeye.sms.entity.SmsCodeValidateReq;
@@ -68,6 +70,9 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private SysEveUserService sysEveUserService;
 
     @Override
     public void sendSmsCode(InputObject inputObject, OutputObject outputObject) {
@@ -156,6 +161,7 @@ public class AppAuthServiceImpl implements AppAuthService {
             throw new CustomException("多租户功能未开启");
         }
         String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        // 切换只需要考虑管理员权限信息即可，其他用户的权限会在获取权限点的接口中处理
         Map<String, Object> params = inputObject.getParams();
         String tenantId = params.get("tenantId").toString();
         Map<String, Object> user = InputObject.getLogParamsStatic();
@@ -165,10 +171,10 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (isAdmin) {
             // 管理员获取所有权限点
             String cacheKey = TenantContext.getTenantAuthPointCacheKey(tenantId);
+            // 获取所有权限点(包括PC端和移动端)
             List<Map<String, Object>> authPointList = authPointService.queryAllDataForMap();
             if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
-                // 开启租户功能，并且不是平台租户
-                // 查询当前租户下所有权限点的id(包括PC端和移动端)
+                // 开启租户功能，并且不是平台租户，查询当前租户下所有权限点的id
                 List<String> ids = tenantService.queryAllMenuListByTenantId(tenantId, null);
                 authPointList = authPointList.stream().filter(authPoint -> ids.contains(authPoint.get("id").toString())).collect(Collectors.toList());
             } else {
@@ -176,5 +182,10 @@ public class AppAuthServiceImpl implements AppAuthService {
             }
             jedisClientService.set(cacheKey, JSON.toJSONString(authPointList));
         }
+        user.put("isAdmin", isAdmin ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
+        // 这里只修改当前终端的登录信息，其他终端的登录信息不会受到影响
+        SysUserAuthConstants.setUserLoginRedisCache(userIdAndType, user);
+        // 设置角色信息
+        jedisClientService.set(ObjectConstant.getUserHasRoleIds(userIdAndType), tenantUser.getRoleId());
     }
 }

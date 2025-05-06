@@ -33,12 +33,6 @@ public class DsFormPageController {
     @Autowired
     private DsFormPageService dsFormPageService;
 
-    /**
-     * 获取表单布局列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDsFormPageList", value = "获取表单布局列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
@@ -48,12 +42,6 @@ public class DsFormPageController {
         dsFormPageService.queryDsFormPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑表单布局
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDsFormPage", value = "新增/编辑表单布局", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DsFormPage.class)
     @RequestMapping("/post/DsFormPageController/writeDsFormPage")
@@ -61,12 +49,6 @@ public class DsFormPageController {
         dsFormPageService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除表单布局
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDsFormPage", value = "删除表单布局", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -75,12 +57,6 @@ public class DsFormPageController {
         dsFormPageService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查找表单布局
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "dsformpage006", value = "根据id查找表单布局", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -89,12 +65,6 @@ public class DsFormPageController {
         dsFormPageService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务对象的serviceClassName和流程模型id查找表单布局
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDsFormPageForProcess", value = "根据业务对象的serviceClassName和流程模型id查找表单布局", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "业务对象的serviceClassName", required = "required"),
@@ -104,12 +74,6 @@ public class DsFormPageController {
         dsFormPageService.queryDsFormPageForProcess(inputObject, outputObject);
     }
 
-    /**
-     * 保存表单布局关联的组件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDsFormPageContent", value = "保存表单布局关联的组件信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DsFormPageContentVo.class)
     @RequestMapping("/post/DsFormPageController/writeDsFormPageContent")
@@ -117,12 +81,6 @@ public class DsFormPageController {
         dsFormPageService.writeDsFormPageContent(inputObject, outputObject);
     }
 
-    /**
-     * 保存表格类型的布局的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDsFormPageTable", value = "保存表格类型的布局的信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableColumnVo.class)
     @RequestMapping("/post/DsFormPageController/writeDsFormPageTable")
@@ -130,13 +88,6 @@ public class DsFormPageController {
         dsFormPageService.writeDsFormPageTable(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务数据id获取业务数据信息
-     * 该接口因为要跨微服务获取数据，性能可能受限
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBusinessDataByObject", value = "根据业务数据id获取业务数据信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id", required = "required"),

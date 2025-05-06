@@ -33,14 +33,14 @@ public class Constants {
     public static final String SYS_WIN_THEME_COLOR_REDIS_KEY = "sys_win_theme_color_redis_key";
 
     // 聊天获取当前登陆用户信息在redis中的key
-    public static final String SYS_TALK_USER_THIS_MATN_MATION = "sys_talk_user_this_matn_mation_";
+    public static final String SYS_TALK_USER_THIS_MATN_MATION = "sys:talk:user:this:main:mation:";
 
     public static String getSysTalkUserThisMainMationById(String id) {
         return SYS_TALK_USER_THIS_MATN_MATION + id;
     }
 
     // 聊天获取当前登陆用户拥有的群组列表在redis中的key
-    public static final String SYS_TALK_USER_HAS_GROUP_LIST_MATION = "sys_talk_user_has_group_list_mation_";
+    public static final String SYS_TALK_USER_HAS_GROUP_LIST_MATION = "sys:talk:user:has:group:list:mation:";
 
     public static String getSysTalkUserHasGroupListMationById(String id) {
         return SYS_TALK_USER_HAS_GROUP_LIST_MATION + id;

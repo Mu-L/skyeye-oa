@@ -133,7 +133,7 @@ public class TenantUser extends OperatorUserInfo {
     private String politicId;
 
     @TableField("highest_education")
-    @ApiModelProperty(value = "最高学历id")
+    @ApiModelProperty(value = "最高学历id，数据来源：数据字典")
     private String highestEducation;
 
     @TableField("design_wages")

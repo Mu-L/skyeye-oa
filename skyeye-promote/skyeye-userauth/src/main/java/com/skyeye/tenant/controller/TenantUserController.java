@@ -40,6 +40,14 @@ public class TenantUserController {
         tenantUserService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryTenantUserById", value = "根据id获取租户下的用户信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "组件id", required = "required")})
+    @RequestMapping("/post/TenantUserController/queryTenantUserById")
+    public void queryTenantUserById(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.selectById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "editTenantUserById", value = "编辑租户下的用户信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TenantUser.class)
     @RequestMapping("/post/TenantUserController/editTenantUserById")
