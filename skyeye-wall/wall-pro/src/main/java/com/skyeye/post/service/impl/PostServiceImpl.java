@@ -384,7 +384,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             String serviceClassName = getServiceClassName();
             post.setObjectKey(serviceClassName);
         });
-        circleService.setDataMation(bean, Post::getCreateId);
+        circleService.setDataMation(bean, Post::getCircleId);
         return bean;
     }
 

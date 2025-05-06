@@ -86,7 +86,7 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Circle> circleList = circleService.selectByIds(circleIds.toArray(new String[]{}));
         circleService.setUserIsJoin(circleList);
-        outputObject.setBean(circleList);
+        outputObject.setBeans(circleList);
         outputObject.settotal(page.getTotal());
     }
 

@@ -388,6 +388,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     public void queryUserCircleList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = commonPageInfo.getHolderId();
+        String keyword = commonPageInfo.getKeyword();
         if(StrUtil.isEmpty(userId)){
             throw new CustomException("用户id不能为空");
         }
@@ -395,10 +396,13 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         QueryWrapper<Circle> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Circle::getCreateId),userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Circle::getCreateTime));
+        if(StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Circle::getTitle),keyword);
+        }
         List<Circle> circleList = list(queryWrapper);
         // 设置是否加入圈子
         setUserIsJoin(circleList);
-        outputObject.setBean(circleList);
+        outputObject.setBeans(circleList);
         outputObject.settotal(page.getTotal());
     }
 }
