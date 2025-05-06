@@ -12,26 +12,23 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.entity.School;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.wall.user.service.IUserService;
-import com.skyeye.school.building.entity.TeachBuilding;
 import com.skyeye.school.building.service.TeachBuildingService;
-import com.skyeye.school.building.service.impl.TeachBuildingServiceImpl;
 import com.skyeye.school.route.dao.RoutesDao;
 import com.skyeye.school.route.entity.RouteStop;
 import com.skyeye.school.route.entity.Routes;
 import com.skyeye.school.route.service.RouteStopService;
 import com.skyeye.school.route.service.RoutesService;
-import org.nutz.el.opt.custom.DoBase64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -54,15 +51,12 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     private TeachBuildingService teachBuildingService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
-
-    @Autowired
     private SchoolService schoolService;
 
     @Override
     public void validatorEntity(Routes entity) {
         super.validatorEntity(entity);
-        if(entity.getStartId().equals(entity.getEndId())) {
+        if (entity.getStartId().equals(entity.getEndId())) {
             throw new CustomException("起始地点和终点地点不能相同");
         }
     }
@@ -80,11 +74,11 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Routes routes = super.selectById(id);
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), id)
-                    .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
+            .orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
         List<RouteStop> routeStops = routeStopService.list(queryWrapper);
-        teachBuildingService.setDataMation(routes,Routes::getStartId);
-        teachBuildingService.setDataMation(routes,Routes::getEndId);
-        schoolService.setDataMation(routes,Routes::getSchoolMation);
+        teachBuildingService.setDataMation(routes, Routes::getStartId);
+        teachBuildingService.setDataMation(routes, Routes::getEndId);
+        schoolService.setDataMation(routes, Routes::getSchoolMation);
         routes.setRouteStopList(routeStops);
         iAuthUserService.setName(routes, "createId", "createName");
         iAuthUserService.setName(routes, "lastUpdateId", "lastUpdateName");
@@ -99,16 +93,16 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         String schoolId = (String) params.get("schoolId");
         String typeId = (String) params.get("typeId");
         int routeType = CommonNumConstants.NUM_ONE;
-        if(StrUtil.isNotEmpty(typeId)){
-          routeType = Integer.parseInt(typeId);
+        if (StrUtil.isNotEmpty(typeId)) {
+            routeType = Integer.parseInt(typeId);
         }
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getStartId), startId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getEnabled),EnableEnum.ENABLE_USING.getKey())
-                .eq(MybatisPlusUtil.toColumns(Routes::getRouteType), routeType)
-                .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
+            .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
+            .eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
+            .eq(MybatisPlusUtil.toColumns(Routes::getEnabled), EnableEnum.ENABLE_USING.getKey())
+            .eq(MybatisPlusUtil.toColumns(Routes::getRouteType), routeType)
+            .orderByAsc(MybatisPlusUtil.toColumns(Routes::getRouteLength));
         List<Routes> bean = setBaseMation(queryWrapper);
         outputObject.setBeans(bean);
         outputObject.settotal(bean.size());
@@ -117,13 +111,13 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     private List<Routes> setBaseMation(QueryWrapper<Routes> queryWrapper) {
         List<Routes> bean = list(queryWrapper);
         List<String> routeIds = bean.stream().map(Routes::getId).collect(Collectors.toList());
-        Map<String,List<RouteStop>> routeStopListMap = routeStopService.queryStopListGroupByRoteIds(routeIds);
+        Map<String, List<RouteStop>> routeStopListMap = routeStopService.queryStopListGroupByRoteIds(routeIds);
         for (Routes routes : bean) {
             List<RouteStop> routeStopList = routeStopListMap.get(routes.getId());
             routes.setRouteStopList(routeStopList);
         }
-        teachBuildingService.setDataMation(bean,Routes::getStartId);
-        teachBuildingService.setDataMation(bean,Routes::getEndId);
+        teachBuildingService.setDataMation(bean, Routes::getStartId);
+        teachBuildingService.setDataMation(bean, Routes::getEndId);
         iAuthUserService.setName(bean, "createId", "createName");
         iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
         return bean;
@@ -137,15 +131,15 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
-                .orderByDesc(MybatisPlusUtil.toColumns(Routes::getCreateTime));
+            .orderByDesc(MybatisPlusUtil.toColumns(Routes::getCreateTime));
         List<Routes> routes = setBaseMation(queryWrapper);
-        if(StrUtil.isNotEmpty(keyword)){
+        if (StrUtil.isNotEmpty(keyword)) {
             routes = routes.stream()
-                    .filter(route -> route.getStartMation().get("name").toString().contains(keyword) ||
-                            route.getEndMation().get("name").toString().contains(keyword))
-                    .collect(Collectors.toList());
+                .filter(route -> route.getStartMation().get("name").toString().contains(keyword) ||
+                    route.getEndMation().get("name").toString().contains(keyword))
+                .collect(Collectors.toList());
         }
-        schoolService.setDataMation(routes,Routes::getSchoolId);
+        schoolService.setDataMation(routes, Routes::getSchoolId);
         outputObject.setBeans(routes);
         outputObject.settotal(page.getTotal());
     }
@@ -154,36 +148,36 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
     public void queryRoutesNavigationLists(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String schoolId = (String) params.get("schoolId");
-        String  endId = (String) params.get("endId");
+        String endId = (String) params.get("endId");
         String typeId = (String) params.get("typeId");
         int routeType = CommonNumConstants.NUM_ONE;
-        if(StrUtil.isNotEmpty(typeId)){
+        if (StrUtil.isNotEmpty(typeId)) {
             routeType = Integer.parseInt(typeId);
         }
-        double latitude = Double.parseDouble(params.get("latitude").toString()) ;
-        double longitude = Double.parseDouble(params.get("longitude").toString()) ;
+        double latitude = Double.parseDouble(params.get("latitude").toString());
+        double longitude = Double.parseDouble(params.get("longitude").toString());
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
-                .eq(MybatisPlusUtil.toColumns(Routes::getRouteType), routeType)
-                .eq(MybatisPlusUtil.toColumns(Routes::getEnabled), EnableEnum.ENABLE_USING.getKey());
+            .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
+            .eq(MybatisPlusUtil.toColumns(Routes::getRouteType), routeType)
+            .eq(MybatisPlusUtil.toColumns(Routes::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<Routes> routesList = list(queryWrapper);
-        if(CollectionUtil.isEmpty(routesList)){
+        if (CollectionUtil.isEmpty(routesList)) {
             throw new CustomException("暂无去无改地点的路线");
         }
-        Map<String,Double> map = new HashMap<>();
+        Map<String, Double> map = new HashMap<>();
         for (Routes route : routesList) {
             QueryWrapper<RouteStop> routeStopQueryWrapper = new QueryWrapper<>();
             routeStopQueryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), route.getId());
             routeStopQueryWrapper.orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
             List<RouteStop> routeStopList = routeStopService.list(routeStopQueryWrapper);
-            Double start = haversine(latitude, longitude,
-                    Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLatitude()),
-                    Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLongitude()));
-            Double end = haversine(latitude, longitude,
-                    Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLatitude()),
-                    Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLongitude()));
+            Double start = ToolUtil.haversine(latitude, longitude,
+                Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLatitude()),
+                Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLongitude()));
+            Double end = ToolUtil.haversine(latitude, longitude,
+                Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLatitude()),
+                Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLongitude()));
             // 将当前位置作为停靠点的第一个点
             RouteStop routeStop = new RouteStop();
             routeStop.setLatitude(String.valueOf(latitude));
@@ -194,11 +188,11 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             route.setRouteStopList(routeStopList);
             map.put(route.getId(), start + end);
         }
-        if(map.size() <= CommonNumConstants.NUM_THREE){
-            schoolService.setDataMation(routesList,Routes::getSchoolId);
+        if (map.size() <= CommonNumConstants.NUM_THREE) {
+            schoolService.setDataMation(routesList, Routes::getSchoolId);
             outputObject.setBeans(routesList);
             outputObject.settotal(routesList.size());
-        }else {
+        } else {
             // 根据距离排序
             List<Routes> beans = new ArrayList<>();
             List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
@@ -210,29 +204,15 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
                         break;
                     }
                 }
-                if(beans.size()==CommonNumConstants.NUM_THREE) break;
+                if (beans.size() == CommonNumConstants.NUM_THREE) break;
             }
-            schoolService.setDataMation(beans,Routes::getSchoolId);
+            schoolService.setDataMation(beans, Routes::getSchoolId);
             outputObject.setBeans(beans);
             outputObject.settotal(beans.size());
         }
 
     }
 
-    // Haversine公式计算两个经纬度点之间的距离
-    private static double haversine(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // 地球半径，单位为公里
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = R * c;
-        return distance;
-    }
-
-    @Transactional
     @Override
     public void createPostpose(Routes entity, String userId) {
         Integer stopOrder = CommonNumConstants.NUM_ONE;
