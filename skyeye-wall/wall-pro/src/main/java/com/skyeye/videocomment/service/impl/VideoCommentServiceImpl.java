@@ -108,13 +108,14 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         // 通知
         Notice notice = new Notice();
         notice.setSendId(userId);
-        notice.setReceiveId(entity.getCreateId());
+        notice.setReceiveId(video.getCreateId());
         notice.setCommentId(entity.getId());
         notice.setObjectId(videoId);
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
         notice.setType(TypeEnum.COMMENT.getKey());
         notice.setContent(NoticeContent.COMMENT_VIDEO);
         noticeService.createEntity(notice, userId);
+        // TODO 回复他人通知
     }
 
     @Override

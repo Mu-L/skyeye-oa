@@ -90,6 +90,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getSendId), entity.getSendId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getType), TypeEnum.LIKE.getKey());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId), entity.getObjectId());
+            if(StrUtil.isNotEmpty(entity.getCommentId())){
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getCommentId), entity.getCommentId());
+            }
             long length = count(queryWrapper);
             if (length > CommonNumConstants.NUM_ZERO) {
                 return StrUtil.EMPTY;

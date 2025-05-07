@@ -274,10 +274,10 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         }
         // 新增通知
         Notice notice = new Notice();
-        notice.setSendId(userId);
-        notice.setReceiveId(comment.getCreateId());
-        notice.setType(TypeEnum.COMMENT.getKey());
         Post post = postService.selectById(comment.getPostId());
+        notice.setSendId(userId);
+        notice.setReceiveId(post.getCreateId());
+        notice.setType(TypeEnum.COMMENT.getKey());
         if(StrUtil.isNotEmpty(post.getCircleId())){
             notice.setObjectId(post.getCircleId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
