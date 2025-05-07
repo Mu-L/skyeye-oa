@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * @ClassName: NumberCodeEnum
- * @Description: 论坛话题举报类型枚举
+ * @Description: 学校成绩类型枚举
  * @author: skyeye云系列--卫志强
  * @date: 2022/9/11 13:17
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -57,5 +57,13 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
             scoreTypeList.add(scoreTypeChild);
         }
         return scoreTypeList;
+    }
+
+    public static List<Integer> getKeysButAll(){
+        List<Integer> list = new ArrayList<>();
+        for (NumberCodeEnum e : values()) {
+            list.add(e.getValue().equals(CommonNumConstants.NUM_ZERO.toString()) ? -1 : Integer.parseInt(e.getKey()));
+        }
+        return list;
     }
 }

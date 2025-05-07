@@ -55,7 +55,7 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
     @Override
     public void deleteByObjectId(String... objectId) {
         List<String> idList = Arrays.asList(objectId).stream()
-            .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
+                .filter(id -> StrUtil.isNotEmpty(id)).distinct().collect(Collectors.toList());
         if (CollectionUtil.isEmpty(idList)) {
             return;
         }
@@ -148,7 +148,7 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         // 更新学生的成绩
         // 1. 先查询出 scoreTypeChildId
         ScoreTypeChild scoreTypeChild = scoreTypeChildrenList.stream()
-            .filter(item -> item.getNameLinkId().equals(nameLinkId)).findFirst().orElse(null);
+                .filter(item -> item.getNameLinkId().equals(nameLinkId)).findFirst().orElse(null);
         if (ObjectUtil.isEmpty(scoreTypeChild)) {
             // 如果没有这个成绩类型，则先初始化
             initNameLinkMation(subjectId, subClassLinkId, nameLinkId, nameLinkKey, nameLinkName);
@@ -193,13 +193,13 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         treeNodeConfig.setChildrenKey("children");
         treeNodeConfig.setWeightKey("proportion");
         List<Tree<String>> scoreTypeTree = TreeUtil.build(scoreTypeChildrenList, StrUtil.EMPTY, treeNodeConfig,
-            (treeNode, tree) -> {
-                tree.setId(treeNode.getId());
-                tree.setParentId(treeNode.getParentId());
-                tree.setWeight(StrUtil.isEmpty(treeNode.getProportion()) ?
-                    CommonNumConstants.NUM_ZERO.toString() : treeNode.getProportion());
-                tree.putExtra("scoreTypeChild", treeNode);
-            });
+                (treeNode, tree) -> {
+                    tree.setId(treeNode.getId());
+                    tree.setParentId(treeNode.getParentId());
+                    tree.setWeight(StrUtil.isEmpty(treeNode.getProportion()) ?
+                            CommonNumConstants.NUM_ZERO.toString() : treeNode.getProportion());
+                    tree.putExtra("scoreTypeChild", treeNode);
+                });
 
         // 为每个成绩类型节点计算成绩
         for (Tree<String> rootNode : scoreTypeTree) {
@@ -240,7 +240,7 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         String subClassLinkId = params.get("subClassLinkId").toString();
         List<Map<String, Object>> scoreMapList = JSONUtil.toList(params.get("scoreList").toString(), null);
         Map<String, String> scoreMap = scoreMapList.stream()
-            .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item.get("score").toString()));
+                .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item.get("score").toString()));
 
         // 查询这个课程与班级下的所有成绩类型
         List<ScoreTypeChild> scoreTypeChildrenList = scoreTypeChildService.queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
@@ -271,9 +271,9 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
         // 如果是叶子节点，直接返回该节点的分数
         if (CollectionUtil.isEmpty(children)) {
             Score score = scoreList.stream()
-                .filter(s -> s.getObjectId().equals(nodeId))
-                .findFirst()
-                .orElse(null);
+                    .filter(s -> s.getObjectId().equals(nodeId))
+                    .findFirst()
+                    .orElse(null);
             if (score == null) {
                 return 0.0;
             }
@@ -304,9 +304,9 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
 
         // 更新当前节点的分数
         Score currentScore = scoreList.stream()
-            .filter(s -> s.getObjectId().equals(nodeId))
-            .findFirst()
-            .orElse(null);
+                .filter(s -> s.getObjectId().equals(nodeId))
+                .findFirst()
+                .orElse(null);
 
         if (currentScore != null) {
             currentScore.setScore(String.format("%.2f", finalScore));
