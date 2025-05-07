@@ -19,6 +19,10 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
+import com.skyeye.notice.entity.Notice;
+import com.skyeye.notice.noticeenum.NoticeTypeEnum;
+import com.skyeye.notice.noticeenum.TypeEnum;
+import com.skyeye.notice.service.NoticeService;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.userenum.LoginIdentity;
 import com.skyeye.video.dao.VideoDao;
@@ -73,6 +77,9 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
 
     @Autowired
     private VideoTagService videoTagService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Value("${IMAGES_PATH}")
     private String tPath;
@@ -441,11 +448,21 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         if(StrUtil.isEmpty(userToken)){
             throw new CustomException("请先完成登录！");
         }
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         Map<String, Object> map = inputObject.getParams();
         String videoId = map.get("videoId").toString();
         Video video = selectById(videoId);
         int supportNum = Integer.parseInt(video.getTasnNum());
         boolean isSupport = videoRecordService.checkSupportOrCollectByVideoId(videoId, VideoTypeEnum.LIKE.getKey());
+        if(!isSupport){
+            Notice notice = new Notice();
+            notice.setSendId(currentUserId);
+            notice.setReceiveId(video.getCreateId());
+            notice.setObjectId(videoId);
+            notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
+            notice.setType(TypeEnum.LIKE.getKey());
+            noticeService.createEntity(notice,currentUserId);
+        }
         supportNum = isSupport ? supportNum - CommonNumConstants.NUM_ONE : supportNum + CommonNumConstants.NUM_ONE;
         video.setTasnNum(String.valueOf(supportNum));
         updateById(video);

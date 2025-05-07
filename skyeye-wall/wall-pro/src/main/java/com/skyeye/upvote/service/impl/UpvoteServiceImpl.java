@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.comment.entity.Comment;
 import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.GetUserToken;
@@ -15,12 +16,19 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.constants.NoticeContent;
+import com.skyeye.notice.entity.Notice;
+import com.skyeye.notice.noticeenum.NoticeTypeEnum;
+import com.skyeye.notice.noticeenum.TypeEnum;
+import com.skyeye.notice.service.NoticeService;
+import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.upvote.dao.UpvoteDao;
 import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,32 +56,66 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private NoticeService noticeService;
+
     @Override
     public void validatorEntity(Upvote entity) {
         super.validatorEntity(entity);
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if(StrUtil.isEmpty(userToken)){
+        if (StrUtil.isEmpty(userToken)) {
             throw new CustomException("请先完成登录！");
         }
     }
 
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void addOrCancelUpvote(InputObject inputObject, OutputObject outputObject) {
         Upvote upvote = inputObject.getParams(clazz);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         upvote.setUserId(userId);
+        Notice notice = new Notice();
+        notice.setSendId(userId);
+        notice.setType(TypeEnum.LIKE.getKey());
         if (commentService.getServiceClassName().equals(upvote.getObjectKey())) {
             if (estimateAddOrCancel(upvote)) {
                 addUpvoteComment(upvote);
+                // 评论点赞
+                Comment comment = commentService.selectById(upvote.getObjectId());
+                Post post = postService.selectById(comment.getPostId());
+                notice.setReceiveId(comment.getCreateId());
+                if(StrUtil.isNotEmpty(post.getCircleId())){
+                    notice.setObjectId(post.getCircleId());
+                    notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+                }else {
+                    notice.setObjectId(post.getId());
+                    notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
+                }
+                notice.setCommentId(comment.getId());
+                notice.setContent(NoticeContent.UPVOTE_COMMENT);
             } else {
                 updateUpvoteComment(upvote);
             }
         } else {
             if (estimateAddOrCancel(upvote)) {
                 addUpvotePost(upvote);
+                // 点赞
+                String receiveId = postService.selectById(upvote.getObjectId()).getCreateId();
+                Post post = postService.selectById(upvote.getObjectId());
+                if(StrUtil.isNotEmpty(post.getCircleId())){
+                    notice.setObjectId(post.getCircleId());
+                    notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+                }else {
+                    notice.setObjectId(post.getId());
+                    notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
+                }
+                notice.setReceiveId(receiveId);
+                notice.setContent(NoticeContent.UPVOTE_POST);
             } else {
                 updateUpvotePost(upvote);
             }
         }
+        noticeService.createEntity(notice, userId);
         outputObject.setBean(upvote);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -159,7 +201,7 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
     }
 
     @Override
-    public void deleteUpvoteByObjectId(String userId,String objectId) {
+    public void deleteUpvoteByObjectId(String userId, String objectId) {
         QueryWrapper<Upvote> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getObjectId), objectId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Upvote::getUserId), userId);

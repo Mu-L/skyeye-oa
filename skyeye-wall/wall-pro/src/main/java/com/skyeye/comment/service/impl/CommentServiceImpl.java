@@ -31,6 +31,10 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.constants.NoticeContent;
+import com.skyeye.notice.entity.Notice;
+import com.skyeye.notice.noticeenum.NoticeTypeEnum;
+import com.skyeye.notice.noticeenum.TypeEnum;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
 import com.skyeye.post.entity.Post;
@@ -41,6 +45,7 @@ import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -253,6 +258,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void createPostpose(Comment comment, String userId) {
         addCommentNum(comment.getPostId());
         if (CollectionUtil.isNotEmpty(comment.getPicture())) {
@@ -262,6 +268,20 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             picture.setObjectId(comment.getId());
             pictureService.createEntity(picture, userId);
         }
+        // 新增通知
+        Notice notice = new Notice();
+        notice.setSendId(userId);
+        notice.setReceiveId(comment.getCreateId());
+        notice.setType(TypeEnum.COMMENT.getKey());
+        Post post = postService.selectById(comment.getPostId());
+        if(StrUtil.isNotEmpty(post.getCircleId())){
+            notice.setObjectId(post.getCircleId());
+            notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+        }else {
+            notice.setObjectId(post.getId());
+            notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
+        }
+        notice.setContent(NoticeContent.COMMENT_POST);
     }
 
     public void addCommentNum(String postId) {

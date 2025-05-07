@@ -162,9 +162,10 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
      */
     @Override
     public void deleteVideoNoticeByCommentIds(List<String> commentIds) {
-        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(Notice::getCommentId), commentIds);
-        remove(queryWrapper);
+        // TODO 将通知的内容改成 —— 该评论已被删除
+//        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.in(MybatisPlusUtil.toColumns(Notice::getCommentId), commentIds);
+//        remove(queryWrapper);
     }
 
 }

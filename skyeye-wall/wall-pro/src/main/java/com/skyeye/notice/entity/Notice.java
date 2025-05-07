@@ -63,7 +63,7 @@ public class Notice extends OperatorUserInfo {
     private Integer noticeType;
 
     @TableField("type")
-    @ApiModelProperty(value = "通知类型，0:评论，1，点赞",required = "required")
+    @ApiModelProperty(value = "通知类型，0:评论，1，点赞,2,分享",required = "required")
     private Integer type;
 
     @TableField("comment_id")
