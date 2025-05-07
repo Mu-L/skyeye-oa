@@ -81,8 +81,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -216,23 +214,24 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         update(updateWrapper);
         if (examSurveyDirectory.getEndType() != null) {
             if (examSurveyDirectory.getEndType().equals(CommonNumConstants.NUM_TWO)) {
-                startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), DateUtil.getTimeAndToString());
+                startUpTaskQuartz(examSurveyDirectory.getId(), examSurveyDirectory.getSurveyName(), examSurveyDirectory.getRealEndTime());
             }
         }
     }
 
-
-    private void startUpTaskQuartz(String name, String title, String startTime) {
-        /// 处理日期  此处delayedTime为当前日期
-        Date stringToDate = DateUtil.getPointTime(startTime, DateUtil.YYYY_MM_DD_HH_MM_SS);
-        Date afterOneDay = DateUtil.getAfDate(stringToDate, 120, "m");
-        DateFormat df = new SimpleDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);
-        String lastTime = df.format(afterOneDay);
+    /**
+     * 启动定时任务
+     *
+     * @param name    定时任务名称
+     * @param title   定时任务标题
+     * @param endTime 定时任务开始时间
+     */
+    private void startUpTaskQuartz(String name, String title, String endTime) {
         // 正式准备启动定时任务
         SysQuartzMation sysQuartzMation = new SysQuartzMation();
         sysQuartzMation.setName(name);
         sysQuartzMation.setTitle(title);
-        sysQuartzMation.setDelayedTime(lastTime);
+        sysQuartzMation.setDelayedTime(endTime);
         sysQuartzMation.setGroupId(QuartzConstants.QuartzMateMationJobType.CREATE_EXAM.getTaskType());
         iQuartzService.startUpTaskQuartz(sysQuartzMation);
     }
@@ -445,24 +444,24 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         List<Question> questionList = entity.getQuestionMation();
         List<Question> existingQuestions = questionService.QueryQuestionByBelongId(surveId);
         List<String> existingIds = existingQuestions.stream().map(Question::getId)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         Map<Boolean, List<Question>> partitionedQuestions = questionList.stream()
-                .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
+            .collect(Collectors.partitioningBy(question -> StrUtil.isNotEmpty(question.getId())));
         List<Question> questionsWithId = partitionedQuestions.get(true);
         List<Question> questionsWithoutId = partitionedQuestions.get(false);
         List<String> submittedIds = questionsWithId.stream().map(Question::getId)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         Set<String> submittedIdSet = new HashSet<>(submittedIds);
         List<String> idsToDelete = existingIds.stream()
-                .filter(id -> !submittedIdSet.contains(id))
-                .collect(Collectors.toList());
+            .filter(id -> !submittedIdSet.contains(id))
+            .collect(Collectors.toList());
         questionService.deleteById(idsToDelete);
         if (CollectionUtil.isNotEmpty(questionsWithId)) {
             List<Question> createQuestion = new ArrayList<>();
             //纯题目
             List<Question> collect = questionsWithId.stream()
-                    .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
-                            StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
+                .filter(question -> StrUtil.isNotEmpty(question.getId()) &&
+                    StrUtil.isEmpty(question.getBelongId())).collect(Collectors.toList());
             createQuestion.addAll(collect);
             for (Question question : createQuestion) {
                 question.setBelongId(surveId);
@@ -695,7 +694,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         ExamSurveyDirectory bean = super.selectById(surveyId);
         List<Question> questionList = questionService.QueryQuestionByBelongIdAndStuId(surveyId, studentId);
         Map<String, List<Question>> collect = questionList.stream()
-                .collect(Collectors.groupingBy(Question::getId));
+            .collect(Collectors.groupingBy(Question::getId));
         Map<String, List<ExamSurveyQuAnswer>> stringFloatMap = examSurveyQuAnswerService.selectFacByIdAndSurveyId(id, surveyId);
         // 遍历分组后的 Map
         for (Map.Entry<String, List<Question>> entry : collect.entrySet()) {
@@ -719,11 +718,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
         QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, surveyIds)
-                .and(wrapper -> wrapper
-                        .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE)
-                        .or()
-                        .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO)
-                );
+            .and(wrapper -> wrapper
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_ONE)
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyState), CommonNumConstants.NUM_TWO)
+            );
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
         List<ExamSurveyDirectory> examSurveyDirectoryList = list(queryWrapper);
         if (CollectionUtil.isEmpty(examSurveyDirectoryList)) {
@@ -836,13 +835,13 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<String> yesDoSurveyList = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId).collect(Collectors.toList());
             // 过滤掉学生做过的试卷
             objectIdMapList.replaceAll((subjectId, directories) ->
-                    directories.stream()
-                            .filter(dir -> !yesDoSurveyList.contains(dir.getId()))
-                            .collect(Collectors.toList())
+                directories.stream()
+                    .filter(dir -> !yesDoSurveyList.contains(dir.getId()))
+                    .collect(Collectors.toList())
             );
             // 获取目标科目下的试卷列表
             List<ExamSurveyDirectory> filteredList = Optional.ofNullable(objectIdMapList.get(objectId))
-                    .orElseGet(Collections::emptyList);
+                .orElseGet(Collections::emptyList);
             int pageSize = Math.max(1, commonPageInfo.getLimit());
             int pageNum = Math.max(1, commonPageInfo.getPage());
             // 计算分页范围
@@ -876,15 +875,15 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<ExamSurveyAnswer> examSurveyAnswerList = examSurveyAnswerService.selectSurveyIdByteacherId(userId);
             if (CollectionUtil.isNotEmpty(examSurveyAnswerList)) {
                 Set<String> yesDoSurveyIds = examSurveyAnswerList.stream().map(ExamSurveyAnswer::getSurveyId)
-                        .collect(Collectors.toSet());
+                    .collect(Collectors.toSet());
                 allResults.forEach(
-                        survey -> {
-                            if (yesDoSurveyIds.contains(survey.getId())) {
-                                survey.setIsAnswered(true);
-                            } else {
-                                survey.setIsAnswered(false);
-                            }
+                    survey -> {
+                        if (yesDoSurveyIds.contains(survey.getId())) {
+                            survey.setIsAnswered(true);
+                        } else {
+                            survey.setIsAnswered(false);
                         }
+                    }
                 );
             }
             SubjectClasses idAndClassesId = subjectClassesService.getSubjectClassesByObjectIdAndClassesId(objectId, holderId);
@@ -893,25 +892,25 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             int size;
             if (idAndClassesId != null) {
                 List<SubjectClassesStu> subjectClassesStuList = Optional.ofNullable(
-                                subjectClassesStuService.selectNumBySubClassLinkId(idAndClassesId.getId()))
-                        .orElseGet(Collections::emptyList);
+                        subjectClassesStuService.selectNumBySubClassLinkId(idAndClassesId.getId()))
+                    .orElseGet(Collections::emptyList);
                 size = subjectClassesStuList.size();
             } else {
                 size = 0;
             }
             //试卷所有Id
             List<String> collect = allResults.stream()
-                    .map(ExamSurveyDirectory::getId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                .map(ExamSurveyDirectory::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
             //已交未批试卷
             Map<String, Integer> stringIntegerMap = CollectionUtil.isNotEmpty(collect)
-                    ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_ONE)
-                    : Collections.emptyMap();
+                ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_ONE)
+                : Collections.emptyMap();
             // 已交已批试卷
             Map<String, Integer> stringIntegerMap1 = CollectionUtil.isNotEmpty(collect)
-                    ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_TWO)
-                    : Collections.emptyMap();
+                ? examSurveyAnswerService.queryAnswerNum(collect, createId, holderId, objectId, CommonNumConstants.NUM_TWO)
+                : Collections.emptyMap();
             Map<String, Integer> finalStringIntegerMap = stringIntegerMap;
             Map<String, Integer> finalStringIntegerMap1 = stringIntegerMap1;
             allResults.forEach(survey -> {
@@ -932,9 +931,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             long offset = (long) (pageNum - 1) * pageSize;
             // 分页处理
             List<ExamSurveyDirectory> pagedList = allResults.stream()
-                    .skip(offset)
-                    .limit(pageSize)
-                    .collect(Collectors.toList());
+                .skip(offset)
+                .limit(pageSize)
+                .collect(Collectors.toList());
             if (CollectionUtils.isEmpty(pagedList)) {
                 outputObject.settotal(CommonNumConstants.NUM_ZERO);
                 outputObject.setBeans(Collections.emptyList());
@@ -1069,9 +1068,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             }
         }
         List<ExamSurveyDirectory> filteredExamSurveyDirectoryList = examSurveyDirectoryList.stream()
-                .filter(examSurveyDirectory -> examSurveyDirectory.getIsMarkState() != null
-                        && examSurveyDirectory.getIsMarkState().equals(stateInt))
-                .collect(Collectors.toList());
+            .filter(examSurveyDirectory -> examSurveyDirectory.getIsMarkState() != null
+                && examSurveyDirectory.getIsMarkState().equals(stateInt))
+            .collect(Collectors.toList());
         outputObject.setBeans(filteredExamSurveyDirectoryList);
         outputObject.settotal(page.getTotal());
     }
