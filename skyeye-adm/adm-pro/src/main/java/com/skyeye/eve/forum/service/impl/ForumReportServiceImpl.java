@@ -128,6 +128,8 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
             mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getReportTypeId), commonPageInfo.getTypeId());
         }
+        // 根据创建时间降序排序
+        mpjLambdaWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumReport::getReportTime));
         List<ForumReport> forumReportList = skyeyeBaseMapper.selectJoinList(ForumReport.class, mpjLambdaWrapper);
         if (CollectionUtil.isEmpty(forumReportList)) {
             return;

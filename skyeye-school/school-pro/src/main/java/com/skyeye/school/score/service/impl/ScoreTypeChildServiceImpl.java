@@ -23,6 +23,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
+import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
@@ -35,10 +36,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +64,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     private SubjectClassesStuService subjectClassesStuService;
 
     @Override
-    public void validatorEntity(ScoreTypeChild scoreTypeChild) {
-        // 新增/编辑不操作占比和parentId，通过另外的接口修改
+    public void createPrepose(ScoreTypeChild scoreTypeChild) {
         scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
     }
 
@@ -319,22 +316,103 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
                 }
             });
         }
-        float sum =0;
+        float sum = 0;
         for (Map<String, Object> student : userList) {
             String stuNo = student.get("studentNumber").toString();
             List<Score> scores = stuCollect.get(stuNo);
             if (CollectionUtil.isEmpty(scores)) {
-                stuScoreMap.get(stuNo).put("avg", String.format("%.2f",sum) );
+                stuScoreMap.get(stuNo).put("avg", String.format("%.2f", sum));
                 continue;
             }
             for (Score score : scores) {
                 sum += Float.parseFloat(score.getScore());
             }
-            stuScoreMap.get(stuNo).put("avg", String.format("%.2f",sum/scoreTypeChildList.size()) );
+            stuScoreMap.get(stuNo).put("avg", String.format("%.2f", sum / scoreTypeChildList.size()));
             sum = 0;
         }
         List<Map<String, Object>> result = stuScoreMap.values().stream().collect(Collectors.toList());
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
+    }
+
+    @Override
+    public void changeProportion(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        List<Map<String, Object>> proportionMapList = JSONUtil.toList(params.get("proportionList").toString(), null);
+        Map<String, String> proportionMap = proportionMapList.stream()
+                .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item.get("proportion").toString()));
+
+        // 查询这个课程与班级下的所有成绩类型
+        List<ScoreTypeChild> scoreTypeChildrenList = queryBySubjectIdAndSubjectClassId(subjectId, subClassLinkId);
+        for (ScoreTypeChild scoreTypeChild : scoreTypeChildrenList) {
+            if (proportionMap.containsKey(scoreTypeChild.getId())) {
+                scoreTypeChild.setProportion(proportionMap.get(scoreTypeChild.getId()));
+            }
+        }
+        List<String> scoreTypeIds = scoreTypeChildrenList.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        // 查询这个学生的成绩
+        List<Score> scoreList = scoreService.queryScoreList(scoreTypeIds, StrUtil.EMPTY);
+        // 计算成绩
+        scoreService.calculateScore(scoreTypeChildrenList, scoreList);
+        super.updateEntity(scoreTypeChildrenList, inputObject.getLogParams().get("id").toString());
+    }
+
+    @Override
+    public void queryScoreTypeChildListByParentId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String subjectId = params.get("subjectId").toString();
+        String subClassLinkId = params.get("subClassLinkId").toString();
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
+                .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
+        queryWrapper.and(wra -> {
+            String parentId = MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId);
+            wra.eq(parentId, id)
+                    .or(w -> {
+                        w.eq(parentId, StrUtil.EMPTY)
+                                .or().eq(parentId, null);
+                    });
+        });
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), NumberCodeEnum.getKeysButAll());
+        List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(scoreTypeChildList)) {
+            return;
+        }
+        List<ScoreTypeChild> beans = scoreTypeChildList.stream()
+                .filter(scoreTypeChild -> !Objects.equals(NumberCodeEnum.ALL.getKey(), scoreTypeChild.getNameLinkId())).collect(Collectors.toList());
+
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public void connectScore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        ScoreTypeChild parentSTC = selectById(id);
+        if (ObjectUtil.isEmpty(parentSTC)) {
+            throw new CustomException("该id查询不到数据");
+        }
+        List<String> childIdList = JSONUtil.toList(params.get("childIdList").toString(), null);
+        List<ScoreTypeChild> scoreTypeChildren = super.selectByIds(childIdList.toArray(new String[]{}));
+        if (CollectionUtil.isEmpty(scoreTypeChildren)) {
+            throw new CustomException("该childIdList查询不到数据");
+        }
+        for (ScoreTypeChild scoreTypeChild : scoreTypeChildren) {
+            if (StrUtil.isEmpty(scoreTypeChild.getParentId())) {
+                // 关联的成绩类型的parentId为空，则表示该成绩类型还没有绑定，直接绑定
+                scoreTypeChild.setParentId(id);
+            } else if (StrUtil.isNotEmpty(scoreTypeChild.getParentId())) {
+                // 关联的成绩类型的parentId不为空，则表示该成绩类型已经有绑定，解除绑定
+                scoreTypeChild.setParentId(StrUtil.EMPTY);
+            }
+        }
+        super.updateEntity(scoreTypeChildren, inputObject.getLogParams().get("id").toString());
+        scoreService.calculateScore(parentSTC.getSubjectId(), parentSTC.getSubClassLinkId());
+        outputObject.setBeans(scoreTypeChildren);
+        outputObject.settotal(scoreTypeChildren.size());
     }
 }

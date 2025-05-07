@@ -46,4 +46,9 @@ public interface ScoreTypeChildService extends SkyeyeBusinessService<ScoreTypeCh
 
     void queryScoreTypeChildSecondList(InputObject inputObject, OutputObject outputObject);
 
+    void changeProportion(InputObject inputObject, OutputObject outputObject);
+
+    void queryScoreTypeChildListByParentId(InputObject inputObject, OutputObject outputObject);
+
+    void connectScore(InputObject inputObject, OutputObject outputObject);
 }
