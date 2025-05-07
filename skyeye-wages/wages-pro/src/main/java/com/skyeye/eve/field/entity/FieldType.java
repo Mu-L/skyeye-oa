@@ -14,6 +14,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.eve.field.classenum.WagesTypeEnum;
 import lombok.Data;
 
 /**
@@ -48,11 +50,11 @@ public class FieldType extends OperatorUserInfo {
     private Integer monthlyClearing;
 
     @TableField("wages_type")
-    @ApiModelProperty(value = "薪资字段类型，参考#WagesTypeEnum", required = "required,num")
+    @ApiModelProperty(value = "薪资字段类型", enumClass = WagesTypeEnum.class, required = "required,num")
     private Integer wagesType;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
 }

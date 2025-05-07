@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeFlowableService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.leave.entity.Leave;
+import com.skyeye.leave.entity.LeaveTimeSlot;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,8 @@ public interface LeaveService extends SkyeyeFlowableService<Leave> {
      * @return
      */
     List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months);
+
+    Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime);
 
     Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay);
 

@@ -6,6 +6,7 @@ package com.skyeye.trip.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
 import com.skyeye.trip.entity.BusinessTrip;
+import com.skyeye.trip.entity.BusinessTripTimeSlot;
 
 import java.util.List;
 import java.util.Map;
@@ -31,4 +32,11 @@ public interface BusinessTripService extends SkyeyeFlowableService<BusinessTrip>
     List<Map<String, Object>> queryStateIsSuccessBusinessTripDayByUserIdAndMonths(String userId, String timeId,
                                                                                   List<String> months);
 
+    /**
+     * 获取指定员工在指定月份和班次的所有审核通过的出差申请数据
+     * @param employeeId
+     */
+    void queryYesDoTime(String employeeId);
+
+    Map<String, List<BusinessTripTimeSlot>> queryStateIsSuccessBusinessTripDayByUserId(String startTime, String endTime);
 }

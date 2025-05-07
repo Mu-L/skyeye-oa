@@ -7,6 +7,9 @@ package com.skyeye.trip.service;
 import com.skyeye.base.business.service.SkyeyeLinkDataService;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: BusinessTripTimeSlotService
  * @Description: 出差申请出差时间段信息服务接口层
@@ -16,4 +19,5 @@ import com.skyeye.trip.entity.BusinessTripTimeSlot;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface BusinessTripTimeSlotService extends SkyeyeLinkDataService<BusinessTripTimeSlot> {
+    Map<String, List<BusinessTripTimeSlot>> queryBusinessTripTimeSlotListByBusinessTripIds(List<String> allBusinessTripIds);
 }

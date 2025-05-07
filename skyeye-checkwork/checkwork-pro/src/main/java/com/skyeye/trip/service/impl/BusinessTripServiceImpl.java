@@ -5,6 +5,7 @@
 package com.skyeye.trip.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -12,7 +13,9 @@ import com.skyeye.common.enumeration.CheckDayType;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.trip.dao.BusinessTripDao;
 import com.skyeye.trip.entity.BusinessTrip;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
@@ -23,10 +26,7 @@ import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +46,9 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
 
     @Autowired
     private CheckWorkTimeService checkWorkTimeService;
+
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
@@ -149,5 +152,47 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
             return beans;
         }
         return new ArrayList<>();
+    }
+
+    @Override
+    public void queryYesDoTime(String employeeId) {
+        QueryWrapper<BusinessTrip> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), employeeId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getState), FlowableChildStateEnum.ADEQUATE.getKey());
+
+    }
+
+    @Override
+    public Map<String, List<BusinessTripTimeSlot>> queryStateIsSuccessBusinessTripDayByUserId(String startTime, String endTime) {
+        // 所有员工
+        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        List<String> allIds = Optional.ofNullable(allStaffList).orElse(Collections.emptyList()).stream()
+            .filter(map -> map != null).map(map -> {
+                Object userId = map.get("userId");
+                return userId != null ? userId.toString() : null;
+            }).filter(Objects::nonNull).collect(Collectors.toList());
+        // 所有员工的出差信息
+        List<BusinessTrip> businessTrips = queryAllBusinessTripListByStaffId(allIds);
+        // 所有员工的出差表Id
+        List<String> allBusinessTripIds = businessTrips.stream().map(BusinessTrip::getId).collect(Collectors.toList());
+        // 根据出差的主键Id拿到对应的出差时间
+        Map<String, List<BusinessTripTimeSlot>> businessTripTimeSlots = businessTripTimeSlotService.queryBusinessTripTimeSlotListByBusinessTripIds(allBusinessTripIds);
+        Map<String, String> businessTripTimeSlotMap = businessTrips.stream().collect(Collectors.toMap(BusinessTrip::getId, BusinessTrip::getCreateId));
+        Map<String, List<BusinessTripTimeSlot>> stringListMap = businessTripTimeSlots.entrySet().stream()
+            .collect(Collectors.toMap(
+                entry -> businessTripTimeSlotMap.get(entry.getKey()),
+                Map.Entry::getValue,
+                (existing, replacement) -> existing
+            ));
+        return stringListMap;
+    }
+
+    private List<BusinessTrip> queryAllBusinessTripListByStaffId(List<String> allIds) {
+        QueryWrapper<BusinessTrip> businessTripWrapper = new QueryWrapper<>();
+        businessTripWrapper.in(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), allIds);
+        List<BusinessTrip> businessTripList = list(businessTripWrapper);
+        return businessTripList;
+
+
     }
 }

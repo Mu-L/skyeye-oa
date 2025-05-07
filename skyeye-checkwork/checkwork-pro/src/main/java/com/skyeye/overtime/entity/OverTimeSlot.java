@@ -22,7 +22,7 @@ import lombok.Data;
  */
 @Data
 @TableName(value = "check_work_overtime_time_slot", autoResultMap = true)
-@ApiModel("出差申请出差时间段实体类")
+@ApiModel("加班申请加班时间段实体类")
 public class OverTimeSlot extends SkyeyeLinkData {
 
     @TableField(value = "overtime_day")

@@ -55,7 +55,6 @@ public class WagesFieldTypeController {
     }
 
     @ApiOperation(id = "queryEnableWagesFieldTypeList", value = "获取已经启用的薪资字段列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesFieldTypeController/queryEnableWagesFieldTypeList")
     public void queryEnableWagesFieldTypeList(InputObject inputObject, OutputObject outputObject) {
         wagesFieldTypeService.queryEnableWagesFieldTypeList(inputObject, outputObject);

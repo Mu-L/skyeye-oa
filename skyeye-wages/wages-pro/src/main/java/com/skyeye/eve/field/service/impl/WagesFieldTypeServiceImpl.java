@@ -7,8 +7,6 @@ package com.skyeye.eve.field.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -102,20 +100,13 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
         fieldStaffLinkService.deleteStaffFiledKey(entity.getKey());
     }
 
-    /**
-     * 获取已经启用的薪资字段列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryEnableWagesFieldTypeList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        pageInfo.setEnabled(EnableEnum.ENABLE_USING.getKey());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryWagesFieldTypeList(pageInfo);
-        outputObject.setBeans(beans);
-        outputObject.settotal(pages.getTotal());
+        QueryWrapper<FieldType> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FieldType::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        List<FieldType> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     @Override

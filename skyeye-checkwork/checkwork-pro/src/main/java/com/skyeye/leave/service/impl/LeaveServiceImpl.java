@@ -6,6 +6,7 @@ package com.skyeye.leave.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
@@ -19,6 +20,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.entity.checkwork.UserStaffHolidayRest;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
@@ -29,6 +31,7 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
+import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +63,9 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
 
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
+
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
@@ -221,7 +227,6 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
         sysUserStaffHoliday.setRetiredHolidayNumber(retiredHolidayNumber);
         sysUserStaffHoliday.setRetiredHolidayStatisTime(DateUtil.getTimeAndToString());
         ExecuteFeignClient.get(() -> sysEveUserService.updateSysUserStaffRetiredHolidayNumberById(sysUserStaffHoliday)).getBean();
-
     }
 
     /**
@@ -255,6 +260,40 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
             bean.put("editable", false);
         });
         return beans;
+    }
+
+    @Override
+    public Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime) {
+        // 所有员工
+        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        List<String> allIds = Optional.ofNullable(allStaffList).orElse(Collections.emptyList()).stream()
+            .filter(map -> map != null).map(map -> {
+                Object userId = map.get("userId");
+                return userId != null ? userId.toString() : null;
+            }).filter(Objects::nonNull) .collect(Collectors.toList());
+        // 所有员工的请假信息
+        List<Leave> leaves = queryAllLeaveListByStaffId(allIds);
+        // 所有员工的请假表Id
+        List<String> leaveIds = leaves.stream().map(Leave::getId).collect(Collectors.toList());
+        // 根据请假的主键Id拿到对应的请假时间
+        Map<String, List<LeaveTimeSlot>> leaveTimeSlots = leaveTimeSlotService.queryLeaveTimeSlotListByLeaveIds(leaveIds);
+        // 获取所有请假的createId，并建立id到createId的映射
+        Map<String, String> leaveIdToCreateIdMap = leaves.stream().collect(Collectors.toMap(Leave::getId, Leave::getCreateId));
+        // 根据leaveId到createId的映射，重新组织leaveTimeSlots
+        Map<String, List<LeaveTimeSlot>> leaveTimeSlotsByCreateId = leaveTimeSlots.entrySet().stream()
+            .collect(Collectors.toMap(
+                entry -> leaveIdToCreateIdMap.get(entry.getKey()),
+                Map.Entry::getValue,
+                (existing, replacement) -> existing
+            ));
+        return leaveTimeSlotsByCreateId;
+    }
+
+    private List<Leave> queryAllLeaveListByStaffId(List<String> allIds) {
+        QueryWrapper<Leave> leaveWrapper = new QueryWrapper<>();
+        leaveWrapper.in(MybatisPlusUtil.toColumns(Leave::getCreateId), allIds);
+        List<Leave> leaveList = list(leaveWrapper);
+        return leaveList;
     }
 
     /**
