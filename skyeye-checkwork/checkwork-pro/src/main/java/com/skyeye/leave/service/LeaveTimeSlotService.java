@@ -7,6 +7,9 @@ package com.skyeye.leave.service;
 import com.skyeye.base.business.service.SkyeyeLinkDataService;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: LeaveTimeSlotService
  * @Description: 请假申请请假时间段服务接口层
@@ -19,4 +22,5 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
 
     void editStateById(String id, String state, Integer useYearHoliday);
 
+    Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds);
 }

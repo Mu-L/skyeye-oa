@@ -4,6 +4,7 @@
 
 package com.skyeye.leave.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
@@ -13,6 +14,10 @@ import com.skyeye.leave.dao.LeaveTimeSlotDao;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveTimeSlotService;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * @ClassName: LeaveTimeSlotServiceImpl
@@ -33,5 +38,13 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
         updateWrapper.set(MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), state);
         updateWrapper.set(MybatisPlusUtil.toColumns(LeaveTimeSlot::getUseYearHoliday), useYearHoliday);
         update(updateWrapper);
+    }
+
+    @Override
+    public Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds) {
+        QueryWrapper<LeaveTimeSlot> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(LeaveTimeSlot::getParentId), leaveIds);
+        Map<String, List<LeaveTimeSlot>> listMap = list(queryWrapper).stream().collect(Collectors.groupingBy(LeaveTimeSlot::getParentId));
+        return listMap;
     }
 }

@@ -4,12 +4,18 @@
 
 package com.skyeye.trip.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.trip.dao.BusinessTripTimeSlotDao;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
 import com.skyeye.trip.service.BusinessTripTimeSlotService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: BusinessTripTimeSlotServiceImpl
@@ -23,4 +29,11 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "出差时间段", groupName = "出差申请", manageShow = false)
 public class BusinessTripTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<BusinessTripTimeSlotDao, BusinessTripTimeSlot> implements BusinessTripTimeSlotService {
 
+    @Override
+    public Map<String, List<BusinessTripTimeSlot>> queryBusinessTripTimeSlotListByBusinessTripIds(List<String> allBusinessTripIds) {
+        QueryWrapper<BusinessTripTimeSlot> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(BusinessTripTimeSlot::getParentId), allBusinessTripIds);
+        Map<String, List<BusinessTripTimeSlot>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(BusinessTripTimeSlot::getParentId));
+        return stringListMap;
+    }
 }

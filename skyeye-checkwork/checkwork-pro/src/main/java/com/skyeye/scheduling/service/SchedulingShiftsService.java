@@ -1,0 +1,10 @@
+package com.skyeye.scheduling.service;
+
+import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.scheduling.entity.SchedulingShifts;
+
+public interface SchedulingShiftsService extends SkyeyeBusinessService<SchedulingShifts> {
+    void deleteSchedulingShifts(InputObject inputObject, OutputObject outputObject);
+}
