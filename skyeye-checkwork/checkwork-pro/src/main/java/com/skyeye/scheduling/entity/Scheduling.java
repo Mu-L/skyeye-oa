@@ -7,6 +7,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.scheduling.classenum.SchedulePeopleType;
+import com.skyeye.scheduling.classenum.ScheduleType;
 import lombok.Data;
 
 import java.util.List;
@@ -34,11 +36,11 @@ public class Scheduling extends OperatorUserInfo {
     private String scheduleDate;
 
     @TableField(value = "schedule_type")
-    @ApiModelProperty(value = "排班状态 1 自动 2 手动")
+    @ApiModelProperty(value = "排班状态 1 自动 2 手动" ,enumClass = ScheduleType.class)
     private Integer scheduleType;
 
     @TableField(value = "schedule_people_type")
-    @ApiModelProperty(value = "排班人的状态（1 在职中 2 请假中 3 出差中）",defaultValue = "1")
+    @ApiModelProperty(value = "排班人的状态（1 在职中 2 请假中 3 出差中）",defaultValue = "1" ,enumClass = SchedulePeopleType.class)
     private Integer schedulePeopleType;
 
     @TableField(exist = false)

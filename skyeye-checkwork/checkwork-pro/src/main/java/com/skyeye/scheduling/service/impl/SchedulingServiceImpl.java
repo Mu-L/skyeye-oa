@@ -15,7 +15,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -25,6 +24,8 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.rest.promote.service.ISysEveUserStaffService;
+import com.skyeye.scheduling.classenum.SchedulePeopleType;
+import com.skyeye.scheduling.classenum.ScheduleType;
 import com.skyeye.scheduling.dao.SchedulingDao;
 import com.skyeye.scheduling.entity.Scheduling;
 import com.skyeye.scheduling.entity.SchedulingShifts;
@@ -75,6 +76,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         if (ObjectUtil.isNotEmpty(scheduling)) {
             throw new CustomException("该员工已存在该班次");
         }
+        entity.setScheduleType(ScheduleType.MANUAL.getKey());
     }
 
     //配置整体规划算法的静态代码块
@@ -269,8 +271,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                             scheduling.setEmployeeId(staffId);
                             scheduling.setShiftId(shifts.get(sh).getId());
                             scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                            scheduling.setScheduleType(CommonNumConstants.NUM_ONE);
-                            scheduling.setSchedulePeopleType(1); // 排班时状态为在职
+                            scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
+                            scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey()); // 排班时状态为在职
                             staffSchedule.put(date, scheduling);
                             break;
                         }
@@ -299,7 +301,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                             scheduling.setId(IdUtil.simpleUUID());
                             scheduling.setEmployeeId(staffId);
                             scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                            scheduling.setScheduleType(CommonNumConstants.NUM_ONE);
+                            scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
                             scheduling.setSchedulePeopleType(status); // 2或3
                             // 无班次信息
                             scheduling.setShiftId(null);
