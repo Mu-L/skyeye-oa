@@ -35,6 +35,7 @@ import com.skyeye.notice.constants.NoticeContent;
 import com.skyeye.notice.entity.Notice;
 import com.skyeye.notice.noticeenum.NoticeTypeEnum;
 import com.skyeye.notice.noticeenum.TypeEnum;
+import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
 import com.skyeye.post.entity.Post;
@@ -82,6 +83,9 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
 
     @Autowired
     private IAuthUserService iAuthUserService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -282,6 +286,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
         }
         notice.setContent(NoticeContent.COMMENT_POST);
+        noticeService.createEntity(notice, userId);
     }
 
     public void addCommentNum(String postId) {

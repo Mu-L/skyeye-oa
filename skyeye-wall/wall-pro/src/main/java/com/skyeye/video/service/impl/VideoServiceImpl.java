@@ -19,6 +19,7 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
+import com.skyeye.notice.constants.NoticeContent;
 import com.skyeye.notice.entity.Notice;
 import com.skyeye.notice.noticeenum.NoticeTypeEnum;
 import com.skyeye.notice.noticeenum.TypeEnum;
@@ -461,6 +462,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             notice.setObjectId(videoId);
             notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
             notice.setType(TypeEnum.LIKE.getKey());
+            notice.setContent(NoticeContent.UPVOTE_VIDEO);
             noticeService.createEntity(notice,currentUserId);
         }
         supportNum = isSupport ? supportNum - CommonNumConstants.NUM_ONE : supportNum + CommonNumConstants.NUM_ONE;

@@ -19,6 +19,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.constants.NoticeContent;
 import com.skyeye.notice.entity.Notice;
 import com.skyeye.notice.noticeenum.NoticeTypeEnum;
 import com.skyeye.notice.noticeenum.TypeEnum;
@@ -112,6 +113,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         notice.setObjectId(videoId);
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
         notice.setType(TypeEnum.COMMENT.getKey());
+        notice.setContent(NoticeContent.COMMENT_VIDEO);
         noticeService.createEntity(notice, userId);
     }
 
@@ -235,6 +237,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             notice.setObjectId(videoComment.getVideoId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
             notice.setType(TypeEnum.LIKE.getKey());
+            notice.setContent(NoticeContent.UPVOTE_COMMENT);
             noticeService.createEntity(notice, userId);
         } else {
             // 该用户已经对这个评论进行点赞

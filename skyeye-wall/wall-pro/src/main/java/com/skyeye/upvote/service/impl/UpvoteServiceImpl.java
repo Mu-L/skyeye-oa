@@ -93,6 +93,7 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
                 }
                 notice.setCommentId(comment.getId());
                 notice.setContent(NoticeContent.UPVOTE_COMMENT);
+                noticeService.createEntity(notice, userId);
             } else {
                 updateUpvoteComment(upvote);
             }
@@ -111,11 +112,11 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
                 }
                 notice.setReceiveId(receiveId);
                 notice.setContent(NoticeContent.UPVOTE_POST);
+                noticeService.createEntity(notice, userId);
             } else {
                 updateUpvotePost(upvote);
             }
         }
-        noticeService.createEntity(notice, userId);
         outputObject.setBean(upvote);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
