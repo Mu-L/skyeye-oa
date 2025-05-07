@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
 public enum TypeEnum implements SkyeyeEnumClass {
 
     COMMENT(0, "评论", true, true),
-    LIKE(1, "点赞", true, false);
+    LIKE(1, "点赞", true, false),
+    SHARE(2, "分享", true, false),;
 
     private Integer key;
 

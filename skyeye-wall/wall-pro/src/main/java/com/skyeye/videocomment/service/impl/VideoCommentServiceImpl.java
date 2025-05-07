@@ -19,6 +19,10 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.constants.NoticeContent;
+import com.skyeye.notice.entity.Notice;
+import com.skyeye.notice.noticeenum.NoticeTypeEnum;
+import com.skyeye.notice.noticeenum.TypeEnum;
 import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
@@ -101,6 +105,17 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             picture.setObjectId(entity.getId());
             pictureService.createEntity(entity.getPicture(), userId);
         }
+        // 通知
+        Notice notice = new Notice();
+        notice.setSendId(userId);
+        notice.setReceiveId(video.getCreateId());
+        notice.setCommentId(entity.getId());
+        notice.setObjectId(videoId);
+        notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
+        notice.setType(TypeEnum.COMMENT.getKey());
+        notice.setContent(NoticeContent.COMMENT_VIDEO);
+        noticeService.createEntity(notice, userId);
+        // TODO 回复他人通知
     }
 
     @Override
@@ -121,8 +136,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
-        // TODO 通知管理
-//        noticeService.deleteVideoNoticeByCommentIds(ids);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
     }
 
     private void setCommentPicture(List<VideoComment> list) {
@@ -216,6 +230,16 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             upvote.setObjectKey(videoCommentService.getServiceClassName());
             upvote.setCreateTime(LocalDateTime.now().toString());
             upvoteService.createEntity(upvote, null);
+            // 发送通知
+            Notice notice = new Notice();
+            notice.setSendId(userId);
+            notice.setReceiveId(videoComment.getCreateId());
+            notice.setCommentId(videoComment.getId());
+            notice.setObjectId(videoComment.getVideoId());
+            notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
+            notice.setType(TypeEnum.LIKE.getKey());
+            notice.setContent(NoticeContent.UPVOTE_COMMENT);
+            noticeService.createEntity(notice, userId);
         } else {
             // 该用户已经对这个评论进行点赞
             VideoComment videoComment = selectById(commentId);

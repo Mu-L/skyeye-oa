@@ -407,25 +407,33 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         }
     }
 
-    /**
-     * 获取角色和当前已经绑定的角色信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryRoleAndBindRoleByUserId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        // 当开启多租户时，传递的是员工iD，关闭多租户时，传递的是用户ID
+        String id = map.get("id").toString();
         // 获取角色列表
         List<Map<String, Object>> roles = sysEveRoleService.queryAllDataForMap();
         // 获取用户绑定的角色ID串
-        String userRoleIds = queryBindRolesByUserId(map.get("id").toString());
-        String[] roleIds = userRoleIds.split(CommonCharConstants.COMMA_MARK);
-        for (Map<String, Object> bean : roles) {
-            if (Arrays.asList(roleIds).contains(bean.get("id").toString())) {
-                bean.put("isCheck", "checked");
+        String userRoleIds;
+        if (!tenantEnable) {
+            // 单租户模式
+            userRoleIds = queryBindRolesByUserId(id);
+        } else {
+            // 多租户模式
+            TenantUser tenantUser = tenantUserService.getTenantUserByStaffId(id);
+            userRoleIds = tenantUser.getRoleId();
+        }
+
+        if (StrUtil.isNotEmpty(userRoleIds)) {
+            String[] roleIds = userRoleIds.split(CommonCharConstants.COMMA_MARK);
+            for (Map<String, Object> bean : roles) {
+                if (Arrays.asList(roleIds).contains(bean.get("id").toString())) {
+                    bean.put("isCheck", "checked");
+                }
             }
         }
+
         outputObject.setBeans(roles);
         outputObject.settotal(roles.size());
     }

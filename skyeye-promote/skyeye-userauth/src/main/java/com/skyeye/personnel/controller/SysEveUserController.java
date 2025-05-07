@@ -78,9 +78,9 @@ public class SysEveUserController {
         sysEveUserService.queryUserMationBySession(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "sys019", value = "获取角色和指定用户已经绑定的角色信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "sys019", value = "获取角色列表和指定用户已经绑定的角色列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "用户ID", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "当开启多租户时，传递的是员工iD，关闭多租户时，传递的是用户ID", required = "required")})
     @RequestMapping("/post/SysEveUserController/queryRoleAndBindRoleByUserId")
     public void queryRoleAndBindRoleByUserId(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.queryRoleAndBindRoleByUserId(inputObject, outputObject);
