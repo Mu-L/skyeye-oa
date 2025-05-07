@@ -272,12 +272,22 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             picture.setObjectId(comment.getId());
             pictureService.createEntity(picture, userId);
         }
-        // 新增通知
         Notice notice = new Notice();
         Post post = postService.selectById(comment.getPostId());
         notice.setSendId(userId);
-        notice.setReceiveId(post.getCreateId());
         notice.setType(TypeEnum.COMMENT.getKey());
+        if(StrUtil.isNotEmpty(comment.getParentId())){
+            // 回复通知
+            Comment parentComment = commentService.selectById(comment.getParentId());
+            notice.setReceiveId(parentComment.getCreateId());
+            notice.setCommentId(parentComment.getId());
+            notice.setContent(NoticeContent.COMMENT_REPLY);
+        }else {
+            // 新增通知
+            notice.setReceiveId(post.getCreateId());
+            notice.setCommentId(comment.getId());
+            notice.setContent(NoticeContent.COMMENT_POST);
+        }
         if(StrUtil.isNotEmpty(post.getCircleId())){
             notice.setObjectId(post.getCircleId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
@@ -285,7 +295,6 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             notice.setObjectId(post.getId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
         }
-        notice.setContent(NoticeContent.COMMENT_POST);
         noticeService.createEntity(notice, userId);
     }
 

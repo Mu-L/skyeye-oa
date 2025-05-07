@@ -20,11 +20,13 @@ public class NoticeContent {
     public static final String COMMENT_POST = "评论了你的帖子";
     // 评论视频通知
     public static final String COMMENT_VIDEO = "评论了你的视频";
+    // 评论回复通知
+    public static final String COMMENT_REPLY = "回复了你的评论";
     // 分享帖子通知
     public static final String SHARE_POST = "分享了帖子给你";
     // 分享评论通知
     public static final String SHARE_COMMENT = "分享了评论给你";
     // 分享视频通知
     public static final String SHARE_VIDEO = "分享了视频给你";
-    
+
 }
