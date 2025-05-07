@@ -166,6 +166,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         String tenantId = params.get("tenantId").toString();
         Map<String, Object> user = InputObject.getLogParamsStatic();
         String staffId = user.get("staffId").toString();
+        TenantContext.setTenantId(tenantId);
         TenantUser tenantUser = tenantUserService.getTenantUserByStaffId(staffId);
         boolean isAdmin = tenantUserService.checkStaffIdIsAdmin(tenantUser);
         if (isAdmin) {

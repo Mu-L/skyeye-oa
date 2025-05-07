@@ -4,6 +4,7 @@
 
 package com.skyeye.menu.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.menu.entity.SysMenu;
 import com.skyeye.menu.entity.SysMenuQueryDo;
@@ -34,6 +35,7 @@ public interface SysEveMenuDao extends SkyeyeBaseMapper<SysMenu> {
      * @param ids 父id
      * @return
      */
+    @IgnoreTenant
     List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
 
     List<Map<String, Object>> queryAllMenuList();
