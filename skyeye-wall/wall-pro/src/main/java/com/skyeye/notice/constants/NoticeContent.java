@@ -29,4 +29,9 @@ public class NoticeContent {
     // 分享视频通知
     public static final String SHARE_VIDEO = "分享了视频给你";
 
+    // 该评论已删除
+    public static final String COMMENT_DELETE = "该评论已删除";
+
+    public static final String DELETE_VIDEO = "该视频已删除";
+    public static final String POST_DELETE = "该帖子已删除";
 }

@@ -47,4 +47,8 @@ public class UserView extends CommonInfo {
     @TableField("view_count")
     @ApiModelProperty(value = "浏览次数")
     private Integer viewCount;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "是否关注")
+    private Boolean checkFocus;
 }

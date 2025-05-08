@@ -126,7 +126,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
     }
 
     @Override
-    protected void deletePostpose(VideoComment entity) {
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void deletePostpose(VideoComment entity) {
         super.deletePostpose(entity);
         String id = entity.getId();
         String userId = InputObject.getLogParamsStatic().get("id").toString();

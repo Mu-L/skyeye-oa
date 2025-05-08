@@ -289,7 +289,8 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             notice.setContent(NoticeContent.COMMENT_POST);
         }
         if(StrUtil.isNotEmpty(post.getCircleId())){
-            notice.setObjectId(post.getCircleId());
+            notice.setObjectId(post.getId());
+            notice.setCircleId(post.getCircleId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
         }else {
             notice.setObjectId(post.getId());

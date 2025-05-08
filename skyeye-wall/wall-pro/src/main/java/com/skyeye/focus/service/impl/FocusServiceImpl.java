@@ -1,6 +1,7 @@
 package com.skyeye.focus.service.impl;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -90,6 +91,9 @@ public class FocusServiceImpl extends SkyeyeBusinessServiceImpl<FocusDao, Focus>
 
     @Override
     public Map<String,Boolean> checkFocus(List<String> videoCreateIds) {
+        if(CollectionUtil.isEmpty(videoCreateIds)){
+            return new HashMap<>();
+        }
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         String userId;
         if(StrUtil.isEmpty(userToken)){

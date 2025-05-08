@@ -23,6 +23,8 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.historypost.dao.HistoryPostDao;
 import com.skyeye.historypost.entity.HistoryPost;
 import com.skyeye.historypost.service.HistoryPostService;
+import com.skyeye.picture.entity.Picture;
+import com.skyeye.picture.service.PictureService;
 import com.skyeye.popularpost.service.PopularPostService;
 import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,19 +51,12 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
     @Autowired
     private PostService postService;
 
-    @Override
-    public List<HistoryPost> getHistoryPostById(String userId) {
-        QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId);
-        queryWrapper.select(MybatisPlusUtil.toColumns(HistoryPost::getPostId));
-        queryWrapper.groupBy(MybatisPlusUtil.toColumns(HistoryPost::getPostId));
-        List<HistoryPost> historyPostList = list(queryWrapper);
-        return historyPostList;
-    }
-
 
     @Autowired
     private PopularPostService popularPostService;
+
+    @Autowired
+    private PictureService pictureService;
 
     @Override
     public String createEntity(HistoryPost entity, String userId) {
@@ -130,7 +126,11 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         List<HistoryPost> bean = list(queryWrapper);
         List<String> postIds = bean.stream().map(HistoryPost::getPostId).distinct().collect(Collectors.toList());
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         List<Post> beans =  postService.queryPostListByIds(postIds);
+        for (Post post : beans) {
+            post.setPictureList(pictureMap.get(post.getId()));
+        }
         // 设置当前用户是否点赞
         postService.setUserMations(beans);
         outputObject.settotal(page.getTotal());

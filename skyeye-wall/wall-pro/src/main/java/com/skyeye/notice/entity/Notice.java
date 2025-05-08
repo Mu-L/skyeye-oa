@@ -70,6 +70,10 @@ public class Notice extends OperatorUserInfo {
     @ApiModelProperty(value = "评论id")
     private String commentId;
 
+    @TableField("circle_id")
+    @ApiModelProperty(value = "圈子id")
+    private String circleId;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "评论图片")
     private Picture picture;

@@ -18,7 +18,6 @@ import com.skyeye.common.object.OutputObject;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface CircleViewService extends SkyeyeBusinessService<CircleView> {
-    void queryMyCircleList(InputObject inputObject, OutputObject outputObject);
     /**
      * 根据圈子id删除圈子浏览记录
      * */
