@@ -192,6 +192,10 @@ public class TenantUser extends OperatorUserInfo {
     @ApiModelProperty(value = "员工考勤时间段", required = "json")
     private List<String> timeIdList;
 
+    @TableField(exist = false)
+    @Property(value = "员工考勤时间段信息")
+    private List<Map<String, Object>> timeList;
+
     @TableField("is_admin")
     @ApiModelProperty(value = "是否是管理员", enumClass = WhetherEnum.class, required = "required,num")
     private Integer isAdmin;

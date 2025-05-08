@@ -158,6 +158,10 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             .queryUserMationListByStaffIds(Arrays.asList(tenantUser.getStaffId()));
         tenantUser.setStaffMation(staffMap.get(tenantUser.getStaffId()));
 
+        // 员工考勤时间段信息--一已适配多租户
+        List<Map<String, Object>> staffTimeMation = sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(id);
+        tenantUser.setTimeList(staffTimeMation);
+
         // 设置组织信息
         companyMationService.setDataMation(tenantUser, TenantUser::getCompanyId);
         companyDepartmentService.setDataMation(tenantUser, TenantUser::getDepartmentId);
@@ -328,7 +332,6 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         tenantUser.setWorkTime(currentTime);
         tenantUser.setEntryTime(currentTime);
         tenantUser.setTrialTime(currentTime);
-        tenantUser.setTenantId(tenantId);
         createEntity(tenantUser, userId);
     }
 
