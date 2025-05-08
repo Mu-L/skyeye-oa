@@ -105,6 +105,9 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
         QueryWrapper<FieldType> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FieldType::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<FieldType> list = list(queryWrapper);
+        list.forEach(bean -> {
+            bean.setId(bean.getKey());
+        });
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
