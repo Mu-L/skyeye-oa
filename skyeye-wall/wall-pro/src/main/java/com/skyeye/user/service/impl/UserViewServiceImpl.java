@@ -15,6 +15,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.focus.service.FocusService;
 import com.skyeye.user.dao.UserViewDao;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.entity.UserView;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +47,9 @@ public class UserViewServiceImpl extends SkyeyeBusinessServiceImpl<UserViewDao, 
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private FocusService focusService;
 
     @Override
     public String createEntity(UserView entity, String userId) {
@@ -88,9 +93,12 @@ public class UserViewServiceImpl extends SkyeyeBusinessServiceImpl<UserViewDao, 
         if (CollectionUtil.isEmpty(userViews)) {
             return;
         }
-        // 获取访问者id
+        List<String> userIds = userViews.stream().map(UserView::getUserId).collect(Collectors.toList());
+        Map<String, Boolean> checkFocusMap = focusService.checkFocus(userIds);
+        // 获取访问者信息
         for (UserView userView : userViews) {
             User user = userService.selectById(userView.getVisitorUserId());
+            userView.setCheckFocus(checkFocusMap.get(userView.getUserId()));
             if (StrUtil.isEmpty(user.getId())) {
                 iAuthUserService.setDataMation(userView, UserView::getVisitorUserId);
             } else {

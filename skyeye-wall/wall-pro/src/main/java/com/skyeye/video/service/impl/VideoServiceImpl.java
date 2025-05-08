@@ -269,11 +269,12 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     }
 
     @Override
-    protected void deletePostpose(String id) {
+    public void deletePostpose(String id) {
         super.deletePostpose(id);
         videoCommentService.deleteByVideoId(id);
         videoRecordService.deleteByVideoId(id);
         videoViewService.deleteByVideoId(id);
+        noticeService.deleteByObjectId(id,getServiceClassName());
     }
 
     @Override

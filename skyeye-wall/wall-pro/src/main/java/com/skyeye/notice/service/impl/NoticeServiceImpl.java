@@ -1,10 +1,10 @@
 package com.skyeye.notice.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -17,16 +17,22 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.notice.constants.NoticeContent;
 import com.skyeye.notice.dao.NoticeDao;
 import com.skyeye.notice.entity.Notice;
+import com.skyeye.notice.noticeenum.NoticeTypeEnum;
 import com.skyeye.notice.noticeenum.ReadEnum;
 import com.skyeye.notice.noticeenum.TypeEnum;
 import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
+import com.skyeye.post.entity.Post;
+import com.skyeye.post.service.PostService;
 import com.skyeye.user.service.UserService;
+import com.skyeye.video.service.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -52,6 +58,12 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Autowired
     private IAuthUserService iAuthUserService;
+
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private VideoService videoService;
 
     private Notice setUserMation(Notice notice) {
         if (notice.getType() == TypeEnum.COMMENT.getKey()) {
@@ -164,11 +176,99 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
      * 删除视频评论时候把通知删除
      */
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteVideoNoticeByCommentIds(List<String> commentIds) {
-        // TODO 将通知的内容改成 —— 该评论已被删除
-//        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.in(MybatisPlusUtil.toColumns(Notice::getCommentId), commentIds);
-//        remove(queryWrapper);
+        if(CollectionUtils.isEmpty(commentIds)){
+            return;
+        }
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Notice::getCommentId), commentIds);
+        List<Notice> bean = list(queryWrapper);
+        for (Notice notice : bean) {
+            notice.setContent(NoticeContent.COMMENT_DELETE);
+        }
+        updateEntity(bean,userId);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void sharePostOrComment(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        String userId = params.get("userId").toString();
+        String postId = params.get("postId").toString();
+        Post post = postService.selectById(postId);
+        if(StrUtil.isEmpty(post.getId())){
+            throw new CustomException("该帖子不存在");
+        }
+        Notice notice = new Notice();
+        notice.setObjectId(postId);
+        notice.setReceiveId(userId);
+        notice.setSendId(currentUserId);
+        notice.setType(TypeEnum.SHARE.getKey());
+        if(StrUtil.isNotEmpty(post.getCircleId())){
+            // 圈子
+            notice.setCircleId(post.getCircleId());
+            notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+        }else {
+            notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
+        }
+        if(params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())){
+            notice.setCommentId(params.get("commentId").toString());
+            notice.setContent(NoticeContent.SHARE_COMMENT);
+        }else {
+            notice.setContent(NoticeContent.SHARE_POST);
+        }
+        createEntity(notice,currentUserId);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void shareVideoOrComment(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        String userId = params.get("userId").toString();
+        String videoId = params.get("videoId").toString();
+        Notice notice = new Notice();
+        notice.setSendId(currentUserId);
+        notice.setReceiveId(userId);
+        notice.setObjectId(videoId);
+        notice.setType(TypeEnum.SHARE.getKey());
+        notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
+        if(params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())){
+            notice.setCommentId(params.get("commentId").toString());
+            notice.setContent(NoticeContent.SHARE_COMMENT);
+        }else {
+            notice.setContent(NoticeContent.SHARE_VIDEO);
+        }
+        createEntity(notice,currentUserId);
+    }
+
+    /**
+     * 删除帖子、视频之后将修改通知内容
+     * */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void deleteByObjectId(String id, String serviceClassName) {
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId),id);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(Notice::getCommentId));
+        List<Notice> bean = list(queryWrapper);
+        if(CollectionUtil.isEmpty(bean)){
+            return;
+        }
+        String userId = InputObject.getLogParamsStatic().get(id).toString();
+        String content = StrUtil.EMPTY;
+        if(videoService.getServiceClassName().equals(serviceClassName)){
+            content = NoticeContent.DELETE_VIDEO;
+        }else if (postService.getServiceClassName().equals(serviceClassName)){
+            content = NoticeContent.POST_DELETE;
+        }
+        for (Notice notice : bean) {
+            notice.setContent(content);
+        }
+        updateEntity(bean,userId);
     }
 
 }

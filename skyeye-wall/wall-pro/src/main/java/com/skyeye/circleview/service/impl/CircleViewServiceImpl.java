@@ -6,7 +6,6 @@ package com.skyeye.circleview.service.impl;
 
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -43,23 +42,6 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
 
     @Autowired
     private CircleService circleService;
-
-    @Override
-    public void queryMyCircleList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCreateId), userId);
-        List<CircleView> circleViewList = list(queryWrapper);
-        if(CollectionUtil.isEmpty(circleViewList)){
-            return;
-        }
-        List<String> circleIds = circleViewList.stream().map(CircleView::getCircleId).collect(Collectors.toList());
-        List<Circle> circleList = circleService.selectByIds(circleIds.toArray(new String[]{}));
-        outputObject.setBeans(circleList);
-        outputObject.settotal(page.getTotal());
-    }
 
     @Override
     public void deleteCircleViewByCircleId(String circleId) {

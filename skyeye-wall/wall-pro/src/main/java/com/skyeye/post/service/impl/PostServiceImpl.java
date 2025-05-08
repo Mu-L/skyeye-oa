@@ -30,10 +30,10 @@ import com.skyeye.common.util.IPSeeker;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.historypost.entity.HistoryPost;
 import com.skyeye.historypost.service.HistoryPostService;
 import com.skyeye.joincircle.entity.JoinCircle;
 import com.skyeye.joincircle.service.JoinCircleService;
+import com.skyeye.notice.service.NoticeService;
 import com.skyeye.picture.entity.Picture;
 import com.skyeye.picture.service.PictureService;
 import com.skyeye.popularpost.entity.PopularPost;
@@ -48,6 +48,7 @@ import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -89,6 +90,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     @Autowired
     private CircleService circleService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Override
     public void validatorEntity(Post entity) {
@@ -288,9 +292,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deletePostpose(String id) {
         pictureService.deleteByPostId(id);
         commentService.deleteByPostId(id);
+        noticeService.deleteByObjectId(id,getServiceClassName());
     }
 
     @Override
@@ -389,26 +395,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     }
 
     @Override
-    public void queryPostListByHistoryPost(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 查询自己的历史记录
-        List<HistoryPost> historyPostList = historyPostService.getHistoryPostById(userId);
-        if (CollectionUtil.isEmpty(historyPostList)) {
-            return;
-        }
-        List<String> postIds = historyPostList.stream()
-                .map(HistoryPost::getPostId).collect(Collectors.toList());
-        QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, postIds);
-        //设置点赞信息--当前登陆人是否点赞
-        List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
-        outputObject.setBeans(bean);
-        outputObject.settotal(pages.getTotal());
-    }
-
-    @Override
     public List<Post> getBeforeThirtyDaysPost() {
         //获取前三十天以内的日期
         String beforeDay = getBeforeOrFutureDay(-29);
@@ -486,11 +472,13 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     // 管理员删除
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deletePost(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
+        noticeService.deleteByObjectId(id,getServiceClassName());
     }
 
     @Override

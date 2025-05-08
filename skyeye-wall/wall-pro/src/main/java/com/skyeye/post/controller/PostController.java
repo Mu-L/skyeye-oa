@@ -113,19 +113,6 @@ public class PostController {
     }
 
     /**
-     * 获取历史浏览的帖子信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryPostListByHistoryPost", value = "获取历史浏览的帖子信息列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/PostController/queryPostListByHistoryPost")
-    public void queryPostListByHistoryPost(InputObject inputObject, OutputObject outputObject) {
-        postService.queryPostListByHistoryPost(inputObject, outputObject);
-    }
-
-    /**
      * 获取热门帖子信息列表
      *
      * @param inputObject  入参以及用户信息等获取对象

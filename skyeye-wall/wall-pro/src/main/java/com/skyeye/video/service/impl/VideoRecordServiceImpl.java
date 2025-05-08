@@ -59,6 +59,9 @@ public class VideoRecordServiceImpl extends SkyeyeBusinessServiceImpl<VideoRecor
      */
     @Override
     public Map<String, Boolean> checkUpvoteOrCollect(List<String> videoIds, int type){
+        if(CollectionUtil.isEmpty(videoIds)){
+            return new HashMap<>();
+        }
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         String userId;
         if(StrUtil.isEmpty(userToken)){

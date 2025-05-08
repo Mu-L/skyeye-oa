@@ -110,4 +110,28 @@ public class NoticeController {
     public void queryUnReadNum(InputObject inputObject, OutputObject outputObject) {
         noticeService.queryUnReadNum(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "sharePostOrComment", value = "分享帖子或者帖子评论", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "require"),
+            @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
+            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id", required = "required")
+    })
+    @RequestMapping("/post/NoticeController/sharePostOrComment")
+    public void sharePostOrComment(InputObject inputObject, OutputObject outputObject) {
+        noticeService.sharePostOrComment(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "shareVideoOrComment", value = "分享视频或者视频评论", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "videoId", name = "videoId", value = "帖子id", required = "require"),
+            @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
+            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id", required = "required")
+    })
+    @RequestMapping("/post/NoticeController/shareVideoOrComment")
+    public void shareVideoOrComment(InputObject inputObject, OutputObject outputObject) {
+        noticeService.shareVideoOrComment(inputObject, outputObject);
+    }
+
+
 }

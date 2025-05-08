@@ -33,8 +33,6 @@ public interface PostService extends SkyeyeBusinessService<Post> {
 
     void queryPostListByComment(InputObject inputObject, OutputObject outputObject);
 
-    void queryPostListByHistoryPost(InputObject inputObject, OutputObject outputObject);
-
     List<Post> getBeforeThirtyDaysPost();
 
     void deleteByCircleId(String circleId);
