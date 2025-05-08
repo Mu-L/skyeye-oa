@@ -137,6 +137,8 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
             model.setTenantId(tenantId);
+        } else {
+            model.setTenantId(TenantTypeEnum.PLATFORM.getCode());
         }
 
         ObjectNode editorNode = objectMapper.createObjectNode();
@@ -239,7 +241,11 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
                     .tenantId(modelData.getTenantId())
                     .addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
             } else {
-                deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
+                processName = TenantTypeEnum.PLATFORM.getCode() + ":" + processName;
+                deployment = repositoryService.createDeployment()
+                    .name(modelData.getName())
+                    .tenantId(TenantTypeEnum.PLATFORM.getCode())
+                    .addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
             }
 
             // 发布版本+1
