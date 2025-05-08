@@ -12,7 +12,10 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.eve.field.entity.FieldType;
+import com.skyeye.eve.model.classenum.WagesModelFieldType;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: WagesModelField
@@ -44,8 +47,12 @@ public class WagesModelField extends CommonInfo {
     private FieldType fieldKeyMation;
 
     @TableField("field_type")
-    @ApiModelProperty(value = "字段类型，参考#WagesModelFieldType", required = "required,num")
+    @ApiModelProperty(value = "字段类型", enumClass = WagesModelFieldType.class, required = "required,num")
     private Integer fieldType;
+
+    @TableField(exist = false)
+    @Property(value = "字段类型信息")
+    private Map<String, Object> fieldTypeMation;
 
     @TableField("default_money")
     @ApiModelProperty(value = "默认金额", required = "double", defaultValue = "0")

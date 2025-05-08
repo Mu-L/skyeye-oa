@@ -20,6 +20,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.field.entity.FieldType;
 import com.skyeye.eve.field.service.WagesFieldTypeService;
+import com.skyeye.eve.model.classenum.WagesModelFieldType;
 import com.skyeye.eve.model.dao.WagesModelDao;
 import com.skyeye.eve.model.entity.ModelApplicableObjects;
 import com.skyeye.eve.model.entity.WagesModel;
@@ -179,6 +180,7 @@ public class WagesModelServiceImpl extends SkyeyeBusinessServiceImpl<WagesModelD
                     fieldType.setName(name);
                 }
                 wagesModelField.setFieldKeyMation(fieldType);
+                wagesModelField.setFieldTypeMation(WagesModelFieldType.getMation(wagesModelField.getFieldType()));
             });
         }
     }
