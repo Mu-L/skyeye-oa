@@ -20,6 +20,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
@@ -133,8 +134,10 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         model.setName(modelName);
         model.setKey(ToolUtil.getSurFaceId());
         model.setMetaInfo(modelNode.toString());
-        String tenantId = TenantContext.getTenantId();
-        model.setTenantId(tenantId);
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            model.setTenantId(tenantId);
+        }
 
         ObjectNode editorNode = objectMapper.createObjectNode();
         editorNode.put("id", "canvas");
@@ -227,14 +230,17 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
 
             // 发布流程
             String processName = modelData.getName() + ".bpmn20.xml";
+            Deployment deployment;
             if (tenantEnable) {
                 // 添加租户信息
                 processName = modelData.getTenantId() + ":" + processName;
+                deployment = repositoryService.createDeployment()
+                    .name(modelData.getName())
+                    .tenantId(modelData.getTenantId())
+                    .addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
+            } else {
+                deployment = repositoryService.createDeployment().name(modelData.getName()).addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
             }
-            Deployment deployment = repositoryService.createDeployment()
-                .name(modelData.getName())
-                .tenantId(modelData.getTenantId())
-                .addString(processName, new String(bpmnBytes, "UTF-8")).deploy();
 
             // 发布版本+1
             Integer version = modelData.getVersion();
@@ -264,8 +270,18 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         // 默认设置审批人为会签人
         varables.put(ActivitiConstants.ASSIGNEE_USER_LIST, Arrays.asList(flowableSubData.getApprovalId()));
         LOGGER.info("startProcessInstanceByKey start.");
+
+        String tenantId = TenantTypeEnum.PLATFORM.getCode();
+        if (tenantEnable) {
+            // 添加租户信息
+            tenantId = TenantContext.getTenantId();
+        }
+        ProcessInstance process = runtimeService.createProcessInstanceBuilder()
+            .processDefinitionKey(actFlowMation.getModelKey())
+            .tenantId(tenantId)
+            .variables(varables)
+            .start();
         // 启动流程---流程图id，业务表id
-        ProcessInstance process = runtimeService.startProcessInstanceByKey(actFlowMation.getModelKey(), varables);
         String processInstanceId = process.getProcessInstanceId();
 
         queryProHighLighted(processInstanceId);
