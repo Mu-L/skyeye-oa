@@ -5,6 +5,7 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -23,7 +24,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.SysDictDataDao;
-import com.skyeye.eve.dao.SysDictTypeDao;
 import com.skyeye.eve.entity.dict.SysDictData;
 import com.skyeye.eve.entity.dict.SysDictType;
 import com.skyeye.eve.service.SysDictDataService;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysDictDataServiceImpl
- * @Description: 数据字典服务层
+ * @Description: 数据字典服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/7/2 13:19
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -45,9 +45,6 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "数据字典", groupName = "数据字典")
 public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDataDao, SysDictData> implements SysDictDataService {
-
-    @Autowired
-    private SysDictTypeDao sysDictTypeDao;
 
     @Autowired
     private SysDictTypeService sysDictTypeService;
@@ -140,7 +137,12 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
     @Override
     public void queryDictDataListByDictTypeCode(InputObject inputObject, OutputObject outputObject) {
         String dictTypeCode = inputObject.getParams().get("dictTypeCode").toString();
-        List<SysDictData> dictDataList = skyeyeBaseMapper.queryDictDataListByDictTypeCode(dictTypeCode, EnableEnum.ENABLE_USING.getKey());
+        // 查询数据字典类型
+        SysDictType dictType = sysDictTypeService.queryDictTypeIdByDictCode(dictTypeCode, EnableEnum.ENABLE_USING.getKey());
+        if (ObjectUtil.isEmpty(dictType)) {
+            return;
+        }
+        List<SysDictData> dictDataList = queryEnableDictDataListByDictType(dictType);
         if (CollectionUtil.isEmpty(dictDataList)) {
             return;
         }
@@ -152,11 +154,29 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
         }
 
         List<Map<String, Object>> listTree = ToolUtil.listToTree(result, "id", "parentId", "children");
-        SysDictType sysDictType = sysDictTypeDao.selectById(dictDataList.get(0).getDictTypeId());
-        resetCheckNode(listTree, 1, sysDictType.getChooseLevel());
+        resetCheckNode(listTree, 1, dictType.getChooseLevel());
         outputObject.setBeans(result);
         outputObject.setCustomBeans("treeRows", listTree);
         outputObject.settotal(result.size());
+    }
+
+    private List<SysDictData> queryEnableDictDataListByDictType(SysDictType dictType) {
+        // 查询数据字典列表
+        QueryWrapper<SysDictData> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getDictTypeId), dictType.getId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SysDictData::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(SysDictData::getDictSort));
+        List<SysDictData> dictDataList = list(queryWrapper);
+        return dictDataList;
+    }
+
+    private List<SysDictData> queryEnableDictDataListByDictTypeCode(String dictTypeCode) {
+        // 查询数据字典类型
+        SysDictType dictType = sysDictTypeService.queryDictTypeIdByDictCode(dictTypeCode, EnableEnum.ENABLE_USING.getKey());
+        if (ObjectUtil.isEmpty(dictType)) {
+            return null;
+        }
+        return queryEnableDictDataListByDictType(dictType);
     }
 
     private void resetCheckNode(List<Map<String, Object>> listTree, int parentLevel, int chooseLevel) {
@@ -183,7 +203,11 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
         String dictTypeCode = params.get("dictTypeCode").toString();
         String notId = params.get("notId").toString();
         // 获取所有的数据字典
-        List<SysDictData> dictDataList = skyeyeBaseMapper.queryDictDataListByDictTypeCode(dictTypeCode, EnableEnum.ENABLE_USING.getKey());
+        List<SysDictData> dictDataList = queryEnableDictDataListByDictTypeCode(dictTypeCode);
+        if (CollectionUtil.isEmpty(dictDataList)) {
+            return;
+        }
+        // 移除指定ID的数据字典
         if (!ToolUtil.isBlank(notId)) {
             // 移除不需要查询的节点，包含子节点
             List<String> childId = skyeyeBaseMapper.queryAllChildIdsByParentId(Arrays.asList(notId));
@@ -232,7 +256,8 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
             return;
         }
         // 根据字典类型编码获取字典类型ID
-        List<SysDictType> dictTypeList = sysDictTypeService.queryDictTypeIdByDictCode(dictTypeCodeList, enabled);
+        List<SysDictType> dictTypeList = sysDictTypeService.queryDictTypeIdByDictCode(dictTypeCodeList,
+            StrUtil.isEmpty(enabled) ? null : Integer.parseInt(enabled));
         if (CollectionUtil.isEmpty(dictTypeList)) {
             return;
         }

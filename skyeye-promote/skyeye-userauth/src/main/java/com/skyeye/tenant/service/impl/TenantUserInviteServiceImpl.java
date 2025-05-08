@@ -103,8 +103,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         // 校验手机号
         String userStaffId = sysEveUserStaffService.queryUserStaffByPhone(tenantUserInvite.getPhone());
         String userId = inputObject.getLogParams().get("id").toString();
-        String tenantId = TenantContext.getTenantId();
-        tenantUserInvite.setTenantId(tenantId);
         if (StrUtil.isNotEmpty(userStaffId)) {
             // 手机号已存在，则直接加入租户
             tenantUserInvite.setIsUsed(IsUsedEnum.IN_USE.getKey());
@@ -123,7 +121,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
             tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
             tenantUser.setTenantUserInviteId(id);
-            tenantUser.setTenantId(tenantUserInvite.getTenantId());
             tenantUserService.createEntity(tenantUser, userId);
         } else {
             // 手机号不存在，则发起邀请
@@ -203,9 +200,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         if (tenantUserInvite.getIsUsed().equals(IsUsedEnum.INVALID.getKey())) {
             throw new CustomException("该邀请已作废");
         }
-        if (!StrUtil.equals(tenantId, tenantUserInvite.getTenantId())) {
-            throw new CustomException("邀请信息错误，请重新邀请");
-        }
         // 新增用户信息
         String staffId = saveUserStaff(params, tenantUserInvite);
         // 更新邀请信息
@@ -228,7 +222,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
         tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
         tenantUser.setTenantUserInviteId(tenantUserInvite.getId());
-        tenantUser.setTenantId(tenantUserInvite.getTenantId());
         tenantUserService.createEntity(tenantUser, tenantUserInvite.getCreateId());
     }
 

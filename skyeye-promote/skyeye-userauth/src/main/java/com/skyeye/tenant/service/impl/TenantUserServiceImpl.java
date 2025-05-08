@@ -324,6 +324,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             userStaffId = saveUserStaff(params, userId);
         }
 
+        TenantContext.setTenantId(tenantId);
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), userStaffId);
         TenantUser checkTenantUser = getOne(queryWrapper, false);
@@ -332,7 +333,6 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         }
 
         // 加入租户
-        TenantContext.setTenantId(tenantId);
         TenantUser tenantUser = new TenantUser();
         tenantUser.setStaffId(userStaffId);
         tenantUser.setState(UserStaffState.ON_THE_JOB.getKey());

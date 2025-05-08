@@ -34,24 +34,6 @@
         ORDER BY s.dict_sort ASC
     </select>
 
-    <select id="queryDictDataListByDictTypeCode" resultType="com.skyeye.eve.entity.dict.SysDictData">
-        SELECT
-            s.id,
-            s.dict_name dictName,
-            s.dict_sort dictSort,
-            s.is_default isDefault,
-            s.parent_id parentId,
-            s.dict_type_id dictTypeId
-        FROM
-            sys_dict_data s,
-            sys_dict_type a
-        WHERE s.dict_type_id = a.id
-        AND a.dict_code = #{dictTypeCpde}
-        AND s.enabled = #{enabled}
-        AND a.enabled = #{enabled}
-        ORDER BY s.dict_sort ASC
-    </select>
-
     <select id="queryAllParentNodeById" resultType="java.util.Map">
         SELECT
             T2.id parentId,

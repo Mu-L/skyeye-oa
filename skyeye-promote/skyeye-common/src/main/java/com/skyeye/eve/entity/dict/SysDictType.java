@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -50,7 +51,7 @@ public class SysDictType extends OperatorUserInfo {
     private Integer chooseLevel;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "状态（1 启用  2.停用）", required = "required,num")
+    @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
 }

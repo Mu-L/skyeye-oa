@@ -30,5 +30,7 @@ public interface SysDictTypeService extends SkyeyeBusinessService<SysDictType> {
      * @param enabled      启用状态
      * @return
      */
-    List<SysDictType> queryDictTypeIdByDictCode(List<String> dictCodeList, String enabled);
+    List<SysDictType> queryDictTypeIdByDictCode(List<String> dictCodeList, Integer enabled);
+
+    SysDictType queryDictTypeIdByDictCode(String dictCode, Integer enabled);
 }

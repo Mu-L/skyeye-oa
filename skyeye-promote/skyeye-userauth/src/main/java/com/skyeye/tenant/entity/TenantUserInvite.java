@@ -110,6 +110,6 @@ public class TenantUserInvite extends OperatorUserInfo {
     private String interviewArrangementId;
 
     @TableField(value = "tenant_id")
-    @ApiModelProperty(value = "租户id", required = "required")
+    @Property(value = "租户id")
     private String tenantId;
 }
