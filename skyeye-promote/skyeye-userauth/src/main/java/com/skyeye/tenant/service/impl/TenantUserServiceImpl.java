@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
@@ -323,6 +324,13 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             userStaffId = saveUserStaff(params, userId);
         }
 
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), userStaffId);
+        TenantUser checkTenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(checkTenantUser)) {
+            throw new CustomException("该员工已加入该租户，请前往【用户管理】设置为管理员身份");
+        }
+
         // 加入租户
         TenantContext.setTenantId(tenantId);
         TenantUser tenantUser = new TenantUser();
@@ -370,6 +378,20 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             throw new CustomException("该租户下不存在该员工");
         }
         return tenantUser;
+    }
+
+    @Override
+    public void switchingIdentitiesById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        TenantUser tenantUser = selectById(id);
+        if (ObjectUtil.isEmpty(tenantUser) || StrUtil.isEmpty(tenantUser.getId())) {
+            throw new CustomException("该用户不存在");
+        }
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getIsAdmin),
+            tenantUser.getIsAdmin() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.DISABLE_USING.getKey() : WhetherEnum.ENABLE_USING.getKey());
+        update(updateWrapper);
     }
 
 }

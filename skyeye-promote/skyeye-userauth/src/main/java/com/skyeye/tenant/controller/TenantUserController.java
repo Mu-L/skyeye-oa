@@ -87,4 +87,12 @@ public class TenantUserController {
     public void addTenantAdminUser(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.addTenantAdminUser(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "switchingIdentitiesById", value = "根据id切换用户身份", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键ID", required = "required")})
+    @RequestMapping("/post/TenantUserController/switchingIdentitiesById")
+    public void switchingIdentitiesById(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.switchingIdentitiesById(inputObject, outputObject);
+    }
 }

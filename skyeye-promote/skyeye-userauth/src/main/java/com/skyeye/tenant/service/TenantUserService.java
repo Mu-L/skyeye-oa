@@ -47,4 +47,6 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     boolean checkStaffIdIsAdmin(TenantUser tenantUser);
 
     TenantUser getTenantUserByStaffId(String staffId);
+
+    void switchingIdentitiesById(InputObject inputObject, OutputObject outputObject);
 }
