@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.entity.dict.SysDictData;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,6 +29,7 @@ public interface SysDictDataDao extends SkyeyeBaseMapper<SysDictData> {
      * @param ids 子id
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryAllParentNodeById(@Param("ids") List<String> ids);
 
     /**
@@ -36,6 +38,7 @@ public interface SysDictDataDao extends SkyeyeBaseMapper<SysDictData> {
      * @param ids 父id
      * @return
      */
+    @IgnoreTenant
     List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
 
 }

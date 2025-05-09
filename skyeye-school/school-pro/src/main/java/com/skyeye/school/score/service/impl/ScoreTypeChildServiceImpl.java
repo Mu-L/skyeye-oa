@@ -65,7 +65,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void createPrepose(ScoreTypeChild scoreTypeChild) {
-        scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        // parentId为空时，默认为0
+        scoreTypeChild.setProportion(StrUtil.isEmpty(scoreTypeChild.getParentId()) ? CommonNumConstants.NUM_ZERO.toString() : scoreTypeChild.getProportion());
     }
 
     @Override

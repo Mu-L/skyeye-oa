@@ -49,12 +49,6 @@ public class ReportCommonServiceImpl implements ReportCommonService {
     @Autowired
     private ReportDataBaseService reportDataBaseService;
 
-    /**
-     * 测试数据源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void testConnection(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -93,12 +87,6 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         }
     }
 
-    /**
-     * 解析Xml格式文本
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void parseXmlText(InputObject inputObject, OutputObject outputObject) {
         Element rootElement;
@@ -193,12 +181,6 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         }
     }
 
-    /**
-     * 获取数据库类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDataBaseMationList(InputObject inputObject, OutputObject outputObject) {
         List<Map<String, Object>> beans = ReportConstants.DataBaseMation.getDataBaseMationList();
@@ -219,12 +201,6 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         outputObject.settotal(beans.size());
     }
 
-    /**
-     * 解析SQL数据源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void parseSQLText(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -238,12 +214,6 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         outputObject.setBeans(JSONArray.fromObject(dataColumns));
     }
 
-    /**
-     * 解析Rest接口
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void parseRestText(InputObject inputObject, OutputObject outputObject) {
         try {
