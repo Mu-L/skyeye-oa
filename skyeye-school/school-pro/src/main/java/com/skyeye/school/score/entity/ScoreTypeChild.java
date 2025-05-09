@@ -57,7 +57,7 @@ public class ScoreTypeChild extends OperatorUserInfo {
     private String nameLinkMation;
 
     @TableField("proportion")
-    @Property(value = "占比(80即占比80%)")
+    @ApiModelProperty(value = "占比(80即占比80%)")
     private String proportion;
 
     @TableField("parent_id")
