@@ -31,12 +31,6 @@ public class CatalogController {
     @Autowired
     private CatalogService catalogService;
 
-    /**
-     * 一次性获取所有的目录为树结构
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCatalogForTree", value = "一次性获取所有的目录为树结构", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id"),
@@ -48,12 +42,6 @@ public class CatalogController {
         catalogService.queryCatalogForTree(inputObject, outputObject);
     }
 
-    /**
-     * 一次性获取所有的目录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCatalogList", value = "一次性获取所有的目录", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id"),
@@ -65,12 +53,6 @@ public class CatalogController {
         catalogService.queryCatalogList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑目录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCatalog", value = "新增/编辑目录", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Catalog.class)
     @RequestMapping("/post/CatalogController/writeCatalog")
@@ -78,12 +60,6 @@ public class CatalogController {
         catalogService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除目录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCatalogById", value = "删除目录", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "目录id", required = "required")})
@@ -92,12 +68,6 @@ public class CatalogController {
         catalogService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取目录信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCatalogByIds", value = "根据id批量获取目录信息", method = "POST", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})

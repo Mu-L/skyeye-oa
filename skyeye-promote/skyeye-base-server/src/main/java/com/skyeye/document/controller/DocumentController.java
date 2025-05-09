@@ -28,16 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Api(value = "文档管理", tags = "文档管理", modelName = "基本服务")
 public class DocumentController {
-    
+
     @Autowired
     private DocumentService documentService;
 
-    /**
-     * 获取文档列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDocumentList", value = "获取文档列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DocumentController/queryDocumentList")
@@ -45,12 +39,6 @@ public class DocumentController {
         documentService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑文档信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDocumentMation", value = "新增/编辑文档信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Document.class)
     @RequestMapping("/post/DocumentController/writeDocumentMation")
@@ -58,12 +46,6 @@ public class DocumentController {
         documentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除文档信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDocumentMationById", value = "根据id删除文档信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
