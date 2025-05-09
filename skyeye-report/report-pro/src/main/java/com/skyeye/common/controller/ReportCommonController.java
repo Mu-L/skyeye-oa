@@ -30,13 +30,7 @@ public class ReportCommonController {
     @Autowired
     private ReportCommonService reportCommonService;
 
-    /**
-     * 测试数据源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "reportcommon001", value = "解析xml格式文本", method = "POST", allUse = "2")
+    @ApiOperation(id = "reportcommon001", value = "测试数据库连接", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "driverClass", name = "driverClass", value = "数据源驱动类", required = "required"),
         @ApiImplicitParam(id = "url", name = "url", value = "数据源连接字符串", required = "required"),
@@ -47,12 +41,6 @@ public class ReportCommonController {
         reportCommonService.testConnection(inputObject, outputObject);
     }
 
-    /**
-     * 解析Xml格式文本
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon002", value = "解析xml格式文本", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "xmlText", name = "xmlText", value = "xml格式文本", required = "required")})
@@ -61,12 +49,6 @@ public class ReportCommonController {
         reportCommonService.parseXmlText(inputObject, outputObject);
     }
 
-    /**
-     * 解析Json格式文本
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon003", value = "解析Json格式文本", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "jsonText", name = "jsonText", value = "json格式文本", required = "required")})
@@ -75,36 +57,18 @@ public class ReportCommonController {
         reportCommonService.parseJsonText(inputObject, outputObject);
     }
 
-    /**
-     * 获取数据库类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon006", value = "获取数据库类型", method = "GET", allUse = "2")
     @RequestMapping("/post/ReportCommonController/queryDataBaseMationList")
     public void queryDataBaseMationList(InputObject inputObject, OutputObject outputObject) {
         reportCommonService.queryDataBaseMationList(inputObject, outputObject);
     }
 
-    /**
-     * 获取连接池类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon007", value = "获取连接池类型", method = "GET", allUse = "2")
     @RequestMapping("/post/ReportCommonController/queryPoolMationList")
     public void queryPoolMationList(InputObject inputObject, OutputObject outputObject) {
         reportCommonService.queryPoolMationList(inputObject, outputObject);
     }
 
-    /**
-     * 解析SQL数据源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon004", value = "解析SQL数据源", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "sqlText", name = "sqlText", value = "sql语句", required = "required"),
