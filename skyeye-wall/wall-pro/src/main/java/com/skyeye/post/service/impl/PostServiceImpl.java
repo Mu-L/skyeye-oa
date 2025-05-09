@@ -94,6 +94,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Autowired
     private NoticeService noticeService;
 
+    @Autowired
+    private PostService postService;
+
     @Override
     public void validatorEntity(Post entity) {
         super.validatorEntity(entity);
@@ -177,6 +180,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             // 设置用户信息--和点赞信息
             bean = list(queryWrapper);
             setUserMations(bean);
+            circleService.setDataMation(bean,Post::getCircleId);
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
             String createId = joinCircleService.selectByCircleId(holderId, userId).getCreateId();
@@ -296,7 +300,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void deletePostpose(String id) {
         pictureService.deleteByPostId(id);
         commentService.deleteByPostId(id);
-        noticeService.deleteByObjectId(id,getServiceClassName());
+        noticeService.deleteByObjectId(id,postService.getServiceClassName());
     }
 
     @Override
@@ -478,7 +482,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
-        noticeService.deleteByObjectId(id,getServiceClassName());
+        noticeService.deleteByObjectId(id,postService.getServiceClassName());
     }
 
     @Override

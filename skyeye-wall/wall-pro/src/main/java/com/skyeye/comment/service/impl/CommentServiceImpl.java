@@ -187,16 +187,19 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteByPostId(String id) {
         QueryWrapper<Comment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Comment::getPostId), id);
         List<Comment> list = list(queryWrapper);
         List<String> ids = list.stream().map(Comment::getId).collect(Collectors.toList());
         pictureService.deleteByCommentIds(ids);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
         remove(queryWrapper);
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteByPostIds(List<String> postIds) {
         if (CollectionUtil.isEmpty(postIds)) {
             return;
@@ -206,10 +209,12 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         List<Comment> list = list(queryWrapper);
         List<String> ids = list.stream().map(Comment::getId).collect(Collectors.toList());
         pictureService.deleteByCommentIds(ids);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
         remove(queryWrapper);
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deletePostpose(Comment entity) {
         // 删除子评论
         QueryWrapper<Comment> queryWrapper = new QueryWrapper<>();
@@ -219,6 +224,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             .map(Comment::getId).collect(Collectors.toList());
         ids.add(entity.getId());
         pictureService.deleteByCommentIds(ids);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
         remove(queryWrapper);
         // 查询所有评论条数，更新帖子评论总数
         QueryWrapper<Comment> countQueryWrapper = new QueryWrapper<>();
@@ -276,6 +282,8 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         Post post = postService.selectById(comment.getPostId());
         notice.setSendId(userId);
         notice.setType(TypeEnum.COMMENT.getKey());
+        notice.setCommentKey(commentService.getServiceClassName());
+        notice.setObjectKey(postService.getServiceClassName());
         if(StrUtil.isNotEmpty(comment.getParentId())){
             // 回复通知
             Comment parentComment = commentService.selectById(comment.getParentId());

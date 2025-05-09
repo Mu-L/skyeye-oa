@@ -11,6 +11,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.circle.service.CircleService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -57,6 +58,9 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
 
     @Autowired
     private PictureService pictureService;
+
+    @Autowired
+    private CircleService circleService;
 
     @Override
     public String createEntity(HistoryPost entity, String userId) {
@@ -133,6 +137,7 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         }
         // 设置当前用户是否点赞
         postService.setUserMations(beans);
+        circleService.setDataMation(beans,Post::getCircleId);
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(beans);
     }

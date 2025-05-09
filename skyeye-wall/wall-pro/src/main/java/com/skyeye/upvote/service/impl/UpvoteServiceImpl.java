@@ -77,12 +77,14 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
         Notice notice = new Notice();
         notice.setSendId(userId);
         notice.setType(TypeEnum.LIKE.getKey());
+        notice.setObjectKey(postService.getServiceClassName());
         if (commentService.getServiceClassName().equals(upvote.getObjectKey())) {
             if (estimateAddOrCancel(upvote)) {
                 addUpvoteComment(upvote);
                 // 评论点赞
                 Comment comment = commentService.selectById(upvote.getObjectId());
                 Post post = postService.selectById(comment.getPostId());
+                notice.setObjectKey(commentService.getServiceClassName());
                 notice.setReceiveId(comment.getCreateId());
                 if(StrUtil.isNotEmpty(post.getCircleId())){
                     notice.setObjectId(post.getId());

@@ -93,12 +93,12 @@ public class UserViewServiceImpl extends SkyeyeBusinessServiceImpl<UserViewDao, 
         if (CollectionUtil.isEmpty(userViews)) {
             return;
         }
-        List<String> userIds = userViews.stream().map(UserView::getUserId).collect(Collectors.toList());
+        List<String> userIds = userViews.stream().map(UserView::getVisitorUserId).collect(Collectors.toList());
         Map<String, Boolean> checkFocusMap = focusService.checkFocus(userIds);
         // 获取访问者信息
         for (UserView userView : userViews) {
             User user = userService.selectById(userView.getVisitorUserId());
-            userView.setCheckFocus(checkFocusMap.get(userView.getUserId()));
+            userView.setCheckFocus(checkFocusMap.get(userView.getVisitorUserId()));
             if (StrUtil.isEmpty(user.getId())) {
                 iAuthUserService.setDataMation(userView, UserView::getVisitorUserId);
             } else {
