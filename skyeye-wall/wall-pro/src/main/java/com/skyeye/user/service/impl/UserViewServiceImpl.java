@@ -53,6 +53,9 @@ public class UserViewServiceImpl extends SkyeyeBusinessServiceImpl<UserViewDao, 
 
     @Override
     public String createEntity(UserView entity, String userId) {
+        if(entity.getUserId().equals(userId)){
+            return StrUtil.EMPTY;
+        }
         QueryWrapper<UserView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(UserView::getVisitorUserId), userId)
                 .eq(MybatisPlusUtil.toColumns(UserView::getUserId), entity.getUserId());

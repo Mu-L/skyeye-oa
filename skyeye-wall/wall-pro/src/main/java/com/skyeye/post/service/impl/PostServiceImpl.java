@@ -180,7 +180,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             // 设置用户信息--和点赞信息
             bean = list(queryWrapper);
             setUserMations(bean);
-            circleService.setDataMation(bean,Post::getCircleId);
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
             String createId = joinCircleService.selectByCircleId(holderId, userId).getCreateId();
@@ -201,6 +200,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
             bean = list(queryWrapper);
+            circleService.setDataMation(bean,Post::getCircleId);
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);

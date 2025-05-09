@@ -81,15 +81,14 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
         if(StrUtil.isEmpty(userId)){
             throw new CustomException("用户id不能为空");
         }
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getUserId), userId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getCreateTime));
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getCreateTime))
+                .orderByDesc(MybatisPlusUtil.toColumns(VideoView::getViewCount));
         List<VideoView> videoViews = list(queryWrapper);
-        List<String> videoIds = videoViews.stream().map(VideoView::getVideoId).collect(Collectors.toList());
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Video> videos = videoService.selectByIds(videoIds.toArray(new String[]{}));
-        videoService.setUserMations(videos);
-        outputObject.setBeans(videos);
+        videoService.setDataMation(videoViews,VideoView::getVideoId);
+        outputObject.setBeans(videoViews);
         outputObject.settotal(page.getTotal());
     }
 
