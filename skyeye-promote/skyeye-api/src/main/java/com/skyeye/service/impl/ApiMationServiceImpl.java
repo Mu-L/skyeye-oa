@@ -4,6 +4,7 @@
 
 package com.skyeye.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -19,7 +20,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.service.ApiMationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class ApiMationServiceImpl extends SkyeyeBusinessServiceImpl<ApiMationDao
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
         ApiMation checkDictTypeMation = getOne(queryWrapper, false);
-        if (ObjectUtils.isEmpty(checkDictTypeMation)) {
+        if (ObjectUtil.isNotEmpty(checkDictTypeMation)) {
             throw new CustomException("this data [title] is non-existent.");
         }
     }
