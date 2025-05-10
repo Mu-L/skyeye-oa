@@ -65,7 +65,13 @@
 		FROM
 			sys_eve_user_custom_menu a
 			LEFT JOIN sys_eve_user_custom_parent e ON e.menu_id = a.id AND e.create_id = #{userId}
+			<if test="tenantId != '' and tenantId != null">
+				AND e.tenant_id = #{tenantId}
+			</if>
 		WHERE a.create_id = #{userId}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		UNION
 		SELECT
 			a.id,
@@ -90,6 +96,9 @@
 		FROM
 			sys_eve_user_custom_menubox a
 		WHERE a.create_id = #{userId}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 
 </mapper>

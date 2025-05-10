@@ -4,6 +4,7 @@
 
 package com.skyeye.win.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public interface SysEveWinDragDropDao {
 
     Map<String, Object> queryMenuMationTypeById(Map<String, Object> map);
 
-    List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(@Param("userId") String userId);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(@Param("userId") String userId, @Param("tenantId") String tenantId);
 
 }
