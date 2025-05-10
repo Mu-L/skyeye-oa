@@ -337,6 +337,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         // 加入租户
         TenantUser tenantUser = new TenantUser();
         tenantUser.setStaffId(userStaffId);
+        tenantUser.setIsAdmin(WhetherEnum.ENABLE_USING.getKey());
         tenantUser.setState(UserStaffState.ON_THE_JOB.getKey());
         String currentTime = DateUtil.getTimeAndToString();
         tenantUser.setWorkTime(currentTime);
