@@ -9,8 +9,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: Circle
@@ -36,5 +39,17 @@ public class CircleView extends CommonInfo {
     @TableField("circle_id")
     @ApiModelProperty(value = "圈子id", required = "required")
     private String circleId;
+
+    @TableField(exist = false)
+    @Property(value="圈子信息")
+    private Map<String,Object> circleMation;
+
+    @TableField("view_count")
+    @ApiModelProperty(value = "浏览次数", required = "required")
+    private Integer viewCount;
+
+    @TableField("view_time")
+    @ApiModelProperty(value = "浏览时间", required = "required")
+    private String viewTime;
 
 }

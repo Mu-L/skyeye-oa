@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -140,16 +141,16 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     private void setNoticeOtherInfo(Notice notice){
         if(StrUtil.isNotEmpty(notice.getCommentId())){
             // 评论信息
-            if(commentService.getServiceClassName().equals(notice.getObjectKey())){
+            if(Objects.equals(notice.getCommentKey(),commentService.getServiceClassName())){
                 commentService.setDataMation(notice,Notice::getCommentId);
-            }else if(videoCommentService.getServiceClassName().equals(notice.getObjectKey())){
+            }else if(Objects.equals(notice.getCommentKey(),videoCommentService.getServiceClassName())){
                 videoCommentService.setDataMation(notice,Notice::getCommentId);
             }
         }
         // 帖子或视频
-        if(postService.getServiceClassName().equals(notice.getObjectKey())){
+        if(Objects.equals(notice.getObjectKey(),postService.getServiceClassName())){
             postService.setDataMation(notice,Notice::getObjectId);
-        }else if(videoService.getServiceClassName().equals(notice.getObjectKey())){
+        }else if(Objects.equals(notice.getObjectKey(),videoService.getServiceClassName())){
             videoService.setDataMation(notice,Notice::getObjectId);
         }
         // 圈子
@@ -177,11 +178,11 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public void queryNoticeByType(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Integer type = Integer.valueOf(commonPageInfo.getType());
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            Integer type = Integer.valueOf(commonPageInfo.getType());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getNoticeType), type);
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
@@ -253,6 +254,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             throw new CustomException("该帖子不存在");
         }
         Notice notice = new Notice();
+        if(params.containsKey("describe") && StrUtil.isNotEmpty(params.get("describe").toString())){
+            notice.setDescribe(params.get("describe").toString());
+        }
         notice.setObjectId(postId);
         notice.setReceiveId(userId);
         notice.setSendId(currentUserId);
@@ -281,6 +285,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         String userId = params.get("userId").toString();
         String videoId = params.get("videoId").toString();
         Notice notice = new Notice();
+        if(params.containsKey("describe") && StrUtil.isNotEmpty(params.get("describe").toString())){
+            notice.setDescribe(params.get("describe").toString());
+        }
         notice.setSendId(currentUserId);
         notice.setReceiveId(userId);
         notice.setObjectId(videoId);
@@ -292,6 +299,27 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }else {
             notice.setContent(NoticeContent.SHARE_VIDEO);
         }
+        createEntity(notice,currentUserId);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void shareCircle(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        String userId = params.get("userId").toString();
+        String circleId = params.get("circleId").toString();
+
+        Notice notice = new Notice();
+        if(params.containsKey("describe") && StrUtil.isNotEmpty(params.get("describe").toString())){
+            notice.setDescribe(params.get("describe").toString());
+        }
+        notice.setSendId(currentUserId);
+        notice.setReceiveId(userId);
+        notice.setCircleId(circleId);
+        notice.setType(TypeEnum.SHARE.getKey());
+        notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+        notice.setContent(NoticeContent.SHARE_CIRCLE);
         createEntity(notice,currentUserId);
     }
 
@@ -319,6 +347,16 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notice.setContent(content);
         }
         updateEntity(bean,userId);
+    }
+
+    @Override
+    public void updateAllNoticeRead(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        UpdateWrapper<Notice> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId),userId)
+                .eq(MybatisPlusUtil.toColumns(Notice::getState),ReadEnum.UNREAD);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Notice::getState),ReadEnum.READ);
+        update(updateWrapper);
     }
 
 }

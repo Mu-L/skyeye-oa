@@ -55,7 +55,7 @@ public class Notice extends OperatorUserInfo {
     private Map<String ,Object> receiveMation;
 
     @TableField("object_id")
-    @ApiModelProperty(value = "业务员对象id（圈子id,视频id等）",required = "required")
+    @ApiModelProperty(value = "业务员对象id(视频id等）")
     private String objectId;
 
     @TableField(exist = false)
@@ -63,7 +63,7 @@ public class Notice extends OperatorUserInfo {
     private Map<String,Object> objectMation;
 
     @TableField("object_key")
-    @ApiModelProperty(value = "业务对象key",required = "required")
+    @ApiModelProperty(value = "业务对象key")
     private String objectKey;
 
     @TableField("notice_type")
@@ -94,4 +94,7 @@ public class Notice extends OperatorUserInfo {
     @ApiModelProperty(value = "评论图片")
     private Picture picture;
 
+    @TableField("describe")
+    @ApiModelProperty(value = "描述")
+    private String describe;
 }

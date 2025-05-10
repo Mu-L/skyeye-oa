@@ -29,4 +29,8 @@ public interface NoticeService extends SkyeyeBusinessService<Notice> {
     void shareVideoOrComment(InputObject inputObject, OutputObject outputObject);
 
     void deleteByObjectId(String id, String serviceClassName);
+
+    void updateAllNoticeRead(InputObject inputObject, OutputObject outputObject);
+
+    void shareCircle(InputObject inputObject, OutputObject outputObject);
 }
