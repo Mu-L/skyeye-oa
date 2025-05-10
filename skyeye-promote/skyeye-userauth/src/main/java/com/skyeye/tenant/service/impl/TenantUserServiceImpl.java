@@ -181,6 +181,8 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Override
     public void exitTenantUser(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = inputObject.getParams().get("tenantId").toString();
+        TenantContext.setTenantId(tenantId);
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
@@ -335,6 +337,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         // 加入租户
         TenantUser tenantUser = new TenantUser();
         tenantUser.setStaffId(userStaffId);
+        tenantUser.setIsAdmin(WhetherEnum.ENABLE_USING.getKey());
         tenantUser.setState(UserStaffState.ON_THE_JOB.getKey());
         String currentTime = DateUtil.getTimeAndToString();
         tenantUser.setWorkTime(currentTime);
