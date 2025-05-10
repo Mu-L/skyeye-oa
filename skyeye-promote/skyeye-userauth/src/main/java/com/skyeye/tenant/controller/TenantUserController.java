@@ -64,6 +64,8 @@ public class TenantUserController {
     }
 
     @ApiOperation(id = "exitTenantUser", value = "用户自主退出租户", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户ID", required = "required")})
     @RequestMapping("/post/TenantUserController/exitTenantUser")
     public void exitTenantUser(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.exitTenantUser(inputObject, outputObject);

@@ -181,6 +181,8 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Override
     public void exitTenantUser(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = inputObject.getParams().get("tenantId").toString();
+        TenantContext.setTenantId(tenantId);
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
