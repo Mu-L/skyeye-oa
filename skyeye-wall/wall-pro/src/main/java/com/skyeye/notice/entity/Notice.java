@@ -94,7 +94,7 @@ public class Notice extends OperatorUserInfo {
     @ApiModelProperty(value = "评论图片")
     private Picture picture;
 
-    @TableField("describe")
+    @TableField("description")
     @ApiModelProperty(value = "描述")
-    private String describe;
+    private String description;
 }

@@ -45,11 +45,11 @@ public class CircleView extends CommonInfo {
     private Map<String,Object> circleMation;
 
     @TableField("view_count")
-    @ApiModelProperty(value = "浏览次数", required = "required")
+    @ApiModelProperty(value = "浏览次数")
     private Integer viewCount;
 
     @TableField("view_time")
-    @ApiModelProperty(value = "浏览时间", required = "required")
+    @ApiModelProperty(value = "浏览时间")
     private String viewTime;
 
 }

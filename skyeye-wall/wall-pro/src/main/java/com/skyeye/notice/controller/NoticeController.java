@@ -121,8 +121,8 @@ public class NoticeController {
     @ApiImplicitParams({
             @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "require"),
             @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
-            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id", required = "required"),
-            @ApiImplicitParam(id = "describe", name = "describe", value = "分享描述")
+            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
+            @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
     })
     @RequestMapping("/post/NoticeController/sharePostOrComment")
     public void sharePostOrComment(InputObject inputObject, OutputObject outputObject) {
@@ -133,8 +133,8 @@ public class NoticeController {
     @ApiImplicitParams({
             @ApiImplicitParam(id = "videoId", name = "videoId", value = "帖子id", required = "require"),
             @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
-            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id", required = "required"),
-            @ApiImplicitParam(id = "describe", name = "describe", value = "分享描述")
+            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
+            @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
     })
     @RequestMapping("/post/NoticeController/shareVideoOrComment")
     public void shareVideoOrComment(InputObject inputObject, OutputObject outputObject) {
@@ -144,8 +144,8 @@ public class NoticeController {
     @ApiOperation(id = "shareCircle", value = "分享圈子", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "circleId", name = "circleId", value = "圈子id", required = "require"),
-            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id", required = "required"),
-            @ApiImplicitParam(id = "describe", name = "describe", value = "分享描述")
+            @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
+            @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
     })
     @RequestMapping("/post/NoticeController/shareCircle")
     public void shareCircle(InputObject inputObject, OutputObject outputObject) {
