@@ -5,10 +5,12 @@
 package com.skyeye.win.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.ObjectConstant;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.jedis.JedisClientService;
 import com.skyeye.personnel.dao.SysEveUserDao;
@@ -19,6 +21,7 @@ import com.skyeye.win.service.SysEveUserCustomMenuboxService;
 import com.skyeye.win.service.SysEveUserCustomParentService;
 import com.skyeye.win.service.SysEveWinDragDropService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +48,9 @@ public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
 
     @Autowired
     public JedisClientService jedisClient;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
@@ -101,7 +107,11 @@ public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
 
     @Override
     public List<Map<String, Object>> queryCustomDeskTopsMenuByUserId(String userId) {
-        return sysEveWinDragDropDao.queryCustomDeskTopsMenuByUserId(userId);
+        String tenantId = TenantContext.getTenantId();
+        if (!tenantEnable) {
+            tenantId = StrUtil.EMPTY;
+        }
+        return sysEveWinDragDropDao.queryCustomDeskTopsMenuByUserId(userId, tenantId);
     }
 
 }
