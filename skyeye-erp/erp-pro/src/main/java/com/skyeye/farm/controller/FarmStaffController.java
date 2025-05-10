@@ -46,6 +46,18 @@ public class FarmStaffController {
     }
 
     /**
+     * 不分页获取全部车间下的员工信息（远程调用）
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllFarmStaffList", value = "获取全部车间下的员工信息", method = "POST", allUse = "2")
+    @RequestMapping("/post/FarmStaffController/queryAllFarmStaffList")
+    public void queryAllFarmStaffList(InputObject inputObject, OutputObject outputObject) {
+        farmStaffService.queryAllFarmStaffList(inputObject, outputObject);
+    }
+
+    /**
      * 删除车间下的员工信息
      *
      * @param inputObject  入参以及用户信息等获取对象

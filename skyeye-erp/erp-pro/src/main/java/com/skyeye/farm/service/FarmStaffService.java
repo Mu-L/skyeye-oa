@@ -26,4 +26,7 @@ public interface FarmStaffService extends SkyeyeBusinessService<FarmStaff> {
     void queryStaffBelongFarmList(InputObject inputObject, OutputObject outputObject);
 
     void deleteFarmStaffByStaffId(InputObject inputObject, OutputObject outputObject);
+
+    void queryAllFarmStaffList(InputObject inputObject, OutputObject outputObject);
+
 }

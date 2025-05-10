@@ -138,4 +138,13 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(FarmStaff::getStaffId), staffId);
         remove(queryWrapper);
     }
+
+    @Override
+    public void queryAllFarmStaffList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FarmStaff::getCreateTime));
+        List<FarmStaff> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
 }
