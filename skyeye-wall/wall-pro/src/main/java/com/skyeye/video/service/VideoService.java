@@ -29,4 +29,6 @@ public interface VideoService extends SkyeyeBusinessService<Video> {
     void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject);
 
     void deleteVideo(InputObject inputObject, OutputObject outputObject);
+
+    void updateVideoShareNum(String videoId);
 }

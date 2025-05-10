@@ -74,11 +74,10 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getPostId), entity.getPostId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime), DateUtil.getYmdTimeAndToString());
         HistoryPost one = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(one)) {
-            one.setCreateTime(DateUtil.getYmdTimeAndToString());
-            one.setViewCount(entity.getViewCount()+CommonNumConstants.NUM_ONE);
+            one.setCreateTime(LocalDateTime.now().toString());
+            one.setViewCount(one.getViewCount()+CommonNumConstants.NUM_ONE);
             updateEntity(one, userId);
             return StrUtil.EMPTY;
         }
@@ -89,7 +88,7 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
     public void createPrepose(HistoryPost historyPost) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         historyPost.setCreateId(userId);
-        historyPost.setCreateTime(DateUtil.getYmdTimeAndToString());
+        historyPost.setCreateTime(LocalDateTime.now().toString());
     }
 
     @Override

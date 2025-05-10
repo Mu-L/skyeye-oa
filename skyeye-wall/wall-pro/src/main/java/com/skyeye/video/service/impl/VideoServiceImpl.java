@@ -510,4 +510,12 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             throw new CustomException("无权限");
         }
     }
+
+    @Override
+    public void updateVideoShareNum(String videoId) {
+        Video video = selectById(videoId);
+        int shareNum = Integer.parseInt(video.getShareNum()) + CommonNumConstants.NUM_ONE;
+        video.setShareNum(String.valueOf(shareNum));
+        updateById(video);
+    }
 }

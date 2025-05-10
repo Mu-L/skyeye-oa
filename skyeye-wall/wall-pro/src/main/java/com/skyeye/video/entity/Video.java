@@ -59,6 +59,10 @@ public class Video extends OperatorUserInfo {
     @ApiModelProperty(value = "评论数量，默认0", defaultValue = "0")
     private String remarkNum;
 
+    @TableField("share_num")
+    @ApiModelProperty(value = "分享数量，默认0", defaultValue = "0")
+    private String shareNum;
+
     @TableField("video_duration")
     @ApiModelProperty(value = "视频时长，默认0", defaultValue = "0")
     private Integer videoDuration;

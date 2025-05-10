@@ -30,6 +30,7 @@ import com.skyeye.post.entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,7 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
                 .eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), entity.getCircleId());
         CircleView one = getOne(queryWrapper);
         if(ObjectUtil.isNotEmpty(one)){
-            one.setViewTime(DateUtil.getYmdTimeAndToString());
+            one.setViewTime(LocalDateTime.now().toString());
             one.setViewCount(one.getViewCount() + CommonNumConstants.NUM_ONE);
             updateEntity(one, userId);
             return StrUtil.EMPTY;
@@ -107,6 +108,7 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
     public void createPrepose(CircleView circleView) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         circleView.setCreateId(userId);
+        circleView.setViewTime(LocalDateTime.now().toString());
     }
 
     @Override

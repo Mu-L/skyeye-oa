@@ -494,4 +494,13 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         queryWrapper.in(CommonConstants.ID, postIds);
         return list(queryWrapper);
     }
+
+
+    @Override
+    public void updatePostShareNum(String postId) {
+        Post post = selectById(postId);
+        int shareNum = Integer.parseInt(post.getShareNum()) + CommonNumConstants.NUM_ONE;
+        post.setShareNum(String.valueOf(shareNum));
+        updateById(post);
+    }
 }

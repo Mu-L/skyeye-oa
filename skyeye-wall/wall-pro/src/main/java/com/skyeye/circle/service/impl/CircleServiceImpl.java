@@ -405,4 +405,12 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         outputObject.setBeans(circleList);
         outputObject.settotal(page.getTotal());
     }
+
+    @Override
+    public void updateCircleShareNum(String circleId) {
+        Circle circle = selectById(circleId);
+        int shareNum = Integer.parseInt(circle.getShareNum()) + CommonNumConstants.NUM_ONE;
+        circle.setShareNum(String.valueOf(shareNum));
+        updateById(circle);
+    }
 }

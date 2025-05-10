@@ -31,4 +31,6 @@ public interface CircleService extends SkyeyeBusinessService<Circle> {
     void deleteCircle(InputObject inputObject, OutputObject outputObject);
 
     void queryUserCircleList(InputObject inputObject, OutputObject outputObject);
+
+    void updateCircleShareNum(String circleId);
 }

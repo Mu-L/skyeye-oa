@@ -298,6 +298,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         createEntity(notices, currentUserId);
+        postService.updatePostShareNum(postId);
     }
 
     @Override
@@ -335,6 +336,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         createEntity(notices, currentUserId);
+        videoService.updateVideoShareNum(videoId);
     }
 
     @Override
@@ -366,6 +368,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         createEntity(notices, currentUserId);
+        circleService.updateCircleShareNum(circleId);
     }
 
     /**
@@ -397,11 +400,15 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public void updateAllNoticeRead(InputObject inputObject, OutputObject outputObject) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        UpdateWrapper<Notice> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
-                .eq(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.UNREAD);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.READ);
-        update(updateWrapper);
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.UNREAD.getKey());
+        List<Notice> bean = list(queryWrapper);
+        List<Notice> collect = bean.stream().map(notice -> {
+            notice.setState(ReadEnum.READ.getKey());
+            return notice;
+        }).collect(Collectors.toList());
+        updateEntity(collect, userId);
     }
 
 }

@@ -52,6 +52,10 @@ public class Circle extends OperatorUserInfo {
     @ApiModelProperty(value = "浏览数量")
     private Integer viewNum;
 
+    @TableField("share_num")
+    @ApiModelProperty(value = "分享数量，默认0", defaultValue = "0")
+    private String shareNum;
+
     @TableField("num")
     @ApiModelProperty(value = "圈子人数")
     private Integer num;
