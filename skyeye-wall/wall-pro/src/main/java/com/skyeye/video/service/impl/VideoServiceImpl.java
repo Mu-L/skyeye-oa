@@ -82,6 +82,9 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
     @Autowired
     private NoticeService noticeService;
 
+    @Autowired
+    private VideoService videoService;
+
     @Value("${IMAGES_PATH}")
     private String tPath;
 
@@ -274,7 +277,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         videoCommentService.deleteByVideoId(id);
         videoRecordService.deleteByVideoId(id);
         videoViewService.deleteByVideoId(id);
-        noticeService.deleteByObjectId(id,getServiceClassName());
+        noticeService.deleteByObjectId(id,videoService.getServiceClassName());
     }
 
     @Override
@@ -461,6 +464,7 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
             notice.setSendId(currentUserId);
             notice.setReceiveId(video.getCreateId());
             notice.setObjectId(videoId);
+            notice.setObjectKey(videoService.getServiceClassName());
             notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
             notice.setType(TypeEnum.LIKE.getKey());
             notice.setContent(NoticeContent.UPVOTE_VIDEO);

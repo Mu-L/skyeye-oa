@@ -94,6 +94,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Autowired
     private NoticeService noticeService;
 
+    @Autowired
+    private PostService postService;
+
     @Override
     public void validatorEntity(Post entity) {
         super.validatorEntity(entity);
@@ -197,6 +200,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
             bean = list(queryWrapper);
+            circleService.setDataMation(bean,Post::getCircleId);
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
@@ -296,7 +300,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void deletePostpose(String id) {
         pictureService.deleteByPostId(id);
         commentService.deleteByPostId(id);
-        noticeService.deleteByObjectId(id,getServiceClassName());
+        noticeService.deleteByObjectId(id,postService.getServiceClassName());
     }
 
     @Override
@@ -478,7 +482,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
-        noticeService.deleteByObjectId(id,getServiceClassName());
+        noticeService.deleteByObjectId(id,postService.getServiceClassName());
     }
 
     @Override

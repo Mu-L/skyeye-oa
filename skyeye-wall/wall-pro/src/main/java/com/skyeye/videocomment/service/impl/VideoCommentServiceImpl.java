@@ -109,6 +109,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         Notice notice = new Notice();
         notice.setSendId(userId);
         notice.setObjectId(videoId);
+        notice.setCommentKey(videoCommentService.getServiceClassName());
+        notice.setObjectKey(videoService.getServiceClassName());
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
         notice.setType(TypeEnum.COMMENT.getKey());
         if(StrUtil.isNotEmpty(entity.getParentId())){
@@ -137,6 +139,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         remove(queryWrapper);
         List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
         pictureService.deleteByCommentIds(ids);
+        noticeService.deleteVideoNoticeByCommentIds(ids);
         String videoId = entity.getVideoId();
         //根据 videoId 获取评论数量
         Video video = videoService.selectById(videoId);
@@ -144,7 +147,6 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         videoRemarkNum = videoRemarkNum - videoComments.size() - 1;
         video.setRemarkNum(String.valueOf(videoRemarkNum));
         videoService.updateEntity(video, userId);
-        noticeService.deleteVideoNoticeByCommentIds(ids);
     }
 
     private void setCommentPicture(List<VideoComment> list) {
@@ -244,6 +246,8 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             notice.setReceiveId(videoComment.getCreateId());
             notice.setCommentId(videoComment.getId());
             notice.setObjectId(videoComment.getVideoId());
+            notice.setObjectKey(videoService.getServiceClassName());
+            notice.setCommentKey(videoCommentService.getServiceClassName());
             notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
             notice.setType(TypeEnum.LIKE.getKey());
             notice.setContent(NoticeContent.UPVOTE_COMMENT);

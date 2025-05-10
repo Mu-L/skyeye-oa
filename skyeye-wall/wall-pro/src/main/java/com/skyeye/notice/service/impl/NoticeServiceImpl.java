@@ -9,6 +9,9 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.circle.entity.Circle;
+import com.skyeye.circle.service.CircleService;
+import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -17,6 +20,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.notice.constants.NoticeContent;
 import com.skyeye.notice.dao.NoticeDao;
 import com.skyeye.notice.entity.Notice;
@@ -30,6 +34,7 @@ import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
 import com.skyeye.user.service.UserService;
 import com.skyeye.video.service.VideoService;
+import com.skyeye.videocomment.service.VideoCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +70,18 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Autowired
     private VideoService videoService;
 
+    @Autowired
+    private JoinCircleService joinCircleService;
+
+    @Autowired
+    private CommentService commentService;
+
+    @Autowired
+    private VideoCommentService videoCommentService;
+
+    @Autowired
+    private CircleService circleService;
+
     private Notice setUserMation(Notice notice) {
         if (notice.getType() == TypeEnum.COMMENT.getKey()) {
             Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
@@ -96,6 +113,13 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         if (userId.equals(entity.getReceiveId())) {
             return StrUtil.EMPTY;
         }
+        if(StrUtil.isNotEmpty(entity.getCircleId())){
+            // 判断接收人是否还在圈子中--不在则不通知
+            Boolean isJoin = joinCircleService.checkIsJoinCircle(entity.getCircleId(), entity.getReceiveId());
+            if (!isJoin) {
+                return StrUtil.EMPTY;
+            }
+        }
         // 如果是点赞，只通知一次
         if (entity.getType() == TypeEnum.LIKE.getKey()) {
             QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
@@ -113,9 +137,32 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         return super.createEntity(entity, userId);
     }
 
+    private void setNoticeOtherInfo(Notice notice){
+        if(StrUtil.isNotEmpty(notice.getCommentId())){
+            // 评论信息
+            if(commentService.getServiceClassName().equals(notice.getObjectKey())){
+                commentService.setDataMation(notice,Notice::getCommentId);
+            }else if(videoCommentService.getServiceClassName().equals(notice.getObjectKey())){
+                videoCommentService.setDataMation(notice,Notice::getCommentId);
+            }
+        }
+        // 帖子或视频
+        if(postService.getServiceClassName().equals(notice.getObjectKey())){
+            postService.setDataMation(notice,Notice::getObjectId);
+        }else if(videoService.getServiceClassName().equals(notice.getObjectKey())){
+            videoService.setDataMation(notice,Notice::getObjectId);
+        }
+        // 圈子
+        if(StrUtil.isNotEmpty(notice.getCircleId())){
+            circleService.setDataMation(notice,Notice::getCircleId);
+        }
+    }
+
     @Override
     public Notice selectById(String id) {
         Notice notice = super.selectById(id);
+        // 设置通知其他内容
+        setNoticeOtherInfo(notice);
         return setUserMation(notice);
     }
 
@@ -144,6 +191,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             return;
         }
         List<Notice> beans = bean.stream().map(this::setUserMation).collect(Collectors.toList());
+        for (Notice notice: beans){
+            setNoticeOtherInfo(notice);
+        }
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }

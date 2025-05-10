@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.Map;
 
 
 /**
@@ -27,6 +30,10 @@ public class VideoView extends OperatorUserInfo {
     @TableField("video_id")
     @ApiModelProperty(value = "视频id", required = "required")
     private String videoId;
+
+    @TableField(exist = false)
+    @Property(value = "视频信息")
+    private  Map<String,Object> videoMation;
 
     @TableField("user_id")
     @ApiModelProperty(value = "用户id", required = "required")
