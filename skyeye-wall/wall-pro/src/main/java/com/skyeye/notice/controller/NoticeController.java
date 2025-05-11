@@ -143,7 +143,7 @@ public class NoticeController {
 
     @ApiOperation(id = "shareCircle", value = "分享圈子", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "circleId", name = "circleId", value = "圈子id", required = "require"),
+            @ApiImplicitParam(id = "circleId", name = "circleId", value = "圈子id", required = "required"),
             @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
             @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
     })

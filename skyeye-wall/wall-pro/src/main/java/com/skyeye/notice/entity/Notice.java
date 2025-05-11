@@ -91,6 +91,10 @@ public class Notice extends OperatorUserInfo {
     private String circleId;
 
     @TableField(exist = false)
+    @Property(value = "圈子信息")
+    private Map<String,Object> circleMation;
+
+    @TableField(exist = false)
     @ApiModelProperty(value = "评论图片")
     private Picture picture;
 
