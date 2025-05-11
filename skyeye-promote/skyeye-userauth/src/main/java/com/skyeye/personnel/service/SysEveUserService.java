@@ -40,7 +40,7 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
      *
      * @param userId 用户id
      */
-    void removeLogin(String userId);
+    void removeLogin(String userId, boolean removeAll);
 
     void queryRoleAndBindRoleByUserId(InputObject inputObject, OutputObject outputObject);
 

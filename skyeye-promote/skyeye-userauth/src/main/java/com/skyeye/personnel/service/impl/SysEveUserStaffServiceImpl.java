@@ -268,11 +268,11 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         update(updateWrapper);
 
         SysEveUserStaff staffMation = selectById(staffId);
-        if (!ToolUtil.isBlank(staffMation.getUserId())) {
+        if (!ToolUtil.isBlank(staffMation.getUserId()) && !tenantEnable) {
             // 锁定帐号
             sysEveUserService.editUserLockState(staffMation.getUserId(), UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey());
             // 退出登录
-            sysEveUserService.removeLogin(staffMation.getUserId());
+            sysEveUserService.removeLogin(staffMation.getUserId(), true);
         }
     }
 

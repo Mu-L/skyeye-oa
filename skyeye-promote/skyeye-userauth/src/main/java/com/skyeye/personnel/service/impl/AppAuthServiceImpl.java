@@ -128,8 +128,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         List<Map<String, Object>> authPoints = new ArrayList<>();
         if (!tenantEnable) {
             // 单租户模式，获取角色id(逗号隔开的字符串)
-            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
-                userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(userIdAndType));
             authPoints = sysAuthorityService.getRoleHasMenuPointListByRoleIds(roleIds, userIdAndType);
         } else {
             // 多租户模式

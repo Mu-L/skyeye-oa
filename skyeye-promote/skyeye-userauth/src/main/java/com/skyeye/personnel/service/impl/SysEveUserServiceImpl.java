@@ -385,25 +385,30 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      */
     @Override
     public void deleteUserMationBySession(InputObject inputObject, OutputObject outputObject) {
-        String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        this.removeLogin(userId);
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        this.removeLogin(userTokenId, false);
         inputObject.removeSession();
     }
 
     /**
      * 退出登录
      *
-     * @param userId 用户id
+     * @param userTokenId 用户token的id
      */
     @Override
-    public void removeLogin(String userId) {
-        SysUserAuthConstants.delUserLoginRedisCache(userId);
-        jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userId));
-        jedisClientService.del(ObjectConstant.getUserHasRoleIds(userId));
-        if (userId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+    public void removeLogin(String userTokenId, boolean removeAll) {
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
+        jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userTokenId));
+        jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId));
+        if (!removeAll) {
+            return;
+        }
+        if (userTokenId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端用户登录信息
+            jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId + SysUserAuthConstants.APP_IDENTIFYING));
         } else {
             // 手机端用户登录信息
+            jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId.replace(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
         }
     }
 
@@ -519,8 +524,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         List<Map<String, Object>> menuList;
         if (!tenantEnable) {
             // 单租户模式，获取角色id(逗号隔开的字符串)
-            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
-                userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(userIdAndType));
             menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
         } else {
             // 多租户模式
@@ -876,7 +880,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
         companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
         setUserLoginRedisMation(appUserId, userMation);
-        jedisClientService.set(ObjectConstant.getUserHasRoleIds(userId), roleIds);
+        jedisClientService.set(ObjectConstant.getUserHasRoleIds(appUserId), roleIds);
         outputObject.setBean(userMation);
     }
 
