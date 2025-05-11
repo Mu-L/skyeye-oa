@@ -306,7 +306,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isEmpty(beans)){
+        if(CollectionUtil.isNotEmpty(beans)){
             createEntity(beans, currentUserId);
             postService.updatePostShareNum(postId,beans.size());
         }
@@ -347,7 +347,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isEmpty(beans)){
+        if(CollectionUtil.isNotEmpty(beans)){
             createEntity(notices, currentUserId);
             videoService.updateVideoShareNum(videoId,beans.size());
         }
@@ -382,7 +382,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isEmpty(beans)){
+        if(CollectionUtil.isNotEmpty(beans)){
             createEntity(notices, currentUserId);
             circleService.updateCircleShareNum(circleId,beans.size());
         }
