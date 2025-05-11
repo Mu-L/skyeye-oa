@@ -33,4 +33,6 @@ public interface TenantService extends SkyeyeBusinessService<Tenant> {
      * @return
      */
     List<String> queryAllMenuListByTenantId(String tenantId, Integer type);
+
+    void checkTenantAccountNum(String tenantId);
 }

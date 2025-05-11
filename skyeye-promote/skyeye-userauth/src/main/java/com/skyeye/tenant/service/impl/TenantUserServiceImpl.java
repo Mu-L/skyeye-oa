@@ -317,6 +317,10 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     public void addTenantAdminUser(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String tenantId = params.get("tenantId").toString();
+
+        // 校验租户的用户数量
+        tenantService.checkTenantAccountNum(tenantId);
+
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         String phone = params.get("phone").toString();
         // 校验手机号
@@ -395,6 +399,13 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getIsAdmin),
             tenantUser.getIsAdmin() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.DISABLE_USING.getKey() : WhetherEnum.ENABLE_USING.getKey());
         update(updateWrapper);
+    }
+
+    @Override
+    public long getTenantUserCountByTenantId(String tenantId) {
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
+        return count(queryWrapper);
     }
 
 }
