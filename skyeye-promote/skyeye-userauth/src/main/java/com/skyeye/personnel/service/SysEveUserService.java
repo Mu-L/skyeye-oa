@@ -50,7 +50,7 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
 
     void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject);
 
-    void setUserLoginRedisMation(String userId, Map<String, Object> userMation);
+    void setUserLoginRedisMation(String userId, Map<String, Object> userMation, boolean editAll);
 
     void insertSysUserMationById(InputObject inputObject, OutputObject outputObject);
 
