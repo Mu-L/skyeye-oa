@@ -146,8 +146,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         if (CollectionUtil.isEmpty(beans)) {
             return new ArrayList();
         }
-        if(StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId())){
-            // 分享圈子——去除不在圈子用户
+        if(StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId()) &&
+           StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())){
+            // 分享圈子内的评论和帖子——去除不在圈子用户
             List<String> receiveIds = beans.stream().map(Notice::getReceiveId).collect(Collectors.toList());
             Map<String,Boolean> isJoinCircleMap = joinCircleService.checkIsJoinCircle(beans.get(CommonNumConstants.NUM_ZERO).getCircleId(),receiveIds);
             beans = beans.stream().filter(notice -> isJoinCircleMap.get(notice.getReceiveId())).collect(Collectors.toList());
