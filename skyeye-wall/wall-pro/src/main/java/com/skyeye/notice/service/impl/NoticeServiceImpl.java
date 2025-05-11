@@ -137,8 +137,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         return super.createEntity(entity, userId);
     }
 
-    @Override
-    public List<String> createEntity(List<Notice> entity, String userId) {
+    private List<Notice> filterNotice(List<Notice> entity, String userId) {
         if (CollectionUtil.isEmpty(entity)) {
             return new ArrayList();
         }
@@ -156,7 +155,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                 throw new CustomException("分享的用户不在圈子中");
             }
         }
-        return super.createEntity(beans, userId);
+        return beans;
     }
 
     private void setNoticeOtherInfo(Notice notice) {
@@ -306,8 +305,11 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             item.setReceiveId(id);
             notices.add(item);
         }
-        createEntity(notices, currentUserId);
-        postService.updatePostShareNum(postId);
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isEmpty(beans)){
+            createEntity(beans, currentUserId);
+            postService.updatePostShareNum(postId,beans.size());
+        }
     }
 
     @Override
@@ -344,8 +346,11 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             item.setReceiveId(id);
             notices.add(item);
         }
-        createEntity(notices, currentUserId);
-        videoService.updateVideoShareNum(videoId);
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isEmpty(beans)){
+            createEntity(notices, currentUserId);
+            videoService.updateVideoShareNum(videoId,beans.size());
+        }
     }
 
     @Override
@@ -376,8 +381,11 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             item.setReceiveId(id);
             notices.add(item);
         }
-        createEntity(notices, currentUserId);
-        circleService.updateCircleShareNum(circleId);
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isEmpty(beans)){
+            createEntity(notices, currentUserId);
+            circleService.updateCircleShareNum(circleId,beans.size());
+        }
     }
 
     /**

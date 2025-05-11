@@ -497,9 +497,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
 
     @Override
-    public void updatePostShareNum(String postId) {
+    public void updatePostShareNum(String postId, int num) {
         Post post = selectById(postId);
-        int shareNum = Integer.parseInt(post.getShareNum()) + CommonNumConstants.NUM_ONE;
+        int shareNum = Integer.parseInt(post.getShareNum()) + num;
         post.setShareNum(String.valueOf(shareNum));
         updateById(post);
     }

@@ -407,9 +407,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     }
 
     @Override
-    public void updateCircleShareNum(String circleId) {
+    public void updateCircleShareNum(String circleId, int num) {
         Circle circle = selectById(circleId);
-        int shareNum = Integer.parseInt(circle.getShareNum()) + CommonNumConstants.NUM_ONE;
+        int shareNum = Integer.parseInt(circle.getShareNum()) + num;
         circle.setShareNum(String.valueOf(shareNum));
         updateById(circle);
     }
