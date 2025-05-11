@@ -23,10 +23,7 @@ import com.skyeye.tenant.dao.TenantDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantApp;
 import com.skyeye.tenant.entity.TenantAppLink;
-import com.skyeye.tenant.service.TenantAppLinkService;
-import com.skyeye.tenant.service.TenantAppMenuService;
-import com.skyeye.tenant.service.TenantAppService;
-import com.skyeye.tenant.service.TenantService;
+import com.skyeye.tenant.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +51,9 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
 
     @Autowired
     private TenantAppMenuService tenantAppMenuService;
+
+    @Autowired
+    private TenantUserService tenantUserService;
 
     @Override
     public void createPrepose(Tenant entity) {
@@ -137,5 +137,23 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         }
         List<String> menuIds = tenantAppMenuService.selectObjectIdsByAppId(appIds, type);
         return menuIds;
+    }
+
+    @Override
+    @IgnoreTenant
+    public void checkTenantAccountNum(String tenantId) {
+        if (StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+            // 平台租户不限制账号数量
+            return;
+        }
+        Tenant tenant = selectById(tenantId);
+        if (ObjectUtil.isEmpty(tenant) || StrUtil.isEmpty(tenant.getId())) {
+            throw new CustomException("租户不存在");
+        }
+        // 获取租户下的所有用户数量
+        long count = tenantUserService.getTenantUserCountByTenantId(tenantId);
+        if (count >= tenant.getAccountNum()) {
+            throw new CustomException("租户账号数量已达上限");
+        }
     }
 }
