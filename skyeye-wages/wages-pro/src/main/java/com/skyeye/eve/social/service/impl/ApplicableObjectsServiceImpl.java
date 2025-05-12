@@ -15,6 +15,7 @@ import com.skyeye.eve.social.entity.ApplicableObjects;
 import com.skyeye.eve.social.service.ApplicableObjectsService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,6 +60,9 @@ public class ApplicableObjectsServiceImpl extends SkyeyeBusinessServiceImpl<Appl
 
     @Override
     public Map<String, List<ApplicableObjects>> queryApplicableObjectsByPId(List<String> securityFundId) {
+        if (CollectionUtil.isEmpty(securityFundId)) {
+            return Collections.emptyMap();
+        }
         QueryWrapper<ApplicableObjects> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ApplicableObjects::getSecurityFundId), securityFundId);
         List<ApplicableObjects> applicableObjectsList = list(queryWrapper);

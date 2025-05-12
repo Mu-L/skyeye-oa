@@ -135,6 +135,9 @@ public class WagesSocialSecurityFundServiceImpl extends SkyeyeBusinessServiceImp
         queryWrapper.eq(MybatisPlusUtil.toColumns(SocialSecurityFund::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<SocialSecurityFund> socialSecurityFundList = list(queryWrapper);
         List<String> ids = socialSecurityFundList.stream().map(SocialSecurityFund::getId).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(ids)) {
+            return CollectionUtil.newArrayList();
+        }
         // 获取适用对象
         Map<String, List<ApplicableObjects>> listMap = applicableObjectsService.queryApplicableObjectsByPId(ids);
         socialSecurityFundList.forEach(socialSecurityFund -> {
