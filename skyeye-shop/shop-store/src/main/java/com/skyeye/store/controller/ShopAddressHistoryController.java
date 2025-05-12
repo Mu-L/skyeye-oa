@@ -22,7 +22,7 @@ public class ShopAddressHistoryController {
     @ApiOperation(id = "queryShopAddressHistoryPageList", value = "批量删除收件地址信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class,
             value = {
-                    @ApiImplicitParam(id = "typeId", name = "orderId", value = "订单id")
+                    @ApiImplicitParam(id = "orderId", name = "typeId", value = "订单id")
             })
     @RequestMapping("/post/ShopAddressHistoryController/queryShopAddressHistoryPageList")
     private void queryPageList(InputObject inputObject, OutputObject outputObject) {

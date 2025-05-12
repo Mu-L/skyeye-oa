@@ -672,6 +672,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Order::getAddressId), oldAddressIdList);
         List<Order> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)){
+            return;
+        }
         for (Order order : list) {
             order.setAddressId(addressOldNew.get(order.getAddressId()));
             order.setAddressFromType(AddressFromTypeEnums.ADDRESS_HISTORY_TABLE.getKey());

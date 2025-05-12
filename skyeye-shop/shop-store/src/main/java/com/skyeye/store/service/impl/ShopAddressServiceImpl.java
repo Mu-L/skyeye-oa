@@ -77,12 +77,16 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
     }
 
     @Override
-    public void updatePostpose(ShopAddress entity, String userId) {
+    public void updatePrepose(ShopAddress entity) {
+        // 取出旧地址
+        QueryWrapper<ShopAddress> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, entity.getId());
+        ShopAddress oldShopAddress = getOne(queryWrapper);
         ShopAddressHistory shopAddressHistory = new ShopAddressHistory();
-        BeanUtil.copyProperties(entity, shopAddressHistory);
+        BeanUtil.copyProperties(oldShopAddress, shopAddressHistory);
         shopAddressHistory.setId(null);
         shopAddressHistory.setParentId(entity.getId());
-        shopAddressHistoryService.createEntity(shopAddressHistory, userId);
+        shopAddressHistoryService.createEntity(shopAddressHistory, InputObject.getLogParamsStatic().get(CommonConstants.ID).toString());
         Map<String, String> addressOldNew = new HashMap<>();
         addressOldNew.put(shopAddressHistory.getParentId(), shopAddressHistory.getId());
         orderService.updateByAddressId(addressOldNew);
