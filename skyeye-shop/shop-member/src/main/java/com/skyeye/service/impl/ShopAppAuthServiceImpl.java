@@ -101,8 +101,8 @@ public class ShopAppAuthServiceImpl implements ShopAppAuthService {
 
     @Override
     public void shopLogout(InputObject inputObject, OutputObject outputObject) {
-        String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        SysUserAuthConstants.delUserLoginRedisCache(userId);
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
         inputObject.removeSession();
     }
 

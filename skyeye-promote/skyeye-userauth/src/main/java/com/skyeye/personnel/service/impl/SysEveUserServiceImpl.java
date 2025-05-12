@@ -278,7 +278,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
             judgeAndGetSchoolMation(userMation, userId);
         }
 
-        setUserLoginRedisMation(userId, userMation);
+        setUserLoginRedisMation(userId, userMation, false);
         LOGGER.info("set userMation to redis cache end.");
         String userToken = GetUserToken.createNewToken(userId, userDBPassword);
         userMation.put("userToken", userToken);
@@ -301,13 +301,15 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     @Override
-    public void setUserLoginRedisMation(String userId, Map<String, Object> userMation) {
-        if (userId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
-            SysUserAuthConstants.setUserLoginRedisCache(userId, userMation);
-            SysUserAuthConstants.setUserLoginRedisCache(userId + SysUserAuthConstants.APP_IDENTIFYING, userMation);
+    public void setUserLoginRedisMation(String userTokenId, Map<String, Object> userMation, boolean editAll) {
+        SysUserAuthConstants.setUserLoginRedisCache(userTokenId, userMation);
+        if (!editAll) {
+            return;
+        }
+        if (userTokenId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+            SysUserAuthConstants.setUserLoginRedisCache(userTokenId + SysUserAuthConstants.APP_IDENTIFYING, userMation);
         } else {
-            SysUserAuthConstants.setUserLoginRedisCache(userId.replace(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY), userMation);
-            SysUserAuthConstants.setUserLoginRedisCache(userId, userMation);
+            SysUserAuthConstants.setUserLoginRedisCache(userTokenId.replace(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY), userMation);
         }
     }
 
@@ -385,25 +387,30 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
      */
     @Override
     public void deleteUserMationBySession(InputObject inputObject, OutputObject outputObject) {
-        String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        this.removeLogin(userId);
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        this.removeLogin(userTokenId, false);
         inputObject.removeSession();
     }
 
     /**
      * 退出登录
      *
-     * @param userId 用户id
+     * @param userTokenId 用户token的id
      */
     @Override
-    public void removeLogin(String userId) {
-        SysUserAuthConstants.delUserLoginRedisCache(userId);
-        jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userId));
-        jedisClientService.del(ObjectConstant.getUserHasRoleIds(userId));
-        if (userId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
+    public void removeLogin(String userTokenId, boolean removeAll) {
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
+        jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userTokenId));
+        jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId));
+        if (!removeAll) {
+            return;
+        }
+        if (userTokenId.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端用户登录信息
+            jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId + SysUserAuthConstants.APP_IDENTIFYING));
         } else {
             // 手机端用户登录信息
+            jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId.replace(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
         }
     }
 
@@ -519,8 +526,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         List<Map<String, Object>> menuList;
         if (!tenantEnable) {
             // 单租户模式，获取角色id(逗号隔开的字符串)
-            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(
-                userIdAndType.replaceFirst(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY)));
+            String roleIds = jedisClientService.get(ObjectConstant.getUserHasRoleIds(userIdAndType));
             menuList = roleMenuService.getRoleHasMenuListByRoleIds(roleIds, userIdAndType);
         } else {
             // 多租户模式
@@ -875,8 +881,8 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         String appUserId = userId + SysUserAuthConstants.APP_IDENTIFYING;
         companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
         companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
-        setUserLoginRedisMation(appUserId, userMation);
-        jedisClientService.set(ObjectConstant.getUserHasRoleIds(userId), roleIds);
+        setUserLoginRedisMation(appUserId, userMation, false);
+        jedisClientService.set(ObjectConstant.getUserHasRoleIds(appUserId), roleIds);
         outputObject.setBean(userMation);
     }
 
@@ -907,7 +913,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                     companyMationService.setNameMationForMap(userMation, "companyId", "companyName", StrUtil.EMPTY);
                     companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
                     // 2.将账号的信息存入redis
-                    setUserLoginRedisMation(bean.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation);
+                    setUserLoginRedisMation(bean.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation, false);
                 }
             } else {
                 //不存在
@@ -926,7 +932,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                 Map<String, Object> userMation = sysEveUserDao.queryUserMationByOpenId(openId);
                 companyMationService.setNameMationForMap(userMation, "companyId", "companyName", StrUtil.EMPTY);
                 //2.将账号的信息存入redis
-                setUserLoginRedisMation(map.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation);
+                setUserLoginRedisMation(map.get("userId").toString() + SysUserAuthConstants.APP_IDENTIFYING, userMation, false);
             } else {
                 outputObject.setreturnMessage("您还未绑定用户，请前往绑定.", "-9000");
             }
@@ -995,7 +1001,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
                                 String key = WxchatUtil.getWechatUserOpenIdMation(openId);
                                 jedisClientService.set(key, JSONUtil.toJsonStr(map));
                                 //2.将账号的信息存入redis
-                                setUserLoginRedisMation(userId + SysUserAuthConstants.APP_IDENTIFYING, userMation);
+                                setUserLoginRedisMation(userId + SysUserAuthConstants.APP_IDENTIFYING, userMation, false);
                                 outputObject.setBean(map);
                             }
                         }

@@ -209,8 +209,8 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Override
     public void wallUserExit(InputObject inputObject, OutputObject outputObject) {
-        String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        SysUserAuthConstants.delUserLoginRedisCache(userId);
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
     }
 
     @Override
@@ -229,8 +229,8 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
             updateWrapper.set(MybatisPlusUtil.toColumns(User::getPassword), newPassword);
             update(updateWrapper);
             if (update(updateWrapper)) {
-                String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-                SysUserAuthConstants.delUserLoginRedisCache(userId);
+                String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+                SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
             }
         } else {
             outputObject.setreturnMessage("旧密码输入错误.");

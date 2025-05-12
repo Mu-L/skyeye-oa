@@ -74,6 +74,10 @@ public class Post extends OperatorUserInfo {
     @Property(value = "浏览数量")
     private String viewNum;
 
+    @TableField("share_num")
+    @ApiModelProperty(value = "分享数量，默认0", defaultValue = "0")
+    private String shareNum;
+
     @TableField("type_id")
     @ApiModelProperty(value = "帖子类型")
     private String typeId;

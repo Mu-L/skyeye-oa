@@ -31,6 +31,7 @@ import com.skyeye.tenant.classenum.TenantUserJoinType;
 import com.skyeye.tenant.dao.TenantUserInviteDao;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.entity.TenantUserInvite;
+import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserInviteService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,9 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     @Autowired
     private CompanyJobScoreService companyJobScoreService;
 
+    @Autowired
+    private TenantService tenantService;
+
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
@@ -99,6 +103,10 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         if (!tenantEnable) {
             throw new CustomException("租户功能未开启");
         }
+        String tenantId = TenantContext.getTenantId();
+        // 校验租户账号数量
+        tenantService.checkTenantAccountNum(tenantId);
+
         TenantUserInvite tenantUserInvite = inputObject.getParams(TenantUserInvite.class);
         // 校验手机号
         String userStaffId = sysEveUserStaffService.queryUserStaffByPhone(tenantUserInvite.getPhone());

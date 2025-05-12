@@ -12,6 +12,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: HistoryPost
  * @Description: 历史帖子实体类
@@ -37,7 +39,15 @@ public class HistoryPost extends CommonInfo {
     @ApiModelProperty(value = "帖子id", required = "required")
     private String postId;
 
+    @TableField(exist = false)
+    @ApiModelProperty("帖子内容")
+    private Map<String,Object> postMation;
+
     @TableField("create_time")
     @ApiModelProperty("创建人时间")
     private String createTime;
+
+    @TableField("view_count")
+    @ApiModelProperty("浏览量")
+    private Integer viewCount;
 }

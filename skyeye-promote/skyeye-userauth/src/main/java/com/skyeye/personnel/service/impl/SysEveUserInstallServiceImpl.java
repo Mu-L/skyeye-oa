@@ -65,7 +65,7 @@ public class SysEveUserInstallServiceImpl extends SkyeyeBusinessServiceImpl<SysE
 
         // 修改reids中的用户信息
         user.put(column, val);
-        sysEveUserService.setUserLoginRedisMation(userId, user);
+        sysEveUserService.setUserLoginRedisMation(userId, user, true);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class SysEveUserInstallServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         // 修改reids中的用户信息
         user.put("winBgPicVague", winBgPicVague);
         user.put("winBgPicVagueValue", winBgPicVagueValue);
-        sysEveUserService.setUserLoginRedisMation(userId, user);
+        sysEveUserService.setUserLoginRedisMation(userId, user, true);
     }
 
     @Override

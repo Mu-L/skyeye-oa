@@ -49,4 +49,6 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     TenantUser getTenantUserByStaffId(String staffId);
 
     void switchingIdentitiesById(InputObject inputObject, OutputObject outputObject);
+
+    long getTenantUserCountByTenantId(String tenantId);
 }

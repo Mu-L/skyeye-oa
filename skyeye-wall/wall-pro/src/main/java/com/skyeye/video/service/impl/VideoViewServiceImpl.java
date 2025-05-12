@@ -1,8 +1,12 @@
 package com.skyeye.video.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -84,11 +88,17 @@ public class VideoViewServiceImpl extends SkyeyeBusinessServiceImpl<VideoViewDao
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<VideoView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(VideoView::getUserId), userId);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getCreateTime))
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(VideoView::getLastUpdateTime))
                 .orderByDesc(MybatisPlusUtil.toColumns(VideoView::getViewCount));
         List<VideoView> videoViews = list(queryWrapper);
+        if(CollectionUtil.isEmpty(videoViews)){
+            return;
+        }
         videoService.setDataMation(videoViews,VideoView::getVideoId);
-        outputObject.setBeans(videoViews);
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Video> videos = videoViews.stream().map(item -> objectMapper.convertValue(item.getVideoMation(), Video.class)).collect(Collectors.toList());
+        videoService.setUserMations(videos);
+        outputObject.setBeans(videos);
         outputObject.settotal(page.getTotal());
     }
 

@@ -1,5 +1,6 @@
 package com.skyeye.notice.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -39,8 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -113,7 +113,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         if (userId.equals(entity.getReceiveId())) {
             return StrUtil.EMPTY;
         }
-        if(StrUtil.isNotEmpty(entity.getCircleId())){
+        if (StrUtil.isNotEmpty(entity.getCircleId())) {
             // 判断接收人是否还在圈子中--不在则不通知
             Boolean isJoin = joinCircleService.checkIsJoinCircle(entity.getCircleId(), entity.getReceiveId());
             if (!isJoin) {
@@ -126,7 +126,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getSendId), entity.getSendId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getType), TypeEnum.LIKE.getKey());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId), entity.getObjectId());
-            if(StrUtil.isNotEmpty(entity.getCommentId())){
+            if (StrUtil.isNotEmpty(entity.getCommentId())) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getCommentId), entity.getCommentId());
             }
             long length = count(queryWrapper);
@@ -137,24 +137,46 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         return super.createEntity(entity, userId);
     }
 
-    private void setNoticeOtherInfo(Notice notice){
-        if(StrUtil.isNotEmpty(notice.getCommentId())){
+    private List<Notice> filterNotice(List<Notice> entity, String userId) {
+        if (CollectionUtil.isEmpty(entity)) {
+            return new ArrayList();
+        }
+        // 使用stream流过滤receiveId = userId
+        List<Notice> beans = entity.stream().filter(notice -> !Objects.equals(notice.getReceiveId(), userId)).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(beans)) {
+            return new ArrayList();
+        }
+        if(StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId()) &&
+           StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())){
+            // 分享圈子内的评论和帖子——去除不在圈子用户
+            List<String> receiveIds = beans.stream().map(Notice::getReceiveId).collect(Collectors.toList());
+            Map<String,Boolean> isJoinCircleMap = joinCircleService.checkIsJoinCircle(beans.get(CommonNumConstants.NUM_ZERO).getCircleId(),receiveIds);
+            beans = beans.stream().filter(notice -> isJoinCircleMap.get(notice.getReceiveId())).collect(Collectors.toList());
+            if(CollectionUtil.isEmpty(beans)){
+                throw new CustomException("分享的用户不在圈子中");
+            }
+        }
+        return beans;
+    }
+
+    private void setNoticeOtherInfo(Notice notice) {
+        if (StrUtil.isNotEmpty(notice.getCommentId())) {
             // 评论信息
-            if(commentService.getServiceClassName().equals(notice.getObjectKey())){
-                commentService.setDataMation(notice,Notice::getCommentId);
-            }else if(videoCommentService.getServiceClassName().equals(notice.getObjectKey())){
-                videoCommentService.setDataMation(notice,Notice::getCommentId);
+            if (Objects.equals(notice.getCommentKey(), commentService.getServiceClassName())) {
+                commentService.setDataMation(notice, Notice::getCommentId);
+            } else if (Objects.equals(notice.getCommentKey(), videoCommentService.getServiceClassName())) {
+                videoCommentService.setDataMation(notice, Notice::getCommentId);
             }
         }
         // 帖子或视频
-        if(postService.getServiceClassName().equals(notice.getObjectKey())){
-            postService.setDataMation(notice,Notice::getObjectId);
-        }else if(videoService.getServiceClassName().equals(notice.getObjectKey())){
-            videoService.setDataMation(notice,Notice::getObjectId);
+        if (Objects.equals(notice.getObjectKey(), postService.getServiceClassName())) {
+            postService.setDataMation(notice, Notice::getObjectId);
+        } else if (Objects.equals(notice.getObjectKey(), videoService.getServiceClassName())) {
+            videoService.setDataMation(notice, Notice::getObjectId);
         }
         // 圈子
-        if(StrUtil.isNotEmpty(notice.getCircleId())){
-            circleService.setDataMation(notice,Notice::getCircleId);
+        if (StrUtil.isNotEmpty(notice.getCircleId())) {
+            circleService.setDataMation(notice, Notice::getCircleId);
         }
     }
 
@@ -177,21 +199,21 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     public void queryNoticeByType(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Integer type = Integer.valueOf(commonPageInfo.getType());
         String userId = InputObject.getLogParamsStatic().get(CommonConstants.ID).toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            Integer type = Integer.valueOf(commonPageInfo.getType());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getNoticeType), type);
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
                 .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
         List<Notice> bean = list(queryWrapper);
-        if(CollectionUtil.isEmpty(bean)){
+        if (CollectionUtil.isEmpty(bean)) {
             return;
         }
         List<Notice> beans = bean.stream().map(this::setUserMation).collect(Collectors.toList());
-        for (Notice notice: beans){
+        for (Notice notice : beans) {
             setNoticeOtherInfo(notice);
         }
         outputObject.setBeans(beans);
@@ -228,7 +250,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteVideoNoticeByCommentIds(List<String> commentIds) {
-        if(CollectionUtils.isEmpty(commentIds)){
+        if (CollectionUtils.isEmpty(commentIds)) {
             return;
         }
         String userId = InputObject.getLogParamsStatic().get("id").toString();
@@ -238,7 +260,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         for (Notice notice : bean) {
             notice.setContent(NoticeContent.COMMENT_DELETE);
         }
-        updateEntity(bean,userId);
+        updateEntity(bean, userId);
     }
 
     @Override
@@ -247,30 +269,48 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         Map<String, Object> params = inputObject.getParams();
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         String userId = params.get("userId").toString();
+        String[] userIds = userId.split(",");
         String postId = params.get("postId").toString();
         Post post = postService.selectById(postId);
-        if(StrUtil.isEmpty(post.getId())){
+        if (StrUtil.isEmpty(post.getId())) {
             throw new CustomException("该帖子不存在");
         }
         Notice notice = new Notice();
+        if (params.containsKey("description") && StrUtil.isNotEmpty(params.get("description").toString())) {
+            notice.setDescription(params.get("description").toString());
+        }
         notice.setObjectId(postId);
-        notice.setReceiveId(userId);
         notice.setSendId(currentUserId);
         notice.setType(TypeEnum.SHARE.getKey());
-        if(StrUtil.isNotEmpty(post.getCircleId())){
+        notice.setObjectKey(postService.getServiceClassName());
+        if (StrUtil.isNotEmpty(post.getCircleId())) {
             // 圈子
             notice.setCircleId(post.getCircleId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
-        }else {
+        } else {
             notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
         }
-        if(params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())){
+        if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
             notice.setContent(NoticeContent.SHARE_COMMENT);
-        }else {
+        } else {
             notice.setContent(NoticeContent.SHARE_POST);
         }
-        createEntity(notice,currentUserId);
+        List<Notice> notices = new ArrayList<>();
+        for (String id : userIds) {
+            if (StrUtil.isEmpty(id)) {
+                continue;
+            }
+            Notice item = new Notice();
+            BeanUtil.copyProperties(notice, item);
+            item.setReceiveId(id);
+            notices.add(item);
+        }
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isNotEmpty(beans)){
+            createEntity(beans, currentUserId);
+            postService.updatePostShareNum(postId,beans.size());
+        }
     }
 
     @Override
@@ -279,46 +319,114 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         Map<String, Object> params = inputObject.getParams();
         String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
         String userId = params.get("userId").toString();
+        String[] userIds = userId.split(",");
         String videoId = params.get("videoId").toString();
         Notice notice = new Notice();
+        if (params.containsKey("description") && StrUtil.isNotEmpty(params.get("description").toString())) {
+            notice.setDescription(params.get("description").toString());
+        }
         notice.setSendId(currentUserId);
-        notice.setReceiveId(userId);
         notice.setObjectId(videoId);
         notice.setType(TypeEnum.SHARE.getKey());
+        notice.setObjectKey(videoService.getServiceClassName());
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
-        if(params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())){
+        if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
             notice.setContent(NoticeContent.SHARE_COMMENT);
-        }else {
+            notice.setCommentKey(videoCommentService.getServiceClassName());
+        } else {
             notice.setContent(NoticeContent.SHARE_VIDEO);
         }
-        createEntity(notice,currentUserId);
+        List<Notice> notices = new ArrayList<>();
+        for (String id : userIds) {
+            if (StrUtil.isEmpty(id)) {
+                continue;
+            }
+            Notice item = new Notice();
+            BeanUtil.copyProperties(notice, item);
+            item.setReceiveId(id);
+            notices.add(item);
+        }
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isNotEmpty(beans)){
+            createEntity(notices, currentUserId);
+            videoService.updateVideoShareNum(videoId,beans.size());
+        }
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void shareCircle(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+        String userId = params.get("userId").toString();
+        String[] userIds = userId.split(",");
+        String circleId = params.get("circleId").toString();
+
+        Notice notice = new Notice();
+        if (params.containsKey("description") && StrUtil.isNotEmpty(params.get("description").toString())) {
+            notice.setDescription(params.get("description").toString());
+        }
+        notice.setSendId(currentUserId);
+        notice.setCircleId(circleId);
+        notice.setType(TypeEnum.SHARE.getKey());
+        notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
+        notice.setContent(NoticeContent.SHARE_CIRCLE);
+        List<Notice> notices = new ArrayList<>();
+        for (String id : userIds) {
+            if (StrUtil.isEmpty(id)) {
+                continue;
+            }
+            Notice item = new Notice();
+            BeanUtil.copyProperties(notice, item);
+            item.setReceiveId(id);
+            notices.add(item);
+        }
+        List<Notice> beans = filterNotice(notices, currentUserId);
+        if(CollectionUtil.isNotEmpty(beans)){
+            createEntity(notices, currentUserId);
+            circleService.updateCircleShareNum(circleId,beans.size());
+        }
     }
 
     /**
      * 删除帖子、视频之后将修改通知内容
-     * */
+     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteByObjectId(String id, String serviceClassName) {
         QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId),id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getObjectId), id);
         queryWrapper.isNull(MybatisPlusUtil.toColumns(Notice::getCommentId));
         List<Notice> bean = list(queryWrapper);
-        if(CollectionUtil.isEmpty(bean)){
+        if (CollectionUtil.isEmpty(bean)) {
             return;
         }
         String userId = InputObject.getLogParamsStatic().get(id).toString();
         String content = StrUtil.EMPTY;
-        if(videoService.getServiceClassName().equals(serviceClassName)){
+        if (videoService.getServiceClassName().equals(serviceClassName)) {
             content = NoticeContent.DELETE_VIDEO;
-        }else if (postService.getServiceClassName().equals(serviceClassName)){
+        } else if (postService.getServiceClassName().equals(serviceClassName)) {
             content = NoticeContent.POST_DELETE;
         }
         for (Notice notice : bean) {
             notice.setContent(content);
         }
-        updateEntity(bean,userId);
+        updateEntity(bean, userId);
+    }
+
+    @Override
+    public void updateAllNoticeRead(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.UNREAD.getKey());
+        List<Notice> bean = list(queryWrapper);
+        List<Notice> collect = bean.stream().map(notice -> {
+            notice.setState(ReadEnum.READ.getKey());
+            return notice;
+        }).collect(Collectors.toList());
+        updateEntity(collect, userId);
     }
 
 }

@@ -505,10 +505,10 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 queryWrapper1.eq(MybatisPlusUtil.toColumns(FileConsole::getFileMd5), md5);
                 queryWrapper1.eq(MybatisPlusUtil.toColumns(FileConsole::getChunk), chunk);
                 remove(queryWrapper1);
-                outputObject.setreturnMessage("文件上传失败");
+                LOGGER.error("文件上传失败，请重新上传");
             }
         } else {
-            outputObject.setreturnMessage("文件上传失败");
+            LOGGER.error("文件上传失败，请重新上传");
         }
     }
 

@@ -5,8 +5,10 @@
 package com.skyeye.historypost.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
@@ -30,9 +32,12 @@ import com.skyeye.picture.service.PictureService;
 import com.skyeye.popularpost.service.PopularPostService;
 import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
+import com.skyeye.video.entity.Video;
+import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -69,9 +74,11 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getPostId), entity.getPostId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime), DateUtil.getYmdTimeAndToString());
-        long length = count(queryWrapper);
-        if (length > 0) {
+        HistoryPost one = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(one)) {
+            one.setCreateTime(LocalDateTime.now().toString());
+            one.setViewCount(one.getViewCount()+CommonNumConstants.NUM_ONE);
+            updateEntity(one, userId);
             return StrUtil.EMPTY;
         }
         return super.createEntity(entity, userId);
@@ -81,11 +88,22 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
     public void createPrepose(HistoryPost historyPost) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         historyPost.setCreateId(userId);
-        historyPost.setCreateTime(DateUtil.getYmdTimeAndToString());
+        historyPost.setCreateTime(LocalDateTime.now().toString());
     }
 
     @Override
     public void createPostpose(HistoryPost historyPost, String userId) {
+        Post post = postService.selectById(historyPost.getPostId());
+        if (post.getViewNum() != null) {
+            Integer flag = Integer.parseInt(post.getViewNum()) + CommonNumConstants.NUM_ONE;
+            postService.updateViewCount(historyPost.getPostId(), String.valueOf(flag));
+        } else {
+            postService.updateViewCount(historyPost.getPostId(), String.valueOf(CommonNumConstants.NUM_ONE));
+        }
+    }
+
+    @Override
+    protected void updatePostpose(HistoryPost historyPost, String userId) {
         Post post = postService.selectById(historyPost.getPostId());
         if (post.getViewNum() != null) {
             Integer flag = Integer.parseInt(post.getViewNum()) + CommonNumConstants.NUM_ONE;
@@ -125,21 +143,27 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         if(StrUtil.isEmpty(userId)){
             throw new CustomException("用户id不能为空");
         }
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId)
-                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getCreateTime))
+                .orderByDesc(MybatisPlusUtil.toColumns(HistoryPost::getViewCount));
         List<HistoryPost> bean = list(queryWrapper);
-        List<String> postIds = bean.stream().map(HistoryPost::getPostId).distinct().collect(Collectors.toList());
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        if(CollectionUtil.isEmpty(bean)){
+            return;
+        }
+        postService.setDataMation(bean,HistoryPost::getPostId);
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Post> posts = bean.stream().map(item -> objectMapper.convertValue(item.getPostMation(), Post.class)).collect(Collectors.toList());
+        List<String> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
-        List<Post> beans =  postService.queryPostListByIds(postIds);
-        for (Post post : beans) {
+        for (Post post : posts) {
             post.setPictureList(pictureMap.get(post.getId()));
         }
         // 设置当前用户是否点赞
-        postService.setUserMations(beans);
-        circleService.setDataMation(beans,Post::getCircleId);
+        postService.setUserMations(posts);
+        circleService.setDataMation(posts,Post::getCircleId);
         outputObject.settotal(page.getTotal());
-        outputObject.setBeans(beans);
+        outputObject.setBeans(posts);
     }
 }

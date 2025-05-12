@@ -268,11 +268,11 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         update(updateWrapper);
 
         SysEveUserStaff staffMation = selectById(staffId);
-        if (!ToolUtil.isBlank(staffMation.getUserId())) {
+        if (!ToolUtil.isBlank(staffMation.getUserId()) && !tenantEnable) {
             // 锁定帐号
             sysEveUserService.editUserLockState(staffMation.getUserId(), UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey());
             // 退出登录
-            sysEveUserService.removeLogin(staffMation.getUserId());
+            sysEveUserService.removeLogin(staffMation.getUserId(), true);
         }
     }
 
@@ -557,7 +557,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         user.put("userPhoto", params.get("userPhoto").toString());
         user.put("userSex", params.get("userSex").toString());
         user.put("userSign", params.get("userSign").toString());
-        sysEveUserService.setUserLoginRedisMation(userId, user);
+        sysEveUserService.setUserLoginRedisMation(userId, user, true);
 
         iAuthUserService.removeCacheById(userId);
     }
@@ -574,7 +574,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         Map<String, Object> user = inputObject.getLogParams();
         String userId = user.get("id").toString();
         user.put("backgroundImage", params.get("backgroundImage").toString());
-        sysEveUserService.setUserLoginRedisMation(userId, user);
+        sysEveUserService.setUserLoginRedisMation(userId, user, true);
 
         iAuthUserService.removeCacheById(userId);
     }

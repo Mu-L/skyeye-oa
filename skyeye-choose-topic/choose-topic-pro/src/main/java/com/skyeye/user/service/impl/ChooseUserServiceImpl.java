@@ -90,8 +90,8 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
 
     @Override
     public void chooseUserExit(InputObject inputObject, OutputObject outputObject) {
-        String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-        SysUserAuthConstants.delUserLoginRedisCache(userId);
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
     }
 
     @Override
@@ -111,8 +111,8 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getPassword), newPassword);
             update(updateWrapper);
             if (update(updateWrapper)) {
-                String userId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-                SysUserAuthConstants.delUserLoginRedisCache(userId);
+                String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+                SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
             }
         } else {
             outputObject.setreturnMessage("旧密码输入错误.");

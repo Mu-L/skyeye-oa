@@ -24,6 +24,7 @@ import com.skyeye.joincircle.service.JoinLimitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,13 +157,32 @@ public class JoinCircleServiceImpl extends SkyeyeBusinessServiceImpl<JoinCircleD
         QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleIds)
                 .eq(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), userId);
-        List<JoinCircle> joinCircles = list(queryWrapper); // 加入的圈子记录
+        // 加入的圈子记录
+        List<JoinCircle> joinCircles = list(queryWrapper);
         List<String> joinCircleIds = joinCircles.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
         Map<String, Boolean> map = new HashMap<>();
         for (String circleId : circleIds) {
             map.put(circleId, joinCircleIds.contains(circleId));
         }
         // 当前登录人是否加入圈子 是true 否false
+        return map;
+    }
+
+    @Override
+    public Map<String, Boolean> checkIsJoinCircle(String circleId, List<String> receiveIds) {
+        if(CollectionUtil.isEmpty(receiveIds) || StrUtil.isEmpty(circleId)){
+            return Collections.emptyMap();
+        }
+        QueryWrapper<JoinCircle> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JoinCircle::getCircleId), circleId)
+                .in(MybatisPlusUtil.toColumns(JoinCircle::getCreateId), receiveIds);
+        // 加入的圈子记录
+        List<JoinCircle> joinCircles = list(queryWrapper);
+        List<String> joinCreateIds = joinCircles.stream().map(JoinCircle::getCreateId).collect(Collectors.toList());
+        Map<String, Boolean> map = new HashMap<>();
+        for (String userId : receiveIds) {
+            map.put(userId, joinCreateIds.contains(userId));
+        }
         return map;
     }
 }

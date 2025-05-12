@@ -37,6 +37,10 @@ public class Tenant extends BaseGeneralInfo {
     @Property(value = "允许的账号数量")
     private Integer accountNum;
 
+    @TableField(value = "`logo`")
+    @ApiModelProperty(value = "租户logo")
+    private String logo;
+
     @TableField(exist = false)
     @ApiModelProperty("应用信息")
     private List<TenantAppLink> tenantAppLinkList;
