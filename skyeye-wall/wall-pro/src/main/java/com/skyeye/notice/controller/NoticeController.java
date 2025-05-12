@@ -62,7 +62,7 @@ public class NoticeController {
      */
     @ApiOperation(id = "queryNoticeById", value = "根据id进去通知详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "require")
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/NoticeController/queryNoticeById")
     public void queryNoticeById(InputObject inputObject, OutputObject outputObject) {
@@ -77,7 +77,7 @@ public class NoticeController {
      */
     @ApiOperation(id = "updateStateById", value = "根据id修改是否已读状态", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "require")
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/NoticeController/updateStateById")
     public void updateStateById(InputObject inputObject, OutputObject outputObject) {
@@ -92,7 +92,7 @@ public class NoticeController {
      */
     @ApiOperation(id = "deleteNoticeById", value = "根据id删除通知", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "require")
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/NoticeController/deleteNoticeById")
     public void deleteNoticeById(InputObject inputObject, OutputObject outputObject) {
@@ -119,7 +119,7 @@ public class NoticeController {
 
     @ApiOperation(id = "sharePostOrComment", value = "分享帖子或者帖子评论", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "require"),
+            @ApiImplicitParam(id = "postId", name = "postId", value = "帖子id", required = "required"),
             @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
             @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
             @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
@@ -131,7 +131,7 @@ public class NoticeController {
 
     @ApiOperation(id = "shareVideoOrComment", value = "分享视频或者视频评论", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "videoId", name = "videoId", value = "帖子id", required = "require"),
+            @ApiImplicitParam(id = "videoId", name = "videoId", value = "帖子id", required = "required"),
             @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论id"),
             @ApiImplicitParam(id= "userId", name = "userId", value = "分享的用户id(多个id逗号之间隔开)", required = "required"),
             @ApiImplicitParam(id = "description", name = "description", value = "分享描述")
