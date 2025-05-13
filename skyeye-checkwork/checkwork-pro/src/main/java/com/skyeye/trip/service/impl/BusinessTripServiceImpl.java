@@ -163,14 +163,9 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     }
 
     @Override
-    public Map<String, List<BusinessTripTimeSlot>> queryStateIsSuccessBusinessTripDayByUserId(String startTime, String endTime) {
-        // 所有员工
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
-        List<String> allIds = Optional.ofNullable(allStaffList).orElse(Collections.emptyList()).stream()
-            .filter(map -> map != null).map(map -> {
-                Object userId = map.get("userId");
-                return userId != null ? userId.toString() : null;
-            }).filter(Objects::nonNull).collect(Collectors.toList());
+    public Map<String, List<BusinessTripTimeSlot>> queryStateIsSuccessBusinessTripDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId) {
+        // 获取正式员工信息
+        List<String> allIds = staffListWithUserId.stream().map(map -> map.get("userId").toString()).collect(Collectors.toList());
         // 所有员工的出差信息
         List<BusinessTrip> businessTrips = queryAllBusinessTripListByStaffId(allIds);
         // 所有员工的出差表Id
@@ -188,11 +183,12 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     }
 
     private List<BusinessTrip> queryAllBusinessTripListByStaffId(List<String> allIds) {
+        if (CollectionUtil.isEmpty(allIds)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<BusinessTrip> businessTripWrapper = new QueryWrapper<>();
         businessTripWrapper.in(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), allIds);
         List<BusinessTrip> businessTripList = list(businessTripWrapper);
         return businessTripList;
-
-
     }
 }

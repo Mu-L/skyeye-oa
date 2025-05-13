@@ -33,7 +33,7 @@ public interface LeaveService extends SkyeyeFlowableService<Leave> {
      */
     List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months);
 
-    Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime);
+    Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId);
 
     Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay);
 

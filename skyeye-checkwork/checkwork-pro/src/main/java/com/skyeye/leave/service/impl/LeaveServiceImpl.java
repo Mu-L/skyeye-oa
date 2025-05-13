@@ -5,6 +5,7 @@
 package com.skyeye.leave.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -263,15 +264,9 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
     }
 
     @Override
-    public Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime) {
-        // 所有员工
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
-        List<String> allIds = Optional.ofNullable(allStaffList).orElse(Collections.emptyList()).stream()
-            .filter(map -> map != null).map(map -> {
-                Object userId = map.get("userId");
-                return userId != null ? userId.toString() : null;
-            }).filter(Objects::nonNull) .collect(Collectors.toList());
-        // 所有员工的请假信息
+    public Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId) {
+        // 获取正式员工的请假信息
+        List<String> allIds = staffListWithUserId.stream().map(map -> map.get("userId").toString()).collect(Collectors.toList());
         List<Leave> leaves = queryAllLeaveListByStaffId(allIds);
         // 所有员工的请假表Id
         List<String> leaveIds = leaves.stream().map(Leave::getId).collect(Collectors.toList());
@@ -290,6 +285,9 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
     }
 
     private List<Leave> queryAllLeaveListByStaffId(List<String> allIds) {
+        if (CollectionUtil.isEmpty(allIds)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<Leave> leaveWrapper = new QueryWrapper<>();
         leaveWrapper.in(MybatisPlusUtil.toColumns(Leave::getCreateId), allIds);
         List<Leave> leaveList = list(leaveWrapper);

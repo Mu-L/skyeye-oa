@@ -20,7 +20,7 @@ import java.util.Map;
 public class Scheduling extends OperatorUserInfo {
 
     @TableId("id")
-    @Property(value = "主键id。为空时新增，不为空时编辑")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField(value = "employee_id")
@@ -34,6 +34,10 @@ public class Scheduling extends OperatorUserInfo {
     @TableField(value = "schedule_date")
     @ApiModelProperty(value = "排班时间", required = "required")
     private String scheduleDate;
+
+    @TableField(value = "farm_id")
+    @ApiModelProperty(value = "车间id", required = "required")
+    private String farmId;
 
     @TableField(value = "schedule_type")
     @ApiModelProperty(value = "排班状态 1 自动 2 手动" ,enumClass = ScheduleType.class)

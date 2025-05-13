@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.SchedulingShifts;
@@ -33,4 +34,20 @@ public class SchedulingShiftsController {
     public void deleteSchedulingShifts(InputObject inputObject, OutputObject outputObject) {
         schedulingShiftsService.deleteSchedulingShifts(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "querySchedulingShiftsList", value = "批量查询排班班次", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SchedulingShiftsController/querySchedulingShiftsList")
+    public void querySchedulingShiftsList(InputObject inputObject, OutputObject outputObject) {
+        schedulingShiftsService.querySchedulingShiftsList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "querySchedulingShiftsById", value = "根据Id查询排班班次", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/SchedulingShiftsController/querySchedulingShiftsById")
+    public void querySchedulingShiftsById(InputObject inputObject, OutputObject outputObject) {
+        schedulingShiftsService.querySchedulingShiftsById(inputObject, outputObject);
+    }
+
 }

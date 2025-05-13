@@ -31,7 +31,7 @@ import lombok.Data;
 public class CheckWork extends CommonInfo {
 
     @TableId("id")
-    @Property(value = "主键id。为空时新增，不为空时编辑")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField(exist = false)

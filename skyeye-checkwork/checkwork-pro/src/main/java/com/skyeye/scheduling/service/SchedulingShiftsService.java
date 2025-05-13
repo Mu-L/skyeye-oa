@@ -6,5 +6,10 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.SchedulingShifts;
 
 public interface SchedulingShiftsService extends SkyeyeBusinessService<SchedulingShifts> {
+
     void deleteSchedulingShifts(InputObject inputObject, OutputObject outputObject);
+
+    void querySchedulingShiftsList(InputObject inputObject, OutputObject outputObject);
+
+    void querySchedulingShiftsById(InputObject inputObject, OutputObject outputObject);
 }

@@ -4,6 +4,7 @@
 
 package com.skyeye.leave.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -15,9 +16,10 @@ import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveTimeSlotService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.List;
 
 /**
  * @ClassName: LeaveTimeSlotServiceImpl
@@ -42,9 +44,13 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
 
     @Override
     public Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds) {
+        if (CollectionUtil.isEmpty(leaveIds)) {
+            return new HashMap<>();
+        }
         QueryWrapper<LeaveTimeSlot> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(LeaveTimeSlot::getParentId), leaveIds);
-        Map<String, List<LeaveTimeSlot>> listMap = list(queryWrapper).stream().collect(Collectors.groupingBy(LeaveTimeSlot::getParentId));
+        Map<String, List<LeaveTimeSlot>> listMap = list(queryWrapper).stream()
+            .collect(Collectors.groupingBy(LeaveTimeSlot::getParentId));
         return listMap;
     }
 }

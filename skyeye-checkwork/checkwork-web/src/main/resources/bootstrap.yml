@@ -2,9 +2,6 @@ server:
   port: 8105
 
 spring:
-  servlet:
-    multipart:
-      location: D:\xiangmu\SkyeyeGit\skyeye-checkwork\checkwork-pro\src\main\resources\lib
   application:
     name: skyeye-checkwork-${spring.profiles.active} # 服务名
   main:
