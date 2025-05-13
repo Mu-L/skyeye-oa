@@ -259,20 +259,25 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public void editSysUserStaffState(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("id").toString();
-        // 设置离职信息
-        UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, staffId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getState), UserStaffState.QUIT.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getQuitTime), map.get("quitTime").toString());
-        updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getQuitReason), map.get("quitReason").toString());
-        update(updateWrapper);
+        if (!tenantEnable) {
+            // 单租户模式，设置离职信息
+            UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, staffId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getState), UserStaffState.QUIT.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getQuitTime), map.get("quitTime").toString());
+            updateWrapper.set(MybatisPlusUtil.toColumns(SysEveUserStaff::getQuitReason), map.get("quitReason").toString());
+            update(updateWrapper);
 
-        SysEveUserStaff staffMation = selectById(staffId);
-        if (!ToolUtil.isBlank(staffMation.getUserId()) && !tenantEnable) {
-            // 锁定帐号
-            sysEveUserService.editUserLockState(staffMation.getUserId(), UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey());
-            // 退出登录
-            sysEveUserService.removeLogin(staffMation.getUserId(), true);
+            SysEveUserStaff staffMation = selectById(staffId);
+            if (!ToolUtil.isBlank(staffMation.getUserId()) && !tenantEnable) {
+                // 锁定帐号
+                sysEveUserService.editUserLockState(staffMation.getUserId(), UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey());
+                // 退出登录
+                sysEveUserService.removeLogin(staffMation.getUserId(), true);
+            }
+        } else {
+            // 多租户模式，设置离职信息
+            tenantUserService.quit(staffId, map.get("quitTime").toString(), map.get("quitReason").toString());
         }
     }
 

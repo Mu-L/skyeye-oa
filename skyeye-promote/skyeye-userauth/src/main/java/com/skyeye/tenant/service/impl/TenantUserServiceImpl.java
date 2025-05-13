@@ -195,6 +195,8 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        // 只查询没有离职的用户
+        queryWrapper.ne(MybatisPlusUtil.toColumns(TenantUser::getState), UserStaffState.QUIT.getKey());
         List<TenantUser> list = list(queryWrapper);
         if (CollectionUtil.isEmpty(list)) {
             return;
@@ -406,6 +408,16 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
         return count(queryWrapper);
+    }
+
+    @Override
+    public void quit(String staffId, String quitTime, String quitReason) {
+        UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getQuitTime), quitTime);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getQuitReason), quitReason);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUser::getState), UserStaffState.QUIT.getKey());
+        update(updateWrapper);
     }
 
 }
