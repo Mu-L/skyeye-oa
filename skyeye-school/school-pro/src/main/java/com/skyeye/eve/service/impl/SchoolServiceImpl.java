@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -17,6 +18,7 @@ import com.skyeye.eve.entity.School;
 import com.skyeye.eve.service.SchoolService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,6 +70,9 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
 
     @Override
     public Map<String, List<School>> selectByIdList(List<String> schoolIds) {
+        if (CollectionUtil.isEmpty(schoolIds)){
+            return new HashMap<>();
+        }
         QueryWrapper<School> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, schoolIds);
         Map<String, List<School>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(School::getId));

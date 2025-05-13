@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -310,6 +311,9 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
 
     @Override
     public Map<String, List<Subject>> selectByIdList(List<String> subjectIds) {
+        if (CollectionUtil.isEmpty(subjectIds)) {
+            return new HashMap<>();
+        }
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, subjectIds);
         Map<String, List<Subject>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(Subject::getId));

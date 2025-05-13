@@ -4,6 +4,7 @@
 
 package com.skyeye.school.major.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -21,6 +22,7 @@ import com.skyeye.school.major.service.MajorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -100,6 +102,9 @@ public class MajorServiceImpl extends SkyeyeBusinessServiceImpl<MajorDao, Major>
 
     @Override
     public Map<String, List<Major>> selectByIdList(List<String> majorIds) {
+        if (CollectionUtil.isEmpty(majorIds)) {
+            return new HashMap<>();
+        }
         QueryWrapper<Major> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, majorIds);
         Map<String, List<Major>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(Major::getId));

@@ -4,6 +4,7 @@
 
 package com.skyeye.school.faculty.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -19,6 +20,7 @@ import com.skyeye.school.faculty.service.FacultyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,6 +83,9 @@ public class FacultyServiceImpl extends SkyeyeBusinessServiceImpl<FacultyDao, Fa
 
     @Override
     public Map<String, List<Faculty>> selectByIdList(List<String> facultyIds) {
+        if (CollectionUtil.isEmpty(facultyIds)) {
+            return new HashMap<>();
+        }
         QueryWrapper<Faculty> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, facultyIds);
         Map<String, List<Faculty>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(Faculty::getId));
