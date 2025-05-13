@@ -27,6 +27,7 @@ import com.skyeye.eve.field.service.WagesFieldTypeService;
 import com.skyeye.eve.model.dao.WagesModelDao;
 import com.skyeye.eve.model.dao.WagesModelFieldDao;
 import com.skyeye.eve.service.IScheduleDayService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.rest.staff.service.ISysUserStaffService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,17 +67,14 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
     @Autowired
     private WagesFieldTypeService wagesFieldTypeService;
 
-    /**
-     * 根据员工id获取该员工拥有的薪资字段
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryStaffWagesModelFieldMationListByStaffId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(Arrays.asList(staffId));
+        if (CollectionUtil.isEmpty(staffMap)) {
+            throw new CustomException("员工不存在");
+        }
         Map<String, Object> staffMation = staffMap.get(staffId);
         List<String> wagesApplicableObject = Arrays.asList(new String[]{
             staffMation.get("companyId").toString(),
@@ -172,7 +170,9 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
                         // 单周或者每周的当天都上班
                         lastMonthBeNum++;
                         try {
-                            String time = DateUtil.getDistanceMinuteByHMS(bean.get("startTime").toString(), bean.get("endTime").toString());
+                            String startTime = DateUtil.formatDate(bean.get("startTime").toString());
+                            String endTime = DateUtil.formatDate(bean.get("endTime").toString());
+                            String time = DateUtil.getDistanceMinuteByHMS(startTime, endTime);
                             lastMonthBeHour = CalculationUtil.add(lastMonthBeHour, time, 2);
                         } catch (Exception e) {
                             log.warn("get differ time failed, startTime is: {}, endTime is: {}", bean.get("startTime").toString(),

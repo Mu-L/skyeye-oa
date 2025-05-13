@@ -450,7 +450,7 @@ public class StaffWagesQuartz {
         List<String> userTimeIds = staffTimeIdMation.stream()
             .map(p -> p.get("timeId").toString()).collect(Collectors.toList());
         List<Map<String, Object>> staffWorkTime = workTime.stream()
-            .filter(bean -> userTimeIds.contains(bean.get("timeId").toString()))
+            .filter(bean -> userTimeIds.contains(bean.get("id").toString()))
             .collect(Collectors.toList());
         // 2.获取上个月指定员工的所有考勤记录信息
         List<Map<String, Object>> lastMonthCheckWork = wagesStaffMationDao.queryLastMonthCheckWork(staffId, lastMonthDate);
@@ -488,10 +488,16 @@ public class StaffWagesQuartz {
     private String calcCancleLeaveTimeMation(String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap) {
         // 获取上个月指定员工的所有审批通过销假记录信息
         List<Map<String, Object>> cancleLeaveTime = wagesStaffMationDao.queryLastMonthCancleLeaveTime(staffId, lastMonthDate);
+        // 上个月应出勤的小时数
+        String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
+        // 判断是否为0
+        if (Double.parseDouble(lastMonthBeHour) == CommonNumConstants.NUM_ZERO) {
+            return CommonNumConstants.NUM_ZERO.toString();
+        }
         // 获取月标准小时薪资计算
         String hourWages = CalculationUtil.divide(
             staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_SALARY.getKey()),
-            staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey()), CommonNumConstants.NUM_TWO);
+            lastMonthBeHour, CommonNumConstants.NUM_TWO);
         // 销假要退还给员工的钱
         String cancleLeaveMoney = "0";
         for (Map<String, Object> bean : cancleLeaveTime) {
@@ -560,11 +566,20 @@ public class StaffWagesQuartz {
                 // 与默认的一样(按时间扣费)
             }
         }
+        String resultMoney = CommonNumConstants.NUM_ZERO.toString();
+        // 上个月应出勤的小时数
+        String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
+        // 判断是否为0
+        if (Double.parseDouble(lastMonthBeHour) == CommonNumConstants.NUM_ZERO) {
+            return resultMoney;
+        }
+        if (CollectionUtil.isEmpty(minute)) {
+            return resultMoney;
+        }
         // 获取月标准小时薪资计算
         String hourWages = CalculationUtil.divide(
             staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_SALARY.getKey()),
-            staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey()), CommonNumConstants.NUM_FOUR);
-        String resultMoney = "0";
+            lastMonthBeHour, CommonNumConstants.NUM_FOUR);
         for (String str : minute) {
             resultMoney = CalculationUtil.add(
                 resultMoney,
@@ -594,13 +609,19 @@ public class StaffWagesQuartz {
                 // 与默认的一样(按时间扣费)
             }
         }
+        // 上个月应出勤的小时数
+        String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
+        // 判断是否为0
+        if (Double.parseDouble(lastMonthBeHour) == CommonNumConstants.NUM_ZERO) {
+            return CommonNumConstants.NUM_ZERO.toString();
+        }
         // 获取月标准小时薪资计算
         String hourWages = CalculationUtil.divide(
             staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_SALARY.getKey()),
-            staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey()), CommonNumConstants.NUM_FOUR);
+            lastMonthBeHour, CommonNumConstants.NUM_FOUR);
         // 实际缺勤多少小时[应出勤(小时) - 应实际出勤(小时)]
         String dutyHour = CalculationUtil.subtract(
-            staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey()),
+            lastMonthBeHour,
             staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_REAL_HOUR.getKey()), CommonNumConstants.NUM_FOUR);
         return CalculationUtil.multiply(dutyHour, hourWages, CommonNumConstants.NUM_FOUR);
     }
@@ -621,10 +642,16 @@ public class StaffWagesQuartz {
         List<Map<String, Object>> holidaysTypeJson = JSONUtil.toList(systemFoundationSettings.get("holidaysTypeJson").toString(), null);
         Map<String, List<Map<String, Object>>> leaveTimeGroupType = leaveTime.stream()
             .collect(Collectors.groupingBy(map -> map.get("leaveType").toString()));
+        // 上个月应出勤的小时数
+        String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
+        // 判断是否为0
+        if (Double.parseDouble(lastMonthBeHour) == CommonNumConstants.NUM_ZERO) {
+            return CommonNumConstants.NUM_ZERO.toString();
+        }
         // 获取月标准小时薪资计算
         String hourWages = CalculationUtil.divide(
             staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_SALARY.getKey()),
-            staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey()), CommonNumConstants.NUM_TWO);
+            lastMonthBeHour, CommonNumConstants.NUM_TWO);
         // 计算请假的小时以及请假扣的钱
         String allLeaveHourTime = "0";
         String allLeaveHourMoney = "0";
@@ -661,7 +688,7 @@ public class StaffWagesQuartz {
      * @param staffModelFieldMap 员工拥有的所有薪资要素字段以及对应的值
      * @param lateMinute         上个月迟到的分钟集合
      * @param earlyMinute        上个月早退的分钟集合
-     * @param staffWorkTime      该员工拥有的考勤班次id集合
+     * @param staffWorkTime      该员工拥有的考勤班次集合
      */
     private void setStaffCheckWorkMation(List<Map<String, Object>> lastMonthCheckWork, Map<String, String> staffModelFieldMap,
                                          List<String> lateMinute, List<String> earlyMinute, List<Map<String, Object>> staffWorkTime) {
@@ -675,28 +702,32 @@ public class StaffWagesQuartz {
             String state = bean.get("state").toString();
             // 能匹配到，说明不是加班的打卡
             List<Map<String, Object>> workTimes = staffWorkTime.stream()
-                .filter(item -> bean.get("timeId").toString().equals(item.get("timeId").toString()))
+                .filter(item -> bean.get("timeId").toString().equals(item.get("id").toString()))
                 .collect(Collectors.toList());
-            if (workTimes != null && !workTimes.isEmpty()) {
-                Map<String, Object> workTime = workTimes.get(0);
-                // 全勤以及工时不足的都算为实际出勤
-                if ("1".equals(state) || "3".equals(state)) {
-                    lastMonthRealNum++;
-                    String time = DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), bean.get("clockOut").toString());
-                    lastMonthRealHour = CalculationUtil.add(lastMonthRealHour, time, CommonNumConstants.NUM_TWO);
-                    lastMonthBeRealHour = CalculationUtil.add(lastMonthBeRealHour,
-                        DateUtil.getDistanceMinuteByHMS(workTime.get("startTime").toString(), workTime.get("endTime").toString()), CommonNumConstants.NUM_TWO);
-                }
-                // 迟到
-                if ("2".equals(bean.get("clockInState").toString())) {
-                    lastMonthLateNum++;
-                    lateMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), workTime.get("startTime").toString()));
-                }
-                // 早退
-                if ("2".equals(bean.get("clockOutState").toString())) {
-                    lastMonthEarlyNum++;
-                    earlyMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockOut").toString(), workTime.get("endTime").toString()));
-                }
+            if (CollectionUtil.isEmpty(workTimes)) {
+                continue;
+            }
+            Map<String, Object> workTime = workTimes.get(0);
+            String startTime = DateUtil.formatDate(workTime.get("startTime").toString());
+            String endTime = DateUtil.formatDate(workTime.get("endTime").toString());
+            // 全勤以及工时不足的都算为实际出勤
+            if ("1".equals(state) || "3".equals(state)) {
+                lastMonthRealNum++;
+                String time = DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), bean.get("clockOut").toString());
+                lastMonthRealHour = CalculationUtil.add(lastMonthRealHour, time, CommonNumConstants.NUM_TWO);
+
+                lastMonthBeRealHour = CalculationUtil.add(lastMonthBeRealHour,
+                    DateUtil.getDistanceMinuteByHMS(startTime, endTime), CommonNumConstants.NUM_TWO);
+            }
+            // 迟到
+            if ("2".equals(bean.get("clockInState").toString())) {
+                lastMonthLateNum++;
+                lateMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), startTime));
+            }
+            // 早退
+            if ("2".equals(bean.get("clockOutState").toString())) {
+                lastMonthEarlyNum++;
+                earlyMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockOut").toString(), endTime));
             }
         }
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_REAL_NUM.getKey(), String.valueOf(lastMonthRealNum));
