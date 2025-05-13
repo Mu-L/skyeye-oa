@@ -292,6 +292,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }
         if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
+            notice.setCommentKey(commentService.getServiceClassName());
             notice.setContent(NoticeContent.SHARE_COMMENT);
         } else {
             notice.setContent(NoticeContent.SHARE_POST);
