@@ -30,7 +30,7 @@ public class SystemFoundationSettingsController {
     @Autowired
     private SystemFoundationSettingsService systemFoundationSettingsService;
 
-    @ApiOperation(id = "sysfdsettings001", value = "获取系统基础设置", method = "GET", allUse = "2")
+    @ApiOperation(id = "sysfdsettings001", value = "获取系统基础设置", method = "GET", allUse = "0")
     @RequestMapping("/post/SystemFoundationSettingsController/querySystemFoundationSettingsList")
     public void querySystemFoundationSettingsList(InputObject inputObject, OutputObject outputObject) {
         systemFoundationSettingsService.querySystemFoundationSettingsList(inputObject, outputObject);
