@@ -97,4 +97,12 @@ public class TenantUserController {
     public void switchingIdentitiesById(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.switchingIdentitiesById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryTenantUserStaffIdByTenantId", value = "根据租户ID获取租户下的员工ID信息", method = "GET", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户ID", required = "required")})
+    @RequestMapping("/post/TenantUserController/queryTenantUserStaffIdByTenantId")
+    public void queryTenantUserStaffIdByTenantId(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.queryTenantUserStaffIdByTenantId(inputObject, outputObject);
+    }
 }
