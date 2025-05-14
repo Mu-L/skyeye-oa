@@ -384,7 +384,6 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         }
         List<ScoreTypeChild> beans = scoreTypeChildList.stream()
                 .filter(scoreTypeChild -> !Objects.equals(NumberCodeEnum.ALL.getKey(), scoreTypeChild.getNameLinkId())).collect(Collectors.toList());
-
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
