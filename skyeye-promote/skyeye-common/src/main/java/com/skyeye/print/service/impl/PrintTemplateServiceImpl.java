@@ -149,4 +149,19 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
         newTemplate.setId(null);
         createEntity(newTemplate, userId);
     }
+
+    @Override
+    public void editConfigContentById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String configContent = params.get("configContent").toString();
+        // 获取模板详情
+        PrintTemplate template = getById(id);
+        if (template == null) {
+            throw new CustomException("打印模板不存在");
+        }
+        String userId = inputObject.getLogParams().get("id").toString();
+        template.setConfigContent(configContent);
+        updateEntity(template, userId);
+    }
 }
