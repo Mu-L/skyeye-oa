@@ -88,8 +88,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             if (StrUtil.isEmpty(coupon.getValidStartTime()) || StrUtil.isEmpty(coupon.getValidEndTime())) {
                 throw new CustomException("固定日期类型优惠券，有效期不能为空");
             }
-            if (DateUtil.compare(coupon.getValidStartTime(), coupon.getValidEndTime())) {
-                throw new CustomException("固定日期类型优惠券，开始时间不能早于结束时间");
+            if (!DateUtil.compare(coupon.getValidStartTime(), coupon.getValidEndTime())) {
+                throw new CustomException("固定日期类型优惠券，开始时间不能晚于结束时间");
             }
         }
         if (Objects.equals(coupon.getValidityType(), CouponValidityType.TERM.getKey())) {
