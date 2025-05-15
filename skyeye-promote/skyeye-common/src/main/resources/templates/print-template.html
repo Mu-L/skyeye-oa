@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${template.name}">打印模板</title>
+    <style>
+        /* 通用样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: SimSun, "Microsoft YaHei", Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+        .print-container {
+            position: relative;
+            box-sizing: border-box;
+            margin: 0 auto;
+            page-break-after: always;
+        }
+        .print-element {
+            position: absolute;
+            box-sizing: border-box;
+        }
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 2px 4px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        /* 条码样式 */
+        .barcode-container {
+            text-align: center;
+        }
+        /* 纸张大小设置 */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+    <!-- 根据纸张大小和方向设置容器宽高 -->
+    <style th:inline="css">
+        .print-container {
+            /* A4纵向 */
+            width: 210mm;
+            height: 297mm;
+        }
+        
+        /* 根据模板配置的纸张和方向设置尺寸 */
+        [(${template.paperSize == 'A4' && template.orientation == 'portrait'} ? '
+        .print-container {
+            width: 210mm;
+            height: 297mm;
+        }
+        ' : '')]
+        
+        [(${template.paperSize == 'A4' && template.orientation == 'landscape'} ? '
+        .print-container {
+            width: 297mm;
+            height: 210mm;
+        }
+        ' : '')]
+        
+        [(${template.paperSize == 'A3' && template.orientation == 'portrait'} ? '
+        .print-container {
+            width: 297mm;
+            height: 420mm;
+        }
+        ' : '')]
+        
+        [(${template.paperSize == 'A3' && template.orientation == 'landscape'} ? '
+        .print-container {
+            width: 420mm;
+            height: 297mm;
+        }
+        ' : '')]
+        
+        [(${template.paperSize == 'A5' && template.orientation == 'portrait'} ? '
+        .print-container {
+            width: 148mm;
+            height: 210mm;
+        }
+        ' : '')]
+        
+        [(${template.paperSize == 'A5' && template.orientation == 'landscape'} ? '
+        .print-container {
+            width: 210mm;
+            height: 148mm;
+        }
+        ' : '')]
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <!-- 遍历渲染所有元素 -->
+        <div th:each="element : ${elements}" class="print-element"
+            th:style="'left:' + ${element.x} + 'px;' + 
+                     'top:' + ${element.y} + 'px;' + 
+                     'width:' + ${element.width} + 'px;' + 
+                     'height:' + ${element.height} + 'px;' + 
+                     (${element.style} != null ? ${element.style} : '')">
+            
+            <!-- 文本元素 -->
+            <div th:if="${element.type == 'text'}" 
+                th:style="'font-size:' + (${element.fontSize} != null ? ${element.fontSize} : '12') + 'pt;' + 
+                         'font-weight:' + (${element.bold} == true ? 'bold' : 'normal') + ';' + 
+                         'font-style:' + (${element.italic} == true ? 'italic' : 'normal') + ';'">
+                <span th:text="${element.content != null ? element.content : (element.text != null ? element.text : '')}"></span>
+            </div>
+            
+            <!-- 图片元素 -->
+            <div th:if="${element.type == 'image'}">
+                <img th:src="${element.src}" th:alt="${element.alt != null ? element.alt : ''}" 
+                    style="max-width: 100%; max-height: 100%;">
+            </div>
+            
+            <!-- 表格元素 -->
+            <div th:if="${element.type == 'table'}">
+                <table>
+                    <thead>
+                        <tr>
+                            <th th:each="column : ${element.columns}" th:text="${column.title}"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="row : ${element.rows}">
+                            <td th:each="column : ${element.columns}" 
+                                th:text="${row[column.dataIndex] != null ? row[column.dataIndex] : ''}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 线条元素 -->
+            <div th:if="${element.type == 'line'}" 
+                th:style="'border-top: ' + (${element.strokeWidth} != null ? ${element.strokeWidth} : '1') + 'px ' + 
+                        (${element.strokeStyle} != null ? ${element.strokeStyle} : 'solid') + ' black;'">
+            </div>
+            
+            <!-- 条码元素 -->
+            <div th:if="${element.type == 'barcode'}" class="barcode-container">
+                <!-- 这里应该集成实际的条码生成JS库，或者后端预先生成条码图片 -->
+                <img th:if="${element.value != null}" th:src="'/api/print/barcode?value=' + ${element.value} + '&type=' + ${element.barcodeType != null ? element.barcodeType : 'code128'}" 
+                     style="max-width: 100%; max-height: 100%;" />
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -34,14 +34,14 @@ public class AiApiKeyController {
 
     @ApiOperation(id = "writeAiApiKey", value = "新增/编辑API配置", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AiApiKey.class)
-    @RequestMapping("/post/aiApiKeyController/writeAiApiKey")
+    @RequestMapping("/post/AiApiKeyController/writeAiApiKey")
     public void writeAiApiKey(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryAiApiKey", value = "分页查询API配置", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/aiApiKeyController/queryAiApiKey")
+    @RequestMapping("/post/AiApiKeyController/queryAiApiKey")
     public void queryAiApiKey(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.queryPageList(inputObject, outputObject);
     }
@@ -49,7 +49,7 @@ public class AiApiKeyController {
     @ApiOperation(id = "deleteAiApiKeyById", value = "删除API配置", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/aiApiKeyController/deleteAiApiKeyById")
+    @RequestMapping("/post/AiApiKeyController/deleteAiApiKeyById")
     public void deleteAiApiKeyByIds(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.deleteById(inputObject, outputObject);
     }
@@ -57,13 +57,13 @@ public class AiApiKeyController {
     @ApiOperation(id = "selectAiApiKeyById", value = "根据id获取API配置", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/aiApiKeyController/selectAiApiKeyById")
+    @RequestMapping("/post/AiApiKeyController/selectAiApiKeyById")
     public void selectAiApiKeyById(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.selectById(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryAiApiKeyList", value = "获取API配置管理信息", method = "POST", allUse = "2")
-    @RequestMapping("/post/aiApiKeyController/queryAiApiKeyList")
+    @RequestMapping("/post/AiApiKeyController/queryAiApiKeyList")
     public void queryAiApiKeyList(InputObject inputObject, OutputObject outputObject) {
         aiApiKeyService.queryList(inputObject, outputObject);
     }

@@ -1,0 +1,62 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
+package com.skyeye.print.entity;
+
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.annotation.api.ApiModel;
+import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
+import lombok.Data;
+
+/**
+ * @ClassName: PrintTemplate
+ * @Description: 打印模板实体类
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/5/14 22:45
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+@Data
+@UniqueField(value = {"name", "pageId"})
+@RedisCacheField(name = "print:template")
+@TableName(value = "print_template", autoResultMap = true)
+@ApiModel("打印模板实体类")
+public class PrintTemplate extends BaseGeneralInfo {
+
+    @TableField("object_key")
+    @Property(value = "业务对象的key")
+    private String objectKey;
+
+    @TableField("page_id")
+    @Property("表单布局id")
+    private String pageId;
+
+    @TableField("paper_size")
+    @Property("纸张大小")
+    private String paperSize;
+
+    @TableField("orientation")
+    @Property("纸张方向")
+    private String orientation;
+
+    @TableField("enabled")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required")
+    private Integer enabled;
+
+    @TableField("is_default")
+    @ApiModelProperty(value = "是否默认", enumClass = IsDefaultEnum.class, required = "required,num")
+    private Integer isDefault;
+
+    @TableField(value = "config_content")
+    @ApiModelProperty(value = "模板配置内容(JSON)")
+    private String configContent;
+
+}
