@@ -22,8 +22,6 @@
 
 ④ [功能清单](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)
 
-![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/compare.png)
-
 ⑤ 体验地址：`Star`后将`Star`的截图(有效截图如下，如果无效，则不予回应)发送到下方公众号，并备注姓名和手机号，作者会私发你体验地址。
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/star.png)
 
