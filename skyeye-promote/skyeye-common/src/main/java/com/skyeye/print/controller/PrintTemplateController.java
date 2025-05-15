@@ -94,4 +94,13 @@ public class PrintTemplateController {
         printTemplateService.copyPrintTemplateById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "editConfigContentById", value = "修改模板配置内容(JSON)", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "configContent", name = "configContent", value = "configContent", required = "required,json")})
+    @RequestMapping("/post/PrintTemplateController/editConfigContentById")
+    public void editConfigContentById(InputObject inputObject, OutputObject outputObject) {
+        printTemplateService.editConfigContentById(inputObject, outputObject);
+    }
+
 }
