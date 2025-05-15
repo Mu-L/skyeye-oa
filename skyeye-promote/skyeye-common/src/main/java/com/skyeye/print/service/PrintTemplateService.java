@@ -24,4 +24,6 @@ public interface PrintTemplateService extends SkyeyeBusinessService<PrintTemplat
     void queryPreviewPrintTemplateById(InputObject inputObject, OutputObject outputObject);
 
     void generatePdfPrintTemplateById(InputObject inputObject, OutputObject outputObject);
+
+    void copyPrintTemplateById(InputObject inputObject, OutputObject outputObject);
 }

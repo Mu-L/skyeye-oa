@@ -22,10 +22,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum PaperSize implements SkyeyeEnumClass {
 
-    A3("A3", "A3", true, false),
-    A4("A4", "A4", true, true),
-    A5("A5", "A5", true, false),
-    Letter("LETTER", "Letter", true, false);
+    A3("A3_PAGE", "A3纸张", true, false),
+    A4("A4_PAGE", "A4纸张", true, true),
+    A5("A5_PAGE", "A5纸张", true, false),
+    Letter("LETTER", "信纸", true, false);
 
     private String key;
 

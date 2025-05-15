@@ -86,4 +86,12 @@ public class PrintTemplateController {
         printTemplateService.generatePdfPrintTemplateById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "copyPrintTemplateById", value = "复制模板", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/PrintTemplateController/copyPrintTemplateById")
+    public void copyPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
+        printTemplateService.copyPrintTemplateById(inputObject, outputObject);
+    }
+
 }
