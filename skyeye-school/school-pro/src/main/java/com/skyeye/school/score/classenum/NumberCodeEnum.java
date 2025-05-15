@@ -46,6 +46,10 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
         List<ScoreTypeChild> scoreTypeList = new ArrayList<>();
         String className = NumberCodeEnum.class.getName();
         for (NumberCodeEnum e : values()) {
+            // 自定义成绩类型不作为默认数据
+            if (e.getKey().equals(CommonNumConstants.NUM_ONE.toString())){
+                continue;
+            }
             ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
             scoreTypeChild.setName(e.getValue());
             scoreTypeChild.setParentId(StrUtil.EMPTY);

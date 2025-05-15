@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.school.score.classenum.NumberCodeEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class ScoreTypeChild extends OperatorUserInfo {
     private String name;
 
     @TableField("name_link_id")
-    @ApiModelProperty(value = "名称关联的业务对象id")
+    @ApiModelProperty(value = "名称关联的业务对象id", enumClass = NumberCodeEnum.class)
     private String nameLinkId;
 
     @TableField("name_link_key")
