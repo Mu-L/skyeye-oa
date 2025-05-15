@@ -61,8 +61,11 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
 
     public static List<Integer> getKeysButAll(){
         List<Integer> list = new ArrayList<>();
-        for (NumberCodeEnum e : values()) {
-            list.add(e.getValue().equals(CommonNumConstants.NUM_ZERO.toString()) ? -1 : Integer.parseInt(e.getKey()));
+        for (NumberCodeEnum e : NumberCodeEnum.values()) {
+            String key = e.getKey();
+            if (!key.equals(CommonNumConstants.NUM_ZERO.toString())){
+                list.add(Integer.parseInt(key));
+            }
         }
         return list;
     }

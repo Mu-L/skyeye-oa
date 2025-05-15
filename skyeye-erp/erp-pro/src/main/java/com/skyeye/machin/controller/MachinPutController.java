@@ -42,8 +42,8 @@ public class MachinPutController {
 
     @ApiOperation(id = "writeMachinPut", value = "新增/编辑加工入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = MachinPut.class)
-    @RequestMapping("/post/MachinPutController/writeOtherOutLets")
-    public void writeOtherOutLets(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/MachinPutController/writeMachinPut")
+    public void writeMachinPut(InputObject inputObject, OutputObject outputObject) {
         machinPutService.saveOrUpdateEntity(inputObject, outputObject);
     }
 

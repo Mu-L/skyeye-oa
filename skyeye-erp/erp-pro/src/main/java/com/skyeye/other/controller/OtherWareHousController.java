@@ -54,8 +54,8 @@ public class OtherWareHousController {
      */
     @ApiOperation(id = "writeOtherWareHous", value = "新增/编辑其他入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = OtherWareHous.class)
-    @RequestMapping("/post/OtherWareHousController/writeOtherOutLets")
-    public void writeOtherOutLets(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/OtherWareHousController/writeOtherWareHous")
+    public void writeOtherWareHous(InputObject inputObject, OutputObject outputObject) {
         otherWareHousService.saveOrUpdateEntity(inputObject, outputObject);
     }
 

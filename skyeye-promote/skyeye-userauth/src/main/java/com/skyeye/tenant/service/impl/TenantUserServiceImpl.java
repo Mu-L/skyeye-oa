@@ -420,4 +420,18 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         update(updateWrapper);
     }
 
+    @Override
+    @IgnoreTenant
+    public void queryTenantUserStaffIdByTenantId(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = inputObject.getParams().get("tenantId").toString();
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
+        List<TenantUser> tenantUserList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(tenantUserList)) {
+            return;
+        }
+        outputObject.setBeans(tenantUserList);
+        outputObject.settotal(tenantUserList.size());
+    }
+
 }

@@ -16,6 +16,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.field.dao.WagesFieldTypeDao;
@@ -23,8 +24,10 @@ import com.skyeye.eve.field.entity.FieldStaffLink;
 import com.skyeye.eve.field.entity.FieldType;
 import com.skyeye.eve.field.service.FieldStaffLinkService;
 import com.skyeye.eve.field.service.WagesFieldTypeService;
+import com.skyeye.eve.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -47,6 +50,12 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
 
     @Autowired
     private FieldStaffLinkService fieldStaffLinkService;
+
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -74,14 +83,27 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
     }
 
     private void insertWagesFieldTypeKeyToStaff(String key) {
-        List<Map<String, Object>> staff = skyeyeBaseMapper.queryAllStaffMationList();
         List<FieldStaffLink> fieldStaffLinkList = new ArrayList<>();
-        staff.forEach(bean -> {
-            FieldStaffLink fieldStaffLink = new FieldStaffLink();
-            fieldStaffLink.setStaffId(bean.get("id").toString());
-            fieldStaffLink.setFieldTypeKey(key);
-            fieldStaffLinkList.add(fieldStaffLink);
-        });
+        if (!tenantEnable) {
+            // 单租户模式
+            List<Map<String, Object>> staff = skyeyeBaseMapper.queryAllStaffMationList();
+            staff.forEach(bean -> {
+                FieldStaffLink fieldStaffLink = new FieldStaffLink();
+                fieldStaffLink.setStaffId(bean.get("id").toString());
+                fieldStaffLink.setFieldTypeKey(key);
+                fieldStaffLinkList.add(fieldStaffLink);
+            });
+        } else {
+            // 多租户模式
+            String tenantId = TenantContext.getTenantId();
+            List<String> staffIdList = iSysEveUserStaffService.queryTenantUserStaffIdByTenantId(tenantId);
+            staffIdList.forEach(staffId -> {
+                FieldStaffLink fieldStaffLink = new FieldStaffLink();
+                fieldStaffLink.setStaffId(staffId);
+                fieldStaffLink.setFieldTypeKey(key);
+                fieldStaffLinkList.add(fieldStaffLink);
+            });
+        }
         fieldStaffLinkService.saveOrUpdateEntity(fieldStaffLinkList, StrUtil.EMPTY, true);
     }
 
