@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
@@ -32,19 +31,19 @@ import lombok.Data;
 public class PrintTemplate extends BaseGeneralInfo {
 
     @TableField("object_key")
-    @Property(value = "业务对象的key")
+    @ApiModelProperty(value = "业务对象的key", required = "required")
     private String objectKey;
 
     @TableField("page_id")
-    @Property("表单布局id")
+    @ApiModelProperty(value = "表单布局id", required = "required")
     private String pageId;
 
     @TableField("paper_size")
-    @Property("纸张大小")
+    @ApiModelProperty(value = "纸张大小", required = "required")
     private String paperSize;
 
     @TableField("orientation")
-    @Property("纸张方向")
+    @ApiModelProperty(value = "纸张方向", required = "required")
     private String orientation;
 
     @TableField("enabled")

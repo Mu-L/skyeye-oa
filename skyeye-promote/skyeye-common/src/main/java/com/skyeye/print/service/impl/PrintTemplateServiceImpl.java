@@ -4,9 +4,11 @@
 
 package com.skyeye.print.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -42,6 +44,13 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
 
     @Autowired
     private PrintHtmlGenerator htmlGenerator;
+
+    @Override
+    protected QueryWrapper<PrintTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<PrintTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(PrintTemplate::getObjectKey), commonPageInfo.getObjectKey());
+        return queryWrapper;
+    }
 
     @Override
     public void queryPrintTemplateListByPageId(InputObject inputObject, OutputObject outputObject) {
@@ -121,5 +130,23 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
             log.error("生成PDF失败", e);
             throw new CustomException("生成PDF失败: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void copyPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        // 获取模板详情
+        PrintTemplate template = getById(id);
+        if (template == null) {
+            throw new CustomException("打印模板不存在");
+        }
+
+        String userId = inputObject.getLogParams().get("id").toString();
+        // 复制模板
+        PrintTemplate newTemplate = new PrintTemplate();
+        BeanUtil.copyProperties(template, newTemplate);
+        newTemplate.setName(template.getName() + "-副本");
+        newTemplate.setId(null);
+        createEntity(newTemplate, userId);
     }
 }

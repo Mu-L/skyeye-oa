@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public enum Orientation implements SkyeyeEnumClass {
 
     PORTRAIT("portrait", "竖排", true, true),
-    LANDSCAPE("landscape", "横排", false, false);
+    LANDSCAPE("landscape", "横排", true, false);
 
     private String key;
 
