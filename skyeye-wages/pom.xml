@@ -17,7 +17,6 @@
 
     <modules>
         <module>wages-common</module>
-        <module>wages-entity</module>
         <module>wages-pro</module>
         <module>wages-web</module>
     </modules>

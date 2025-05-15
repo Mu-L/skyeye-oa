@@ -15,7 +15,7 @@
 
         <dependency>
             <groupId>com.skyeye</groupId>
-            <artifactId>wages-entity</artifactId>
+            <artifactId>wages-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

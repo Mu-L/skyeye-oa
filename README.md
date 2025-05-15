@@ -20,9 +20,7 @@
 
 ③ 具备低代码、功能全面、快速便捷开发、无需重复的CRUD等优点，短时间内可完成一款系统的开发。
 
-④ [国产开源项目对比--以及Skyeye云功能点](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)。
-
-![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/compare.png)
+④ [功能清单](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)
 
 ⑤ 体验地址：`Star`后将`Star`的截图(有效截图如下，如果无效，则不予回应)发送到下方公众号，并备注姓名和手机号，作者会私发你体验地址。
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/star.png)
