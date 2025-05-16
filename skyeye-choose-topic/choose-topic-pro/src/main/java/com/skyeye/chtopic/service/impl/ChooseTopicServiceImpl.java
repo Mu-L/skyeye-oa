@@ -13,12 +13,17 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.skyeye.activity.classenum.ActivityType;
+import com.skyeye.activity.entity.ChooseActivity;
+import com.skyeye.activity.service.ChooseActivityService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.chtopic.classenum.TeacherResultState;
 import com.skyeye.chtopic.dao.ChooseTopicDao;
 import com.skyeye.chtopic.entity.ChooseTopic;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -35,9 +40,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName: ChooseTopicServiceImpl
@@ -53,6 +56,16 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     @Autowired
     private ChooseUserService chooseUserService;
+
+    @Autowired
+    private ChooseActivityService chooseActivityService;
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        chooseUserService.setMationForMap(beans, "teacherId", "teacherMation");
+        return beans;
+    }
 
     @Override
     public void importChooseTopic(InputObject inputObject, OutputObject outputObject) {
@@ -87,8 +100,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     @Override
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
+        String teacherId = inputObject.getParams().get("teacherId").toString();
         ChooseTopic chooseTopic = selectById(id);
-        if (chooseTopic.getChoose() == 2) {
+        if (chooseTopic.getChoose() == CommonNumConstants.NUM_TWO) {
             throw new CustomException("该课题已被选择");
         }
         String userId = inputObject.getLogParams().get("id").toString();
@@ -98,11 +112,15 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (ObjectUtil.isNotEmpty(one)) {
             throw new CustomException("您已选题，请勿重复选题");
         }
-
+        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
         UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), 2);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_TWO);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
+        // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
+                Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         update(updateWrapper);
         refreshCache(id);
     }
@@ -111,7 +129,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     public void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ChooseTopic chooseTopic = selectById(id);
-        if (chooseTopic.getChoose() == 1) {
+        if (chooseTopic.getChoose() == CommonNumConstants.NUM_ONE) {
             throw new CustomException("该课题未被选择");
         }
         String userId = inputObject.getLogParams().get("id").toString();
@@ -120,8 +138,10 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), 1);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_ONE);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), StrUtil.EMPTY);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), null);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), StrUtil.EMPTY);
         update(updateWrapper);
         refreshCache(id);
     }
@@ -163,6 +183,59 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             outStream.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    @Override
+    public List<ChooseTopic> queryListByActivityId(String activityId) {
+        if (StrUtil.isEmpty(activityId)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        List<ChooseTopic> chooseTopicList = list(queryWrapper);
+        chooseUserService.setDataMation(chooseTopicList, ChooseTopic::getChooseUserId);
+        chooseUserService.setDataMation(chooseTopicList, ChooseTopic::getTeacherId);
+        return chooseTopicList;
+    }
+
+    @Override
+    public void queryChooseMeTopicList(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        String activityId = inputObject.getParams().get("activityId").toString();
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(activityId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), currentUserId);
+        List<ChooseTopic> beans = list(queryWrapper);
+        chooseUserService.setDataMation(beans, ChooseTopic::getChooseUserId);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public void changeResultForTeacher(InputObject inputObject, OutputObject outputObject) {
+        Integer teacherResult = Integer.valueOf(inputObject.getParams().get("teacherResult").toString());
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        ChooseTopic chooseTopic = selectById(inputObject.getParams().get("id").toString());
+        if (ObjectUtil.isEmpty(chooseTopic)) {
+            throw new CustomException("该课题不存在");
+        }
+        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
+        if (Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey())) {
+            throw new CustomException("该课题属于单选类型活动，不可修改");
+        }
+        if (!StrUtil.equals(currentUserId, chooseTopic.getTeacherId())) {
+            throw new CustomException("该课题信息你不是指导老师，不可修改");
+        }
+        // 判断入参是否合法，合法则修改，非法则报错
+        if (teacherResult.equals(TeacherResultState.AGREE.getKey()) ||
+                teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
+            chooseTopic.setTeacherResult(teacherResult);
+            super.updateEntity(chooseTopic, currentUserId);
+        } else {
+            throw new CustomException("非法状态");
         }
     }
 }

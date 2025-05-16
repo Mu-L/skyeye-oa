@@ -14,10 +14,13 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.chtopic.classenum.TeacherResultState;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.user.entity.ChooseUser;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: ChooseTopic
@@ -81,4 +84,19 @@ public class ChooseTopic extends CommonInfo {
     @Excel(name = "学生", width = 10, orderNum = "7")
     private String chooseUserName;
 
+    @TableField("activity_id")
+    @Property(value = "活动id")
+    private String activityId;
+
+    @TableField("teacher_id")
+    @ApiModelProperty(value = "教师id")
+    private String teacherId;
+
+    @TableField(exist = false)
+    @Property(value = "教师信息")
+    private Map<String, Object> teacherMAtion;
+
+    @TableField("teacher_result")
+    @ApiModelProperty(value = "选择导师的结果", enumClass = TeacherResultState.class)
+    private Integer teacherResult;
 }

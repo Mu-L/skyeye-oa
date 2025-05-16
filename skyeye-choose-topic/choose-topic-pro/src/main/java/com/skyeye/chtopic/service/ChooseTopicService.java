@@ -9,6 +9,8 @@ import com.skyeye.chtopic.entity.ChooseTopic;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
+import java.util.List;
+
 /**
  * @ClassName: ChooseTopicService
  * @Description: 课题服务接口层
@@ -25,4 +27,10 @@ public interface ChooseTopicService extends SkyeyeBusinessService<ChooseTopic> {
     void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject);
 
     void exportChooseTopic(InputObject inputObject, OutputObject outputObject);
+
+    List<ChooseTopic> queryListByActivityId(String activityId);
+
+    void queryChooseMeTopicList(InputObject inputObject, OutputObject outputObject);
+
+    void changeResultForTeacher(InputObject inputObject, OutputObject outputObject);
 }
