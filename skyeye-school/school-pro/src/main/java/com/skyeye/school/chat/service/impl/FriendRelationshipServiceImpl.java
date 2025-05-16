@@ -4,6 +4,7 @@
 
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -26,7 +27,9 @@ import com.skyeye.school.common.service.SchoolCommonService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,18 +44,45 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     @Override
     public void queryFriendsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         String id = InputObject.getLogParamsStatic().get("id").toString();
         List<FriendRelationship> list = getFriendRelationships(id);
+        if (StrUtil.isNotEmpty(keyword)) {
+            list = filterFriendRelationships(list, commonPageInfo.getKeyword());
+            System.out.println(list);
+        }
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
     }
+
+    public static List<FriendRelationship> filterFriendRelationships(List<FriendRelationship> list, String keyword) {
+        List<FriendRelationship> filteredList = new ArrayList<>();
+        for (FriendRelationship friend : list) {
+            // 检查 studentMation 是否不为空，且 name 包含 keyword
+            if (friend.getStudentMation() != null && friend.getStudentMation().containsKey("name") &&
+                friend.getStudentMation().get("name") != null &&
+                friend.getStudentMation().get("name").toString().toLowerCase().contains(keyword.toLowerCase())) {
+                filteredList.add(friend);
+            }
+            // 检查 teacherMation 是否不为空，且 userName 包含 keyword
+            else if (friend.getTeacherMation() != null && friend.getTeacherMation().containsKey("userName") &&
+                friend.getTeacherMation().get("userName") != null &&
+                friend.getTeacherMation().get("userName").toString().toLowerCase().contains(keyword.toLowerCase())) {
+                filteredList.add(friend);
+            }
+        }
+        return filteredList;
+    }
+
+
 
     @Override
     public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         List<FriendRelationship> list = getFriendRelationships(id);
+
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
