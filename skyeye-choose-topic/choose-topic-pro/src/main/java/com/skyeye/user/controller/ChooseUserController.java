@@ -31,12 +31,6 @@ public class ChooseUserController {
     @Autowired
     private ChooseUserService chooseUserService;
 
-    /**
-     * 分页获取用户列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryChooseUserList", value = "分页获取用户信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ChooseUserController/queryChooseUserList")
@@ -44,12 +38,6 @@ public class ChooseUserController {
         chooseUserService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 用户登录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "chooseUserLogin", value = "用户登录", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "accountNumber", name = "accountNumber", value = "账号", required = "required"),
@@ -60,24 +48,12 @@ public class ChooseUserController {
         chooseUserService.chooseUserLogin(inputObject, outputObject);
     }
 
-    /**
-     * 注销登录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "chooseUserExit", value = "注销登录", method = "POST", allUse = "2")
     @RequestMapping("/post/ChooseUserController/chooseUserExit")
     public void chooseUserExit(InputObject inputObject, OutputObject outputObject) {
         chooseUserService.chooseUserExit(inputObject, outputObject);
     }
 
-    /**
-     * 修改密码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editChoosePassword", value = "修改密码", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "newPassword", name = "newPassword", value = "新密码", required = "required"),
@@ -87,24 +63,18 @@ public class ChooseUserController {
         chooseUserService.editChoosePassword(inputObject, outputObject);
     }
 
-    /**
-     * 上传用户文档信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "importChooseUser", value = "上传用户文档信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "importChooseUser", value = "上传学生文档信息", method = "POST", allUse = "2")
     @RequestMapping("/post/ChooseUserController/importChooseUser")
     public void importChooseUser(InputObject inputObject, OutputObject outputObject) {
         chooseUserService.importChooseUser(inputObject, outputObject);
     }
 
-    /**
-     * 删除用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "importTeacherChooseUser", value = "上传教师文档信息", method = "POST", allUse = "2")
+    @RequestMapping("/post/ChooseUserController/importTeacherChooseUser")
+    public void importTeacherChooseUser(InputObject inputObject, OutputObject outputObject) {
+        chooseUserService.importTeacherChooseUser(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "deleteChooseUserById", value = "删除用户信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "用户id", required = "required")})

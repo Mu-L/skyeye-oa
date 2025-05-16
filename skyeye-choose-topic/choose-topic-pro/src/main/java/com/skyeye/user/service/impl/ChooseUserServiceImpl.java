@@ -26,6 +26,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.user.dao.ChooseUserDao;
 import com.skyeye.user.entity.ChooseUser;
+import com.skyeye.user.enumclass.ChooseUserType;
 import com.skyeye.user.service.ChooseUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -140,7 +141,36 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                     throw new CustomException(ee);
                 }
                 chooseUserList.forEach(bean -> {
-                    bean.setType(2);
+                    bean.setType(ChooseUserType.STUDENT.getKey());
+                    bean.setPassword(ToolUtil.MD5(bean.getPassword()));
+                });
+                createEntity(chooseUserList, StrUtil.EMPTY);
+            }
+        }
+    }
+
+    @Override
+    public void importTeacherChooseUser(InputObject inputObject, OutputObject outputObject) {
+        // 将当前上下文初始化给 CommonsMutipartResolver （多部分解析器）
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(PutObject.getRequest().getSession().getServletContext());
+        // 检查form中是否有enctype="multipart/form-data"
+        if (multipartResolver.isMultipart(PutObject.getRequest())) {
+            // 将request变成多部分request
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) PutObject.getRequest();
+            // 获取multiRequest 中所有的文件名
+            Iterator iter = multiRequest.getFileNames();
+            while (iter.hasNext()) {
+                MultipartFile file = multiRequest.getFile(iter.next().toString());
+                ImportParams reportModelAttrParams = new ImportParams();
+                reportModelAttrParams.setStartSheetIndex(0);
+                List<ChooseUser> chooseUserList;
+                try {
+                    chooseUserList = ExcelImportUtil.importExcel(file.getInputStream(), ChooseUser.class, reportModelAttrParams);
+                } catch (Exception ee) {
+                    throw new CustomException(ee);
+                }
+                chooseUserList.forEach(bean -> {
+                    bean.setType(ChooseUserType.TEACHER.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
                 });
                 createEntity(chooseUserList, StrUtil.EMPTY);
