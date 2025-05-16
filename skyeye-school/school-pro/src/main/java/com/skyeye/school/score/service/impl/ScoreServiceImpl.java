@@ -129,6 +129,9 @@ public class ScoreServiceImpl extends SkyeyeBusinessServiceImpl<ScoreDao, Score>
 
     @Override
     public List<Score> queryScoreList(List<String> scoreTypeIds, String studentNumber) {
+        if (CollectionUtil.isEmpty(scoreTypeIds)){
+            return new ArrayList<>();
+        }
         QueryWrapper<Score> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Score::getObjectId), scoreTypeIds);
         if (StrUtil.isNotEmpty(studentNumber)) {
