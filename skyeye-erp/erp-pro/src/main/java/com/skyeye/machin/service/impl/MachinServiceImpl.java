@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+
 @Service
 @SkyeyeService(name = "加工单管理", groupName = "加工单管理", flowable = true)
 public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Machin> implements MachinService {

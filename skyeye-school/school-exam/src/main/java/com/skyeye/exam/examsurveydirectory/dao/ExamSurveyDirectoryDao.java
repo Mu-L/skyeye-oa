@@ -4,6 +4,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.exam.examsurveydirectory.entity.ExamSurveyDirectory;
 
+import javax.persistence.SqlResultSetMapping;
 import java.util.List;
 
 /**

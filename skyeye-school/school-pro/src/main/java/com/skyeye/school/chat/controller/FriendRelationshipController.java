@@ -27,7 +27,7 @@ public class FriendRelationshipController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FriendRelationshipController/queryFriendsList")
     public void queryFriendsList(InputObject inputObject, OutputObject outputObject) {
-        friendRelationshipService.queryPageList(inputObject, outputObject);
+        friendRelationshipService.queryFriendsList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryNoPageFriendsList", value = "不分页查询好友管理列表", method = "POST", allUse = "2")

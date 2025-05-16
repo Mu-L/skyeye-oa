@@ -23,4 +23,6 @@ public interface FriendRelationshipService extends SkyeyeBusinessService<FriendR
     void queryFriendByUserId(InputObject inputObject, OutputObject outputObject);
 
     Map<String, Object> getAndCheckFriendShip(String userId, String friendId);
+
+    void queryFriendsList(InputObject inputObject, OutputObject outputObject);
 }

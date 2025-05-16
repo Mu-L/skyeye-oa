@@ -8,6 +8,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -21,11 +23,13 @@ import com.skyeye.school.chat.enums.ChatFriendType;
 import com.skyeye.school.chat.service.FriendRelationshipService;
 import com.skyeye.school.common.entity.UserOrStudent;
 import com.skyeye.school.common.service.SchoolCommonService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "好友关系", groupName = "好友关系")
@@ -35,43 +39,26 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
     private SchoolCommonService schoolCommonService;
 
     @Override
-    protected QueryWrapper<FriendRelationship> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<FriendRelationship> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), commonPageInfo.getState());
-        }
-        return queryWrapper;
-    }
-
-    @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        iAuthUserService.setMationForMap(beans, "createId", "createName");
-        return beans;
-    }
-
-    @Override
-    public void addFriendRelationship(String id, String applicantId, String recipientId, Integer status, String createId) {
-        FriendRelationship friendRelationship = new FriendRelationship();
-        friendRelationship.setUserId(applicantId);
-        friendRelationship.setFriendId(recipientId);
-        friendRelationship.setStatus(status);
-        friendRelationship.setTalkRequestId(id);
-        createEntity(friendRelationship, createId);
-    }
-
-    @Override
-    public void changeFriendStatus(String userId, String status) {
-        UpdateWrapper<FriendRelationship> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getTalkRequestId), userId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), status);
-        update(updateWrapper);
+    public void queryFriendsList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        String id = InputObject.getLogParamsStatic().get("id").toString();
+        List<FriendRelationship> list = getFriendRelationships(id);
+        outputObject.setBeans(list);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
     public void queryNoPageFriendsList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
+        List<FriendRelationship> list = getFriendRelationships(id);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
+
+    @NotNull
+    private List<FriendRelationship> getFriendRelationships(String id) {
         QueryWrapper<FriendRelationship> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FriendRelationship::getCreateTime));
         queryWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), ChatFriendType.ACCEPTED.getIndex());
@@ -94,8 +81,25 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
                 item.setTeacherMation(userOrStudent.getDataMation());
             }
         }
-        outputObject.setBeans(list);
-        outputObject.settotal(list.size());
+        return list;
+    }
+
+    @Override
+    public void addFriendRelationship(String id, String applicantId, String recipientId, Integer status, String createId) {
+        FriendRelationship friendRelationship = new FriendRelationship();
+        friendRelationship.setUserId(applicantId);
+        friendRelationship.setFriendId(recipientId);
+        friendRelationship.setStatus(status);
+        friendRelationship.setTalkRequestId(id);
+        createEntity(friendRelationship, createId);
+    }
+
+    @Override
+    public void changeFriendStatus(String userId, String status) {
+        UpdateWrapper<FriendRelationship> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(FriendRelationship::getTalkRequestId), userId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(FriendRelationship::getStatus), status);
+        update(updateWrapper);
     }
 
     @Override
@@ -138,4 +142,5 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
         }
         return dataMation;
     }
+
 }
