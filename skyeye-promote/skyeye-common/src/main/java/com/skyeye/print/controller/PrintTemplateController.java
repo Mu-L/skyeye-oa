@@ -97,6 +97,11 @@ public class PrintTemplateController {
     @ApiOperation(id = "editConfigContentById", value = "修改模板配置内容(JSON)", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "paperSize", name = "paperSize", value = "纸张大小", required = "required"),
+        @ApiImplicitParam(id = "orientation", name = "orientation", value = "纸张方向", required = "required"),
+        @ApiImplicitParam(id = "margin", name = "margin", value = "外边距", required = "required,json"),
+        @ApiImplicitParam(id = "width", name = "width", value = "宽度"),
+        @ApiImplicitParam(id = "height", name = "height", value = "高度"),
         @ApiImplicitParam(id = "configContent", name = "configContent", value = "configContent", required = "required,json")})
     @RequestMapping("/post/PrintTemplateController/editConfigContentById")
     public void editConfigContentById(InputObject inputObject, OutputObject outputObject) {

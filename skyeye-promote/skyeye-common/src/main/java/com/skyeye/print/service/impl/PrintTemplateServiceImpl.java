@@ -5,7 +5,9 @@
 package com.skyeye.print.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.itextpdf.kernel.geom.PageSize;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -17,6 +19,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.html.util.HtmlToPdfUtil;
 import com.skyeye.print.dao.PrintTemplateDao;
 import com.skyeye.print.entity.PrintTemplate;
+import com.skyeye.print.enumclass.PaperSize;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import com.skyeye.print.service.PrintTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +49,31 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
     private PrintHtmlGenerator htmlGenerator;
 
     @Override
+    protected void validatorEntity(PrintTemplate entity) {
+        super.validatorEntity(entity);
+        if (StrUtil.equals(entity.getPaperSize(), PaperSize.CUSTOM.getKey())) {
+            if (StrUtil.isEmpty(entity.getWidth()) || StrUtil.isEmpty(entity.getHeight())) {
+                throw new CustomException("自定义纸张的宽高尺寸不能为空");
+            }
+        }
+    }
+
+    @Override
     protected QueryWrapper<PrintTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<PrintTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(PrintTemplate::getObjectKey), commonPageInfo.getObjectKey());
         return queryWrapper;
+    }
+
+    @Override
+    public PrintTemplate selectById(String id) {
+        PrintTemplate printTemplate = super.selectById(id);
+        if (!StrUtil.equals(printTemplate.getPaperSize(), PaperSize.CUSTOM.getKey())) {
+            PageSize pageSize = PaperSize.getPageSizeByKey(printTemplate.getPaperSize());
+            printTemplate.setWidth(StrUtil.toString(pageSize.getWidth()));
+            printTemplate.setHeight(StrUtil.toString(pageSize.getHeight()));
+        }
+        return printTemplate;
     }
 
     @Override
@@ -114,7 +138,8 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
             String html = htmlGenerator.generateHtml(template, printData);
 
             // 生成PDF
-            byte[] pdfBytes = HtmlToPdfUtil.convertHtmlToPdfBytes(html, template.getPaperSize(), template.getOrientation());
+            byte[] pdfBytes = HtmlToPdfUtil.convertHtmlToPdfBytes(html, template.getPaperSize(), template.getOrientation(),
+                template.getWidth(), template.getHeight());
 
             // 设置响应头信息
             String filename = template.getName() + ".pdf";
@@ -155,6 +180,11 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
         String configContent = params.get("configContent").toString();
+        String paperSize = params.get("paperSize").toString();
+        String orientation = params.get("orientation").toString();
+        String margin = params.get("margin").toString();
+        String width = params.get("width").toString();
+        String height = params.get("height").toString();
         // 获取模板详情
         PrintTemplate template = getById(id);
         if (template == null) {
@@ -162,6 +192,11 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
         }
         String userId = inputObject.getLogParams().get("id").toString();
         template.setConfigContent(configContent);
+        template.setPaperSize(paperSize);
+        template.setOrientation(orientation);
+        template.setMargin(margin);
+        template.setWidth(width);
+        template.setHeight(height);
         updateEntity(template, userId);
     }
 }

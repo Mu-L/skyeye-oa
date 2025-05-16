@@ -13,6 +13,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
+import com.skyeye.print.enumclass.PaperSize;
 import lombok.Data;
 
 /**
@@ -39,7 +40,7 @@ public class PrintTemplate extends BaseGeneralInfo {
     private String pageId;
 
     @TableField("paper_size")
-    @ApiModelProperty(value = "纸张大小", required = "required")
+    @ApiModelProperty(value = "纸张大小", enumClass = PaperSize.class, required = "required")
     private String paperSize;
 
     @TableField("orientation")
@@ -57,5 +58,17 @@ public class PrintTemplate extends BaseGeneralInfo {
     @TableField(value = "config_content")
     @ApiModelProperty(value = "模板配置内容(JSON)")
     private String configContent;
+
+    @TableField(value = "margin")
+    @ApiModelProperty(value = "外边距(JSON)")
+    private String margin;
+
+    @TableField(value = "width")
+    @ApiModelProperty(value = "页宽")
+    private String width;
+
+    @TableField(value = "height")
+    @ApiModelProperty(value = "页高")
+    private String height;
 
 }
