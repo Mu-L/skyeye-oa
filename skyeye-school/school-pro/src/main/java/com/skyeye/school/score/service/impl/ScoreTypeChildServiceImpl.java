@@ -36,7 +36,10 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -65,8 +68,16 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Override
     public void createPrepose(ScoreTypeChild scoreTypeChild) {
-        // parentId为空时，默认为0
-        scoreTypeChild.setProportion(StrUtil.isEmpty(scoreTypeChild.getParentId()) ? CommonNumConstants.NUM_ZERO.toString() : scoreTypeChild.getProportion());
+        if (StrUtil.isEmpty(scoreTypeChild.getParentId())) {
+            // 新增一级数据
+            scoreTypeChild.setNameLinkId(NumberCodeEnum.CUSTOM.getKey());
+            scoreTypeChild.setNameLinkKey(NumberCodeEnum.class.getName());
+            scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
+        } else {
+            // 新增二级数据
+            scoreTypeChild.setNameLinkId(StrUtil.EMPTY);
+            scoreTypeChild.setNameLinkKey(StrUtil.EMPTY);
+        }
     }
 
     @Override
@@ -211,10 +222,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
                 .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
-        String parentIdKey = MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId);
-        queryWrapper.and(wra -> {
-            wra.isNull(parentIdKey).or().eq(parentIdKey, StrUtil.EMPTY);
-        });
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), NumberCodeEnum.getAllKey());
         List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
         outputObject.setBeans(scoreTypeChildList);
         outputObject.settotal(scoreTypeChildList.size());
@@ -370,7 +378,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
                 .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId)
                 // 忽略其本身
-                .ne(CommonConstants.ID,  id);
+                .ne(CommonConstants.ID, id);
         queryWrapper.and(wra -> {
             String parentId = MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId);
             wra.eq(parentId, id)

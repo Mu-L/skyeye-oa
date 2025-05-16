@@ -47,7 +47,7 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
         String className = NumberCodeEnum.class.getName();
         for (NumberCodeEnum e : values()) {
             // 自定义成绩类型不作为默认数据
-            if (e.getKey().equals(CommonNumConstants.NUM_ONE.toString())){
+            if (e.getKey().equals(CommonNumConstants.NUM_ONE.toString())) {
                 continue;
             }
             ScoreTypeChild scoreTypeChild = new ScoreTypeChild();
@@ -63,13 +63,21 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
         return scoreTypeList;
     }
 
-    public static List<Integer> getKeysButAll(){
+    public static List<Integer> getKeysButAll() {
         List<Integer> list = new ArrayList<>();
         for (NumberCodeEnum e : NumberCodeEnum.values()) {
             String key = e.getKey();
-            if (!key.equals(CommonNumConstants.NUM_ZERO.toString())){
+            if (!key.equals(CommonNumConstants.NUM_ZERO.toString())) {
                 list.add(Integer.parseInt(key));
             }
+        }
+        return list;
+    }
+
+    public static List<Integer> getAllKey() {
+        List<Integer> list = new ArrayList<>();
+        for (NumberCodeEnum e : NumberCodeEnum.values()) {
+            list.add(Integer.parseInt(e.getKey()));
         }
         return list;
     }
