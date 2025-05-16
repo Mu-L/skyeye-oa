@@ -54,7 +54,7 @@ public class CheckWorkTimeController {
         @ApiImplicitParam(id = "provinceId", name = "provinceId", value = "省", required = "required"),
         @ApiImplicitParam(id = "cityId", name = "cityId", value = "市", required = "required"),
         @ApiImplicitParam(id = "areaId", name = "areaId", value = "区县", required = "required"),
-        @ApiImplicitParam(id = "townshipId", name = "townshipId", value = "乡镇", required = "required"),
+        @ApiImplicitParam(id = "townshipId", name = "townshipId", value = "乡镇"),
         @ApiImplicitParam(id = "absoluteAddress", name = "absoluteAddress", value = "具体地址", required = "required")})
     @RequestMapping("/post/CheckWorkTimeController/setOnlineCheckWorkTime")
     public void setOnlineCheckWorkTime(InputObject inputObject, OutputObject outputObject) {
