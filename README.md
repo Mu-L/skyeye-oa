@@ -1,6 +1,6 @@
 #  :tw-1f308:  erp-pro
 
-> Skyeye云源代码，采用Springboot(微服务) + Layui + UNI-APP + Ant Design Vue的低代码平台开发模式。包含30多个应用模块、50多种电子流程，CRM、PM、ERP、MES、ADM、EHR、笔记、知识库、项目、门店、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、公告、问卷、报表设计、工作流、日程、云盘等全面管理，实现智能制造行业一体化管理。
+> Skyeye云源代码，采用Springboot(微服务) + Layui + UNI-APP + Ant Design Vue的低代码平台开发模式。包含50多种电子流程，CRM、PM、ERP、MES、ADM、OA、EHR、AI、项目、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、问卷、报表设计、工作流、Saas等功能。打造全网首套低代码、功能最全、价格最优惠的智能制造行业供应链一体化管理软件。
 
 **郑重声明：** 
 
