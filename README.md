@@ -4,7 +4,7 @@
 
 **郑重声明：** 
 
-**1. Skyeye云用户拿到源码后可进行学习、毕设、企业等使用。**
+**1. 星球用户（只有星球用户才能获取完成源代码，扫描下方知识星球二维码加入星球）拿到源码后可进行学习、毕设、企业等使用。**
 
 **2. [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)    [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)**
 
