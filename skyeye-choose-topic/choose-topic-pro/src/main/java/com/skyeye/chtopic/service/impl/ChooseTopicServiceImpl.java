@@ -152,10 +152,6 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
                 Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
-            update(updateWrapper);
-        } else {
-            // 选题活动未开始，不允许选择或修改导师
-            throw new CustomException("该活动未开始，不可选择或修改导师");
         }
         update(updateWrapper);
         refreshCache(id);
