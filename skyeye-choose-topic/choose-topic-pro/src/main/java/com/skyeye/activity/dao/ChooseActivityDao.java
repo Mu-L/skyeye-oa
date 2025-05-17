@@ -10,7 +10,7 @@ import com.skyeye.eve.dao.SkyeyeBaseMapper;
 
 /**
  * @ClassName: ActivityDao
- * @Description: 活动信息数据层
+ * @Description: 选题活动信息数据层
  * @author: xqz
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

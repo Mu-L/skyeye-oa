@@ -11,7 +11,7 @@ import com.skyeye.common.object.OutputObject;
 
 /**
  * @ClassName: ActivityService
- * @Description: 活动服务接口层
+ * @Description: 选题活动服务接口层
  * @author: xqz
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

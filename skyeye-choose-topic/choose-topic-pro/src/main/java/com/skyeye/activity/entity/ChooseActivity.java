@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * @ClassName: Activity
- * @Description: 活动实体类
+ * @Description: 选题活动实体类
  * @author: skyeye云系列--卫志强
  * @date: 2024/5/8 10:13
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -28,7 +28,7 @@ import java.util.List;
 @Data
 @RedisCacheField(name = "choose:activity", cacheTime = RedisConstants.ONE_WEEK_SECONDS)
 @TableName(value = "choose_activity")
-@ApiModel(value = "活动实体类")
+@ApiModel(value = "选题活动实体类")
 public class ChooseActivity extends BaseGeneralInfo {
 
     @TableField("start_time")
