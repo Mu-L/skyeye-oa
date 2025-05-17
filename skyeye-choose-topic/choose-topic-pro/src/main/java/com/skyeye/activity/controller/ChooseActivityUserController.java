@@ -4,7 +4,7 @@
 
 package com.skyeye.activity.controller;
 
-import com.skyeye.activity.entity.ChooseActivityUserList;
+import com.skyeye.activity.entity.BatchChooseActivityUserBox;
 import com.skyeye.activity.service.ChooseActivityUserService;
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
@@ -33,7 +33,7 @@ public class ChooseActivityUserController {
     private ChooseActivityUserService chooseActivityUserService;
 
     @ApiOperation(id = "insertActivityUserList", value = "新增活动可参与的用户信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ChooseActivityUserList.class)
+    @ApiImplicitParams(classBean = BatchChooseActivityUserBox.class)
     @RequestMapping("/post/ActivityUserController/insertActivityUserList")
     public void insertActivityUserList(InputObject inputObject, OutputObject outputObject) {
         chooseActivityUserService.insertActivityUser(inputObject, outputObject);

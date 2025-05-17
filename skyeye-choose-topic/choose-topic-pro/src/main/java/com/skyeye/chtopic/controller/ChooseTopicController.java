@@ -32,19 +32,24 @@ public class ChooseTopicController {
     private ChooseTopicService chooseTopicService;
 
     @ApiOperation(id = "queryChooseTopicList", value = "分页获取课题信息列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class,
+        value = {@ApiImplicitParam(id = "objectId", name = "objectId", value = "活动id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/queryChooseTopicList")
     public void queryUserList(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.queryPageList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "importChooseTopic", value = "上传课题信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "课题活动id")})
     @RequestMapping("/post/ChooseTopicController/importChooseTopic")
     public void importChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.importChooseTopic(inputObject, outputObject);
     }
 
     @ApiOperation(id = "exportChooseTopic", value = "导出选题结果信息", method = "GET", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "课题活动id")})
     @RequestMapping("/post/ChooseTopicController/exportChooseTopic")
     public void exportChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.exportChooseTopic(inputObject, outputObject);

@@ -87,6 +87,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) PutObject.getRequest();
             // 获取multiRequest 中所有的文件名
             Iterator iter = multiRequest.getFileNames();
+            String activityId = inputObject.getParams().get("activityId").toString();
             while (iter.hasNext()) {
                 MultipartFile file = multiRequest.getFile(iter.next().toString());
                 ImportParams reportModelAttrParams = new ImportParams();
@@ -100,6 +101,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 chooseTopicList.forEach(bean -> {
                     Map<String, Object> business = BeanUtil.beanToMap(bean);
                     bean.setChoose(1);
+                    bean.setActivityId(activityId);
                     bean.setOddNumber(iCodeRuleService.getNextCodeByClassName(getServiceClassName(), business));
                 });
                 createEntity(chooseTopicList, StrUtil.EMPTY);
@@ -158,12 +160,16 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     @Override
     public void exportChooseTopic(InputObject inputObject, OutputObject outputObject) {
-        exportExcel(InputObject.getResponse());
+        String activityId = inputObject.getParams().get("activityId").toString();
+        exportExcel(activityId);
     }
 
-    private void exportExcel(HttpServletResponse response) {
+    private void exportExcel(String activityId) {
+        HttpServletResponse response = InputObject.getResponse();
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
         // 导出数据
-        List<ChooseTopic> list = list();
+        List<ChooseTopic> list = list(queryWrapper);
         chooseUserService.setDataMation(list, ChooseTopic::getChooseUserId);
         list.forEach(bean -> {
             if (ObjectUtil.isNotEmpty(bean.getChooseUserMation())) {
