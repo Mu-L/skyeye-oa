@@ -59,7 +59,7 @@ public class ChooseUser extends CommonInfo {
     private String name;
 
     @TableField("type")
-    @ApiModelProperty(value = "用户类型  1.管理员2.学生")
+    @ApiModelProperty(value = "用户类型  1.管理员2.学生3.老师")
     private Integer type;
 
 }

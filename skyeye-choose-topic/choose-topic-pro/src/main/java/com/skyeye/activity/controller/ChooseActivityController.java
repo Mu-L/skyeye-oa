@@ -26,19 +26,19 @@ import org.springframework.web.bind.annotation.RestController;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @RestController
-@Api(value = "活动管理", tags = "活动管理", modelName = "活动管理")
+@Api(value = "选题活动管理", tags = "选题活动管理", modelName = "选题活动管理")
 public class ChooseActivityController {
 
     @Autowired
     private ChooseActivityService chooseActivityService;
 
     /**
-     * 分页获取课题列表
+     * 分页获取选题活动信息列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryActivityList", value = "分页获取活动信息列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryActivityList", value = "分页获取选题活动信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivityController/queryActivityList")
     public void queryPageList(InputObject inputObject, OutputObject outputObject) {
@@ -47,12 +47,12 @@ public class ChooseActivityController {
 
 
     /**
-     * 新增/编辑活动信息
+     * 新增/编辑选题活动信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "saveOrUpdateActivity", value = "新增/编辑活动信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "saveOrUpdateActivity", value = "新增/编辑选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ChooseActivity.class)
     @RequestMapping("/post/ActivityController/saveOrUpdateActivity")
     public void saveOrUpdateActivity(InputObject inputObject, OutputObject outputObject) {
@@ -60,12 +60,12 @@ public class ChooseActivityController {
     }
 
     /**
-     * 根据id删除活动信息
+     * 根据id删除选题活动信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteActivityById", value = "根据id删除活动信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteActivityById", value = "根据id删除选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ActivityController/deleteActivityById")
@@ -75,12 +75,12 @@ public class ChooseActivityController {
 
 
     /**
-     * 根据id查询活动信息
+     * 根据id查询选题活动信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "selectActivityById", value = "根据id查询活动信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "selectActivityById", value = "根据id查询选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ActivityController/selectActivityById")
@@ -89,12 +89,12 @@ public class ChooseActivityController {
     }
 
     /**
-     * 分页获取我参与的活动信息列表
+     * 分页获取我参与的选题活动信息列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryMyJoinActivityList", value = "获取我参与的活动信息列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMyJoinActivityList", value = "获取我参与的选题活动信息列表", method = "POST", allUse = "2")
     @RequestMapping("/post/ActivityController/queryMyJoinActivityList")
     public void queryMyJoinActivityList(InputObject inputObject, OutputObject outputObject) {
         chooseActivityService.queryMyJoinActivityList(inputObject, outputObject);

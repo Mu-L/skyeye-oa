@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * @ClassName: ActivityType
- * @Description: 活动类型枚举
+ * @Description: 选题活动类型枚举
  * @author: skyeye云系列--卫志强
  * @date: 2024/5/8 10:21
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

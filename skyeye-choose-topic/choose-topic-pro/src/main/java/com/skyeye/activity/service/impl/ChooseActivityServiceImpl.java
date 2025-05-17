@@ -16,26 +16,29 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.chtopic.entity.ChooseTopic;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActivityServiceImpl
- * @Description: 活动管理
+ * @Description: 选题活动管理
  * @author: skyeye云系列--卫志强
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "活动管理", groupName = "活动管理")
+@SkyeyeService(name = "选题活动管理", groupName = "选题活动管理")
 public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseActivityDao, ChooseActivity> implements ChooseActivityService {
 
     @Autowired
@@ -43,6 +46,16 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
 
     @Autowired
     private ChooseTopicService chooseTopicService;
+
+    @Override
+    public void getQueryWrapper(InputObject inputObject, QueryWrapper<ChooseActivity> wrapper) {
+        Map<String, Object> logParams = inputObject.getLogParams();
+        // 老师角色和学生角色可以查看自己创建的活动，管理员角色可以查看所有活动
+        if (Integer.valueOf(logParams.get("type").toString()).equals(CommonNumConstants.NUM_TWO)
+                || Integer.valueOf(logParams.get("type").toString()).equals(CommonNumConstants.NUM_THREE)){
+            wrapper.eq(MybatisPlusUtil.toColumns(ChooseActivity::getCreateId), logParams.get("id"));
+        }
+    }
 
     public void validatorEntity(ChooseActivity entity) {
         super.validatorEntity(entity);
