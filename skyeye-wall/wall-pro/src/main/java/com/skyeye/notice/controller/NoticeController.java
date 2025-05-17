@@ -48,10 +48,8 @@ public class NoticeController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryNoticeByType", value = "根据类型获取我的通知列表(type字段)，不传则是获取全部通知", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class,
-            value = {
-                    @ApiImplicitParam(id = "type", name = "type", value = "通知分类，0:圈子，1，视频，2表白墙", required = "required")
-            })
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "type", name = "type", value = "通知分类，0:圈子，1，视频，2表白墙")})
     @RequestMapping("/post/NoticeController/queryNoticeByType")
     public void queryMyNoticeByType(InputObject inputObject, OutputObject outputObject) {
         noticeService.queryNoticeByType(inputObject, outputObject);
