@@ -24,6 +24,7 @@ import com.skyeye.chtopic.entity.ChooseTopic;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -59,6 +60,15 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     @Autowired
     private ChooseActivityService chooseActivityService;
+
+    @Override
+    protected QueryWrapper<ChooseTopic> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ChooseTopic> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -120,7 +130,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
         // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
-                Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+            Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         update(updateWrapper);
         refreshCache(id);
     }
@@ -231,7 +241,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         // 判断入参是否合法，合法则修改，非法则报错
         if (teacherResult.equals(TeacherResultState.AGREE.getKey()) ||
-                teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
+            teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
             chooseTopic.setTeacherResult(teacherResult);
             super.updateEntity(chooseTopic, currentUserId);
             refreshCache(chooseTopic.getId());

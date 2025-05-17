@@ -8,7 +8,6 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.chtopic.classenum.TeacherResultState;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -32,12 +31,6 @@ public class ChooseTopicController {
     @Autowired
     private ChooseTopicService chooseTopicService;
 
-    /**
-     * 分页获取课题列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryChooseTopicList", value = "分页获取课题信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ChooseTopicController/queryChooseTopicList")
@@ -45,68 +38,38 @@ public class ChooseTopicController {
         chooseTopicService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 上传课题信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "importChooseTopic", value = "上传课题信息", method = "POST", allUse = "2")
     @RequestMapping("/post/ChooseTopicController/importChooseTopic")
     public void importChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.importChooseTopic(inputObject, outputObject);
     }
 
-    /**
-     * 导出选题结果信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "exportChooseTopic", value = "导出选题结果信息", method = "GET", allUse = "0")
     @RequestMapping("/post/ChooseTopicController/exportChooseTopic")
     public void exportChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.exportChooseTopic(inputObject, outputObject);
     }
 
-    /**
-     * 删除课题信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteChooseTopicById", value = "删除课题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/deleteChooseTopicById")
     public void deleteChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 选题
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "chooseTopicById", value = "选题", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
-            @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
+        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/chooseTopicById")
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.chooseTopicById(inputObject, outputObject);
     }
 
-    /**
-     * 取消选题
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "cnacleChooseTopicById", value = "取消选题", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/cnacleChooseTopicById")
     public void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.cnacleChooseTopicById(inputObject, outputObject);
@@ -114,7 +77,7 @@ public class ChooseTopicController {
 
     @ApiOperation(id = "queryChooseMyTopicList", value = "获取选择我作为指导老师的课题信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id")})
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id")})
     @RequestMapping("/post/ChooseTopicController/queryChooseMyTopicList")
     public void queryChooseMyTopicList(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.queryChooseMeTopicList(inputObject, outputObject);
@@ -122,8 +85,8 @@ public class ChooseTopicController {
 
     @ApiOperation(id = "changeResultForTeacher", value = "修改老师对学生选择的结果", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
-            @ApiImplicitParam(id = "teacherResult", name = "teacherResult", value = "结果，1同意 2拒绝", required = "required,num")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
+        @ApiImplicitParam(id = "teacherResult", name = "teacherResult", value = "结果，1同意 2拒绝", required = "required,num")})
     @RequestMapping("/post/ChooseTopicController/changeResultForTeacher")
     public void changeResultForTeacher(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.changeResultForTeacher(inputObject, outputObject);

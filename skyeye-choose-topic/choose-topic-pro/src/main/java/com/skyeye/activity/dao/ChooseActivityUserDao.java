@@ -9,7 +9,7 @@ import com.skyeye.eve.dao.SkyeyeBaseMapper;
 
 /**
  * @ClassName: ActivityUserDao
- * @Description:  活动可参与的学生信息数据层
+ * @Description: 活动可参与的用户信息管理
  * @author: xqz
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

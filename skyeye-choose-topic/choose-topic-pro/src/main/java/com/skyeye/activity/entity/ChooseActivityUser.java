@@ -33,10 +33,10 @@ public class ChooseActivityUser extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "activity_id")
-    @ApiModelProperty(value = "活动id",required = "required")
+    @ApiModelProperty(value = "活动id", required = "required")
     private String activityId;
 
     @TableField(value = "user_id")
-    @ApiModelProperty(value = "用户id",required = "required")
+    @ApiModelProperty(value = "用户id", required = "required")
     private String userId;
 }
