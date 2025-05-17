@@ -7,6 +7,7 @@ package com.skyeye.user.service.impl;
 import cn.afterturn.easypoi.excel.ExcelImportUtil;
 import cn.afterturn.easypoi.excel.entity.ImportParams;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -33,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +63,6 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         Map<String, Object> map = inputObject.getParams();
         String accountNumber = map.get("accountNumber").toString();
         String password = ToolUtil.MD5(map.get("password").toString());
-
         QueryWrapper<ChooseUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseUser::getAccountNumber), accountNumber);
         ChooseUser user = getOne(queryWrapper);
@@ -176,5 +177,16 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 createEntity(chooseUserList, StrUtil.EMPTY);
             }
         }
+    }
+
+    @Override
+    public List<ChooseUser> queryChoostUserList(List<String> userNoList) {
+        if (CollUtil.isEmpty(userNoList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<ChooseUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ChooseUser::getStuNo), userNoList);
+        List<ChooseUser> chooseUserList = getBaseMapper().selectList(queryWrapper);
+        return chooseUserList;
     }
 }

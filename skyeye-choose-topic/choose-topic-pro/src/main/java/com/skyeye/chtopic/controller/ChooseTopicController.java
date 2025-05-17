@@ -32,19 +32,24 @@ public class ChooseTopicController {
     private ChooseTopicService chooseTopicService;
 
     @ApiOperation(id = "queryChooseTopicList", value = "分页获取课题信息列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class,
+        value = {@ApiImplicitParam(id = "objectId", name = "objectId", value = "活动id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/queryChooseTopicList")
     public void queryUserList(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.queryPageList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "importChooseTopic", value = "上传课题信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "课题活动id")})
     @RequestMapping("/post/ChooseTopicController/importChooseTopic")
     public void importChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.importChooseTopic(inputObject, outputObject);
     }
 
     @ApiOperation(id = "exportChooseTopic", value = "导出选题结果信息", method = "GET", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "课题活动id")})
     @RequestMapping("/post/ChooseTopicController/exportChooseTopic")
     public void exportChooseTopic(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.exportChooseTopic(inputObject, outputObject);
@@ -58,10 +63,10 @@ public class ChooseTopicController {
         chooseTopicService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "chooseTopicById", value = "选题", method = "PUT", allUse = "2")
+    @ApiOperation(id = "chooseTopicById", value = "选题/指导老师", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
-        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
+        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id")})
     @RequestMapping("/post/ChooseTopicController/chooseTopicById")
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.chooseTopicById(inputObject, outputObject);
@@ -73,6 +78,14 @@ public class ChooseTopicController {
     @RequestMapping("/post/ChooseTopicController/cnacleChooseTopicById")
     public void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.cnacleChooseTopicById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "cancelTeacherResult", value = "取消指导老师", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+    @RequestMapping("/post/ChooseTopicController/cancelTeacherResult")
+    public void cancelTeacherResult(InputObject inputObject, OutputObject outputObject) {
+        chooseTopicService.cancelTeacherResult(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryChooseMyTopicList", value = "获取选择我作为指导老师的课题信息列表", method = "POST", allUse = "2")

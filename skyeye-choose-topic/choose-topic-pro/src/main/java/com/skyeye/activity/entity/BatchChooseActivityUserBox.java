@@ -19,8 +19,11 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-public class ChooseActivityUserList extends CommonInfo {
+public class BatchChooseActivityUserBox extends CommonInfo {
 
-    @ApiModelProperty(value = "活动用户列表", required = "required")
-    private List<ChooseActivityUser> chooseActivityUserList;
+    @ApiModelProperty(value = "活动id", required = "required")
+    private String activityId;
+
+    @ApiModelProperty(value = "用户编号", required = "required,json")
+    private List<String> userNoList;
 }

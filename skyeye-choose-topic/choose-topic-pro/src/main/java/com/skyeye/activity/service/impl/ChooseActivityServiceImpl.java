@@ -15,8 +15,6 @@ import com.skyeye.activity.service.ChooseActivityService;
 import com.skyeye.activity.service.ChooseActivityUserService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.chtopic.entity.ChooseTopic;
-import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -45,9 +43,6 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     @Autowired
     private ChooseActivityUserService chooseActivityUserService;
 
-    @Autowired
-    private ChooseTopicService chooseTopicService;
-
     public void validatorEntity(ChooseActivity entity) {
         super.validatorEntity(entity);
         if (DateUtil.compare(entity.getEndTime(), entity.getStartTime())) {
@@ -73,9 +68,6 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     @Override
     public ChooseActivity selectById(String id) {
         ChooseActivity chooseActivity = super.selectById(id);
-        // 查询活动下所有的题目
-        List<ChooseTopic> chooseTopicList = chooseTopicService.queryListByActivityId(chooseActivity.getId());
-        chooseActivity.setChooseTopicList(chooseTopicList);
         return chooseActivity;
     }
 
@@ -101,4 +93,29 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
         outputObject.setBeans(chooseActivityList);
         outputObject.settotal(pages.getTotal());
     }
+
+    /**
+     * 校验活动是否在运行中
+     *
+     * @param activity
+     * @return
+     */
+    @Override
+    public boolean checkActivityIsRun(ChooseActivity activity){
+        String currentTime = DateUtil.getTimeAndToString();
+        return DateUtil.compare(activity.getStartTime(), currentTime) && DateUtil.compare(currentTime, activity.getEndTime());
+    }
+
+    /**
+     * 校验活动是否开始过
+     *
+     * @param activity
+     * @return
+     */
+    @Override
+    public boolean checkActivityIsStart(ChooseActivity activity){
+        String currentTime = DateUtil.getTimeAndToString();
+        return DateUtil.compare(activity.getStartTime(), currentTime);
+    }
+
 }

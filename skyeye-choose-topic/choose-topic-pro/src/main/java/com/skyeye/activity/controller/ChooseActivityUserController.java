@@ -4,7 +4,7 @@
 
 package com.skyeye.activity.controller;
 
-import com.skyeye.activity.entity.ChooseActivityUserList;
+import com.skyeye.activity.entity.BatchChooseActivityUserBox;
 import com.skyeye.activity.service.ChooseActivityUserService;
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
@@ -33,7 +33,7 @@ public class ChooseActivityUserController {
     private ChooseActivityUserService chooseActivityUserService;
 
     @ApiOperation(id = "insertActivityUserList", value = "新增活动可参与的用户信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ChooseActivityUserList.class)
+    @ApiImplicitParams(classBean = BatchChooseActivityUserBox.class)
     @RequestMapping("/post/ActivityUserController/insertActivityUserList")
     public void insertActivityUserList(InputObject inputObject, OutputObject outputObject) {
         chooseActivityUserService.insertActivityUser(inputObject, outputObject);
@@ -54,5 +54,13 @@ public class ChooseActivityUserController {
     @RequestMapping("/post/ActivityUserController/deleteActivityUserById")
     public void deleteActivityUserById(InputObject inputObject, OutputObject outputObject) {
         chooseActivityUserService.deleteById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryTeacherActivityUserList", value = "获取指定活动的教师列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})
+    @RequestMapping("/post/ActivityUserController/queryTeacherActivityUserList")
+    public void queryTeacherActivityUserList(InputObject inputObject, OutputObject outputObject) {
+        chooseActivityUserService.queryTeacherActivityUserList(inputObject, outputObject);
     }
 }
