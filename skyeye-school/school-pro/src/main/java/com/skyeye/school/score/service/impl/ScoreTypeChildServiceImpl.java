@@ -222,7 +222,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
                 .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
-        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), NumberCodeEnum.getAllKey());
+        List<String> numberCodeEnumAllKey = NumberCodeEnum.getAllKey().stream().map(String::valueOf).collect(Collectors.toList());
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), numberCodeEnumAllKey);
         List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
         outputObject.setBeans(scoreTypeChildList);
         outputObject.settotal(scoreTypeChildList.size());
