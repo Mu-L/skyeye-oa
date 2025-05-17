@@ -34,6 +34,7 @@ import com.skyeye.user.service.ChooseUserService;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -110,6 +111,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         String id = inputObject.getParams().get("id").toString();
@@ -160,6 +162,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ChooseTopic chooseTopic = selectById(id);
@@ -264,6 +267,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void changeResultForTeacher(InputObject inputObject, OutputObject outputObject) {
         Integer teacherResult = Integer.valueOf(inputObject.getParams().get("teacherResult").toString());
         String currentUserId = inputObject.getLogParams().get("id").toString();
@@ -290,6 +294,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void cancelTeacherResult(InputObject inputObject, OutputObject outputObject) {
         String currentUserId = inputObject.getLogParams().get("id").toString();
         ChooseTopic chooseTopic = selectById(inputObject.getParams().get("id").toString());
