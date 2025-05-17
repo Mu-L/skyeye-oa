@@ -130,11 +130,12 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         boolean activityIsRun = chooseActivityService.checkActivityIsRun(chooseActivity);
         if (activityIsRun) {
             // 选题活动正在进行中，一定会进行选题操作
-            if (chooseTopic.getChoose() == CommonNumConstants.NUM_TWO) {
+            if (chooseTopic.getChoose() == CommonNumConstants.NUM_TWO && !StrUtil.equals(chooseTopic.getChooseUserId(), userId)) {
                 throw new CustomException("该课题已被选择");
             }
             QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+            queryWrapper.ne(CommonConstants.ID, id);
             ChooseTopic one = getOne(queryWrapper, false);
             if (ObjectUtil.isNotEmpty(one)) {
                 throw new CustomException("您已选题，请勿重复选题");
@@ -148,7 +149,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         if (StrUtil.isNotEmpty(teacherId) && chooseActivityService.checkActivityIsStart(chooseActivity)) {
             // 选题活动只要开始了(活动结束也可以)，都可以修改导师
-            if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())){
+            if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
                 throw new CustomException("该导师已超过最大选择次数(8次)");
             }
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
@@ -170,8 +171,8 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     private boolean checkTeacherOverLimit(String teacherId, String activityId) {
         QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(CommonConstants.ID)
-                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId)
-                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+            .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId)
+            .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
         long count = count(queryWrapper);
         return count >= CommonNumConstants.NUM_EIGHT;
     }
@@ -299,10 +300,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         // 判断入参是否合法，合法则修改，非法则报错
         if (teacherResult.equals(TeacherResultState.AGREE.getKey()) ||
-                teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
+            teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
             chooseTopic.setTeacherResult(teacherResult);
             super.updateEntity(chooseTopic, currentUserId);
-            refreshCache(chooseTopic.getId());
         } else {
             throw new CustomException("非法状态");
         }
@@ -316,12 +316,14 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (ObjectUtil.isEmpty(chooseTopic)) {
             throw new CustomException("该课题不存在");
         }
-        if (StrUtil.isEmpty(chooseTopic.getChooseUserId()) || currentUserId.equals(chooseTopic.getChooseUserId())) {
+        if (StrUtil.isEmpty(chooseTopic.getChooseUserId())) {
             throw new CustomException("该课题未关联学生，不可取消");
+        }
+        if (!StrUtil.equals(currentUserId, chooseTopic.getChooseUserId())) {
+            throw new CustomException("该课题信息你不是选择的学生，不可取消");
         }
         chooseTopic.setTeacherId(StrUtil.EMPTY);
         chooseTopic.setTeacherResult(null);
         super.updateEntity(chooseTopic, currentUserId);
-        super.refreshCache(chooseTopic.getId());
     }
 }

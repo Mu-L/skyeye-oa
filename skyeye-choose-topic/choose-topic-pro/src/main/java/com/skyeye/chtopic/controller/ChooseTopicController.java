@@ -80,12 +80,6 @@ public class ChooseTopicController {
         chooseTopicService.cnacleChooseTopicById(inputObject, outputObject);
     }
 
-    /**
-     * 取消指导老师
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "cancelTeacherResult", value = "取消指导老师", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
