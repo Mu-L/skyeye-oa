@@ -19,4 +19,8 @@ import com.skyeye.common.object.OutputObject;
  */
 public interface ChooseActivityService extends SkyeyeBusinessService<ChooseActivity> {
     void queryMyJoinActivityList(InputObject inputObject, OutputObject outputObject);
+
+    boolean checkActivityIsRun(ChooseActivity activity);
+
+    boolean checkActivityIsStart(ChooseActivity activity);
 }

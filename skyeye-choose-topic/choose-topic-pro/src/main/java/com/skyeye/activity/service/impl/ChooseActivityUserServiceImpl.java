@@ -74,14 +74,14 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<ChooseActivityUser> wrapper) {
         super.getQueryWrapper(inputObject, wrapper);
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             wrapper.eq(MybatisPlusUtil.toColumns(ChooseActivityUser::getActivityId), commonPageInfo.getObjectId());
         }
     }
 
     @Override
-    public List<ChooseActivityUser> queryListByUserId(String userId){
-        if (StrUtil.isEmpty(userId)){
+    public List<ChooseActivityUser> queryListByUserId(String userId) {
+        if (StrUtil.isEmpty(userId)) {
             return new ArrayList<>();
         }
         QueryWrapper<ChooseActivityUser> queryWrapper = new QueryWrapper<>();
@@ -91,7 +91,7 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
 
     @Override
     public void deleteByActivityId(String activityId) {
-        if (StrUtil.isEmpty(activityId)){
+        if (StrUtil.isEmpty(activityId)) {
             return;
         }
         QueryWrapper<ChooseActivityUser> queryWrapper = new QueryWrapper<>();

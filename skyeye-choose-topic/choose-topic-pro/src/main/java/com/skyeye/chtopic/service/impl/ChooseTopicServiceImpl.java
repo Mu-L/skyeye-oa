@@ -99,29 +99,50 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     @Override
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
         String id = inputObject.getParams().get("id").toString();
         String teacherId = inputObject.getParams().get("teacherId").toString();
         ChooseTopic chooseTopic = selectById(id);
-        if (chooseTopic.getChoose() == CommonNumConstants.NUM_TWO) {
-            throw new CustomException("该课题已被选择");
+        if (ObjectUtil.isEmpty(chooseTopic)) {
+            throw new CustomException("该数据不存在");
         }
-        String userId = inputObject.getLogParams().get("id").toString();
-        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
-        ChooseTopic one = getOne(queryWrapper, false);
-        if (ObjectUtil.isNotEmpty(one)) {
-            throw new CustomException("您已选题，请勿重复选题");
+        if (StrUtil.isEmpty(chooseTopic.getActivityId())) {
+            throw new CustomException("该课题未关联活动,课题未发布");
         }
-        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
+        // 准备修改数据
         UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_TWO);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
-        // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
-                Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
-        update(updateWrapper);
+        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
+        boolean activityIsRun = chooseActivityService.checkActivityIsRun(chooseActivity);
+        if (activityIsRun) {
+            // 选题活动正在进行中，一定会进行选题操作
+            if (chooseTopic.getChoose() == CommonNumConstants.NUM_TWO) {
+                throw new CustomException("该课题已被选择");
+            }
+            QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+            ChooseTopic one = getOne(queryWrapper, false);
+            if (ObjectUtil.isNotEmpty(one)) {
+                throw new CustomException("您已选题，请勿重复选题");
+            }
+            // 设置选题标志
+            updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_TWO);
+            updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+        } else if (StrUtil.isEmpty(teacherId)) {
+            // 选题活动已结束/未开始,并且不是修改导师
+            throw new CustomException("该活动未开始或已结束");
+        }
+        if (StrUtil.isNotEmpty(teacherId) && chooseActivityService.checkActivityIsStart(chooseActivity)) {
+            // 选题活动只要开始了(活动结束也可以)，都可以修改导师
+            updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
+            // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
+            updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
+                    Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+            update(updateWrapper);
+        } else {
+            // 选题活动未开始，不允许选择或修改导师
+            throw new CustomException("该活动未开始，不可选择或修改导师");
+        }
         refreshCache(id);
     }
 
@@ -129,6 +150,17 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     public void cnacleChooseTopicById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ChooseTopic chooseTopic = selectById(id);
+        if (ObjectUtil.isEmpty(chooseTopic)) {
+            throw new CustomException("该数据不存在");
+        }
+        if (StrUtil.isEmpty(chooseTopic.getActivityId())) {
+            throw new CustomException("该课题未关联活动,课题未发布");
+        }
+        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
+        boolean activityIsRun = chooseActivityService.checkActivityIsRun(chooseActivity);
+        if (!activityIsRun){
+            throw new CustomException("该活动未开始或已结束,不可取消选课");
+        }
         if (chooseTopic.getChoose() == CommonNumConstants.NUM_ONE) {
             throw new CustomException("该课题未被选择");
         }
@@ -238,5 +270,21 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         } else {
             throw new CustomException("非法状态");
         }
+    }
+
+    @Override
+    public void cancelTeacherResult(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        ChooseTopic chooseTopic = selectById(inputObject.getParams().get("id").toString());
+        if (ObjectUtil.isEmpty(chooseTopic)) {
+            throw new CustomException("该课题不存在");
+        }
+        if (StrUtil.isEmpty(chooseTopic.getChooseUserId()) || currentUserId.equals(chooseTopic.getChooseUserId())){
+            throw new CustomException("该课题未关联学生，不可取消");
+        }
+        chooseTopic.setTeacherId(StrUtil.EMPTY);
+        chooseTopic.setTeacherResult(null);
+        super.updateEntity(chooseTopic, currentUserId);
+        super.refreshCache(chooseTopic.getId());
     }
 }

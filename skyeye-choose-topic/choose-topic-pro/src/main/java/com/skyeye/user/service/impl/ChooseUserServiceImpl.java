@@ -61,7 +61,6 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         Map<String, Object> map = inputObject.getParams();
         String accountNumber = map.get("accountNumber").toString();
         String password = ToolUtil.MD5(map.get("password").toString());
-
         QueryWrapper<ChooseUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseUser::getAccountNumber), accountNumber);
         ChooseUser user = getOne(queryWrapper);

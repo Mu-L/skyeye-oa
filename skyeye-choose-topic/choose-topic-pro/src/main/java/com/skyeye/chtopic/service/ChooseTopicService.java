@@ -33,4 +33,6 @@ public interface ChooseTopicService extends SkyeyeBusinessService<ChooseTopic> {
     void queryChooseMeTopicList(InputObject inputObject, OutputObject outputObject);
 
     void changeResultForTeacher(InputObject inputObject, OutputObject outputObject);
+
+    void cancelTeacherResult(InputObject inputObject, OutputObject outputObject);
 }

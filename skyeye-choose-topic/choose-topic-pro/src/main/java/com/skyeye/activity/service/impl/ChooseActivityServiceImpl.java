@@ -101,4 +101,29 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
+
+    /**
+     * 校验活动是否在运行中
+     *
+     * @param activity
+     * @return
+     */
+    @Override
+    public boolean checkActivityIsRun(ChooseActivity activity){
+        String currentTime = DateUtil.getTimeAndToString();
+        return DateUtil.compare(activity.getStartTime(), currentTime) && DateUtil.compare(currentTime, activity.getEndTime());
+    }
+
+    /**
+     * 校验活动是否开始过
+     *
+     * @param activity
+     * @return
+     */
+    @Override
+    public boolean checkActivityIsStart(ChooseActivity activity){
+        String currentTime = DateUtil.getTimeAndToString();
+        return DateUtil.compare(activity.getStartTime(), currentTime);
+    }
+
 }
