@@ -502,5 +502,6 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         int shareNum = Integer.parseInt(post.getShareNum()) + num;
         post.setShareNum(String.valueOf(shareNum));
         updateById(post);
+        refreshCache(postId);
     }
 }

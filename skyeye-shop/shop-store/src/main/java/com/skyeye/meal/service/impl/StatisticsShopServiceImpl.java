@@ -49,7 +49,7 @@ public class StatisticsShopServiceImpl implements StatisticsShopService {
         // 套餐订单状态
         params.put("mealStateList", Arrays.asList(ShopMealOrderState.PAY.getKey()));
         // 保养订单状态
-        params.put("keepFitStateList", Arrays.asList(KeepFitOrderState.PAY.getKey(), KeepFitOrderState.PAY_VERIFICATION.getKey(),
+        params.put("keepFitStateList", Arrays.asList(KeepFitOrderState.PAY.getKey(), KeepFitOrderState.FIT_COMPLATE.getKey(),
             KeepFitOrderState.PAY_VERIFICATION.getKey()));
         Map<String, Object> result = new HashMap<>();
         // 获取指定日期范围内的购买套餐(已支付)的会员数
