@@ -10,7 +10,6 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.circle.entity.Circle;
 import com.skyeye.circle.service.CircleService;
 import com.skyeye.comment.service.CommentService;
 import com.skyeye.common.constans.CommonConstants;
@@ -40,7 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -146,13 +148,13 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         if (CollectionUtil.isEmpty(beans)) {
             return new ArrayList();
         }
-        if(StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId()) &&
-           StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())){
+        if (StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId()) &&
+            StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())) {
             // 分享圈子内的评论和帖子——去除不在圈子用户
             List<String> receiveIds = beans.stream().map(Notice::getReceiveId).collect(Collectors.toList());
-            Map<String,Boolean> isJoinCircleMap = joinCircleService.checkIsJoinCircle(beans.get(CommonNumConstants.NUM_ZERO).getCircleId(),receiveIds);
+            Map<String, Boolean> isJoinCircleMap = joinCircleService.checkIsJoinCircle(beans.get(CommonNumConstants.NUM_ZERO).getCircleId(), receiveIds);
             beans = beans.stream().filter(notice -> isJoinCircleMap.get(notice.getReceiveId())).collect(Collectors.toList());
-            if(CollectionUtil.isEmpty(beans)){
+            if (CollectionUtil.isEmpty(beans)) {
                 throw new CustomException("分享的用户不在圈子中");
             }
         }
@@ -207,7 +209,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getNoticeType), type);
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
-                .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
+            .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
         List<Notice> bean = list(queryWrapper);
         if (CollectionUtil.isEmpty(bean)) {
             return;
@@ -231,15 +233,30 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Override
     public void queryUnReadNum(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getParams().get(CommonConstants.ID).toString();
+        String userId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.UNREAD.getKey());
         List<Notice> bean = list(queryWrapper);
         // 按分类分组
         Map<Integer, List<Notice>> map = bean.stream().collect(Collectors.groupingBy(Notice::getNoticeType));
-        // 计算各组数量
-        Map<Integer, Long> countMap = map.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> (long) e.getValue().size()));
+        // 将整数键替换为枚举的键
+        Map<Integer, Long> countMap = map.entrySet().stream()
+            .collect(Collectors.toMap(
+                entry -> {
+                    int key = entry.getKey();
+                    if (key == 0) {
+                        return NoticeTypeEnum.TYPE_CIRCLE.getKey();
+                    } else if (key == 1) {
+                        return NoticeTypeEnum.TYPE_VIDEO.getKey();
+                    } else if (key == 2) {
+                        return NoticeTypeEnum.TYPE_WALL.getKey();
+                    } else {
+                        throw new CustomException("不存在的通知类型");
+                    }
+                },
+                entry -> (long) entry.getValue().size()
+            ));
         outputObject.setBean(countMap);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -308,9 +325,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isNotEmpty(beans)){
+        if (CollectionUtil.isNotEmpty(beans)) {
             createEntity(beans, currentUserId);
-            postService.updatePostShareNum(postId,beans.size());
+            postService.updatePostShareNum(postId, beans.size());
         }
     }
 
@@ -349,9 +366,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isNotEmpty(beans)){
+        if (CollectionUtil.isNotEmpty(beans)) {
             createEntity(notices, currentUserId);
-            videoService.updateVideoShareNum(videoId,beans.size());
+            videoService.updateVideoShareNum(videoId, beans.size());
         }
     }
 
@@ -384,9 +401,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notices.add(item);
         }
         List<Notice> beans = filterNotice(notices, currentUserId);
-        if(CollectionUtil.isNotEmpty(beans)){
+        if (CollectionUtil.isNotEmpty(beans)) {
             createEntity(notices, currentUserId);
-            circleService.updateCircleShareNum(circleId,beans.size());
+            circleService.updateCircleShareNum(circleId, beans.size());
         }
     }
 
