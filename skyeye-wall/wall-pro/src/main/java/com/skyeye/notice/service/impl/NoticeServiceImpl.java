@@ -39,10 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -238,26 +235,14 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getState), ReadEnum.UNREAD.getKey());
         List<Notice> bean = list(queryWrapper);
-        // 按分类分组
-        Map<Integer, List<Notice>> map = bean.stream().collect(Collectors.groupingBy(Notice::getNoticeType));
-        // 将整数键替换为枚举的键
-        Map<Integer, Long> countMap = map.entrySet().stream()
-            .collect(Collectors.toMap(
-                entry -> {
-                    int key = entry.getKey();
-                    if (key == 0) {
-                        return NoticeTypeEnum.TYPE_CIRCLE.getKey();
-                    } else if (key == 1) {
-                        return NoticeTypeEnum.TYPE_VIDEO.getKey();
-                    } else if (key == 2) {
-                        return NoticeTypeEnum.TYPE_WALL.getKey();
-                    } else {
-                        throw new CustomException("不存在的通知类型");
-                    }
-                },
-                entry -> (long) entry.getValue().size()
-            ));
-        outputObject.setBean(countMap);
+        // 计算每个分类的数量
+        Map<Integer, Long> beans = bean.stream().collect(Collectors.groupingBy(Notice::getNoticeType, Collectors.counting()));
+        Map<String,Long> map = new HashMap<>();
+        map.put(NoticeTypeEnum.TYPE_CIRCLE.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_CIRCLE.getKey(), 0L));
+        map.put(NoticeTypeEnum.TYPE_WALL.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_WALL.getKey(), 0L));
+        map.put(NoticeTypeEnum.TYPE_VIDEO.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_VIDEO.getKey(), 0L));
+        map.put("all", (long) bean.size());
+        outputObject.setBean(map);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
@@ -298,7 +283,6 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }
         notice.setObjectId(postId);
         notice.setSendId(currentUserId);
-        notice.setType(TypeEnum.SHARE.getKey());
         notice.setObjectKey(postService.getServiceClassName());
         if (StrUtil.isNotEmpty(post.getCircleId())) {
             // 圈子
@@ -311,8 +295,10 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             notice.setCommentId(params.get("commentId").toString());
             notice.setCommentKey(commentService.getServiceClassName());
             notice.setContent(NoticeContent.SHARE_COMMENT);
+            notice.setType(TypeEnum.COMMENT.getKey());
         } else {
             notice.setContent(NoticeContent.SHARE_POST);
+            notice.setType(TypeEnum.SHARE.getKey());
         }
         List<Notice> notices = new ArrayList<>();
         for (String id : userIds) {
@@ -345,15 +331,16 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }
         notice.setSendId(currentUserId);
         notice.setObjectId(videoId);
-        notice.setType(TypeEnum.SHARE.getKey());
         notice.setObjectKey(videoService.getServiceClassName());
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
         if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
             notice.setContent(NoticeContent.SHARE_COMMENT);
+            notice.setType(TypeEnum.COMMENT.getKey());
             notice.setCommentKey(videoCommentService.getServiceClassName());
         } else {
             notice.setContent(NoticeContent.SHARE_VIDEO);
+            notice.setType(TypeEnum.SHARE.getKey());
         }
         List<Notice> notices = new ArrayList<>();
         for (String id : userIds) {
