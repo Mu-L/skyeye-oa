@@ -55,4 +55,12 @@ public class ChooseActivityUserController {
     public void deleteActivityUserById(InputObject inputObject, OutputObject outputObject) {
         chooseActivityUserService.deleteById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryTeacherActivityUserList", value = "获取指定活动的教师列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})
+    @RequestMapping("/post/ActivityUserController/queryTeacherActivityUserList")
+    public void queryTeacherActivityUserList(InputObject inputObject, OutputObject outputObject) {
+        chooseActivityUserService.queryTeacherActivityUserList(inputObject, outputObject);
+    }
 }

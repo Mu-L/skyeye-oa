@@ -149,7 +149,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
             // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
-                    Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+                Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
             update(updateWrapper);
         } else {
             // 选题活动未开始，不允许选择或修改导师
@@ -177,7 +177,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
         boolean activityIsRun = chooseActivityService.checkActivityIsRun(chooseActivity);
-        if (!activityIsRun){
+        if (!activityIsRun) {
             throw new CustomException("该活动未开始或已结束,不可取消选课");
         }
         if (chooseTopic.getChoose() == CommonNumConstants.NUM_ONE) {
@@ -302,7 +302,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (ObjectUtil.isEmpty(chooseTopic)) {
             throw new CustomException("该课题不存在");
         }
-        if (StrUtil.isEmpty(chooseTopic.getChooseUserId()) || currentUserId.equals(chooseTopic.getChooseUserId())){
+        if (StrUtil.isEmpty(chooseTopic.getChooseUserId()) || currentUserId.equals(chooseTopic.getChooseUserId())) {
             throw new CustomException("该课题未关联学生，不可取消");
         }
         chooseTopic.setTeacherId(StrUtil.EMPTY);
