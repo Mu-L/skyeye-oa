@@ -32,71 +32,33 @@ public class ChooseActivityController {
     @Autowired
     private ChooseActivityService chooseActivityService;
 
-    /**
-     * 分页获取选题活动信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryActivityList", value = "分页获取选题活动信息列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ActivityController/queryActivityList")
-    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
-        chooseActivityService.queryPageList(inputObject, outputObject);
-    }
-
-
-    /**
-     * 新增/编辑选题活动信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "saveOrUpdateActivity", value = "新增/编辑选题活动信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeChooseActivity", value = "新增/编辑选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ChooseActivity.class)
-    @RequestMapping("/post/ActivityController/saveOrUpdateActivity")
-    public void saveOrUpdateActivity(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/ActivityController/writeChooseActivity")
+    public void writeChooseActivity(InputObject inputObject, OutputObject outputObject) {
         chooseActivityService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除选题活动信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteActivityById", value = "根据id删除选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ActivityController/deleteActivityById")
     public void deleteActivityById(InputObject inputObject, OutputObject outputObject) {
         chooseActivityService.deleteById(inputObject, outputObject);
     }
 
-
-    /**
-     * 根据id查询选题活动信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "selectActivityById", value = "根据id查询选题活动信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryActivityById", value = "根据id查询选题活动信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
-    @RequestMapping("/post/ActivityController/selectActivityById")
-    public void selectActivityById(InputObject inputObject, OutputObject outputObject) {
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+    @RequestMapping("/post/ActivityController/queryActivityById")
+    public void queryActivityById(InputObject inputObject, OutputObject outputObject) {
         chooseActivityService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 分页获取我参与的选题活动信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMyJoinActivityList", value = "获取我参与的选题活动信息列表", method = "POST", allUse = "2")
-    @RequestMapping("/post/ActivityController/queryMyJoinActivityList")
-    public void queryMyJoinActivityList(InputObject inputObject, OutputObject outputObject) {
-        chooseActivityService.queryMyJoinActivityList(inputObject, outputObject);
+    @ApiOperation(id = "queryActivityList", value = "获取选题活动信息列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ActivityController/queryActivityList")
+    public void queryActivityList(InputObject inputObject, OutputObject outputObject) {
+        chooseActivityService.queryActivityList(inputObject, outputObject);
     }
 }

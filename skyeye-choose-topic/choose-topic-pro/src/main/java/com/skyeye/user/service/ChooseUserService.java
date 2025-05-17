@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.user.entity.ChooseUser;
 
+import java.util.List;
+
 /**
  * @ClassName: ChooseUserService
  * @Description: 用户服务接口层
@@ -28,4 +30,6 @@ public interface ChooseUserService extends SkyeyeBusinessService<ChooseUser> {
     void importChooseUser(InputObject inputObject, OutputObject outputObject);
 
     void importTeacherChooseUser(InputObject inputObject, OutputObject outputObject);
+
+    List<ChooseUser> queryChoostUserList(List<String> userNoList);
 }

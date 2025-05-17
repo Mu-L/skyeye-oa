@@ -4,8 +4,10 @@
 
 package com.skyeye.activity.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.util.StrUtil;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.activity.dao.ChooseActivityDao;
 import com.skyeye.activity.entity.ChooseActivity;
 import com.skyeye.activity.entity.ChooseActivityUser;
@@ -13,21 +15,18 @@ import com.skyeye.activity.service.ChooseActivityService;
 import com.skyeye.activity.service.ChooseActivityUserService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.chtopic.entity.ChooseTopic;
-import com.skyeye.chtopic.service.ChooseTopicService;
-import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.user.enumclass.ChooseUserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActivityServiceImpl
@@ -43,19 +42,6 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
 
     @Autowired
     private ChooseActivityUserService chooseActivityUserService;
-
-    @Autowired
-    private ChooseTopicService chooseTopicService;
-
-    @Override
-    public void getQueryWrapper(InputObject inputObject, QueryWrapper<ChooseActivity> wrapper) {
-        Map<String, Object> logParams = inputObject.getLogParams();
-        // 老师角色和学生角色可以查看自己创建的活动，管理员角色可以查看所有活动
-        if (Integer.valueOf(logParams.get("type").toString()).equals(CommonNumConstants.NUM_TWO)
-                || Integer.valueOf(logParams.get("type").toString()).equals(CommonNumConstants.NUM_THREE)){
-            wrapper.eq(MybatisPlusUtil.toColumns(ChooseActivity::getCreateId), logParams.get("id"));
-        }
-    }
 
     public void validatorEntity(ChooseActivity entity) {
         super.validatorEntity(entity);
@@ -82,24 +68,30 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     @Override
     public ChooseActivity selectById(String id) {
         ChooseActivity chooseActivity = super.selectById(id);
-        List<ChooseTopic> chooseTopicList = chooseTopicService.queryListByActivityId(chooseActivity.getId());
-        chooseActivity.setChooseTopicList(chooseTopicList);
         return chooseActivity;
     }
 
     @Override
-    public void queryMyJoinActivityList(InputObject inputObject, OutputObject outputObject) {
-        String currentUserId = inputObject.getLogParams().get("id").toString();
-        List<ChooseActivityUser> chooseActivityUserList = chooseActivityUserService.queryListByUserId(currentUserId);
-        if (CollectionUtil.isEmpty(chooseActivityUserList)) {
-            return;
+    public void queryActivityList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        Map<String, Object> user = InputObject.getLogParamsStatic();
+        String currentUserId = user.get("id").toString();
+        Integer type = Integer.valueOf(user.get("type").toString());
+
+        MPJLambdaWrapper<ChooseActivity> mpjLambdaWrapper = new MPJLambdaWrapper<>();
+        if (type == ChooseUserType.STUDENT.getKey() || type == ChooseUserType.TEACHER.getKey()) {
+            // 学生和教师只能查看自己参加的活动
+            mpjLambdaWrapper.innerJoin(ChooseActivityUser.class, ChooseActivityUser::getActivityId, ChooseActivity::getId);
+            mpjLambdaWrapper.eq(ChooseActivityUser::getUserId, currentUserId);
         }
-        List<String> activityIdList = chooseActivityUserList.stream().map(ChooseActivityUser::getActivityId).distinct().collect(Collectors.toList());
-        QueryWrapper<ChooseActivity> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, activityIdList);
-        List<ChooseActivity> beans = list(queryWrapper);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            mpjLambdaWrapper.like(MybatisPlusUtil.toColumns(ChooseActivity::getName), commonPageInfo.getKeyword());
+        }
+
+        List<ChooseActivity> chooseActivityList = skyeyeBaseMapper.selectJoinList(ChooseActivity.class, mpjLambdaWrapper);
+        outputObject.setBeans(chooseActivityList);
+        outputObject.settotal(pages.getTotal());
     }
 
     /**

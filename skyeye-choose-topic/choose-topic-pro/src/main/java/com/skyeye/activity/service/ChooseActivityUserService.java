@@ -9,8 +9,6 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
-import java.util.List;
-
 /**
  * @ClassName: ActivityUserService
  * @Description: 活动可参与用户服务接口层
@@ -22,7 +20,7 @@ import java.util.List;
 public interface ChooseActivityUserService extends SkyeyeBusinessService<ChooseActivityUser> {
     void insertActivityUser(InputObject inputObject, OutputObject outputObject);
 
-    List<ChooseActivityUser> queryListByUserId(String userId);
-
     void deleteByActivityId(String activityId);
+
+    void queryActivityUserList(InputObject inputObject, OutputObject outputObject);
 }

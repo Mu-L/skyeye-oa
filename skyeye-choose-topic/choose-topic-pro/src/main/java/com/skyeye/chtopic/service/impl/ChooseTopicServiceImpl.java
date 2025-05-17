@@ -24,6 +24,7 @@ import com.skyeye.chtopic.entity.ChooseTopic;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -61,6 +62,15 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     private ChooseActivityService chooseActivityService;
 
     @Override
+    protected QueryWrapper<ChooseTopic> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ChooseTopic> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         chooseUserService.setMationForMap(beans, "teacherId", "teacherMation");
@@ -77,6 +87,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) PutObject.getRequest();
             // 获取multiRequest 中所有的文件名
             Iterator iter = multiRequest.getFileNames();
+            String activityId = inputObject.getParams().get("activityId").toString();
             while (iter.hasNext()) {
                 MultipartFile file = multiRequest.getFile(iter.next().toString());
                 ImportParams reportModelAttrParams = new ImportParams();
@@ -90,6 +101,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 chooseTopicList.forEach(bean -> {
                     Map<String, Object> business = BeanUtil.beanToMap(bean);
                     bean.setChoose(1);
+                    bean.setActivityId(activityId);
                     bean.setOddNumber(iCodeRuleService.getNextCodeByClassName(getServiceClassName(), business));
                 });
                 createEntity(chooseTopicList, StrUtil.EMPTY);
@@ -143,6 +155,13 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             // 选题活动未开始，不允许选择或修改导师
             throw new CustomException("该活动未开始，不可选择或修改导师");
         }
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_TWO);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
+        // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
+            Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+        update(updateWrapper);
         refreshCache(id);
     }
 
@@ -180,12 +199,16 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     @Override
     public void exportChooseTopic(InputObject inputObject, OutputObject outputObject) {
-        exportExcel(InputObject.getResponse());
+        String activityId = inputObject.getParams().get("activityId").toString();
+        exportExcel(activityId);
     }
 
-    private void exportExcel(HttpServletResponse response) {
+    private void exportExcel(String activityId) {
+        HttpServletResponse response = InputObject.getResponse();
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
         // 导出数据
-        List<ChooseTopic> list = list();
+        List<ChooseTopic> list = list(queryWrapper);
         chooseUserService.setDataMation(list, ChooseTopic::getChooseUserId);
         list.forEach(bean -> {
             if (ObjectUtil.isNotEmpty(bean.getChooseUserMation())) {
@@ -263,7 +286,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         // 判断入参是否合法，合法则修改，非法则报错
         if (teacherResult.equals(TeacherResultState.AGREE.getKey()) ||
-                teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
+            teacherResult.equals(TeacherResultState.NOT_AGREE.getKey())) {
             chooseTopic.setTeacherResult(teacherResult);
             super.updateEntity(chooseTopic, currentUserId);
             refreshCache(chooseTopic.getId());
