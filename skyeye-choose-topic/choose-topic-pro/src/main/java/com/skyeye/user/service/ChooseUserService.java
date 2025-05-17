@@ -26,4 +26,6 @@ public interface ChooseUserService extends SkyeyeBusinessService<ChooseUser> {
     void editChoosePassword(InputObject inputObject, OutputObject outputObject);
 
     void importChooseUser(InputObject inputObject, OutputObject outputObject);
+
+    void importTeacherChooseUser(InputObject inputObject, OutputObject outputObject);
 }
