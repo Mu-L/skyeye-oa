@@ -111,7 +111,7 @@
                      'top:' + ${element.y} + 'px;' + 
                      'width:' + ${element.width} + 'px;' + 
                      'height:' + ${element.height} + 'px;' + 
-                     (${element.style} != null ? ${element.style} : '')">
+                     ${element.style}">
             
             <!-- 文本元素 -->
             <div th:if="${element.type == 'text'}" 

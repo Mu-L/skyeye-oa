@@ -91,6 +91,11 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         for (int i = 0; i < elements.size(); i++) {
             JSONObject element = elements.getJSONObject(i);
             Map<String, Object> processedElement = new HashMap<>(element);
+            
+            // 确保style属性存在
+            if (!processedElement.containsKey("style")) {
+                processedElement.put("style", "");
+            }
 
             // 处理动态数据
             if (element.containsKey("dataField") && StringUtils.isNotBlank(element.getString("dataField"))) {
