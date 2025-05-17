@@ -16,6 +16,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.user.enumclass.ChooseUserType;
 import lombok.Data;
 
 /**
@@ -59,7 +60,7 @@ public class ChooseUser extends CommonInfo {
     private String name;
 
     @TableField("type")
-    @ApiModelProperty(value = "用户类型  1.管理员2.学生")
+    @ApiModelProperty(value = "用户类型", enumClass = ChooseUserType.class)
     private Integer type;
 
 }
