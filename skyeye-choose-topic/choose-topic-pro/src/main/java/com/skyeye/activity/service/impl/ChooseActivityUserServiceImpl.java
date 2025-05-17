@@ -125,4 +125,17 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
         outputObject.setBeans(chooseUserList);
         outputObject.settotal(pages.getTotal());
     }
+
+    @Override
+    public void queryTeacherActivityUserList(InputObject inputObject, OutputObject outputObject) {
+        String activityId = inputObject.getParams().get("activityId").toString();
+
+        MPJLambdaWrapper<ChooseUser> mpjLambdaWrapper = new MPJLambdaWrapper<>();
+        mpjLambdaWrapper.innerJoin(ChooseActivityUser.class, ChooseActivityUser::getUserId, ChooseUser::getId);
+        mpjLambdaWrapper.eq(ChooseActivityUser::getActivityId, activityId);
+        mpjLambdaWrapper.eq(ChooseUser::getType, ChooseUserType.TEACHER.getKey());
+        List<ChooseUser> chooseUserList = chooseUserDao.selectJoinList(ChooseUser.class, mpjLambdaWrapper);
+        outputObject.setBeans(chooseUserList);
+        outputObject.settotal(chooseUserList.size());
+    }
 }

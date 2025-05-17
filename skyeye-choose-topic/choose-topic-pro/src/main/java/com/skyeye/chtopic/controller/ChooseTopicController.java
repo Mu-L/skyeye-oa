@@ -63,10 +63,10 @@ public class ChooseTopicController {
         chooseTopicService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "chooseTopicById", value = "选题", method = "PUT", allUse = "2")
+    @ApiOperation(id = "chooseTopicById", value = "选题/指导老师", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
-            @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
+        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id")})
     @RequestMapping("/post/ChooseTopicController/chooseTopicById")
     public void chooseTopicById(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.chooseTopicById(inputObject, outputObject);
@@ -88,7 +88,7 @@ public class ChooseTopicController {
      */
     @ApiOperation(id = "cancelTeacherResult", value = "取消指导老师", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
     @RequestMapping("/post/ChooseTopicController/cancelTeacherResult")
     public void cancelTeacherResult(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.cancelTeacherResult(inputObject, outputObject);
