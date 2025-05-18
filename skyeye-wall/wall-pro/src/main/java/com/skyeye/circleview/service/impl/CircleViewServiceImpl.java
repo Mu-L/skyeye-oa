@@ -23,10 +23,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.post.entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -113,18 +111,12 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
 
     @Override
     public void createPostpose(CircleView circleView, String userId) {
-        QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), circleView.getCircleId());
-        long count = count(queryWrapper);
-        circleService.updateViewNum(circleView.getCircleId(), (int) count);
+        circleService.updateViewNum(circleView.getCircleId(), CommonNumConstants.NUM_ONE);
     }
 
     @Override
     protected void updatePostpose(CircleView circleView, String userId) {
-        QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), circleView.getCircleId());
-        long count = count(queryWrapper);
-        circleService.updateViewNum(circleView.getCircleId(), (int) count);
+        circleService.updateViewNum(circleView.getCircleId(), CommonNumConstants.NUM_ONE );
     }
 
     @Override
@@ -133,13 +125,5 @@ public class CircleViewServiceImpl extends SkyeyeBusinessServiceImpl<CircleViewD
         if (StrUtil.isEmpty(circle.getId())) {
             throw new CustomException("圈子不存在");
         }
-    }
-
-    @Override
-    public void deletePostpose(CircleView circleView) {
-        QueryWrapper<CircleView> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CircleView::getCircleId), circleView.getCircleId());
-        long count = count(queryWrapper);
-        circleService.updateViewNum(circleView.getCircleId(), (int) count);
     }
 }

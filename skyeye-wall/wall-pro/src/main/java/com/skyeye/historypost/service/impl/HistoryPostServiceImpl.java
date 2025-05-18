@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.circle.service.CircleService;
@@ -21,7 +20,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.historypost.dao.HistoryPostDao;
@@ -32,8 +30,6 @@ import com.skyeye.picture.service.PictureService;
 import com.skyeye.popularpost.service.PopularPostService;
 import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
-import com.skyeye.video.entity.Video;
-import javafx.geometry.Pos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -165,5 +161,15 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
         circleService.setDataMation(posts,Post::getCircleId);
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(posts);
+    }
+
+    @Override
+    public void deleteHisPostByPostIds(List<String> postIds) {
+        if(CollectionUtil.isEmpty(postIds)){
+            return;
+        }
+        QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(HistoryPost::getPostId),postIds);
+        remove(queryWrapper);
     }
 }
