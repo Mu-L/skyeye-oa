@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ChooseUserServiceImpl
@@ -141,11 +142,13 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                chooseUserList.forEach(bean -> {
+                List<ChooseUser> insertList = chooseUserList.stream()
+                        .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+                insertList.forEach(bean -> {
                     bean.setType(ChooseUserType.STUDENT.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
                 });
-                createEntity(chooseUserList, StrUtil.EMPTY);
+                createEntity(insertList, StrUtil.EMPTY);
             }
         }
     }
@@ -170,11 +173,13 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                chooseUserList.forEach(bean -> {
+                List<ChooseUser> insertList = chooseUserList.stream()
+                        .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+                insertList.forEach(bean -> {
                     bean.setType(ChooseUserType.TEACHER.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
                 });
-                createEntity(chooseUserList, StrUtil.EMPTY);
+                createEntity(insertList, StrUtil.EMPTY);
             }
         }
     }
