@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.historypost.entity.HistoryPost;
 
+import java.util.List;
+
 /**
  * @ClassName: HistoryPostService
  * @Description: 历史帖子信息管理
@@ -24,4 +26,6 @@ public interface HistoryPostService extends SkyeyeBusinessService<HistoryPost> {
     void deleteHistoryPostByIds(InputObject inputObject, OutputObject outputObject);
 
     void queryUserHisPostList(InputObject inputObject, OutputObject outputObject);
+
+    void deleteHisPostByPostIds(List<String> postIds);
 }

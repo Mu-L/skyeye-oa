@@ -301,6 +301,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         pictureService.deleteByPostId(id);
         commentService.deleteByPostId(id);
         noticeService.deleteByObjectId(id,postService.getServiceClassName());
+        historyPostService.deleteHisPostByPostIds(Collections.singletonList(id));
     }
 
     @Override
@@ -432,6 +433,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 .map(Post::getId).collect(Collectors.toList());
         pictureService.deleteByPostIds(postIds);
         commentService.deleteByPostIds(postIds);
+        historyPostService.deleteHisPostByPostIds(postIds);
         remove(queryWrapper);
     }
 

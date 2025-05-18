@@ -146,9 +146,10 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Override
     public void updateViewNum(String circleId, Integer count) {
+        Circle circle = selectById(circleId);
         UpdateWrapper<Circle> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, circleId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getViewNum), count);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Circle::getViewNum), count+circle.getViewNum());
         update(updateWrapper);
     }
 
