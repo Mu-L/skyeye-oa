@@ -33,7 +33,7 @@ public class ChooseTopicController {
 
     @ApiOperation(id = "queryChooseTopicList", value = "分页获取课题信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class,
-        value = {@ApiImplicitParam(id = "objectId", name = "objectId", value = "活动id", required = "required")})
+        value = {@ApiImplicitParam(id = "objectId", name = "objectId", value = "活动id")})
     @RequestMapping("/post/ChooseTopicController/queryChooseTopicList")
     public void queryUserList(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.queryPageList(inputObject, outputObject);
