@@ -86,6 +86,10 @@ public class Notice extends OperatorUserInfo {
     @Property(value = "评论内容")
     Map<String,Object> commentMation;
 
+    @TableField(exist = false)
+    @Property(value = "父评论内容")
+    Map<String,Object> parentCommentMation;
+
     @TableField("circle_id")
     @ApiModelProperty(value = "圈子id")
     private String circleId;
@@ -97,6 +101,10 @@ public class Notice extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "评论图片")
     private Picture picture;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "父评论图片")
+    private Picture parentPicture;
 
     @TableField("description")
     @ApiModelProperty(value = "描述")

@@ -3,9 +3,11 @@ package com.skyeye.notice.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -83,6 +85,20 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     private Notice setUserMation(Notice notice) {
         if (notice.getType() == TypeEnum.COMMENT.getKey()) {
+            // 父评论图片
+            if (Objects.equals(notice.getCommentKey(), commentService.getServiceClassName())) {
+                String parentId = commentService.selectById(notice.getCommentId()).getParentId();
+                if (StrUtil.isNotEmpty(parentId)) {
+                    Picture picture = pictureService.getPictureByObjectId(parentId);
+                    notice.setParentPicture(picture);
+                }
+            } else if (Objects.equals(notice.getCommentKey(), videoCommentService.getServiceClassName())) {
+                String parentId = videoCommentService.selectById(notice.getCommentId()).getParentId();
+                if (StrUtil.isNotEmpty(parentId)) {
+                    Picture picture = pictureService.getPictureByObjectId(parentId);
+                    notice.setParentPicture(picture);
+                }
+            }
             Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
             notice.setPicture(picture);
         }
@@ -146,7 +162,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             return new ArrayList();
         }
         if (StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getCircleId()) &&
-            StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())) {
+                StrUtil.isNotEmpty(beans.get(CommonNumConstants.NUM_ZERO).getObjectId())) {
             // 分享圈子内的评论和帖子——去除不在圈子用户
             List<String> receiveIds = beans.stream().map(Notice::getReceiveId).collect(Collectors.toList());
             Map<String, Boolean> isJoinCircleMap = joinCircleService.checkIsJoinCircle(beans.get(CommonNumConstants.NUM_ZERO).getCircleId(), receiveIds);
@@ -160,11 +176,22 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     private void setNoticeOtherInfo(Notice notice) {
         if (StrUtil.isNotEmpty(notice.getCommentId())) {
+            ObjectMapper objectMapper = new ObjectMapper();
             // 评论信息
             if (Objects.equals(notice.getCommentKey(), commentService.getServiceClassName())) {
                 commentService.setDataMation(notice, Notice::getCommentId);
+                String parentId = commentService.selectById(notice.getCommentId()).getParentId();
+                if (StrUtil.isNotEmpty(parentId)) {
+                    Map<String, Object> map = objectMapper.convertValue(commentService.selectById(parentId), Map.class);
+                    notice.setParentCommentMation(map);
+                }
             } else if (Objects.equals(notice.getCommentKey(), videoCommentService.getServiceClassName())) {
                 videoCommentService.setDataMation(notice, Notice::getCommentId);
+                String parentId = videoCommentService.selectById(notice.getCommentId()).getParentId();
+                if (StrUtil.isNotEmpty(parentId)) {
+                    Map<String, Object> map = objectMapper.convertValue(videoCommentService.selectById(parentId), Map.class);
+                    notice.setParentCommentMation(map);
+                }
             }
         }
         // 帖子或视频
@@ -206,7 +233,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getNoticeType), type);
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(Notice::getReceiveId), userId)
-            .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(Notice::getCreateTime));
         List<Notice> bean = list(queryWrapper);
         if (CollectionUtil.isEmpty(bean)) {
             return;
@@ -237,7 +264,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         List<Notice> bean = list(queryWrapper);
         // 计算每个分类的数量
         Map<Integer, Long> beans = bean.stream().collect(Collectors.groupingBy(Notice::getNoticeType, Collectors.counting()));
-        Map<String,Long> map = new HashMap<>();
+        Map<String, Long> map = new HashMap<>();
         map.put(NoticeTypeEnum.TYPE_CIRCLE.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_CIRCLE.getKey(), 0L));
         map.put(NoticeTypeEnum.TYPE_WALL.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_WALL.getKey(), 0L));
         map.put(NoticeTypeEnum.TYPE_VIDEO.name(), beans.getOrDefault(NoticeTypeEnum.TYPE_VIDEO.getKey(), 0L));

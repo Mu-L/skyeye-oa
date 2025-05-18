@@ -20,5 +20,5 @@ import java.util.List;
 public interface PopularPostService extends SkyeyeBusinessService<PopularPost> {
     void insertPopularPostList();
 
-    List<PopularPost> queryTodayPopularPostList();
+    List<PopularPost> queryTodayHourPopularPostList();
 }
