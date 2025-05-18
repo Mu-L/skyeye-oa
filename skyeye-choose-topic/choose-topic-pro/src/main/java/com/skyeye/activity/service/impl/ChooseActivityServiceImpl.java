@@ -103,7 +103,7 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             mpjLambdaWrapper.like(MybatisPlusUtil.toColumns(ChooseActivity::getName), commonPageInfo.getKeyword());
         }
-
+        mpjLambdaWrapper.orderByDesc(MybatisPlusUtil.toColumns(ChooseActivity::getCreateTime));
         List<ChooseActivity> chooseActivityList = skyeyeBaseMapper.selectJoinList(ChooseActivity.class, mpjLambdaWrapper);
         outputObject.setBeans(chooseActivityList);
         outputObject.settotal(pages.getTotal());
