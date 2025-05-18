@@ -7,6 +7,7 @@ package com.skyeye.rest.promote.rest;
 import com.skyeye.common.client.ClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -25,6 +26,6 @@ public interface ISysEveUserStaffTimeRest {
      *
      * @param timeId 考勤班次id
      */
-    @GetMapping("/querySysEveUserStaffTimeListByTimeId")
+    @PostMapping("/querySysEveUserStaffTimeListByTimeId")
     String querySysEveUserStaffTimeListByTimeId(@RequestParam("timeId") String timeId);
 }
