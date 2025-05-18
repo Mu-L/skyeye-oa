@@ -9,6 +9,8 @@ import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.activity.classenum.ActivityType;
+import com.skyeye.activity.entity.ChooseActivity;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -19,8 +21,6 @@ import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.user.entity.ChooseUser;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * @ClassName: ChooseTopic
@@ -62,13 +62,13 @@ public class ChooseTopic extends CommonInfo {
     private String dataFrom;
 
     @TableField("teacher_name")
-    @ApiModelProperty(value = "责任教师")
-    @Excel(name = "责任老师", width = 10, isImportField = "true_st", orderNum = "5")
+    @ApiModelProperty(value = "出题教师")
+    @Excel(name = "出题教师", width = 10, isImportField = "true_st", orderNum = "5")
     private String teacherName;
 
     @TableField("choose")
     @Property(value = "是否已选  1未选  2已选")
-    @Excel(name = "是否可编辑", width = 10, replace = {"未选_1", "已选_2"}, orderNum = "6")
+    @Excel(name = "是否已选", width = 10, replace = {"未选_1", "已选_2"}, orderNum = "6")
     private Integer choose;
 
     @TableField("choose_user_id")
@@ -88,15 +88,35 @@ public class ChooseTopic extends CommonInfo {
     @Property(value = "活动id")
     private String activityId;
 
+    @TableField(exist = false)
+    @Property(value = "活动信息")
+    private ChooseActivity activityMation;
+
+    @TableField(exist = false)
+    @Property(value = "选题活动")
+    @Excel(name = "选题活动", width = 10, orderNum = "8")
+    private String activityName;
+
+    @TableField(exist = false)
+    @Property(value = "选题活动类型", enumClass = ActivityType.class)
+    @Excel(name = "选题活动类型", width = 10, replace = {"单选_1", "双选_2"}, orderNum = "9")
+    private Integer activityType;
+
     @TableField("teacher_id")
-    @ApiModelProperty(value = "教师id")
+    @ApiModelProperty(value = "导师id")
     private String teacherId;
 
     @TableField(exist = false)
-    @Property(value = "教师信息")
-    private Map<String, Object> teacherMAtion;
+    @Property(value = "导师")
+    @Excel(name = "导师", width = 10, orderNum = "10")
+    private String mentorName;
+
+    @TableField(exist = false)
+    @Property(value = "导师信息")
+    private ChooseUser teacherMation;
 
     @TableField("teacher_result")
     @ApiModelProperty(value = "选择导师的结果", enumClass = TeacherResultState.class)
+    @Excel(name = "单双选结果", width = 10, replace = {"同意_1", "拒绝_2", "待审批_3"}, orderNum = "11")
     private Integer teacherResult;
 }
