@@ -58,26 +58,19 @@
 
     <select id="queryKeepFitOrderNum" resultType="java.lang.String">
         SELECT
-            COUNT(1) keepFitOrderNum
+        COUNT(1) keepFitOrderNum
         FROM
-            shop_keepfit_order a,
-            shop_store b,
-            shop_meal_order_child f,
-            shop_meal_order g
+        shop_keepfit_order a,
+        shop_store b
         WHERE a.store_id = b.id
         <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
             #{state}
         </foreach>
-        AND f.order_id = g.id
-        AND f.id = a.meal_order_child_id
         <if test="areaId != '' and areaId != null">
             AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
-        </if>
-        <if test="natureId != '' and natureId != null">
-            AND g.nature_id = #{natureId}
         </if>
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
@@ -87,26 +80,19 @@
 
     <select id="queryKeepFitOrderPrice" resultType="java.lang.String">
         SELECT
-            FORMAT(IFNULL(SUM(a.pay_price), 0), 2) keepFitOrderNum
+        FORMAT(IFNULL(SUM(a.pay_price), 0), 2) keepFitOrderNum
         FROM
-            shop_keepfit_order a,
-            shop_store b,
-            shop_meal_order_child f,
-            shop_meal_order g
+        shop_keepfit_order a,
+        shop_store b
         WHERE a.store_id = b.id
         <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
             #{state}
         </foreach>
-        AND f.order_id = g.id
-        AND f.id = a.meal_order_child_id
         <if test="areaId != '' and areaId != null">
             AND b.shop_area_id = #{areaId}
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
-        </if>
-        <if test="natureId != '' and natureId != null">
-            AND g.nature_id = #{natureId}
         </if>
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
@@ -180,12 +166,8 @@
             COUNT(1) value
         FROM
             shop_keepfit_order a,
-            shop_store b,
-            shop_meal_order_child f,
-            shop_meal_order g
+            shop_store b
         WHERE a.store_id = b.id
-        AND f.order_id = g.id
-        AND f.id = a.meal_order_child_id
         <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
             #{state}
         </foreach>
@@ -194,9 +176,6 @@
         </if>
         <if test="storeId != '' and storeId != null">
             AND a.store_id = #{storeId}
-        </if>
-        <if test="natureId != '' and natureId != null">
-            AND g.nature_id = #{natureId}
         </if>
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
@@ -248,21 +227,16 @@
                 a.create_time
             FROM
                 shop_keepfit_order a,
-                shop_store b,
-                shop_meal_order_child f,
-                shop_meal_order g
+                shop_store b
             WHERE a.store_id = b.id
-            AND f.order_id = g.id
-            AND f.id = a.meal_order_child_id
+
             <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
                 #{state}
             </foreach>
             <if test="areaId != '' and areaId != null">
                 AND b.shop_area_id = #{areaId}
             </if>
-            <if test="natureId != '' and natureId != null">
-                AND g.nature_id = #{natureId}
-            </if>
+
             <if test="storeId != '' and storeId != null">
                 AND a.store_id = #{storeId}
             </if>) d ON DATE_FORMAT(d.create_time, '%Y-%m') = c.year_month

@@ -16,27 +16,27 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName: ReceivableController
- * @Description: 应付事项管理
+ * @Description: 应收事项管理
  * @author: skyeye云系列--lqy
  * @date: 2024/5/2 20:38
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @RestController
-@Api(value = "应付事项管理", tags = "应付事项管理", modelName = "应付事项管理")
+@Api(value = "应收事项管理", tags = "应收事项管理", modelName = "应收事项管理")
 public class ReceivableController {
 
     @Autowired
     private ReceivableService receivableService;
 
-    @ApiOperation(id = "writeCrmReceivable", value = "新增/编辑应付事项", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeCrmReceivable", value = "新增/编辑应收事项", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Receivable.class)
     @RequestMapping("/post/ReceivableController/writeCrmReceivable")
     public void writeCrmReceivable(InputObject inputObject, OutputObject outputObject) {
         receivableService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryReceivableById", value = "根据id获取应付事项详情", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryReceivableById", value = "根据id获取应收事项详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
@@ -45,14 +45,14 @@ public class ReceivableController {
         receivableService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryReceivableList", value = "根据id获取应付事项详情", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryReceivableList", value = "根据id获取应收事项列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReceivableController/queryReceivableList")
     public void queryReceivableList(InputObject inputObject, OutputObject outputObject) {
         receivableService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "submitReceivableToApproval", value = "应付事项提交审批", method = "POST", allUse = "2")
+    @ApiOperation(id = "submitReceivableToApproval", value = "应收事项提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
             @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
@@ -61,7 +61,7 @@ public class ReceivableController {
         receivableService.submitToApproval(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "invalidReceivable", value = "作废应付事项", method = "POST", allUse = "2")
+    @ApiOperation(id = "invalidReceivable", value = "作废应收事项", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ReceivableController/invalidReceivable")
@@ -69,7 +69,7 @@ public class ReceivableController {
         receivableService.invalid(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "revokeReceivable", value = "撤销应付事项", method = "PUT", allUse = "2")
+    @ApiOperation(id = "revokeReceivable", value = "撤销应收事项", method = "PUT", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/ReceivableController/revokeReceivable")
@@ -77,7 +77,7 @@ public class ReceivableController {
         receivableService.revoke(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryReceivableByContractId", value = "根据合同id获取应付事项列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryReceivableByContractId", value = "根据合同id获取应收事项列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
     @RequestMapping("/post/ReceivableController/queryReceivableByContractId")
@@ -85,7 +85,7 @@ public class ReceivableController {
         receivableService.queryReceivableByContractId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteReceivableById", value = "删除应付事项", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteReceivableById", value = "删除应收事项", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ReceivableController/deleteReceivableById")

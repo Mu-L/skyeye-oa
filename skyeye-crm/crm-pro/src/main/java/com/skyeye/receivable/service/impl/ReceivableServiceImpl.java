@@ -29,14 +29,14 @@ import java.util.Map;
 
 /**
  * @ClassName: ReceivableServiceImpl
- * @Description: 应付事项服务层
+ * @Description: 应收事项服务层
  * @author: skyeye云系列--lqy
  * @date: 2024/5/2 20:34
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "应付事项管理", groupName = "应付事项管理", flowable = true, teamAuth = true)
+@SkyeyeService(name = "应收事项管理", groupName = "应收事项管理", flowable = true, teamAuth = true)
 public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableDao, Receivable> implements ReceivableService {
 
     @Autowired
@@ -65,7 +65,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
                 DateUtil.compare(entity.getInvoiceDate(), DateUtil.getTimeAndToString())) {
             throw new CustomException("单据日期不能早于当前时间");
         }
-        if (StrUtil.isNotEmpty(entity.getPaidPrice()) && entity.getPaidPrice().equals(String.valueOf(CommonNumConstants.NUM_ZERO))) {
+        if (!entity.getPaidPrice().equals(String.valueOf(CommonNumConstants.NUM_ZERO))) {
             if (entity.getPaidPrice().equals(entity.getAmountPrice())) {
                 entity.setPayState(CrmPayStateEnum.PAID_STATE.getKey());
             } else {

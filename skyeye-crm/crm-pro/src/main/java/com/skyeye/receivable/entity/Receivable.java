@@ -15,7 +15,7 @@ import java.util.Map;
 
 /**
  * @ClassName: Receivable
- * @Description: 应付事项实体类
+ * @Description: 客户应收事项实体类
  * @author: skyeye云系列--lqy
  * @date: 2024/5/2 20:28
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -63,7 +63,7 @@ public class Receivable extends SkyeyeFlowable {
     private String state;
 
     @TableField(value="pay_state")
-    @ApiModelProperty(value = "付款状态，参考#PayState",defaultValue = "0")
+    @ApiModelProperty(value = "付款状态，参考#CrmPayStateEnum",defaultValue = "0")
     private Integer payState;
 
     @TableField(value = "paid_price")

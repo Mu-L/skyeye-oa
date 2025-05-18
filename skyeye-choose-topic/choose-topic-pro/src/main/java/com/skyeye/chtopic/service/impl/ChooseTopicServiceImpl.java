@@ -76,7 +76,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        chooseUserService.setMationForMap(beans, "chooseUserId", "chooseUserMation");
         chooseUserService.setMationForMap(beans, "teacherId", "teacherMation");
+        chooseActivityService.setMationForMap(beans, "activityId", "activityMation");
         return beans;
     }
 
@@ -139,6 +141,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             }
             QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), chooseTopic.getActivityId());
             queryWrapper.ne(CommonConstants.ID, id);
             ChooseTopic one = getOne(queryWrapper, false);
             if (ObjectUtil.isNotEmpty(one)) {
@@ -228,9 +231,18 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         // 导出数据
         List<ChooseTopic> list = list(queryWrapper);
         chooseUserService.setDataMation(list, ChooseTopic::getChooseUserId);
+        chooseUserService.setDataMation(list, ChooseTopic::getTeacherId);
+        chooseActivityService.setDataMation(list, ChooseTopic::getActivityId);
         list.forEach(bean -> {
             if (ObjectUtil.isNotEmpty(bean.getChooseUserMation())) {
                 bean.setChooseUserName(bean.getChooseUserMation().getName());
+            }
+            if (ObjectUtil.isNotEmpty(bean.getActivityMation())) {
+                bean.setActivityName(bean.getActivityMation().getName());
+                bean.setActivityType(bean.getActivityMation().getType());
+            }
+            if (ObjectUtil.isNotEmpty(bean.getTeacherMation())) {
+                bean.setMentorName(bean.getTeacherMation().getName());
             }
         });
         //.xls格式
