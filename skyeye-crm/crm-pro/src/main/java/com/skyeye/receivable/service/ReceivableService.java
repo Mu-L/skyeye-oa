@@ -8,7 +8,7 @@ import com.skyeye.receivable.entity.Receivable;
 
 /**
  * @ClassName: ReceivableService
- * @Description: 应付事项服务接口层
+ * @Description: 应收事项服务接口层
  * @author: skyeye云系列--lqy
  * @date: 2024/5/2 20:34
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
