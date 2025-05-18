@@ -49,6 +49,11 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
 
     public void validatorEntity(ChooseActivity entity) {
         super.validatorEntity(entity);
+        Map<String, Object> currentUserInfo = InputObject.getLogParamsStatic();
+        if (!Integer.valueOf(currentUserInfo.get("type").toString()).equals(ChooseUserType.ADMIN.getKey())
+                && !Integer.valueOf(currentUserInfo.get("type").toString()).equals(ChooseUserType.TEACHER.getKey())) {
+            throw new CustomException("管理员用户，和老师用户才能创建/编辑选题活动");
+        }
         if (DateUtil.compare(entity.getEndTime(), entity.getStartTime())) {
             throw new CustomException("结束时间不能早于开始时间");
         }
@@ -58,7 +63,7 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     public void deletePreExecution(ChooseActivity entity) {
         super.deletePreExecution(entity);
         Map<String, Object> currentUserInfo = InputObject.getLogParamsStatic();
-        if (Integer.valueOf(currentUserInfo.get("type").toString()).equals(ChooseUserType.ADMIN.getKey())){
+        if (Integer.valueOf(currentUserInfo.get("type").toString()).equals(ChooseUserType.ADMIN.getKey())) {
             // 管理账号直接越过创建人校验逻辑
             return;
         }
@@ -111,7 +116,7 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
      * @return
      */
     @Override
-    public boolean checkActivityIsRun(ChooseActivity activity){
+    public boolean checkActivityIsRun(ChooseActivity activity) {
         String currentTime = DateUtil.getTimeAndToString();
         return DateUtil.compare(activity.getStartTime(), currentTime) && DateUtil.compare(currentTime, activity.getEndTime());
     }
@@ -123,7 +128,7 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
      * @return
      */
     @Override
-    public boolean checkActivityIsStart(ChooseActivity activity){
+    public boolean checkActivityIsStart(ChooseActivity activity) {
         String currentTime = DateUtil.getTimeAndToString();
         return DateUtil.compare(activity.getStartTime(), currentTime);
     }
