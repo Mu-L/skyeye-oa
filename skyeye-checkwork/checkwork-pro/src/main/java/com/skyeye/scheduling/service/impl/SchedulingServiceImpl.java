@@ -132,10 +132,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             } else {
                 // Linux加载方式
                 String linuxPath = "/opt/images/util/checkwork/";
-                // 确保路径以/结尾
-                if (!linuxPath.endsWith("/")) {
-                    linuxPath += "/";
-                }
                 System.load(linuxPath + "libortools.so");
                 System.load(linuxPath + "libjniortools.so");
             }
