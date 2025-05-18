@@ -80,7 +80,7 @@ public class ChooseTopicController {
         chooseTopicService.cnacleChooseTopicById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "chooseTeacher", value = "选择/修改指导老师", method = "POST", allUse = "2")
+    @ApiOperation(id = "chooseTeacher", value = "选择/修改指导老师", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
         @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
