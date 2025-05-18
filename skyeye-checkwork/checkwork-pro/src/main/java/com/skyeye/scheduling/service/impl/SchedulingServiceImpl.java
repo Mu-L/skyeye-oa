@@ -36,13 +36,13 @@ import com.skyeye.scheduling.service.SchedulingShiftsService;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
 import com.skyeye.trip.service.BusinessTripService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.io.File;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -53,6 +53,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "排班管理", groupName = "排班管理")
 public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingDao, Scheduling> implements SchedulingService {
+
+    @Value("${IMAGES_PATH}")
+    private static String tPath;
 
     @Autowired
     private SchedulingShiftsService schedulingShiftsService;
@@ -118,72 +121,26 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         }
     }
 
-//    // Window配置整体规划算法的静态代码块
-//    static {
-//        try {
-//            // 通过类加载器获取资源路径
-//            ClassLoader classLoader = SchedulingServiceImpl.class.getClassLoader();
-//            URL resourceUrl = classLoader.getResource("images/util/checkwork/jniortools.dll");
-//
-//            if (resourceUrl == null) {
-//                throw new UnsatisfiedLinkError("jniortools.dll未在资源目录中找到");
-//            }
-//
-//            // 转换URL为文件路径并处理特殊字符
-//            String dllPath = URLDecoder.decode(resourceUrl.getFile(), "UTF-8");
-//
-//            // 处理Windows路径前的斜杠问题
-//            if (dllPath.startsWith("/") && System.getProperty("os.name").contains("Windows")) {
-//                dllPath = dllPath.substring(1);
-//            }
-//
-//            // 加载库
-//            System.load(dllPath);
-//        } catch (UnsupportedEncodingException e) {
-//            throw new CustomException("路径解码失败", e);
-//        }
-//    }
-
-    // Linux系统配置整体规划算法的静态代码块
+    // 配置整体规划算法的静态代码块
     static {
         try {
-            ClassLoader classLoader = SchedulingServiceImpl.class.getClassLoader();
-            // 提取 libortools.so
-            URL ortoolsResource = classLoader.getResource("images/util/checkwork/libortools.so");
-            if (ortoolsResource == null) {
-                throw new UnsatisfiedLinkError("libortools.so 未找到");
-            }
-            File tempDir = new File(System.getProperty("java.io.tmpdir"));
-            File tempOrtoolsFile = new File(tempDir, "libortools.so");
-            extractLibrary(ortoolsResource, tempOrtoolsFile);
-
-            // 提取 libjniortools.so
-            URL jniOrtoolsResource = classLoader.getResource("images/util/checkwork/libjniortools.so");
-            if (jniOrtoolsResource == null) {
-                throw new UnsatisfiedLinkError("libjniortools.so 未找到");
-            }
-            File tempJniOrtoolsFile = new File(tempDir, "libjniortools.so");
-            extractLibrary(jniOrtoolsResource, tempJniOrtoolsFile);
-
-            // 先加载依赖库，再加载主库
-            System.load(tempOrtoolsFile.getAbsolutePath());
-            System.load(tempJniOrtoolsFile.getAbsolutePath());
-        } catch (IOException e) {
-            throw new CustomException("加载动态库失败", e);
-        }
-    }
-
-    private static void extractLibrary(URL resource, File targetFile) throws IOException {
-        if (!targetFile.exists()) {
-            try (InputStream in = resource.openStream();
-                 OutputStream out = new FileOutputStream(targetFile)) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
+            boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+            if (isWindows) {
+                // Windows加载方式
+                String winPath = "D:/xiangmu/SkyeyeGit/images/util/checkwork/jniortools.dll";
+                System.load(winPath);
+            } else {
+                // Linux加载方式
+                String linuxPath = "/opt/images/util/checkwork/";
+                // 确保路径以/结尾
+                if (!linuxPath.endsWith("/")) {
+                    linuxPath += "/";
                 }
+                System.load(linuxPath + "libortools.so");
+                System.load(linuxPath + "libjniortools.so");
             }
-            targetFile.deleteOnExit(); // 确保退出时删除临时文件
+        } catch (UnsatisfiedLinkError e) {;
+            throw new CustomException(e.toString());
         }
     }
 
