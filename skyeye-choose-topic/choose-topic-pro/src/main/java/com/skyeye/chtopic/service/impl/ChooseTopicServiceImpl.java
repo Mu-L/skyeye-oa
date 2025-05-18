@@ -382,9 +382,11 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (StrUtil.isEmpty(chooseTopic.getChooseUserId())) {
             throw new CustomException("该课题未关联学生，不可选择导师");
         }
-
         if (!StrUtil.equals(currentUserId, chooseTopic.getChooseUserId())) {
             throw new CustomException("你未选择该课题，不可选择导师");
+        }
+        if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()){
+            throw new CustomException("多选类型选题活动，导师同意后不可选择导师");
         }
         if (checkTeacherOverLimit(params.get("teacherId").toString(), chooseActivity.getId())) {
             throw new CustomException("该导师已选择超过8个学生");
