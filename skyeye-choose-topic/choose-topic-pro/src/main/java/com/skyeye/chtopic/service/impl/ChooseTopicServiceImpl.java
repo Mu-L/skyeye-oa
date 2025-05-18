@@ -147,8 +147,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (CollectionUtil.isEmpty(exitChooseTopicList)) {
             return insertList;
         }
+        List<String> exitsTitle = exitChooseTopicList.stream().map(ChooseTopic::getTitle).collect(Collectors.toList());
         // 过滤掉已存在的数据
-        List<ChooseTopic> resultList = insertList.stream().filter(chooseTopic -> !exitChooseTopicList.contains(chooseTopic)).collect(Collectors.toList());
+        List<ChooseTopic> resultList = insertList.stream().filter(chooseTopic -> !exitsTitle.contains(chooseTopic.getTitle())).collect(Collectors.toList());
         return resultList;
     }
 
