@@ -208,7 +208,7 @@
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
         </if>
-        GROUP BY b.id
+        GROUP BY a.nature_id
     </select>
 
     <select id="queryMonthKeepFitOrderNum" resultType="java.util.Map">

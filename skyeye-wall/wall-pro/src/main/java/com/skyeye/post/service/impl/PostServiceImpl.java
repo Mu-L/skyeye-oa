@@ -439,7 +439,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     @Override
     public void queryHotPostList(InputObject inputObject, OutputObject outputObject) {
-        List<PopularPost> popularPostList = popularPostService.queryTodayPopularPostList();
+        List<PopularPost> popularPostList = popularPostService.queryTodayHourPopularPostList();
         List<String> postIds = popularPostList.stream()
                 .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();

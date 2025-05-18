@@ -9,7 +9,11 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cache.redis.RedisCache;
+import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.RedisConstants;
+import com.skyeye.common.constans.TipsConstants;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.popularpost.dao.PopularPostDao;
@@ -17,10 +21,14 @@ import com.skyeye.popularpost.entity.PopularPost;
 import com.skyeye.popularpost.service.PopularPostService;
 import com.skyeye.post.entity.Post;
 import com.skyeye.post.service.PostService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @ClassName: PopularPostServiceImpl
@@ -40,8 +48,23 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
     @Autowired
     private PopularPostService popularPostService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    private static Logger LOGGER = LoggerFactory.getLogger(PopularPostServiceImpl.class);
+
+
     @Override
     public void insertPopularPostList() {
+        // 获取当前时间
+        String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH);
+        String key  = CacheConstants.XXL_JOP_POST + pointTime;
+        // 判断redis中是否存在该key-- 不存在ture 存在false
+        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, key, RedisConstants.XXL_JOP_POST_EXPIRE, TimeUnit.SECONDS);
+        if(Boolean.FALSE.equals(flag) ){
+            LOGGER.info(TipsConstants.TASK_IS_SKIPPING);
+            return;
+        }
         //取出前30天内的post
         List<Post> postList = postService.getBeforeThirtyDaysPost();
         //取出点赞量、评论量、浏览量
@@ -107,7 +130,7 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
                     } else {
                         popularPost.setViewNum(CommonNumConstants.NUM_ZERO);
                     }
-                    popularPost.setCreateTime(DateUtil.getYmdTimeAndToString());
+                    popularPost.setCreateTime(DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH));
                     popularPostList.add(popularPost);
                 }
             }
@@ -116,9 +139,10 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
     }
 
     @Override
-    public List<PopularPost> queryTodayPopularPostList() {
+    public List<PopularPost> queryTodayHourPopularPostList() {
         QueryWrapper<PopularPost> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(PopularPost::getCreateTime), DateUtil.getYmdTimeAndToString());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(PopularPost::getCreateTime), DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH))
+                .orderByAsc(MybatisPlusUtil.toColumns(PopularPost::getTop));
         return list(queryWrapper);
     }
 }
