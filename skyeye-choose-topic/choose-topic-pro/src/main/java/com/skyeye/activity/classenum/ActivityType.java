@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public enum ActivityType implements SkyeyeEnumClass {
 
     SINGLE(1, "单选", true, true),
-    UN_SINGLE(2, "多选", true, false);
+    UN_SINGLE(2, "双选", true, false);
 
     private Integer key;
 
