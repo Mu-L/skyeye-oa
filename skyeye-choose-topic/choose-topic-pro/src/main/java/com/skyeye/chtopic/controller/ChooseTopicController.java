@@ -80,6 +80,15 @@ public class ChooseTopicController {
         chooseTopicService.cnacleChooseTopicById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "chooseTeacher", value = "选择/修改指导老师", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required"),
+        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
+    @RequestMapping("/post/ChooseTopicController/chooseTeacher")
+    public void chooseTeacher(InputObject inputObject, OutputObject outputObject) {
+        chooseTopicService.chooseTeacher(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "cancelTeacherResult", value = "取消指导老师", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "课题id", required = "required")})
