@@ -37,4 +37,6 @@ public interface ChooseTopicService extends SkyeyeBusinessService<ChooseTopic> {
     void cancelTeacherResult(InputObject inputObject, OutputObject outputObject);
 
     void chooseTeacher(InputObject inputObject, OutputObject outputObject);
+
+    void deleteByActivityId(String activityId);
 }

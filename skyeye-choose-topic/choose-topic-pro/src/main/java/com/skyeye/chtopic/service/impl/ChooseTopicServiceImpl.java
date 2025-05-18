@@ -103,8 +103,10 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                List<ChooseTopic> insertList = chooseTopicList.stream()
-                        .filter(chooseTopic -> StrUtil.isNotEmpty(chooseTopic.getTitle())).collect(Collectors.toList());
+                List<ChooseTopic> insertList = checkChooseTopicListExit(chooseTopicList);
+                if (CollectionUtil.isEmpty(insertList)){
+                    return;
+                }
                 insertList.forEach(bean -> {
                     Map<String, Object> business = BeanUtil.beanToMap(bean);
                     bean.setChoose(1);
@@ -114,6 +116,37 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 createEntity(insertList, StrUtil.EMPTY);
             }
         }
+    }
+
+    /**
+     * 上传课题列表时检查数据
+     * @param chooseTopicList
+     * @return 数据库不存在的数据
+     */
+    private List<ChooseTopic> checkChooseTopicListExit(List<ChooseTopic> chooseTopicList) {
+        if (CollectionUtil.isEmpty(chooseTopicList)){
+            return Collections.emptyList();
+        }
+        // 过滤标题为空的数据
+        List<ChooseTopic> insertList = chooseTopicList.stream()
+                .filter(chooseTopic -> StrUtil.isNotEmpty(chooseTopic.getTitle())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(insertList)){
+            return Collections.emptyList();
+        }
+        // 获取标题集合
+        List<String> titilList = insertList.stream().map(ChooseTopic::getTitle).collect(Collectors.toList());
+        String titleColumn = MybatisPlusUtil.toColumns(ChooseTopic::getTitle);
+        // 查询数据库已经存在的标题
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(titleColumn);
+        queryWrapper.in(titleColumn, titilList);
+        List<ChooseTopic> exitChooseTopicList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(exitChooseTopicList)){
+            return insertList;
+        }
+        // 过滤掉已存在的数据
+        List<ChooseTopic> resultList = insertList.stream().filter(chooseTopic -> !exitChooseTopicList.contains(chooseTopic)).collect(Collectors.toList());
+        return resultList;
     }
 
     @Override
@@ -394,5 +427,15 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         chooseTopic.setTeacherId(params.get("teacherId").toString());
         chooseTopic.setTeacherResult(chooseActivity.getType() == ActivityType.SINGLE.getKey() ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         super.updateEntity(chooseTopic, currentUserId);
+    }
+
+    @Override
+    public void deleteByActivityId(String activityId) {
+        if (StrUtil.isEmpty(activityId)){
+            return;
+        }
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        remove(queryWrapper);
     }
 }
