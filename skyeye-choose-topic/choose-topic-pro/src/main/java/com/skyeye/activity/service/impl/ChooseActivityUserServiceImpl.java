@@ -5,6 +5,7 @@
 package com.skyeye.activity.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -137,5 +138,19 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
         List<ChooseUser> chooseUserList = chooseUserDao.selectJoinList(ChooseUser.class, mpjLambdaWrapper);
         outputObject.setBeans(chooseUserList);
         outputObject.settotal(chooseUserList.size());
+    }
+
+    @Override
+    public void deleteActivityUserByUserId(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getParams().get("userId").toString();
+        String activityId = inputObject.getParams().get("activityId").toString();
+        QueryWrapper<ChooseActivityUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseActivityUser::getUserId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseActivityUser::getActivityId), activityId);
+        ChooseActivityUser chooseActivityUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(chooseActivityUser)) {
+            return;
+        }
+        deleteById(chooseActivityUser.getId());
     }
 }
