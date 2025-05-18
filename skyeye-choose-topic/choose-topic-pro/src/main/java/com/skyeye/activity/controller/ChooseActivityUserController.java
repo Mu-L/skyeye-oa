@@ -56,6 +56,15 @@ public class ChooseActivityUserController {
         chooseActivityUserService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "deleteActivityUserByUserId", value = "根据用户id删除活动可参与的用户信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "userId", name = "userId", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})
+    @RequestMapping("/post/ActivityUserController/deleteActivityUserByUserId")
+    public void deleteActivityUserByUserId(InputObject inputObject, OutputObject outputObject) {
+        chooseActivityUserService.deleteActivityUserByUserId(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryTeacherActivityUserList", value = "获取指定活动的教师列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})

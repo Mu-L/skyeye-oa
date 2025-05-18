@@ -8,6 +8,7 @@ import cn.afterturn.easypoi.excel.ExcelImportUtil;
 import cn.afterturn.easypoi.excel.entity.ImportParams;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -142,8 +143,11 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                List<ChooseUser> insertList = chooseUserList.stream()
-                        .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+                // 验证数据
+                List<ChooseUser> insertList = checkUserList(chooseUserList);
+                if (CollectionUtil.isEmpty(insertList)){
+                    return;
+                }
                 insertList.forEach(bean -> {
                     bean.setType(ChooseUserType.STUDENT.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
@@ -173,8 +177,11 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                List<ChooseUser> insertList = chooseUserList.stream()
-                        .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+                // 验证数据
+                List<ChooseUser> insertList = checkUserList(chooseUserList);
+                if (CollectionUtil.isEmpty(insertList)){
+                    return;
+                }
                 insertList.forEach(bean -> {
                     bean.setType(ChooseUserType.TEACHER.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
@@ -193,5 +200,38 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         queryWrapper.in(MybatisPlusUtil.toColumns(ChooseUser::getStuNo), userNoList);
         List<ChooseUser> chooseUserList = getBaseMapper().selectList(queryWrapper);
         return chooseUserList;
+    }
+
+    /**
+     * 上传账号信息时的校验
+     * @param chooseUserList
+     * @return 数据库不存在的账号信息
+     */
+    private List<ChooseUser> checkUserList(List<ChooseUser> chooseUserList){
+        if (CollectionUtil.isEmpty(chooseUserList)){
+            return new ArrayList<>();
+        }
+        // 筛选出有账号和密码的数据
+        List<ChooseUser> insertList = chooseUserList.stream()
+                .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(insertList)){
+            return new ArrayList<>();
+        }
+        // 取出所有账号
+        List<String> accountNumberList = insertList.stream().map(ChooseUser::getAccountNumber).collect(Collectors.toList());
+        String accountNumber = MybatisPlusUtil.toColumns(ChooseUser::getAccountNumber);
+        // 查询数据库中已经存在的账号
+        QueryWrapper<ChooseUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(accountNumber);
+        queryWrapper.in(accountNumber, accountNumberList);
+        List<ChooseUser> chooseUsers = list(queryWrapper);
+        if (CollectionUtil.isEmpty(chooseUsers)){
+            // 数据库中没有重复数据
+            return insertList;
+        }
+        // 过滤掉数据库已经存在的数据
+        List<String> exitAccountNUmberList = chooseUsers.stream().map(ChooseUser::getAccountNumber).collect(Collectors.toList());
+        List<ChooseUser> resultList = insertList.stream().filter(bean -> !exitAccountNUmberList.contains(bean.getAccountNumber())).collect(Collectors.toList());
+        return resultList;
     }
 }

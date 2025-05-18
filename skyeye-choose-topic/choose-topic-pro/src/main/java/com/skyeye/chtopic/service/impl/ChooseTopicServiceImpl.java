@@ -31,6 +31,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.user.entity.ChooseUser;
+import com.skyeye.user.enumclass.ChooseUserType;
 import com.skyeye.user.service.ChooseUserService;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,8 +105,10 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 }
-                List<ChooseTopic> insertList = chooseTopicList.stream()
-                        .filter(chooseTopic -> StrUtil.isNotEmpty(chooseTopic.getTitle())).collect(Collectors.toList());
+                List<ChooseTopic> insertList = checkChooseTopicListExit(chooseTopicList);
+                if (CollectionUtil.isEmpty(insertList)) {
+                    return;
+                }
                 insertList.forEach(bean -> {
                     Map<String, Object> business = BeanUtil.beanToMap(bean);
                     bean.setChoose(1);
@@ -114,6 +118,38 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 createEntity(insertList, StrUtil.EMPTY);
             }
         }
+    }
+
+    /**
+     * 上传课题列表时检查数据
+     *
+     * @param chooseTopicList
+     * @return 数据库不存在的数据
+     */
+    private List<ChooseTopic> checkChooseTopicListExit(List<ChooseTopic> chooseTopicList) {
+        if (CollectionUtil.isEmpty(chooseTopicList)) {
+            return Collections.emptyList();
+        }
+        // 过滤标题为空的数据
+        List<ChooseTopic> insertList = chooseTopicList.stream()
+                .filter(chooseTopic -> StrUtil.isNotEmpty(chooseTopic.getTitle())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(insertList)) {
+            return Collections.emptyList();
+        }
+        // 获取标题集合
+        List<String> titilList = insertList.stream().map(ChooseTopic::getTitle).collect(Collectors.toList());
+        String titleColumn = MybatisPlusUtil.toColumns(ChooseTopic::getTitle);
+        // 查询数据库已经存在的标题
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(titleColumn);
+        queryWrapper.in(titleColumn, titilList);
+        List<ChooseTopic> exitChooseTopicList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(exitChooseTopicList)) {
+            return insertList;
+        }
+        // 过滤掉已存在的数据
+        List<ChooseTopic> resultList = insertList.stream().filter(chooseTopic -> !exitChooseTopicList.contains(chooseTopic)).collect(Collectors.toList());
+        return resultList;
     }
 
     @Override
@@ -156,6 +192,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         if (StrUtil.isNotEmpty(teacherId) && chooseActivityService.checkActivityIsStart(chooseActivity)) {
             // 选题活动只要开始了(活动结束也可以)，都可以修改导师
+            if (!checkTeacherId(teacherId)){
+                throw new CustomException("导师不存在或该角色不是教师");
+            }
             if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
                 throw new CustomException("该导师已超过最大选择次数(8次)");
             }
@@ -385,8 +424,11 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (!StrUtil.equals(currentUserId, chooseTopic.getChooseUserId())) {
             throw new CustomException("你未选择该课题，不可选择导师");
         }
-        if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()){
+        if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
             throw new CustomException("多选类型选题活动，导师同意后不可选择导师");
+        }
+        if (!checkTeacherId(params.get("teacherId").toString())){
+            throw new CustomException("导师不存在或该角色不是教师");
         }
         if (checkTeacherOverLimit(params.get("teacherId").toString(), chooseActivity.getId())) {
             throw new CustomException("该导师已选择超过8个学生");
@@ -394,5 +436,29 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         chooseTopic.setTeacherId(params.get("teacherId").toString());
         chooseTopic.setTeacherResult(chooseActivity.getType() == ActivityType.SINGLE.getKey() ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         super.updateEntity(chooseTopic, currentUserId);
+    }
+
+    /**
+     * 判断导师id是否存在
+     *
+     * @param teacherId
+     * @return ture  存在 false 不存在
+     */
+    private boolean checkTeacherId(String teacherId) {
+        if (StrUtil.isEmpty(teacherId)) {
+            return false;
+        }
+        ChooseUser chooseUser = chooseUserService.selectById(teacherId);
+        return ObjectUtil.isNotEmpty(chooseUser) && Objects.equals(chooseUser.getType(), ChooseUserType.TEACHER.getKey());
+    }
+
+    @Override
+    public void deleteByActivityId(String activityId) {
+        if (StrUtil.isEmpty(activityId)) {
+            return;
+        }
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        remove(queryWrapper);
     }
 }
