@@ -135,6 +135,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             }
             QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChooseUserId), userId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), chooseTopic.getActivityId());
             queryWrapper.ne(CommonConstants.ID, id);
             ChooseTopic one = getOne(queryWrapper, false);
             if (ObjectUtil.isNotEmpty(one)) {
