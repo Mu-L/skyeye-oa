@@ -288,7 +288,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             // 回复通知
             Comment parentComment = commentService.selectById(comment.getParentId());
             notice.setReceiveId(parentComment.getCreateId());
-            notice.setCommentId(parentComment.getId());
+            notice.setCommentId(comment.getId());
             notice.setContent(NoticeContent.COMMENT_REPLY);
         }else {
             // 新增通知

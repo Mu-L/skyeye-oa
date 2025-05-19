@@ -117,7 +117,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
             // 回复
             VideoComment videoComment = selectById(entity.getParentId());
             notice.setReceiveId(videoComment.getCreateId());
-            notice.setCommentId(videoComment.getId());
+            notice.setCommentId(entity.getId());
             notice.setContent(NoticeContent.COMMENT_REPLY);
         }else {
             notice.setReceiveId(video.getCreateId());

@@ -84,24 +84,6 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     private CircleService circleService;
 
     private Notice setUserMation(Notice notice) {
-        if (notice.getType() == TypeEnum.COMMENT.getKey()) {
-            // 父评论图片
-            if (Objects.equals(notice.getCommentKey(), commentService.getServiceClassName())) {
-                String parentId = commentService.selectById(notice.getCommentId()).getParentId();
-                if (StrUtil.isNotEmpty(parentId)) {
-                    Picture picture = pictureService.getPictureByObjectId(parentId);
-                    notice.setParentPicture(picture);
-                }
-            } else if (Objects.equals(notice.getCommentKey(), videoCommentService.getServiceClassName())) {
-                String parentId = videoCommentService.selectById(notice.getCommentId()).getParentId();
-                if (StrUtil.isNotEmpty(parentId)) {
-                    Picture picture = pictureService.getPictureByObjectId(parentId);
-                    notice.setParentPicture(picture);
-                }
-            }
-            Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
-            notice.setPicture(picture);
-        }
         String sendId = notice.getSendId();
         String receiveId = notice.getReceiveId();
         if (userService.checkCreateIdIsStudent(sendId)) {
@@ -180,16 +162,24 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             // 评论信息
             if (Objects.equals(notice.getCommentKey(), commentService.getServiceClassName())) {
                 commentService.setDataMation(notice, Notice::getCommentId);
+                Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
+                notice.setPicture(picture);
                 String parentId = commentService.selectById(notice.getCommentId()).getParentId();
                 if (StrUtil.isNotEmpty(parentId)) {
                     Map<String, Object> map = objectMapper.convertValue(commentService.selectById(parentId), Map.class);
+                    Picture parentPicture = pictureService.getPictureByObjectId(parentId);
+                    notice.setParentPicture(parentPicture);
                     notice.setParentCommentMation(map);
                 }
             } else if (Objects.equals(notice.getCommentKey(), videoCommentService.getServiceClassName())) {
                 videoCommentService.setDataMation(notice, Notice::getCommentId);
+                Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
+                notice.setPicture(picture);
                 String parentId = videoCommentService.selectById(notice.getCommentId()).getParentId();
                 if (StrUtil.isNotEmpty(parentId)) {
                     Map<String, Object> map = objectMapper.convertValue(videoCommentService.selectById(parentId), Map.class);
+                    Picture parentPicture = pictureService.getPictureByObjectId(parentId);
+                    notice.setParentPicture(parentPicture);
                     notice.setParentCommentMation(map);
                 }
             }
