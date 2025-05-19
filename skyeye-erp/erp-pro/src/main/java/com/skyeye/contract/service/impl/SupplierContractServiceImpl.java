@@ -19,6 +19,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.classenum.SupplierContractAuthEnum;
@@ -548,6 +549,30 @@ public class SupplierContractServiceImpl extends SkyeyeFlowableServiceImpl<Suppl
         updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getChildState), childState);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void updatePaymentPrice(String contractId, String price) {
+        // TODO 供应商是否是要这个功能
+        SupplierContract erpContract = selectById(contractId);
+        if (StrUtil.equals(erpContract.getState(), SupplierContractStateEnum.EXECUTING.getKey())) {
+            // 只有执行中的合同才可以进行回款
+            price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                    StrUtil.isEmpty(erpContract.getPrice()) ? "0" : erpContract.getPrice(),
+                    price);
+            UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, contractId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getPrice), price);
+            update(updateWrapper);
+            refreshCache(contractId);
+        } else {
+            throw new CustomException("只有执行中的合同才可以进行付款操作。");
+        }
+    }
+
+    @Override
+    public void updateInvoicePrice(String contractId, String invoicePrice) {
+       // TODO 2025/5/19
     }
 
 }
