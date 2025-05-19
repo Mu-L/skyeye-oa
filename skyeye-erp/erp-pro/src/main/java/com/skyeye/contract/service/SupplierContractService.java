@@ -62,4 +62,7 @@ public interface SupplierContractService extends SkyeyeFlowableService<SupplierC
      */
     void editChildState(String id, String childState);
 
+    void updatePaymentPrice(String contractId, String price);
+
+    void updateInvoicePrice(String contractId, String invoicePrice);
 }
