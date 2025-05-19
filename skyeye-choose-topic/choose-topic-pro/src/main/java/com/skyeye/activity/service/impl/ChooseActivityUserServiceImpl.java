@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -104,11 +103,6 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
     public void queryActivityUserList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        Map<String, Object> user = InputObject.getLogParamsStatic();
-        Integer type = Integer.valueOf(user.get("type").toString());
-        if (type == ChooseUserType.STUDENT.getKey()) {
-            throw new RuntimeException("学生用户不能查看活动信息");
-        }
 
         MPJLambdaWrapper<ChooseUser> mpjLambdaWrapper = new MPJLambdaWrapper<>();
         mpjLambdaWrapper.innerJoin(ChooseActivityUser.class, ChooseActivityUser::getUserId, ChooseUser::getId);
