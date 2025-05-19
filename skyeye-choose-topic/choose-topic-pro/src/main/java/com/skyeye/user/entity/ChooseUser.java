@@ -63,4 +63,44 @@ public class ChooseUser extends CommonInfo {
     @ApiModelProperty(value = "用户类型", enumClass = ChooseUserType.class)
     private Integer type;
 
+    @TableField("gender")
+    @ApiModelProperty(value = "性别")
+    @Excel(name = "性别", width = 10, isImportField = "true_st", orderNum = "6")
+    private String gender;
+
+    @TableField("job_title")
+    @ApiModelProperty(value = "职称")
+    @Excel(name = "职称", width = 10, isImportField = "true_st", orderNum = "7")
+    private String jobTitle;
+
+    @TableField("guide_capacity")
+    @ApiModelProperty(value = "指导容量")
+    @Excel(name = "指导容量", width = 10, isImportField = "true_st", orderNum = "8")
+    private Integer guideCapacity;
+
+    @TableField("qq")
+    @ApiModelProperty(value = "QQ")
+    @Excel(name = "QQ", width = 10, isImportField = "true_st", orderNum = "9")
+    private String qq;
+
+    @TableField("phone")
+    @ApiModelProperty(value = "手机号")
+    @Excel(name = "手机号", width = 10, isImportField = "true_st", orderNum = "10")
+    private String phone;
+
+    @TableField("topic_requirement")
+    @ApiModelProperty(value = "选题要求")
+    @Excel(name = "选题要求", width = 10, isImportField = "true_st", orderNum = "11")
+    private String topicRequirement;
+
+    @TableField("work_requirement")
+    @ApiModelProperty(value = "工作要求")
+    @Excel(name = "工作要求", width = 10, isImportField = "true_st", orderNum = "12")
+    private String workRequirement;
+
+    @TableField("remark")
+    @ApiModelProperty(value = "备注")
+    @Excel(name = "备注", width = 10, isImportField = "true_st", orderNum = "13")
+    private String remark;
+
 }
