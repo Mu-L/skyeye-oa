@@ -197,7 +197,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 throw new CustomException("导师不存在或该角色不是教师");
             }
             if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
-                throw new CustomException("已超过改导师的最大选择次数，请选择其他导师");
+                throw new CustomException("已超过该导师的最大选择次数，请选择其他导师");
             }
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
             // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
