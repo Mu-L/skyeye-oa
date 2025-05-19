@@ -308,14 +308,13 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         } else {
             notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
         }
+        notice.setType(TypeEnum.SHARE.getKey());
         if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
             notice.setCommentKey(commentService.getServiceClassName());
             notice.setContent(NoticeContent.SHARE_COMMENT);
-            notice.setType(TypeEnum.COMMENT.getKey());
         } else {
             notice.setContent(NoticeContent.SHARE_POST);
-            notice.setType(TypeEnum.SHARE.getKey());
         }
         List<Notice> notices = new ArrayList<>();
         for (String id : userIds) {
@@ -348,16 +347,15 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }
         notice.setSendId(currentUserId);
         notice.setObjectId(videoId);
+        notice.setType(TypeEnum.SHARE.getKey());
         notice.setObjectKey(videoService.getServiceClassName());
         notice.setNoticeType(NoticeTypeEnum.TYPE_VIDEO.getKey());
         if (params.containsKey("commentId") && StrUtil.isNotEmpty(params.get("commentId").toString())) {
             notice.setCommentId(params.get("commentId").toString());
             notice.setContent(NoticeContent.SHARE_COMMENT);
-            notice.setType(TypeEnum.COMMENT.getKey());
             notice.setCommentKey(videoCommentService.getServiceClassName());
         } else {
             notice.setContent(NoticeContent.SHARE_VIDEO);
-            notice.setType(TypeEnum.SHARE.getKey());
         }
         List<Notice> notices = new ArrayList<>();
         for (String id : userIds) {
