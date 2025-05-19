@@ -219,11 +219,15 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         }
         // 取出所有账号
         List<String> accountNumberList = insertList.stream().map(ChooseUser::getAccountNumber).collect(Collectors.toList());
+        // 取出所有stuNo
+        List<String> stuNoList = insertList.stream().map(ChooseUser::getStuNo).collect(Collectors.toList());
         String accountNumber = MybatisPlusUtil.toColumns(ChooseUser::getAccountNumber);
+        String stuNo = MybatisPlusUtil.toColumns(ChooseUser::getStuNo);
         // 查询数据库中已经存在的账号
         QueryWrapper<ChooseUser> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select(accountNumber);
+        queryWrapper.select(accountNumber, stuNo);
         queryWrapper.in(accountNumber, accountNumberList);
+        queryWrapper.in(stuNo, stuNoList);
         List<ChooseUser> chooseUsers = list(queryWrapper);
         if (CollectionUtil.isEmpty(chooseUsers)){
             // 数据库中没有重复数据
@@ -231,7 +235,9 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         }
         // 过滤掉数据库已经存在的数据
         List<String> exitAccountNUmberList = chooseUsers.stream().map(ChooseUser::getAccountNumber).collect(Collectors.toList());
-        List<ChooseUser> resultList = insertList.stream().filter(bean -> !exitAccountNUmberList.contains(bean.getAccountNumber())).collect(Collectors.toList());
+        List<String> exitStuNoList = chooseUsers.stream().map(ChooseUser::getStuNo).collect(Collectors.toList());
+        List<ChooseUser> resultList = insertList.stream().filter(bean -> !exitAccountNUmberList.contains(bean.getAccountNumber())
+                || !exitStuNoList.contains(bean.getStuNo())).collect(Collectors.toList());
         return resultList;
     }
 }
