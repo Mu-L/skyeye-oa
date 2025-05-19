@@ -64,6 +64,8 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         if (StrUtil.isNotEmpty(entity.getInvoiceDate()) &&
                 DateUtil.compare(entity.getInvoiceDate(), DateUtil.getTimeAndToString())) {
             throw new CustomException("单据日期不能早于当前时间");
+        }else {
+            entity.setInvoiceDate(null);
         }
         if (!entity.getPaidPrice().equals(String.valueOf(CommonNumConstants.NUM_ZERO))) {
             if (entity.getPaidPrice().equals(entity.getAmountPrice())) {

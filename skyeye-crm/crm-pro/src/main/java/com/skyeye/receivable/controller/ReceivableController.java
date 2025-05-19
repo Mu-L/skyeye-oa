@@ -45,7 +45,7 @@ public class ReceivableController {
         receivableService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryReceivableList", value = "根据id获取应收事项列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryReceivableList", value = "根据objectId(客户id)获取应收事项列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReceivableController/queryReceivableList")
     public void queryReceivableList(InputObject inputObject, OutputObject outputObject) {
