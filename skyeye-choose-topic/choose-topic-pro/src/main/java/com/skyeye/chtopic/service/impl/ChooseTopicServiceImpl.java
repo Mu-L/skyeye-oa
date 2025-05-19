@@ -196,6 +196,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             if (!checkTeacherId(teacherId)) {
                 throw new CustomException("导师不存在或该角色不是教师");
             }
+            if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
+                throw new CustomException("多选类型选题活动，导师同意后不可选择导师");
+            }
             if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
                 throw new CustomException("已超过该导师的最大选择次数，请选择其他导师");
             }
@@ -369,7 +372,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (overLimit) {
             // 超过数量(8个)限制，其他同学自动拒绝
             UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), currentUserId)
+            updateWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), chooseTopic.getTeacherId())
                 .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), chooseActivity.getId())
                 .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.WAITE.getKey());
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.NOT_AGREE.getKey());
