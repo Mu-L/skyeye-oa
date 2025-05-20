@@ -74,9 +74,10 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             scoreTypeChild.setNameLinkKey(NumberCodeEnum.class.getName());
             scoreTypeChild.setProportion(CommonNumConstants.NUM_ZERO.toString());
         } else {
+            ScoreTypeChild parentScoreType = selectById(scoreTypeChild.getParentId());
             // 新增二级数据
-            scoreTypeChild.setNameLinkId(StrUtil.EMPTY);
-            scoreTypeChild.setNameLinkKey(StrUtil.EMPTY);
+            scoreTypeChild.setNameLinkId(Objects.equals(parentScoreType.getNameLinkId(), NumberCodeEnum.CUSTOM.getKey()) ? StrUtil.EMPTY : scoreTypeChild.getNameLinkId());
+            scoreTypeChild.setNameLinkKey(Objects.equals(parentScoreType.getNameLinkId(), NumberCodeEnum.CUSTOM.getKey()) ? StrUtil.EMPTY : NumberCodeEnum.class.getName());
         }
     }
 
