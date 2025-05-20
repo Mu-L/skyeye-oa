@@ -197,7 +197,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
                 throw new CustomException("导师不存在或该角色不是教师");
             }
             if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
-                throw new CustomException("多选类型选题活动，导师同意后不可选择导师");
+                throw new CustomException("双选类型选题活动，导师同意后不可选择导师");
             }
             if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
                 throw new CustomException("已超过该导师的最大选择次数，请选择其他导师");
@@ -401,7 +401,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
         if (chooseActivity.getType() == ActivityType.UN_SINGLE.getKey() && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
-            throw new CustomException("多选类型活动，导师同意后不可取消选择导师");
+            throw new CustomException("双选类型选题活动，导师同意后不可取消选择导师");
         }
         chooseTopic.setTeacherId(StrUtil.EMPTY);
         chooseTopic.setTeacherResult(null);
@@ -431,7 +431,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             throw new CustomException("你未选择该课题，不可选择导师");
         }
         if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
-            throw new CustomException("多选类型选题活动，导师同意后不可选择导师");
+            throw new CustomException("双选类型选题活动，导师同意后不可选择导师");
         }
         if (!checkTeacherId(params.get("teacherId").toString())) {
             throw new CustomException("导师不存在或该角色不是教师");
