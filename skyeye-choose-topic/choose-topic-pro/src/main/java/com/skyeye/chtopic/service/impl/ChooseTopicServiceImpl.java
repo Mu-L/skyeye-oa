@@ -482,11 +482,11 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         }
         Map<String, Integer> resultMap = new HashMap<>();
         list.forEach(bean -> {
-            String chooseUserId = bean.getTeacherId();
-            if (resultMap.containsKey(chooseUserId)) {
-                resultMap.put(chooseUserId, resultMap.get(chooseUserId) + 1);
+            String teacherId = bean.getTeacherId();
+            if (resultMap.containsKey(teacherId)) {
+                resultMap.put(teacherId, resultMap.get(teacherId) + 1);
             } else {
-                resultMap.put(chooseUserId, 1);
+                resultMap.put(teacherId, 1);
             }
         });
         return resultMap;
