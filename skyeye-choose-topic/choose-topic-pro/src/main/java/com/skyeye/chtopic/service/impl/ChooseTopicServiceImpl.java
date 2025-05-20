@@ -199,7 +199,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
                 throw new CustomException("双选类型选题活动，导师同意后不可选择导师");
             }
-            if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId()) && Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ) {
+            if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
                 throw new CustomException("已超过该导师的最大选择次数，请选择其他导师");
             }
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
@@ -228,24 +228,6 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         ChooseUser chooseUser = chooseUserService.selectById(teacherId);
         int maxCount = chooseUser.getGuideCapacity() == null ? CommonNumConstants.NUM_EIGHT : chooseUser.getGuideCapacity();
         return count >= maxCount;
-    }
-
-    /**
-     * 获取导师已选择的学生数量
-     * @param activityId
-     * @param teacherId
-     * @return
-     */
-    public long getTeacherChooseNum(String teacherId, String activityId){
-        if (StrUtil.isEmpty(teacherId) || StrUtil.isEmpty(activityId)){
-            return CommonNumConstants.NUM_ZERO;
-        }
-        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select(CommonConstants.ID)
-                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId)
-                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId)
-                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.AGREE.getKey());
-        return count(queryWrapper);
     }
 
     @Override
@@ -386,39 +368,21 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         } else {
             throw new CustomException("非法状态");
         }
-
-        List<String> idList = new ArrayList<>();
-        if (teacherResult == TeacherResultState.NOT_AGREE.getKey()){
-            // 拒绝，则直接改数据
-            chooseTopic.setTeacherResult(teacherResult);
-        } else if (teacherResult == TeacherResultState.AGREE.getKey()) {
-            // 同意，则判断是否超过数量限制
-            ChooseUser chooseUser = chooseUserService.selectById(chooseTopic.getTeacherId());
-            long teacherChooseNum = getTeacherChooseNum(chooseTopic.getTeacherId(), chooseTopic.getActivityId());
-            if (teacherChooseNum + CommonNumConstants.NUM_ONE > chooseUser.getGuideCapacity()){
-                throw new CustomException("你指导的学生已经超过数量限制");
+        boolean overLimit = checkTeacherOverLimit(currentUserId, chooseActivity.getId());
+        if (overLimit) {
+            // 超过数量(8个)限制，其他同学自动拒绝
+            UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), chooseTopic.getTeacherId())
+                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), chooseActivity.getId())
+                .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.WAITE.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.NOT_AGREE.getKey());
+            List<ChooseTopic> list = list(updateWrapper);
+            if (CollectionUtil.isNotEmpty(list)) {
+                List<String> chooseTopicIdList = list.stream().map(ChooseTopic::getId).collect(Collectors.toList());
+                update(updateWrapper);
+                refreshCache(chooseTopicIdList);
             }
-            chooseTopic.setTeacherResult(teacherResult);
-            if (teacherChooseNum + CommonNumConstants.NUM_ONE == chooseUser.getGuideCapacity()){
-                // 同意后正好达到数量限制，其他同学自动拒绝
-                UpdateWrapper<ChooseTopic> updateWrapper = new UpdateWrapper<>();
-                updateWrapper.ne(CommonConstants.ID,  chooseTopic.getId())
-                        .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), chooseTopic.getTeacherId())
-                        .eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), chooseActivity.getId())
-                        .eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.WAITE.getKey());
-                updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult), TeacherResultState.NOT_AGREE.getKey());
-                List<ChooseTopic> list = list(updateWrapper);
-                if (CollectionUtil.isNotEmpty(list)) {
-                    idList.addAll(list.stream().map(ChooseTopic::getId).collect(Collectors.toList()));
-                    update(updateWrapper);
-                }
-            }
-        }else {
-            throw new CustomException("非法状态");
         }
-        super.updateEntity(chooseTopic, currentUserId);
-        idList.add(chooseTopic.getId());
-        refreshCache(idList);
     }
 
     @Override
