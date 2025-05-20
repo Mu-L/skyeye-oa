@@ -17,6 +17,7 @@ import com.skyeye.activity.entity.ChooseActivityUser;
 import com.skyeye.activity.service.ChooseActivityUserService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +51,9 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
 
     @Autowired
     private ChooseUserService chooseUserService;
+
+    @Autowired
+    private ChooseTopicService chooseTopicService;
 
     @Override
     public void insertActivityUser(InputObject inputObject, OutputObject outputObject) {
@@ -117,6 +122,14 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
         }
 
         List<ChooseUser> chooseUserList = chooseUserDao.selectJoinList(ChooseUser.class, mpjLambdaWrapper);
+        if (Integer.parseInt(commonPageInfo.getType()) == ChooseUserType.TEACHER.getKey()
+            && CollectionUtil.isNotEmpty(chooseUserList)) {
+            List<String> userIds = chooseUserList.stream().map(ChooseUser::getId).collect(Collectors.toList());
+            Map<String, Integer> countByActivityId = chooseTopicService.getChooseTopicCountByActivityId(commonPageInfo.getObjectId(), userIds);
+            for (ChooseUser chooseUser : chooseUserList) {
+                chooseUser.setTopicCount(countByActivityId.getOrDefault(chooseUser.getId(), 0));
+            }
+        }
         outputObject.setBeans(chooseUserList);
         outputObject.settotal(pages.getTotal());
     }

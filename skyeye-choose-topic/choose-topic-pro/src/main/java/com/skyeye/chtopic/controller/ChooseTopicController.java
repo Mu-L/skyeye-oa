@@ -114,4 +114,13 @@ public class ChooseTopicController {
         chooseTopicService.changeResultForTeacher(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryTeacherTopicNum", value = "获取指导老师指导的课题数量", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required"),
+        @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id", required = "required")})
+    @RequestMapping("/post/ChooseTopicController/queryTeacherTopicNum")
+    public void queryTeacherTopicNum(InputObject inputObject, OutputObject outputObject) {
+        chooseTopicService.queryTeacherTopicNum(inputObject, outputObject);
+    }
+
 }

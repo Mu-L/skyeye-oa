@@ -10,6 +10,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ChooseTopicService
@@ -39,4 +40,8 @@ public interface ChooseTopicService extends SkyeyeBusinessService<ChooseTopic> {
     void chooseTeacher(InputObject inputObject, OutputObject outputObject);
 
     void deleteByActivityId(String activityId);
+
+    Map<String, Integer> getChooseTopicCountByActivityId(String activityId, List<String> userIds);
+
+    void queryTeacherTopicNum(InputObject inputObject, OutputObject outputObject);
 }

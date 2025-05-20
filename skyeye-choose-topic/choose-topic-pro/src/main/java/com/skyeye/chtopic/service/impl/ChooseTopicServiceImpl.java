@@ -464,4 +464,43 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
         remove(queryWrapper);
     }
+
+    @Override
+    public Map<String, Integer> getChooseTopicCountByActivityId(String activityId, List<String> userIds) {
+        if (StrUtil.isEmpty(activityId) || CollectionUtil.isEmpty(userIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), userIds);
+        List<ChooseTopic> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) { // 没有数据
+            return new HashMap<>();
+        }
+        Map<String, Integer> resultMap = new HashMap<>();
+        list.forEach(bean -> {
+            String chooseUserId = bean.getTeacherId();
+            if (resultMap.containsKey(chooseUserId)) {
+                resultMap.put(chooseUserId, resultMap.get(chooseUserId) + 1);
+            } else {
+                resultMap.put(chooseUserId, 1);
+            }
+        });
+        return resultMap;
+    }
+
+    @Override
+    public void queryTeacherTopicNum(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String activityId = params.get("activityId").toString();
+        String teacherId = params.get("teacherId").toString();
+        QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
+        List<ChooseTopic> list = list(queryWrapper);
+        ChooseUser chooseUser = chooseUserService.selectById(teacherId);
+        chooseUser.setTopicCount(list.size());
+        outputObject.setBean(chooseUser);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
 }
