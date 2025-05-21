@@ -17,6 +17,7 @@ import com.skyeye.activity.classenum.ActivityType;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.RequestType;
@@ -202,6 +203,40 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         queryWrapper.in(MybatisPlusUtil.toColumns(ChooseUser::getStuNo), userNoList);
         List<ChooseUser> chooseUserList = getBaseMapper().selectList(queryWrapper);
         return chooseUserList;
+    }
+
+    @Override
+    public void queryLoginUserInfo(InputObject inputObject, OutputObject outputObject) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        ChooseUser chooseUser = selectById(userId);
+        outputObject.setBean(chooseUser);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void editLoginUser(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String jobTitle = map.get("jobTitle").toString();
+        String guideCapacity = map.get("guideCapacity").toString();
+        String qq = map.get("qq").toString();
+        String phone = map.get("phone").toString();
+        String topicRequirement = map.get("topicRequirement").toString();
+        String workRequirement = map.get("workRequirement").toString();
+        String remark = map.get("remark").toString();
+        String activityType = map.get("activityType").toString();
+        UpdateWrapper<ChooseUser> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, userId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getJobTitle), jobTitle);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getGuideCapacity), guideCapacity);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getQq), qq);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getPhone), phone);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getTopicRequirement), topicRequirement);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getWorkRequirement), workRequirement);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getRemark), remark);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getActivityType), activityType);
+        update(updateWrapper);
+        refreshCache(userId);
     }
 
     /**

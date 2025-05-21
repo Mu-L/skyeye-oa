@@ -54,6 +54,27 @@ public class ChooseUserController {
         chooseUserService.chooseUserExit(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryLoginUserInfo", value = "获取登录用户信息", method = "GET", allUse = "2")
+    @RequestMapping("/post/ChooseUserController/queryLoginUserInfo")
+    public void queryLoginUserInfo(InputObject inputObject, OutputObject outputObject) {
+        chooseUserService.queryLoginUserInfo(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "editLoginUser", value = "修改当前登录人的信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "jobTitle", name = "jobTitle", value = "职称"),
+        @ApiImplicitParam(id = "guideCapacity", name = "guideCapacity", value = "指导容量", required = "required,num"),
+        @ApiImplicitParam(id = "qq", name = "qq", value = "qq"),
+        @ApiImplicitParam(id = "phone", name = "phone", value = "手机号"),
+        @ApiImplicitParam(id = "topicRequirement", name = "topicRequirement", value = "选题要求"),
+        @ApiImplicitParam(id = "workRequirement", name = "workRequirement", value = "工作要求"),
+        @ApiImplicitParam(id = "remark", name = "remark", value = "备注"),
+        @ApiImplicitParam(id = "activityType", name = "activityType", value = "导师选择的类型(单选/双选)", required = "required,num")})
+    @RequestMapping("/post/ChooseUserController/editLoginUser")
+    public void editLoginUser(InputObject inputObject, OutputObject outputObject) {
+        chooseUserService.editLoginUser(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "editChoosePassword", value = "修改密码", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "newPassword", name = "newPassword", value = "新密码", required = "required"),
