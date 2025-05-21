@@ -284,9 +284,9 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         notice.setType(TypeEnum.COMMENT.getKey());
         notice.setCommentKey(commentService.getServiceClassName());
         notice.setObjectKey(postService.getServiceClassName());
-        if(StrUtil.isNotEmpty(comment.getParentId())){
+        if(StrUtil.isNotEmpty(comment.getCommentId())){
             // 回复通知
-            Comment parentComment = commentService.selectById(comment.getParentId());
+            Comment parentComment = commentService.selectById(comment.getCommentId());
             notice.setReceiveId(parentComment.getCreateId());
             notice.setCommentId(comment.getId());
             notice.setContent(NoticeContent.COMMENT_REPLY);

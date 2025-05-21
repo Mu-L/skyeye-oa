@@ -47,9 +47,9 @@ public class VideoComment extends OperatorUserInfo {
     @ApiModelProperty(value = "父节点id")
     private String parentId;
 
-    @TableField("user_id")
-    @ApiModelProperty(value = "回复人id")
-    private String userId;
+    @TableField("comment_id")
+    @ApiModelProperty(value = "回复人评论id")
+    private String commentId;
 
     @TableField("video_id")
     @ApiModelProperty(value = "视频id", required = "required")
