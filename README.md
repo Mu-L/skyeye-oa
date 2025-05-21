@@ -33,6 +33,10 @@
 |:---------------------:|:---------------------:|:--------------------------------:|:-------------------:|
 | 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
 
+## Skyeye云整体规划图
+
+![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Skyeye%E4%BA%91%E7%9B%AE%E6%A0%87.jpeg)
+
 ## 项目框架介绍
 
 ### 环境依赖
