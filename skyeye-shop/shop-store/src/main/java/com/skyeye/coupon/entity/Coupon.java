@@ -39,6 +39,10 @@ public class Coupon extends BaseGeneralInfo {
     @ApiModelProperty(value = "发布门店id列表", required = "json")
     private List<String> storeIdList;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "优惠券与门店关联表列表")
+    private List<CouponStore> couponStoreList;
+
     @TableField(value = "template_id")
     @ApiModelProperty(value = "模板id")
     private String templateId;
