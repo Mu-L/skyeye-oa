@@ -164,7 +164,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                 commentService.setDataMation(notice, Notice::getCommentId);
                 Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
                 notice.setPicture(picture);
-                String parentId = commentService.selectById(notice.getCommentId()).getParentId();
+                String parentId = commentService.selectById(notice.getCommentId()).getCommentId();
                 if (StrUtil.isNotEmpty(parentId)) {
                     Map<String, Object> map = objectMapper.convertValue(commentService.selectById(parentId), Map.class);
                     Picture parentPicture = pictureService.getPictureByObjectId(parentId);
@@ -175,7 +175,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
                 videoCommentService.setDataMation(notice, Notice::getCommentId);
                 Picture picture = pictureService.getPictureByObjectId(notice.getCommentId());
                 notice.setPicture(picture);
-                String parentId = videoCommentService.selectById(notice.getCommentId()).getParentId();
+                String parentId = videoCommentService.selectById(notice.getCommentId()).getCommentId();
                 if (StrUtil.isNotEmpty(parentId)) {
                     Map<String, Object> map = objectMapper.convertValue(videoCommentService.selectById(parentId), Map.class);
                     Picture parentPicture = pictureService.getPictureByObjectId(parentId);
