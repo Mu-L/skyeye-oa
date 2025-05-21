@@ -32,4 +32,8 @@ public interface ChooseUserService extends SkyeyeBusinessService<ChooseUser> {
     void importTeacherChooseUser(InputObject inputObject, OutputObject outputObject);
 
     List<ChooseUser> queryChoostUserList(List<String> userNoList);
+
+    void queryLoginUserInfo(InputObject inputObject, OutputObject outputObject);
+
+    void editLoginUser(InputObject inputObject, OutputObject outputObject);
 }

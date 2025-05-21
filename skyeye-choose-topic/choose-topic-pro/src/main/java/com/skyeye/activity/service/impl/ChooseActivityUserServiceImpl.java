@@ -121,6 +121,10 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
             });
         }
 
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            mpjLambdaWrapper.eq(ChooseUser::getActivityType, commonPageInfo.getState());
+        }
+
         List<ChooseUser> chooseUserList = chooseUserDao.selectJoinList(ChooseUser.class, mpjLambdaWrapper);
         if (Integer.parseInt(commonPageInfo.getType()) == ChooseUserType.TEACHER.getKey()
             && CollectionUtil.isNotEmpty(chooseUserList)) {
