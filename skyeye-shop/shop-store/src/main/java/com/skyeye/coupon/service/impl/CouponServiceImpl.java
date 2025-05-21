@@ -6,6 +6,7 @@ package com.skyeye.coupon.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -176,6 +177,13 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
     }
 
+    public Coupon selectById(String id) {
+        Coupon coupon = super.selectById(id);
+        if (ObjectUtil.isNotEmpty(coupon)) {
+            coupon.setCouponStoreList(couponStoreService.queryListByCouponId(id));
+        }
+        return coupon;
+    }
     @Override
     public QueryWrapper<Coupon> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Coupon> queryWrapper = super.getQueryWrapper(commonPageInfo);

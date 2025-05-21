@@ -43,4 +43,15 @@ public class CouponStoreServiceImpl extends SkyeyeBusinessServiceImpl<CouponStor
         queryWrapper.in(MybatisPlusUtil.toColumns(CouponStore::getCouponId), ids);
         remove(queryWrapper);
     }
+
+    @Override
+    public List<CouponStore> queryListByCouponId(String couponId) {
+        if (StrUtil.isEmpty(couponId)){
+            return new ArrayList<>();
+        }
+        QueryWrapper<CouponStore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CouponStore::getCouponId), couponId);
+        List<CouponStore> couponStoreList = list(queryWrapper);
+        return CollectionUtil.isEmpty(couponStoreList) ? new ArrayList<>() : couponStoreList;
+    }
 }

@@ -11,4 +11,6 @@ public interface CouponStoreService extends SkyeyeBusinessService<CouponStore> {
     List<CouponStore> queryListByStoreId(String storeId);
 
     void deleteByCouponIds(List<String> ids);
+
+    List<CouponStore> queryListByCouponId(String couponId);
 }
