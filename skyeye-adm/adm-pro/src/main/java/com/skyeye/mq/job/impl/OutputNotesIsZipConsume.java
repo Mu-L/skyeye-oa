@@ -4,6 +4,7 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.constans.MqConstants;
@@ -194,7 +195,7 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
         switch (type) {
             case 1:
                 // 富文本编辑器
-                HtmlToPdfUtil.convertHtmlToPdfWithWatermark(content, sysWaterMark, outputPath, webRootfileBath);
+                HtmlToPdfUtil.convertHtmlToPdfWithWatermark(content, sysWaterMark, outputPath, webRootfileBath, StrUtil.EMPTY, StrUtil.EMPTY);
                 break;
             case 2:
                 // markdown笔记
