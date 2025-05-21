@@ -70,6 +70,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     protected QueryWrapper<ForumContent> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType),CommonNumConstants.NUM_ONE);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         return queryWrapper;
     }
 
