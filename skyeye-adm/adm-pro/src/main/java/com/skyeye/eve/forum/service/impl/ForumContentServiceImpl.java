@@ -66,6 +66,13 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     @Autowired
     private ForumHotService forumHotService;
 
+    @Override
+    protected QueryWrapper<ForumContent> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType),CommonNumConstants.NUM_ONE);
+        return queryWrapper;
+    }
+
     /**
      * 获取我的帖子列表
      *
