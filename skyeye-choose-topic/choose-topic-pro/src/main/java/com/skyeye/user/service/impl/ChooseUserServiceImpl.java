@@ -13,6 +13,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.skyeye.activity.classenum.ActivityType;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -145,7 +146,7 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 }
                 // 验证数据
                 List<ChooseUser> insertList = checkUserList(chooseUserList);
-                if (CollectionUtil.isEmpty(insertList)){
+                if (CollectionUtil.isEmpty(insertList)) {
                     return;
                 }
                 insertList.forEach(bean -> {
@@ -179,11 +180,12 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
                 }
                 // 验证数据
                 List<ChooseUser> insertList = checkUserList(chooseUserList);
-                if (CollectionUtil.isEmpty(insertList)){
+                if (CollectionUtil.isEmpty(insertList)) {
                     return;
                 }
                 insertList.forEach(bean -> {
                     bean.setType(ChooseUserType.TEACHER.getKey());
+                    bean.setActivityType(ActivityType.SINGLE.getKey());
                     bean.setPassword(ToolUtil.MD5(bean.getPassword()));
                 });
                 createEntity(insertList, StrUtil.EMPTY);
@@ -204,17 +206,18 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
 
     /**
      * 上传账号信息时的校验
+     *
      * @param chooseUserList
      * @return 数据库不存在的账号信息
      */
-    private List<ChooseUser> checkUserList(List<ChooseUser> chooseUserList){
-        if (CollectionUtil.isEmpty(chooseUserList)){
+    private List<ChooseUser> checkUserList(List<ChooseUser> chooseUserList) {
+        if (CollectionUtil.isEmpty(chooseUserList)) {
             return new ArrayList<>();
         }
         // 筛选出有账号和密码的数据
         List<ChooseUser> insertList = chooseUserList.stream()
-                .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(insertList)){
+            .filter(bean -> StrUtil.isNotEmpty(bean.getAccountNumber()) || StrUtil.isNotEmpty(bean.getPassword())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(insertList)) {
             return new ArrayList<>();
         }
         // 取出所有账号
@@ -229,7 +232,7 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         queryWrapper.in(accountNumber, accountNumberList);
         queryWrapper.in(stuNo, stuNoList);
         List<ChooseUser> chooseUsers = list(queryWrapper);
-        if (CollectionUtil.isEmpty(chooseUsers)){
+        if (CollectionUtil.isEmpty(chooseUsers)) {
             // 数据库中没有重复数据
             return insertList;
         }
@@ -237,7 +240,7 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         List<String> exitAccountNUmberList = chooseUsers.stream().map(ChooseUser::getAccountNumber).collect(Collectors.toList());
         List<String> exitStuNoList = chooseUsers.stream().map(ChooseUser::getStuNo).collect(Collectors.toList());
         List<ChooseUser> resultList = insertList.stream().filter(bean -> !exitAccountNUmberList.contains(bean.getAccountNumber())
-                || !exitStuNoList.contains(bean.getStuNo())).collect(Collectors.toList());
+            || !exitStuNoList.contains(bean.getStuNo())).collect(Collectors.toList());
         return resultList;
     }
 }

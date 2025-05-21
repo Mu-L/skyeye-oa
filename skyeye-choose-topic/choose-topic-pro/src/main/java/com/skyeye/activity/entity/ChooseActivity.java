@@ -39,10 +39,6 @@ public class ChooseActivity extends BaseGeneralInfo {
     @ApiModelProperty(value = "结束时间", required = "required")
     private String endTime;
 
-    @TableField(value = "type")
-    @ApiModelProperty(value = "活动类型", required = "required", enumClass = ActivityType.class)
-    private Integer type;
-
     @TableField(exist = false)
     @ApiModelProperty(value = "课题列表")
     private List<ChooseTopic> chooseTopicList;

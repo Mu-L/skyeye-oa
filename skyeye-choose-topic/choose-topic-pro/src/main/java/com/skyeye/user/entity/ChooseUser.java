@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.activity.classenum.ActivityType;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -107,5 +108,9 @@ public class ChooseUser extends CommonInfo {
     @TableField(exist = false)
     @Property(value = "当前导师被选的数量")
     private Integer topicCount;
+
+    @TableField(value = "activity_type")
+    @ApiModelProperty(value = "导师选择的类型(单选/双选)", enumClass = ActivityType.class)
+    private Integer activityType;
 
 }

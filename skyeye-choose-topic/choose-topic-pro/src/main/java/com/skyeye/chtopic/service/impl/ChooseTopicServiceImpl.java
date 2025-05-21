@@ -72,6 +72,9 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), commonPageInfo.getObjectId());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), commonPageInfo.getType());
+        }
         return queryWrapper;
     }
 
@@ -192,11 +195,12 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             throw new CustomException("该活动未开始或已结束");
         }
         if (StrUtil.isNotEmpty(teacherId) && chooseActivityService.checkActivityIsStart(chooseActivity)) {
+            ChooseUser chooseUserTeacher = chooseUserService.selectById(teacherId);
             // 选题活动只要开始了(活动结束也可以)，都可以修改导师
             if (!checkTeacherId(teacherId)) {
                 throw new CustomException("导师不存在或该角色不是教师");
             }
-            if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
+            if (Objects.equals(chooseUserTeacher.getActivityType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
                 throw new CustomException("双选类型选题活动，导师同意后不可选择导师");
             }
             if (checkTeacherOverLimit(teacherId, chooseTopic.getActivityId())) {
@@ -205,7 +209,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherId), teacherId);
             // 设置导师审核状态，如果活动为单选类型，则导师直接同意，否则待导师审核
             updateWrapper.set(MybatisPlusUtil.toColumns(ChooseTopic::getTeacherResult),
-                Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+                Objects.equals(chooseUserTeacher.getActivityType(), ActivityType.SINGLE.getKey()) ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         }
         update(updateWrapper);
         refreshCache(id);
@@ -284,10 +288,10 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             }
             if (ObjectUtil.isNotEmpty(bean.getActivityMation())) {
                 bean.setActivityName(bean.getActivityMation().getName());
-                bean.setActivityType(bean.getActivityMation().getType());
             }
             if (ObjectUtil.isNotEmpty(bean.getTeacherMation())) {
                 bean.setMentorName(bean.getTeacherMation().getName());
+                bean.setActivityType(bean.getTeacherMation().getType());
             }
         });
         //.xls格式
@@ -354,9 +358,6 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             throw new CustomException("该课题不存在");
         }
         ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
-        if (Objects.equals(chooseActivity.getType(), ActivityType.SINGLE.getKey())) {
-            throw new CustomException("该课题属于单选类型活动，不可修改");
-        }
         if (!StrUtil.equals(currentUserId, chooseTopic.getTeacherId())) {
             throw new CustomException("该课题信息你不是指导老师，不可修改");
         }
@@ -399,8 +400,8 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (!StrUtil.equals(currentUserId, chooseTopic.getChooseUserId())) {
             throw new CustomException("该课题信息你不是选择的学生，不可取消");
         }
-        ChooseActivity chooseActivity = chooseActivityService.selectById(chooseTopic.getActivityId());
-        if (chooseActivity.getType() == ActivityType.UN_SINGLE.getKey() && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
+        ChooseUser chooseUserTeacher = chooseUserService.selectById(chooseTopic.getTeacherId());
+        if (chooseUserTeacher.getActivityType() == ActivityType.UN_SINGLE.getKey() && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
             throw new CustomException("双选类型选题活动，导师同意后不可取消选择导师");
         }
         chooseTopic.setTeacherId(StrUtil.EMPTY);
@@ -414,6 +415,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         Map<String, Object> params = inputObject.getParams();
         String currentUserId = inputObject.getLogParams().get("id").toString();
         ChooseTopic chooseTopic = selectById(params.get("id").toString());
+        String teacherId = params.get("teacherId").toString();
         if (ObjectUtil.isEmpty(chooseTopic)) {
             throw new CustomException("该课题不存在");
         }
@@ -430,17 +432,18 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
         if (!StrUtil.equals(currentUserId, chooseTopic.getChooseUserId())) {
             throw new CustomException("你未选择该课题，不可选择导师");
         }
-        if (Objects.equals(chooseActivity.getType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
+        ChooseUser chooseUserTeacher = chooseUserService.selectById(teacherId);
+        if (Objects.equals(chooseUserTeacher.getActivityType(), ActivityType.UN_SINGLE.getKey()) && chooseTopic.getTeacherResult() == TeacherResultState.AGREE.getKey()) {
             throw new CustomException("双选类型选题活动，导师同意后不可选择导师");
         }
         if (!checkTeacherId(params.get("teacherId").toString())) {
             throw new CustomException("导师不存在或该角色不是教师");
         }
-        if (checkTeacherOverLimit(params.get("teacherId").toString(), chooseActivity.getId())) {
+        if (checkTeacherOverLimit(teacherId, chooseActivity.getId())) {
             throw new CustomException("超出导师选择数量限制，请选择其他导师");
         }
         chooseTopic.setTeacherId(params.get("teacherId").toString());
-        chooseTopic.setTeacherResult(chooseActivity.getType() == ActivityType.SINGLE.getKey() ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
+        chooseTopic.setTeacherResult(chooseUserTeacher.getActivityType() == ActivityType.SINGLE.getKey() ? TeacherResultState.AGREE.getKey() : TeacherResultState.WAITE.getKey());
         super.updateEntity(chooseTopic, currentUserId);
     }
 
