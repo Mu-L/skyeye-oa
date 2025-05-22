@@ -71,6 +71,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType),CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle),commonPageInfo.getKeyword());
+        }
         return queryWrapper;
     }
 
