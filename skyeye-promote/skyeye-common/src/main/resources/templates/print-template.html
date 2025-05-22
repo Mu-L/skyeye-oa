@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title th:text="${template.name}">打印模板</title>
+    <title th:text="${template != null ? template.name : '打印模板'}">打印模板</title>
     <style>
         /* 通用样式 */
         body {
@@ -11,152 +12,240 @@
             font-family: SimSun, "Microsoft YaHei", Arial, sans-serif;
             font-size: 12pt;
             line-height: 1.5;
+            background-color: white;
         }
+
         .print-container {
             position: relative;
             box-sizing: border-box;
             margin: 0 auto;
             page-break-after: always;
+            background-color: white;
         }
+
         .print-element {
             position: absolute;
             box-sizing: border-box;
+            transform-origin: center center;
         }
+
+        /* 文本元素样式 */
+        .text-element {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* 图片元素样式 */
+        .image-element {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .image-element img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
         /* 表格样式 */
-        table {
+        .table-element {
             width: 100%;
             border-collapse: collapse;
         }
-        table, th, td {
+
+        .table-element th,
+        .table-element td {
             border: 1px solid black;
-            padding: 2px 4px;
+            padding: 4px;
+            text-align: left;
         }
-        th {
+
+        .table-element th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
+
+        .table-element.zebra tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
         /* 条码样式 */
-        .barcode-container {
-            text-align: center;
+        .barcode-element {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        /* 纸张大小设置 */
+
+        .barcode-element img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .barcode-text {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        /* 动画效果 */
+        @media screen {
+            .fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            .slide-in-left {
+                animation: slideInLeft 0.5s ease-in;
+            }
+
+            .slide-in-right {
+                animation: slideInRight 0.5s ease-in;
+            }
+
+            .scale-in {
+                animation: scaleIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes slideInLeft {
+                from { transform: translateX(-100%); }
+                to { transform: translateX(0); }
+            }
+
+            @keyframes slideInRight {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+
+            @keyframes scaleIn {
+                from { transform: scale(0); }
+                to { transform: scale(1); }
+            }
+        }
+
+        /* 打印相关样式 */
         @page {
-            size: A4;
             margin: 0;
+            size: [[${template != null ? template.paperSize : 'A4'}]] [[${template != null ? template.orientation : 'portrait'}]];
         }
+
         @media print {
             body {
                 margin: 0;
                 padding: 0;
             }
+
+            .print-container {
+                margin: 0;
+                padding: 0;
+            }
+
+            /* 隐藏动画 */
+            * {
+                animation: none !important;
+            }
         }
     </style>
     <!-- 根据纸张大小和方向设置容器宽高 -->
-    <style th:inline="css">
-        .print-container {
-            /* A4纵向 */
-            width: 210mm;
-            height: 297mm;
-        }
-        
-        /* 根据模板配置的纸张和方向设置尺寸 */
-        [(${template.paperSize == 'A4' && template.orientation == 'portrait'} ? '
-        .print-container {
-            width: 210mm;
-            height: 297mm;
-        }
-        ' : '')]
-        
-        [(${template.paperSize == 'A4' && template.orientation == 'landscape'} ? '
-        .print-container {
-            width: 297mm;
-            height: 210mm;
-        }
-        ' : '')]
-        
-        [(${template.paperSize == 'A3' && template.orientation == 'portrait'} ? '
-        .print-container {
-            width: 297mm;
-            height: 420mm;
-        }
-        ' : '')]
-        
-        [(${template.paperSize == 'A3' && template.orientation == 'landscape'} ? '
-        .print-container {
-            width: 420mm;
-            height: 297mm;
-        }
-        ' : '')]
-        
-        [(${template.paperSize == 'A5' && template.orientation == 'portrait'} ? '
-        .print-container {
-            width: 148mm;
-            height: 210mm;
-        }
-        ' : '')]
-        
-        [(${template.paperSize == 'A5' && template.orientation == 'landscape'} ? '
-        .print-container {
-            width: 210mm;
-            height: 148mm;
-        }
-        ' : '')]
+    <style th:inline="css" th:if="${template != null}">
+        /* 根据模板配置的纸张和方向设置尺寸，1mm ≈ 3.78px */
+        [(${template.paperSize=='A4_PAGE' && template.orientation=='portrait'} ? '.print-container { width: 794px; height: 1123px; }' : '')]
+        [(${template.paperSize=='A4_PAGE' && template.orientation=='landscape'} ? '.print-container { width: 1123px; height: 794px; }' : '')]
+        [(${template.paperSize=='A3_PAGE' && template.orientation=='portrait'} ? '.print-container { width: 1123px; height: 1588px; }' : '')]
+        [(${template.paperSize=='A3_PAGE' && template.orientation=='landscape'} ? '.print-container { width: 1588px; height: 1123px; }' : '')]
+        [(${template.paperSize=='A5_PAGE' && template.orientation=='portrait'} ? '.print-container { width: 559px; height: 794px; }' : '')]
+        [(${template.paperSize=='A5_PAGE' && template.orientation=='landscape'} ? '.print-container { width: 794px; height: 559px; }' : '')]
+        [(${template.paperSize=='LETTER_PAGE' && template.orientation=='portrait'} ? '.print-container { width: 816px; height: 1056px; }' : '')]
+        [(${template.paperSize=='LETTER_PAGE' && template.orientation=='landscape'} ? '.print-container { width: 1056px; height: 816px; }' : '')]
+        [(${template.paperSize=='CUSTOM_PAGE' && template.orientation=='portrait'} ? '.print-container { width: ' + ${template.width} + '; height: ' + ${template.height} + '; }' : '')]
+        [(${template.paperSize=='CUSTOM_PAGE' && template.orientation=='landscape'} ? '.print-container { width: ' + ${template.height} + '; height: ' + ${template.width} + '; }' : '')]
     </style>
 </head>
+
 <body>
-    <div class="print-container">
+    <div class="print-container" th:style="${'width:' + template.width + ';height:' + template.height}">
         <!-- 遍历渲染所有元素 -->
-        <div th:each="element : ${elements}" class="print-element"
-            th:style="'left:' + ${element.x} + 'px;' + 
-                     'top:' + ${element.y} + 'px;' + 
-                     'width:' + ${element.width} + 'px;' + 
-                     'height:' + ${element.height} + 'px;' + 
-                     ${element.style}">
-            
+        <div th:each="element : ${elements}" class="print-element" 
+            th:classappend="${element.type + '-element' + 
+                (element.animation?.type == 'fade' ? ' fade-in' : 
+                (element.animation?.type == 'slide' && element.animation.direction == 'left' ? ' slide-in-left' : 
+                (element.animation?.type == 'slide' && element.animation.direction == 'right' ? ' slide-in-right' : 
+                (element.animation?.type == 'scale' ? ' scale-in' : ''))))}"
+            th:style="${'left:' + element.x + 'px;' + 
+                     'top:' + element.y + 'px;' + 
+                     'width:' + element.width + 'px;' + 
+                     'height:' + element.height + 'px;' + 
+                     'transform:rotate(' + (element.rotate ?: 0) + 'deg);' +
+                     'transform-origin:' + (element.transformOrigin ?: 'center') + ';' +
+                     'opacity:' + (element.opacity ?: 100) + '%;' +
+                     (element.shadow?.enabled ? 'box-shadow:' + element.shadow.x + 'px ' + element.shadow.y + 'px ' + element.shadow.blur + 'px ' + element.shadow.color + ';' : '') +
+                     (element.animation?.type != 'none' ? 'animation-duration:' + element.animation.duration + 'ms;animation-delay:' + element.animation.delay + 'ms;' : '')}">
+
             <!-- 文本元素 -->
             <div th:if="${element.type == 'text'}" 
-                th:style="'font-size:' + (${element.fontSize} != null ? ${element.fontSize} : '12') + 'pt;' + 
-                         'font-weight:' + (${element.bold} == true ? 'bold' : 'normal') + ';' + 
-                         'font-style:' + (${element.italic} == true ? 'italic' : 'normal') + ';'">
-                <span th:text="${element.content != null ? element.content : (element.text != null ? element.text : '')}"></span>
+                th:style="${'font-size:' + (element.fontSize ?: 12) + 'pt;' +
+                         'font-weight:' + (element.bold ? 'bold' : 'normal') + ';' +
+                         'font-style:' + (element.italic ? 'italic' : 'normal') + ';' +
+                         'text-decoration:' + (element.underline ? 'underline' : 'none') + ';' +
+                         'text-align:' + (element.align ?: 'left') + ';'}"
+                th:utext="${#strings.replace(element.content, '\\n', '<br>')}">
             </div>
-            
+
             <!-- 图片元素 -->
-            <div th:if="${element.type == 'image'}">
-                <img th:src="${element.src}" th:alt="${element.alt != null ? element.alt : ''}" 
-                    style="max-width: 100%; max-height: 100%;">
+            <div th:if="${element.type == 'image'}" th:style="${'object-fit:' + (element.fit ?: 'contain')}">
+                <img th:if="${element.src != null}" th:src="${element.src}" th:alt="${element.alt ?: ''}"
+                    th:style="${'object-fit:' + (element.fit ?: 'contain')}">
             </div>
-            
+
             <!-- 表格元素 -->
-            <div th:if="${element.type == 'table'}">
-                <table>
-                    <thead>
+            <div th:if="${element.type == 'table'}" style="width:100%;height:100%;overflow:auto;">
+                <table th:class="${'table-element' + ((element.zebra != null && element.zebra) ? ' zebra' : '')}"
+                    th:style="${'border-collapse:collapse;width:100%;' + (element.rowHeight != null ? 'line-height:' + element.rowHeight + 'px;' : '')}">
+                    <thead th:if="${element.showHeader}">
                         <tr>
-                            <th th:each="column : ${element.columns}" th:text="${column.title}"></th>
+                            <th th:each="col : ${element.columns}" 
+                                th:style="${'width:' + (col.width != null ? col.width + 'px' : 'auto') + ';' +
+                                         'text-align:' + (col.align != null ? col.align : 'left') + ';' +
+                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'pt;' +
+                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';'}"
+                                th:text="${col.title}">
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="row : ${element.rows}">
-                            <td th:each="column : ${element.columns}" 
-                                th:text="${row[column.dataIndex] != null ? row[column.dataIndex] : ''}"></td>
+                            <td th:each="col : ${element.columns}"
+                                th:style="${'text-align:' + (col.align != null ? col.align : 'left') + ';' +
+                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'pt;' +
+                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';'}"
+                                th:text="${row[col.field]}">
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            
-            <!-- 线条元素 -->
-            <div th:if="${element.type == 'line'}" 
-                th:style="'border-top: ' + (${element.strokeWidth} != null ? ${element.strokeWidth} : '1') + 'px ' + 
-                        (${element.strokeStyle} != null ? ${element.strokeStyle} : 'solid') + ' black;'">
-            </div>
-            
+
             <!-- 条码元素 -->
-            <div th:if="${element.type == 'barcode'}" class="barcode-container">
-                <!-- 这里应该集成实际的条码生成JS库，或者后端预先生成条码图片 -->
-                <img th:if="${element.value != null}" th:src="'/api/print/barcode?value=' + ${element.value} + '&type=' + ${element.barcodeType != null ? element.barcodeType : 'code128'}" 
-                     style="max-width: 100%; max-height: 100%;" />
+            <div th:if="${element.type == 'barcode'}" class="barcode-element"
+                th:style="${'background-color:' + (element.background ?: 'white')}">
+                <img th:if="${element.value != null}" 
+                    th:src="${'/api/print/barcode?value=' + element.value + 
+                           '&type=' + (element.barcodeType ?: 'CODE128') +
+                           '&format=' + (element.format ?: '') +
+                           '&foreground=' + (element.foreground ?: 'black') +
+                           '&errorLevel=' + (element.errorLevel ?: 'M')}"
+                    th:style="${'max-width:100%;max-height:' + (element.showLabel ? '85%' : '100%')}" />
+                <div th:if="${element.showLabel}" class="barcode-text"
+                    th:style="${'color:' + (element.foreground ?: 'black')}"
+                    th:text="${element.value}">
+                </div>
             </div>
         </div>
     </div>
 </body>
+
 </html>

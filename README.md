@@ -24,10 +24,13 @@
 
 ④ [功能清单](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)
 
-⑤ 体验地址：`Star`后将`Star`的截图(有效截图如下，如果无效，则不予回应)发送到下方公众号，并备注姓名和手机号，作者会私发你体验地址。
+⑤ 体验地址：`Star`后将`Star`的截图(有效截图如下，如果无效，则不予回应)发送到下方公众号，并备注姓名和手机号，作者会私发你体验地址。在`Gitee`、`Gitcode`、`Github`任意一处Star后，均可获取体验账号。
 ![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/star.png)
 
-本项目的GitCode地址: https://gitcode.com/doc_wei/erp-pro
+## 项目地址
+
+- [Gitcode - 项目地址](https://gitcode.com/doc_wei/erp-pro)
+- [Gitee - 项目地址](https://gitee.com/doc_wei01/skyeye)
 
 ## 🐶 沟通交流
 
