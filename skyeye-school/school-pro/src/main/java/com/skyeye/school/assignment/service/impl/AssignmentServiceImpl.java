@@ -10,7 +10,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -32,7 +31,10 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -78,12 +80,11 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         scoreTypeChild1.setName(entity.getName());
         scoreTypeChild1.setNameLinkId(entity.getId());
         scoreTypeChild1.setNameLinkKey(getServiceClassName());
-        if(ObjectUtil.isNotEmpty(scoreTypeChild)){
+        if (ObjectUtil.isNotEmpty(scoreTypeChild)) {
             scoreTypeChild1.setParentId(scoreTypeChild.getId());
-        }else {
+        } else {
             scoreTypeChild1.setParentId(StrUtil.EMPTY);
         }
-        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
         scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
 
@@ -134,7 +135,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         String subjectClassesId = map.get("subjectClassesId").toString();
         QueryWrapper<Assignment> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Assignment::getSubjectClassesId), subjectClassesId)
-            .orderByDesc(MybatisPlusUtil.toColumns(Assignment::getCreateTime));
+                .orderByDesc(MybatisPlusUtil.toColumns(Assignment::getCreateTime));
         List<Assignment> assignmentList = list(queryWrapper);
         if (CollectionUtil.isEmpty(assignmentList)) {
             return;
