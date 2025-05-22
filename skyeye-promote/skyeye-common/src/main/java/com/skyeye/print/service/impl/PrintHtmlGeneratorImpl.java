@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.skyeye.exception.CustomException;
+import com.skyeye.print.entity.PrintElement;
 import com.skyeye.print.entity.PrintTemplate;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,6 @@ import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,10 +47,10 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             JSONObject config = JSON.parseObject(printTemplate.getConfigContent());
 
             // 准备模板元素
-            List<Map<String, Object>> elements = prepareElements(config.getJSONArray("elements"), data);
+            List<PrintElement> elements = prepareElements(config.getJSONArray("elements"), data);
 
             // 准备模板上下文
-            Map<String, Object> context = new HashMap<>();
+            Map<String, Object> context = new java.util.HashMap<>();
             context.put("template", printTemplate);
             context.put("elements", elements);
             context.put("data", data);
@@ -81,8 +80,8 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         }
     }
 
-    private List<Map<String, Object>> prepareElements(JSONArray elements, Map<String, Object> data) {
-        List<Map<String, Object>> result = new ArrayList<>();
+    private List<PrintElement> prepareElements(JSONArray elements, Map<String, Object> data) {
+        List<PrintElement> result = new ArrayList<>();
 
         if (elements == null) {
             return result;
@@ -90,24 +89,19 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
 
         for (int i = 0; i < elements.size(); i++) {
             JSONObject element = elements.getJSONObject(i);
-            Map<String, Object> processedElement = new HashMap<>(element);
+            PrintElement processedElement = JSON.parseObject(element.toJSONString(), PrintElement.class);
             
-            // 确保style属性存在
-            if (!processedElement.containsKey("style")) {
-                processedElement.put("style", "");
-            }
-
             // 处理动态数据
-            if (element.containsKey("dataField") && StringUtils.isNotBlank(element.getString("dataField"))) {
+            if (StringUtils.isNotBlank(element.getString("dataField"))) {
                 String dataField = element.getString("dataField");
                 Object value = getValueByPath(data, dataField);
-                processedElement.put("content", value);
+                processedElement.setContent(value != null ? value.toString() : null);
             }
 
             // 处理特殊元素类型
-            if ("table".equals(element.getString("type"))) {
+            if ("table".equals(processedElement.getType())) {
                 processTableElement(processedElement, data);
-            } else if ("barcode".equals(element.getString("type"))) {
+            } else if ("barcode".equals(processedElement.getType())) {
                 processBarcodeElement(processedElement, data);
             }
 
@@ -117,24 +111,24 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         return result;
     }
 
-    private void processTableElement(Map<String, Object> element, Map<String, Object> data) {
+    private void processTableElement(PrintElement element, Map<String, Object> data) {
         // 处理表格数据源
-        if (element.containsKey("dataSource")) {
-            String dataSource = (String) element.get("dataSource");
-            Object tableData = getValueByPath(data, dataSource);
-            if (tableData instanceof Collection) {
-                element.put("rows", tableData);
+        if (element.getRows() == null && StringUtils.isNotBlank(element.getContent())) {
+            Object tableData = getValueByPath(data, element.getContent());
+            if (tableData instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> rows = (List<Map<String, Object>>) tableData;
+                element.setRows(rows);
             }
         }
     }
 
-    private void processBarcodeElement(Map<String, Object> element, Map<String, Object> data) {
+    private void processBarcodeElement(PrintElement element, Map<String, Object> data) {
         // 处理条码数据
-        if (element.containsKey("valueField")) {
-            String valueField = (String) element.get("valueField");
-            Object value = getValueByPath(data, valueField);
+        if (StringUtils.isBlank(element.getValue()) && StringUtils.isNotBlank(element.getContent())) {
+            Object value = getValueByPath(data, element.getContent());
             if (value != null) {
-                element.put("value", value.toString());
+                element.setValue(value.toString());
             }
         }
     }
