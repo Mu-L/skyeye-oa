@@ -33,7 +33,7 @@ public class Payment extends SkyeyeFlowable {
     private String name;
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "所属第三方业务数据id", required = "required")
+    @ApiModelProperty(value = "所属第三方业务数据id（供应商id）", required = "required")
     private String objectId;
 
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)

@@ -60,6 +60,14 @@ public class SupplierContract extends SkyeyeFlowable {
     @ApiModelProperty(value = "合同金额", required = "double", defaultValue = "0")
     private String price;
 
+    @TableField(value = "paid_price")
+    @ApiModelProperty(value = "已付金额", required = "double", defaultValue = "0")
+    private String paidPrice;
+
+    @TableField(value = "invoice_price")
+    @Property(value = "已开票金额")
+    private String invoicePrice;
+
     @TableField(value = "material_total_price")
     @ApiModelProperty(value = "产品明细总金额", required = "double", defaultValue = "0")
     private String materialTotalPrice;

@@ -553,16 +553,15 @@ public class SupplierContractServiceImpl extends SkyeyeFlowableServiceImpl<Suppl
 
     @Override
     public void updatePaymentPrice(String contractId, String price) {
-        // TODO 供应商是否是要这个功能
         SupplierContract erpContract = selectById(contractId);
         if (StrUtil.equals(erpContract.getState(), SupplierContractStateEnum.EXECUTING.getKey())) {
-            // 只有执行中的合同才可以进行回款
+            // 只有执行中的合同才可以进行付款
             price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                    StrUtil.isEmpty(erpContract.getPrice()) ? "0" : erpContract.getPrice(),
+                    StrUtil.isEmpty(erpContract.getPaidPrice()) ? "0" : erpContract.getPaidPrice(),
                     price);
             UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, contractId);
-            updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getPrice), price);
+            updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getPaidPrice), price);
             update(updateWrapper);
             refreshCache(contractId);
         } else {
@@ -572,7 +571,15 @@ public class SupplierContractServiceImpl extends SkyeyeFlowableServiceImpl<Suppl
 
     @Override
     public void updateInvoicePrice(String contractId, String invoicePrice) {
-       // TODO 2025/5/19
+        SupplierContract erpContract = selectById(contractId);
+        invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                StrUtil.isEmpty(erpContract.getInvoicePrice()) ? "0" : erpContract.getInvoicePrice(),
+                invoicePrice);
+        UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, contractId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getInvoicePrice), invoicePrice);
+        update(updateWrapper);
+        refreshCache(contractId);
     }
 
 }
