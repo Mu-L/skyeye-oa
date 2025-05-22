@@ -74,7 +74,15 @@ public class ForumHistoryViewServiceImpl extends SkyeyeBusinessServiceImpl<Forum
     public List<ForumHistoryView> queryMyHistory(String currentUserId) {
         QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHistoryView::getCreateId), currentUserId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumHistoryView::getCreateTime));
         List<ForumHistoryView> list = list(queryWrapper);
         return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
+    }
+
+    @Override
+    public void deleteByForumId(String id) {
+        QueryWrapper<ForumHistoryView> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ForumHistoryView::getForumId), id);
+        remove(queryWrapper);
     }
 }
