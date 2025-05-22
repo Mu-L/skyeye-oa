@@ -63,21 +63,21 @@ public enum NumberCodeEnum implements SkyeyeEnumClass {
         return scoreTypeList;
     }
 
-    public static List<Integer> getKeysButAll() {
-        List<Integer> list = new ArrayList<>();
+    public static List<String> getKeysButAll() {
+        List<String> list = new ArrayList<>();
         for (NumberCodeEnum e : NumberCodeEnum.values()) {
             String key = e.getKey();
             if (!key.equals(CommonNumConstants.NUM_ZERO.toString())) {
-                list.add(Integer.parseInt(key));
+                list.add(key);
             }
         }
         return list;
     }
 
-    public static List<Integer> getAllKey() {
-        List<Integer> list = new ArrayList<>();
+    public static List<String> getAllKey() {
+        List<String> list = new ArrayList<>();
         for (NumberCodeEnum e : NumberCodeEnum.values()) {
-            list.add(Integer.parseInt(e.getKey()));
+            list.add(e.getKey());
         }
         return list;
     }

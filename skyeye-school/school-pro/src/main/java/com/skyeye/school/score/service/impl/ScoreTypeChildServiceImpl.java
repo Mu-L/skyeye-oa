@@ -21,11 +21,14 @@ import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
+import com.skyeye.school.assignment.service.impl.AssignmentServiceImpl;
+import com.skyeye.school.exam.service.ExamDirectoryAnService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.Score;
@@ -36,10 +39,7 @@ import com.skyeye.school.subject.service.SubjectClassesStuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,6 +65,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
 
     @Autowired
     private SubjectClassesStuService subjectClassesStuService;
+
+    @Autowired
+    private ExamDirectoryAnService examDirectoryAnService;
 
     @Override
     public void createPrepose(ScoreTypeChild scoreTypeChild) {
@@ -96,6 +99,51 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         }
     }
 
+    /**
+     * 设置占比(只能给同一类型的成绩类型设置平均占比,可以是不同的班级)
+     * @param entity
+     */
+    private void setAVGProportion(List<ScoreTypeChild> entity, String nameLinkId) {
+        if (CollectionUtil.isEmpty(entity)) {
+            return;
+        }
+        // 当前新增数据没有多科目新增，所以不需要操作subjectId
+        String subjectId = entity.get(CommonNumConstants.NUM_ZERO).getSubjectId();
+        String subClassLinkIdColumns = MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId);
+        // 取出所有的subClassLinkId
+        List<String> subClassLinkIdList = entity.stream().map(ScoreTypeChild::getSubClassLinkId).distinct().filter(StrUtil::isNotEmpty).collect(Collectors.toList());
+        // 一级数据
+        List<ScoreTypeChild> scoreTypeChildren = selectIds(subjectId, subClassLinkIdList, nameLinkId);
+        List<String> scoreTypeChildrenIdList = scoreTypeChildren.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
+        // 二级数据
+        QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), scoreTypeChildrenIdList)
+                .notIn(subClassLinkIdColumns, NumberCodeEnum.getAllKey());
+        queryWrapper.ne(subClassLinkIdColumns, StrUtil.EMPTY).ne(subClassLinkIdColumns, null);
+        List<ScoreTypeChild> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)){
+            return;
+        }
+        Map<String, List<ScoreTypeChild>> twoDataMapList = list.stream().collect(Collectors.groupingBy(ScoreTypeChild::getSubClassLinkId));
+        Map<String, Integer> twoDataMapCount = new HashMap<>();
+        for (ScoreTypeChild scoreTypeChild : entity) {
+            String subClassLinkId = scoreTypeChild.getSubClassLinkId();
+            Integer twoDataMapListNum = twoDataMapList.containsKey(subClassLinkId) ? twoDataMapList.get(subClassLinkId).size() : CommonNumConstants.NUM_ZERO;
+            Integer twoDataMapCountFlagNUm = twoDataMapCount.containsKey(subClassLinkId) ? twoDataMapCount.get(subClassLinkId) : CommonNumConstants.NUM_ZERO;
+            twoDataMapCount.put(subClassLinkId, twoDataMapCountFlagNUm + twoDataMapListNum);
+        }
+        twoDataMapCount.forEach((key, value) -> {
+            String proportion = CalculationUtil.divide("100", String.valueOf(value));
+            twoDataMapCount.put(key, Integer.valueOf(proportion));
+        });
+        list.addAll(entity);
+        for (ScoreTypeChild scoreTypeChild : list) {
+            scoreTypeChild.setProportion(twoDataMapCount.get(scoreTypeChild.getNameLinkKey()).toString());
+        }
+        super.updateEntity(list, InputObject.getLogParamsStatic().get("id").toString());
+        scoreService.calculateScore(subjectId, subClassLinkIdList);
+    }
+
     @Override
     public void createPostpose(List<ScoreTypeChild> entity, String userId) {
         if (CollectionUtil.isEmpty(entity)) {
@@ -105,6 +153,13 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         List<String> ids = entity.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         Map<String, String> childIdToSubClassLinkId = entity.stream().collect(Collectors.toMap(ScoreTypeChild::getId, ScoreTypeChild::getSubClassLinkId));
         scoreService.initScorePartForScoreType(ids, childIdToSubClassLinkId);
+
+        // 根据nameLinkKey分组
+        Map<String, List<ScoreTypeChild>> scoreTypeMapList = entity.stream().collect(Collectors.groupingBy(ScoreTypeChild::getNameLinkKey));
+        // 找出测试类型数据，并设置占比
+        setAVGProportion(scoreTypeMapList.get(examDirectoryAnService.getClass().getName()), NumberCodeEnum.TEST.getKey());
+        // 找出作业类型数据，并设置占比
+        setAVGProportion(scoreTypeMapList.get(AssignmentServiceImpl.class.getName()), NumberCodeEnum.WORK.getKey());
     }
 
     @Override
@@ -223,8 +278,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubjectId), subjectId)
                 .eq(MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId), subClassLinkId);
-        List<String> numberCodeEnumAllKey = NumberCodeEnum.getAllKey().stream().map(String::valueOf).collect(Collectors.toList());
-        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), numberCodeEnumAllKey);
+        queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId), NumberCodeEnum.getAllKey());
         List<ScoreTypeChild> scoreTypeChildList = list(queryWrapper);
         outputObject.setBeans(scoreTypeChildList);
         outputObject.settotal(scoreTypeChildList.size());
