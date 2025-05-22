@@ -19,6 +19,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.html.util.HtmlToPdfUtil;
 import com.skyeye.print.dao.PrintTemplateDao;
 import com.skyeye.print.entity.PrintTemplate;
+import com.skyeye.print.enumclass.Orientation;
 import com.skyeye.print.enumclass.PaperSize;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import com.skyeye.print.service.PrintTemplateService;
@@ -95,9 +96,16 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
             (Map<String, Object>) inputObject.getParams().get("printData") : new HashMap<>();
 
         // 获取模板详情
-        PrintTemplate template = getById(id);
+        PrintTemplate template = selectById(id);
         if (template == null) {
             throw new CustomException("打印模板不存在");
+        }
+
+        if (StrUtil.equals(template.getOrientation(), Orientation.LANDSCAPE.getKey())) {
+            String width = template.getHeight();
+            String height = template.getWidth();
+            template.setWidth(width);
+            template.setHeight(height);
         }
 
         try {
@@ -127,9 +135,16 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
         Map<String, Object> printData = new HashMap<>();
 
         // 获取模板详情
-        PrintTemplate template = getById(id);
+        PrintTemplate template = selectById(id);
         if (template == null) {
             throw new CustomException("打印模板不存在");
+        }
+
+        if (StrUtil.equals(template.getOrientation(), Orientation.LANDSCAPE.getKey())) {
+            String width = template.getHeight();
+            String height = template.getWidth();
+            template.setWidth(width);
+            template.setHeight(height);
         }
 
         try {

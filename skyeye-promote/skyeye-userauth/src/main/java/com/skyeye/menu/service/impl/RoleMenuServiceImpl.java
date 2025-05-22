@@ -159,6 +159,8 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             authPoint.remove("lastUpdateId");
             authPoint.remove("lastUpdateTime");
             authPoint.remove("serviceClassName");
+            authPoint.remove("sysWinMation");
+            authPoint.remove("desktopMation");
         }
 
         return menuList;

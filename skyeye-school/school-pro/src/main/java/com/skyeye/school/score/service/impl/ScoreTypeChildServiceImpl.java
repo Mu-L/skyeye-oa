@@ -28,7 +28,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.rest.ICertificationRest;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
 import com.skyeye.school.assignment.service.impl.AssignmentServiceImpl;
-import com.skyeye.school.exam.service.ExamDirectoryAnService;
+import com.skyeye.school.exam.service.ExamService;
 import com.skyeye.school.score.classenum.NumberCodeEnum;
 import com.skyeye.school.score.dao.ScoreTypeChildDao;
 import com.skyeye.school.score.entity.Score;
@@ -67,7 +67,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     private SubjectClassesStuService subjectClassesStuService;
 
     @Autowired
-    private ExamDirectoryAnService examDirectoryAnService;
+    private ExamService examService;
 
     @Override
     public void createPrepose(ScoreTypeChild scoreTypeChild) {
@@ -80,7 +80,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             ScoreTypeChild parentScoreType = selectById(scoreTypeChild.getParentId());
             // 新增二级数据
             scoreTypeChild.setNameLinkId(Objects.equals(parentScoreType.getNameLinkId(), NumberCodeEnum.CUSTOM.getKey()) ? StrUtil.EMPTY : scoreTypeChild.getNameLinkId());
-            scoreTypeChild.setNameLinkKey(Objects.equals(parentScoreType.getNameLinkId(), NumberCodeEnum.CUSTOM.getKey()) ? StrUtil.EMPTY : NumberCodeEnum.class.getName());
+            scoreTypeChild.setNameLinkKey(Objects.equals(parentScoreType.getNameLinkId(), NumberCodeEnum.CUSTOM.getKey()) ? StrUtil.EMPTY : scoreTypeChild.getNameLinkKey());
         }
     }
 
@@ -88,6 +88,9 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
     public void createPostpose(ScoreTypeChild entity, String userId) {
         // 初始化成绩
         scoreService.initScorePartForScoreType(entity.getId(), entity.getSubClassLinkId());
+        if (entity.getNameLinkKey().equals(AssignmentServiceImpl.class.getName())){
+            setAVGProportion(Arrays.asList(entity), NumberCodeEnum.WORK.getKey());
+        }
     }
 
     @Override
@@ -110,6 +113,7 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         // 当前新增数据没有多科目新增，所以不需要操作subjectId
         String subjectId = entity.get(CommonNumConstants.NUM_ZERO).getSubjectId();
         String subClassLinkIdColumns = MybatisPlusUtil.toColumns(ScoreTypeChild::getSubClassLinkId);
+        String nameLinkIdColumns = MybatisPlusUtil.toColumns(ScoreTypeChild::getNameLinkId);
         // 取出所有的subClassLinkId
         List<String> subClassLinkIdList = entity.stream().map(ScoreTypeChild::getSubClassLinkId).distinct().filter(StrUtil::isNotEmpty).collect(Collectors.toList());
         // 一级数据
@@ -118,12 +122,8 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         // 二级数据
         QueryWrapper<ScoreTypeChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ScoreTypeChild::getParentId), scoreTypeChildrenIdList)
-                .notIn(subClassLinkIdColumns, NumberCodeEnum.getAllKey());
-        queryWrapper.ne(subClassLinkIdColumns, StrUtil.EMPTY).ne(subClassLinkIdColumns, null);
+                .notIn(nameLinkIdColumns, NumberCodeEnum.getAllKey());
         List<ScoreTypeChild> list = list(queryWrapper);
-        if (CollectionUtil.isEmpty(list)){
-            return;
-        }
         Map<String, List<ScoreTypeChild>> twoDataMapList = list.stream().collect(Collectors.groupingBy(ScoreTypeChild::getSubClassLinkId));
         Map<String, Integer> twoDataMapCount = new HashMap<>();
         for (ScoreTypeChild scoreTypeChild : entity) {
@@ -133,12 +133,12 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
             twoDataMapCount.put(subClassLinkId, twoDataMapCountFlagNUm + twoDataMapListNum);
         }
         twoDataMapCount.forEach((key, value) -> {
-            String proportion = CalculationUtil.divide("100", String.valueOf(value));
-            twoDataMapCount.put(key, Integer.valueOf(proportion));
+            String proportion = Objects.equals(value, CommonNumConstants.NUM_ZERO) ? "100" : CalculationUtil.divide("100", String.valueOf(value), CommonNumConstants.NUM_ZERO);
+            twoDataMapCount.put(key, (int) Double.parseDouble(proportion));
         });
         list.addAll(entity);
         for (ScoreTypeChild scoreTypeChild : list) {
-            scoreTypeChild.setProportion(twoDataMapCount.get(scoreTypeChild.getNameLinkKey()).toString());
+            scoreTypeChild.setProportion(twoDataMapCount.get(scoreTypeChild.getSubClassLinkId()).toString());
         }
         super.updateEntity(list, InputObject.getLogParamsStatic().get("id").toString());
         scoreService.calculateScore(subjectId, subClassLinkIdList);
@@ -153,13 +153,13 @@ public class ScoreTypeChildServiceImpl extends SkyeyeBusinessServiceImpl<ScoreTy
         List<String> ids = entity.stream().map(ScoreTypeChild::getId).collect(Collectors.toList());
         Map<String, String> childIdToSubClassLinkId = entity.stream().collect(Collectors.toMap(ScoreTypeChild::getId, ScoreTypeChild::getSubClassLinkId));
         scoreService.initScorePartForScoreType(ids, childIdToSubClassLinkId);
-
-        // 根据nameLinkKey分组
-        Map<String, List<ScoreTypeChild>> scoreTypeMapList = entity.stream().collect(Collectors.groupingBy(ScoreTypeChild::getNameLinkKey));
         // 找出测试类型数据，并设置占比
-        setAVGProportion(scoreTypeMapList.get(examDirectoryAnService.getClass().getName()), NumberCodeEnum.TEST.getKey());
-        // 找出作业类型数据，并设置占比
-        setAVGProportion(scoreTypeMapList.get(AssignmentServiceImpl.class.getName()), NumberCodeEnum.WORK.getKey());
+        // com.skyeye.exam.examsurveyanswer.service.impl.ExamSurveyAnswerServiceImpl$$EnhancerBySpringCGLIB$$2508cc67
+        String serviceImpl = examService.getClass().getName();
+        String serviceImplName = serviceImpl.contains("$") ? serviceImpl.substring(CommonNumConstants.NUM_ZERO, serviceImpl.indexOf("$")) : serviceImpl;
+        List<ScoreTypeChild> scoreTypeChildList = entity.stream().filter(
+                scoreTypeChild -> scoreTypeChild.getNameLinkKey().equals(serviceImplName)).collect(Collectors.toList());
+        setAVGProportion(scoreTypeChildList, NumberCodeEnum.TEST.getKey());
     }
 
     @Override

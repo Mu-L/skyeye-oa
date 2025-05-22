@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SchoolConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -85,6 +86,7 @@ public class AssignmentServiceImpl extends SkyeyeBusinessServiceImpl<AssignmentD
         } else {
             scoreTypeChild1.setParentId(StrUtil.EMPTY);
         }
+        scoreTypeChild1.setProportion(CommonNumConstants.NUM_ZERO.toString());
         scoreTypeChildService.createEntity(scoreTypeChild1, userId);
     }
 
