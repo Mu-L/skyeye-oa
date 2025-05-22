@@ -13,6 +13,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
+import com.skyeye.print.enumclass.Orientation;
 import com.skyeye.print.enumclass.PaperSize;
 import lombok.Data;
 
@@ -44,7 +45,7 @@ public class PrintTemplate extends BaseGeneralInfo {
     private String paperSize;
 
     @TableField("orientation")
-    @ApiModelProperty(value = "纸张方向", required = "required")
+    @ApiModelProperty(value = "纸张方向", required = "required", enumClass = Orientation.class)
     private String orientation;
 
     @TableField("enabled")
