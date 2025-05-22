@@ -45,7 +45,7 @@ public class PayableController {
         payableService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryPayableList", value = "根据objectId(客户id)获取应付事项列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryPayableList", value = "根据objectId(供应商id)获取应付事项列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PayableController/queryPayableList")
     public void queryPayableList(InputObject inputObject, OutputObject outputObject) {

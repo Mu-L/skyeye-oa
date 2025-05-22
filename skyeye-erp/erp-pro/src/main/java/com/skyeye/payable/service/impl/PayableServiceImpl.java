@@ -85,8 +85,8 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        supplierContractService.setMationForMap(beans, "contactId", "contactMation");
-        iAuthUserService.setMationForMap(beans, "contractId", "contractMation");
+        supplierContractService.setMationForMap(beans, "contractId", "contractMation");
+        iAuthUserService.setMationForMap(beans, "contactId", "contactMation");
         return beans;
     }
 

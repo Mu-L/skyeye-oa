@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -71,6 +72,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType),CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+        if(StrUtil.isNotEmpty(commonPageInfo.getKeyword())){
+            queryWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle),commonPageInfo.getKeyword());
+        }
         return queryWrapper;
     }
 
@@ -135,6 +139,8 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         forumHotService.deleteByForumId(one.getId());
         // 删除评论记录
         forumCommentService.deleteByForumId(one.getId());
+        // 删除历史浏览记录
+        forumHistoryViewService.deleteByForumId(one.getId());
         refreshCache(one.getId());
     }
 
@@ -196,9 +202,11 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         if (CollectionUtil.isEmpty(forumHistoryViewList)) {
             return;
         }
-        List<String> forumIds = forumHistoryViewList.stream().map(ForumHistoryView::getForumId).collect(Collectors.toList());
+
+        List<String> forumIds = forumHistoryViewList.stream().map(ForumHistoryView::getForumId).distinct().collect(Collectors.toList());
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<ForumContent> beans = forumContentService.selectByIds(forumIds.toArray(new String[forumIds.size()]));
+//        List<ForumContent> beans = forumContentService.selectByIds(forumIds.toArray(new String[forumIds.size()]));
+        List<ForumContent> beans = forumContentService.queryForumContentListByForumIds(forumIds);
         forumTagService.setTagMationForContentList(beans);
         setAnonymous(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
@@ -391,6 +399,16 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         updateWrapper.set(MybatisPlusUtil.toColumns(ForumContent::getCommentNum), count);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public List<ForumContent> queryForumContentListByForumIds(List<String> forumIds) {
+        if(CollectionUtils.isEmpty(forumIds)){
+            return Collections.emptyList();
+        }
+        QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, forumIds);
+        return list(queryWrapper);
     }
 
     @Override

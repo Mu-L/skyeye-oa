@@ -20,6 +20,8 @@ import java.util.List;
 public interface ForumHistoryViewService extends SkyeyeBusinessService<ForumHistoryView> {
     List<ForumHistoryView> queryMyHistory(String currentUserId);
 
+    void deleteByForumId(String id);
+
 //    List<ForumHistoryView> getHistoryPostById(String userId);
 //
 //    void deleteMyHistoryPost(InputObject inputObject, OutputObject outputObject);
