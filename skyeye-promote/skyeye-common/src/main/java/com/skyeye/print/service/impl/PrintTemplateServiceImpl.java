@@ -6,6 +6,7 @@ package com.skyeye.print.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itextpdf.kernel.geom.PageSize;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -90,10 +91,14 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
 
     @Override
     public void queryPreviewPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String businessData = params.get("businessData").toString();
         // 获取打印数据
-        Map<String, Object> printData = inputObject.getParams().containsKey("printData") ?
-            (Map<String, Object>) inputObject.getParams().get("printData") : new HashMap<>();
+        Map<String, Object> printData = new HashMap<>();
+        if (StrUtil.isNotEmpty(businessData)) {
+            printData = JSONUtil.toBean(businessData, null);
+        }
 
         // 获取模板详情
         PrintTemplate template = selectById(id);

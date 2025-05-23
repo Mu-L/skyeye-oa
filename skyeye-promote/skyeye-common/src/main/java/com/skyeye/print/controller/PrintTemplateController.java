@@ -70,9 +70,10 @@ public class PrintTemplateController {
         printTemplateService.queryPrintTemplateListByPageId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryPreviewPrintTemplateById", value = "生成打印预览", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryPreviewPrintTemplateById", value = "生成打印预览", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "businessData", name = "businessData", value = "业务数据")})
     @RequestMapping("/post/PrintTemplateController/queryPreviewPrintTemplateById")
     public void queryPreviewPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
         printTemplateService.queryPreviewPrintTemplateById(inputObject, outputObject);
