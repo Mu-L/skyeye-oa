@@ -91,16 +91,29 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             JSONObject element = elements.getJSONObject(i);
             PrintElement processedElement = JSON.parseObject(element.toJSONString(), PrintElement.class);
             
+            // 处理定位属性
+            if (processedElement.getX() != null) {
+                processedElement.setMarginLeft(processedElement.getX() + "px");
+            }
+            if (processedElement.getY() != null) {
+                processedElement.setMarginTop(processedElement.getY() + "px");
+            }
+            
             // 处理动态数据
             if (StringUtils.isNotBlank(element.getString("dataField"))) {
                 String dataField = element.getString("dataField");
                 Object value = getValueByPath(data, dataField);
                 processedElement.setContent(value != null ? value.toString() : null);
+            } else if ("text".equals(processedElement.getType()) && StringUtils.isNotBlank(processedElement.getContent())) {
+                // 处理文本内容中的变量
+                String content = processedElement.getContent();
+                processedElement.setContent(parseContentVariables(content, data));
             }
 
             // 处理特殊元素类型
             if ("table".equals(processedElement.getType())) {
                 processTableElement(processedElement, data);
+                processedElement.setPosition("relative");
             } else if ("barcode".equals(processedElement.getType())) {
                 processBarcodeElement(processedElement, data);
             }
@@ -154,5 +167,32 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         }
 
         return current;
+    }
+
+    /**
+     * 解析文本内容中的变量
+     * @param content 原始内容
+     * @param data 数据
+     * @return 解析后的内容
+     */
+    private String parseContentVariables(String content, Map<String, Object> data) {
+        if (content == null || data == null) {
+            return content;
+        }
+
+        // 匹配${xxx}格式的变量
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\$\\{([^}]+)}");
+        java.util.regex.Matcher matcher = pattern.matcher(content);
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            String variable = matcher.group(1);
+            Object value = getValueByPath(data, variable);
+            String replacement = value != null ? value.toString() : "";
+            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 }

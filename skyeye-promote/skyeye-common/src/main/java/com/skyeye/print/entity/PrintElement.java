@@ -19,6 +19,9 @@ public class PrintElement {
     private Integer opacity;
     private ElementShadow shadow;
     private ElementAnimation animation;
+    private String position;  // 定位方式：absolute/relative
+    private String marginLeft; // margin-left值
+    private String marginTop;  // margin-top值
 
     // 文本元素属性
     private Integer fontSize;
