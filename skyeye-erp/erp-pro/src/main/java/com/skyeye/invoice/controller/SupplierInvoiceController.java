@@ -82,7 +82,7 @@ public class SupplierInvoiceController {
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
             @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
-    @RequestMapping("/post/SupplierInvoiceController/submitToApproval")
+    @RequestMapping("/post/SupplierInvoiceController/submitInvoiceToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         invoiceService.submitToApproval(inputObject, outputObject);
     }
@@ -96,7 +96,7 @@ public class SupplierInvoiceController {
     @ApiOperation(id = "invalidInvoice", value = "作废发票信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/SupplierInvoiceController/invalid")
+    @RequestMapping("/post/SupplierInvoiceController/invalidInvoice")
     public void invalid(InputObject inputObject, OutputObject outputObject) {
         invoiceService.invalid(inputObject, outputObject);
     }
@@ -110,7 +110,7 @@ public class SupplierInvoiceController {
     @ApiOperation(id = "revokeInvoice", value = "撤销发票审批", method = "PUT", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
-    @RequestMapping("/post/SupplierInvoiceController/revoke")
+    @RequestMapping("/post/SupplierInvoiceController/revokeInvoice")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         invoiceService.revoke(inputObject, outputObject);
     }

@@ -52,9 +52,9 @@ public class SupplierInvoiceHeaderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeCrmInvoiceHeader", value = "新增/编辑发票抬头信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeErpInvoiceHeader", value = "新增/编辑发票抬头信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SupplierInvoiceHeader.class)
-    @RequestMapping("/post/SupplierInvoiceHeaderController/writeCrmInvoiceHeader")
+    @RequestMapping("/post/SupplierInvoiceHeaderController/writeErpInvoiceHeader")
     public void writeCrmInvoiceHeader(InputObject inputObject, OutputObject outputObject) {
         invoiceHeaderService.saveOrUpdateEntity(inputObject, outputObject);
     }
@@ -79,7 +79,7 @@ public class SupplierInvoiceHeaderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryInvoiceHeaderByObjectId", value = "根据客户id获取发票抬头列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryInvoiceHeaderByObjectId", value = "根据供应商id获取发票抬头列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id")})
     @RequestMapping("/post/SupplierInvoiceHeaderController/queryInvoiceHeaderByObjectId")
