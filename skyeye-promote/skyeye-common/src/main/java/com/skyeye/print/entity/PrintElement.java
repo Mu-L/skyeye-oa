@@ -35,9 +35,11 @@ public class PrintElement {
     private String content;
 
     // 图片元素属性
-    private String src;
-    private String alt;
-    private String fit;
+    private String sourceType;  // 图片来源类型：upload/variable
+    private String url;         // 上传图片的URL
+    private String src;         // 最终的图片URL
+    private String alt;         // 图片替代文本
+    private String fit;         // 图片填充方式
 
     // 表格元素属性
     private Boolean zebra;      // 斑马纹

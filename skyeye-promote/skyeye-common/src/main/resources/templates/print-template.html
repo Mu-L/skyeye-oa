@@ -191,9 +191,14 @@
             </div>
 
             <!-- 图片元素 -->
-            <div th:if="${element.type == 'image'}" th:style="${'object-fit:' + (element.fit ?: 'contain')}">
-                <img th:if="${element.src != null}" th:src="${element.src}" th:alt="${element.alt ?: ''}"
-                    th:style="${'object-fit:' + (element.fit ?: 'contain')}">
+            <div th:if="${element.type == 'image'}" class="image-element">
+                <img th:if="${element.src != null}" 
+                    th:src="${element.src}" 
+                    th:alt="${element.alt ?: ''}"
+                    th:style="${'object-fit:' + (element.fit ?: 'contain') + ';' +
+                             'width:' + (element.fit == 'contain' ? 'auto' : '100%') + ';' +
+                             'height:' + (element.fit == 'contain' ? 'auto' : '100%') + ';'}"
+                    th:onerror="'this.src=\'' + @{/static/images/default-image.png} + '\';this.onerror=null;'">
             </div>
 
             <!-- 表格元素 -->

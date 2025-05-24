@@ -114,6 +114,8 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
                 processedElement.setPosition("relative");
             } else if ("barcode".equals(processedElement.getType())) {
                 processBarcodeElement(processedElement, data);
+            } else if ("image".equals(processedElement.getType())) {
+                processImageElement(processedElement, data);
             }
 
             result.add(processedElement);
@@ -126,7 +128,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         // 处理表格数据源
         if (element.getRows() == null && StringUtils.isNotBlank(element.getValue())) {
             // 解析数据源变量
-            Object tableData = null;
+            Object tableData;
             String content = element.getValue();
 
             // 支持${xxx}格式的变量
@@ -167,6 +169,40 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             if (value != null) {
                 element.setValue(value.toString());
             }
+        }
+    }
+
+    private void processImageElement(PrintElement element, Map<String, Object> data) {
+        // 根据图片来源类型处理
+        String sourceType = element.getSourceType();
+
+        if ("upload".equals(sourceType)) {
+            // 上传图片，直接使用url
+            element.setSrc(element.getUrl());
+        } else if ("variable".equals(sourceType)) {
+            // 变量图片，从数据中获取
+            if (StringUtils.isNotBlank(element.getValue())) {
+                String content = element.getValue();
+                Object imageData;
+
+                // 支持${xxx}格式的变量
+                if (content.startsWith("${") && content.endsWith("}")) {
+                    String variable = content.substring(2, content.length() - 1);
+                    imageData = getValueByPath(data, variable);
+                } else {
+                    imageData = getValueByPath(data, content);
+                }
+
+                // 设置图片src
+                if (imageData != null) {
+                    element.setSrc(imageData.toString());
+                }
+            }
+        }
+
+        // 设置图片填充方式
+        if (StringUtils.isBlank(element.getFit())) {
+            element.setFit("contain"); // 默认填充方式
         }
     }
 
