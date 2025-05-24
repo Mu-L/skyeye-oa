@@ -79,9 +79,10 @@ public class PrintTemplateController {
         printTemplateService.queryPreviewPrintTemplateById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "generatePdfPrintTemplateById", value = "生成PDF", method = "GET", allUse = "2")
+    @ApiOperation(id = "generatePdfPrintTemplateById", value = "生成PDF", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "businessData", name = "businessData", value = "业务数据")})
     @RequestMapping("/post/PrintTemplateController/generatePdfPrintTemplateById")
     public void generatePdfPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
         printTemplateService.generatePdfPrintTemplateById(inputObject, outputObject);

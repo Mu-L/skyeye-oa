@@ -135,9 +135,14 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
 
     @Override
     public void generatePdfPrintTemplateById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        // 获取打印数据--这里mock一下，实际场景中应该从接口获取打印数据
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String businessData = params.get("businessData").toString();
+        // 获取打印数据
         Map<String, Object> printData = new HashMap<>();
+        if (StrUtil.isNotEmpty(businessData)) {
+            printData = JSONUtil.toBean(businessData, null);
+        }
 
         // 获取模板详情
         PrintTemplate template = selectById(id);
