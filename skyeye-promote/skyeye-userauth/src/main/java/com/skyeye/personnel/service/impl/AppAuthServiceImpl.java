@@ -13,6 +13,7 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.*;
 import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.authority.service.SysAuthorityService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
@@ -180,6 +181,8 @@ public class AppAuthServiceImpl implements AppAuthService {
             } else {
                 // 平台租户，获取所有权限点(包括PC端和移动端)
             }
+            // 转成树结构
+            authPointList = ToolUtil.listToTree(authPointList, "id", "parentId", "children");
             jedisClientService.set(cacheKey, JSON.toJSONString(authPointList));
         }
         user.put("isAdmin", isAdmin ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
