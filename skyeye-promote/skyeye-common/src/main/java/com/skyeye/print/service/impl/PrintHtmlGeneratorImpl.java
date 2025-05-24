@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.skyeye.exception.CustomException;
 import com.skyeye.print.entity.PrintElement;
 import com.skyeye.print.entity.PrintTemplate;
+import com.skyeye.print.entity.TableColumn;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +20,7 @@ import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @ClassName: PrintHtmlGeneratorImpl
@@ -90,7 +88,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         for (int i = 0; i < elements.size(); i++) {
             JSONObject element = elements.getJSONObject(i);
             PrintElement processedElement = JSON.parseObject(element.toJSONString(), PrintElement.class);
-            
+
             // 处理定位属性
             if (processedElement.getX() != null) {
                 processedElement.setMarginLeft(processedElement.getX() + "px");
@@ -98,7 +96,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             if (processedElement.getY() != null) {
                 processedElement.setMarginTop(processedElement.getY() + "px");
             }
-            
+
             // 处理动态数据
             if (StringUtils.isNotBlank(element.getString("dataField"))) {
                 String dataField = element.getString("dataField");
@@ -126,12 +124,38 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
 
     private void processTableElement(PrintElement element, Map<String, Object> data) {
         // 处理表格数据源
-        if (element.getRows() == null && StringUtils.isNotBlank(element.getContent())) {
-            Object tableData = getValueByPath(data, element.getContent());
-            if (tableData instanceof List) {
+        if (element.getRows() == null && StringUtils.isNotBlank(element.getValue())) {
+            // 解析数据源变量
+            Object tableData = null;
+            String content = element.getValue();
+
+            // 支持${xxx}格式的变量
+            if (content.startsWith("${") && content.endsWith("}")) {
+                String variable = content.substring(2, content.length() - 1);
+                tableData = getValueByPath(data, variable);
+            } else {
+                tableData = getValueByPath(data, content);
+            }
+
+            // 设置表格数据
+            if (tableData instanceof List && element.getColumns() != null) {
                 @SuppressWarnings("unchecked")
-                List<Map<String, Object>> rows = (List<Map<String, Object>>) tableData;
-                element.setRows(rows);
+                List<Map<String, Object>> sourceRows = (List<Map<String, Object>>) tableData;
+                List<Map<String, Object>> processedRows = new ArrayList<>();
+
+                // 根据列配置处理每一行数据
+                for (Map<String, Object> sourceRow : sourceRows) {
+                    Map<String, Object> processedRow = new HashMap<>();
+                    for (TableColumn column : element.getColumns()) {
+                        if (StringUtils.isNotBlank(column.getField())) {
+                            // 解析字段内容中的变量
+                            String fieldContent = parseContentVariables(column.getField(), sourceRow);
+                            processedRow.put(column.getField(), fieldContent);
+                        }
+                    }
+                    processedRows.add(processedRow);
+                }
+                element.setRows(processedRows);
             }
         }
     }
@@ -171,8 +195,9 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
 
     /**
      * 解析文本内容中的变量
+     *
      * @param content 原始内容
-     * @param data 数据
+     * @param data    数据
      * @return 解析后的内容
      */
     private String parseContentVariables(String content, Map<String, Object> data) {

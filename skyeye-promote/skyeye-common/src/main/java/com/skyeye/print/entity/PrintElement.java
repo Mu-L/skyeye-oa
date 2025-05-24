@@ -2,6 +2,8 @@ package com.skyeye.print.entity;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author skyeye云系列--卫志强
  * @description 打印元素基础实体类
@@ -22,6 +24,7 @@ public class PrintElement {
     private String position;  // 定位方式：absolute/relative
     private String marginLeft; // margin-left值
     private String marginTop;  // margin-top值
+    private String value;  // 组件元素绑定的键。如果：图片组件、条码组件、表格组件等，该属性为必填项。
 
     // 文本元素属性
     private Integer fontSize;
@@ -37,14 +40,13 @@ public class PrintElement {
     private String fit;
 
     // 表格元素属性
-    private Boolean zebra;
-    private Integer rowHeight;
-    private Boolean showHeader;
-    private java.util.List<TableColumn> columns;
-    private java.util.List<java.util.Map<String, Object>> rows;
+    private Boolean zebra;      // 斑马纹
+    private Integer rowHeight;  // 行高
+    private Boolean showHeader; // 显示表头
+    private List<TableColumn> columns; // 列配置
+    private transient java.util.List<java.util.Map<String, Object>> rows; // 运行时数据，不序列化
 
     // 条码元素属性
-    private String value;
     private String barcodeType;
     private String format;
     private String foreground;
@@ -69,13 +71,3 @@ class ElementAnimation {
     private Integer duration;
     private Integer delay;
 }
-
-@Data
-class TableColumn {
-    private String field;
-    private String title;
-    private String width;
-    private String align;
-    private Integer fontSize;
-    private Boolean wrap;
-} 
