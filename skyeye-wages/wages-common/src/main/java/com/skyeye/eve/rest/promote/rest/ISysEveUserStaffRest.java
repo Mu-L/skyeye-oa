@@ -9,6 +9,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Map;
+
 @FeignClient(value = "${webroot.skyeye-pro}", configuration = ClientConfiguration.class)
 public interface ISysEveUserStaffRest {
 
@@ -20,4 +22,14 @@ public interface ISysEveUserStaffRest {
      */
     @PostMapping("/queryTenantUserStaffIdByTenantId")
     String queryTenantUserStaffIdByTenantId(@RequestParam("tenantId") String tenantId);
+
+    /**
+     * 修改员工薪资设定信息
+     *
+     * @param params 参数信息：
+     *               staffId：员工id--必填
+     *               actMoney：实际薪资--必填
+     */
+    @PostMapping("/editSysUserStaffActMoneyById")
+    String editSysUserStaffActMoneyById(Map<String, Object> params);
 }

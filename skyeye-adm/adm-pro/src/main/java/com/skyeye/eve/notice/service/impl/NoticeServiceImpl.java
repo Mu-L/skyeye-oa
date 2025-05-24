@@ -12,6 +12,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.*;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -20,6 +21,7 @@ import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.notice.classenum.NoticeRealLinesType;
@@ -35,6 +37,7 @@ import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -63,6 +66,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Autowired
     private NoticeUserService noticeUserService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -235,12 +241,17 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     }
 
     @Override
+    @IgnoreTenant
     public void queryUserReceivedTopNotice(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(CommonNumConstants.NUM_ONE, CommonNumConstants.NUM_EIGHT);
         pageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
         pageInfo.setObjectId(inputObject.getLogParams().get("id").toString());
         pageInfo.setState(NoticeState.UP.getKey().toString());
+        if (tenantEnable) {
+            // 多租户模式下，过滤当前租户的公告
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryNoticeList(pageInfo);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         String serviceClassName = getServiceClassName();

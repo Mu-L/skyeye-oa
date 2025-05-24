@@ -12,4 +12,12 @@ public interface ISysEveUserStaffService extends IService {
 
     List<String> queryTenantUserStaffIdByTenantId(String tenantId);
 
+    /**
+     * 修改员工薪资设定信息
+     *
+     * @param staffId  员工id
+     * @param actMoney 员工实际薪资
+     */
+    void editSysUserStaffActMoneyById(String staffId, String actMoney);
+
 }
