@@ -127,7 +127,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
             if (isWindows) {
                 // Windows加载方式
-                String winPath = "E:\\cangku_houduan\\skyeye\\images\\util\\checkwork\\jniortools.dll";
+                String winPath = "D:\\xiangmu\\SkyeyeGit\\images\\util\\checkwork\\jniortools.dll";
                 System.load(winPath);
             } else {
                 // Linux加载方式

@@ -1,6 +1,7 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -120,8 +121,12 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     @Override
     public void querySchedulingShiftsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getShiftName), keyword);
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingShifts::getCreateTime));
         List<SchedulingShifts> schedulingShiftsList = list(queryWrapper);
         Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShiftsList.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
@@ -131,6 +136,16 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
             v.get(0).setSchedulingShiftsTimeMation(timeMapList.get(k));
         });
         List<SchedulingShifts> allShifts = schedulingShiftsMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
+//        List<String> createIds = allShifts.stream().map(SchedulingShifts::getCreateId).collect(Collectors.toList());
+//        Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserNameList(createIds);
+//        allShifts.forEach(shifts -> {
+//            Map<String, Object> stringObjectMap = stringMapMap.get(shifts.getCreateId());
+//            if (ObjectUtil.isNotEmpty(stringObjectMap)) {
+//                shifts.setCreateMation(stringObjectMap);
+//            }
+//        });
+        iAuthUserService.setName(allShifts, "createId", "createName");
+        iAuthUserService.setName(allShifts, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(allShifts);
         outputObject.settotal(page.getTotal());
 

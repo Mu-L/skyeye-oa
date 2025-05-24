@@ -20,7 +20,7 @@ public class SchedulingShiftsController {
     @Autowired
     private SchedulingShiftsService schedulingShiftsService;
 
-    @ApiOperation(id = "writeSchedulingShifts", value = "新增班次", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeSchedulingShifts", value = "新增/编辑班次", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SchedulingShifts.class)
     @RequestMapping("/post/SchedulingShiftsController/writeSchedulingShifts")
     public void writeSchedulingShifts(InputObject inputObject, OutputObject outputObject) {
