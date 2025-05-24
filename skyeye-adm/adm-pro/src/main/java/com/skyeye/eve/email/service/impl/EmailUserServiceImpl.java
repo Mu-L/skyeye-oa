@@ -5,6 +5,7 @@
 package com.skyeye.eve.email.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -19,8 +20,8 @@ import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.email.dao.EmailUserDao;
 import com.skyeye.eve.email.entity.EmailUser;
-import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.email.service.EmailUserService;
+import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
 import com.skyeye.exception.CustomException;
@@ -83,13 +84,21 @@ public class EmailUserServiceImpl extends SkyeyeBusinessServiceImpl<EmailUserDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(EmailUser::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(EmailUser::getEmailCheck), WhetherEnum.ENABLE_USING.getKey());
         EmailUser checkItem = getOne(queryWrapper, false);
-        if (ObjectUtil.isNotEmpty(checkItem)) {
+        if (ObjectUtil.isEmpty(checkItem)) {
             entity.setEmailCheck(WhetherEnum.ENABLE_USING.getKey());
         } else {
             entity.setEmailCheck(WhetherEnum.DISABLE_USING.getKey());
         }
         entity.setCreateId(userId);
         entity.setCreateTime(DateUtil.getTimeAndToString());
+    }
+
+    @Override
+    protected void deletePreExecution(EmailUser entity) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        if (!StrUtil.equals(entity.getCreateId(), userId)) {
+            throw new CustomException("只能删除自己绑定的邮箱信息。");
+        }
     }
 
     /**

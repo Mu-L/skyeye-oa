@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 /**
@@ -43,7 +44,7 @@ public class EmailUser extends CommonInfo {
     private String emailPassword;
 
     @TableField("email_check")
-    @Property(value = "当前用户默认设置的email，参考#WhetherEnum")
+    @Property(value = "当前用户默认设置的email", enumClass = WhetherEnum.class)
     private Integer emailCheck;
 
     @TableField("create_id")

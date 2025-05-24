@@ -31,24 +31,12 @@ public class EmailUserController {
     @Autowired
     private EmailUserService emailUserService;
 
-    /**
-     * 根据用户获取该用户绑定的邮箱信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEmailListByUserId", value = "获取指定年度的客户新增量，联系人新增量", method = "GET", allUse = "2")
     @RequestMapping("/post/EmailUserController/queryEmailListByUserId")
     public void queryEmailListByUserId(InputObject inputObject, OutputObject outputObject) {
         emailUserService.queryEmailListByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 添加邮箱信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "createEmailUser", value = "添加邮箱信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailUser.class)
     @RequestMapping("/post/EmailUserController/createEmailUser")
@@ -56,12 +44,14 @@ public class EmailUserController {
         emailUserService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 从服务器上获取收件箱里的邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "deleteEmailUserById", value = "删除邮箱绑定信息", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/EmailUserController/deleteEmailUserById")
+    public void deleteEmailUserById(InputObject inputObject, OutputObject outputObject) {
+        emailUserService.deleteById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "useremail003", value = "从服务器上获取收件箱里的邮件", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "emailUserId", name = "emailUserId", value = "用户绑定的邮箱id", required = "required")})
@@ -70,12 +60,6 @@ public class EmailUserController {
         emailUserService.insertEmailListFromServiceByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 从服务器上获取已发送邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail006", value = "从服务器上获取已发送邮件", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "emailUserId", name = "emailUserId", value = "用户绑定的邮箱id", required = "required")})
@@ -84,12 +68,6 @@ public class EmailUserController {
         emailUserService.insertSendedEmailListFromServiceByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 从服务器上获取已删除邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail008", value = "从服务器上获取已删除邮件", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "emailUserId", name = "emailUserId", value = "用户绑定的邮箱id", required = "required")})
@@ -98,12 +76,6 @@ public class EmailUserController {
         emailUserService.insertDelsteEmailListFromServiceByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 从服务器上获取草稿箱邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail010", value = "从服务器上获取草稿箱邮件", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "emailUserId", name = "emailUserId", value = "用户绑定的邮箱id", required = "required")})

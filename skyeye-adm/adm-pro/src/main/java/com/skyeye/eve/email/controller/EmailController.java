@@ -32,12 +32,6 @@ public class EmailController {
     @Autowired
     private EmailService emailService;
 
-    /**
-     * 获取我的收件箱内容
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail004", value = "获取我的收件箱内容", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EmailController/queryInboxEmailListByEmailId")
@@ -45,12 +39,6 @@ public class EmailController {
         emailService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的已发送邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail007", value = "获取我的已发送邮件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EmailController/querySendedEmailListByEmailId")
@@ -58,12 +46,6 @@ public class EmailController {
         emailService.querySendedEmailListByEmailId(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的已删除邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail009", value = "获取我的已删除邮件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EmailController/queryDeleteEmailListByEmailId")
@@ -71,12 +53,6 @@ public class EmailController {
         emailService.queryDeleteEmailListByEmailId(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的草稿箱邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail011", value = "获取我的草稿箱邮件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EmailController/queryDraftsEmailListByEmailId")
@@ -84,12 +60,6 @@ public class EmailController {
         emailService.queryDraftsEmailListByEmailId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询邮件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail005", value = "根据id查询邮件信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -98,12 +68,6 @@ public class EmailController {
         emailService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 发送邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail012", value = "发送邮件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertToSendEmailMationByUserId")
@@ -111,12 +75,6 @@ public class EmailController {
         emailService.insertToSendEmailMationByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 保存邮件为草稿
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail013", value = "保存邮件为草稿", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertToDraftsEmailMationByUserId")
@@ -124,12 +82,6 @@ public class EmailController {
         emailService.insertToDraftsEmailMationByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 草稿邮件修改
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail015", value = "草稿邮件修改", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/editToDraftsEmailMationByUserId")
@@ -137,12 +89,6 @@ public class EmailController {
         emailService.editToDraftsEmailMationByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 草稿箱邮件发送
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail016", value = "保存邮件为草稿", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertToSendEmailMationByEmailId")
@@ -150,12 +96,6 @@ public class EmailController {
         emailService.insertToSendEmailMationByEmailId(inputObject, outputObject);
     }
 
-    /**
-     * 转发邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "useremail019", value = "保存邮件为草稿", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertForwardToSendEmailMationByUserId")
