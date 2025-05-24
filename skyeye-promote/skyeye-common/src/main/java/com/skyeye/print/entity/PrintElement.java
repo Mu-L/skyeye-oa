@@ -25,9 +25,9 @@ public class PrintElement {
     private String marginLeft; // margin-left值
     private String marginTop;  // margin-top值
     private String value;  // 组件元素绑定的键。如果：图片组件、条码组件、表格组件等，该属性为必填项。
+    private Integer fontSize;  // 字体大小
 
     // 文本元素属性
-    private Integer fontSize;
     private Boolean bold;
     private Boolean italic;
     private Boolean underline;
@@ -49,12 +49,15 @@ public class PrintElement {
     private transient java.util.List<java.util.Map<String, Object>> rows; // 运行时数据，不序列化
 
     // 条码元素属性
-    private String barcodeType;
-    private String format;
-    private String foreground;
-    private String background;
-    private String errorLevel;
-    private Boolean showLabel;
+    private String barcodeType;    // 条码类型：barcode/qrcode
+    private String format;         // 条码格式：CODE128/CODE39/EAN13等
+    private String foreground;     // 前景色
+    private String background;     // 背景色
+    private String errorLevel;     // 二维码纠错级别：L/M/Q/H
+    private Boolean showLabel;     // 是否显示文本
+    private String textPosition;   // 文本位置：bottom/top
+    private Integer barWidth;      // 条码宽度
+    private String valueType;      // 条码值类型：variable/static
 }
 
 @Data

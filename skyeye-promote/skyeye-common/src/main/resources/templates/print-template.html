@@ -70,16 +70,50 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 5px;
+            box-sizing: border-box;
         }
 
         .barcode-element img {
             max-width: 100%;
-            max-height: 100%;
+            max-height: calc(100% - 20px);
+            object-fit: contain;
+            background-color: inherit;
         }
 
         .barcode-text {
             margin-top: 5px;
             font-size: 12px;
+            text-align: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .barcode-element.top-text {
+            flex-direction: column-reverse;
+        }
+
+        .barcode-element.top-text .barcode-text {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .qrcode-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qrcode-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
         /* 动画效果 */
@@ -170,8 +204,8 @@
                 (element.animation?.type == 'slide' && element.animation.direction == 'right' ? ' slide-in-right' : 
                 (element.animation?.type == 'scale' ? ' scale-in' : ''))))}"
             th:style="${'position:' + (element.position ?: 'absolute') + ';' +
-                     'margin-left:' + (element.marginLeft ?: '0') + ';' +
-                     'margin-top:' + (element.marginTop ?: '0') + ';' +
+                     'left:' + (element.marginLeft ?: '0') + ';' +
+                     'top:' + (element.marginTop ?: '0') + ';' +
                      'width:' + element.width + 'px;' + 
                      'height:' + element.height + 'px;' + 
                      'transform:rotate(' + (element.rotate ?: 0) + 'deg);' +
@@ -197,8 +231,7 @@
                     th:alt="${element.alt ?: ''}"
                     th:style="${'object-fit:' + (element.fit ?: 'contain') + ';' +
                              'width:' + (element.fit == 'contain' ? 'auto' : '100%') + ';' +
-                             'height:' + (element.fit == 'contain' ? 'auto' : '100%') + ';'}"
-                    th:onerror="'this.src=\'' + @{/static/images/default-image.png} + '\';this.onerror=null;'">
+                             'height:' + (element.fit == 'contain' ? 'auto' : '100%') + ';'}">
             </div>
 
             <!-- 表格元素 -->
@@ -230,17 +263,27 @@
             </div>
 
             <!-- 条码元素 -->
-            <div th:if="${element.type == 'barcode'}" class="barcode-element"
-                th:style="${'background-color:' + (element.background ?: 'white')}">
-                <img th:if="${element.value != null}" 
-                    th:src="${'/api/print/barcode?value=' + element.value + 
-                           '&type=' + (element.barcodeType ?: 'CODE128') +
-                           '&format=' + (element.format ?: '') +
-                           '&foreground=' + (element.foreground ?: 'black') +
-                           '&errorLevel=' + (element.errorLevel ?: 'M')}"
-                    th:style="${'max-width:100%;max-height:' + (element.showLabel ? '85%' : '100%')}" />
+            <div th:if="${element.type == 'barcode'}" 
+                th:class="${'barcode-element' + (element.textPosition == 'top' ? ' top-text' : '')}"
+                th:style="${'background-color:' + (element.background ?: '#ffffff')}">
+                <!-- 一维码 -->
+                <div th:if="${element.barcodeType == 'barcode'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                    <img th:if="${element.value != null}" 
+                        th:src="${element.value}"
+                        th:style="${'max-width:100%;max-height:' + (element.height != null ? (element.height - (element.showLabel ? 20 : 0)) : '100') + 'px;' +
+                                 'object-fit:contain;' +
+                                 'margin:' + (element.margin ?: 5) + 'px;'}" />
+                </div>
+                <!-- 二维码 -->
+                <div th:if="${element.barcodeType == 'qrcode'}" class="qrcode-wrapper">
+                    <img th:if="${element.value != null}" 
+                        th:src="${element.value}"
+                        style="max-width:100%;max-height:100%;object-fit:contain;" />
+                </div>
+                <!-- 条码文本 -->
                 <div th:if="${element.showLabel}" class="barcode-text"
-                    th:style="${'color:' + (element.foreground ?: 'black')}"
+                    th:style="${'color:' + (element.foreground ?: '#000000') + ';' +
+                             'font-size:' + (element.fontSize ?: 14) + 'px;'}"
                     th:text="${element.value}">
                 </div>
             </div>

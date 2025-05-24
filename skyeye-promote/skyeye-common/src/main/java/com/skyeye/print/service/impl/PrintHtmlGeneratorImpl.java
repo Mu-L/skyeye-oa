@@ -4,9 +4,13 @@
 
 package com.skyeye.print.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.skyeye.common.util.BarCodeUtil;
+import com.skyeye.common.util.ImagesUtil;
+import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.print.entity.PrintElement;
 import com.skyeye.print.entity.PrintTemplate;
@@ -14,7 +18,6 @@ import com.skyeye.print.entity.TableColumn;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
@@ -98,11 +101,11 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             }
 
             // 处理动态数据
-            if (StringUtils.isNotBlank(element.getString("dataField"))) {
+            if (StrUtil.isNotBlank(element.getString("dataField"))) {
                 String dataField = element.getString("dataField");
                 Object value = getValueByPath(data, dataField);
                 processedElement.setContent(value != null ? value.toString() : null);
-            } else if ("text".equals(processedElement.getType()) && StringUtils.isNotBlank(processedElement.getContent())) {
+            } else if ("text".equals(processedElement.getType()) && StrUtil.isNotBlank(processedElement.getContent())) {
                 // 处理文本内容中的变量
                 String content = processedElement.getContent();
                 processedElement.setContent(parseContentVariables(content, data));
@@ -126,7 +129,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
 
     private void processTableElement(PrintElement element, Map<String, Object> data) {
         // 处理表格数据源
-        if (element.getRows() == null && StringUtils.isNotBlank(element.getValue())) {
+        if (element.getRows() == null && StrUtil.isNotBlank(element.getValue())) {
             // 解析数据源变量
             Object tableData;
             String content = element.getValue();
@@ -149,7 +152,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
                 for (Map<String, Object> sourceRow : sourceRows) {
                     Map<String, Object> processedRow = new HashMap<>();
                     for (TableColumn column : element.getColumns()) {
-                        if (StringUtils.isNotBlank(column.getField())) {
+                        if (StrUtil.isNotBlank(column.getField())) {
                             // 解析字段内容中的变量
                             String fieldContent = parseContentVariables(column.getField(), sourceRow);
                             processedRow.put(column.getField(), fieldContent);
@@ -163,11 +166,82 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
     }
 
     private void processBarcodeElement(PrintElement element, Map<String, Object> data) {
-        // 处理条码数据
-        if (StringUtils.isBlank(element.getValue()) && StringUtils.isNotBlank(element.getContent())) {
-            Object value = getValueByPath(data, element.getContent());
-            if (value != null) {
-                element.setValue(value.toString());
+        // 处理条码值
+        if (StrUtil.isNotBlank(element.getValue())) {
+            // 变量类型，解析变量
+            String value = element.getValue();
+            if (value.startsWith("${") && value.endsWith("}")) {
+                element.setValueType("variable");
+                String variable = value.substring(2, value.length() - 1);
+                Object barcodeValue = getValueByPath(data, variable);
+                if (barcodeValue != null) {
+                    element.setValue(barcodeValue.toString());
+                }
+            }
+        }
+
+        // 设置默认值
+        if (StrUtil.isBlank(element.getValueType())) {
+            element.setValueType("static"); // 默认为静态值
+        }
+        if (StrUtil.isBlank(element.getBarcodeType())) {
+            element.setBarcodeType("barcode");
+        }
+        if (StrUtil.isBlank(element.getFormat())) {
+            element.setFormat("CODE128");
+        }
+        if (StrUtil.isBlank(element.getForeground())) {
+            element.setForeground("#000000");
+        }
+        if (StrUtil.isBlank(element.getBackground())) {
+            element.setBackground("#ffffff");
+        }
+        if (StrUtil.isBlank(element.getErrorLevel())) {
+            element.setErrorLevel("M");
+        }
+        if (element.getBarWidth() == null) {
+            element.setBarWidth(2);
+        }
+        if (element.getFontSize() == null) {
+            element.setFontSize(14);
+        }
+        if (StrUtil.isBlank(element.getTextPosition())) {
+            element.setTextPosition("bottom");
+        }
+
+        // 生成Base64字符串
+        if (StrUtil.isNotBlank(element.getValue())) {
+            String base64;
+            Integer width = Integer.parseInt(element.getWidth().replace("px", "").trim());
+            Integer height = Integer.parseInt(element.getHeight().replace("px", "").trim());
+            if ("barcode".equals(element.getBarcodeType())) {
+                // 生成一维码Base64
+                base64 = BarCodeUtil.generateBarcodeBase64(
+                    element.getValue(),
+                    element.getBarWidth(),
+                    height - (element.getShowLabel() ? 20 : 0),
+                    element.getFormat(),
+                    element.getForeground(),
+                    element.getBackground(),
+                    element.getShowLabel(),
+                    element.getFontSize(),
+                    5 // 固定边距
+                );
+            } else {
+                // 生成二维码Base64
+                base64 = QRCodeLogoUtil.generateQRCodeBase64(
+                    element.getValue(),
+                    Math.min(width, height),
+                    element.getForeground(),
+                    element.getBackground(),
+                    element.getErrorLevel(),
+                    1 // 固定边距
+                );
+            }
+
+            // 设置生成的Base64字符串
+            if (StrUtil.isNotBlank(base64)) {
+                element.setValue(base64);
             }
         }
     }
@@ -181,7 +255,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             element.setSrc(element.getUrl());
         } else if ("variable".equals(sourceType)) {
             // 变量图片，从数据中获取
-            if (StringUtils.isNotBlank(element.getValue())) {
+            if (StrUtil.isNotBlank(element.getValue())) {
                 String content = element.getValue();
                 Object imageData;
 
@@ -200,14 +274,19 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             }
         }
 
+        if (StrUtil.isBlank(element.getSrc())) {
+            String base64 = ImagesUtil.urlToBase64(element.getUrl());
+            element.setSrc(base64);
+        }
+
         // 设置图片填充方式
-        if (StringUtils.isBlank(element.getFit())) {
+        if (StrUtil.isBlank(element.getFit())) {
             element.setFit("contain"); // 默认填充方式
         }
     }
 
     private Object getValueByPath(Map<String, Object> data, String path) {
-        if (data == null || StringUtils.isBlank(path)) {
+        if (data == null || StrUtil.isBlank(path)) {
             return null;
         }
 
