@@ -31,67 +31,31 @@ public class ActivitiProcessController {
     @Autowired
     private ActivitiProcessService activitiProcessService;
 
-    /**
-     * 流程挂起
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiProcessController/updateProcessToHangUp")
     public void updateProcessToHangUp(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.updateProcessToHangUp(inputObject, outputObject);
     }
 
-    /**
-     * 流程激活
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiProcessController/updateProcessToActivation")
     public void updateProcessToActivation(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.updateProcessToActivation(inputObject, outputObject);
     }
 
-    /**
-     * 流程撤回
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiProcessController/editProcessInstanceWithDraw")
     public void editProcessInstanceWithDraw(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.editProcessInstanceWithDraw(inputObject, outputObject);
     }
 
-    /**
-     * 刷新流程图
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiProcessController/editProcessInstancePicToRefresh")
     public void editProcessInstancePicToRefresh(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.editProcessInstancePicToRefresh(inputObject, outputObject);
     }
 
-    /**
-     * 获取流程下一个节点的审批人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiProcessController/nextPrcessApprover")
     public void nextPrcessApprover(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.nextPrcessApprover(inputObject, outputObject);
     }
 
-    /**
-     * 启动流程时获取流程下一个用户节点的审批人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiProcess002", value = "启动流程时获取流程下一个用户节点的审批人", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "actKey", name = "actKey", value = "工作流模型的key", required = "required"),
@@ -101,12 +65,6 @@ public class ActivitiProcessController {
         activitiProcessService.nextPrcessApproverByProcessDefinitionKey(inputObject, outputObject);
     }
 
-    /**
-     * 启动流程--基础服务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "startProcess", value = "启动流程", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = FlowableSubData.class)
     @RequestMapping("/post/ActivitiProcessController/startProcess")
@@ -114,12 +72,6 @@ public class ActivitiProcessController {
         activitiProcessService.startProcess(inputObject, outputObject);
     }
 
-    /**
-     * 撤销流程
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeProcess", value = "撤销流程", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -128,12 +80,6 @@ public class ActivitiProcessController {
         activitiProcessService.revokeProcess(inputObject, outputObject);
     }
 
-    /**
-     * 根据流程实例id获取流程信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryProcessInstance", value = "根据流程实例id获取流程信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

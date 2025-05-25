@@ -73,7 +73,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         if (StringUtils.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
-        AttrDefinition checkAttrDefinition = getOne(queryWrapper);
+        AttrDefinition checkAttrDefinition = getOne(queryWrapper, false);
         if (ObjectUtil.isNotEmpty(checkAttrDefinition)) {
             throw new CustomException("该属性键已存在.");
         }
