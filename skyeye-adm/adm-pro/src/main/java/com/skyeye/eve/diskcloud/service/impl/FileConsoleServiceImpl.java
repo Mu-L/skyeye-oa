@@ -15,6 +15,7 @@ import com.artofsolving.jodconverter.openoffice.converter.OpenOfficeDocumentConv
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -23,6 +24,7 @@ import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.BytesUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
@@ -33,9 +35,9 @@ import com.skyeye.eve.diskcloud.classenum.DickCloudType;
 import com.skyeye.eve.diskcloud.classenum.FileType;
 import com.skyeye.eve.diskcloud.classenum.FolderType;
 import com.skyeye.eve.diskcloud.dao.FileConsoleDao;
-import com.skyeye.eve.diskcloud.service.FileCatalogService;
 import com.skyeye.eve.diskcloud.entity.FileCatalog;
 import com.skyeye.eve.diskcloud.entity.FileConsole;
+import com.skyeye.eve.diskcloud.service.FileCatalogService;
 import com.skyeye.eve.diskcloud.service.FileConsoleService;
 import com.skyeye.exception.CustomException;
 import nl.siegmann.epublib.domain.Book;
@@ -90,6 +92,9 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
 
     @Value("${server.port}")
     private String sysPort;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileConsoleServiceImpl.class);
 
@@ -162,6 +167,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryFilesListByFolderId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
@@ -170,6 +176,10 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
         map.put("folderType", this.getFolderType(folderId));
         map.put("deleteFlag", DeleteFlagEnum.NOT_DELETE.getKey());
         this.setOrderByParams(map);
+        if (tenantEnable) {
+            // 多租户模式
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = fileConsoleDao.queryFilesListByFolderId(map);
         iAuthUserService.setNameForMap(beans, "createId", "createName");
         for (Map<String, Object> bean : beans) {

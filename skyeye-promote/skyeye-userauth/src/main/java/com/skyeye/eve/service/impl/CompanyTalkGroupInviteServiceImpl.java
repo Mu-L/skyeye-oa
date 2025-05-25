@@ -147,8 +147,6 @@ public class CompanyTalkGroupInviteServiceImpl extends SkyeyeBusinessServiceImpl
         companyTalkGroupUserService.createEntity(companyTalkGroupUser, StrUtil.EMPTY);
         // 删除群组成员缓存
         jedisClientService.del(Constants.checkSysEveTalkGroupUserListByGroupId(companyTalkGroupInvite.getGroupId()));
-        // 删除该用户在redis中存储的群组列表信息
-        jedisClientService.del(Constants.getSysTalkUserHasGroupListMationById(companyTalkGroupUser.getUserId()));
 
         Map<String, Object> result = JSONUtil.toBean(JSONUtil.toJsonStr(companyTalkGroup), null);
         result.put("inGroupType", companyTalkGroupInvite.getInGroupType());

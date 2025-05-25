@@ -4,17 +4,25 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
 
 public interface CompanyChatDao {
 
+    @IgnoreTenant
     Map<String, Object> queryUserMineByUserId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyDepartmentByUserId(Map<String, Object> map);
 
-    List<Map<String, Object>> queryDepartmentUserByDepartId(Map<String, Object> depart);
+    @IgnoreTenant
+    List<Map<String, Object>> queryDepartmentUserByDepartId(@Param("departIds") List<String> departIds,
+                                                            @Param("notInUserIds") List<String> notInUserIds);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryUserGroupByUserId(Map<String, Object> map);
 
     int editUserSignByUserId(Map<String, Object> map);

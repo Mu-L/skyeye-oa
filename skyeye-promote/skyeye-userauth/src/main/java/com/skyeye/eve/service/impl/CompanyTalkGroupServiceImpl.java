@@ -99,9 +99,6 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
         groupUser.setGroupId(entity.getId());
         groupUser.setCreateTime(DateUtil.getTimeAndToString());
         companyTalkGroupUserService.createEntity(groupUser, userId);
-
-        // 删除该用户在redis中存储的群组列表信息
-        jedisClientService.del(Constants.getSysTalkUserHasGroupListMationById(userId));
     }
 
     @Override
@@ -213,8 +210,6 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
         companyTalkGroupUserService.deleteByGroupIdAndUserId(groupId, userId);
         // 删除群组成员缓存
         jedisClientService.del(Constants.checkSysEveTalkGroupUserListByGroupId(groupId));
-        // 删除该用户在redis中存储的群组列表信息
-        jedisClientService.del(Constants.getSysTalkUserHasGroupListMationById(userId));
     }
 
     @Override
@@ -230,15 +225,8 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
         if (!StrUtil.equals(companyTalkGroup.getCreateId(), userId)) {
             outputObject.setreturnMessage("您不是该群聊的创建人，无法退群，请进行退出群聊操作。");
         }
-        List<CompanyTalkGroupUser> companyTalkGroupUsers = companyTalkGroupUserService.selectByGroupId(groupId);
-        companyTalkGroupUsers.forEach(groupUser -> {
-            // 删除该用户在redis中存储的群组列表信息
-            jedisClientService.del(Constants.getSysTalkUserHasGroupListMationById(groupUser.getUserId()));
-        });
         // 删除群组成员缓存
         jedisClientService.del(Constants.checkSysEveTalkGroupUserListByGroupId(groupId));
-        // 删除该用户在redis中存储的群组列表信息
-        jedisClientService.del(Constants.getSysTalkUserHasGroupListMationById(userId));
         dissolvedGroup(groupId);
     }
 

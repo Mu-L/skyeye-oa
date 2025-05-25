@@ -648,8 +648,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         Map<String, Object> user = inputObject.getLogParams();
         map.put("userId", user.get("id"));
         sysEveUserDao.editUserDetailsMationByUserId(map);
-        // 删除用户在redis中存储的信息
-        jedisClientService.del(Constants.getSysTalkUserThisMainMationById(user.get("id").toString()));
     }
 
     @Override

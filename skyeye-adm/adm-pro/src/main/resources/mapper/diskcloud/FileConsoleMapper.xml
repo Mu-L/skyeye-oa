@@ -43,6 +43,9 @@
 				<if test="folderType != '1'.toString()">
 					AND a.create_id = #{userId}
 				</if>
+				<if test="tenantId != '' and tenantId != null">
+					AND a.tenant_id = #{tenantId}
+				</if>
 				AND a.id NOT IN (SELECT m.file_id FROM file_catelog_recycle_bin m WHERE m.file_type = '1' AND m.create_id = #{userId})
 				AND a.delete_flag = #{deleteFlag}
 				UNION ALL
@@ -64,6 +67,9 @@
 						a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM file_catalog t WHERE t.id = #{folderId}), ''), #{folderId}, ',')
 					<if test="folderType != '1'.toString()">
 						AND a.create_id = #{userId}
+					</if>
+					<if test="tenantId != '' and tenantId != null">
+						AND a.tenant_id = #{tenantId}
 					</if>
 					AND a.id NOT IN (SELECT m.file_id FROM file_catelog_recycle_bin m WHERE m.file_type = '2' AND m.create_id = #{userId})
 					AND a.delete_flag = #{deleteFlag}

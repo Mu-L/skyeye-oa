@@ -31,6 +31,9 @@
 			a.group_id = b.id
 		AND a.user_id = #{userId}
 		AND b.state = '1'
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryCompanyDepartmentByUserId" parameterType="java.util.Map" resultType="java.util.Map">
@@ -45,6 +48,9 @@
 			( SELECT @rownum := 0 ) r
 		WHERE a.user_id = #{userId}
 		AND a.company_id = b.company_id
+		<if test="tenantId != '' and tenantId != null">
+			AND b.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryDepartmentUserByDepartId" parameterType="java.util.Map" resultType="java.util.Map">
@@ -61,11 +67,18 @@
 		FROM
 			sys_eve_user_staff a,
 			sys_eve_user b
-		WHERE a.department_id = #{id}
-		AND a.user_id = b.id
+		WHERE a.user_id = b.id
+		<if test="departIds != null and departIds.size() &gt; 0">
+			<foreach collection="departIds" item="departId" separator="," open=" AND a.department_id in(" close=")">
+				#{departId}
+			</foreach>
+		</if>
 		AND a.state = '1'
-		AND b.id != #{thisUserId}
-		AND b.id != #{notUserId}
+		<if test="notInUserIds != null and notInUserIds.size() &gt; 0">
+			<foreach collection="notInUserIds" item="notInUserId" separator="," open=" AND a.id not in(" close=")">
+				#{notInUserId}
+			</foreach>
+		</if>
 	</select>
 	
 	<update id="editUserSignByUserId" parameterType="java.util.Map">

@@ -265,6 +265,28 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         return sysEveUserStaff;
     }
 
+    @Override
+    public Map<String, Object> setThisTenantUserToDefault(Map<String, Object> sysEveUserStaff) {
+        return setThisTenantUserToDefault(sysEveUserStaff, CommonConstants.ID);
+    }
+
+    @Override
+    public Map<String, Object> setThisTenantUserToDefault(Map<String, Object> sysEveUserStaff, String pointId) {
+        if (CollectionUtil.isEmpty(sysEveUserStaff)) {
+            return null;
+        }
+        // 默认查询当前租户下的
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), sysEveUserStaff.get(pointId).toString());
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(tenantUser)) {
+            return null;
+        }
+        // 设置默认值
+        setTenantUserMation(sysEveUserStaff, tenantUser);
+        return sysEveUserStaff;
+    }
+
     private void setTenantUserMation(SysEveUserStaff sysEveUserStaff, TenantUser tenantUser) {
         sysEveUserStaff.setState(tenantUser.getState());
         sysEveUserStaff.setCompanyId(tenantUser.getCompanyId());
@@ -285,6 +307,13 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         sysEveUserStaff.setDesignWages(tenantUser.getDesignWages());
         sysEveUserStaff.setActWages(tenantUser.getActWages());
         sysEveUserStaff.setJobNumber(tenantUser.getJobNumber());
+    }
+
+    private void setTenantUserMation(Map<String, Object> sysEveUserStaff, TenantUser tenantUser) {
+        sysEveUserStaff.put("companyId", tenantUser.getCompanyId());
+        sysEveUserStaff.put("departmentId", tenantUser.getDepartmentId());
+        sysEveUserStaff.put("jobId", tenantUser.getJobId());
+        sysEveUserStaff.put("jobScoreId", tenantUser.getJobScoreId());
     }
 
     @Override
@@ -313,6 +342,35 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             setTenantUserMation(userStaff, tenantUser);
         });
         return userStaffList;
+    }
+
+    @Override
+    public List<Map<String, Object>> setThisTenantUserToDefault(List<Map<String, Object>> sysEveUserStaffList, String pointId) {
+        if (CollectionUtil.isEmpty(sysEveUserStaffList)) {
+            return null;
+        }
+        List<String> staffIds = sysEveUserStaffList.stream().map(sysEveUserStaff -> sysEveUserStaff.get(pointId).toString())
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(staffIds)) {
+            return null;
+        }
+        // 开启多租户模式时，默认加上租户id
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffIds);
+        List<TenantUser> tenantUserList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(tenantUserList)) {
+            return null;
+        }
+        // 过滤出当前租户下的用户
+        List<String> tenantStaffIdList = tenantUserList.stream().map(TenantUser::getStaffId).distinct().collect(Collectors.toList());
+        sysEveUserStaffList = sysEveUserStaffList.stream().filter(sysEveUserStaff -> tenantStaffIdList.contains(sysEveUserStaff.get(pointId).toString())).collect(Collectors.toList());
+        Map<String, TenantUser> collect = tenantUserList.stream().collect(Collectors.toMap(TenantUser::getStaffId, tenantUser -> tenantUser, (k, v) -> v));
+        sysEveUserStaffList.forEach(sysEveUserStaff -> {
+            TenantUser tenantUser = collect.get(sysEveUserStaff.get(pointId).toString());
+            // 默认查询当前租户下的
+            setTenantUserMation(sysEveUserStaff, tenantUser);
+        });
+        return sysEveUserStaffList;
     }
 
     @Override
