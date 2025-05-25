@@ -214,6 +214,15 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         outputObject.settotal(pages.getTotal());
     }
 
+    @Override
+    protected void updatePrepose(ForumContent entity) {
+        String id = entity.getId();
+        ForumContent forumContent = selectById(id);
+        entity.setBrowseNum(forumContent.getBrowseNum());
+        entity.setCommentNum(forumContent.getCommentNum());
+    }
+
+
     /**
      * 获取最新评论
      *
