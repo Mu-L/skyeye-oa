@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActGroupUserServiceImpl
- * @Description: 用户组关联用户管理服务层
+ * @Description: 用户组关联用户管理--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/12 14:14
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
