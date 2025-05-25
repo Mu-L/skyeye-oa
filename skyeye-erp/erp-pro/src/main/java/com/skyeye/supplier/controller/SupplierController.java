@@ -32,12 +32,6 @@ public class SupplierController {
     @Autowired
     private SupplierService supplierService;
 
-    /**
-     * 获取供应商列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "supplier001", value = "获取供应商列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SupplierController/querySupplierList")
@@ -45,12 +39,6 @@ public class SupplierController {
         supplierService.querySupplierList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑供应商
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSupplier", value = "添加/编辑供应商", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Supplier.class)
     @RequestMapping("/post/SupplierContronller/writeSupplier")
@@ -58,12 +46,6 @@ public class SupplierController {
         supplierService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量查询供应商信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySupplierListByIds", value = "根据id批量查询供应商信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class SupplierController {
         supplierService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 删除供应商信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "supplier004", value = "删除供应商信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
