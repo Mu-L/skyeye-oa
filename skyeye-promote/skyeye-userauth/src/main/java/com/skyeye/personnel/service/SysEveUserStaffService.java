@@ -39,6 +39,8 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
      */
     List<Map<String, Object>> queryUserMationList(String userIds, String staffIds);
 
+    Map<String, SysEveUserStaff> getUserIdsByStaffIds(List<String> staffIds);
+
     void editSysUserStaffAnnualLeaveById(InputObject inputObject, OutputObject outputObject);
 
     void updateStaffAnnualLeave(String staffId, String quarterYearHour, String annualLeaveStatisTime);

@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -69,7 +70,7 @@ public class Notice extends BaseGeneralInfo {
     private String realLinesTime;
 
     @TableField(value = "send_type")
-    @ApiModelProperty(value = "是否群发所有人，参考#WhetherEnum", required = "required,num")
+    @ApiModelProperty(value = "是否群发所有人", enumClass = WhetherEnum.class, required = "required,num")
     private Integer sendType;
 
     @TableField(exist = false)

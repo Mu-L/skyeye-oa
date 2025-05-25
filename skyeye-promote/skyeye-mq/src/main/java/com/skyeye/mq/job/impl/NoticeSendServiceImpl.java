@@ -4,14 +4,14 @@
 package com.skyeye.mq.job.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.service.JobMateMationService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,14 +24,13 @@ import java.util.Map;
  * @Description: 消息通知
  * @date 2020年8月22日
  */
+@Slf4j
 @Component
 @RocketMQMessageListener(
     topic = "${topic.notice-send-service}",
     consumerGroup = "${topic.notice-send-service}",
     selectorExpression = "${spring.profiles.active}")
 public class NoticeSendServiceImpl implements RocketMQListener<String> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NoticeSendServiceImpl.class);
 
     @Autowired
     private JobMateMationService jobMateMationService;
@@ -43,19 +42,24 @@ public class NoticeSendServiceImpl implements RocketMQListener<String> {
         try {
             // 任务开始
             jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
-            String email = map.get("email").toString();
-            List<Map<String, Object>> beans = JSONUtil.toList(email, null);
+            String emailUserListStr = map.get("email").toString();
+            List<Map<String, Object>> beans = JSONUtil.toList(emailUserListStr, null);
             for (int i = 0; i < beans.size(); i++) {
                 Map<String, Object> bean = beans.get(i);
-                if (CollectionUtil.isNotEmpty(bean)) {
-                    // 邮件账号不为空，发送邮件
-                    new MailUtil().send(bean.get("email").toString(), map.get("title").toString(), map.get("content").toString());
+                if (CollectionUtil.isEmpty(bean)) {
+                    continue;
                 }
+                String email = bean.getOrDefault("email", StrUtil.EMPTY).toString();
+                if (StrUtil.isEmpty(email)) {
+                    continue;
+                }
+                // 邮件账号不为空，发送邮件
+                new MailUtil().send(email, map.get("title").toString(), map.get("content").toString());
             }
             // 任务完成
             jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, "");
         } catch (Exception e) {
-            LOGGER.warn("notification failed, reason is {}.", e);
+            log.warn("notification failed, reason is {}.", e);
             // 任务失败
             jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
         }

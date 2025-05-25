@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.UserStaffState;
@@ -423,13 +424,32 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     @Override
     @IgnoreTenant
     public void queryTenantUserStaffIdByTenantId(InputObject inputObject, OutputObject outputObject) {
-        String tenantId = inputObject.getParams().get("tenantId").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String tenantId = params.get("tenantId").toString();
+
+        // 员工状态
+        String stateListStr = params.get("stateList").toString();
+        List<String> stateList = StrUtil.isEmpty(stateListStr) ? CollectionUtil.newArrayList() :
+            Arrays.asList(stateListStr.split(CommonCharConstants.COMMA_MARK));
+
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
+        if (CollectionUtil.isNotEmpty(stateList)) {
+            queryWrapper.in(MybatisPlusUtil.toColumns(TenantUser::getState), stateList);
+        }
         List<TenantUser> tenantUserList = list(queryWrapper);
         if (CollectionUtil.isEmpty(tenantUserList)) {
             return;
         }
+        List<String> staffIdList = tenantUserList.stream().map(TenantUser::getStaffId).distinct().collect(Collectors.toList());
+        Map<String, SysEveUserStaff> staffId2UserMap = sysEveUserStaffService.getUserIdsByStaffIds(staffIdList);
+        tenantUserList.forEach(tenantUser -> {
+            SysEveUserStaff user = staffId2UserMap.get(tenantUser.getStaffId());
+            if (ObjectUtil.isNotEmpty(user)) {
+                tenantUser.setUserId(user.getUserId());
+                tenantUser.setEmail(user.getEmail());
+            }
+        });
         outputObject.setBeans(tenantUserList);
         outputObject.settotal(tenantUserList.size());
     }

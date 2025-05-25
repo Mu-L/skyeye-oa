@@ -36,6 +36,7 @@ import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.pro.service.ISysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,9 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Autowired
     private IJobMateMationService iJobMateMationService;
+
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
 
     @Autowired
     private NoticeUserService noticeUserService;
@@ -123,9 +127,19 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     public void writePostpose(Notice entity, String userId) {
         super.writePostpose(entity, userId);
         List<String> stateList = Arrays.asList(new String[]{UserStaffState.ON_THE_JOB.getKey().toString(), UserStaffState.PROBATION.getKey().toString(), UserStaffState.PROBATION_PERIOD.getKey().toString()});
+        List<Map<String, Object>> userInfoList;
+        if (!tenantEnable) {
+            // 单租户模式
+            // 是否群发所有人，如果是，则查询所有用户信息，否则查询指定用户信息
+            List<String> userIds = entity.getSendType().equals(WhetherEnum.ENABLE_USING.getKey()) ? null : entity.getReceiver();
+            userInfoList = skyeyeBaseMapper.queryAllUserList(userIds, stateList);
+        } else {
+            // 多租户模式
+            userInfoList = iSysEveUserStaffService.queryTenantUserByTenantId(TenantContext.getTenantId(), stateList);
+        }
+
         if (entity.getSendType().equals(WhetherEnum.ENABLE_USING.getKey())) {
             // 群发所有人
-            List<Map<String, Object>> userInfoList = skyeyeBaseMapper.queryAllUserList(null, stateList);
             List<String> userIds = userInfoList.stream().map(bean -> bean.get("userId").toString())
                 .collect(Collectors.toList());
             noticeUserService.saveNoticeUser(entity.getId(), userIds);
@@ -142,19 +156,11 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
             if (entity.getWhetherEmail().equals(WhetherEnum.ENABLE_USING.getKey())
                 && entity.getState().equals(NoticeState.UP.getKey())) {
                 // 开启了邮件通知并且是上线状态
-                List<Map<String, Object>> userEmail;
-                if (entity.getSendType().equals(WhetherEnum.ENABLE_USING.getKey())) {
-                    // 群发所有人
-                    userEmail = skyeyeBaseMapper.queryAllUserList(null, stateList);
-                } else {
-                    // 群发指定人
-                    userEmail = skyeyeBaseMapper.queryAllUserList(entity.getReceiver(), stateList);
-                }
                 // 启动mq消息任务
                 Map<String, Object> notice = new HashMap<>();
                 notice.put("title", "公告提醒");
                 notice.put("content", "内部公告 -【" + entity.getName() + "】");
-                notice.put("email", userEmail);
+                notice.put("email", userInfoList);
                 // 消息队列任务类型
                 notice.put("type", MqConstants.JobMateMationJobType.NOTICE_SEND.getJobType());
                 sendMQProducer(JSONUtil.toJsonStr(notice), userId);

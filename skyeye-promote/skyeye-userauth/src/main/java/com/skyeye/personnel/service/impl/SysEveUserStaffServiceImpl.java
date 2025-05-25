@@ -11,6 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -21,6 +22,8 @@ import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -52,7 +55,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveUserStaffServiceImpl
- * @Description: 员工管理服务类
+ * @Description: 员工管理服务类--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/7 12:02
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -227,9 +230,11 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     }
 
     @Override
+    @IgnoreTenant
     public SysEveUserStaff selectById(String id) {
         SysEveUserStaff sysEveUserStaff = super.selectById(id);
-        if (tenantEnable) {
+        String tenantId = TenantContext.getTenantId();
+        if (tenantEnable && !StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
             // 设置当前默认租户下的用户信息
             sysEveUserStaff = tenantUserService.setThisTenantUserToDefault(sysEveUserStaff);
             if (ObjectUtil.isEmpty(sysEveUserStaff)) {
@@ -373,6 +378,21 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
         companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
         return beans;
+    }
+
+    @Override
+    public Map<String, SysEveUserStaff> getUserIdsByStaffIds(List<String> staffIds) {
+        if (staffIds == null) {
+            return new HashMap<>();
+        }
+        staffIds = staffIds.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(staffIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, staffIds);
+        List<SysEveUserStaff> userStaffList = list(queryWrapper);
+        return userStaffList.stream().collect(Collectors.toMap(SysEveUserStaff::getId, bean -> bean));
     }
 
     private List<SysEveUserStaff> queryUserMationEntityList(String userIds, String staffIds) {

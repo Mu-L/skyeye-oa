@@ -56,6 +56,14 @@ public class TenantUser extends OperatorUserInfo {
     @Property(value = "员工信息")
     private Map<String, Object> staffMation;
 
+    @TableField(exist = false)
+    @Property(value = "用户id")
+    private String userId;
+
+    @TableField(exist = false)
+    @Property(value = "邮箱")
+    private String email;
+
     @TableField(value = "company_id")
     @ApiModelProperty(value = "企业id", required = "required")
     private String companyId;
