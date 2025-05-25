@@ -16,6 +16,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -170,6 +171,7 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         Map<String, Object> user = inputObject.getLogParams();
         map.put("userId", user.get("id"));
         map.put("deleteFlag", DeleteFlagEnum.NOT_DELETE.getKey());
+        map.put("tenant_id", PutObject.getRequest().getHeader("tenantId"));
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryFileAndContentListByFolderId(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());

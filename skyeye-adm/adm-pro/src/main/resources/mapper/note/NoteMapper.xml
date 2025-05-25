@@ -22,57 +22,55 @@
 		</where>
 		ORDER BY a.last_update_time DESC
 	</select>
-	
+
 	<select id="queryFileAndContentListByFolderId" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM (
 		SELECT
-			*
-		FROM (
-			SELECT
-				a.id,
-				a.`name`,
-				#{parentId} parentId,
-				'../../assets/images/cloud/my-folder-icon.png' iconLogo,
-				1 isParent,
-				'folder' type,
-				'' remark,
-				CONVERT(a.create_time, char) createTime
-			FROM
-				note_folder a
-			<where>
-				a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
-				AND a.delete_flag = #{deleteFlag}
-				<if test="search != '' and search != null">
-					AND a.`name` LIKE '%${search}%'
-				</if>
-				AND a.create_id = #{userId}
-			</where>
-			ORDER BY a.`name` DESC
-			) k
-			UNION ALL
-			SELECT
-			       *
-			FROM (
-				SELECT
-					a.id,
-					a.`name`,
-					#{parentId} parentId,
-					a.icon_logo iconLogo,
-					0 isParent,
-					a.type,
-					a.remark,
-					CONVERT(a.create_time, char) createTime
-				FROM
-					note_content a
-				<where>
-					a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
-					AND a.delete_flag = #{deleteFlag}
-					<if test="search != '' and search != null">
-						AND a.`name` LIKE '%${search}%'
-					</if>
-					AND a.create_id = #{userId}
-				</where>
-				ORDER BY a.`name` DESC
-			) j
+		a.id,
+		a.`name`,
+		#{parentId} parentId,
+		'../../assets/images/cloud/my-folder-icon.png' iconLogo,
+		1 isParent,
+		'folder' type,
+		'' remark,
+		CONVERT(a.create_time, char) createTime,
+		a.tenant_id  <!-- 显式添加tenant_id到结果集 -->
+		FROM note_folder a
+		<where>
+			a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
+			AND a.delete_flag = #{deleteFlag}
+			<if test="search != '' and search != null">
+				AND a.`name` LIKE CONCAT('%',#{search},'%')
+			</if>
+			AND a.create_id = #{userId}
+			AND a.tenant_id = #{tenantId}
+		</where>
+		ORDER BY a.`name` DESC
+		) k
+		UNION ALL
+		SELECT * FROM (
+		SELECT
+		a.id,
+		a.`name`,
+		#{parentId} parentId,
+		a.icon_logo iconLogo,
+		0 isParent,
+		a.type,
+		a.remark,
+		CONVERT(a.create_time, char) createTime,
+		a.tenant_id  <!-- 显式添加tenant_id到结果集 -->
+		FROM note_content a
+		<where>
+			a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
+			AND a.delete_flag = #{deleteFlag}
+			<if test="search != '' and search != null">
+				AND a.`name` LIKE CONCAT('%',#{search},'%')
+			</if>
+			AND a.create_id = #{userId}
+			AND a.tenant_id = #{tenantId}
+		</where>
+		ORDER BY a.`name` DESC
+		) j
 	</select>
 	
 	<select id="queryFileList" parameterType="java.util.Map" resultType="java.util.Map">
