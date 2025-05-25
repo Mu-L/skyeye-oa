@@ -19,10 +19,16 @@ import java.util.Map;
  */
 public interface ErpPageDao {
 
-    String queryThisMonthErpOrder(@Param("idKey") String idKey, @Param("states") List<String> states);
+    String queryThisMonthErpOrder(@Param("idKey") String idKey,
+                                  @Param("states") List<String> states,
+                                  @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> querySixMonthOrderMoneyList(@Param("idKey") String idKey, @Param("states") List<String> states);
+    List<Map<String, Object>> querySixMonthOrderMoneyList(@Param("idKey") String idKey,
+                                                          @Param("states") List<String> states,
+                                                          @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryTwelveMonthProfitMoneyList(@Param("idKeys") List<String> idKeys, @Param("states") List<String> states);
+    List<Map<String, Object>> queryTwelveMonthProfitMoneyList(@Param("idKeys") List<String> idKeys,
+                                                              @Param("states") List<String> states,
+                                                              @Param("tenantId") String tenantId);
 
 }
