@@ -652,27 +652,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         jedisClientService.del(Constants.getSysTalkUserThisMainMationById(user.get("id").toString()));
     }
 
-    /**
-     * 获取该用户拥有的桌面
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void querySysDeskTopByUserId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> user = inputObject.getLogParams();
-        map.put("id", user.get("id"));
-        List<Map<String, Object>> beans = sysEveUserDao.querySysDeskTopByUserId(map);
-        outputObject.setBeans(beans);
-    }
-
-    /**
-     * 根据用户id获取桌面菜单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDeskTopsMenuByUserId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -683,12 +662,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         outputObject.settotal(deskTops.size());
     }
 
-    /**
-     * 人员选择获取所有公司和人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @IgnoreTenant
     public void queryAllPeopleToTree(InputObject inputObject, OutputObject outputObject) {
@@ -714,12 +687,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         beans.addAll(companyJobService.queryJobList(Arrays.asList(companyId), new ArrayList<>()));
     }
 
-    /**
-     * 人员选择根据当前用户所属公司获取这个公司的人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @IgnoreTenant
     public void queryCompanyPeopleToTreeByUserBelongCompany(InputObject inputObject, OutputObject outputObject) {

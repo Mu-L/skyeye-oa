@@ -64,8 +64,6 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
 
     void editUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject);
 
-    void querySysDeskTopByUserId(InputObject inputObject, OutputObject outputObject);
-
     void queryDeskTopsMenuByUserId(InputObject inputObject, OutputObject outputObject);
 
     void queryAllPeopleToTree(InputObject inputObject, OutputObject outputObject);

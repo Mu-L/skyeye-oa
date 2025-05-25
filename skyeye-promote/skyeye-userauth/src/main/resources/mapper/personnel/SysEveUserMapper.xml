@@ -222,23 +222,6 @@
 		WHERE user_id = #{userId}
 	</update>
 	
-	<select id="querySysDeskTopByUserId" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT
-			d.id,
-			d.`name`
-		FROM
-			sys_eve_user a,
-			sys_eve_role_menu b,
-			sys_eve_desktop d
-		WHERE
-			a.id = #{id}
-		AND INSTR(CONCAT(',', a.role_id, ','), CONCAT(',', b.role_id, ','))
-		AND b.menu_id = d.id
-		AND d.enabled = '1'
-		GROUP BY d.id
-		ORDER BY d.order_by ASC
-    </select>
-    
 	<select id="queryUserSchoolMationByUserId" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
 			c.id schoolId,
