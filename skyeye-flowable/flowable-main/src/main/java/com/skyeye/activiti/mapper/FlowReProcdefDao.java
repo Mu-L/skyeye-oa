@@ -4,6 +4,7 @@
 
 package com.skyeye.activiti.mapper;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 import org.flowable.engine.impl.persistence.entity.ProcessDefinitionEntityImpl;
 import org.flowable.engine.repository.ProcessDefinition;
@@ -20,6 +21,7 @@ import java.util.List;
  */
 public interface FlowReProcdefDao {
 
+    @IgnoreTenant
     List<ProcessDefinitionEntityImpl> getProcdefByDeploymentIds(@Param("deploymentIds") List<String> deploymentIds);
 
 }

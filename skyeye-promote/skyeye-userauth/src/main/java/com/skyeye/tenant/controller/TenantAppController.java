@@ -62,7 +62,7 @@ public class TenantAppController {
         tenantAppService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryTenantAppBandMenuList", value = "获取所有模块(桌面)/菜单/权限点/分组/数据权限列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryTenantAppBandMenuList", value = "获取所有模块(桌面)/菜单/权限点/分组/数据权限列表，只有平台租户才能调用", method = "GET", allUse = "2")
     @RequestMapping("/post/TenantAppController/queryTenantAppBandMenuList")
     public void queryTenantAppBandMenuList(InputObject inputObject, OutputObject outputObject) {
         tenantAppService.queryTenantAppBandMenuList(inputObject, outputObject);

@@ -26,6 +26,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (t1.PROC_INST_ID_ LIKE '%${keyword}%' OR t1.NAME_ LIKE '%${keyword}%')
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND t1.TENANT_ID_ = #{tenantId}
+            </if>
         </where>
         ORDER BY t1.CREATE_TIME_ DESC
     </select>

@@ -132,12 +132,6 @@ public class SysEveUserController {
         sysEveUserService.editUserDetailsMationByUserId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "login009", value = "获取该用户拥有的桌面", method = "GET", allUse = "2")
-    @RequestMapping("/post/SysEveUserController/querySysDeskTopByUserId")
-    public void querySysDeskTopByUserId(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserService.querySysDeskTopByUserId(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "queryDeskTopsMenuByUserId", value = "根据用户id获取桌面菜单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userId", name = "userId", value = "用户id(账号ID)", required = "required")})

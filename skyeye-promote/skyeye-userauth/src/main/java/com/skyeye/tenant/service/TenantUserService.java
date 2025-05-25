@@ -11,6 +11,7 @@ import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.tenant.entity.TenantUser;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: TenantUserService
@@ -38,7 +39,13 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
 
     SysEveUserStaff setThisTenantUserToDefault(SysEveUserStaff sysEveUserStaff);
 
+    Map<String, Object> setThisTenantUserToDefault(Map<String, Object> sysEveUserStaff);
+
+    Map<String, Object> setThisTenantUserToDefault(Map<String, Object> sysEveUserStaff, String pointId);
+
     List<SysEveUserStaff> setThisTenantUserToDefault(List<SysEveUserStaff> userStaffList);
+
+    List<Map<String, Object>> setThisTenantUserToDefault(List<Map<String, Object>> sysEveUserStaffList, String pointId);
 
     void addTenantAdminUser(InputObject inputObject, OutputObject outputObject);
 

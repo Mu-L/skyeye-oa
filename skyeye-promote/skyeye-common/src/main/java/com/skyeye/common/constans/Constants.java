@@ -32,20 +32,6 @@ public class Constants {
     // win系统主题颜色列表的redis的key
     public static final String SYS_WIN_THEME_COLOR_REDIS_KEY = "sys_win_theme_color_redis_key";
 
-    // 聊天获取当前登陆用户信息在redis中的key
-    public static final String SYS_TALK_USER_THIS_MATN_MATION = "sys:talk:user:this:main:mation:";
-
-    public static String getSysTalkUserThisMainMationById(String id) {
-        return SYS_TALK_USER_THIS_MATN_MATION + id;
-    }
-
-    // 聊天获取当前登陆用户拥有的群组列表在redis中的key
-    public static final String SYS_TALK_USER_HAS_GROUP_LIST_MATION = "sys:talk:user:has:group:list:mation:";
-
-    public static String getSysTalkUserHasGroupListMationById(String id) {
-        return SYS_TALK_USER_HAS_GROUP_LIST_MATION + id;
-    }
-
     // 获取群组成员列表
     public static final String SYS_EVE_TALK_GROUP_USER_LIST = "sys_eve_talk_group_user_list_";
 

@@ -4,20 +4,21 @@
 
 package com.skyeye.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.dao.ErpPageDao;
-import com.skyeye.other.service.impl.OtherOutLetsServiceImpl;
 import com.skyeye.purchase.service.impl.PurchaseOrderServiceImpl;
-import com.skyeye.purchase.service.impl.PurchaseReturnsServiceImpl;
 import com.skyeye.retail.service.impl.RetailOutLetServiceImpl;
 import com.skyeye.seal.service.impl.SalesOrderServiceImpl;
-import com.skyeye.seal.service.impl.SalesOutLetServiceImpl;
 import com.skyeye.service.ErpPageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -39,21 +40,20 @@ public class ErpPageServiceImpl implements ErpPageService {
     @Autowired
     private ErpPageDao erpPageDao;
 
-    /**
-     * 获取本月累计销售，本月累计零售，本月累计采购，本月利润（已审核通过）
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
+    @IgnoreTenant
     public void queryFourTypeMoneyList(InputObject inputObject, OutputObject outputObject) {
         List<String> states = Arrays.asList(FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.COMPLETED.getKey());
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取本月累计销售，当前月已审核通过的销售订单金额
-        String salesMoney = erpPageDao.queryThisMonthErpOrder(SalesOrderServiceImpl.class.getName(), states);
+        String salesMoney = erpPageDao.queryThisMonthErpOrder(SalesOrderServiceImpl.class.getName(), states, tenantId);
         // 2.获取本月累计零售，当前月已审核通过的零售订单金额
-        String retailMoney = erpPageDao.queryThisMonthErpOrder(RetailOutLetServiceImpl.class.getName(), states);
+        String retailMoney = erpPageDao.queryThisMonthErpOrder(RetailOutLetServiceImpl.class.getName(), states, tenantId);
         // 3.获取本月累计采购，当前月已审核通过的采购订单金额
-        String purchaseMoney = erpPageDao.queryThisMonthErpOrder(PurchaseOrderServiceImpl.class.getName(), states);
+        String purchaseMoney = erpPageDao.queryThisMonthErpOrder(PurchaseOrderServiceImpl.class.getName(), states, tenantId);
         // 4.本月利润（已审核通过），零售订单金额 + 销售订单金额 - 采购订单金额
         String profitMoney = CalculationUtil.subtract(CalculationUtil.add(salesMoney, retailMoney), purchaseMoney);
         Map<String, Object> map = new HashMap<>();
@@ -64,45 +64,33 @@ public class ErpPageServiceImpl implements ErpPageService {
         outputObject.setBean(map);
     }
 
-    /**
-     * 获取近半年的采购统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void querySixMonthPurchaseMoneyList(InputObject inputObject, OutputObject outputObject) {
         List<String> states = Arrays.asList(FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.COMPLETED.getKey());
-        List<Map<String, Object>> beans = erpPageDao.querySixMonthOrderMoneyList(PurchaseOrderServiceImpl.class.getName(), states);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = erpPageDao.querySixMonthOrderMoneyList(PurchaseOrderServiceImpl.class.getName(), states, tenantId);
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 获取近半年的销售统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void querySixMonthSealsMoneyList(InputObject inputObject, OutputObject outputObject) {
         List<String> states = Arrays.asList(FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.COMPLETED.getKey());
-        List<Map<String, Object>> beans = erpPageDao.querySixMonthOrderMoneyList(SalesOrderServiceImpl.class.getName(), states);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = erpPageDao.querySixMonthOrderMoneyList(SalesOrderServiceImpl.class.getName(), states, tenantId);
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 获取近十二个月的利润统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryTwelveMonthProfitMoneyList(InputObject inputObject, OutputObject outputObject) {
         List<String> states = Arrays.asList(FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.COMPLETED.getKey());
         List<String> idKeys = Arrays.asList(SalesOrderServiceImpl.class.getName(),
             PurchaseOrderServiceImpl.class.getName(),
             RetailOutLetServiceImpl.class.getName());
-        List<Map<String, Object>> beans = erpPageDao.queryTwelveMonthProfitMoneyList(idKeys, states);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = erpPageDao.queryTwelveMonthProfitMoneyList(idKeys, states, tenantId);
         outputObject.setBeans(beans);
     }
 

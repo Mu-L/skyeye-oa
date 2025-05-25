@@ -4,6 +4,7 @@
 
 package com.skyeye.activiti.mapper;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 import org.flowable.engine.impl.persistence.entity.ModelEntityImpl;
 
@@ -19,6 +20,7 @@ import java.util.List;
  */
 public interface FlowReModelDao {
 
-    List<ModelEntityImpl> getModelByIds(@Param("ids") List<String> ids);
+    @IgnoreTenant
+    List<ModelEntityImpl> getModelByIds(@Param("ids") List<String> ids, @Param("tenantId") String tenantId);
 
 }

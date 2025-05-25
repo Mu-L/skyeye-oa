@@ -6,13 +6,17 @@ package com.skyeye.tenant.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.menu.dao.AppWorkPageDao;
 import com.skyeye.menu.dao.SysEveMenuDao;
 import com.skyeye.tenant.classenum.TenantAppMenuType;
@@ -23,6 +27,7 @@ import com.skyeye.tenant.service.TenantAppMenuService;
 import com.skyeye.tenant.service.TenantAppService;
 import com.skyeye.win.service.SysEveDesktopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +60,9 @@ public class TenantAppServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppDao
     @Autowired
     private AppWorkPageDao appWorkPageDao;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public TenantApp getDataFromDb(String id) {
         TenantApp tenantApp = super.getDataFromDb(id);
@@ -71,7 +79,15 @@ public class TenantAppServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppDao
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantAppBandMenuList(InputObject inputObject, OutputObject outputObject) {
+        if (!tenantEnable) {
+            throw new IllegalArgumentException("租户功能未开启");
+        }
+        String tenantId = TenantContext.getTenantId();
+        if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+            throw new IllegalArgumentException("非平台租户不能访问");
+        }
         List<Map<String, Object>> beans = sysEveMenuDao.queryAllMenuList();
         // 获取桌面信息
         List<Map<String, Object>> desktopList = sysEveDesktopService.queryAllDataForMap();

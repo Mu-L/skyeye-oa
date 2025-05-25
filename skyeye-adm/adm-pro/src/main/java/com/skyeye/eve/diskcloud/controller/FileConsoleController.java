@@ -31,12 +31,6 @@ public class FileConsoleController {
     @Autowired
     private FileConsoleService fileConsoleService;
 
-    /**
-     * 根据当前用户获取目录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole001", value = "根据当前用户获取目录", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "parentId", name = "parentId", value = "父目录id，默认为0", required = "required")})
@@ -45,12 +39,6 @@ public class FileConsoleController {
         fileConsoleService.queryFileFolderByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取这个目录下的所有文件+目录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole003", value = "获取这个目录下的所有文件+目录", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "orderBy", name = "orderBy", value = "排序方式"),
@@ -60,12 +48,6 @@ public class FileConsoleController {
         fileConsoleService.queryFilesListByFolderId(inputObject, outputObject);
     }
 
-    /**
-     * 删除目录以及目录下的所有文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole004", value = "删除目录以及目录下的所有文件", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "fileList", name = "fileList", value = "要删除的目录id集合,包含 id,fileType", required = "required,json")})
@@ -74,12 +56,6 @@ public class FileConsoleController {
         fileConsoleService.deleteFileFolderById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑文件夹或者文件的名称
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editCloudFileFolderById", value = "编辑文件夹或者文件的名称", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "文件夹/文件id", required = "required"),
@@ -90,12 +66,6 @@ public class FileConsoleController {
         fileConsoleService.editFileFolderById(inputObject, outputObject);
     }
 
-    /**
-     * 上传文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertUploadFile", value = "上传文件", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "name", name = "name", value = "文件名", required = "required"),
@@ -109,12 +79,6 @@ public class FileConsoleController {
         fileConsoleService.insertUploadFile(inputObject, outputObject);
     }
 
-    /**
-     * 上传文件合并块
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertUploadFileChunks", value = "上传文件合并块", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "name", name = "name", value = "文件名", required = "required"),
@@ -126,12 +90,6 @@ public class FileConsoleController {
         fileConsoleService.insertUploadFileChunks(inputObject, outputObject);
     }
 
-    /**
-     * 文件分块上传检测是否上传
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUploadFileChunksByChunkMd5", value = "文件分块上传检测是否上传", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "md5", name = "md5", value = "文件唯一标示", required = "required"),
@@ -142,12 +100,6 @@ public class FileConsoleController {
         fileConsoleService.queryUploadFileChunksByChunkMd5(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询文件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFileConsoleById", value = "根据id查询文件信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -156,12 +108,6 @@ public class FileConsoleController {
         fileConsoleService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * office文件编辑
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole010", value = "office文件编辑", method = "POST", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "key", name = "key", value = "定义服务用于文档识别的唯一文档标识符", required = "required"),
@@ -172,24 +118,12 @@ public class FileConsoleController {
         fileConsoleService.editUploadOfficeFileById(inputObject, outputObject);
     }
 
-    /**
-     * 根据当前用户获取总文件大小
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllFileSizeByUserId", value = "根据当前用户获取总文件大小", method = "GET", allUse = "2")
     @RequestMapping("/post/FileConsoleController/queryAllFileSizeByUserId")
     public void queryAllFileSizeByUserId(InputObject inputObject, OutputObject outputObject) {
         fileConsoleService.queryAllFileSizeByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 分享文件保存
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole023", value = "分享文件保存", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required"),
@@ -199,12 +133,6 @@ public class FileConsoleController {
         fileConsoleService.insertShareFileListToSave(inputObject, outputObject);
     }
 
-    /**
-     * 文档在线预览
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole024", value = "文档在线预览", method = "GET", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -213,12 +141,6 @@ public class FileConsoleController {
         fileConsoleService.queryFileToShowById(inputObject, outputObject);
     }
 
-    /**
-     * 创建空文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "createFileToService", value = "创建空文件", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "type", name = "type", value = "文件类型", required = "required"),
@@ -228,12 +150,6 @@ public class FileConsoleController {
         fileConsoleService.createFileToService(inputObject, outputObject);
     }
 
-    /**
-     * 创建副本
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole030", value = "创建副本", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required"),
@@ -243,12 +159,6 @@ public class FileConsoleController {
         fileConsoleService.insertDuplicateCopyToService(inputObject, outputObject);
     }
 
-    /**
-     * 获取文件属性
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole031", value = "获取文件属性", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -257,12 +167,6 @@ public class FileConsoleController {
         fileConsoleService.queryFileMationById(inputObject, outputObject);
     }
 
-    /**
-     * 文件打包
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole032", value = "文件打包", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required"),
@@ -272,12 +176,6 @@ public class FileConsoleController {
         fileConsoleService.insertFileMationToPackageToFolder(inputObject, outputObject);
     }
 
-    /**
-     * 压缩包解压
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole033", value = "压缩包解压", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -286,12 +184,6 @@ public class FileConsoleController {
         fileConsoleService.insertFileMationPackageToFolder(inputObject, outputObject);
     }
 
-    /**
-     * 文件或者文件夹复制
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole034", value = "文件或者文件夹复制", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required"),
@@ -301,12 +193,6 @@ public class FileConsoleController {
         fileConsoleService.insertPasteCopyToService(inputObject, outputObject);
     }
 
-    /**
-     * 文件或者文件夹剪切
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole035", value = "文件或者文件夹剪切", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required"),
@@ -316,12 +202,6 @@ public class FileConsoleController {
         fileConsoleService.insertPasteCutToService(inputObject, outputObject);
     }
 
-    /**
-     * office文件编辑获取修改时间作为最新的key
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole036", value = "office文件编辑获取修改时间作为最新的key", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -330,24 +210,12 @@ public class FileConsoleController {
         fileConsoleService.queryOfficeUpdateTimeToKey(inputObject, outputObject);
     }
 
-    /**
-     * 文件统计报表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole037", value = "文件统计报表", method = "GET", allUse = "2")
     @RequestMapping("/post/FileConsoleController/queryFileNumStatistics")
     public void queryFileNumStatistics(InputObject inputObject, OutputObject outputObject) {
         fileConsoleService.queryFileNumStatistics(inputObject, outputObject);
     }
 
-    /**
-     * 文件打包下载
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole038", value = "文件打包下载", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "jsonStr", name = "jsonStr", value = "保存的文件数组", required = "required")})

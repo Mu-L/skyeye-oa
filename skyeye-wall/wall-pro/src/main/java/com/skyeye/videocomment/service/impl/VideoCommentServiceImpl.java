@@ -138,6 +138,7 @@ public class VideoCommentServiceImpl extends SkyeyeBusinessServiceImpl<VideoComm
         List<VideoComment> videoComments = list(queryWrapper);
         remove(queryWrapper);
         List<String> ids = videoComments.stream().map(VideoComment::getId).collect(Collectors.toList());
+        ids.add(id);
         pictureService.deleteByCommentIds(ids);
         noticeService.deleteVideoNoticeByCommentIds(ids);
         String videoId = entity.getVideoId();

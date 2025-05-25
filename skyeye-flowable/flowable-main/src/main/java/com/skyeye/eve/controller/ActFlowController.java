@@ -32,12 +32,6 @@ public class ActFlowController {
     @Autowired
     private ActFlowService actFlowService;
 
-    /**
-     * 获取流程模型列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryActFlowList", value = "获取流程模型列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActFlowController/queryActFlowList")
@@ -45,12 +39,6 @@ public class ActFlowController {
         actFlowService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑流程模型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeActFlowMation", value = "新增/编辑流程模型", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ActFlowMation.class)
     @RequestMapping("/post/ActFlowController/writeActFlowMation")
@@ -58,12 +46,6 @@ public class ActFlowController {
         actFlowService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID获取流程模型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryActFlowMationById", value = "根据ID获取流程模型信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ActFlowController {
         actFlowService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除流程模型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteActFlowMationById", value = "根据ID删除流程模型", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ActFlowController {
         actFlowService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据适用对象获取流程模型列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryActFlowListByClassName", value = "根据适用对象获取流程模型列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "类的Refrence", required = "required")})

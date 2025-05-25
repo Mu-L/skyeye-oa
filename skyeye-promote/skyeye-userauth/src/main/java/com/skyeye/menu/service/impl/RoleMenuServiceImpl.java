@@ -120,10 +120,6 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         if (CollectionUtil.isNotEmpty(menuList)) {
             result.addAll(menuList);
         }
-        // 获取桌面
-        List<String> desktopIdList = roleList.stream().filter(role -> CollectionUtil.isNotEmpty(role.getAppDesktopId()))
-            .map(Role::getAppDesktopId).flatMap(List::stream).distinct().collect(Collectors.toList());
-        resetDesktop(result, desktopIdList);
         return result;
     }
 
@@ -131,7 +127,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
         List<SysDesktop> desktopEntityList = sysEveDesktopService.selectByIds(desktopIdList.toArray(new String[]{}));
         List<Map<String, Object>> desktopList = desktopEntityList.stream().map(desktop -> {
             Map<String, Object> desktopMapResult = BeanUtil.beanToMap(desktop);
+            // PC端用parentId，手机端用pId
             desktopMapResult.put("pId", CommonNumConstants.NUM_ZERO.toString());
+            desktopMapResult.put("parentId", CommonNumConstants.NUM_ZERO.toString());
             desktopMapResult.put("orderNum", desktop.getOrderBy());
             desktopMapResult.put("type", "desktop");
             return desktopMapResult;
@@ -153,6 +151,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             List<AppWorkPage> menuEntityList = appWorkPageService.selectByIds(menuIds.toArray(new String[]{}));
             menuList = turnAPPMenu(menuEntityList);
         }
+        // 获取桌面
+        List<String> desktopIdList = menuList.stream()
+            .map(bean -> bean.getOrDefault("desktopId", StrUtil.EMPTY).toString())
+            .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        resetDesktop(menuList, desktopIdList);
         for (Map<String, Object> authPoint : menuList) {
             authPoint.remove("createId");
             authPoint.remove("createTime");
@@ -189,6 +192,11 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             menuMapResult.put("extend", "false");
             if (menu.getSysWinMation() != null) {
                 menuMapResult.put("sysWinUrl", menu.getSysWinMation().getSysUrl());
+            }
+            if (StrUtil.equals(menu.getParentId(), CommonNumConstants.NUM_ZERO.toString())) {
+                menuMapResult.put("parentId", menu.getDesktopId());
+            } else {
+                menuMapResult.put("parentId", menu.getParentId());
             }
             return menuMapResult;
         }).collect(Collectors.toList());
@@ -232,12 +240,12 @@ public class RoleMenuServiceImpl implements RoleMenuService {
             // 手机端--包含菜单
             List<AppWorkPage> menuEntityList = appWorkPageService.queryAllData();
             menuList = turnAPPMenu(menuEntityList);
-
-            // 获取桌面
-            List<String> desktopIdList = menuEntityList.stream()
-                .map(AppWorkPage::getDesktopId).distinct().collect(Collectors.toList());
-            resetDesktop(menuList, desktopIdList);
         }
+        // 获取桌面
+        List<String> desktopIdList = menuList.stream()
+            .map(bean -> bean.getOrDefault("desktopId", StrUtil.EMPTY).toString())
+            .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        resetDesktop(menuList, desktopIdList);
         for (Map<String, Object> authPoint : menuList) {
             authPoint.remove("createId");
             authPoint.remove("createTime");

@@ -12,6 +12,9 @@
 			<foreach collection="states" item="state" separator="," open=" AND a.state in(" close=")">
 				#{state}
 			</foreach>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
 			AND a.id_key = #{idKey}
 		</where>
 	</select>
@@ -32,6 +35,9 @@
 					#{state}
 				</foreach>
 				AND b.id_key = #{idKey}
+				<if test="tenantId != '' and tenantId != null">
+					AND b.tenant_id = #{tenantId}
+				</if>
 		GROUP BY a.`year_month`
 	</select>
 
@@ -60,6 +66,9 @@
                 <foreach collection="idKeys" item="idKey" separator="," open=" AND b.id_key in(" close=")">
                     #{idKey}
                 </foreach>
+				<if test="tenantId != '' and tenantId != null">
+					AND b.tenant_id = #{tenantId}
+				</if>
 		GROUP BY a.`year_month`
 	</select>
 

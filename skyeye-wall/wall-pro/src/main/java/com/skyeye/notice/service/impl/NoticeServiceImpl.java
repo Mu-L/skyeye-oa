@@ -422,7 +422,7 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         if (CollectionUtil.isEmpty(bean)) {
             return;
         }
-        String userId = InputObject.getLogParamsStatic().get(id).toString();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
         String content = StrUtil.EMPTY;
         if (videoService.getServiceClassName().equals(serviceClassName)) {
             content = NoticeContent.DELETE_VIDEO;

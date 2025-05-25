@@ -186,9 +186,10 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
      */
     @Override
     public void setActivitiModelList(List<Map<String, Object>> actFlowList) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 查询模型
         List<String> modelIds = actFlowList.stream().map(bean -> bean.get("modelId").toString()).collect(Collectors.toList());
-        List<ModelEntityImpl> modelList = flowReModelDao.getModelByIds(modelIds);
+        List<ModelEntityImpl> modelList = flowReModelDao.getModelByIds(modelIds, tenantId);
         Map<String, Model> modelMap = modelList.stream().collect(Collectors.toMap(bean -> bean.getId(), bean -> bean));
         // 查询发布流程
         List<String> deploymentIds = modelList.stream().filter(bean -> !ToolUtil.isBlank(bean.getDeploymentId())).map(bean -> bean.getDeploymentId()).collect(Collectors.toList());
