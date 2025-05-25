@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.arrangement.classenum.ArrangementState;
 import com.skyeye.arrangement.dao.ArrangementDao;
 import com.skyeye.arrangement.entity.Arrangement;
@@ -27,6 +28,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -172,18 +174,16 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         }
     }
 
-    /**
-     * 获取我录入的人员需求关联的面试者信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryMyEntryBossPersonRequireAboutArrangementList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         pageInfo.setStateList(getArrangementState());
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyEntryBossPersonRequireAboutArrangementList(pageInfo);
         iAuthUserService.setMationForMap(beans, "interviewer", "interviewerMation");
         intervieweeService.setMationForMap(beans, "interviewId", "interviewMation");
