@@ -17,12 +17,14 @@ import com.skyeye.activiti.mapper.FlowableTaskDao;
 import com.skyeye.activiti.service.ActivitiModelService;
 import com.skyeye.activiti.service.ActivitiProcessService;
 import com.skyeye.activiti.service.ActivitiTaskService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.constans.ActivitiConstants;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.service.IAuthUserService;
@@ -50,6 +52,7 @@ import org.flowable.variable.api.history.HistoricVariableInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,13 +105,11 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
     @Autowired
     private ActUserProcessService actUserProcessService;
 
-    /**
-     * 获取用户待办任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
+    @IgnoreTenant
     public void queryUserAgencyTasksListByUserId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
@@ -117,6 +118,9 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
 
     private void queryAgencyTask(OutputObject outputObject, CommonPageInfo pageInfo) {
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = flowableTaskDao.getApplyingTasks(pageInfo);
         if (CollectionUtil.isEmpty(beans)) {
             return;
@@ -374,6 +378,7 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryAllConductProcessList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         queryAgencyTask(outputObject, pageInfo);

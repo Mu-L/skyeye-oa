@@ -31,12 +31,6 @@ public class ActivitiTaskController {
     @Autowired
     private ActivitiTaskService activitiTaskService;
 
-    /**
-     * 获取我的待办任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode008", value = "获取我的待办任务", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivitiTaskController/queryUserAgencyTasksListByUserId")
@@ -44,12 +38,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryUserAgencyTasksListByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的流程
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode013", value = "获取我的流程", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivitiTaskController/queryStartProcessNotSubByUserId")
@@ -57,12 +45,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryStartProcessNotSubByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的历史审批任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode014", value = "获取我的历史审批任务", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivitiTaskController/queryMyHistoryTaskByUserId")
@@ -70,12 +52,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryMyHistoryTaskByUserId(inputObject, outputObject);
     }
 
-    /**
-     * 获取历史审批列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode017", value = "获取历史审批列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
@@ -84,12 +60,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryApprovalTasksHistoryByProcessInstanceId(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有已完成的流程信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode018", value = "获取所有已完成的流程信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivitiTaskController/queryAllComplateProcessList")
@@ -97,12 +67,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryAllComplateProcessList(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有待办的流程信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode019", value = "获取所有待办的流程信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActivitiTaskController/queryAllConductProcessList")
@@ -110,12 +74,6 @@ public class ActivitiTaskController {
         activitiTaskService.queryAllConductProcessList(inputObject, outputObject);
     }
 
-    /**
-     * 根据taskId获取表单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode016", value = "根据taskId获取表单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required"),
@@ -125,23 +83,11 @@ public class ActivitiTaskController {
         activitiTaskService.querySubFormMationByTaskId(inputObject, outputObject);
     }
 
-    /**
-     * 提交审批结果
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @RequestMapping("/post/ActivitiTaskController/editActivitiModelToRun")
     public void editActivitiModelToRun(InputObject inputObject, OutputObject outputObject) {
         activitiTaskService.editActivitiModelToRun(inputObject, outputObject);
     }
 
-    /**
-     * 委派
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask001", value = "委派", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "principalUserId", name = "principalUserId", value = "被委托人id", required = "required"),
@@ -151,12 +97,6 @@ public class ActivitiTaskController {
         activitiTaskService.delegateTask(inputObject, outputObject);
     }
 
-    /**
-     * 转办
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask002", value = "委派", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "transferredPersonId", name = "transferredPersonId", value = "被转办人id", required = "required"),
@@ -166,12 +106,6 @@ public class ActivitiTaskController {
         activitiTaskService.transferTask(inputObject, outputObject);
     }
 
-    /**
-     * 前加签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask003", value = "前加签", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "chooseUserMation", name = "chooseUserMation", value = "加签人的用户json串", required = "required,json"),
@@ -181,12 +115,6 @@ public class ActivitiTaskController {
         activitiTaskService.beforeAddSignTask(inputObject, outputObject);
     }
 
-    /**
-     * 后加签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask004", value = "后加签", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "chooseUserMation", name = "chooseUserMation", value = "加签人的用户json串", required = "required,json"),
@@ -196,12 +124,6 @@ public class ActivitiTaskController {
         activitiTaskService.afterAddSignTask(inputObject, outputObject);
     }
 
-    /**
-     * 获取会签节点的数据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask006", value = "获取会签节点的数据信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "taskId", name = "taskId", value = "任务id", required = "required")})
@@ -210,12 +132,6 @@ public class ActivitiTaskController {
         activitiTaskService.jointlySignTaskDetail(inputObject, outputObject);
     }
 
-    /**
-     * 会签加减签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitiTask005", value = "会签加减签", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "chooseUserMation", name = "chooseUserMation", value = "加签人的用户json串", required = "required,json"),
