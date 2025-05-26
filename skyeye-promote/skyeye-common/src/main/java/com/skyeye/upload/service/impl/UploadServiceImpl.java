@@ -289,7 +289,7 @@ public class UploadServiceImpl implements UploadService {
             } else {
                 trueFileName.append(",").append(newFileName);
             }
-            saveFile(file, trueFileName.toString());
+            saveFile(file, trueFileName.toString(), type);
             break;
         }
         bean.put("picUrl", trueFileName.toString());
@@ -299,13 +299,14 @@ public class UploadServiceImpl implements UploadService {
         outputObject.setBean(bean);
     }
 
-    private void saveFile(MultipartFile multipartFile, String path) {
+    private void saveFile(MultipartFile multipartFile, String path, Integer fileType) {
         com.skyeye.upload.entity.File file = new com.skyeye.upload.entity.File();
 //        file.setConfigId(client.getId());
         file.setName(multipartFile.getOriginalFilename());
         file.setPath(path);
         file.setUrl(path);
         file.setType(FileUtil.getMineType(multipartFile.getOriginalFilename()));
+        file.setFileType(fileType);
         file.setSize(multipartFile.getSize());
 
         String userId = StrUtil.EMPTY;
