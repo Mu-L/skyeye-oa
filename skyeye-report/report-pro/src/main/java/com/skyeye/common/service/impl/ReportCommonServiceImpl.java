@@ -4,6 +4,7 @@
 
 package com.skyeye.common.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -318,17 +319,114 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         String sqlText = params.get("sqlText").toString();
         String dataBaseId = params.get("dataBaseId").toString();
         LOGGER.info("data base id is {}", dataBaseId);
-        // 1.获取数据源信息
-        ReportDataSource dataBase = reportDataBaseService.getReportDataSource(dataBaseId);
-        // 2.获取查询的列信息
-        List<ReportMetaDataColumn> dataColumns = QueryerFactory.create(dataBase).parseMetaDataColumns(sqlText);
-        outputObject.setBeans(JSONArray.fromObject(dataColumns));
+        try {
+            // 1.获取数据源信息
+            ReportDataSource dataBase = reportDataBaseService.getReportDataSource(dataBaseId);
+            // 2.获取查询的列信息
+            List<ReportMetaDataColumn> dataColumns = QueryerFactory.create(dataBase).parseMetaDataColumns(sqlText);
+
+            // 3.处理列信息，转换为统一的节点路径格式
+            Set<String> nodePaths = new HashSet<>();
+
+            // 提取主表名或查询别名
+            String mainTableName = extractMainTableName(sqlText);
+
+            // 处理列路径
+            for (ReportMetaDataColumn column : dataColumns) {
+                String columnName = column.getColumnName();
+                String tableName = column.getTableName();
+
+                // 优先使用表名，如果为空则使用主表名
+                String prefix = (tableName != null && !tableName.isEmpty()) ? tableName : mainTableName;
+
+                // 如果列来自子查询或复杂表达式，可能没有表名
+                if (prefix == null || prefix.isEmpty()) {
+                    nodePaths.add(columnName);
+                } else {
+                    // 格式化为"表名.列名"的形式
+                    nodePaths.add(prefix + "." + columnName);
+                }
+            }
+
+            // 4.构造返回结果
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("nodeArray", new ArrayList<>(nodePaths));
+            resultMap.put("columns", dataColumns); // 保留原始列信息
+
+            outputObject.setBean(resultMap);
+            outputObject.setBeans(JSONArray.fromObject(dataColumns)); // 保持原有行为兼容
+        } catch (Exception e) {
+            LOGGER.error("解析SQL失败", e);
+            outputObject.setreturnMessage("解析SQL失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从SQL中提取主表名或查询别名
+     * 这是一个简化版实现，对于复杂SQL可能需要更复杂的解析
+     *
+     * @param sql SQL查询语句
+     * @return 主表名或空字符串
+     */
+    private String extractMainTableName(String sql) {
+        try {
+            // 简化处理：尝试提取FROM后的第一个表名
+            sql = sql.toLowerCase().replaceAll("\\s+", " ");
+            int fromIndex = sql.indexOf(" from ");
+            if (fromIndex < 0) {
+                return "";
+            }
+
+            // 截取FROM子句
+            String fromClause = sql.substring(fromIndex + 6);
+
+            // 移除可能的WHERE、GROUP BY、ORDER BY等子句
+            int whereIndex = fromClause.indexOf(" where ");
+            if (whereIndex > 0) {
+                fromClause = fromClause.substring(0, whereIndex);
+            }
+
+            int groupByIndex = fromClause.indexOf(" group by ");
+            if (groupByIndex > 0) {
+                fromClause = fromClause.substring(0, groupByIndex);
+            }
+
+            int orderByIndex = fromClause.indexOf(" order by ");
+            if (orderByIndex > 0) {
+                fromClause = fromClause.substring(0, orderByIndex);
+            }
+
+            int joinIndex = fromClause.indexOf(" join ");
+            if (joinIndex > 0) {
+                fromClause = fromClause.substring(0, joinIndex);
+            }
+
+            // 提取表名（可能包含别名）
+            fromClause = fromClause.trim();
+            String[] parts = fromClause.split("\\s+");
+
+            // 如果有别名，使用别名
+            if (parts.length > 1) {
+                return parts[parts.length - 1]; // 最后一个词可能是别名
+            } else if (parts.length == 1) {
+                return parts[0]; // 只有表名
+            }
+
+            return "";
+        } catch (Exception e) {
+            LOGGER.warn("提取表名失败", e);
+            return "";
+        }
     }
 
     @Override
     public void parseRestText(InputObject inputObject, OutputObject outputObject) {
         try {
+            String serviceStr = inputObject.getParams().get("serviceStr").toString();
             String requestUrl = inputObject.getParams().get("requestUrl").toString();
+            if (StrUtil.isEmpty(serviceStr)) {
+                requestUrl += serviceStr + requestUrl;
+            }
             String requestMethod = inputObject.getParams().get("requestMethod").toString();
             String requestHeader = inputObject.getParams().get("requestHeader").toString();
             String requestBody = inputObject.getParams().get("requestBody").toString();
