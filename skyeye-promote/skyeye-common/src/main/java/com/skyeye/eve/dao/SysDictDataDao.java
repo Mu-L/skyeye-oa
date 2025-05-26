@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public interface SysDictDataDao extends SkyeyeBaseMapper<SysDictData> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryDictDataList(Map<String, Object> map);
 
     /**

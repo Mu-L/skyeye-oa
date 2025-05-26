@@ -1,7 +1,6 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -13,7 +12,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.scheduling.dao.SchedulingShiftsDao;
@@ -37,14 +35,19 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     private SchedulingShiftsTimeService schedulingShiftsTimeService;
 
     @Override
-    protected void createPrepose(SchedulingShifts entity) {
-        Integer minStaff = entity.getMinStaff();
-        Integer maxStaff = entity.getMaxStaff();
-        if (StrUtil.isNotEmpty(String.valueOf(minStaff)) && StrUtil.isNotEmpty(String.valueOf(maxStaff))) {
-            if (minStaff > maxStaff) {
-                throw new CustomException("最小人数不能大于最大人数");
+    protected void createPostpose(SchedulingShifts entity, String userId) {
+        List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
+        if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
+            for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
+                schedulingShiftsTime.setShiftId(entity.getId());
             }
+            schedulingShiftsTimeService.createEntity(schedulingShiftsTimeMation, userId);
         }
+    }
+
+    @Override
+    protected void validatorEntity(SchedulingShifts entity) {
+        super.validatorEntity(entity);
         List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
         if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
             for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
@@ -53,31 +56,13 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
                 if (StrUtil.isEmpty(startTime) || StrUtil.isEmpty(endTime)) {
                     throw new CustomException("班次时间不能为空");
                 }
-            }
-        }
-    }
-
-    @Override
-    protected void createPostpose(SchedulingShifts entity, String userId) {
-        List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
-        if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
-            for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
-                schedulingShiftsTime(schedulingShiftsTime);
-                schedulingShiftsTime.setShiftId(entity.getId());
-            }
-            schedulingShiftsTimeService.createEntity(schedulingShiftsTimeMation, userId);
-        }
-    }
-
-    @Override
-    protected void updatePrepose(SchedulingShifts entity) {
-        List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
-        if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
-            for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
-                String startTime = schedulingShiftsTime.getStartTime();
-                String endTime = schedulingShiftsTime.getEndTime();
-                if (StrUtil.isEmpty(startTime) || StrUtil.isEmpty(endTime)) {
-                    throw new CustomException("班次时间不能为空");
+                Integer minStaff = schedulingShiftsTime.getMinStaff();
+                Integer maxStaff = schedulingShiftsTime.getMaxStaff();
+                if (minStaff == null || maxStaff == null) {
+                    throw new CustomException("班次需求人数不能为空");
+                }
+                if (minStaff > maxStaff) {
+                    throw new CustomException("班次最小需求人数不能大于班次最大需求人数");
                 }
             }
         }
@@ -86,24 +71,10 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     @Override
     protected void updatePostpose(SchedulingShifts entity, String userId) {
         List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
-        for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
-            schedulingShiftsTime(schedulingShiftsTime);
-        }
         if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
             schedulingShiftsTimeService.updateEntity(schedulingShiftsTimeMation, userId);
         }
 
-    }
-
-    private static void schedulingShiftsTime(SchedulingShiftsTime schedulingShiftsTime) {
-        String startTime = schedulingShiftsTime.getStartTime();
-        String endTime = schedulingShiftsTime.getEndTime();
-        boolean compareTime = DateUtil.compareTimeHMS(startTime, endTime);
-        if (!compareTime) {
-            schedulingShiftsTime.setIsNextDay(CommonNumConstants.NUM_ONE);
-        } else {
-            schedulingShiftsTime.setIsNextDay(CommonNumConstants.NUM_ZERO);
-        }
     }
 
     @Override
@@ -124,7 +95,7 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(keyword)){
+        if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getShiftName), keyword);
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingShifts::getCreateTime));
@@ -136,14 +107,6 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
             v.get(0).setSchedulingShiftsTimeMation(timeMapList.get(k));
         });
         List<SchedulingShifts> allShifts = schedulingShiftsMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
-//        List<String> createIds = allShifts.stream().map(SchedulingShifts::getCreateId).collect(Collectors.toList());
-//        Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserNameList(createIds);
-//        allShifts.forEach(shifts -> {
-//            Map<String, Object> stringObjectMap = stringMapMap.get(shifts.getCreateId());
-//            if (ObjectUtil.isNotEmpty(stringObjectMap)) {
-//                shifts.setCreateMation(stringObjectMap);
-//            }
-//        });
         iAuthUserService.setName(allShifts, "createId", "createName");
         iAuthUserService.setName(allShifts, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(allShifts);

@@ -47,6 +47,10 @@ public class Scheduling extends OperatorUserInfo {
     @ApiModelProperty(value = "排班人的状态（1 在职中 2 请假中 3 出差中）",defaultValue = "1" ,enumClass = SchedulePeopleType.class)
     private Integer schedulePeopleType;
 
+    @TableField(value = "shift_time_id")
+    @ApiModelProperty(value = "班次时间段id")
+    private String shiftTimeId;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "开始时间")
     private String startTime;
