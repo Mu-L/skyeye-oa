@@ -29,6 +29,9 @@
             <if test="keyword != null and keyword != ''">
                 AND s.dict_name like '%${keyword}%'
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND s.tenant_id = #{tenantId}
+            </if>
             AND s.dict_type_id = #{dictTypeId}
         </where>
         ORDER BY s.dict_sort ASC
