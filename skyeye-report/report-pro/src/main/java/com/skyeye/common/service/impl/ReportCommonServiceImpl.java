@@ -430,29 +430,82 @@ public class ReportCommonServiceImpl implements ReportCommonService {
     @Override
     public void parseRestText(InputObject inputObject, OutputObject outputObject) {
         try {
-            String serviceStr = inputObject.getParams().get("serviceStr").toString();
-            String requestUrl = inputObject.getParams().get("requestUrl").toString();
-            if (StrUtil.isEmpty(serviceStr)) {
-                requestUrl += serviceStr + requestUrl;
+            Map<String, Object> params = inputObject.getParams();
+
+            // 获取请求参数
+            String serviceStr = params.containsKey("serviceStr") ? params.get("serviceStr").toString() : "";
+            String requestUrl = params.get("requestUrl").toString();
+
+            // 拼接服务地址和请求URL
+            if (!StrUtil.isEmpty(serviceStr)) {
+                // 修复逻辑错误，应该是服务地址+请求路径
+                if (!serviceStr.endsWith("/") && !requestUrl.startsWith("/")) {
+                    requestUrl = serviceStr + "/" + requestUrl;
+                } else {
+                    requestUrl = serviceStr + requestUrl;
+                }
             }
-            String requestMethod = inputObject.getParams().get("requestMethod").toString();
-            String requestHeader = inputObject.getParams().get("requestHeader").toString();
-            String requestBody = inputObject.getParams().get("requestBody").toString();
-            // 请求头
+
+            String requestMethod = params.get("requestMethod").toString();
+            String requestHeader = params.get("requestHeader").toString();
+            String requestBody = params.containsKey("requestBody") ? params.get("requestBody").toString() : "";
+
+            // 处理请求头
             List<Map<String, Object>> array = JSONUtil.toList(requestHeader, null);
             Map<String, String> requestHeaderKey2Value = array.stream()
                 .collect(Collectors.toMap(bean -> bean.get("headerKey").toString(), bean -> bean.get("headerValue").toString()));
+
+            LOGGER.info("发送REST请求: {}, 方法: {}", requestUrl, requestMethod);
+
             // 发送请求
             String responseData = HttpRequestUtil.getDataByRequest(requestUrl, requestMethod, requestHeaderKey2Value, requestBody);
+
+            if (responseData == null || responseData.trim().isEmpty()) {
+                throw new RuntimeException("接口返回空数据");
+            }
+
             // 存放并解析响应结果
             Set<String> result = new HashSet<>();
-            parseJsonSubNode(JSONUtil.toBean(responseData, Map.class), result, true, "");
+
+            try {
+                // 尝试作为JSON对象解析
+                Map<String, Object> responseMap = JSONUtil.toBean(responseData, Map.class);
+                parseJsonSubNode(responseMap, result, true, "");
+            } catch (Exception e) {
+                try {
+                    // 尝试作为JSON数组解析
+                    List<Object> responseList = JSONUtil.toList(responseData, Object.class);
+                    if (!responseList.isEmpty()) {
+                        // 添加顶层数组标记
+                        String arrayPath = "[*]";
+
+                        Object firstItem = responseList.get(0);
+                        if (firstItem instanceof Map) {
+                            // 数组中是对象，递归解析第一个对象的结构
+                            parseJsonSubNode((Map<String, Object>) firstItem, result, false, arrayPath);
+                        } else {
+                            // 数组中是基本类型
+                            result.add(arrayPath);
+                        }
+                    }
+                } catch (Exception ex) {
+                    // 返回不是JSON格式，作为纯文本处理
+                    result.add("response");
+                    LOGGER.warn("接口返回的数据不是有效的JSON格式: {}", responseData);
+                }
+            }
+
+            // 返回结果
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("nodeArray", result);
+
+            // 添加原始响应数据用于调试
+            resultMap.put("responseData", responseData);
+
             outputObject.setBean(resultMap);
         } catch (Exception ex) {
-            LOGGER.info("接口解析失败.", ex);
-            outputObject.setreturnMessage("接口解析失败.");
+            LOGGER.error("接口解析失败", ex);
+            outputObject.setreturnMessage("接口解析失败: " + ex.getMessage());
         }
     }
 
