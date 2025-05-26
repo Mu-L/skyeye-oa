@@ -1,5 +1,6 @@
 package com.skyeye.scheduling.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -9,6 +10,7 @@ import com.skyeye.scheduling.entity.SchedulingShiftsTime;
 import com.skyeye.scheduling.service.SchedulingShiftsTimeService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +40,16 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
     public List<SchedulingShiftsTime> queryTimeByShiftId(String id) {
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<SchedulingShiftsTime> selectBySchedulingShiftsIds(List<String> schedulingShiftsIds) {
+        if (CollectionUtil.isEmpty(schedulingShiftsIds)){
+            return new ArrayList<>();
+        }
+        QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), schedulingShiftsIds);
         return list(queryWrapper);
     }
 }

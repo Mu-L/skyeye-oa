@@ -34,4 +34,16 @@ public class SchedulingShiftsTime extends OperatorUserInfo {
     @ApiModelProperty(value = "是否跨天，0表示不跨天，1表示跨天")
     private Integer isNextDay;
 
+    @TableField(value = "name")
+    @ApiModelProperty(value = "班次时间段名称")
+    private String name;
+
+    @TableField(value = "min_staff")
+    @ApiModelProperty(value = "最小需求人数")
+    private Integer minStaff;
+
+    @TableField(value = "max_staff")
+    @ApiModelProperty(value = "最大需求人数")
+    private Integer maxStaff;
+
 }
