@@ -66,7 +66,7 @@ public class InvoiceController {
      */
     @ApiOperation(id = "deleteInvoiceById", value = "删除发票信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/InvoiceController/deleteInvoiceById")
     public void deleteInvoiceById(InputObject inputObject, OutputObject outputObject) {
         invoiceService.deleteById(inputObject, outputObject);
@@ -80,26 +80,13 @@ public class InvoiceController {
      */
     @ApiOperation(id = "submitInvoiceToApproval", value = "发票提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
     @RequestMapping("/post/InvoiceController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         invoiceService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废发票信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "invalidInvoice", value = "作废发票信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/InvoiceController/invalid")
-    public void invalid(InputObject inputObject, OutputObject outputObject) {
-        invoiceService.invalid(inputObject, outputObject);
-    }
 
     /**
      * 撤销发票审批
@@ -109,7 +96,7 @@ public class InvoiceController {
      */
     @ApiOperation(id = "revokeInvoice", value = "撤销发票审批", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
+            @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/InvoiceController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         invoiceService.revoke(inputObject, outputObject);

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
 
@@ -62,12 +61,12 @@ public class Receivable extends SkyeyeFlowable {
     @Property(value = "状态，参考#FlowableStateEnum")
     private String state;
 
-    @TableField(value="pay_state")
-    @ApiModelProperty(value = "付款状态，参考#CrmPayStateEnum",defaultValue = "0")
+    @TableField(value = "pay_state")
+    @ApiModelProperty(value = "付款状态，参考#CrmPayStateEnum", defaultValue = "0")
     private Integer payState;
 
     @TableField(value = "paid_price")
-    @ApiModelProperty(value = "已付款金额", required = "double", defaultValue = "0")
+    @Property(value = "已付款金额")
     private String paidPrice;
 
     @TableField(value = "invoice_date")
@@ -80,5 +79,5 @@ public class Receivable extends SkyeyeFlowable {
 
     @TableField(exist = false)
     @Property(value = "联系人信息")
-    private Map<String,Object> contactMation;
+    private Map<String, Object> contactMation;
 }

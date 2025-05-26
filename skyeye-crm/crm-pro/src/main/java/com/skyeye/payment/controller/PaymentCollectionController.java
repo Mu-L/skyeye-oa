@@ -66,7 +66,7 @@ public class PaymentCollectionController {
      */
     @ApiOperation(id = "deletePaymentCollectionById", value = "删除回款信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PaymentCollectionController/deletePaymentCollectionById")
     public void deletePaymentCollectionById(InputObject inputObject, OutputObject outputObject) {
         paymentCollectionService.deleteById(inputObject, outputObject);
@@ -80,8 +80,8 @@ public class PaymentCollectionController {
      */
     @ApiOperation(id = "submitPaymentCollectionToApproval", value = "回款提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
     @RequestMapping("/post/PaymentCollectionController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         paymentCollectionService.submitToApproval(inputObject, outputObject);
@@ -95,7 +95,7 @@ public class PaymentCollectionController {
      */
     @ApiOperation(id = "invalidPaymentCollection", value = "作废回款信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PaymentCollectionController/invalid")
     public void invalid(InputObject inputObject, OutputObject outputObject) {
         paymentCollectionService.invalid(inputObject, outputObject);
@@ -109,7 +109,7 @@ public class PaymentCollectionController {
      */
     @ApiOperation(id = "revokePaymentCollection", value = "撤销回款审批", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
+            @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/PaymentCollectionController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         paymentCollectionService.revoke(inputObject, outputObject);
@@ -123,7 +123,7 @@ public class PaymentCollectionController {
      */
     @ApiOperation(id = "queryPaymentCollectionByContractId", value = "根据合同id获取回款列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
+            @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
     @RequestMapping("/post/PaymentCollectionController/queryPaymentCollectionByContractId")
     public void queryPaymentCollectionByContractId(InputObject inputObject, OutputObject outputObject) {
         paymentCollectionService.queryPaymentCollectionByContractId(inputObject, outputObject);

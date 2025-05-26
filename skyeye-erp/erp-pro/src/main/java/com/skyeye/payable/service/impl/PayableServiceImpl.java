@@ -2,18 +2,19 @@ package com.skyeye.payable.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.SupplierContractService;
-import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.exception.CustomException;
+import com.skyeye.eve.contacts.service.IContactsService;
 import com.skyeye.payable.classenum.ErpPayStateEnum;
 import com.skyeye.payable.classenum.ErpSupplierPayableAuthEnum;
 import com.skyeye.payable.dao.PayableDao;
@@ -42,8 +43,8 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     private SupplierContractService supplierContractService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
-    
+    private IContactsService iContactsService;
+
     @Override
     public Class getAuthEnumClass() {
         return ErpSupplierPayableAuthEnum.class;
@@ -52,27 +53,14 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     @Override
     public List<String> getAuthPermissionKeyList() {
         return Arrays.asList(ErpSupplierPayableAuthEnum.ADD.getKey(), ErpSupplierPayableAuthEnum.EDIT.getKey(), ErpSupplierPayableAuthEnum.DELETE.getKey(),
-                ErpSupplierPayableAuthEnum.REVOKE.getKey(), ErpSupplierPayableAuthEnum.INVALID.getKey(), ErpSupplierPayableAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
+                ErpSupplierPayableAuthEnum.REVOKE.getKey(), ErpSupplierPayableAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
                 ErpSupplierPayableAuthEnum.LIST.getKey());
     }
 
     @Override
     public void validatorEntity(Payable entity) {
         super.validatorEntity(entity);
-        // 如果单据日期不为空并且时间早于当前时间
-        if (StrUtil.isNotEmpty(entity.getInvoiceDate()) &&
-                DateUtil.compare(entity.getInvoiceDate(), DateUtil.getTimeAndToString())) {
-            throw new CustomException("单据日期不能早于当前时间");
-        }else {
-            entity.setInvoiceDate(null);
-        }
-        if (!entity.getPaidPrice().equals(String.valueOf(CommonNumConstants.NUM_ZERO))) {
-            if (entity.getPaidPrice().equals(entity.getAmountPrice())) {
-                entity.setPayState(ErpPayStateEnum.PAID_STATE.getKey());
-            } else {
-                throw new CustomException("已付金额只能等于应付金额");
-            }
-        }
+        entity.setPaidPrice(String.valueOf(CommonNumConstants.NUM_ZERO));
     }
 
     @Override
@@ -86,7 +74,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         supplierContractService.setMationForMap(beans, "contractId", "contractMation");
-        iAuthUserService.setMationForMap(beans, "contactId", "contactMation");
+        iContactsService.setMationForMap(beans, "contactId", "contactMation");
         return beans;
     }
 
@@ -94,7 +82,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     public Payable selectById(String id) {
         Payable payable = super.selectById(id);
         supplierContractService.setDataMation(payable, Payable::getContractId);
-        iAuthUserService.setDataMation(payable, Payable::getContactId);
+        iContactsService.setDataMation(payable, Payable::getContactId);
         return payable;
     }
 
@@ -114,5 +102,20 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
         });
         outputObject.setBeans(payableList);
         outputObject.settotal(payableList.size());
+    }
+
+    @Override
+    public void updateReceivablePaidPrice(String payableId, String price) {
+        Payable receivable = selectById(payableId);
+        price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                StrUtil.isEmpty(receivable.getPaidPrice()) ? "0" : receivable.getPaidPrice(),
+                price);
+        UpdateWrapper<Payable> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, payableId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPaidPrice), price);
+        if (receivable.getAmountPrice().equals(price)) {
+            updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PAID_STATE.getKey());
+        }
+        update(updateWrapper);
     }
 }

@@ -17,4 +17,6 @@ import com.skyeye.receivable.entity.Receivable;
 public interface ReceivableService extends SkyeyeFlowableService<Receivable> {
 
     void queryReceivableByContractId(InputObject inputObject, OutputObject outputObject);
+
+    void updateReceivablePaidPrice(String receivableId, String price);
 }

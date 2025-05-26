@@ -66,7 +66,7 @@ public class PaymentController {
      */
     @ApiOperation(id = "deletePaymentById", value = "删除付款信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PaymentController/deletePaymentById")
     public void deletePaymentById(InputObject inputObject, OutputObject outputObject) {
         paymentService.deleteById(inputObject, outputObject);
@@ -80,26 +80,13 @@ public class PaymentController {
      */
     @ApiOperation(id = "submitPaymentToApproval", value = "付款提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
     @RequestMapping("/post/PaymentController/submitPaymentToApproval")
     public void submitPaymentToApproval(InputObject inputObject, OutputObject outputObject) {
         paymentService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废付款信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "invalidPayment", value = "作废付款信息", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/PaymentController/invalidPayment")
-    public void invalidPayment(InputObject inputObject, OutputObject outputObject) {
-        paymentService.invalid(inputObject, outputObject);
-    }
 
     /**
      * 撤销付款审批
@@ -109,7 +96,7 @@ public class PaymentController {
      */
     @ApiOperation(id = "revokePayment", value = "撤销付款审批", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
+            @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/PaymentController/revokePayment")
     public void revokePayment(InputObject inputObject, OutputObject outputObject) {
         paymentService.revoke(inputObject, outputObject);
@@ -123,7 +110,7 @@ public class PaymentController {
      */
     @ApiOperation(id = "queryPaymentByContractId", value = "根据合同id获取付款列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
+            @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
     @RequestMapping("/post/PaymentController/queryPaymentByContractId")
     public void queryPaymentByContractId(InputObject inputObject, OutputObject outputObject) {
         paymentService.queryPaymentByContractId(inputObject, outputObject);
