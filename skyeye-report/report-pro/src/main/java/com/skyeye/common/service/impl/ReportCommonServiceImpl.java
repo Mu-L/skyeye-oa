@@ -138,25 +138,83 @@ public class ReportCommonServiceImpl implements ReportCommonService {
      */
     @Override
     public void parseJsonSubNode(Map<String, Object> paramMap, Set<String> sets, boolean isFirstTime, String name) {
+        if (paramMap == null || paramMap.isEmpty()) {
+            // 处理空Map的情况
+            if (!isFirstTime && !name.isEmpty()) {
+                sets.add(name);
+            }
+            return;
+        }
+
         Set<Map.Entry<String, Object>> entries = paramMap.entrySet();
         String key;
         Object value;
         for (Map.Entry<String, Object> obj : entries) {
             key = obj.getKey();
             value = obj.getValue();
+            String currentPath = getNewName(isFirstTime, name, key);
+
             if (value instanceof Map) {
-                parseJsonSubNode((Map<String, Object>) value, sets, false, getNewName(isFirstTime, name, key));
+                // 处理嵌套Map
+                parseJsonSubNode((Map<String, Object>) value, sets, false, currentPath);
             } else if (value instanceof List) {
                 List<Object> tempList = (List<Object>) value;
-                for (Object object : tempList) {
-                    if (object instanceof Map) {
-                        parseJsonSubNode((Map<String, Object>) object, sets, false, getNewName(isFirstTime, name, key));
-                    } else {
-                        sets.add(name.concat(".").concat(key));
+                // 使用[*]表示数组
+                String arrayPath = currentPath + "[*]";
+
+                // 处理空数组的情况
+                if (tempList.isEmpty()) {
+                    sets.add(arrayPath);
+                    continue;
+                }
+
+                // 检查第一个元素类型，假设数组中的元素类型一致
+                Object firstElement = tempList.get(0);
+
+                if (firstElement instanceof Map) {
+                    // 处理对象数组
+                    for (Object object : tempList) {
+                        if (object instanceof Map) {
+                            parseJsonSubNode((Map<String, Object>) object, sets, false, arrayPath);
+                        } else if (object != null) {
+                            // 处理混合类型数组中的非Map元素
+                            sets.add(arrayPath);
+                        }
                     }
+                } else if (firstElement instanceof List) {
+                    // 处理嵌套数组
+                    for (Object object : tempList) {
+                        if (object instanceof List) {
+                            List<Object> nestedList = (List<Object>) object;
+                            String nestedArrayPath = arrayPath + "[*]";
+
+                            // 处理空嵌套数组
+                            if (nestedList.isEmpty()) {
+                                sets.add(nestedArrayPath);
+                                continue;
+                            }
+
+                            // 处理嵌套数组中的第一个元素
+                            Object nestedFirstElement = nestedList.get(0);
+                            if (nestedFirstElement instanceof Map) {
+                                for (Object nestedObject : nestedList) {
+                                    if (nestedObject instanceof Map) {
+                                        parseJsonSubNode((Map<String, Object>) nestedObject, sets, false, nestedArrayPath);
+                                    }
+                                }
+                            } else {
+                                // 嵌套数组中是基本类型
+                                sets.add(nestedArrayPath);
+                            }
+                        }
+                    }
+                } else {
+                    // 基本类型数组
+                    sets.add(arrayPath);
                 }
             } else {
-                sets.add(getNewName(isFirstTime, name, key));
+                // 基本类型值
+                sets.add(currentPath);
             }
         }
     }
