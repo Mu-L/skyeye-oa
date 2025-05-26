@@ -331,12 +331,20 @@ public class ReportCommonServiceImpl implements ReportCommonService {
             // 提取主表名或查询别名
             String mainTableName = extractMainTableName(sqlText);
 
-            // 处理列路径
+            // 处理列路径 - 使用ReportMetaDataColumn类的正确属性名
             for (ReportMetaDataColumn column : dataColumns) {
-                String columnName = column.getColumnName();
-                String tableName = column.getTableName();
+                String columnName = column.getName(); // 使用name属性代替之前的columnName
 
-                // 优先使用表名，如果为空则使用主表名
+                // 由于ReportMetaDataColumn没有tableName属性，我们可以尝试从列名解析
+                // 列名可能是"表名.列名"格式
+                String tableName = "";
+                if (columnName.contains(".")) {
+                    String[] parts = columnName.split("\\.", 2);
+                    tableName = parts[0];
+                    columnName = parts[1];
+                }
+
+                // 优先使用从列名中提取的表名，如果为空则使用主表名
                 String prefix = (tableName != null && !tableName.isEmpty()) ? tableName : mainTableName;
 
                 // 如果列来自子查询或复杂表达式，可能没有表名
