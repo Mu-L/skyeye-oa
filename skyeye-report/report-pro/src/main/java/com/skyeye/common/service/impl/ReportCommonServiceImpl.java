@@ -20,7 +20,6 @@ import net.sf.json.JSONArray;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.tree.DefaultElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,17 +101,54 @@ public class ReportCommonServiceImpl implements ReportCommonService {
             return;
         }
         Map<String, Object> resultBean = new HashMap<>();
-        List<String> nodeList = new ArrayList<>();
-        parseSubNode(rootElement.elements(), nodeList, rootElement.getName());
-        resultBean.put("nodeArray", nodeList);
+        Set<String> nodeSet = new HashSet<>();
+        parseSubNode(rootElement, nodeSet, rootElement.getName());
+        resultBean.put("nodeArray", new ArrayList<>(nodeSet));
         outputObject.setBean(resultBean);
     }
 
     // 解析并拼接节点下所有子节点名称
-    private void parseSubNode(List<DefaultElement> elements, List<String> nodeList, String name) {
-        elements.forEach(ele -> parseSubNode(ele.elements(), nodeList, name.concat(".").concat(ele.getName())));
-        if (elements.size() == 0) {
-            nodeList.add(name);
+    private void parseSubNode(Element element, Set<String> nodeSet, String path) {
+        // 处理元素的属性
+        List<org.dom4j.Attribute> attributes = element.attributes();
+        for (org.dom4j.Attribute attr : attributes) {
+            nodeSet.add(path + "." + "@" + attr.getName());
+        }
+
+        List<Element> childElements = element.elements();
+
+        // 处理元素的文本内容
+        if (!element.getTextTrim().isEmpty() && element.elements().isEmpty()) {
+            nodeSet.add(path + ".#text");
+        }
+
+        if (childElements.isEmpty()) {
+            // 如果是叶子节点（没有子元素），添加当前路径
+            nodeSet.add(path);
+            return;
+        }
+
+        // 统计子节点名称出现的次数，用于检测重复节点
+        Map<String, Integer> elementNameCount = new HashMap<>();
+        for (Element child : childElements) {
+            String childName = child.getName();
+            elementNameCount.put(childName, elementNameCount.getOrDefault(childName, 0) + 1);
+        }
+
+        // 处理每个子节点
+        for (Element child : childElements) {
+            String childName = child.getName();
+            String childPath;
+
+            // 如果节点名称出现多次，则使用数组表示法
+            if (elementNameCount.get(childName) > 1) {
+                childPath = path + "." + childName + "[*]";
+            } else {
+                childPath = path + "." + childName;
+            }
+
+            // 递归处理子节点
+            parseSubNode(child, nodeSet, childPath);
         }
     }
 
@@ -154,7 +190,10 @@ public class ReportCommonServiceImpl implements ReportCommonService {
             value = obj.getValue();
             String currentPath = getNewName(isFirstTime, name, key);
 
-            if (value instanceof Map) {
+            if (value == null) {
+                // 处理null值
+                sets.add(currentPath);
+            } else if (value instanceof Map) {
                 // 处理嵌套Map
                 parseJsonSubNode((Map<String, Object>) value, sets, false, currentPath);
             } else if (value instanceof List) {
@@ -164,6 +203,20 @@ public class ReportCommonServiceImpl implements ReportCommonService {
 
                 // 处理空数组的情况
                 if (tempList.isEmpty()) {
+                    sets.add(arrayPath);
+                    continue;
+                }
+
+                // 检查数组中是否有null值
+                boolean hasNullElement = false;
+                for (Object item : tempList) {
+                    if (item == null) {
+                        hasNullElement = true;
+                        break;
+                    }
+                }
+
+                if (hasNullElement) {
                     sets.add(arrayPath);
                     continue;
                 }
