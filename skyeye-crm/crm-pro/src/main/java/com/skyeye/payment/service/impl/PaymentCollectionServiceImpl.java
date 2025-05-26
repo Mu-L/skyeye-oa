@@ -4,7 +4,9 @@
 
 package com.skyeye.payment.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -23,6 +25,7 @@ import com.skyeye.payment.dao.PaymentCollectionDao;
 import com.skyeye.payment.entity.PaymentCollection;
 import com.skyeye.payment.service.PaymentCollectionService;
 import com.skyeye.receivable.service.ReceivableService;
+import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +50,9 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
 
     @Autowired
     private ReceivableService receivableService;
+
+    @Autowired
+    private IfsReceivePaymentService ifsReceivePaymentService;
 
     @Override
     public Class getAuthEnumClass() {
@@ -107,6 +113,8 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         crmContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
         // 修改应收事项的已支付金额
         receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
+        // 远程调用新增收付款信息
+        ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
     }
 
     @Override

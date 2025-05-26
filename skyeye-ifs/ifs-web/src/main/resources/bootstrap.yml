@@ -42,3 +42,8 @@ feign:
       default:
         loggerLevel: FULL
 
+webroot:
+  # CRM服务
+  skyeye-crm: skyeye-crm-${spring.profiles.active}
+  # ERP服务
+  skyeye-erp: skyeye-erp-${spring.profiles.active}

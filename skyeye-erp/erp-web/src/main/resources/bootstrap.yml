@@ -46,6 +46,8 @@ webroot:
   skyeye-seal-service: skyeye-seal-service-${spring.profiles.active}
   # 门店相关的服务
   skyeye-shop: skyeye-shop-${spring.profiles.active}
+  # 财政相关服务
+  skyeye-ifs: skyeye-ifs-${spring.profiles.active}
 
 feign:
   client:
@@ -53,4 +55,5 @@ feign:
       # 全局配置
       default:
         loggerLevel: FULL
+
 

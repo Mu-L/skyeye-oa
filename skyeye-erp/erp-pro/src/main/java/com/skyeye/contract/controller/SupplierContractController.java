@@ -95,7 +95,7 @@ public class SupplierContractController {
      */
     @ApiOperation(id = "mysuppliercontract008", value = "根据供应商id获取合同管理列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id", required = "required")})
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id")})
     @RequestMapping("/post/SupplierContractController/querySupplierContractListByObjectId")
     public void querySupplierContractListByObjectId(InputObject inputObject, OutputObject outputObject) {
         supplierContractService.querySupplierContractListByObjectId(inputObject, outputObject);

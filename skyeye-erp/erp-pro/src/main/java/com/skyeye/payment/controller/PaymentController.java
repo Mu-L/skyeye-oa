@@ -115,4 +115,12 @@ public class PaymentController {
     public void queryPaymentByContractId(InputObject inputObject, OutputObject outputObject) {
         paymentService.queryPaymentByContractId(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryPaymentCollectionById", value = "根据id获取付款信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id",required = "required")})
+    @RequestMapping("/post/PaymentController/queryPaymentCollectionById")
+    public void queryPaymentCollectionById(InputObject inputObject, OutputObject outputObject) {
+        paymentService.selectById(inputObject, outputObject);
+    }
 }
