@@ -2,19 +2,19 @@ package com.skyeye.receivable.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.CrmContractService;
-import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.exception.CustomException;
-import com.skyeye.payment.entity.PaymentCollection;
+import com.skyeye.eve.contacts.service.IContactsService;
 import com.skyeye.receivable.classenum.CrmPayStateEnum;
 import com.skyeye.receivable.classenum.CrmReceivableAuthEnum;
 import com.skyeye.receivable.dao.ReceivableDao;
@@ -43,7 +43,8 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
     private CrmContractService crmContractService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private IContactsService iContactsService;
+
 
     @Override
     public Class getAuthEnumClass() {
@@ -53,27 +54,14 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
     @Override
     public List<String> getAuthPermissionKeyList() {
         return Arrays.asList(CrmReceivableAuthEnum.ADD.getKey(), CrmReceivableAuthEnum.EDIT.getKey(), CrmReceivableAuthEnum.DELETE.getKey(),
-                CrmReceivableAuthEnum.REVOKE.getKey(), CrmReceivableAuthEnum.INVALID.getKey(), CrmReceivableAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
+                CrmReceivableAuthEnum.REVOKE.getKey(), CrmReceivableAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
                 CrmReceivableAuthEnum.LIST.getKey());
     }
 
     @Override
     public void validatorEntity(Receivable entity) {
         super.validatorEntity(entity);
-        // 如果单据日期不为空并且时间早于当前时间
-        if (StrUtil.isNotEmpty(entity.getInvoiceDate()) &&
-                DateUtil.compare(entity.getInvoiceDate(), DateUtil.getTimeAndToString())) {
-            throw new CustomException("单据日期不能早于当前时间");
-        }else {
-            entity.setInvoiceDate(null);
-        }
-        if (!entity.getPaidPrice().equals(String.valueOf(CommonNumConstants.NUM_ZERO))) {
-            if (entity.getPaidPrice().equals(entity.getAmountPrice())) {
-                entity.setPayState(CrmPayStateEnum.PAID_STATE.getKey());
-            } else {
-                throw new CustomException("已付金额只能等于应付金额");
-            }
-        }
+        entity.setPaidPrice(String.valueOf(CommonNumConstants.NUM_ZERO));
     }
 
     @Override
@@ -87,7 +75,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         crmContractService.setMationForMap(beans, "contractId", "contractMation");
-        iAuthUserService.setMationForMap(beans, "contactId", "contactMation");
+        iContactsService.setMationForMap(beans, "contactId", "contactMation");
         return beans;
     }
 
@@ -95,7 +83,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
     public Receivable selectById(String id) {
         Receivable receivable = super.selectById(id);
         crmContractService.setDataMation(receivable, Receivable::getContractId);
-        iAuthUserService.setDataMation(receivable, Receivable::getContactId);
+        iContactsService.setDataMation(receivable, Receivable::getContactId);
         return receivable;
     }
 
@@ -115,5 +103,20 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         });
         outputObject.setBeans(receivableList);
         outputObject.settotal(receivableList.size());
+    }
+
+    @Override
+    public void updateReceivablePaidPrice(String receivableId, String price) {
+        Receivable receivable = selectById(receivableId);
+        price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                StrUtil.isEmpty(receivable.getPaidPrice()) ? "0" : receivable.getPaidPrice(),
+                price);
+        UpdateWrapper<Receivable> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, receivableId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Receivable::getPaidPrice), price);
+        if (receivable.getAmountPrice().equals(price)) {
+            updateWrapper.set(MybatisPlusUtil.toColumns(Receivable::getPayState), CrmPayStateEnum.PAID_STATE.getKey());
+        }
+        update(updateWrapper);
     }
 }

@@ -33,12 +33,6 @@ public class ArrangementController {
     @Autowired
     private ArrangementService arrangementService;
 
-    /**
-     * 获取我录入的面试安排信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyEntryBossInterviewArrangementList", value = "获取我录入的面试安排信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArrangementController/queryMyEntryBossInterviewArrangementList")
@@ -46,12 +40,6 @@ public class ArrangementController {
         arrangementService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑面试安排
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeArrangement", value = "新增/编辑面试安排", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Arrangement.class)
     @RequestMapping("/post/ArrangementController/writeArrangement")
@@ -59,12 +47,6 @@ public class ArrangementController {
         arrangementService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询面试安排信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryArrangementById", value = "根据id查询面试安排信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class ArrangementController {
         arrangementService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 作废面试安排信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "nullifyArrangement", value = "作废面试安排信息", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class ArrangementController {
         arrangementService.nullifyArrangement(inputObject, outputObject);
     }
 
-    /**
-     * 获取我录入的人员需求关联的面试者信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyEntryBossPersonRequireAboutArrangementList", value = "获取我录入的人员需求关联的面试者信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArrangementController/queryMyEntryBossPersonRequireAboutArrangementList")
@@ -100,12 +70,6 @@ public class ArrangementController {
         arrangementService.queryMyEntryBossPersonRequireAboutArrangementList(inputObject, outputObject);
     }
 
-    /**
-     * 部门经理面试安排信息设置面试官
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setBossInterviewer", value = "部门经理面试安排信息设置面试官", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -115,12 +79,6 @@ public class ArrangementController {
         arrangementService.setBossInterviewer(inputObject, outputObject);
     }
 
-    /**
-     * 获取面试官为当前登录用户的面试者信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryArrangementInterviewerIsMyList", value = "获取面试官为当前登录用户的面试者信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArrangementController/queryArrangementInterviewerIsMyList")
@@ -128,12 +86,6 @@ public class ArrangementController {
         arrangementService.queryArrangementInterviewerIsMyList(inputObject, outputObject);
     }
 
-    /**
-     * 设置面试结果
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setBossInterviewResult", value = "设置面试结果", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -144,12 +96,6 @@ public class ArrangementController {
         arrangementService.setBossInterviewResult(inputObject, outputObject);
     }
 
-    /**
-     * 设置入职结果
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setInductionResult", value = "设置入职结果", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

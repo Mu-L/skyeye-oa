@@ -57,8 +57,8 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
     @Override
     public List<String> getAuthPermissionKeyList() {
         return Arrays.asList(CrmInvoiceAuthEnum.ADD.getKey(), CrmInvoiceAuthEnum.EDIT.getKey(), CrmInvoiceAuthEnum.DELETE.getKey(),
-            CrmInvoiceAuthEnum.REVOKE.getKey(), CrmInvoiceAuthEnum.INVALID.getKey(), CrmInvoiceAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
-            CrmInvoiceAuthEnum.LIST.getKey());
+                CrmInvoiceAuthEnum.REVOKE.getKey(), CrmInvoiceAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
+                CrmInvoiceAuthEnum.LIST.getKey());
     }
 
     @Override

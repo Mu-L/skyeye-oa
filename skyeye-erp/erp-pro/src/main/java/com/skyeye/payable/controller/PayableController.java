@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Api(value = "应付事项管理", tags = "应付事项管理", modelName = "应付事项管理")
 public class PayableController {
-    
+
     @Autowired
     private PayableService payableService;
 
@@ -61,13 +61,6 @@ public class PayableController {
         payableService.submitToApproval(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "invalidPayable", value = "作废应付事项", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/PayableController/invalidPayable")
-    public void invalidPayable(InputObject inputObject, OutputObject outputObject) {
-        payableService.invalid(inputObject, outputObject);
-    }
 
     @ApiOperation(id = "revokePayable", value = "撤销应付事项", method = "PUT", allUse = "2")
     @ApiImplicitParams({

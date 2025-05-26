@@ -22,6 +22,7 @@ import com.skyeye.payment.classenum.CrmPaymentCollectionAuthEnum;
 import com.skyeye.payment.dao.PaymentCollectionDao;
 import com.skyeye.payment.entity.PaymentCollection;
 import com.skyeye.payment.service.PaymentCollectionService;
+import com.skyeye.receivable.service.ReceivableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,9 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
     @Autowired
     private CrmContractService crmContractService;
 
+    @Autowired
+    private ReceivableService receivableService;
+
     @Override
     public Class getAuthEnumClass() {
         return CrmPaymentCollectionAuthEnum.class;
@@ -52,8 +56,8 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
     @Override
     public List<String> getAuthPermissionKeyList() {
         return Arrays.asList(CrmPaymentCollectionAuthEnum.ADD.getKey(), CrmPaymentCollectionAuthEnum.EDIT.getKey(), CrmPaymentCollectionAuthEnum.DELETE.getKey(),
-            CrmPaymentCollectionAuthEnum.REVOKE.getKey(), CrmPaymentCollectionAuthEnum.INVALID.getKey(), CrmPaymentCollectionAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
-            CrmPaymentCollectionAuthEnum.LIST.getKey());
+                CrmPaymentCollectionAuthEnum.REVOKE.getKey(), CrmPaymentCollectionAuthEnum.INVALID.getKey(), CrmPaymentCollectionAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
+                CrmPaymentCollectionAuthEnum.LIST.getKey());
     }
 
     @Override
@@ -101,14 +105,16 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
     public void approvalEndIsSuccess(PaymentCollection entity) {
         // 修改合同的回款金额
         crmContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
+        // 修改应收事项的已支付金额
+        receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
     }
 
     @Override
     public void updateInvoicePrice(String id, String invoicePrice) {
         PaymentCollection paymentCollection = selectById(id);
         String newInvoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-            StrUtil.isEmpty(paymentCollection.getInvoicePrice()) ? "0" : paymentCollection.getInvoicePrice(),
-            invoicePrice);
+                StrUtil.isEmpty(paymentCollection.getInvoicePrice()) ? "0" : paymentCollection.getInvoicePrice(),
+                invoicePrice);
         UpdateWrapper<PaymentCollection> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(PaymentCollection::getInvoicePrice), newInvoicePrice);

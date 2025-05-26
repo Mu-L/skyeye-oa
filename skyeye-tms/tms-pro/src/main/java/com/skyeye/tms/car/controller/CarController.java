@@ -32,12 +32,6 @@ public class CarController {
     @Autowired
     private CarService carService;
 
-    /**
-     * 获取车辆列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCarList", value = "获取车辆列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CarController/queryCarList")
@@ -45,12 +39,6 @@ public class CarController {
         carService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改车辆
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCar", value = "新增/编辑车辆", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Car.class)
     @RequestMapping("/post/CarController/writeCar")
@@ -58,12 +46,6 @@ public class CarController {
         carService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除车辆
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCarById", value = "根据ID删除车辆", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class CarController {
         carService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取已启用的车辆
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnabledCarList", value = "获取已启用的车辆", method = "GET", allUse = "2")
     @RequestMapping("/post/TmsCarTypeController/queryEnabledCarList")
     public void queryEnabledCarList(InputObject inputObject, OutputObject outputObject) {

@@ -10,14 +10,17 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.clazz.service.SkyeyeClassEnumService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.team.dao.TeamBusinessDao;
@@ -28,6 +31,7 @@ import com.skyeye.team.service.ITeamBusinessService;
 import com.skyeye.team.service.TeamBusinessService;
 import com.skyeye.team.service.TeamTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +42,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: TeamBusinessServiceImpl
- * @Description: 团队管理服务层
+ * @Description: 团队管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/11/13 19:37
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -56,6 +60,9 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
 
     @Autowired
     private SkyeyeClassEnumService skyeyeClassEnumService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     /**
      * 根据团队模板生成团队信息
@@ -182,6 +189,7 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
     }
 
     @Override
+    @IgnoreTenant
     public void queryMyBusinessTeamList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         if (StrUtil.isEmpty(commonPageInfo.getObjectKey())) {
@@ -193,10 +201,13 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         }
         // 查询TeamRoleUser::getUserId是当前登录用户的团队id 和 TeamBusiness::chargeUser是当前登录用户的团队经理的id
-        MPJLambdaWrapper<TeamBusiness> wrapper = new MPJLambdaWrapper<TeamBusiness>()
-            .innerJoin(TeamRoleUser.class, TeamRoleUser::getTeamId, TeamBusiness::getId)
-            .eq(TeamBusiness::getObjectKey, commonPageInfo.getObjectKey())
-            .and(itemWwrapper -> itemWwrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId))
+        MPJLambdaWrapper<TeamBusiness> wrapper = JoinWrappers.lambda("tb", TeamBusiness.class)
+            .innerJoin(TeamRoleUser.class, "tru", TeamRoleUser::getTeamId, TeamBusiness::getId)
+            .eq(TeamBusiness::getObjectKey, commonPageInfo.getObjectKey());
+        if (tenantEnable) {
+            wrapper.eq("tb." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+        }
+        wrapper.and(itemWrapper -> itemWrapper.or().eq(TeamRoleUser::getUserId, userId).or().eq(TeamBusiness::getChargeUser, userId))
             .groupBy(TeamBusiness::getId);
         List<TeamBusiness> teamBusinessList = skyeyeBaseMapper.selectJoinList(TeamBusiness.class, wrapper);
         outputObject.setBeans(teamBusinessList);

@@ -23,7 +23,6 @@ public enum ErpSupplierPayableAuthEnum implements SkyeyeEnumClass {
     EDIT("edit", "编辑", true, false),
     DELETE("delete", "删除", true, false),
     REVOKE("revoke", "撤销", true, false),
-    INVALID("invalid", "作废", true, false),
     SUBMIT_TO_APPROVAL("submitToApproval", "提交审批", true, false);
 
     private String key;

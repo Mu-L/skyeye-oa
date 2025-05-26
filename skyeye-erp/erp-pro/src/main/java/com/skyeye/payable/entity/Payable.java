@@ -61,8 +61,8 @@ public class Payable extends SkyeyeFlowable {
     @Property(value = "状态，参考#FlowableStateEnum")
     private String state;
 
-    @TableField(value="pay_state")
-    @ApiModelProperty(value = "付款状态，参考#ErpPayStateEnum",defaultValue = "0")
+    @TableField(value = "pay_state")
+    @ApiModelProperty(value = "付款状态，参考#ErpPayStateEnum", defaultValue = "0")
     private Integer payState;
 
     @TableField(value = "paid_price")
@@ -79,5 +79,5 @@ public class Payable extends SkyeyeFlowable {
 
     @TableField(exist = false)
     @Property(value = "联系人信息")
-    private Map<String,Object> contactMation;
+    private Map<String, Object> contactMation;
 }
