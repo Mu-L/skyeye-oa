@@ -1,7 +1,6 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -13,7 +12,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.scheduling.dao.SchedulingShiftsDao;
@@ -37,28 +35,6 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     private SchedulingShiftsTimeService schedulingShiftsTimeService;
 
     @Override
-    protected void createPrepose(SchedulingShifts entity) {
-//        Integer minStaff = entity.getMinStaff();
-//        Integer maxStaff = entity.getMaxStaff();
-//        if (StrUtil.isNotEmpty(String.valueOf(minStaff)) && StrUtil.isNotEmpty(String.valueOf(maxStaff))) {
-//            if (minStaff > maxStaff) {
-//                throw new CustomException("最小人数不能大于最大人数");
-//            }
-//        }
-        List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
-        if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
-            for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
-                String startTime = schedulingShiftsTime.getStartTime();
-                String endTime = schedulingShiftsTime.getEndTime();
-                if (StrUtil.isEmpty(startTime) || StrUtil.isEmpty(endTime)) {
-                    throw new CustomException("班次时间不能为空");
-                }
-            }
-        }
-
-    }
-
-    @Override
     protected void createPostpose(SchedulingShifts entity, String userId) {
         List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
         if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
@@ -70,7 +46,8 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     }
 
     @Override
-    protected void updatePrepose(SchedulingShifts entity) {
+    protected void validatorEntity(SchedulingShifts entity) {
+        super.validatorEntity(entity);
         List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
         if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
             for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimeMation) {
@@ -78,6 +55,14 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
                 String endTime = schedulingShiftsTime.getEndTime();
                 if (StrUtil.isEmpty(startTime) || StrUtil.isEmpty(endTime)) {
                     throw new CustomException("班次时间不能为空");
+                }
+                Integer minStaff = schedulingShiftsTime.getMinStaff();
+                Integer maxStaff = schedulingShiftsTime.getMaxStaff();
+                if (minStaff == null || maxStaff == null) {
+                    throw new CustomException("班次需求人数不能为空");
+                }
+                if (minStaff > maxStaff) {
+                    throw new CustomException("班次最小需求人数不能大于班次最大需求人数");
                 }
             }
         }
@@ -110,7 +95,7 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(keyword)){
+        if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getShiftName), keyword);
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingShifts::getCreateTime));
