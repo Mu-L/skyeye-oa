@@ -4,6 +4,7 @@
 
 package com.skyeye.document.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.contacts.entity.Contacts;
 import com.skyeye.document.entity.Document;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public interface DocumentDao extends SkyeyeBaseMapper<Document> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryDocumentList(CommonPageInfo pageInfo);
 
 }

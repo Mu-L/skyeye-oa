@@ -4,6 +4,7 @@
 
 package com.skyeye.catalog.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.catalog.entity.Catalog;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import org.apache.ibatis.annotations.Param;
@@ -27,6 +28,7 @@ public interface CatalogDao extends SkyeyeBaseMapper<Catalog> {
      * @param ids 子id
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryAllParentNodeById(@Param("ids") List<String> ids);
 
     /**
@@ -35,6 +37,7 @@ public interface CatalogDao extends SkyeyeBaseMapper<Catalog> {
      * @param ids        父id
      * @return
      */
+    @IgnoreTenant
     List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
 
 }

@@ -9,12 +9,14 @@ import com.skyeye.base.business.service.impl.SkyeyeTeamAuthServiceImpl;
 import com.skyeye.catalog.service.CatalogService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.document.classenum.DocumentAuthEnum;
 import com.skyeye.document.dao.DocumentDao;
 import com.skyeye.document.entity.Document;
 import com.skyeye.document.service.DocumentService;
 import com.skyeye.eve.service.SysDictDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -39,6 +41,9 @@ public class DocumentServiceImpl extends SkyeyeTeamAuthServiceImpl<DocumentDao, 
     @Autowired
     private CatalogService catalogService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public Class getAuthEnumClass() {
         return DocumentAuthEnum.class;
@@ -52,6 +57,9 @@ public class DocumentServiceImpl extends SkyeyeTeamAuthServiceImpl<DocumentDao, 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryDocumentList(pageInfo);
         sysDictDataService.setMationForMap(beans, "typeId", "typeMation");
         catalogService.setMationForMap(beans, "catalogId", "catalogMation");
