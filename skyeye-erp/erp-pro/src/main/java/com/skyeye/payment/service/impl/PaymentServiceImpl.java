@@ -4,6 +4,7 @@
 
 package com.skyeye.payment.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -23,12 +24,14 @@ import com.skyeye.payment.classenum.ErpPaymentAuthEnum;
 import com.skyeye.payment.dao.PaymentDao;
 import com.skyeye.payment.entity.Payment;
 import com.skyeye.payment.service.PaymentService;
+import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: PaymentCollectionServiceImpl
@@ -47,6 +50,9 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
 
     @Autowired
     private PayableService payableService;
+
+    @Autowired
+    private IfsReceivePaymentService ifsReceivePaymentService;
 
     @Override
     public Class getAuthEnumClass() {
@@ -84,6 +90,18 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
     }
 
     @Override
+    public List<Payment> selectByIds(String... ids) {
+        List<Payment> payments = super.selectByIds(ids);
+        List<Payment> bean = payments.stream().map(item -> {
+            item.setName(item.getOddNumber());
+            return item;
+        }).collect(Collectors.toList());
+        // 合同信息
+        supplierContractService.setDataMation(bean, Payment::getContractId);
+        return bean;
+    }
+
+    @Override
     public void queryPaymentByContractId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String contractId = map.get("contractId").toString();
@@ -107,6 +125,8 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
         supplierContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
         // 修改应付事项的已付款金额
         payableService.updateReceivablePaidPrice(entity.getPayableId(), entity.getPrice());
+        // 远程调用财政管理--新增收付款管理
+        ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
     }
 
     @Override

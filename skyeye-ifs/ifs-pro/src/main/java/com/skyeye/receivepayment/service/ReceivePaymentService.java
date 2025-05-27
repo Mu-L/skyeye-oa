@@ -16,4 +16,5 @@ import com.skyeye.receivepayment.entity.ReceivePayment;
 public interface ReceivePaymentService extends SkyeyeFlowableService<ReceivePayment> {
     void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject);
 
+    void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject);
 }

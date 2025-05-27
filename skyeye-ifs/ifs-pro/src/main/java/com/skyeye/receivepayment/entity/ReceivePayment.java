@@ -68,6 +68,14 @@ public class ReceivePayment extends SkyeyeFlowable {
     @ApiModelProperty(value = "来源key（付款、回款）")
     private String fromKey;
 
+    @TableField(exist = false)
+    @Property(value = "付款id")
+    private String erpPaymentId;
+
+    @TableField(exist = false)
+    @Property(value = "回款id")
+    private String crmPaymentId;
+
     @TableField(value = "state")
     @Property(value = "状态，参考#FlowableStateEnum")
     private String state;

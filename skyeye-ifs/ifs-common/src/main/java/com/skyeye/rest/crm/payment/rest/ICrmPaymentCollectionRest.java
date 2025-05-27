@@ -12,9 +12,9 @@ public interface ICrmPaymentCollectionRest {
     /**
      * 根据id获取客户回款信息
      *
-     * @param id 主键id
+     * @param ids 主键ids
      */
-    @PostMapping("/queryPaymentCollectionById")
-    String queryPaymentCollectionById(@RequestParam("id") String id);
+    @PostMapping("/queryPaymentCollectionByIds")
+    String queryPaymentCollectionById(@RequestParam("ids") String ids);
 
 }

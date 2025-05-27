@@ -25,7 +25,7 @@ public class ICrmPaymentCollectionServiceImpl extends IServiceImpl implements IC
     private ICrmPaymentCollectionRest iCrmContractRest;
 
     @Override
-    public List<Map<String, Object>> queryPaymentCollectionById(String id) {
-        return ExecuteFeignClient.get(() -> iCrmContractRest.queryPaymentCollectionById(id)).getRows();
+    public List<Map<String, Object>> queryPaymentCollectionById(String ids) {
+        return ExecuteFeignClient.get(() -> iCrmContractRest.queryPaymentCollectionById(ids)).getRows();
     }
 }

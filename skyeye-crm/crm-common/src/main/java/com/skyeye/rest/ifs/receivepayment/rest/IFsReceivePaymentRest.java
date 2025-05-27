@@ -13,6 +13,6 @@ public interface IFsReceivePaymentRest {
     /**
      * 供应商付款管理审批成功后新增收款管理
      * */
-    @PostMapping("/writeReceivePayment")
+    @PostMapping("/addReceivePayment")
     String addIFsReceivePayment(@RequestBody Map<String, Object> map);
 }

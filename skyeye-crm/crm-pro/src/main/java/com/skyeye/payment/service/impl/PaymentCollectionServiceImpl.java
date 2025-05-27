@@ -6,7 +6,6 @@ package com.skyeye.payment.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: PaymentCollectionServiceImpl
@@ -87,6 +87,18 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         // 合同信息
         crmContractService.setDataMation(paymentCollection, PaymentCollection::getContractId);
         return paymentCollection;
+    }
+
+    @Override
+    public List<PaymentCollection> selectByIds(String... ids) {
+        List<PaymentCollection> paymentCollections = super.selectByIds(ids);
+        List<PaymentCollection> bean = paymentCollections.stream().map(item -> {
+            item.setName(item.getOddNumber());
+            return item;
+        }).collect(Collectors.toList());
+        // 合同信息
+        crmContractService.setDataMation(bean, PaymentCollection::getContractId);
+        return bean;
     }
 
     @Override

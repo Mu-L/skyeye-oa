@@ -14,6 +14,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface ICrmPaymentCollectionService extends IService {
-    List<Map<String, Object>> queryPaymentCollectionById(String id);
+    List<Map<String, Object>> queryPaymentCollectionById(String ids);
 
 }

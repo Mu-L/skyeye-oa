@@ -12,9 +12,9 @@ public interface IErpPaymentCollectionRest {
     /**
      * 根据id获取供应商付款信息
      *
-     * @param id 主键id
+     * @param ids 主键ids
      */
-    @PostMapping("/queryPaymentCollectionById")
-    String queryPaymentCollectionById(@RequestParam("id") String id);
+    @PostMapping("/queryPaymentCollectionByIds")
+    String queryPaymentCollectionById(@RequestParam("ids") String ids);
 
 }

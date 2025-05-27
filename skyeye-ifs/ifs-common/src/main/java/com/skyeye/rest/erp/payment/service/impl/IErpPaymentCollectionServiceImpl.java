@@ -25,7 +25,7 @@ public class IErpPaymentCollectionServiceImpl extends IServiceImpl implements IE
     private IErpPaymentCollectionRest iErpPaymentCollectionRest;
 
     @Override
-    public List<Map<String, Object>> queryPaymentCollectionById(String id) {
-        return ExecuteFeignClient.get(() -> iErpPaymentCollectionRest.queryPaymentCollectionById(id)).getRows();
+    public List<Map<String, Object>> queryPaymentCollectionById(String ids) {
+        return ExecuteFeignClient.get(() -> iErpPaymentCollectionRest.queryPaymentCollectionById(ids)).getRows();
     }
 }

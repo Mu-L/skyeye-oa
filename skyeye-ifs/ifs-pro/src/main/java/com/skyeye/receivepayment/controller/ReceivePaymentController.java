@@ -36,11 +36,18 @@ public class ReceivePaymentController {
         receivePaymentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "addReceivePayment", value = "新增收付款", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ReceivePayment.class)
+    @RequestMapping("/post/ReceivePaymentController/addReceivePayment")
+    public void addReceivePayment(InputObject inputObject, OutputObject outputObject) {
+        receivePaymentService.createEntity(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryReceivePaymentList", value = "根据objectId(客户/供应商id)获取应收事项列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentList")
     public void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.queryPageList(inputObject, outputObject);
+        receivePaymentService.queryReceivePaymentList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteReceivePaymentById", value = "删除收付款信息", method = "DELETE", allUse = "2")
