@@ -32,12 +32,6 @@ public class ReportDataFromController {
     @Autowired
     private ReportDataFromService reportDataFromService;
 
-    /**
-     * 获取数据来源列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportDataFromList", value = "获取数据来源列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReportDataFromController/queryReportDataFromList")
@@ -45,12 +39,6 @@ public class ReportDataFromController {
         reportDataFromService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑数据来源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "saveReportDataFrom", value = "新增/编辑数据来源", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ReportDataFrom.class)
     @RequestMapping("/post/ReportDataFromController/saveReportDataFrom")
@@ -58,12 +46,6 @@ public class ReportDataFromController {
         reportDataFromService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除数据来源信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "delReportDataFromById", value = "根据id删除数据来源信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ReportDataFromController {
         reportDataFromService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询数据来源
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportDataFromById", value = "根据id查询数据来源", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ReportDataFromController {
         reportDataFromService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据数据来源信息获取要取的数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportDataFromMationById", value = "根据数据来源信息获取要取的数据", method = "POST", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

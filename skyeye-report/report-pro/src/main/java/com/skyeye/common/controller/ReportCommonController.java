@@ -78,12 +78,6 @@ public class ReportCommonController {
         reportCommonService.parseSQLText(inputObject, outputObject);
     }
 
-    /**
-     * 解析Rest接口
-     * todo serviceStr字段目前还无法解析，导致API接口解析会有问题
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "reportcommon005", value = "解析Rest接口", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "serviceStr", name = "serviceStr", value = "接口对应的服务", required = "required"),

@@ -32,6 +32,9 @@
             <if test="catalogId != null and catalogId != ''">
                 AND a.catalog_id = #{catalogId}
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
         ORDER BY a.create_time DESC
     </select>

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
@@ -39,6 +40,10 @@ public class File extends BaseGeneralInfo {
     @TableField(value = "type")
     @ApiModelProperty(value = "文件类型")
     private String type;
+
+    @TableField(value = "file_type")
+    @ApiModelProperty(value = "文件目录类型，后面要根据这个来区分那些目录要做租户隔离", enumClass = FileConstants.FileUploadPath.class)
+    private Integer fileType;
 
     @TableField(value = "size")
     @ApiModelProperty(value = "文件大小")

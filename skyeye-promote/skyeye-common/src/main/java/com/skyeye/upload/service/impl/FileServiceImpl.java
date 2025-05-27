@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: FileServiceImpl
- * @Description: 文件服务层
+ * @Description: 文件服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/8/18 19:56
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

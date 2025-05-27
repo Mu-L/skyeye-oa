@@ -10,6 +10,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itextpdf.kernel.geom.PageSize;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -79,6 +80,7 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
     }
 
     @Override
+    @IgnoreTenant
     public void queryPrintTemplateListByPageId(InputObject inputObject, OutputObject outputObject) {
         String pageId = inputObject.getParams().get("pageId").toString();
         QueryWrapper<PrintTemplate> queryWrapper = new QueryWrapper<>();

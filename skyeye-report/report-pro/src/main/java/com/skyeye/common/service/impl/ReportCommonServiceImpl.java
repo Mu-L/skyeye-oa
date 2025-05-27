@@ -4,6 +4,7 @@
 
 package com.skyeye.common.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -20,7 +21,6 @@ import net.sf.json.JSONArray;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.tree.DefaultElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,17 +102,54 @@ public class ReportCommonServiceImpl implements ReportCommonService {
             return;
         }
         Map<String, Object> resultBean = new HashMap<>();
-        List<String> nodeList = new ArrayList<>();
-        parseSubNode(rootElement.elements(), nodeList, rootElement.getName());
-        resultBean.put("nodeArray", nodeList);
+        Set<String> nodeSet = new HashSet<>();
+        parseSubNode(rootElement, nodeSet, rootElement.getName());
+        resultBean.put("nodeArray", new ArrayList<>(nodeSet));
         outputObject.setBean(resultBean);
     }
 
     // 解析并拼接节点下所有子节点名称
-    private void parseSubNode(List<DefaultElement> elements, List<String> nodeList, String name) {
-        elements.forEach(ele -> parseSubNode(ele.elements(), nodeList, name.concat(".").concat(ele.getName())));
-        if (elements.size() == 0) {
-            nodeList.add(name);
+    private void parseSubNode(Element element, Set<String> nodeSet, String path) {
+        // 处理元素的属性
+        List<org.dom4j.Attribute> attributes = element.attributes();
+        for (org.dom4j.Attribute attr : attributes) {
+            nodeSet.add(path + "." + "@" + attr.getName());
+        }
+
+        List<Element> childElements = element.elements();
+
+        // 处理元素的文本内容
+        if (!element.getTextTrim().isEmpty() && element.elements().isEmpty()) {
+            nodeSet.add(path + ".#text");
+        }
+
+        if (childElements.isEmpty()) {
+            // 如果是叶子节点（没有子元素），添加当前路径
+            nodeSet.add(path);
+            return;
+        }
+
+        // 统计子节点名称出现的次数，用于检测重复节点
+        Map<String, Integer> elementNameCount = new HashMap<>();
+        for (Element child : childElements) {
+            String childName = child.getName();
+            elementNameCount.put(childName, elementNameCount.getOrDefault(childName, 0) + 1);
+        }
+
+        // 处理每个子节点
+        for (Element child : childElements) {
+            String childName = child.getName();
+            String childPath;
+
+            // 如果节点名称出现多次，则使用数组表示法
+            if (elementNameCount.get(childName) > 1) {
+                childPath = path + "." + childName + "[*]";
+            } else {
+                childPath = path + "." + childName;
+            }
+
+            // 递归处理子节点
+            parseSubNode(child, nodeSet, childPath);
         }
     }
 
@@ -138,25 +175,100 @@ public class ReportCommonServiceImpl implements ReportCommonService {
      */
     @Override
     public void parseJsonSubNode(Map<String, Object> paramMap, Set<String> sets, boolean isFirstTime, String name) {
+        if (paramMap == null || paramMap.isEmpty()) {
+            // 处理空Map的情况
+            if (!isFirstTime && !name.isEmpty()) {
+                sets.add(name);
+            }
+            return;
+        }
+
         Set<Map.Entry<String, Object>> entries = paramMap.entrySet();
         String key;
         Object value;
         for (Map.Entry<String, Object> obj : entries) {
             key = obj.getKey();
             value = obj.getValue();
-            if (value instanceof Map) {
-                parseJsonSubNode((Map<String, Object>) value, sets, false, getNewName(isFirstTime, name, key));
+            String currentPath = getNewName(isFirstTime, name, key);
+
+            if (value == null) {
+                // 处理null值
+                sets.add(currentPath);
+            } else if (value instanceof Map) {
+                // 处理嵌套Map
+                parseJsonSubNode((Map<String, Object>) value, sets, false, currentPath);
             } else if (value instanceof List) {
                 List<Object> tempList = (List<Object>) value;
-                for (Object object : tempList) {
-                    if (object instanceof Map) {
-                        parseJsonSubNode((Map<String, Object>) object, sets, false, getNewName(isFirstTime, name, key));
-                    } else {
-                        sets.add(name.concat(".").concat(key));
+                // 使用[*]表示数组
+                String arrayPath = currentPath + "[*]";
+
+                // 处理空数组的情况
+                if (tempList.isEmpty()) {
+                    sets.add(arrayPath);
+                    continue;
+                }
+
+                // 检查数组中是否有null值
+                boolean hasNullElement = false;
+                for (Object item : tempList) {
+                    if (item == null) {
+                        hasNullElement = true;
+                        break;
                     }
                 }
+
+                if (hasNullElement) {
+                    sets.add(arrayPath);
+                    continue;
+                }
+
+                // 检查第一个元素类型，假设数组中的元素类型一致
+                Object firstElement = tempList.get(0);
+
+                if (firstElement instanceof Map) {
+                    // 处理对象数组
+                    for (Object object : tempList) {
+                        if (object instanceof Map) {
+                            parseJsonSubNode((Map<String, Object>) object, sets, false, arrayPath);
+                        } else if (object != null) {
+                            // 处理混合类型数组中的非Map元素
+                            sets.add(arrayPath);
+                        }
+                    }
+                } else if (firstElement instanceof List) {
+                    // 处理嵌套数组
+                    for (Object object : tempList) {
+                        if (object instanceof List) {
+                            List<Object> nestedList = (List<Object>) object;
+                            String nestedArrayPath = arrayPath + "[*]";
+
+                            // 处理空嵌套数组
+                            if (nestedList.isEmpty()) {
+                                sets.add(nestedArrayPath);
+                                continue;
+                            }
+
+                            // 处理嵌套数组中的第一个元素
+                            Object nestedFirstElement = nestedList.get(0);
+                            if (nestedFirstElement instanceof Map) {
+                                for (Object nestedObject : nestedList) {
+                                    if (nestedObject instanceof Map) {
+                                        parseJsonSubNode((Map<String, Object>) nestedObject, sets, false, nestedArrayPath);
+                                    }
+                                }
+                            } else {
+                                // 嵌套数组中是基本类型
+                                sets.add(nestedArrayPath);
+                            }
+                        }
+                    }
+                } else {
+                    // 基本类型数组
+                    sets.add(arrayPath);
+                }
             } else {
-                sets.add(getNewName(isFirstTime, name, key));
+                // 基本类型值
+                sets.add(currentPath);
             }
         }
     }
@@ -207,35 +319,193 @@ public class ReportCommonServiceImpl implements ReportCommonService {
         String sqlText = params.get("sqlText").toString();
         String dataBaseId = params.get("dataBaseId").toString();
         LOGGER.info("data base id is {}", dataBaseId);
-        // 1.获取数据源信息
-        ReportDataSource dataBase = reportDataBaseService.getReportDataSource(dataBaseId);
-        // 2.获取查询的列信息
-        List<ReportMetaDataColumn> dataColumns = QueryerFactory.create(dataBase).parseMetaDataColumns(sqlText);
-        outputObject.setBeans(JSONArray.fromObject(dataColumns));
+        try {
+            // 1.获取数据源信息
+            ReportDataSource dataBase = reportDataBaseService.getReportDataSource(dataBaseId);
+            // 2.获取查询的列信息
+            List<ReportMetaDataColumn> dataColumns = QueryerFactory.create(dataBase).parseMetaDataColumns(sqlText);
+
+            // 3.处理列信息，转换为统一的节点路径格式
+            Set<String> nodePaths = new HashSet<>();
+
+            // 提取主表名或查询别名
+            String mainTableName = extractMainTableName(sqlText);
+
+            // 处理列路径 - 使用ReportMetaDataColumn类的正确属性名
+            for (ReportMetaDataColumn column : dataColumns) {
+                String columnName = column.getName(); // 使用name属性代替之前的columnName
+
+                // 由于ReportMetaDataColumn没有tableName属性，我们可以尝试从列名解析
+                // 列名可能是"表名.列名"格式
+                String tableName = "";
+                if (columnName.contains(".")) {
+                    String[] parts = columnName.split("\\.", 2);
+                    tableName = parts[0];
+                    columnName = parts[1];
+                }
+
+                // 优先使用从列名中提取的表名，如果为空则使用主表名
+                String prefix = (tableName != null && !tableName.isEmpty()) ? tableName : mainTableName;
+
+                // 如果列来自子查询或复杂表达式，可能没有表名
+                if (prefix == null || prefix.isEmpty()) {
+                    nodePaths.add(columnName);
+                } else {
+                    // 格式化为"表名.列名"的形式
+                    nodePaths.add(prefix + "." + columnName);
+                }
+            }
+
+            // 4.构造返回结果
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("nodeArray", new ArrayList<>(nodePaths));
+            resultMap.put("columns", dataColumns); // 保留原始列信息
+
+            outputObject.setBean(resultMap);
+            outputObject.setBeans(JSONArray.fromObject(dataColumns)); // 保持原有行为兼容
+        } catch (Exception e) {
+            LOGGER.error("解析SQL失败", e);
+            outputObject.setreturnMessage("解析SQL失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 从SQL中提取主表名或查询别名
+     * 这是一个简化版实现，对于复杂SQL可能需要更复杂的解析
+     *
+     * @param sql SQL查询语句
+     * @return 主表名或空字符串
+     */
+    private String extractMainTableName(String sql) {
+        try {
+            // 简化处理：尝试提取FROM后的第一个表名
+            sql = sql.toLowerCase().replaceAll("\\s+", " ");
+            int fromIndex = sql.indexOf(" from ");
+            if (fromIndex < 0) {
+                return "";
+            }
+
+            // 截取FROM子句
+            String fromClause = sql.substring(fromIndex + 6);
+
+            // 移除可能的WHERE、GROUP BY、ORDER BY等子句
+            int whereIndex = fromClause.indexOf(" where ");
+            if (whereIndex > 0) {
+                fromClause = fromClause.substring(0, whereIndex);
+            }
+
+            int groupByIndex = fromClause.indexOf(" group by ");
+            if (groupByIndex > 0) {
+                fromClause = fromClause.substring(0, groupByIndex);
+            }
+
+            int orderByIndex = fromClause.indexOf(" order by ");
+            if (orderByIndex > 0) {
+                fromClause = fromClause.substring(0, orderByIndex);
+            }
+
+            int joinIndex = fromClause.indexOf(" join ");
+            if (joinIndex > 0) {
+                fromClause = fromClause.substring(0, joinIndex);
+            }
+
+            // 提取表名（可能包含别名）
+            fromClause = fromClause.trim();
+            String[] parts = fromClause.split("\\s+");
+
+            // 如果有别名，使用别名
+            if (parts.length > 1) {
+                return parts[parts.length - 1]; // 最后一个词可能是别名
+            } else if (parts.length == 1) {
+                return parts[0]; // 只有表名
+            }
+
+            return "";
+        } catch (Exception e) {
+            LOGGER.warn("提取表名失败", e);
+            return "";
+        }
     }
 
     @Override
     public void parseRestText(InputObject inputObject, OutputObject outputObject) {
         try {
-            String requestUrl = inputObject.getParams().get("requestUrl").toString();
-            String requestMethod = inputObject.getParams().get("requestMethod").toString();
-            String requestHeader = inputObject.getParams().get("requestHeader").toString();
-            String requestBody = inputObject.getParams().get("requestBody").toString();
-            // 请求头
+            Map<String, Object> params = inputObject.getParams();
+
+            // 获取请求参数
+            String serviceStr = params.containsKey("serviceStr") ? params.get("serviceStr").toString() : "";
+            String requestUrl = params.get("requestUrl").toString();
+
+            // 拼接服务地址和请求URL
+            if (!StrUtil.isEmpty(serviceStr)) {
+                // 修复逻辑错误，应该是服务地址+请求路径
+                if (!serviceStr.endsWith("/") && !requestUrl.startsWith("/")) {
+                    requestUrl = serviceStr + "/" + requestUrl;
+                } else {
+                    requestUrl = serviceStr + requestUrl;
+                }
+            }
+
+            String requestMethod = params.get("requestMethod").toString();
+            String requestHeader = params.get("requestHeader").toString();
+            String requestBody = params.containsKey("requestBody") ? params.get("requestBody").toString() : "";
+
+            // 处理请求头
             List<Map<String, Object>> array = JSONUtil.toList(requestHeader, null);
             Map<String, String> requestHeaderKey2Value = array.stream()
                 .collect(Collectors.toMap(bean -> bean.get("headerKey").toString(), bean -> bean.get("headerValue").toString()));
+
+            LOGGER.info("发送REST请求: {}, 方法: {}", requestUrl, requestMethod);
+
             // 发送请求
             String responseData = HttpRequestUtil.getDataByRequest(requestUrl, requestMethod, requestHeaderKey2Value, requestBody);
+
+            if (responseData == null || responseData.trim().isEmpty()) {
+                throw new RuntimeException("接口返回空数据");
+            }
+
             // 存放并解析响应结果
             Set<String> result = new HashSet<>();
-            parseJsonSubNode(JSONUtil.toBean(responseData, Map.class), result, true, "");
+
+            try {
+                // 尝试作为JSON对象解析
+                Map<String, Object> responseMap = JSONUtil.toBean(responseData, Map.class);
+                parseJsonSubNode(responseMap, result, true, "");
+            } catch (Exception e) {
+                try {
+                    // 尝试作为JSON数组解析
+                    List<Object> responseList = JSONUtil.toList(responseData, Object.class);
+                    if (!responseList.isEmpty()) {
+                        // 添加顶层数组标记
+                        String arrayPath = "[*]";
+
+                        Object firstItem = responseList.get(0);
+                        if (firstItem instanceof Map) {
+                            // 数组中是对象，递归解析第一个对象的结构
+                            parseJsonSubNode((Map<String, Object>) firstItem, result, false, arrayPath);
+                        } else {
+                            // 数组中是基本类型
+                            result.add(arrayPath);
+                        }
+                    }
+                } catch (Exception ex) {
+                    // 返回不是JSON格式，作为纯文本处理
+                    result.add("response");
+                    LOGGER.warn("接口返回的数据不是有效的JSON格式: {}", responseData);
+                }
+            }
+
+            // 返回结果
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("nodeArray", result);
+
+            // 添加原始响应数据用于调试
+            resultMap.put("responseData", responseData);
+
             outputObject.setBean(resultMap);
         } catch (Exception ex) {
-            LOGGER.info("接口解析失败.", ex);
-            outputObject.setreturnMessage("接口解析失败.");
+            LOGGER.error("接口解析失败", ex);
+            outputObject.setreturnMessage("接口解析失败: " + ex.getMessage());
         }
     }
 

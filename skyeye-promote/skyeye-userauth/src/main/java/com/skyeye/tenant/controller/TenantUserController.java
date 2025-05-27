@@ -98,7 +98,7 @@ public class TenantUserController {
         tenantUserService.switchingIdentitiesById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryTenantUserStaffIdByTenantId", value = "根据租户ID获取租户下的员工ID信息", method = "GET", allUse = "0")
+    @ApiOperation(id = "queryTenantUserStaffIdByTenantId", value = "根据租户ID获取租户下的员工ID信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户ID", required = "required"),
         @ApiImplicitParam(id = "stateList", name = "stateList", value = "状态列表，多个逗号分隔")})

@@ -9,11 +9,13 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.holder.classenum.HolderNormsChildState;
@@ -25,6 +27,7 @@ import com.skyeye.holder.service.HolderNormsService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -56,6 +59,15 @@ public class HolderNormsServiceImpl extends SkyeyeBusinessServiceImpl<HolderNorm
     @Autowired
     protected ErpDepotService erpDepotService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
+    @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
     @Override
     public QueryWrapper<HolderNorms> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<HolderNorms> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -64,6 +76,9 @@ public class HolderNormsServiceImpl extends SkyeyeBusinessServiceImpl<HolderNorm
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(HolderNorms::getHolderKey), commonPageInfo.getHolderKey());
+        }
+        if (tenantEnable) {
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
         }
         queryWrapper.select(MybatisPlusUtil.toColumns(HolderNorms::getMaterialId),
             MybatisPlusUtil.toColumns(HolderNorms::getHolderId), MybatisPlusUtil.toColumns(HolderNorms::getHolderKey),
