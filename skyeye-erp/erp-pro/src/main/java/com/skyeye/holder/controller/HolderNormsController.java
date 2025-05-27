@@ -31,12 +31,6 @@ public class HolderNormsController {
     @Autowired
     private HolderNormsService holderNormsService;
 
-    /**
-     * 获取关联的客户/供应商/会员购买或者出售的商品信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHolderNormsList", value = "获取关联的客户/供应商/会员购买或者出售的商品信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/HolderNormsController/queryHolderNormsList")
@@ -44,12 +38,6 @@ public class HolderNormsController {
         holderNormsService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据holder获取商品信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHolderMaterialListByHolder", value = "根据holder获取商品信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "holderId", name = "holderId", value = "关联的客户/供应商/会员id"),
@@ -59,12 +47,6 @@ public class HolderNormsController {
         holderNormsService.queryHolderMaterialListByHolder(inputObject, outputObject);
     }
 
-    /**
-     * 根据holder获取商品规格信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHolderMaterialNormsListByHolder", value = "根据holder获取商品规格信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id"),
@@ -75,12 +57,6 @@ public class HolderNormsController {
         holderNormsService.queryHolderMaterialNormsListByHolder(inputObject, outputObject);
     }
 
-    /**
-     * 根据holder获取商品规格对应的条形码信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHolderMaterialNormsCodeListByHolder", value = "根据holder获取商品规格对应的条形码信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格id"),
