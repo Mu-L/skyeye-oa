@@ -27,18 +27,21 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
+import com.skyeye.rest.promote.tenant.service.ITenantService;
 import com.skyeye.user.dao.UserDao;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.entity.UserView;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +74,12 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private UserViewService userViewService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
+    @Autowired
+    private ITenantService iTenantService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -179,6 +188,11 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
                     SysUserAuthConstants.setUserLoginRedisCache(user.getId(), userMation);
                     userToken = GetUserToken.createNewToken(user.getId(), user.getPassword());
                 }
+                if(tenantEnable){
+                    // 多组户
+                    userMation.put("tenantId", user.getTenantId());
+                    userMation.put("tenantMation", iTenantService.queryTenantById(user.getTenantId()));
+                }
                 userMation.put("userToken", userToken);
                 userMation.put("password", null);
                 outputObject.setBean(userMation);
@@ -189,6 +203,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     }
 
     @Override
+    @IgnoreTenant
     public void wallUserRegister(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String name = map.get("name").toString();
@@ -202,6 +217,14 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
             throw new CustomException("该账号已存在!");
         }
         User user = new User();
+        if (tenantEnable) {
+            // 多租户模式下
+            String tenantId = (String)map.get("tenantId");
+            if(StrUtil.isEmpty(tenantId)){
+                throw new CustomException("请选择租户!");
+            }
+            user.setTenantId(tenantId);
+        }
         user.setName(name);
         user.setAccountNumber(accountNumber);
         user.setPassword(password);

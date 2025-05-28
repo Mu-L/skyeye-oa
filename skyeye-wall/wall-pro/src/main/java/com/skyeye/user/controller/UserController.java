@@ -83,7 +83,9 @@ public class UserController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "name", name = "name", value = "姓名", required = "required"),
         @ApiImplicitParam(id = "accountNumber", name = "accountNumber", value = "账号", required = "required"),
-        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required")})
+        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required"),
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id")
+    })
     @RequestMapping("/post/UserController/wallUserRegister")
     public void wallUserRegister(InputObject inputObject, OutputObject outputObject) {
         userService.wallUserRegister(inputObject, outputObject);

@@ -87,4 +87,7 @@ public class User extends CommonInfo {
     @Property(value = "检验当前用户是否被当前登录人关注")
     private boolean checkFocus;
 
+    @TableField("tenant_id")
+    @ApiModelProperty(value = "租户id")
+    private String tenantId;
 }
