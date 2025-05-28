@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(value = "单选题答卷表管理", tags = "单选题答卷表管理", modelName = "单选题答卷表管理")
 public class DwAnRadioController {
 
+    private final String writeDwAnRadio = "writeDwAnRadio";
     @Autowired
     private DwAnRadioService dwAnRadioService;
 
@@ -26,7 +27,7 @@ public class DwAnRadioController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnRadio", value = "新增单选题保存表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = writeDwAnRadio, value = "新增单选题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnRadio.class)
     @RequestMapping("/post/DwAnRadioController/writeDwAnRadio")
     public void writeDwAnRadio(InputObject inputObject, OutputObject outputObject) {

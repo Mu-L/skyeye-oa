@@ -39,11 +39,11 @@ public class DwSurveyAnswer extends CommonInfo {
     private String surveyId;
 
     @TableField("bg_an_date")
-    @ApiModelProperty(value = "回答开始时间", required = "required")
+    @ApiModelProperty(value = "回答开始时间")
     private String bgAnDate;
 
     @TableField("end_an_date")
-    @ApiModelProperty(value = "回答结束时间", required = "required")
+    @ApiModelProperty(value = "回答结束时间")
     private String endAnDate;
 
     @TableField("complete_num")

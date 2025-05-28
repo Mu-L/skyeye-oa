@@ -109,31 +109,10 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
 
     @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
-        String bgAnDate = entity.getBgAnDate();
-        String endAnDate = entity.getEndAnDate();
-        //  进行空指针判断
-        if (StrUtil.isEmpty(bgAnDate) || StrUtil.isEmpty(endAnDate)) {
-            throw new CustomException("结束和开始时间不能为空");
-        }
-        String distanceHMS = DateUtil.getDistanceHMS(bgAnDate, endAnDate);
-        // 判断时间是否大于0
-        boolean isTimeGreaterThanZero = false;
-        try {
-            String[] parts = distanceHMS.split(":");
-            if (parts.length == 3) {
-                int hours = Integer.parseInt(parts[0]);
-                int minutes = Integer.parseInt(parts[1]);
-                int seconds = Integer.parseInt(parts[2]);
-                isTimeGreaterThanZero = hours > 0 || minutes > 0 || seconds > 0;
-                if (!isTimeGreaterThanZero) {
-                    throw new CustomException("结束时间不能小于开始时间");
-                }
-            }
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
+
+
         //  将时间差转换为总小时数（浮点数）
-        entity.setTotalTime(Float.valueOf(distanceHMS));
+
         String surveyId = entity.getSurveyId();
         Integer size = dwAnRadioService.selectRadioBySurveyId(surveyId).size();
         Integer size1 = dwAnScoreService.selectBySurveyId(surveyId).size();
