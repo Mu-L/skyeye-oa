@@ -8,6 +8,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.Scheduling;
+import com.skyeye.scheduling.entity.SchedulingAuto;
 import com.skyeye.scheduling.service.SchedulingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,20 +21,18 @@ public class SchedulingController {
     @Autowired
     private SchedulingService schedulingService;
 
-    @ApiOperation(id = "writeManualScheduling", value = "新增手动排班", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeManualScheduling", value = "新增/编辑排班", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Scheduling.class)
     @RequestMapping("/post/SchedulingController/writeManualScheduling")
     public void writeManualScheduling(InputObject inputObject, OutputObject outputObject) {
         schedulingService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeAutoScheduling", value = "新增自动排班", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "startTime", name = "startTime", value = "开始时间", required = "required"),
-        @ApiImplicitParam(id = "endTime", name = "endTime", value = "结束时间", required = "required")})
-    @RequestMapping("/post/SchedulingController/writeAutoScheduling")
-    public void writeAutoScheduling(InputObject inputObject, OutputObject outputObject) {
-        schedulingService.writeAutoScheduling(inputObject, outputObject);
+    @ApiOperation(id = "autoComputeScheduling", value = "智能计算排班", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SchedulingAuto.class)
+    @RequestMapping("/post/SchedulingController/autoComputeScheduling")
+    public void autoComputeScheduling(InputObject inputObject, OutputObject outputObject) {
+        schedulingService.autoComputeScheduling(inputObject, outputObject);
     }
 
     @ApiOperation(id = "querySchedulingListByTimeSlot", value = "查询时间段范围的排班", method = "POST", allUse = "2")

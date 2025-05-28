@@ -56,14 +56,6 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
                 if (StrUtil.isEmpty(startTime) || StrUtil.isEmpty(endTime)) {
                     throw new CustomException("班次时间不能为空");
                 }
-                Integer minStaff = schedulingShiftsTime.getMinStaff();
-                Integer maxStaff = schedulingShiftsTime.getMaxStaff();
-                if (minStaff == null || maxStaff == null) {
-                    throw new CustomException("班次需求人数不能为空");
-                }
-                if (minStaff > maxStaff) {
-                    throw new CustomException("班次最小需求人数不能大于班次最大需求人数");
-                }
             }
         }
     }
@@ -96,7 +88,7 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(keyword)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getShiftName), keyword);
+            queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getName), keyword);
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingShifts::getCreateTime));
         List<SchedulingShifts> schedulingShiftsList = list(queryWrapper);
