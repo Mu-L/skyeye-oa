@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.brand.service.BrandService;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -22,6 +23,7 @@ import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.depot.service.ErpDepotService;
@@ -35,6 +37,7 @@ import com.skyeye.procedure.entity.WorkProcedure;
 import com.skyeye.procedure.service.WorkProcedureService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -77,6 +80,9 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
 
     @Autowired
     private BrandService brandService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -336,17 +342,15 @@ public class MaterialServiceImpl extends SkyeyeBusinessServiceImpl<MaterialDao, 
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取预警商品库存信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryMaterialInventoryWarningList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
         pageInfo.setEnabled(EnableEnum.ENABLE_USING.getKey());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryMaterialInventoryWarningList(pageInfo);
         outputObject.setBeans(beans);

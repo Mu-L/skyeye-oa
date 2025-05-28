@@ -34,6 +34,9 @@
 				<if test="keyword != null and keyword != ''">
 					AND (b.`name` like '%${keyword}%' OR b.model LIKE '%${keyword}%')
 				</if>
+				<if test="tenantId != '' and tenantId != null">
+					AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+				</if>
 			</where>
 	        ORDER BY b.create_time DESC) a
 		WHERE a.safetyTock > a.allStock

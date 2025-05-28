@@ -30,12 +30,6 @@ public class StatisticsController {
     @Autowired
     private StatisticsService statisticsService;
 
-    /**
-     * 入库明细
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics001", value = "入库明细", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/queryWarehousingDetails")
@@ -43,12 +37,6 @@ public class StatisticsController {
         statisticsService.queryWarehousingDetails(inputObject, outputObject);
     }
 
-    /**
-     * 出库明细
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics002", value = "出库明细", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/queryOutgoingDetails")
@@ -56,12 +44,6 @@ public class StatisticsController {
         statisticsService.queryOutgoingDetails(inputObject, outputObject);
     }
 
-    /**
-     * 进货统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics003", value = "进货统计", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/queryInComimgDetails")
@@ -69,12 +51,6 @@ public class StatisticsController {
         statisticsService.queryInComimgDetails(inputObject, outputObject);
     }
 
-    /**
-     * 销售统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics004", value = "销售统计", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/querySalesDetails")
@@ -82,12 +58,6 @@ public class StatisticsController {
         statisticsService.querySalesDetails(inputObject, outputObject);
     }
 
-    /**
-     * 客户对账
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics005", value = "客户对账", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/queryCustomerReconciliationDetails")
@@ -95,12 +65,6 @@ public class StatisticsController {
         statisticsService.queryCustomerReconciliationDetails(inputObject, outputObject);
     }
 
-    /**
-     * 供应商对账
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "statistics006", value = "供应商对账", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StatisticsController/querySupplierReconciliationDetails")

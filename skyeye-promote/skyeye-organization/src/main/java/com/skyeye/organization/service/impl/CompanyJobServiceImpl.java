@@ -5,6 +5,8 @@
 package com.skyeye.organization.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.itextpdf.text.pdf.qrcode.QRCode;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.TableSelectInfo;
@@ -144,6 +146,14 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
         departmentIds = departmentIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
         List<Map<String, Object>> beans = companyJobDao.queryJobList(companyIds, departmentIds);
         return CollectionUtil.isNotEmpty(beans) ? beans : new ArrayList<>();
+    }
+
+    @Override
+    public void queryAllCompanyJobList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<CompanyJob> queryWrapper = new QueryWrapper<>();
+        List<CompanyJob> companyJobList = list(queryWrapper);
+        outputObject.setBeans(companyJobList);
+        outputObject.settotal(companyJobList.size());
     }
 
 }

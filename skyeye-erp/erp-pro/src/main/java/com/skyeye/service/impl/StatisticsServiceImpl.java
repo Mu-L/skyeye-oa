@@ -4,9 +4,9 @@
 
 package com.skyeye.service.impl;
 
-import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.base.handler.enclosure.helper.ServiceBeanToEntityHelper;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -14,6 +14,7 @@ import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.dao.StatisticsDao;
 import com.skyeye.depot.classenum.DepotOutFromType;
@@ -24,6 +25,7 @@ import com.skyeye.material.service.MaterialService;
 import com.skyeye.service.StatisticsService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -61,13 +63,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     protected SupplierService supplierService;
 
-    /**
-     * 入库明细
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
+    @IgnoreTenant
     public void queryWarehousingDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setObjectBusiness(DepotPutFromType.getAllIdKeys());
@@ -77,6 +77,9 @@ public class StatisticsServiceImpl implements StatisticsService {
     private void getBeans(OutputObject outputObject, CommonPageInfo pageInfo) {
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = statisticsDao.queryErpOrderItem(pageInfo);
         materialService.setMationForMap(beans, "materialId", "materialMation");
         materialNormsService.setMationForMap(beans, "normsId", "normsMation");
@@ -100,26 +103,16 @@ public class StatisticsServiceImpl implements StatisticsService {
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 出库明细
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryOutgoingDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setObjectBusiness(DepotOutFromType.getAllIdKeys());
         getBeans(outputObject, pageInfo);
     }
 
-    /**
-     * 进货统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryInComimgDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // ERP入库操作相关单据类型的集合
@@ -139,6 +132,9 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private List<Map<String, Object>> getPointSubTypeOrderStatistics(CommonPageInfo commonPageInfo, List<String> allSubType, List<String> returnSubTyoe) {
         commonPageInfo.setObjectBusiness(allSubType);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = statisticsDao.queryPointSubTypeOrder(commonPageInfo);
 
         commonPageInfo.setObjectBusiness(returnSubTyoe);
@@ -163,13 +159,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         return beans;
     }
 
-    /**
-     * 销售统计
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void querySalesDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // ERP出库操作相关单据类型的集合
@@ -186,18 +177,16 @@ public class StatisticsServiceImpl implements StatisticsService {
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 客户对账
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryCustomerReconciliationDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
         pageInfo.setHolderKey(CorrespondentEnterEnum.CUSTOM.getKey());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = statisticsDao.queryErpOrderListByIdKey(pageInfo);
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         beans.forEach(bean -> {
@@ -209,18 +198,16 @@ public class StatisticsServiceImpl implements StatisticsService {
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 供应商对账
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void querySupplierReconciliationDetails(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
         pageInfo.setHolderKey(CorrespondentEnterEnum.SUPPLIER.getKey());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = statisticsDao.queryErpOrderListByIdKey(pageInfo);
         supplierService.setMationForMap(beans, "holderId", "holderMation");
         beans.forEach(bean -> {

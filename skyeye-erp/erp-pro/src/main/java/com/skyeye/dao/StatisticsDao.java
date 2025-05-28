@@ -4,6 +4,7 @@
 
 package com.skyeye.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 
 import java.util.List;
@@ -19,10 +20,13 @@ import java.util.Map;
  */
 public interface StatisticsDao {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryErpOrderItem(CommonPageInfo pageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryPointSubTypeOrder(CommonPageInfo commonPageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryErpOrderListByIdKey(CommonPageInfo pageInfo);
 
 }
