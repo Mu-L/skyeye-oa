@@ -39,7 +39,7 @@ public class ReportDataFromRest extends CommonInfo {
     private String fromId;
 
     @TableField("service_str")
-    @ApiModelProperty(value = "接口对应的服务，由前端进行配置，方便前端解析", required = "required")
+    @ApiModelProperty(value = "接口对应的服务，由前端进行配置，方便前端解析")
     private String serviceStr;
 
     @TableField(value = "rest_url")
