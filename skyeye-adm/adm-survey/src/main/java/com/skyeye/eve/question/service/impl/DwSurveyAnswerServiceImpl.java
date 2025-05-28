@@ -111,14 +111,9 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     protected void updatePrepose(DwSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
-        String markStartTime = entity.getMarkStartTime();
-        String markEndTime = entity.getMarkEndTime();
         //  进行空指针判断
-        if (endAnDate == null) {
-            throw new CustomException("结束时间不能为空");
-        }
-        if (StrUtil.isEmpty(markStartTime) || StrUtil.isEmpty(markEndTime)) {
-            throw new CustomException("批阅开始时间或结束时间不能为空");
+        if (StrUtil.isEmpty(bgAnDate) || StrUtil.isEmpty(endAnDate)) {
+            throw new CustomException("结束和开始时间不能为空");
         }
         String distanceHMS = DateUtil.getDistanceHMS(bgAnDate, endAnDate);
         // 判断时间是否大于0
