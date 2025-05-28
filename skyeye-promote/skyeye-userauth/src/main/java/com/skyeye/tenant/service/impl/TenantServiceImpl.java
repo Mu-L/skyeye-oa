@@ -18,6 +18,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.dao.TenantDao;
 import com.skyeye.tenant.entity.Tenant;
@@ -155,5 +156,20 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         if (count >= tenant.getAccountNum()) {
             throw new CustomException("租户账号数量已达上限");
         }
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryAllTenantListByKeyword(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String keyword = params.get("keyword").toString();
+        if (StrUtil.isEmpty(keyword)) {
+            return;
+        }
+        QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like(MybatisPlusUtil.toColumns(Tenant::getName), keyword);
+        List<Tenant> tenantList = list(queryWrapper);
+        outputObject.setBeans(tenantList);
+        outputObject.settotal(tenantList.size());
     }
 }
