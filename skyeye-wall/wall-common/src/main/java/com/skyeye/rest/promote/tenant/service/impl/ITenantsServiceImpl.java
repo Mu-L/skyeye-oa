@@ -6,23 +6,22 @@ package com.skyeye.rest.promote.tenant.service.impl;
 
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
-import com.skyeye.rest.promote.tenant.rest.ITenantRest;
-import com.skyeye.rest.promote.tenant.service.ITenantService;
+
+import com.skyeye.rest.promote.tenant.rest.ITenantsRest;
+import com.skyeye.rest.promote.tenant.service.ITenantsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ITenantServiceImpl extends IServiceImpl implements ITenantService {
+public class ITenantsServiceImpl extends IServiceImpl implements ITenantsService {
 
     @Autowired
-    private ITenantRest iTenantRest;
+    private ITenantsRest iTenantRests;
 
     @Override
-    public Map<String, Object> queryTenantById(String tenantId) {
-        return ExecuteFeignClient.get(() -> iTenantRest.queryTenantById(tenantId)).getBean();
+    public Map<String, Object> queryTenantById(String id) {
+        return ExecuteFeignClient.get(() -> iTenantRests.queryTenantById(id)).getBean();
     }
 }

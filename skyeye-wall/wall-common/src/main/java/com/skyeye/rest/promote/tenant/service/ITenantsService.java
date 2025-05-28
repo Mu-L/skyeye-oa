@@ -8,6 +8,6 @@ import com.skyeye.base.rest.service.IService;
 
 import java.util.Map;
 
-public interface ITenantService extends IService {
-  Map<String,Object> queryTenantById(String tenantId);
+public interface ITenantsService extends IService {
+  Map<String,Object> queryTenantById(String id);
 }

@@ -27,14 +27,13 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.focus.service.FocusService;
-import com.skyeye.rest.promote.tenant.service.ITenantService;
+import com.skyeye.rest.promote.tenant.service.ITenantsService;
 import com.skyeye.user.dao.UserDao;
 import com.skyeye.user.entity.User;
 import com.skyeye.user.entity.UserView;
@@ -79,7 +78,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     private boolean tenantEnable;
 
     @Autowired
-    private ITenantService iTenantService;
+    private ITenantsService iTenantService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -90,7 +89,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     public List<Map<String, Object>> setCertification(List<Map<String, Object>> beans) {
         List<String> userIds = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         List<Certification> CertificationList = certificationService.getCertificationListByIds(userIds);
         beans.forEach(bean -> {
             String userId = bean.get("id").toString();
@@ -188,7 +187,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
                     SysUserAuthConstants.setUserLoginRedisCache(user.getId(), userMation);
                     userToken = GetUserToken.createNewToken(user.getId(), user.getPassword());
                 }
-                if(tenantEnable){
+                if (tenantEnable) {
                     // 多组户
                     userMation.put("tenantId", user.getTenantId());
                     userMation.put("tenantMation", iTenantService.queryTenantById(user.getTenantId()));
@@ -219,8 +218,8 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         User user = new User();
         if (tenantEnable) {
             // 多租户模式下
-            String tenantId = (String)map.get("tenantId");
-            if(StrUtil.isEmpty(tenantId)){
+            String tenantId = (String) map.get("tenantId");
+            if (StrUtil.isEmpty(tenantId)) {
                 throw new CustomException("请选择租户!");
             }
             user.setTenantId(tenantId);
@@ -301,7 +300,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         String keyword = commonPageInfo.getKeyword();
         if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword)
-                .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
+                    .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);

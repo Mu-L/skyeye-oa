@@ -9,17 +9,16 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.Map;
 
 @FeignClient(value = "${webroot.skyeye-pro}", configuration = ClientConfiguration.class)
-public interface ITenantRest {
+public interface ITenantsRest {
 
     /**
      * 根据租户id获取租户信息
      *
-     * @param  tenantId 租户id
+     * @param  id 租户id
      * @return
      */
     @GetMapping("queryTenantById")
-    String queryTenantById(@RequestParam String tenantId);
+    String queryTenantById(@RequestParam(value = "id") String id);
 }
