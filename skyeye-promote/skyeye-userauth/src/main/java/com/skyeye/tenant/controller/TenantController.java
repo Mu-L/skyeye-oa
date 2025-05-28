@@ -46,7 +46,7 @@ public class TenantController {
         tenantService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryTenantById", value = "根据id查询租户信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryTenantById", value = "根据id查询租户信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户ID", required = "required")})
     @RequestMapping("/post/TenantController/queryTenantById")
@@ -66,6 +66,14 @@ public class TenantController {
     @RequestMapping("/post/TenantController/queryAllTenantList")
     public void queryAllTenantList(InputObject inputObject, OutputObject outputObject) {
         tenantService.queryAllTenantList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAllTenantListByKeyword", value = "根据关键字查询租户信息", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "keyword", name = "keyword", value = "关键词")})
+    @RequestMapping("/post/TenantController/queryAllTenantListByKeyword")
+    public void queryAllTenantListByKeyword(InputObject inputObject, OutputObject outputObject) {
+        tenantService.queryAllTenantListByKeyword(inputObject, outputObject);
     }
 
 }

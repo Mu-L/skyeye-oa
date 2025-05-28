@@ -626,4 +626,18 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         outputObject.settotal(sysEveUserStaffList.size());
     }
 
+    @Override
+    public void queryEmployeeListByIds(InputObject inputObject, OutputObject outputObject) {
+        String employeeIds = inputObject.getParams().get("employeeIds").toString();
+        List<String> ids = Arrays.asList(employeeIds.split(CommonCharConstants.COMMA_MARK));
+        if (CollectionUtil.isEmpty(ids)) {
+            return;
+        }
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, ids);
+        List<SysEveUserStaff> sysEveUserStaffList = list(queryWrapper);
+        outputObject.setBeans(sysEveUserStaffList);
+        outputObject.settotal(sysEveUserStaffList.size());
+    }
+
 }

@@ -74,4 +74,6 @@ public interface SysEveUserStaffService extends SkyeyeBusinessService<SysEveUser
     List<SysEveUserStaff> queryUserStaffByState(Integer... state);
 
     void queryAllStaffList(InputObject inputObject, OutputObject outputObject);
+
+    void queryEmployeeListByIds(InputObject inputObject, OutputObject outputObject);
 }

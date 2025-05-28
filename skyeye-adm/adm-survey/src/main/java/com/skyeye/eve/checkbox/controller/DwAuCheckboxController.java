@@ -26,7 +26,7 @@ public class DwAuCheckboxController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnCheckbox", value = "新增/编辑多选题保存表", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwAnCheckbox", value = "新增/编辑多选题保存表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnCheckbox.class)
     @RequestMapping("/post/DwAuCheckboxController/writeDwAnCheckbox")
     public void writeDwAnCheckbox(InputObject inputObject, OutputObject outputObject) {
