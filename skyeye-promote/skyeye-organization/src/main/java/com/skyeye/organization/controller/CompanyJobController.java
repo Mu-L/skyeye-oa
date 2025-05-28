@@ -136,4 +136,17 @@ public class CompanyJobController {
         companyJobService.selectByIds(inputObject, outputObject);
     }
 
+    /**
+     * 查询所有职位信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllCompanyJobList", value = "查询所有职位信息", method = "POST", allUse = "2")
+    @RequestMapping("/post/CompanyJobController/queryAllCompanyJobList")
+    public void queryAllCompanyJobList(InputObject inputObject, OutputObject outputObject) {
+        companyJobService.queryAllCompanyJobList(inputObject, outputObject);
+    }
+
+
 }

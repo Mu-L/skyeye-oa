@@ -22,4 +22,5 @@ public interface CompanyJobService extends SkyeyeBusinessService<CompanyJob> {
 
     List<Map<String, Object>> queryJobList(List<String> companyIds, List<String> departmentIds);
 
+    void queryAllCompanyJobList(InputObject inputObject, OutputObject outputObject);
 }
