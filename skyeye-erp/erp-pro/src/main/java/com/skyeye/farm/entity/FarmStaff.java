@@ -44,4 +44,12 @@ public class FarmStaff extends OperatorUserInfo {
     @Property(value = "员工信息")
     private Map<String, Object> staffMation;
 
+    @TableField(value = "farm_station_id")
+    @ApiModelProperty(value = "员工所在岗位ID")
+    private String farmStationId;
+
+    @TableField(exist = false)
+    @Property(value = "员工所在岗位信息")
+    private Map<String, Object> farmStationMation;
+
 }

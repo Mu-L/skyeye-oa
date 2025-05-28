@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: FarmStaffVO
@@ -26,7 +27,6 @@ public class FarmStaffVO implements Serializable {
     @ApiModelProperty(value = "车间ID", required = "required")
     private String farmId;
 
-    @ApiModelProperty(value = "员工ID", required = "required,json")
-    private List<String> staffId;
-
+    @ApiModelProperty(value = "员工ID和工位ID,[{'staffId':'', 'farmStationId':''},{'staffId':'', 'farmStationId':''}.....]", required = "required,json")
+    private List<Map<String,Object>> staffIdAndStationIdList;
 }

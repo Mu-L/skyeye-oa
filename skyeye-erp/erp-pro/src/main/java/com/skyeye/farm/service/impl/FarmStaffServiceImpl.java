@@ -17,8 +17,10 @@ import com.skyeye.farm.dao.FarmStaffDao;
 import com.skyeye.farm.entity.Farm;
 import com.skyeye.farm.entity.FarmStaff;
 import com.skyeye.farm.entity.FarmStaffVO;
+import com.skyeye.farm.entity.FarmStation;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.farm.service.FarmStaffService;
+import com.skyeye.farm.service.FarmStationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,9 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
     @Autowired
     private FarmService farmService;
 
+    @Autowired
+    private FarmStationService farmStationService;
+
     @Override
     public QueryWrapper<FarmStaff> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<FarmStaff> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -62,6 +67,7 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
             .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        farmStationService.setMationForMap(beans, "farmStationId", "farmStationMation");
         beans.forEach(bean -> {
             String staffId = bean.get("staffId").toString();
             bean.put("staffMation", staffMap.get(staffId));
@@ -81,21 +87,20 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
 
         List<FarmStaff> beans = new ArrayList<>();
         String userId = inputObject.getLogParams().get("id").toString();
-        for (String str : farmStaffVO.getStaffId()) {
-            if (farmStaffIdList.contains(str)) {
-                // 如果该车间已经存在这个员工，则跳过
-                continue;
-            }
-            if (StrUtil.isNotEmpty(str)) {
-                FarmStaff item = new FarmStaff();
-                item.setFarmId(farmStaffVO.getFarmId());
-                item.setStaffId(str);
-                beans.add(item);
-            }
+        // 过滤掉已经存在的员工
+        List<Map<String, Object>> notExitList = farmStaffVO.getStaffIdAndStationIdList().stream()
+                .filter(bean -> !farmStaffIdList.contains(bean.get("staffId").toString())).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(notExitList)) {
+            return;
         }
-        if (CollectionUtil.isNotEmpty(beans)) {
-            createEntity(beans, userId);
+        for (Map<String, Object> map : notExitList) {
+            FarmStaff item = new FarmStaff();
+            item.setFarmId(farmStaffVO.getFarmId());
+            item.setStaffId(map.get("staffId").toString());
+            item.setFarmStationId(map.get("farmStationId").toString());
+            beans.add(item);
         }
+        createEntity(beans, userId);
     }
 
     @Override
