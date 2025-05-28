@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certification.classenum.StateEnum;
 import com.skyeye.certification.entity.Certification;
@@ -37,7 +38,6 @@ import com.skyeye.user.entity.User;
 import com.skyeye.user.entity.UserView;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.service.UserViewService;
-import com.skyeye.video.entity.VideoView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +65,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     @Autowired
     private FocusService focusService;
-    
+
     @Autowired
     private IAuthUserService iAuthUserService;
 
@@ -155,6 +155,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     }
 
     @Override
+    @IgnoreTenant
     public void wallUserLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String accountNumber = map.get("accountNumber").toString();
@@ -296,7 +297,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
             UserView userView = new UserView();
             userView.setUserId(userId);
             userView.setVisitorUserId(visitorUserId);
-            userViewService.createEntity(userView,visitorUserId);
+            userViewService.createEntity(userView, visitorUserId);
         }
         if (StrUtil.isEmpty(user.getId())) {
             Map<String, Object> teacherUser = new HashMap<>();
