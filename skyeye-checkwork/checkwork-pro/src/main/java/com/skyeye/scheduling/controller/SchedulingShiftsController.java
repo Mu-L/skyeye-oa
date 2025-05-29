@@ -42,12 +42,12 @@ public class SchedulingShiftsController {
         schedulingShiftsService.querySchedulingShiftsList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "querySchedulingShiftsById", value = "根据Id查询排班班次", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryScSchedulingShiftsById", value = "根据Id查询排班班次", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/SchedulingShiftsController/querySchedulingShiftsById")
-    public void querySchedulingShiftsById(InputObject inputObject, OutputObject outputObject) {
-        schedulingShiftsService.querySchedulingShiftsById(inputObject, outputObject);
+        @ApiImplicitParam(id = "id", name = "id", value = "班次id", required = "required")})
+    @RequestMapping("/post/SchedulingShiftsController/queryScSchedulingShiftsById")
+    public void queryScSchedulingShiftsById(InputObject inputObject, OutputObject outputObject) {
+        schedulingShiftsService.selectById(inputObject, outputObject);
     }
 
 }

@@ -56,19 +56,22 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     @Override
     public void deleteSchedulingShiftsTimeByShiftIds(List<String> idList) {
+        if (CollectionUtil.isEmpty(idList)) {
+            return;
+        }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), idList);
         remove(queryWrapper);
+        List<SchedulingShiftsTime> list = list(queryWrapper);
+        List<String> shiftsTimeIds = list.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
     }
 
     @Override
-    public Map<String, List<SchedulingShiftsTime>> queryTimeByIdList(List<String> schedulingShiftsIds) {
+    public List<SchedulingShiftsTime> queryTimeByIdList(List<String> schedulingShiftsIds) {
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), schedulingShiftsIds);
-        List<SchedulingShiftsTime> list = list(queryWrapper);
-        Map<String, List<SchedulingShiftsTime>> stringListMap =
-            list.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getShiftId));
-        return stringListMap;
+        return list(queryWrapper);
     }
 
     @Override
@@ -86,5 +89,11 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), schedulingShiftsIds);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<SchedulingShiftsTime>> queryTimeByIdListMap(List<String> schedulingShiftsIdList) {
+        List<SchedulingShiftsTime> list = queryTimeByIdList(schedulingShiftsIdList);
+        return list.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getShiftId));
     }
 }

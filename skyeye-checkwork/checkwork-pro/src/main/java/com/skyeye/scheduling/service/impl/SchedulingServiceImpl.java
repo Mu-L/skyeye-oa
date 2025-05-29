@@ -171,7 +171,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     {
 
         // 获取班次Id对应的班次时间段
-        Map<String, List<SchedulingShiftsTime>> schedlingIdTimeMap = schedulingShiftsTimeService.queryTimeByIdList(schedulingShiftsIdList);
+        Map<String, List<SchedulingShiftsTime>> schedlingIdTimeMap = schedulingShiftsTimeService.queryTimeByIdListMap(schedulingShiftsIdList);
         schedlingIdTimeMap = schedlingIdTimeMap.entrySet().stream()
             .collect(Collectors.toMap(
                 Map.Entry::getKey,

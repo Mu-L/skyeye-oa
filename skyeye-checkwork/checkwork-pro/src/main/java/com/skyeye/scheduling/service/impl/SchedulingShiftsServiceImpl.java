@@ -17,14 +17,18 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.scheduling.dao.SchedulingShiftsDao;
 import com.skyeye.scheduling.entity.SchedulingShifts;
 import com.skyeye.scheduling.entity.SchedulingShiftsTime;
+import com.skyeye.scheduling.entity.SchedulingShiftsTimeWork;
 import com.skyeye.scheduling.service.SchedulingShiftsService;
 import com.skyeye.scheduling.service.SchedulingShiftsTimeService;
+import com.skyeye.scheduling.service.SchedulingShiftsTimeWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +37,9 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
 
     @Autowired
     private SchedulingShiftsTimeService schedulingShiftsTimeService;
+
+    @Autowired
+    private SchedulingShiftsTimeWorkService schedulingShiftsTimeWorkService;
 
     @Override
     protected void createPostpose(SchedulingShifts entity, String userId) {
@@ -92,16 +99,36 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingShifts::getCreateTime));
         List<SchedulingShifts> schedulingShiftsList = list(queryWrapper);
-        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShiftsList.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+        // 所有班次Ids
         List<String> schedulingShiftsIds = schedulingShiftsList.stream().map(SchedulingShifts::getId).collect(Collectors.toList());
-        Map<String, List<SchedulingShiftsTime>> timeMapList = schedulingShiftsTimeService.queryTimeByIdList(schedulingShiftsIds);
-        schedulingShiftsMap.forEach((k, v) -> {
-            v.get(0).setSchedulingShiftsTimeMation(timeMapList.get(k));
+        // 每个班次Id对应的班次时间段
+        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryTimeByIdList(schedulingShiftsIds);
+        // 获取所有的班次时间id
+        List<String> shiftsTimeIds = schedulingShiftsTimes.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        // 获取所有的班次时间id对应的班次时间段工作
+        List<SchedulingShiftsTimeWork> schedulingShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        // 班次时间段id对应的班次时间段工作
+        Map<String, List<SchedulingShiftsTime>> timeMapList = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getShiftId));
+        // 班次时间时间段id对应的班次时间段工位需求
+        Map<String, List<SchedulingShiftsTimeWork>> ShiftsTimeWorkMap = schedulingShiftsTimeWorks.stream().collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
+        // 遍历 timeMapList
+        for (Map.Entry<String, List<SchedulingShiftsTime>> entry : timeMapList.entrySet()) {
+            List<SchedulingShiftsTime> shiftsTimes = entry.getValue();
+            // 遍历每个 SchedulingShiftsTime 对象
+            for (SchedulingShiftsTime shiftsTime : shiftsTimes) {
+                String shiftsTimeId = shiftsTime.getId();
+                // 从 ShiftsTimeWorkMap 中查找对应的 List<SchedulingShiftsTimeWork>
+                List<SchedulingShiftsTimeWork> shiftsTimeWorks = ShiftsTimeWorkMap.getOrDefault(shiftsTimeId, Collections.emptyList());
+                // 将找到的 List<SchedulingShiftsTimeWork> 设置到 shiftsTime 的 shiftsTimeWorkMation
+                shiftsTime.setShiftsTimeWorkMation(shiftsTimeWorks);
+            }
+        }
+        schedulingShiftsList.forEach(k -> {
+            k.setSchedulingShiftsTimeMation(timeMapList.get(k.getId()));
         });
-        List<SchedulingShifts> allShifts = schedulingShiftsMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
-        iAuthUserService.setName(allShifts, "createId", "createName");
-        iAuthUserService.setName(allShifts, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(allShifts);
+        iAuthUserService.setName(schedulingShiftsList, "createId", "createName");
+        iAuthUserService.setName(schedulingShiftsList, "lastUpdateId", "lastUpdateName");
+        outputObject.setBeans(schedulingShiftsList);
         outputObject.settotal(page.getTotal());
 
     }
@@ -110,17 +137,14 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     public SchedulingShifts selectById(String id) {
         SchedulingShifts schedulingShifts = super.selectById(id);
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryTimeByShiftId(id);
+        List<String> shiftsTimeIds = schedulingShiftsTimes.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        List<SchedulingShiftsTimeWork> schedulingShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        Map<String, List<SchedulingShiftsTimeWork>> ShiftsTimeWorkMap = schedulingShiftsTimeWorks.stream().collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
+        for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimes) {
+            schedulingShiftsTime.setShiftsTimeWorkMation(ShiftsTimeWorkMap.get(schedulingShiftsTime.getId()));
+        }
         schedulingShifts.setSchedulingShiftsTimeMation(schedulingShiftsTimes);
         return schedulingShifts;
     }
 
-    @Override
-    public void querySchedulingShiftsById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        SchedulingShifts schedulingShifts = selectById(id);
-        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryTimeByShiftId(id);
-        schedulingShifts.setSchedulingShiftsTimeMation(schedulingShiftsTimes);
-        outputObject.setBean(schedulingShifts);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
-    }
 }
