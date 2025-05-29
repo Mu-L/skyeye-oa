@@ -47,9 +47,9 @@ public class DwAnYesno extends CommonInfo {
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
-    @TableField("year_answer")
+    @TableField("yesno_answer")
     @ApiModelProperty(value = "年度答案")
-    private String year_answer;
+    private String yearAnswer;
 
 
 }

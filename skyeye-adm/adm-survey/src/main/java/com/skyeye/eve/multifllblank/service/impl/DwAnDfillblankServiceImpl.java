@@ -30,6 +30,17 @@ public class DwAnDfillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnDfi
     }
 
     @Override
+    protected void validatorEntity(DwAnDfillblank entity) {
+        super.validatorEntity(entity);
+        System.out.println("fsjiodjiko");
+    }
+
+    @Override
+    protected void createPrepose(DwAnDfillblank entity) {
+        System.out.println("dsqwwd");
+    }
+
+    @Override
     public List<DwAnDfillblank> selectBySurveyId(String surveyId) {
         QueryWrapper<DwAnDfillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getBelongId), surveyId);
