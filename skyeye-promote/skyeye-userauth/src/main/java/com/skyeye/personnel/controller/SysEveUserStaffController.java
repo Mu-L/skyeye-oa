@@ -37,7 +37,7 @@ public class SysEveUserStaffController {
     @ApiImplicitParams(classBean = SysEveUserStaffQuery.class)
     @RequestMapping("/post/SysEveUserStaffController/querySysUserStaffList")
     public void querySysUserStaffList(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserStaffService.queryPageList(inputObject, outputObject);
+        sysEveUserStaffService.querySysUserStaffList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeSysUserStaff", value = "新增/编辑员工信息", method = "POST", allUse = "2")
