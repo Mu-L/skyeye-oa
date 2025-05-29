@@ -1241,19 +1241,21 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryFileNumStatistics(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         //文件总数量和总存储
-        Map<String, Object> allNum = skyeyeBaseMapper.queryAllNumFile(DeleteFlagEnum.NOT_DELETE.getKey());
+        Map<String, Object> allNum = skyeyeBaseMapper.queryAllNumFile(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         allNum.put("fileSizeZh", BytesUtil.sizeFormatNum2String(Long.parseLong(allNum.get("fileSize").toString())));
         //今日新增的文件总数量和总存储
-        Map<String, Object> allNumToday = skyeyeBaseMapper.queryAllNumFileToday(DeleteFlagEnum.NOT_DELETE.getKey());
+        Map<String, Object> allNumToday = skyeyeBaseMapper.queryAllNumFileToday(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         allNumToday.put("fileSizeZh", BytesUtil.sizeFormatNum2String(Long.parseLong(allNumToday.get("fileSize").toString())));
         //本周新增的文件总数量和总存储
-        Map<String, Object> allNumThisWeek = skyeyeBaseMapper.queryAllNumFileThisWeek(DeleteFlagEnum.NOT_DELETE.getKey());
+        Map<String, Object> allNumThisWeek = skyeyeBaseMapper.queryAllNumFileThisWeek(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         allNumThisWeek.put("fileSizeZh", BytesUtil.sizeFormatNum2String(Long.parseLong(allNumThisWeek.get("fileSize").toString())));
         //文件类型占比
-        List<Map<String, Object>> fileTypeNum = skyeyeBaseMapper.queryFileTypeNum(DeleteFlagEnum.NOT_DELETE.getKey());
+        List<Map<String, Object>> fileTypeNum = skyeyeBaseMapper.queryFileTypeNum(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         Map<String, Object> fileTypeNumEntity = new HashMap<>();
         String fileTypeNumStr = "";
         for (Map<String, Object> en : fileTypeNum) {
@@ -1262,11 +1264,11 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
         fileTypeNumEntity.put("fileTypeNum", fileTypeNum);
         fileTypeNumEntity.put("fileTypeNumStr", fileTypeNumStr);
         //文件存储占比（前三）
-        List<Map<String, Object>> fileStorageNum = skyeyeBaseMapper.queryFileStorageNum(DeleteFlagEnum.NOT_DELETE.getKey());
+        List<Map<String, Object>> fileStorageNum = skyeyeBaseMapper.queryFileStorageNum(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         //本年度新增文件数
-        List<Map<String, Object>> newFileNum = skyeyeBaseMapper.queryNewFileNum(DeleteFlagEnum.NOT_DELETE.getKey());
+        List<Map<String, Object>> newFileNum = skyeyeBaseMapper.queryNewFileNum(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         //近七天新增文件类型数
-        List<Map<String, Object>> fileTypeNumSevenDay = skyeyeBaseMapper.queryFileTypeNumSevenDay(DeleteFlagEnum.NOT_DELETE.getKey());
+        List<Map<String, Object>> fileTypeNumSevenDay = skyeyeBaseMapper.queryFileTypeNumSevenDay(DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
 
         map.clear();
         map.put("allNum", allNum);
