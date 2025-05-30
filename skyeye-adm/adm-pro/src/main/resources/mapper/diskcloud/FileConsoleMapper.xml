@@ -151,6 +151,9 @@
 		FROM
 			file_catelog_papers a
 		WHERE a.delete_flag = #{deleteFlag}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
     </select>
     
     <select id="queryAllNumFileToday" parameterType="java.util.Map" resultType="java.util.Map">
@@ -161,6 +164,9 @@
 			file_catelog_papers a
 		WHERE a.delete_flag = #{deleteFlag}
 		AND to_days(a.create_time) = to_days(now())
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
     </select>
     
     <select id="queryAllNumFileThisWeek" parameterType="java.util.Map" resultType="java.util.Map">
@@ -171,6 +177,9 @@
 			file_catelog_papers a
 		WHERE a.delete_flag = #{deleteFlag}
 		AND YEARWEEK(date_format(a.create_time, '%Y-%m-%d')) = YEARWEEK(now())
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
     </select>
     
     <select id="queryFileTypeNum" parameterType="java.util.Map" resultType="java.util.Map">
@@ -186,6 +195,9 @@
 		FROM
 			file_catelog_papers a
 		WHERE a.delete_flag = #{deleteFlag}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		GROUP BY `name`
     </select>
     
@@ -202,6 +214,9 @@
 		FROM
 			file_catelog_papers a
 		WHERE a.delete_flag = #{deleteFlag}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		GROUP BY typeName
 		ORDER BY fileSize DESC
 		LIMIT 3
@@ -227,6 +242,9 @@
 				UNION SELECT 12 AS month, '十二月' monthName
 			) a
 			LEFT JOIN file_catelog_papers b ON b.delete_flag = #{deleteFlag} AND MONTH(b.create_time) = a.`month` AND DATE_FORMAT(NOW(), '%Y') = YEAR(b.create_time)
+			<if test="tenantId != '' and tenantId != null">
+				AND b.tenant_id = #{tenantId}
+			</if>
 		GROUP BY a.`month` ORDER BY a.`month`
     </select>
     
@@ -258,6 +276,9 @@
 		    SELECT date_sub(curdate(), interval 6 day) as click_date
 			) a
 			LEFT JOIN file_catelog_papers b ON b.delete_flag = #{deleteFlag} AND to_days(b.create_time) = to_days(a.click_date)
+			<if test="tenantId != '' and tenantId != null">
+				AND b.tenant_id = #{tenantId}
+			</if>
 		GROUP BY a.click_date, typeName
     </select>
 	

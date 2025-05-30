@@ -20,4 +20,10 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     public List<Map<String, Object>> queryAllStaffList() {
         return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.queryAllStaffList()).getRows();
     }
+
+    @Override
+    public List<Map<String, Object>> queryEmployeeListByIds(String employeeIds) {
+        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.queryEmployeeListByIds(employeeIds)).getRows();
+    }
+
 }

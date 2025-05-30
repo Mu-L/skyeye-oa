@@ -41,7 +41,6 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
 
     @Override
     protected void updatePrepose(SchedulingLeave entity) {
-        Integer status = entity.getStatus();
         SchedulingLeave schedulingLeave = selectById(entity.getId());
         if (schedulingLeave.getStatus().equals(ScheduleLeaveType.APPROVED.getKey())) {
             throw new RuntimeException("该请假记录已审核，无法修改");

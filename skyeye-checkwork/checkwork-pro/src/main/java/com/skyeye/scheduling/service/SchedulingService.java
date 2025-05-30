@@ -7,7 +7,7 @@ import com.skyeye.scheduling.entity.Scheduling;
 
 public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
 
-    void writeAutoScheduling(InputObject inputObject, OutputObject outputObject);
+    void autoComputeScheduling(InputObject inputObject, OutputObject outputObject);
 
     void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject);
 

@@ -35,18 +35,25 @@ public interface FileConsoleDao extends SkyeyeBaseMapper<FileConsole> {
     List<Map<String, Object>> queryShareFileListByFileList(@Param("ids") List<String> ids,
                                                            @Param("deleteFlag") Integer deleteFlag);
 
-    Map<String, Object> queryAllNumFile(@Param("deleteFlag") Integer deleteFlag);
+    Map<String, Object> queryAllNumFile(@Param("deleteFlag") Integer deleteFlag,
+                                        @Param("tenantId") String tenantId);
 
-    Map<String, Object> queryAllNumFileToday(@Param("deleteFlag") Integer deleteFlag);
+    Map<String, Object> queryAllNumFileToday(@Param("deleteFlag") Integer deleteFlag,
+                                             @Param("tenantId") String tenantId);
 
-    Map<String, Object> queryAllNumFileThisWeek(@Param("deleteFlag") Integer deleteFlag);
+    Map<String, Object> queryAllNumFileThisWeek(@Param("deleteFlag") Integer deleteFlag,
+                                                @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryFileTypeNum(@Param("deleteFlag") Integer deleteFlag);
+    List<Map<String, Object>> queryFileTypeNum(@Param("deleteFlag") Integer deleteFlag,
+                                               @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryFileStorageNum(@Param("deleteFlag") Integer deleteFlag);
+    List<Map<String, Object>> queryFileStorageNum(@Param("deleteFlag") Integer deleteFlag,
+                                                  @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryNewFileNum(@Param("deleteFlag") Integer deleteFlag);
+    List<Map<String, Object>> queryNewFileNum(@Param("deleteFlag") Integer deleteFlag,
+                                              @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryFileTypeNumSevenDay(@Param("deleteFlag") Integer deleteFlag);
+    List<Map<String, Object>> queryFileTypeNumSevenDay(@Param("deleteFlag") Integer deleteFlag,
+                                                       @Param("tenantId") String tenantId);
 
 }

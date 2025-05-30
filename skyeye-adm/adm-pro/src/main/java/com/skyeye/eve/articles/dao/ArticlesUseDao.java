@@ -21,8 +21,6 @@ import java.util.Map;
  */
 public interface ArticlesUseDao extends SkyeyeBaseMapper<ArticlesUse> {
 
-    List<Map<String, Object>> queryMyUseArticlesMation(CommonPageInfo commonPageInfo);
-
     List<Map<String, Object>> queryMyArticlesList(CommonPageInfo pageInfo);
 
 }

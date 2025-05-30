@@ -4,19 +4,23 @@
 
 package com.skyeye.personnel.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
@@ -43,6 +47,7 @@ import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
 import com.skyeye.rest.wages.service.IWagesService;
+import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantUserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +101,38 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     private IWagesService iWagesService;
 
     @Override
+    public void querySysUserStaffList(InputObject inputObject, OutputObject outputObject) {
+        if (!tenantEnable) {
+            // 单租户模式下
+            super.queryPageList(inputObject, outputObject);
+        } else {
+            SysEveUserStaffQuery sysEveUserStaffQuery = inputObject.getParams(SysEveUserStaffQuery.class);
+            Page page = PageHelper.startPage(sysEveUserStaffQuery.getPage(), sysEveUserStaffQuery.getLimit());
+            MPJLambdaWrapper<SysEveUserStaff> wrapper = JoinWrappers.lambda("userStaff", SysEveUserStaff.class)
+                .innerJoin(TenantUser.class, "tru", TenantUser::getStaffId, SysEveUserStaff::getId);
+            if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
+                // 要适配人事下的员工管理
+                wrapper.eq("userStaff." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+            }
+            if (sysEveUserStaffQuery.getDesignWages() != null) {
+                wrapper.eq(TenantUser::getDesignWages, sysEveUserStaffQuery.getDesignWages());
+            }
+            if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getType())) {
+                // 员工类型，参考#UserStaffType
+                wrapper.eq(TenantUser::getType, sysEveUserStaffQuery.getType());
+            }
+            List<SysEveUserStaff> sysEveUserStaffList = skyeyeBaseMapper.selectJoinList(SysEveUserStaff.class, wrapper);
+            if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
+                tenantUserService.setThisTenantUserToDefault(sysEveUserStaffList);
+            }
+            List<Map<String, Object>> userList = sysEveUserStaffList.stream().map(s -> BeanUtil.beanToMap(s)).collect(Collectors.toList());
+            setUserStaffCommonInfo(userList);
+            outputObject.setBeans(userList);
+            outputObject.settotal(page.getTotal());
+        }
+    }
+
+    @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<SysEveUserStaff> wrapper) {
         SysEveUserStaffQuery sysEveUserStaffQuery = inputObject.getParams(SysEveUserStaffQuery.class);
         if (sysEveUserStaffQuery.getDesignWages() != null) {
@@ -108,21 +145,20 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 wra.isNull(userIdKey).or().eq(userIdKey, StrUtil.EMPTY);
             });
         }
-    }
-
-    @Override
-    public QueryWrapper<SysEveUserStaff> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<SysEveUserStaff> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+        if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getType())) {
             // 员工类型，参考#UserStaffType
-            queryWrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getType), commonPageInfo.getType());
+            wrapper.eq(MybatisPlusUtil.toColumns(SysEveUserStaff::getType), sysEveUserStaffQuery.getType());
         }
-        return queryWrapper;
     }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        setUserStaffCommonInfo(beans);
+        return beans;
+    }
+
+    private void setUserStaffCommonInfo(List<Map<String, Object>> beans) {
         beans.forEach(bean -> {
             bean.put(CommonConstants.NAME, bean.get("jobNumber").toString() + "_" + bean.get("userName").toString());
         });
@@ -131,7 +167,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
         companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
         companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
-        return beans;
     }
 
     @Override

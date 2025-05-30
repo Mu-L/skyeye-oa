@@ -26,6 +26,7 @@ public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFill
         QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         List<DwAnFillblank> dwAnFillblankList = list(queryWrapper);
+
         outputObject.setBean(dwAnFillblankList);
         outputObject.settotal(dwAnFillblankList.size());
     }

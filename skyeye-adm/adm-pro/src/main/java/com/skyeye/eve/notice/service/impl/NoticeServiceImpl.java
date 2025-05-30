@@ -75,9 +75,14 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
     private boolean tenantEnable;
 
     @Override
+    @IgnoreTenant
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
+        if (tenantEnable) {
+            // 多租户模式下，过滤当前租户的公告
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryNoticeList(pageInfo);
         return beans;
     }
@@ -218,19 +223,18 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         iQuartzService.stopAndDeleteTaskQuartz(id);
     }
 
-    /**
-     * 用户收到的公告
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryUserReceivedNotice(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         pageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
         pageInfo.setObjectId(inputObject.getLogParams().get("id").toString());
         pageInfo.setState(NoticeState.UP.getKey().toString());
+        if (tenantEnable) {
+            // 多租户模式下，过滤当前租户的公告
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryNoticeList(pageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());

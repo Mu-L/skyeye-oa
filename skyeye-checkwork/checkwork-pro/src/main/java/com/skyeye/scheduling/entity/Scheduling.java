@@ -35,6 +35,10 @@ public class Scheduling extends OperatorUserInfo {
     @ApiModelProperty(value = "排班时间", required = "required")
     private String scheduleDate;
 
+    @TableField(value = "job_id")
+    @ApiModelProperty(value = "职位Id", required = "required")
+    private String jobId;
+
     @TableField(value = "farm_id")
     @ApiModelProperty(value = "车间id", required = "required")
     private String farmId;
@@ -48,7 +52,7 @@ public class Scheduling extends OperatorUserInfo {
     private Integer schedulePeopleType;
 
     @TableField(value = "shift_time_id")
-    @ApiModelProperty(value = "班次时间段id")
+    @ApiModelProperty(value = "班次时间段id",required = "required")
     private String shiftTimeId;
 
     @TableField(exist = false)
@@ -62,4 +66,8 @@ public class Scheduling extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "员工信息")
     private List<Map<String, Object>> staffMation;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "排班权重")
+    private Integer schedulingWeight;
 }

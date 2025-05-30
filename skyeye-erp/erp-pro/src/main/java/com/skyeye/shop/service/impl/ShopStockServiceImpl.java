@@ -10,12 +10,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
@@ -27,6 +31,7 @@ import com.skyeye.shop.dao.ShopStockDao;
 import com.skyeye.shop.entity.ShopStock;
 import com.skyeye.shop.service.ShopStockService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,13 +59,17 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
     @Autowired
     private IShopStoreService iShopStoreService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
+    @IgnoreTenant
     public void queryShopStockList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 商品名称，型号，门店，品牌
-        MPJLambdaWrapper<ShopStock> wrapper = new MPJLambdaWrapper<ShopStock>()
-            .innerJoin(Material.class, Material::getId, ShopStock::getMaterialId);
+        MPJLambdaWrapper<ShopStock> wrapper = JoinWrappers.lambda("stock", ShopStock.class)
+            .innerJoin(Material.class, "ma", Material::getId, ShopStock::getMaterialId);
         if (StrUtil.equals(commonPageInfo.getType(), "store")) {
             // 门店id
             wrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getStoreId), commonPageInfo.getHolderId());
@@ -70,6 +79,11 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
                 wra.or().like(Material::getName, commonPageInfo.getKeyword());
                 wra.or().like(Material::getModel, commonPageInfo.getKeyword());
             });
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("stock." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("ma." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<ShopStock> shopStockList = skyeyeBaseMapper.selectJoinList(ShopStock.class, wrapper);
         materialService.setDataMation(shopStockList, ShopStock::getMaterialId);

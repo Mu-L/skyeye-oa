@@ -21,6 +21,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ExcelUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -48,6 +49,7 @@ import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.yearsub.service.YearSubjectService;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -103,6 +105,9 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private ISysEveUserStaffService iSysEveUserStaffService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     private static final String EXPORT_EXCEL_NAME = "学生导入模板";
 
@@ -240,6 +245,9 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
     @Override
     public void queryTeacherListByNameOrJobNumber(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> maps = iSysEveUserStaffService.querySysUserStaffList(commonPageInfo);
         // 查询教师列表
         if (CollectionUtil.isNotEmpty(maps)) {

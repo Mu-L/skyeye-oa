@@ -130,9 +130,13 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         Integer size13 = dwAnOrderService.selectBySurveyId(surveyId).size();
         Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
         entity.setCompleteNum(total);
-        if (total.equals(entity.getQuNum())) {
+        Integer quNum = entity.getQuNum();
+        if (quNum == null) {// 如果quNum为空，则跳过后续校验
+            return;
+        }
+        if (total.equals(quNum)) { // 此时 quNum 已非 null
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
-        } else if (total < entity.getQuNum()) {
+        } else if (total < quNum) {
             throw new CustomException("未完成所有题目");
         }
         if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {

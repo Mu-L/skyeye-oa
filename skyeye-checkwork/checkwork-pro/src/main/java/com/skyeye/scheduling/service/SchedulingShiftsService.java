@@ -10,6 +10,4 @@ public interface SchedulingShiftsService extends SkyeyeBusinessService<Schedulin
     void deleteSchedulingShifts(InputObject inputObject, OutputObject outputObject);
 
     void querySchedulingShiftsList(InputObject inputObject, OutputObject outputObject);
-
-    void querySchedulingShiftsById(InputObject inputObject, OutputObject outputObject);
 }

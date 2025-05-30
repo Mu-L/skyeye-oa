@@ -20,4 +20,5 @@ public class IFarmStaffServiceImpl extends IServiceImpl implements IFarmStaffSer
     public List<Map<String, Object>> queryAllFarmStaffList() {
         return ExecuteFeignClient.get(() -> iFarmStaffRest.queryAllFarmStaffList()).getRows();
     }
+
 }

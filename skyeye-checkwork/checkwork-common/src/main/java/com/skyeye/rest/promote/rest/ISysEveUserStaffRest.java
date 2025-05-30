@@ -15,4 +15,11 @@ public interface ISysEveUserStaffRest {
      */
     @PostMapping("/queryAllStaffList")
     String queryAllStaffList();
+
+    /**
+     * 根据员工Ids查询所员工
+     *
+     */
+    @PostMapping("/queryEmployeeListByIds")
+    String queryEmployeeListByIds(@RequestParam("employeeIds")String employeeIds);
 }
