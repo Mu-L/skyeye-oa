@@ -4,6 +4,7 @@
 
 package com.skyeye.win.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -11,6 +12,8 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.exception.CustomException;
 import com.skyeye.win.dao.SysEveWinDao;
 import com.skyeye.win.entity.SysWin;
@@ -22,7 +25,7 @@ import java.util.Map;
 
 /**
  * @ClassName: SysEveWinServiceImpl
- * @Description: 服务信息管理服务类
+ * @Description: 服务信息管理服务类--平台租户
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/7 23:26
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -33,8 +36,21 @@ import java.util.Map;
 public class SysEveWinServiceImpl extends SkyeyeBusinessServiceImpl<SysEveWinDao, SysWin> implements SysEveWinService {
 
     @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                throw new CustomException("该接口只能平台租户调用！");
+            }
+            commonPageInfo.setTenantId(tenantId);
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryWinMationList(commonPageInfo);
         return beans;
     }
