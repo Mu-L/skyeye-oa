@@ -2,30 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.eve.articles.dao.ArticlesUseDao">
 
-    <select id="queryMyUseArticlesMation" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.title,
-            a.odd_number oddNumber,
-            IFNULL(a.process_instance_id, '') processInstanceId,
-            a.state,
-            a.create_id createId,
-            CONVERT(a.create_time, char) createTime,
-            a.last_update_id lastUpdateId,
-            CONVERT(a.last_update_time, char) lastUpdateTime
-        FROM
-            asset_articles_use a
-        <where>
-            a.create_id = #{createId}
-            <if test="sqlExtract != '' and sqlExtract != null">
-                ${sqlExtract}
-            </if>
-            <if test="keyword != null and keyword != ''">
-                AND (a.odd_number like '%${keyword}%' OR a.title like '%${keyword}%')
-            </if>
-        </where>
-        ORDER BY a.create_time DESC
-    </select>
     <select id="queryMyArticlesList" resultType="java.util.Map">
         SELECT
             e.id,
@@ -50,6 +26,9 @@
             </if>
             <if test="keyword != null and keyword != ''">
                 AND (a.`name` like '%${keyword}%' OR d.odd_number like '%${keyword}%')
+            </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId} AND e.tenant_id = #{tenantId}
             </if>
         </where>
         ORDER BY d.create_time DESC

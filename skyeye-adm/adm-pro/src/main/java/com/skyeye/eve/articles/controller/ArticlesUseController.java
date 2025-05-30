@@ -32,12 +32,6 @@ public class ArticlesUseController {
     @Autowired
     private ArticlesUseService articlesUseService;
 
-    /**
-     * 获取我领用的用品信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "assetarticles017", value = "获取我领用的用品信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArticlesUseController/queryMyUseAssetArticlesMation")
@@ -45,12 +39,6 @@ public class ArticlesUseController {
         articlesUseService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 用品领用申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAssetArticlesApplyUse", value = "用品领用申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ArticlesUse.class)
     @RequestMapping("/post/ArticlesUseController/writeArticlesApplyUse")
@@ -58,12 +46,6 @@ public class ArticlesUseController {
         articlesUseService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 用品领用申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "assetarticles023", value = "用品领用申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -73,12 +55,6 @@ public class ArticlesUseController {
         articlesUseService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废用品领用申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "assetarticles030", value = "作废用品领用申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class ArticlesUseController {
         articlesUseService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销用品领用申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "assetarticles034", value = "撤销用品领用申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -101,12 +71,6 @@ public class ArticlesUseController {
         articlesUseService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 我的用品领用历史
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "myhasmation004", value = "我的用品领用历史", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArticlesUseController/queryMyArticlesList")

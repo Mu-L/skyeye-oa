@@ -4,22 +4,28 @@
 
 package com.skyeye.eve.articles.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.articles.dao.ArticlesUseDao;
 import com.skyeye.eve.articles.entity.ArticlesUse;
 import com.skyeye.eve.articles.entity.ArticlesUseLink;
 import com.skyeye.eve.articles.service.ArticlesService;
 import com.skyeye.eve.articles.service.ArticlesUseLinkService;
 import com.skyeye.eve.articles.service.ArticlesUseService;
+import com.skyeye.eve.assets.entity.AssetReturn;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,12 +49,15 @@ public class ArticlesUseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesUs
     @Autowired
     private ArticlesService articlesService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        commonPageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyUseArticlesMation(commonPageInfo);
-        return beans;
+    protected QueryWrapper<ArticlesUse> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ArticlesUse> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AssetReturn::getCreateId), userId);
+        return queryWrapper;
     }
 
     @Override
@@ -124,10 +133,14 @@ public class ArticlesUseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesUs
     }
 
     @Override
+    @IgnoreTenant
     public void queryMyArticlesList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyArticlesList(pageInfo);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         outputObject.setBeans(beans);
