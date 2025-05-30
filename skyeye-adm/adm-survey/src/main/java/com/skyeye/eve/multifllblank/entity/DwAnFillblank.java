@@ -12,7 +12,6 @@ import lombok.Data;
 import javax.activation.CommandInfo;
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_fillblank")
 @ApiModel(value = "答卷多选题保存表实体类")
 public class DwAnFillblank extends CommonInfo {

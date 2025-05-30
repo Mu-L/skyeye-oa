@@ -23,7 +23,6 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_checkbox")
 @ApiModel(value = "答卷单选题保存实体类")
 public class DwAnRadio extends CommonInfo {

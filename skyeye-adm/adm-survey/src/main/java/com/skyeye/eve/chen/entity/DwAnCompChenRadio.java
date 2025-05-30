@@ -24,7 +24,6 @@ import java.util.List;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_comp_chen_radio")
 @ApiModel(value = "答卷复合矩阵单选题实体类")
 public class DwAnCompChenRadio extends CommonInfo {

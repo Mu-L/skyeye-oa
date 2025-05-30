@@ -24,7 +24,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
 @TableName(value = "dw_mail_invite_inbox")
 @ApiModel(value = "答案是非题结果保存实体类")
 public class DwMailInviteInbox extends OperatorUserInfo {

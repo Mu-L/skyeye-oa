@@ -14,5 +14,6 @@ public interface SchedulingLeaveService extends SkyeyeBusinessService<Scheduling
 
     void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, List<SchedulingLeave>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId);
+    Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime);
+
 }

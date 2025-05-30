@@ -24,7 +24,6 @@ import java.util.List;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_chen_fbk")
 @ApiModel(value = "答卷矩阵填空题实体类")
 public class DwAnChenFbk extends CommonInfo {

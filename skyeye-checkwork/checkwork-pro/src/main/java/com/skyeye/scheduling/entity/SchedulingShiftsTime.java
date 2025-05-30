@@ -37,9 +37,16 @@ public class SchedulingShiftsTime extends BaseGeneralInfo {
     @ApiModelProperty(value = "时间段颜色")
     private String color;
 
+    @TableField(value = "min_staff")
+    @ApiModelProperty(value = "最小需求人数")
+    private Integer minStaff;
+
+    @TableField(value = "max_staff")
+    @ApiModelProperty(value = "最大需求人数")
+    private Integer maxStaff;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "时间段表下工位信息")
     private List<SchedulingShiftsTimeWork> shiftsTimeWorkMation;
-
 
 }

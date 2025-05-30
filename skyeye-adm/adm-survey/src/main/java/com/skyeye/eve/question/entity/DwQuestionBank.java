@@ -22,7 +22,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-//@UniqueField
 @TableName(value = "dw_question_bank")
 @ApiModel(value = "题库实体类")
 public class DwQuestionBank extends OperatorUserInfo {

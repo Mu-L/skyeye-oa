@@ -12,4 +12,7 @@ public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
     void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject);
 
     void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject);
+
+    void updateEmployStateByLeave(String employeeId, String startTime, String endTime);
+
 }

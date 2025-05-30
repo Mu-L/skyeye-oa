@@ -17,9 +17,12 @@ import com.skyeye.scheduling.classenum.ScheduleLeaveType;
 import com.skyeye.scheduling.dao.SchedulingLeaveDao;
 import com.skyeye.scheduling.entity.SchedulingLeave;
 import com.skyeye.scheduling.service.SchedulingLeaveService;
+import com.skyeye.scheduling.service.SchedulingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,6 +30,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "排班请假管理", groupName = "排班请假管理")
 public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingLeaveDao, SchedulingLeave> implements SchedulingLeaveService {
+
+    @Autowired
+    private SchedulingService schedulingService;
 
     @Override
     protected void createPrepose(SchedulingLeave entity) {
@@ -70,28 +76,30 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         SchedulingLeave schedulingLeave = selectById(id);
         schedulingLeave.setStatus(Integer.valueOf(status));
         super.updateEntity(schedulingLeave, schedulingLeave.getCreateId());
+        if (Integer.valueOf(status).equals(CommonNumConstants.NUM_TWO)) {
+            SchedulingLeave schedulingLeave1 = selectById(id);
+            String employeeId = schedulingLeave1.getEmployeeId();
+            String startTime = schedulingLeave1.getStartTime();
+            String endTime = schedulingLeave1.getEndTime();
+            schedulingService.updateEmployStateByLeave(employeeId,startTime,endTime);
+        }
     }
 
     @Override
-    public Map<String, List<SchedulingLeave>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithoutUserId) {
-        List<String> allIds = staffListWithoutUserId.stream().map(map -> map.get("id").toString()).collect(Collectors.toList());
-        List<SchedulingLeave> schedulingLeaveList = queryAllLeaveListByStaffId(allIds, startTime, endTime);
-        Map<String, List<SchedulingLeave>> schedulingLeaveMap = schedulingLeaveList.stream()
-            .collect(Collectors.groupingBy(SchedulingLeave::getEmployeeId));
-        // 每个员工id对应员工请假数据
-        return schedulingLeaveMap;
-    }
-
-    private List<SchedulingLeave> queryAllLeaveListByStaffId(List<String> allIds, String startTime, String endTime) {
-        if (CollectionUtil.isEmpty(allIds)) {
-            return new ArrayList<>();
+    public Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime) {
+        if (CollectionUtil.isEmpty(id)) {
+            return new HashMap<>();
         }
         QueryWrapper<SchedulingLeave> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingLeave::getEmployeeId), allIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingLeave::getEmployeeId), id);
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getStatus), ScheduleLeaveType.APPROVED.getKey());
-        queryWrapper.le(MybatisPlusUtil.toColumns(SchedulingLeave::getStartTime), startTime);
-        queryWrapper.ge(MybatisPlusUtil.toColumns(SchedulingLeave::getEndTime), endTime);
+        queryWrapper.le(MybatisPlusUtil.toColumns(SchedulingLeave::getStartTime), endTime);
+        queryWrapper.ge(MybatisPlusUtil.toColumns(SchedulingLeave::getEndTime), startTime);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
-        return list(queryWrapper);
+        List<SchedulingLeave> leaveList = list(queryWrapper);
+        
+        // 按员工ID分组
+        return leaveList.stream()
+            .collect(Collectors.groupingBy(SchedulingLeave::getEmployeeId));
     }
 }

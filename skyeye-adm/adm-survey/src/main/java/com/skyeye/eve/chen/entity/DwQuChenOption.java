@@ -23,7 +23,6 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_qu_chen_option")
 @ApiModel(value = "矩陈题题选项实体类")
 public class DwQuChenOption extends OperatorUserInfo {

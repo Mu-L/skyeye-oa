@@ -23,7 +23,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
 @TableName(value = "dw_an_answer")
 @ApiModel(value = "答卷问答题保存实体类")
 public class DwAnAnswer extends CommonInfo {
