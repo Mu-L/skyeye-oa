@@ -66,6 +66,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
             entity.setFromId(entity.getId());
             entity.setId(StrUtil.EMPTY);
             entity.setFromKey(entity.getServiceClassName());
+            entity.setState(FlowableStateEnum.PASS.getKey());
         }
     }
 

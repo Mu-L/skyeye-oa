@@ -15,7 +15,6 @@
 		<if test="folderType != '1'.toString()">
 			AND a.create_id = #{userId}
 		</if>
-		AND a.id NOT IN (SELECT m.file_id FROM file_catelog_recycle_bin m WHERE m.file_type = '1' AND m.create_id = #{userId})
 		AND a.delete_flag = #{deleteFlag}
 		ORDER BY a.`name` ASC
 	</select>
@@ -46,7 +45,6 @@
 				<if test="tenantId != '' and tenantId != null">
 					AND a.tenant_id = #{tenantId}
 				</if>
-				AND a.id NOT IN (SELECT m.file_id FROM file_catelog_recycle_bin m WHERE m.file_type = '1' AND m.create_id = #{userId})
 				AND a.delete_flag = #{deleteFlag}
 				UNION ALL
 					SELECT
@@ -71,7 +69,6 @@
 					<if test="tenantId != '' and tenantId != null">
 						AND a.tenant_id = #{tenantId}
 					</if>
-					AND a.id NOT IN (SELECT m.file_id FROM file_catelog_recycle_bin m WHERE m.file_type = '2' AND m.create_id = #{userId})
 					AND a.delete_flag = #{deleteFlag}
 			) k
 		<if test="orderByStr != '' and orderByStr != null">
