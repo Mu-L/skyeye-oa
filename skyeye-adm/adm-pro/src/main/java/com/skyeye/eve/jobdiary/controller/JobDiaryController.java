@@ -32,12 +32,6 @@ public class JobDiaryController {
     @Autowired
     private JobDiaryService jobDiaryService;
 
-    /**
-     * 获取我发出日志列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "diary005", value = "获取我发出日志列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/JobDiaryController/queryMysendJobDiaryList")
@@ -45,12 +39,6 @@ public class JobDiaryController {
         jobDiaryService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我收到的日志
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "diary001", value = "获取我收到的日志", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/JobDiaryController/queryMyReceivedJobDiaryList")
@@ -58,12 +46,6 @@ public class JobDiaryController {
         jobDiaryService.queryMyReceivedJobDiaryList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑日志
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeJobDiary", value = "新增/编辑日志", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = JobDiary.class)
     @RequestMapping("/post/JobDiaryController/writeJobDiary")
@@ -71,12 +53,6 @@ public class JobDiaryController {
         jobDiaryService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 撤销日志
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeJobDiaryById", value = "撤销日志", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -85,12 +61,6 @@ public class JobDiaryController {
         jobDiaryService.revokeJobDiaryById(inputObject, outputObject);
     }
 
-    /**
-     * 删除日志
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteJobDiaryById", value = "删除日志", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
