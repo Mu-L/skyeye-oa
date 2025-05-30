@@ -4,6 +4,7 @@
 
 package com.skyeye.statis.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -11,20 +12,30 @@ import java.util.Map;
 
 public interface CrmPageDao {
 
-    List<Map<String, Object>> queryInsertNumByYear(@Param("year") String year);
+    @IgnoreTenant
+    List<Map<String, Object>> queryInsertNumByYear(@Param("year") String year,
+                                                   @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCustomNumByType();
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomNumByType(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCustomNumByFrom();
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomNumByFrom(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCustomNumByIndustry();
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomNumByIndustry(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCustomNumByGroup();
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomNumByGroup(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCustomDocumentaryType(@Param("year") String year);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCustomDocumentaryType(@Param("year") String year,
+                                                         @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryNewContractNum(@Param("year") String year);
+    List<Map<String, Object>> queryNewContractNum(@Param("year") String year,
+                                                  @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryNewDocumentaryNum(@Param("year") String year);
+    List<Map<String, Object>> queryNewDocumentaryNum(@Param("year") String year,
+                                                     @Param("tenantId") String tenantId);
 
 }

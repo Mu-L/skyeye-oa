@@ -22,12 +22,6 @@ public class CrmPageController {
     @Autowired
     private CrmPageService crmPageService;
 
-    /**
-     * 获取指定年度的客户新增量，联系人新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "crmpage001", value = "获取指定年度的客户新增量，联系人新增量", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "year", name = "year", value = "指定年度", required = "required")})
@@ -36,12 +30,6 @@ public class CrmPageController {
         crmPageService.queryInsertNumByYear(inputObject, outputObject);
     }
 
-    /**
-     * 根据客户分类，客户来源，所属行业，客户分组统计客户数量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "crmpage002", value = "根据客户分类，客户来源，所属行业，客户分组统计客户数量", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "crmCustomerType", name = "crmCustomerType", value = "客户分类的code", required = "required"),
@@ -53,12 +41,6 @@ public class CrmPageController {
         crmPageService.queryCustomNumByOtherType(inputObject, outputObject);
     }
 
-    /**
-     * 客户跟单方式分析
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "crmpage003", value = "客户跟单方式分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "year", name = "year", value = "指定年度", required = "required"),
@@ -68,12 +50,6 @@ public class CrmPageController {
         crmPageService.queryCustomDocumentaryType(inputObject, outputObject);
     }
 
-    /**
-     * 获取合同在指定年度的月新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "crmpage004", value = "获取合同在指定年度的月新增量", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "year", name = "year", value = "指定年度", required = "required")})
@@ -82,12 +58,6 @@ public class CrmPageController {
         crmPageService.queryNewContractNum(inputObject, outputObject);
     }
 
-    /**
-     * 获取员工跟单在指定年度的月新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "crmpage005", value = "获取员工跟单在指定年度的月新增量", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "year", name = "year", value = "指定年度", required = "required")})

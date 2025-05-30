@@ -5,8 +5,14 @@
 	<select id="queryInsertNumByYear" resultType="java.util.Map">
 		SELECT
 			a.`year_month` yearMonth,
-			(SELECT COUNT(b.id) FROM crm_customer b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`) insertCustomerNum,
-			(SELECT COUNT(c.id) FROM skyeye_contacts c WHERE date_format(c.create_time, '%Y-%m') = a.`year_month`) insertContactsNum
+			(SELECT COUNT(b.id) FROM crm_customer b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`
+													<if test="tenantId != '' and tenantId != null">
+														AND b.tenant_id = #{tenantId}
+													</if>) insertCustomerNum,
+			(SELECT COUNT(c.id) FROM skyeye_contacts c WHERE date_format(c.create_time, '%Y-%m') = a.`year_month`
+													<if test="tenantId != '' and tenantId != null">
+														AND c.tenant_id = #{tenantId}
+													</if>) insertContactsNum
 		FROM
 			(SELECT CONCAT(#{year}, '-01') AS `year_month` 
 			UNION SELECT CONCAT(#{year}, '-02') AS `year_month` 
@@ -29,6 +35,11 @@
 			a.type_id dictDataId
 		FROM
 			crm_customer a
+		<where>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		GROUP BY a.type_id
 	</select>
 	
@@ -38,6 +49,11 @@
 			a.from_id dictDataId
 		FROM
 			crm_customer a
+		<where>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		GROUP BY a.from_id
 	</select>
 	
@@ -47,6 +63,11 @@
 			a.industry_id dictDataId
 		FROM
 			crm_customer a
+		<where>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		GROUP BY a.industry_id
 	</select>
 	
@@ -56,6 +77,11 @@
 			a.group_id dictDataId
 		FROM
 			crm_customer a
+		<where>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		GROUP BY a.group_id
 	</select>
 	
@@ -66,14 +92,23 @@
 		FROM
 			crm_documentary d
 		WHERE YEAR(d.create_time) = #{year}
+		<if test="tenantId != '' and tenantId != null">
+			AND d.tenant_id = #{tenantId}
+		</if>
 		GROUP BY d.type_id
 	</select>
 	
 	<select id="queryNewContractNum" resultType="java.util.Map">
 		SELECT
 			a.`year_month` yearMonth,
-			(SELECT COUNT(b.id) FROM crm_contract b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`) insertContractNum,
-			(SELECT CONVERT(SUM(IFNULL(c.price, 0)), decimal(24, 2)) FROM crm_contract c WHERE date_format(c.create_time, '%Y-%m') = a.`year_month`) insertContractPrice
+			(SELECT COUNT(b.id) FROM crm_contract b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`
+																<if test="tenantId != '' and tenantId != null">
+																	AND b.tenant_id = #{tenantId}
+																</if>) insertContractNum,
+			(SELECT CONVERT(SUM(IFNULL(c.price, 0)), decimal(24, 2)) FROM crm_contract c WHERE date_format(c.create_time, '%Y-%m') = a.`year_month`
+																<if test="tenantId != '' and tenantId != null">
+																	AND c.tenant_id = #{tenantId}
+																</if>) insertContractPrice
 		FROM
 			(SELECT CONCAT(#{year}, '-01') AS `year_month` 
 			UNION SELECT CONCAT(#{year}, '-02') AS `year_month` 
@@ -93,7 +128,10 @@
 	<select id="queryNewDocumentaryNum" resultType="java.util.Map">
 		SELECT
 			a.`year_month` yearMonth,
-			(SELECT COUNT(b.id) FROM crm_documentary b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`) insertDocumentaryNum
+			(SELECT COUNT(b.id) FROM crm_documentary b WHERE date_format(b.create_time, '%Y-%m') = a.`year_month`
+														<if test="tenantId != '' and tenantId != null">
+															AND b.tenant_id = #{tenantId}
+														</if>) insertDocumentaryNum
 		FROM
 			(SELECT CONCAT(#{year}, '-01') AS `year_month` 
 			UNION SELECT CONCAT(#{year}, '-02') AS `year_month` 

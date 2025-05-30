@@ -4,14 +4,17 @@
 
 package com.skyeye.statis.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.service.ISysDictDataService;
 import com.skyeye.statis.dao.CrmPageDao;
 import com.skyeye.statis.service.CrmPageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -29,25 +32,17 @@ public class CrmPageServiceImpl implements CrmPageService {
     @Autowired
     private ISysDictDataService iSysDictDataService;
 
-    /**
-     * 获取指定年度的客户新增量，联系人新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public void queryInsertNumByYear(InputObject inputObject, OutputObject outputObject) {
         String year = inputObject.getParams().get("year").toString();
-        List<Map<String, Object>> beans = crmPageDao.queryInsertNumByYear(year);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = crmPageDao.queryInsertNumByYear(year, tenantId);
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 根据客户分类，客户来源，所属行业，客户分组统计客户数量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryCustomNumByOtherType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -55,14 +50,15 @@ public class CrmPageServiceImpl implements CrmPageService {
         String crmCustomerFrom = params.get("crmCustomerFrom").toString();
         String crmCustomerIndustry = params.get("crmCustomerIndustry").toString();
         String crmCustomerGroup = params.get("crmCustomerGroup").toString();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.根据客户分类统计客户数量
-        List<Map<String, Object>> numType = this.getDictDataNun(crmCustomerType, crmPageDao.queryCustomNumByType());
+        List<Map<String, Object>> numType = this.getDictDataNun(crmCustomerType, crmPageDao.queryCustomNumByType(tenantId));
         // 2.根据客户来源统计客户数量
-        List<Map<String, Object>> numFrom = this.getDictDataNun(crmCustomerFrom, crmPageDao.queryCustomNumByFrom());
+        List<Map<String, Object>> numFrom = this.getDictDataNun(crmCustomerFrom, crmPageDao.queryCustomNumByFrom(tenantId));
         // 3.根据所属行业统计客户数量
-        List<Map<String, Object>> numIndustry = this.getDictDataNun(crmCustomerIndustry, crmPageDao.queryCustomNumByIndustry());
+        List<Map<String, Object>> numIndustry = this.getDictDataNun(crmCustomerIndustry, crmPageDao.queryCustomNumByIndustry(tenantId));
         // 4.根据客户分组统计客户数量
-        List<Map<String, Object>> numGroup = this.getDictDataNun(crmCustomerGroup, crmPageDao.queryCustomNumByGroup());
+        List<Map<String, Object>> numGroup = this.getDictDataNun(crmCustomerGroup, crmPageDao.queryCustomNumByGroup(tenantId));
         Map<String, Object> map = new HashMap<>();
         map.put("numType", numType);
         map.put("numFrom", numFrom);
@@ -88,44 +84,29 @@ public class CrmPageServiceImpl implements CrmPageService {
         return dictDataList;
     }
 
-    /**
-     * 客户跟单方式分析
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryCustomDocumentaryType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String year = params.get("year").toString();
         String crmDocumentaryType = params.get("crmDocumentaryType").toString();
-        List<Map<String, Object>> beans = this.getDictDataNun(crmDocumentaryType, crmPageDao.queryCustomDocumentaryType(year));
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = this.getDictDataNun(crmDocumentaryType, crmPageDao.queryCustomDocumentaryType(year, tenantId));
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 获取合同在指定年度的月新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryNewContractNum(InputObject inputObject, OutputObject outputObject) {
         String year = inputObject.getParams().get("year").toString();
-        List<Map<String, Object>> beans = crmPageDao.queryNewContractNum(year);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = crmPageDao.queryNewContractNum(year, tenantId);
         outputObject.setBeans(beans);
     }
 
-    /**
-     * 获取员工跟单在指定年度的月新增量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryNewDocumentaryNum(InputObject inputObject, OutputObject outputObject) {
         String year = inputObject.getParams().get("year").toString();
-        List<Map<String, Object>> beans = crmPageDao.queryNewDocumentaryNum(year);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = crmPageDao.queryNewDocumentaryNum(year, tenantId);
         outputObject.setBeans(beans);
     }
 
