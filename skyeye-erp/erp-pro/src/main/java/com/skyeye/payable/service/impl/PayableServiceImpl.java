@@ -87,6 +87,14 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     }
 
     @Override
+    public List<Payable> selectByIds(String... ids) {
+        List<Payable> payableList = super.selectByIds(ids);
+        supplierContractService.setDataMation(payableList, Payable::getContractId);
+        iContactsService.setDataMation(payableList, Payable::getContactId);
+        return payableList;
+    }
+
+    @Override
     public void queryPayableByContractId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String contractId = map.get("contractId").toString();
@@ -115,6 +123,8 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
         updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPaidPrice), price);
         if (receivable.getAmountPrice().equals(price)) {
             updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PAID_STATE.getKey());
+        }else if(Double.parseDouble(price) > CommonNumConstants.NUM_ONE){
+            updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PART_PAID_STATE.getKey());
         }
         update(updateWrapper);
     }

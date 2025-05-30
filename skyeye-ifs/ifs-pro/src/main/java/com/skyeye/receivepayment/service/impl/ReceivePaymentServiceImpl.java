@@ -18,9 +18,9 @@ import com.skyeye.receivepayment.classenum.ReceivePaymentKeyEnum;
 import com.skyeye.receivepayment.dao.ReceivePaymentDao;
 import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.ReceivePaymentService;
-import com.skyeye.rest.crm.contract.service.ICrmContractService;
 import com.skyeye.rest.crm.payment.service.ICrmPaymentCollectionService;
-import com.skyeye.rest.erp.contract.service.IErpContractService;
+import com.skyeye.rest.crm.receivable.service.ICrmReceivableService;
+import com.skyeye.rest.erp.payable.service.IErpPayableService;
 import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,21 +48,21 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     private IContactsService iContactsService;
 
     @Autowired
-    private ICrmContractService iCrmContractService;
-
-    @Autowired
-    private IErpContractService iErpContractService;
-
-    @Autowired
     private ICrmPaymentCollectionService iCrmPaymentCollectionService;
 
     @Autowired
     private IErpPaymentCollectionService iErpPaymentCollectionService;
 
+    @Autowired
+    private ICrmReceivableService iCrmReceivableService;
+
+    @Autowired
+    private IErpPayableService iErpPayableService;
+
 
     @Override
     public void createPrepose(ReceivePayment entity) {
-        if(StrUtil.isNotEmpty(entity.getId())){
+        if (StrUtil.isNotEmpty(entity.getId())) {
             entity.setFromId(entity.getId());
             entity.setId(StrUtil.EMPTY);
             entity.setFromKey(entity.getServiceClassName());
@@ -87,39 +87,54 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(beans);
     }
-    
-    private List<ReceivePayment> setInfo(List<ReceivePayment> list){
-        if(CollectionUtil.isEmpty(list)){
+
+    private List<ReceivePayment> setInfo(List<ReceivePayment> list) {
+        if (CollectionUtil.isEmpty(list)) {
             return list;
         }
-        // 获取通过逗号隔开的ids
-        String contractIds = list.stream().map(ReceivePayment::getContractId).collect(Collectors.joining(StrUtil.COMMA));
-        String fromIds = list.stream().map(ReceivePayment::getFromId).collect(Collectors.joining(StrUtil.COMMA));
-        List<Map<String, Object>> contractMation;
-        // 回款信息
-        List<Map<String, Object>> paymentCollection;
-        if (ReceivePaymentKeyEnum.CRM_PAYMENT_KEY.getKey().equals(list.get(CommonNumConstants.NUM_ZERO).getObjectKey())) {
-            // 查询合同信息
-            contractMation = iCrmContractService.queryCrmContractByIds(contractIds);
-            // 回款信息
-            paymentCollection = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
-        } else {
-            // 查询合同信息
-            contractMation = iErpContractService.querySupplierContractByIds(contractIds);
-            // 付款信息
-            paymentCollection = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
+        // 根据fromKey分组，值为List<String> fromId
+        Map<String, List<String>> fromKeyMap = list.stream().
+                collect(Collectors.groupingBy(ReceivePayment::getFromKey, Collectors.mapping(ReceivePayment::getFromId, Collectors.toList())));
+        // 回款fromId
+        List<String> crmPaymentFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey(), new ArrayList<>());
+        // 应收fromId
+        List<String> crmReceivableFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_KEY.getKey(), new ArrayList<>());
+        // 付款fromId
+        List<String> erpPaymentOutFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey(), new ArrayList<>());
+        // 应付fromId
+        List<String> erpReceivableFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PURCHASE_ORDER_KEY.getKey(), new ArrayList<>());
+        List<ReceivePayment> beans = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(crmPaymentFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, crmPaymentFromIds);
+            List<Map<String, Object>> mapList = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
+            beans = setInfo(mapList,list);
         }
-        // 转为map结构，健contractId
-        Map<String, Map<String, Object>> contractMap = contractMation.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-        // 转为map结构，健fromId
-        Map<String, Map<String, Object>> paymentMap = paymentCollection.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+        if (CollectionUtil.isNotEmpty(crmReceivableFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, crmReceivableFromIds);
+            List<Map<String, Object>> mapList = iCrmReceivableService.queryReceivableByIds(fromIds);
+            beans = setInfo(mapList,list);
+        }
+        if (CollectionUtil.isNotEmpty(erpPaymentOutFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, erpPaymentOutFromIds);
+            List<Map<String, Object>> mapList = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
+            beans = setInfo(mapList,list);
+        }
+        if (CollectionUtil.isNotEmpty(erpReceivableFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, erpReceivableFromIds);
+            List<Map<String, Object>> mapList = iErpPayableService.queryPayableByIds(fromIds);
+            beans = setInfo(mapList,list);
+        }
+        iContactsService.setDataMation(beans, ReceivePayment::getContactId);
+        return beans;
+    }
+    
+    private List<ReceivePayment> setInfo(List<Map<String,Object>> map,List<ReceivePayment> list){
+        Map<String, Map<String, Object>> paymentMap = map.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
         List<ReceivePayment> beans = list.stream().map(item -> {
-            item.setContractMation(contractMap.getOrDefault(item.getContractId(), new HashMap<>()));
             item.setFromMation(paymentMap.getOrDefault(item.getFromId(), new HashMap<>()));
             item.setName(item.getOddNumber());
             return item;
         }).collect(Collectors.toList());
-        iContactsService.setDataMation(beans,ReceivePayment::getContactId);
         return beans;
     }
 
@@ -143,23 +158,29 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     public ReceivePayment selectById(String id) {
         ReceivePayment receivePayment = super.selectById(id);
         iContactsService.setDataMation(receivePayment, ReceivePayment::getContactId);
-        // 查询合同信息
-        List<Map<String, Object>> contractMation;
-        // 回款信息
-        List<Map<String, Object>> paymentCollection;
-        if (ReceivePaymentKeyEnum.CRM_PAYMENT_KEY.getKey().equals(receivePayment.getObjectKey())) {
-            // 查询合同信息
-              contractMation = iCrmContractService.queryCrmContractByIds(receivePayment.getContractId());
-            // 回款信息
-             paymentCollection = iCrmPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
-        } else {
-            // 查询合同信息
-           contractMation = iErpContractService.querySupplierContractByIds(receivePayment.getContractId());
+        // 回付款信息
+        List<Map<String, Object>> paymentCollection = new ArrayList<>();
+
+        if (ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey().equals(receivePayment.getFromKey())) {
             // 付款信息
-           paymentCollection = iErpPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
+            paymentCollection = iErpPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
+        } else if (ReceivePaymentKeyEnum.ERP_PURCHASE_ORDER_KEY.getKey().equals(receivePayment.getFromKey())) {
+            // 应付事项
+            paymentCollection = iErpPayableService.queryPayableByIds(receivePayment.getFromId());
+        } else if (ReceivePaymentKeyEnum.CRM_RECEIVE_KEY.getKey().equals(receivePayment.getObjectKey())) {
+            // 应收事项
+            paymentCollection = iCrmReceivableService.queryReceivableByIds(receivePayment.getFromId());
+        } else if (ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey().equals(receivePayment.getObjectKey())) {
+            // 回款
+            paymentCollection = iCrmPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
         }
-        receivePayment.setContractMation(CollectionUtil.isEmpty(contractMation) ? new HashMap<>() : contractMation.get(CommonNumConstants.NUM_ZERO));
         receivePayment.setFromMation(CollectionUtil.isEmpty(paymentCollection) ? new HashMap<>() : paymentCollection.get(CommonNumConstants.NUM_ZERO));
         return receivePayment;
+    }
+
+    @Override
+    public void approvalEndIsSuccess(ReceivePayment entity) {
+        // 审核成功
+        // TODO 修改 应付事项、应收事项   已 回/付 金额
     }
 }

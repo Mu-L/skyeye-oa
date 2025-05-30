@@ -17,8 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum ReceivePaymentKeyEnum {
 
-    CRM_PAYMENT_KEY("com.skyeye.customer.service.impl.CustomerServiceImpl","客户",true,true),
-    SUPPLIER_PAYMENT_KEY("com.skyeye.supplier.service.impl.SupplierServiceImpl","供应商",true,false);
+    ERP_PURCHASE_ORDER_KEY("com.skyeye.payable.service.impl.PayableServiceImpl","应付事项",true,false),
+    ERP_PAYMENT_KEY("com.skyeye.payment.service.impl.PaymentServiceImpl","付款",true,false),
+    CRM_RECEIVE_KEY("com.skyeye.receivable.service.impl.ReceivableServiceImpl","应收事项",true,false),
+    CRM_RECEIVE_PAYMENT_KEY("com.skyeye.payment.service.impl.PaymentCollectionServiceImpl","回款",true,false),;
 
     private String key;
 

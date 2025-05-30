@@ -55,7 +55,7 @@ public class SupplierInvoiceHeaderController {
     @ApiOperation(id = "writeErpInvoiceHeader", value = "新增/编辑发票抬头信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SupplierInvoiceHeader.class)
     @RequestMapping("/post/SupplierInvoiceHeaderController/writeErpInvoiceHeader")
-    public void writeCrmInvoiceHeader(InputObject inputObject, OutputObject outputObject) {
+    public void writeErpInvoiceHeader(InputObject inputObject, OutputObject outputObject) {
         invoiceHeaderService.saveOrUpdateEntity(inputObject, outputObject);
     }
 

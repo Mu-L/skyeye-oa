@@ -19,7 +19,8 @@ import lombok.NoArgsConstructor;
 public enum ErpPayStateEnum implements SkyeyeEnumClass {
 
     PAY_STATE(0, "未付款", true, true),
-    PAID_STATE(1, "已付款", true, false);
+    PART_PAID_STATE(1, "部分付款", true, false),
+    PAID_STATE(2, "已付款", true, false);
 
     private Integer key;
 

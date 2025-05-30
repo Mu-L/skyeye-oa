@@ -85,4 +85,13 @@ public class ReceivableController {
         receivableService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryReceivableByIds", value = "根据ids获取应收事项详情", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")
+    })
+    @RequestMapping("/post/ReceivableController/queryReceivableByIds")
+    public void queryReceivableByIds(InputObject inputObject, OutputObject outputObject) {
+        receivableService.selectByIds(inputObject, outputObject);
+    }
+
 }

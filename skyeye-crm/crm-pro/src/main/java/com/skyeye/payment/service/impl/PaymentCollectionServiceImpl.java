@@ -19,6 +19,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.CrmContractService;
+import com.skyeye.eve.flowable.classenum.FormSubType;
 import com.skyeye.payment.classenum.CrmPaymentCollectionAuthEnum;
 import com.skyeye.payment.dao.PaymentCollectionDao;
 import com.skyeye.payment.entity.PaymentCollection;
@@ -126,6 +127,7 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         // 修改应收事项的已支付金额
         receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
         // 远程调用新增收付款信息
+        entity.setFormSubType(FormSubType.DRAFT.getKey());
         ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
     }
 

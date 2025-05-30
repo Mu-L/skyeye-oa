@@ -116,6 +116,8 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         updateWrapper.set(MybatisPlusUtil.toColumns(Receivable::getPaidPrice), price);
         if (receivable.getAmountPrice().equals(price)) {
             updateWrapper.set(MybatisPlusUtil.toColumns(Receivable::getPayState), CrmPayStateEnum.PAID_STATE.getKey());
+        }else if(Double.parseDouble(price) > CommonNumConstants.NUM_ONE){
+            updateWrapper.set(MybatisPlusUtil.toColumns(Receivable::getPayState), CrmPayStateEnum.PART_PAY_STATE.getKey());
         }
         update(updateWrapper);
     }

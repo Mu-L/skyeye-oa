@@ -85,4 +85,13 @@ public class PayableController {
     public void deletePayableById(InputObject inputObject, OutputObject outputObject) {
         payableService.deleteById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryPayableByIds", value = "根据ids获取应付事项详情", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")
+    })
+    @RequestMapping("/post/PayableController/queryPayableByIds")
+    public void queryPayableByIds(InputObject inputObject, OutputObject outputObject) {
+        payableService.selectByIds(inputObject, outputObject);
+    }
 }

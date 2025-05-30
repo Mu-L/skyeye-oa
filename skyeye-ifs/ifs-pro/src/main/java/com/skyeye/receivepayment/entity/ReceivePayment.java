@@ -37,7 +37,7 @@ public class ReceivePayment extends SkyeyeFlowable {
     private String objectKey;
 
     @TableField(value = "contract_id")
-    @ApiModelProperty(value = "合同ID", required = "required")
+    @ApiModelProperty(value = "合同ID")
     private String contractId;
 
     @TableField(exist = false)
@@ -57,7 +57,7 @@ public class ReceivePayment extends SkyeyeFlowable {
     private String remark;
 
     @TableField("from_id")
-    @ApiModelProperty(value = "来源ID（付款id、回款id）")
+    @ApiModelProperty(value = "来源ID（付款id、回款id、应付id、应收id）")
     private String fromId;
 
     @TableField(exist = false)
@@ -67,14 +67,6 @@ public class ReceivePayment extends SkyeyeFlowable {
     @TableField("from_key")
     @ApiModelProperty(value = "来源key（付款、回款）")
     private String fromKey;
-
-    @TableField(exist = false)
-    @Property(value = "付款id")
-    private String erpPaymentId;
-
-    @TableField(exist = false)
-    @Property(value = "回款id")
-    private String crmPaymentId;
 
     @TableField(value = "state")
     @Property(value = "状态，参考#FlowableStateEnum")
@@ -92,4 +84,7 @@ public class ReceivePayment extends SkyeyeFlowable {
     @Property(value = "联系人信息")
     private Map<String,Object> contactMation;
 
+    @TableField("paid_time")
+    @ApiModelProperty(value = "收付款日期")
+    private String paidTime;
 }
