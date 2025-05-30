@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
@@ -79,6 +80,9 @@ public class AutoCaseServiceImpl extends SkyeyeBusinessServiceImpl<AutoCaseDao, 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         AutoUserCaseQueryDo pageInfo = inputObject.getParams(AutoUserCaseQueryDo.class);
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoCaseList(pageInfo);
         autoModuleService.setMationForMap(beans, "moduleId", "moduleMation");
         return beans;

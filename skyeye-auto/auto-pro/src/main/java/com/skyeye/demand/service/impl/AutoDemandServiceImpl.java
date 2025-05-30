@@ -12,6 +12,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.demand.classenum.AutoDemandAuthEnum;
 import com.skyeye.demand.classenum.AutoDemandStateEnum;
@@ -88,6 +89,9 @@ public class AutoDemandServiceImpl extends SkyeyeTeamAuthServiceImpl<AutoDemandD
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         AutoDemandQueryDo pageInfo = inputObject.getParams(AutoDemandQueryDo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoDemandList(pageInfo);
         autoVersionService.setMationForMap(beans, "versionId", "versionMation");
         autoModuleService.setMationForMap(beans, "moduleId", "moduleMation");
@@ -107,19 +111,19 @@ public class AutoDemandServiceImpl extends SkyeyeTeamAuthServiceImpl<AutoDemandD
 
     @Override
     public void updateStateAutoDemandById(InputObject inputObject, OutputObject outputObject) {
-        String id=inputObject.getParams().get("id").toString();
+        String id = inputObject.getParams().get("id").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         AutoDemand autoDemand = this.selectById(id);
         String state = autoDemand.getState();
         if (state.equals(AutoDemandStateEnum.INVALID.getKey()) || state.equals(AutoDemandStateEnum.FINISH.getKey())) {
             throw new CustomException("已完成或已作废，不可修改");
-        }else if(state.equals(AutoDemandStateEnum.WAIT_RESEARCH.getKey())){
+        } else if (state.equals(AutoDemandStateEnum.WAIT_RESEARCH.getKey())) {
             autoDemand.setState(AutoDemandStateEnum.RESEARCH.getKey());
-        }else if(state.equals(AutoDemandStateEnum.RESEARCH.getKey())){
+        } else if (state.equals(AutoDemandStateEnum.RESEARCH.getKey())) {
             autoDemand.setState(AutoDemandStateEnum.WAIT_TEST.getKey());
-        }else if(state.equals(AutoDemandStateEnum.WAIT_TEST.getKey())){
-            autoDemand.setState(AutoDemandStateEnum.FINISH.getKey());}
-        else throw new CustomException("false");
+        } else if (state.equals(AutoDemandStateEnum.WAIT_TEST.getKey())) {
+            autoDemand.setState(AutoDemandStateEnum.FINISH.getKey());
+        } else throw new CustomException("false");
         autoDemandService.updateEntity(autoDemand, userId);
         this.refreshCache(id);
         outputObject.setBean(autoDemand);
@@ -127,17 +131,16 @@ public class AutoDemandServiceImpl extends SkyeyeTeamAuthServiceImpl<AutoDemandD
     }
 
     @Override
-    public void invalidAutoDemandById(InputObject inputObject,OutputObject outputObject){
-        String id=inputObject.getParams().get("id").toString();
+    public void invalidAutoDemandById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         AutoDemand autoDemand = this.selectById(id);
         String state = autoDemand.getState();
         if (state.equals(AutoDemandStateEnum.INVALID.getKey()) || state.equals(AutoDemandStateEnum.FINISH.getKey())) {
             throw new CustomException("已完成或已作废，不可修改");
-        }else if(state.equals(AutoDemandStateEnum.WAIT_RESEARCH.getKey())||state.equals(AutoDemandStateEnum.RESEARCH.getKey())||state.equals(AutoDemandStateEnum.WAIT_TEST.getKey())){
+        } else if (state.equals(AutoDemandStateEnum.WAIT_RESEARCH.getKey()) || state.equals(AutoDemandStateEnum.RESEARCH.getKey()) || state.equals(AutoDemandStateEnum.WAIT_TEST.getKey())) {
             autoDemand.setState(AutoDemandStateEnum.INVALID.getKey());
-        }
-        else throw new CustomException("false");
+        } else throw new CustomException("false");
         autoDemandService.updateEntity(autoDemand, userId);
         this.refreshCache(id);
         outputObject.setBean(autoDemand);

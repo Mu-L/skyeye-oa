@@ -31,7 +31,6 @@ import com.skyeye.shop.dao.ShopStockDao;
 import com.skyeye.shop.entity.ShopStock;
 import com.skyeye.shop.service.ShopStockService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,9 +57,6 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
 
     @Autowired
     private IShopStoreService iShopStoreService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     @IgnoreTenant

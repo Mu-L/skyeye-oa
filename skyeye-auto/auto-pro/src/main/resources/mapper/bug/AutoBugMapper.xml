@@ -21,6 +21,9 @@
         FROM
             auto_bug a
         <where>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
             <if test="moduleId != null and moduleId != ''">
                 AND a.module_id = #{moduleId}
             </if>

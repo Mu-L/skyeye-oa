@@ -30,7 +30,6 @@ import com.skyeye.tenant.classenum.TenantAppMenuType;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.win.service.SysEveDesktopService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,9 +74,6 @@ public class SysEveRoleServiceImpl extends SkyeyeBusinessServiceImpl<SysEveRoleD
 
     @Autowired
     private TenantService tenantService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     public Role getDataFromDb(String id) {

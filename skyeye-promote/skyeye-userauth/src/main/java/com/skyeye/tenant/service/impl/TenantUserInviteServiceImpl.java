@@ -82,9 +82,6 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
     @Autowired
     private TenantService tenantService;
 
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
-
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);

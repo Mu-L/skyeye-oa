@@ -18,11 +18,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.personnel.dao.SysEveUserDao;
 import com.skyeye.win.dao.SysEveUserCustomMenuboxDao;
-import com.skyeye.win.entity.SysEveUserCustomMenu;
 import com.skyeye.win.entity.SysEveUserCustomMenubox;
 import com.skyeye.win.service.SysEveUserCustomMenuboxService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,9 +37,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "用户自定义菜单盒子", groupName = "用户自定义菜单盒子")
 public class SysEveUserCustomMenuboxServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserCustomMenuboxDao, SysEveUserCustomMenubox> implements SysEveUserCustomMenuboxService {
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Autowired
     public SysEveUserDao sysEveUserDao;

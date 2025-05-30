@@ -27,7 +27,6 @@ import com.skyeye.holder.service.HolderNormsService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -58,9 +57,6 @@ public class HolderNormsServiceImpl extends SkyeyeBusinessServiceImpl<HolderNorm
 
     @Autowired
     protected ErpDepotService erpDepotService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     @IgnoreTenant

@@ -49,7 +49,6 @@ import com.skyeye.school.subject.entity.Subject;
 import com.skyeye.school.yearsub.service.YearSubjectService;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -105,9 +104,6 @@ public class StudentServiceImpl extends SkyeyeBusinessServiceImpl<StudentDao, St
 
     @Autowired
     private ISysEveUserStaffService iSysEveUserStaffService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     private static final String EXPORT_EXCEL_NAME = "学生导入模板";
 

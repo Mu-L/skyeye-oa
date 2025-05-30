@@ -16,6 +16,9 @@
         FROM
             auto_project a
         <where>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
             <if test="sqlExtract != '' and sqlExtract != null">
                 ${sqlExtract}
             </if>

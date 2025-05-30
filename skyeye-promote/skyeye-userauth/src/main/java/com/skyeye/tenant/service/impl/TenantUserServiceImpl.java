@@ -38,7 +38,6 @@ import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,9 +75,6 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Autowired
     private SysEveUserStaffTimeService sysEveUserStaffTimeService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;

@@ -29,7 +29,6 @@ import com.skyeye.eve.jobdiary.service.JobDiaryReceivedService;
 import com.skyeye.eve.jobdiary.service.JobDiaryService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,9 +49,6 @@ public class JobDiaryServiceImpl extends SkyeyeBusinessServiceImpl<JobDiaryDao, 
 
     @Autowired
     private JobDiaryReceivedService jobDiaryReceivedService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     @IgnoreTenant

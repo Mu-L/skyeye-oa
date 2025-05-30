@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.history.classenum.AutoHistoryCaseExecuteResult;
@@ -45,6 +46,9 @@ public class AutoHistoryCaseServiceImpl extends SkyeyeBusinessServiceImpl<AutoHi
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoCaseHistoryList(commonPageInfo);
         return beans;
     }

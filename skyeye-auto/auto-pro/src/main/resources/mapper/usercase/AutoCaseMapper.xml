@@ -20,6 +20,9 @@
         <where>
             a.object_id = #{objectId}
             AND a.object_key = #{objectKey}
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
             <if test="moduleId != null and moduleId != ''">
                 AND a.module_id = #{moduleId}
             </if>

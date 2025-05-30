@@ -14,6 +14,9 @@
         FROM
             auto_module a
         <where>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
             <if test="objectId != null and objectId != ''">
                 AND a.object_id = #{objectId}
             </if>

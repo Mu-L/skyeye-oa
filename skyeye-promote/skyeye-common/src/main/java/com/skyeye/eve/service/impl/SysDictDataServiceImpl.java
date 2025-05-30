@@ -30,7 +30,6 @@ import com.skyeye.eve.entity.dict.SysDictType;
 import com.skyeye.eve.service.SysDictDataService;
 import com.skyeye.eve.service.SysDictTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -50,9 +49,6 @@ public class SysDictDataServiceImpl extends SkyeyeBusinessServiceImpl<SysDictDat
 
     @Autowired
     private SysDictTypeService sysDictTypeService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

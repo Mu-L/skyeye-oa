@@ -93,9 +93,6 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
     @Value("${server.port}")
     private String sysPort;
 
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FileConsoleServiceImpl.class);
 
     /**

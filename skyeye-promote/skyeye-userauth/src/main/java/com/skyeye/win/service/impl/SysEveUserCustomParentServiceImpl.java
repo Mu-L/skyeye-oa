@@ -17,7 +17,6 @@ import com.skyeye.win.dao.SysEveUserCustomParentDao;
 import com.skyeye.win.entity.SysEveUserCustomParent;
 import com.skyeye.win.service.SysEveUserCustomParentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,9 +33,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "用户菜单自定义拖拽组合", groupName = "用户菜单自定义拖拽组合")
 public class SysEveUserCustomParentServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserCustomParentDao, SysEveUserCustomParent> implements SysEveUserCustomParentService {
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Autowired
     public SysEveUserDao sysEveUserDao;

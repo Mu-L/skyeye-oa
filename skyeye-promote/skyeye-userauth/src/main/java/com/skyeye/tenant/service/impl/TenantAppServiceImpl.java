@@ -27,7 +27,6 @@ import com.skyeye.tenant.service.TenantAppMenuService;
 import com.skyeye.tenant.service.TenantAppService;
 import com.skyeye.win.service.SysEveDesktopService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,9 +58,6 @@ public class TenantAppServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppDao
 
     @Autowired
     private AppWorkPageDao appWorkPageDao;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     public TenantApp getDataFromDb(String id) {

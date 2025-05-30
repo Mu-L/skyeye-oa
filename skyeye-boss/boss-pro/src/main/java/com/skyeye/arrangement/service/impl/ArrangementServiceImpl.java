@@ -39,7 +39,6 @@ import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.personrequire.service.PersonRequireService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,9 +75,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
 
     @Autowired
     private TenantUserInviteService tenantUserInviteService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

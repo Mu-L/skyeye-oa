@@ -16,7 +16,6 @@ import com.skyeye.document.entity.Document;
 import com.skyeye.document.service.DocumentService;
 import com.skyeye.eve.service.SysDictDataService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -40,9 +39,6 @@ public class DocumentServiceImpl extends SkyeyeTeamAuthServiceImpl<DocumentDao, 
 
     @Autowired
     private CatalogService catalogService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     public Class getAuthEnumClass() {

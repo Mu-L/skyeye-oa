@@ -49,9 +49,6 @@ public class ArticlesUseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesUs
     @Autowired
     private ArticlesService articlesService;
 
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
-
     @Override
     protected QueryWrapper<ArticlesUse> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ArticlesUse> queryWrapper = super.getQueryWrapper(commonPageInfo);

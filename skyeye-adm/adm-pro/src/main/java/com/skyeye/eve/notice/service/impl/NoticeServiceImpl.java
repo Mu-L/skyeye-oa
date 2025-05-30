@@ -38,7 +38,6 @@ import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.pro.service.ISysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -70,9 +69,6 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
     @Autowired
     private NoticeUserService noticeUserService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     @IgnoreTenant

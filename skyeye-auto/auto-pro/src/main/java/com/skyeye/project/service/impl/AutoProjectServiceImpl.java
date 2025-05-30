@@ -12,6 +12,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.ResultEntity;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.exception.CustomException;
 import com.skyeye.product.service.AutoProductService;
 import com.skyeye.project.dao.AutoProjectDao;
@@ -56,6 +57,9 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
             }
             List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
             commonPageInfo.setIds(ids);
+            if (tenantEnable) {
+                commonPageInfo.setTenantId(TenantContext.getTenantId());
+            }
             List<Map<String, Object>> autoProjectList = skyeyeBaseMapper.queryAutoProjectList(commonPageInfo);
             iAuthUserService.setNameForMap(autoProjectList, "createId", "createName");
             iAuthUserService.setNameForMap(autoProjectList, "lastUpdateId", "lastUpdateName");
@@ -76,6 +80,9 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = inputObject.getLogParams().get("id").toString();
         pageInfo.setCreateId(userId);
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(pageInfo);
         return beans;
     }
@@ -114,6 +121,9 @@ public class AutoProjectServiceImpl extends SkyeyeBusinessServiceImpl<AutoProjec
             }
             List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
             pageInfo.setIds(ids);
+        }
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
         }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoProjectList(pageInfo);
         String serviceClassName = getServiceClassName();

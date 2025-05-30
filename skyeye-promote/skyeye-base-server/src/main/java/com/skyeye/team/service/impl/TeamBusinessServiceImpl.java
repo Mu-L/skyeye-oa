@@ -31,7 +31,6 @@ import com.skyeye.team.service.ITeamBusinessService;
 import com.skyeye.team.service.TeamBusinessService;
 import com.skyeye.team.service.TeamTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,9 +59,6 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
 
     @Autowired
     private SkyeyeClassEnumService skyeyeClassEnumService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     /**
      * 根据团队模板生成团队信息

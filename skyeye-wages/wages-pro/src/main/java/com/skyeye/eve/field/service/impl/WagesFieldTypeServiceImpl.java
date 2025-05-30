@@ -27,7 +27,6 @@ import com.skyeye.eve.field.service.WagesFieldTypeService;
 import com.skyeye.eve.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -53,9 +52,6 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
 
     @Autowired
     private ISysEveUserStaffService iSysEveUserStaffService;
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

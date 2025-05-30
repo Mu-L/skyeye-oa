@@ -88,9 +88,6 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @Autowired
     private CompanyJobScoreService companyJobScoreService;
 
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
-
     @Autowired
     private TenantUserService tenantUserService;
 

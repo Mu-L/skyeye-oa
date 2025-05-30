@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.version.classenum.AutoVersionAuthEnum;
@@ -68,6 +69,9 @@ public class AutoVersionServiceImpl extends SkyeyeTeamAuthServiceImpl<AutoVersio
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoVersionList(commonPageInfo);
         return beans;
     }

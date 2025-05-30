@@ -40,7 +40,6 @@ import com.skyeye.user.entity.UserView;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.service.UserViewService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,9 +73,6 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
     @Autowired
     private UserViewService userViewService;
 
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
-
     @Autowired
     private ITenantsService iTenantService;
 
@@ -89,7 +85,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
 
     public List<Map<String, Object>> setCertification(List<Map<String, Object>> beans) {
         List<String> userIds = beans.stream()
-                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         List<Certification> CertificationList = certificationService.getCertificationListByIds(userIds);
         beans.forEach(bean -> {
             String userId = bean.get("id").toString();
@@ -300,7 +296,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         String keyword = commonPageInfo.getKeyword();
         if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(User::getStudentNumber), keyword)
-                    .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
+                .or().like(MybatisPlusUtil.toColumns(User::getName), keyword);
         }
         List<User> list = list(queryWrapper);
         outputObject.setBeans(list);

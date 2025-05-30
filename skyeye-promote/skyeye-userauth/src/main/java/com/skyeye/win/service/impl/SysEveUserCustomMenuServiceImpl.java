@@ -21,7 +21,6 @@ import com.skyeye.win.dao.SysEveUserCustomMenuDao;
 import com.skyeye.win.entity.SysEveUserCustomMenu;
 import com.skyeye.win.service.SysEveUserCustomMenuService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,9 +37,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "用户自定义菜单", groupName = "用户自定义菜单")
 public class SysEveUserCustomMenuServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserCustomMenuDao, SysEveUserCustomMenu> implements SysEveUserCustomMenuService {
-
-    @Value("${skyeye.tenant.enable}")
-    private boolean tenantEnable;
 
     @Autowired
     public SysEveUserDao sysEveUserDao;
