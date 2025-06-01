@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
@@ -70,13 +71,13 @@ public class FileShareServiceImpl extends SkyeyeBusinessServiceImpl<FileShareDao
     public void createPrepose(FileShare entity) {
         FileCatalog fileCatalog = fileCatalogService.selectById(entity.getFileId());
         if (ObjectUtil.isNotEmpty(fileCatalog) && StrUtil.isNotEmpty(fileCatalog.getId())) {
-            entity.setFileType(DickCloudType.FOLDER.getKey());
+            entity.setFileType(String.valueOf(CommonNumConstants.NUM_ONE));
             entity.setShareName(fileCatalog.getName());
         }
 
         FileConsole fileConsole = fileConsoleService.selectById(entity.getFileId());
         if (ObjectUtil.isNotEmpty(fileConsole) && StrUtil.isNotEmpty(fileConsole.getId())) {
-            entity.setFileType(DickCloudType.FILE.getKey());
+            entity.setFileType(String.valueOf(CommonNumConstants.NUM_ONE));
             entity.setShareName(fileConsole.getName());
         }
         if (ShareType.PRIVATE.getKey().equals(entity.getShareType())) {
