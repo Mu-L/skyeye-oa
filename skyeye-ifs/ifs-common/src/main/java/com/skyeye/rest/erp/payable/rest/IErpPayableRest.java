@@ -16,4 +16,12 @@ public interface IErpPayableRest {
     @PostMapping("/queryPayableByIds")
     String queryPayableByIds(@RequestParam("ids") String ids);
 
+    /**
+     * 根据id修改已付金额
+     *
+     * @param id    主键id
+     * @param price 修改的回收金额
+     */
+    @PostMapping("/updatePayableById")
+    String updatePayableById(@RequestParam("id") String id, @RequestParam("price") String price);
 }

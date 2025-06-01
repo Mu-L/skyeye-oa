@@ -113,7 +113,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     }
 
     @Override
-    public void updateReceivablePaidPrice(String payableId, String price) {
+    public void updatePayablePaidPrice(String payableId, String price) {
         Payable receivable = selectById(payableId);
         price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
                 StrUtil.isEmpty(receivable.getPaidPrice()) ? "0" : receivable.getPaidPrice(),
@@ -127,5 +127,13 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
             updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PART_PAID_STATE.getKey());
         }
         update(updateWrapper);
+    }
+
+    @Override
+    public void updatePayableById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String price = params.get("price").toString();
+        updatePayablePaidPrice(id, price);
     }
 }

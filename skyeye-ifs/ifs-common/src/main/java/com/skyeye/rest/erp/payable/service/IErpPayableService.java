@@ -17,4 +17,6 @@ public interface IErpPayableService extends IService {
 
     List<Map<String, Object>> queryPayableByIds(String ids);
 
+    void updatePayableById(String id, String price);
+
 }

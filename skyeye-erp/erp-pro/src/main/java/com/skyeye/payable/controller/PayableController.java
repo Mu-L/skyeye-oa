@@ -94,4 +94,16 @@ public class PayableController {
     public void queryPayableByIds(InputObject inputObject, OutputObject outputObject) {
         payableService.selectByIds(inputObject, outputObject);
     }
+
+
+    @ApiOperation(id = "updatePayableById", value = "根据id修改已付金额", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "price", name = "price", value = "回收金额", required = "required")
+    })
+    @RequestMapping("/post/ReceivableController/updatePayableById")
+    public void updatePayableById(InputObject inputObject, OutputObject outputObject) {
+        payableService.updatePayableById(inputObject, outputObject);
+    }
+
 }

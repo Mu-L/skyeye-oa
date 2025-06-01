@@ -28,4 +28,9 @@ public class IErpPayableServiceImpl extends IServiceImpl implements IErpPayableS
     public List<Map<String, Object>> queryPayableByIds(String ids) {
         return ExecuteFeignClient.get(() -> iErpPayableRest.queryPayableByIds(ids)).getRows();
     }
+
+    @Override
+    public void updatePayableById(String id, String price) {
+        ExecuteFeignClient.get(() -> iErpPayableRest.updatePayableById(id, price));
+    }
 }

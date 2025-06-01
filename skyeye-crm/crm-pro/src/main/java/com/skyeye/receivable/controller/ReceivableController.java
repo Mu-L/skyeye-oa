@@ -94,4 +94,14 @@ public class ReceivableController {
         receivableService.selectByIds(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "updateReceivableById", value = "根据id修改回收金额", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "price", name = "price", value = "回收金额", required = "required")
+    })
+    @RequestMapping("/post/ReceivableController/updateReceivableById")
+    public void updateReceivableById(InputObject inputObject, OutputObject outputObject) {
+        receivableService.updateReceivableById(inputObject, outputObject);
+    }
+
 }

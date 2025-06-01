@@ -66,7 +66,7 @@ public class Receivable extends SkyeyeFlowable {
     private Integer payState;
 
     @TableField(value = "paid_price")
-    @Property(value = "已付款金额")
+    @Property(value = "已回收金额")
     private String paidPrice;
 
     @TableField(value = "invoice_date")

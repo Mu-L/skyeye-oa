@@ -19,4 +19,6 @@ public interface ReceivableService extends SkyeyeFlowableService<Receivable> {
     void queryReceivableByContractId(InputObject inputObject, OutputObject outputObject);
 
     void updateReceivablePaidPrice(String receivableId, String price);
+
+    void updateReceivableById(InputObject inputObject, OutputObject outputObject);
 }

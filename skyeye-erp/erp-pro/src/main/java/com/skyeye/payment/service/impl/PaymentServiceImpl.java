@@ -125,7 +125,7 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
         // 修改合同的付款金额
         supplierContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
         // 修改应付事项的已付款金额
-        payableService.updateReceivablePaidPrice(entity.getPayableId(), entity.getPrice());
+        payableService.updatePayablePaidPrice(entity.getPayableId(), entity.getPrice());
         // 远程调用财政管理--新增收付款管理
         entity.setFormSubType(FormSubType.DRAFT.getKey());
         ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));

@@ -28,4 +28,9 @@ public class ICrmReceivableServiceImpl extends IServiceImpl implements ICrmRecei
     public List<Map<String, Object>> queryReceivableByIds(String ids) {
         return ExecuteFeignClient.get(() -> iCrmReceivableRest.queryReceivableByIds(ids)).getRows();
     }
+
+    @Override
+    public void updateReceivableById(String id, String price) {
+        ExecuteFeignClient.get(() -> iCrmReceivableRest.updateReceivableById(id, price));
+    }
 }

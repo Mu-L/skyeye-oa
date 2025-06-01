@@ -16,5 +16,7 @@ import com.skyeye.payable.entity.Payable;
 public interface PayableService extends SkyeyeFlowableService<Payable> {
     void queryPayableByContractId(InputObject inputObject, OutputObject outputObject);
 
-    void updateReceivablePaidPrice(String payableId, String price);
+    void updatePayablePaidPrice(String payableId, String price);
+
+    void updatePayableById(InputObject inputObject, OutputObject outputObject);
 }

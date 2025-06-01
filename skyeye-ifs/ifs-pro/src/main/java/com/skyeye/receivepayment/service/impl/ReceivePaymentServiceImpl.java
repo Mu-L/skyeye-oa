@@ -108,28 +108,28 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         if (CollectionUtil.isNotEmpty(crmPaymentFromIds)) {
             String fromIds = String.join(StrUtil.COMMA, crmPaymentFromIds);
             List<Map<String, Object>> mapList = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
-            beans = setInfo(mapList,list);
+            beans = setInfo(mapList, list);
         }
         if (CollectionUtil.isNotEmpty(crmReceivableFromIds)) {
             String fromIds = String.join(StrUtil.COMMA, crmReceivableFromIds);
             List<Map<String, Object>> mapList = iCrmReceivableService.queryReceivableByIds(fromIds);
-            beans = setInfo(mapList,list);
+            beans = setInfo(mapList, list);
         }
         if (CollectionUtil.isNotEmpty(erpPaymentOutFromIds)) {
             String fromIds = String.join(StrUtil.COMMA, erpPaymentOutFromIds);
             List<Map<String, Object>> mapList = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
-            beans = setInfo(mapList,list);
+            beans = setInfo(mapList, list);
         }
         if (CollectionUtil.isNotEmpty(erpReceivableFromIds)) {
             String fromIds = String.join(StrUtil.COMMA, erpReceivableFromIds);
             List<Map<String, Object>> mapList = iErpPayableService.queryPayableByIds(fromIds);
-            beans = setInfo(mapList,list);
+            beans = setInfo(mapList, list);
         }
         iContactsService.setDataMation(beans, ReceivePayment::getContactId);
         return beans;
     }
-    
-    private List<ReceivePayment> setInfo(List<Map<String,Object>> map,List<ReceivePayment> list){
+
+    private List<ReceivePayment> setInfo(List<Map<String, Object>> map, List<ReceivePayment> list) {
         Map<String, Map<String, Object>> paymentMap = map.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
         List<ReceivePayment> beans = list.stream().map(item -> {
             item.setFromMation(paymentMap.getOrDefault(item.getFromId(), new HashMap<>()));
@@ -182,6 +182,12 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Override
     public void approvalEndIsSuccess(ReceivePayment entity) {
         // 审核成功
-        // TODO 修改 应付事项、应收事项   已 回/付 金额
+        if (entity.getFromKey().equals(ReceivePaymentKeyEnum.ERP_PURCHASE_ORDER_KEY.getKey())) {
+            // 修改应付事项--修改已付金额
+            iErpPayableService.updatePayableById(entity.getFromId(), entity.getPrice());
+        } else if (entity.getFromKey().equals(ReceivePaymentKeyEnum.CRM_RECEIVE_KEY.getKey())) {
+            // 修改回收事项---修改已回收金额
+            iCrmReceivableService.updateReceivableById(entity.getFromId(), entity.getPrice());
+        }
     }
 }

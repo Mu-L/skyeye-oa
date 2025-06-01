@@ -17,4 +17,6 @@ public interface ICrmReceivableService extends IService {
 
     List<Map<String, Object>> queryReceivableByIds(String ids);
 
+    void updateReceivableById(String id, String price);
+
 }
