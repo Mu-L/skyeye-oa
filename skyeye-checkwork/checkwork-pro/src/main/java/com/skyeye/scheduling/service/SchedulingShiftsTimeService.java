@@ -13,8 +13,8 @@ public interface SchedulingShiftsTimeService extends SkyeyeBusinessService<Sched
     List<SchedulingShiftsTime> queryTimeByIdList(List<String> schedulingShiftsIds);
 
     List<SchedulingShiftsTime> queryTimeByShiftId(String id);
-
-    List<SchedulingShiftsTime> selectBySchedulingShiftsIds(List<String> schedulingShiftsIds);
-
+    
     Map<String, List<SchedulingShiftsTime>> queryTimeByIdListMap(List<String> schedulingShiftsIdList);
+
+    List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList);
 }

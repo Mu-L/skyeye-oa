@@ -8,7 +8,6 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -24,11 +23,7 @@ import com.skyeye.scheduling.service.SchedulingShiftsTimeWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -131,6 +126,16 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         outputObject.setBeans(schedulingShiftsList);
         outputObject.settotal(page.getTotal());
 
+    }
+
+    @Override
+    public List<SchedulingShifts> querySchedulingShiftsByIds(List<String> shiftIds) {
+        if (CollectionUtil.isEmpty(shiftIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, shiftIds);
+        return list(queryWrapper);
     }
 
     @Override

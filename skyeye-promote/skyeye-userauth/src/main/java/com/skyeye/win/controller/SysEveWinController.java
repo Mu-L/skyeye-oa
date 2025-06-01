@@ -32,12 +32,6 @@ public class SysEveWinController {
     @Autowired
     private SysEveWinService sysEveWinService;
 
-    /**
-     * 获取服务信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysevewin001", value = "获取服务信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveWinController/queryWinMationList")
@@ -45,12 +39,6 @@ public class SysEveWinController {
         sysEveWinService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSysEveWinMation", value = "新增/编辑服务信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysWin.class)
     @RequestMapping("/post/SysEveWinController/insertWinMation")
@@ -58,12 +46,6 @@ public class SysEveWinController {
         sysEveWinService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysevewin003", value = "根据id查询服务信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class SysEveWinController {
         sysEveWinService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sysevewin005", value = "删除桌面信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class SysEveWinController {
         sysEveWinService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有的服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysEveWinList", value = "获取所有的服务信息", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveWinController/querySysEveWinList")
     public void querySysEveWinList(InputObject inputObject, OutputObject outputObject) {

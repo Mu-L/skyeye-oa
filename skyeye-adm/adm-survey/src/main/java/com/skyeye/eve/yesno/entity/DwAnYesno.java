@@ -22,7 +22,6 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_yesno")
 @ApiModel(value = "答卷判断题实体类")
 public class DwAnYesno extends CommonInfo {

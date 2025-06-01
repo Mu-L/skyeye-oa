@@ -24,7 +24,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-//@UniqueField
 @TableName(value = "dw_qu_score")
 @ApiModel(value = "评分题行选项实体类")
 public class DwQuScore extends OperatorUserInfo {

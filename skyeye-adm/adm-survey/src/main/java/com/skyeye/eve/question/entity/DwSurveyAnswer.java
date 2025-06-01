@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-//@UniqueField
 @TableName(value = "dw_survey_answer")
 @ApiModel(value = "问卷回答信息表实体类")
 public class DwSurveyAnswer extends CommonInfo {

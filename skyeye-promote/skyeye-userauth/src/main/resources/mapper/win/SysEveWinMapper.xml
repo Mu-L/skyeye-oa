@@ -23,6 +23,9 @@
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` LIKE '%${keyword}%'
 			</if>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		GROUP BY a.id
 		ORDER BY a.create_time DESC

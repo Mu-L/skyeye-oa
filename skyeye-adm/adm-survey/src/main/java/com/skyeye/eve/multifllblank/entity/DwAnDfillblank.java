@@ -22,7 +22,6 @@ import lombok.Data;
  */
 
 @Data
-@UniqueField
 @TableName(value = "dw_an_dfillblank")
 @ApiModel(value = "答卷多行填空题保存表实体类")
 public class DwAnDfillblank extends CommonInfo {

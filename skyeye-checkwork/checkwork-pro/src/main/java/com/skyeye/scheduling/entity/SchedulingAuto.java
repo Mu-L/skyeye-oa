@@ -18,8 +18,8 @@ public class SchedulingAuto {
     private String employeeIds;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "班次Id列表" ,required = "required")
-    private String schedulingShiftsIds;
+    @ApiModelProperty(value = "班次Id" ,required = "required")
+    private String schedulingShiftsId;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "班次时间段Id列表" ,required = "required")

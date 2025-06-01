@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.scheduling.dao.SchedulingShiftsTimeDao;
@@ -14,7 +15,6 @@ import com.skyeye.scheduling.service.SchedulingShiftsTimeWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,8 +61,8 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
         }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), idList);
-        remove(queryWrapper);
         List<SchedulingShiftsTime> list = list(queryWrapper);
+        remove(queryWrapper);
         List<String> shiftsTimeIds = list.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
         schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
     }
@@ -82,18 +82,15 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
     }
 
     @Override
-    public List<SchedulingShiftsTime> selectBySchedulingShiftsIds(List<String> schedulingShiftsIds) {
-        if (CollectionUtil.isEmpty(schedulingShiftsIds)) {
-            return new ArrayList<>();
-        }
-        QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), schedulingShiftsIds);
-        return list(queryWrapper);
-    }
-
-    @Override
     public Map<String, List<SchedulingShiftsTime>> queryTimeByIdListMap(List<String> schedulingShiftsIdList) {
         List<SchedulingShiftsTime> list = queryTimeByIdList(schedulingShiftsIdList);
         return list.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getShiftId));
+    }
+
+    @Override
+    public List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList) {
+        QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, shiftsTimeIdList);
+        return list(queryWrapper);
     }
 }

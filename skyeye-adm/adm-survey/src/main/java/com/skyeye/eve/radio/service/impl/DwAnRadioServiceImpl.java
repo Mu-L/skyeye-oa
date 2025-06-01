@@ -23,7 +23,7 @@ import java.util.List;
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
 @Service
-@SkyeyeService(name = "答卷单选题保存", groupName = "答卷单选题保存", manageShow = false)
+@SkyeyeService(name = "答卷单选题保存", groupName = "答卷单选题保存")
 public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao, DwAnRadio> implements DwAnRadioService {
 
     @Override
