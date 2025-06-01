@@ -21,4 +21,12 @@ public class SchedulingShifts extends BaseGeneralInfo {
     @ApiModelProperty(value = "班次时间段", required = "json")
     private List<SchedulingShiftsTime> schedulingShiftsTimeMation;
 
+    @TableField(value = "min_staff")
+    @ApiModelProperty(value = "最小需求人数")
+    private Integer minStaff;
+
+    @TableField(value = "max_staff")
+    @ApiModelProperty(value = "最大需求人数")
+    private Integer maxStaff;
+
 }
