@@ -58,13 +58,8 @@ public class SysDictTypeServiceImpl extends SkyeyeBusinessServiceImpl<SysDictTyp
         }
     }
 
-    /**
-     * 根据状态获取数据字典类型列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
+    @IgnoreTenant
     public void queryDictTypeListByEnabled(InputObject inputObject, OutputObject outputObject) {
         String enabled = inputObject.getParams().get("enabled").toString();
         QueryWrapper<SysDictType> queryWrapper = new QueryWrapper<>();

@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.dict.SysDictType;
@@ -32,12 +33,6 @@ public class SysDictTypeController {
     @Autowired
     private SysDictTypeService sysDictTypeService;
 
-    /**
-     * 获取数据字典类型列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDictTypeList", value = "获取数据字典类型列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysDictTypeController/queryDictTypeList")
@@ -45,12 +40,6 @@ public class SysDictTypeController {
         sysDictTypeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑数据字典类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDictTypeMation", value = "新增/编辑数据字典类型", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SysDictType.class)
     @RequestMapping("/post/SysDictTypeController/writeDictTypeMation")
@@ -58,12 +47,6 @@ public class SysDictTypeController {
         sysDictTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID获取数据字典类型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDictTypeMationById", value = "根据ID获取数据字典类型信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +55,6 @@ public class SysDictTypeController {
         sysDictTypeService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除数据字典类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDictTypeMationById", value = "根据ID删除数据字典类型", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,15 +63,9 @@ public class SysDictTypeController {
         sysDictTypeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据状态获取数据字典类型列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDictTypeListByEnabled", value = "根据状态获取数据字典类型列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态（1 启用  2.停用）", required = "num")})
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", enumClass = EnableEnum.class, required = "num")})
     @RequestMapping("/post/SysDictTypeController/queryDictTypeListByEnabled")
     public void queryDictTypeListByEnabled(InputObject inputObject, OutputObject outputObject) {
         sysDictTypeService.queryDictTypeListByEnabled(inputObject, outputObject);
