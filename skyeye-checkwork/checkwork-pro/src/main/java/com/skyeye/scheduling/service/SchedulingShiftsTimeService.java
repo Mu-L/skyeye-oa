@@ -17,4 +17,6 @@ public interface SchedulingShiftsTimeService extends SkyeyeBusinessService<Sched
     Map<String, List<SchedulingShiftsTime>> queryTimeByIdListMap(List<String> schedulingShiftsIdList);
 
     List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList);
+
+    List<SchedulingShiftsTime> queryShiftsTimeById(String id);
 }

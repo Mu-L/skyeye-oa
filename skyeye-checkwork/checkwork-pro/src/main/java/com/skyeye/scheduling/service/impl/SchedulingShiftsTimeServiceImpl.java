@@ -1,6 +1,7 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,10 +48,33 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     @Override
     protected void updatePostpose(List<SchedulingShiftsTime> entity, String userId) {
+        List<String> shiftsTimeIds = entity.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        List<SchedulingShiftsTimeWork> schedulingShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        // 时间段id对应的工位信息
+        Map<String, List<SchedulingShiftsTimeWork>> shiftsTimeMapWork = schedulingShiftsTimeWorks.stream().collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
         for (SchedulingShiftsTime schedulingShiftsTime : entity) {
+            // 每个时间段下数据库中所有工位信息
+            List<SchedulingShiftsTimeWork> shiftsTimeWorks = shiftsTimeMapWork.get(schedulingShiftsTime.getId());
+            // 每个时间段下参数传过来的工位信息
             List<SchedulingShiftsTimeWork> shiftsTimeWorkMation = schedulingShiftsTime.getShiftsTimeWorkMation();
-            if (CollectionUtil.isNotEmpty(shiftsTimeWorkMation)) {
-                schedulingShiftsTimeWorkService.updateEntity(shiftsTimeWorkMation, userId);
+            // 提取 shiftsTimeWorkMation 中的所有 id
+            Set<String> mationIds = shiftsTimeWorkMation.stream().map(SchedulingShiftsTimeWork::getId).collect(Collectors.toSet());
+            // 过滤 shiftsTimeWorks 中 id 不在 mationIds 中的 SchedulingShiftsTimeWork 对象
+            List<SchedulingShiftsTimeWork> missingShiftsTimeWorks = shiftsTimeWorks.stream().filter(work -> !mationIds.contains(work.getId()))
+                .collect(Collectors.toList());
+            // 获取所有不在参数在数据库中的时间段工位id
+            List<String> NotShiftsTimeWorkIds = missingShiftsTimeWorks.stream().map(SchedulingShiftsTimeWork::getId).collect(Collectors.toList());
+            // 删除多余时间段下工位信息
+            schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(NotShiftsTimeWorkIds);
+            // 找出 id 为空的 SchedulingShiftsTimeWork 对象
+            List<SchedulingShiftsTimeWork> emptyIdShiftsTimeWorks = shiftsTimeWorkMation.stream().filter(shift -> StrUtil.isEmpty(shift.getId()))
+                .collect(Collectors.toList());
+            schedulingShiftsTimeWorkService.createEntity(emptyIdShiftsTimeWorks, userId);
+            // 找出 id 不为空的 SchedulingShiftsTimeWork 对象
+            List<SchedulingShiftsTimeWork> IdShiftsTimeWorks = shiftsTimeWorkMation.stream().filter(shift -> StrUtil.isNotEmpty(shift.getId()))
+                .collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(IdShiftsTimeWorks)) {
+                schedulingShiftsTimeWorkService.updateEntity(IdShiftsTimeWorks, userId);
             }
         }
     }
@@ -91,6 +116,13 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
     public List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList) {
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, shiftsTimeIdList);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<SchedulingShiftsTime> queryShiftsTimeById(String id) {
+        QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), id);
         return list(queryWrapper);
     }
 }
