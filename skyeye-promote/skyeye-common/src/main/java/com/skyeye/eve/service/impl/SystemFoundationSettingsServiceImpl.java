@@ -4,7 +4,6 @@
 
 package com.skyeye.eve.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -32,9 +31,6 @@ public class SystemFoundationSettingsServiceImpl extends SkyeyeBusinessServiceIm
     public void querySystemFoundationSettingsList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<SystemFoundationSettings> queryWrapper = new QueryWrapper<>();
         SystemFoundationSettings systemFoundationSettings = getOne(queryWrapper, false);
-        if (ObjectUtil.isEmpty(systemFoundationSettings)) {
-            throw new RuntimeException("系统基础设置不存在，请先添加！");
-        }
         outputObject.setBean(systemFoundationSettings);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

@@ -40,7 +40,7 @@ public class SystemFoundationSettingsController {
     @ApiImplicitParams(classBean = SystemFoundationSettings.class)
     @RequestMapping("/post/SystemFoundationSettingsController/editSystemFoundationSettings")
     public void editSystemFoundationSettings(InputObject inputObject, OutputObject outputObject) {
-        systemFoundationSettingsService.updateEntity(inputObject, outputObject);
+        systemFoundationSettingsService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
 }
