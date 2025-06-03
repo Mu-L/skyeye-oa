@@ -32,9 +32,11 @@ public interface CrmPageDao {
     List<Map<String, Object>> queryCustomDocumentaryType(@Param("year") String year,
                                                          @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNewContractNum(@Param("year") String year,
                                                   @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNewDocumentaryNum(@Param("year") String year,
                                                      @Param("tenantId") String tenantId);
 
