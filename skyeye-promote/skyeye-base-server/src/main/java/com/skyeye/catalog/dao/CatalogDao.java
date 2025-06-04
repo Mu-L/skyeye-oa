@@ -29,15 +29,17 @@ public interface CatalogDao extends SkyeyeBaseMapper<Catalog> {
      * @return
      */
     @IgnoreTenant
-    List<Map<String, Object>> queryAllParentNodeById(@Param("ids") List<String> ids);
+    List<Map<String, Object>> queryAllParentNodeById(@Param("ids") List<String> ids,
+                                                     @Param("tenantId") String tenantId);
 
     /**
      * 根据父id查询所有的子节点信息(包含父id)
      *
-     * @param ids        父id
+     * @param ids 父id
      * @return
      */
     @IgnoreTenant
-    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
+    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids,
+                                            @Param("tenantId") String tenantId);
 
 }

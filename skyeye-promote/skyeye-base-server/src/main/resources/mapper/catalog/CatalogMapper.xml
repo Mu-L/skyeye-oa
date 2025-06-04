@@ -21,6 +21,9 @@
 							FROM
                                 skyeye_catalog
 							WHERE id = _id
+                            <if test="tenantId != '' and tenantId != null">
+                                AND tenant_id = #{tenantId}
+                            </if>
 							LIMIT 1
 						) AS parent_id,
 						@l${idx} := @l${idx} + 1 AS lvl
@@ -32,6 +35,9 @@
 						) vars,
                         skyeye_catalog h
 					WHERE @r${idx} != '0'
+                    <if test="tenantId != '' and tenantId != null">
+                        AND h.tenant_id = #{tenantId}
+                    </if>
 				) T${idx}
 		</foreach>) k
 	</select>
@@ -50,6 +56,9 @@
                             FROM
                                 skyeye_catalog
                             WHERE FIND_IN_SET(parent_id, @ids${idx})
+                            <if test="tenantId != '' and tenantId != null">
+                                AND tenant_id = #{tenantId}
+                            </if>
                         ) AS cids,
                         @l${idx} := @l${idx} + 1 AS level
                     FROM
@@ -60,9 +69,15 @@
                                 @l${idx} := 0
                         ) b
                     WHERE @ids${idx} IS NOT NULL
+                    <if test="tenantId != '' and tenantId != null">
+                        AND tenant_id = #{tenantId}
+                    </if>
                 ) i,
                 skyeye_catalog d
             WHERE FIND_IN_SET(d.id, i._ids)
+            <if test="tenantId != '' and tenantId != null">
+                AND d.tenant_id = #{tenantId}
+            </if>
         </foreach>
     </select>
 

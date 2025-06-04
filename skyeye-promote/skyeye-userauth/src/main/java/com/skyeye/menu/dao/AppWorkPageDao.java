@@ -23,11 +23,13 @@ import java.util.Map;
  */
 public interface AppWorkPageDao extends SkyeyeBaseMapper<AppWorkPage> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryAppWorkPageList(CommonPageInfo commonPageInfo);
 
     @IgnoreTenant
     List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryAllAppMenuList();
 
 }

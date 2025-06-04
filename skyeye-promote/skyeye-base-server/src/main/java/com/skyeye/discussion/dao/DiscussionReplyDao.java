@@ -4,6 +4,7 @@
 
 package com.skyeye.discussion.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.discussion.entity.DiscussionReply;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
@@ -22,16 +23,20 @@ import java.util.Map;
  */
 public interface DiscussionReplyDao extends SkyeyeBaseMapper<DiscussionReply> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryDiscussionReplyList(CommonPageInfo pageInfo);
 
     /**
      * 根据父id查询所有的子节点信息(包含父id)
      *
-     * @param ids        父id
+     * @param ids 父id
      * @return
      */
-    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
+    @IgnoreTenant
+    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids,
+                                            @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryDiscussionReplyListByIds(@Param("ids") List<String> ids);
+    List<Map<String, Object>> queryDiscussionReplyListByIds(@Param("ids") List<String> ids,
+                                                            @Param("tenantId") String tenantId);
 
 }

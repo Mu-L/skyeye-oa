@@ -3,6 +3,7 @@
  ******************************************************************************/
 package com.skyeye.task.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.task.entity.Task;
 import org.apache.ibatis.annotations.Param;
@@ -25,6 +26,8 @@ public interface ProTaskDao extends SkyeyeBaseMapper<Task> {
      * @param ids 父id
      * @return
      */
-    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
+    @IgnoreTenant
+    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids,
+                                            @Param("tenantId") String tenantId);
 
 }
