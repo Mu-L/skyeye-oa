@@ -12,6 +12,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.contacts.service.IContactsService;
 import com.skyeye.receivepayment.classenum.ReceivePaymentKeyEnum;
@@ -25,10 +26,8 @@ import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +86,28 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         List<ReceivePayment> beans = setInfo(list);
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(beans);
+    }
+
+    @Override
+    public List<ReceivePayment> getBeforeThirtyDaysReceivePayment() {
+        //获取前三十天以内的日期
+        String beforeDay = getBeforeOrFutureDay(-29);
+        String today = DateUtil.getTimeAndToString();
+        // 查询近三十天的记录
+        QueryWrapper<ReceivePayment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getState), FlowableStateEnum.PASS.getKey())
+                .between(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime), beforeDay, today)
+                .orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
+        return list(queryWrapper);
+    }
+
+    public String getBeforeOrFutureDay(int num) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.setTime(new Date());
+        c.add(Calendar.DATE, num);
+        Date m = c.getTime();
+        return format.format(m);
     }
 
     private List<ReceivePayment> setInfo(List<ReceivePayment> list) {

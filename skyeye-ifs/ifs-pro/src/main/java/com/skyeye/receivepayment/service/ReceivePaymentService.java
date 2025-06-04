@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.receivepayment.entity.ReceivePayment;
 
+import java.util.List;
+
 /**
  * @ClassName: ReceivePaymentService
  * @Description: 收付款管理接口层
@@ -17,4 +19,6 @@ public interface ReceivePaymentService extends SkyeyeFlowableService<ReceivePaym
     void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject);
 
     void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject);
+
+    List<ReceivePayment> getBeforeThirtyDaysReceivePayment();
 }
