@@ -109,7 +109,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 .innerJoin(TenantUser.class, "tru", TenantUser::getStaffId, SysEveUserStaff::getId);
             if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
                 // 要适配人事下的员工管理
-                wrapper.eq("userStaff." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+                wrapper.eq("tru." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
             }
             if (sysEveUserStaffQuery.getDesignWages() != null) {
                 wrapper.eq(TenantUser::getDesignWages, sysEveUserStaffQuery.getDesignWages());

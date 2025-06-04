@@ -15,6 +15,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.GenerateDepotLevelValType;
 import com.skyeye.depot.dao.DepotLevelValDao;
@@ -68,8 +69,9 @@ public class DepotLevelValServiceImpl extends SkyeyeBusinessServiceImpl<DepotLev
         if (CollectionUtil.isEmpty(ids)) {
             return beans;
         }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 查询子节点信息(包含当前节点)
-        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(ids);
+        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(ids, tenantId);
         beans = selectMapByIds(childIds).values().stream().map(bean -> BeanUtil.beanToMap(bean)).collect(Collectors.toList());
         beans.forEach(bean -> {
             bean.put("lay_is_open", true);
@@ -100,8 +102,9 @@ public class DepotLevelValServiceImpl extends SkyeyeBusinessServiceImpl<DepotLev
 
     @Override
     public void deletePostpose(DepotLevelVal entity) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 查询子节点信息(包含当前节点)
-        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(Arrays.asList(entity.getId()));
+        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(Arrays.asList(entity.getId()), tenantId);
         deleteById(childIds);
     }
 

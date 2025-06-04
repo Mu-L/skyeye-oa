@@ -16,6 +16,9 @@
 							FROM
 								erp_depot_level_val
 							WHERE FIND_IN_SET(parent_id, @ids${idx})
+							<if test="tenantId != '' and tenantId != null">
+								AND tenant_id = #{tenantId}
+							</if>
 						) AS cids,
 						@l${idx} := @l${idx} + 1 AS level
 					FROM
@@ -26,9 +29,15 @@
 								@l${idx} := 0
 						) b
 					WHERE @ids${idx} IS NOT NULL
+					<if test="tenantId != '' and tenantId != null">
+						AND tenant_id = #{tenantId}
+					</if>
 				) i,
 				erp_depot_level_val d
 			WHERE FIND_IN_SET(d.id, i._ids)
+			<if test="tenantId != '' and tenantId != null">
+				AND d.tenant_id = #{tenantId}
+			</if>
 		</foreach>
 	</select>
     

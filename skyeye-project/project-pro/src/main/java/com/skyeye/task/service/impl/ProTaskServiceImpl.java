@@ -26,6 +26,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.ScheduleDayObjectType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -125,8 +126,9 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
         if (CollectionUtil.isEmpty(ids)) {
             return beans;
         }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 查询子节点信息(包含当前节点)
-        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(ids);
+        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(ids, tenantId);
         beans = selectMapByIds(childIds).values().stream().map(bean -> BeanUtil.beanToMap(bean)).collect(Collectors.toList());
         beans.forEach(bean -> {
             bean.put("lay_is_open", true);
@@ -169,8 +171,9 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
 
     @Override
     public void deleteById(String id) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 查询子节点信息(包含当前节点)
-        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(Arrays.asList(id));
+        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(Arrays.asList(id), tenantId);
         deleteById(childIds);
     }
 

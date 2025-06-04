@@ -14,6 +14,8 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.menu.classenum.MenuType;
 import com.skyeye.menu.dao.AppWorkPageDao;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: AppWorkPageServiceImpl
- * @Description: 手机端菜单以及目录功能服务类
+ * @Description: 手机端菜单以及目录功能服务类--平台隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/4/10 23:18
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -46,6 +48,12 @@ public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPag
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (!StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+                throw new IllegalArgumentException("非平台租户不能访问此接口！");
+            }
+        }
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAppWorkPageList(commonPageInfo);
         List<String> ids = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());

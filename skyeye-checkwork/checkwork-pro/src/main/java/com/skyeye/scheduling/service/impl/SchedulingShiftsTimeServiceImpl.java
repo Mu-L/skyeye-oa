@@ -16,9 +16,7 @@ import com.skyeye.scheduling.service.SchedulingShiftsTimeWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,12 +58,29 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
             // 提取 shiftsTimeWorkMation 中的所有 id
             Set<String> mationIds = shiftsTimeWorkMation.stream().map(SchedulingShiftsTimeWork::getId).collect(Collectors.toSet());
             // 过滤 shiftsTimeWorks 中 id 不在 mationIds 中的 SchedulingShiftsTimeWork 对象
-            List<SchedulingShiftsTimeWork> missingShiftsTimeWorks = shiftsTimeWorks.stream().filter(work -> !mationIds.contains(work.getId()))
-                .collect(Collectors.toList());
+            List<SchedulingShiftsTimeWork> missingShiftsTimeWorks = new ArrayList<>();
+            if (CollectionUtil.isNotEmpty(shiftsTimeWorks) && mationIds != null) {
+                missingShiftsTimeWorks = shiftsTimeWorks.stream()
+                    .filter(Objects::nonNull)
+                    .filter(work -> work.getId() != null)
+                    .filter(work -> !mationIds.contains(work.getId()))
+                    .collect(Collectors.toList());
+            }
+
             // 获取所有不在参数在数据库中的时间段工位id
-            List<String> NotShiftsTimeWorkIds = missingShiftsTimeWorks.stream().map(SchedulingShiftsTimeWork::getId).collect(Collectors.toList());
+            List<String> notShiftsTimeWorkIds = new ArrayList<>();
+            if (!missingShiftsTimeWorks.isEmpty()) {
+                notShiftsTimeWorkIds = missingShiftsTimeWorks.stream()
+                    .filter(Objects::nonNull) // 确保 SchedulingShiftsTimeWork 对象不为 null
+                    .map(SchedulingShiftsTimeWork::getId) // 提取 id
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            }
+
             // 删除多余时间段下工位信息
-            schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(NotShiftsTimeWorkIds);
+            if (!notShiftsTimeWorkIds.isEmpty()) {
+                schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(notShiftsTimeWorkIds);
+            }
             // 找出 id 为空的 SchedulingShiftsTimeWork 对象
             List<SchedulingShiftsTimeWork> emptyIdShiftsTimeWorks = shiftsTimeWorkMation.stream().filter(shift -> StrUtil.isEmpty(shift.getId()))
                 .collect(Collectors.toList());

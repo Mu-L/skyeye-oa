@@ -21,6 +21,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.server.service.ServiceBeanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,8 +139,9 @@ public class CatalogServiceImpl extends SkyeyeBusinessServiceImpl<CatalogDao, Ca
     public void deleteById(String id) {
         Catalog catalog = selectById(id);
         URI serviceBeanUri = serviceBeanService.getServiceBean(catalog.getObjectAppId(), catalog.getObjectKey());
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取当前目录与所有的子目录id
-        List<String> ids = catalogDao.queryAllChildIdsByParentId(Arrays.asList(id));
+        List<String> ids = catalogDao.queryAllChildIdsByParentId(Arrays.asList(id), tenantId);
         super.deleteById(ids);
         // 删除业务数据
         iCatalogService.deleteDataMationByCatalogIds(serviceBeanUri, catalog.getObjectKey(), ids);
@@ -148,8 +150,9 @@ public class CatalogServiceImpl extends SkyeyeBusinessServiceImpl<CatalogDao, Ca
     @Override
     public Catalog getDataFromDb(String id) {
         Catalog catalog = super.getDataFromDb(id);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 设置路径id
-        List<Map<String, Object>> parentList = catalogDao.queryAllParentNodeById(Arrays.asList(id));
+        List<Map<String, Object>> parentList = catalogDao.queryAllParentNodeById(Arrays.asList(id), tenantId);
         parentList.stream()
             .sorted(Comparator.comparing(bean -> bean.get("level").toString(), Comparator.reverseOrder()));
 
@@ -163,8 +166,9 @@ public class CatalogServiceImpl extends SkyeyeBusinessServiceImpl<CatalogDao, Ca
     @Override
     public List<Catalog> getDataFromDb(List<String> idList) {
         List<Catalog> catalogList = super.getDataFromDb(idList);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 设置路径id
-        List<Map<String, Object>> parentMationList = catalogDao.queryAllParentNodeById(idList);
+        List<Map<String, Object>> parentMationList = catalogDao.queryAllParentNodeById(idList, tenantId);
         Map<String, List<Map<String, Object>>> groupByMap = parentMationList.stream()
             .sorted(Comparator.comparing(bean -> bean.get("level").toString(), Comparator.reverseOrder()))
             .collect(Collectors.groupingBy(bean -> bean.get("childId").toString()));

@@ -4,6 +4,7 @@
 
 package com.skyeye.depot.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.depot.entity.DepotLevelVal;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import org.apache.ibatis.annotations.Param;
@@ -26,6 +27,8 @@ public interface DepotLevelValDao extends SkyeyeBaseMapper<DepotLevelVal> {
      * @param ids 父id
      * @return
      */
-    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids);
+    @IgnoreTenant
+    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids,
+                                            @Param("tenantId") String tenantId);
 
 }
