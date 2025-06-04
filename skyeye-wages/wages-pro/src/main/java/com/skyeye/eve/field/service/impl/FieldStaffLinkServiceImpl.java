@@ -14,6 +14,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.WagesConstant;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -81,12 +82,13 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
             staffMation.get("departmentId").toString(),
             staffId});
         List<Map<String, Object>> modelField = new ArrayList<>();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
         // 1.获取薪资模板
-        List<Map<String, Object>> model = wagesModelDao.queryWagesModelListByApplicableObjectIds(wagesApplicableObject);
+        List<Map<String, Object>> model = wagesModelDao.queryWagesModelListByApplicableObjectIds(wagesApplicableObject, tenantId);
         if (CollectionUtil.isNotEmpty(model)) {
             // 2.获取模板参数
             List<String> modelIds = model.stream().map(p -> p.get("id").toString()).collect(Collectors.toList());
-            modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId, staffMation.get("jobScoreId").toString());
+            modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId, staffMation.get("jobScoreId").toString(), tenantId);
         }
         modelField.stream().forEach(bean -> {
             if ("1".equals(bean.get("monthlyClearing").toString())) {

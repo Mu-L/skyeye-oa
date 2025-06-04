@@ -64,11 +64,31 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
 
     @Override
     protected void updatePostpose(SchedulingShifts entity, String userId) {
+        // 获取传参的班次时间段信息
         List<SchedulingShiftsTime> schedulingShiftsTimeMation = entity.getSchedulingShiftsTimeMation();
-        if (CollectionUtil.isNotEmpty(schedulingShiftsTimeMation)) {
-            schedulingShiftsTimeService.updateEntity(schedulingShiftsTimeMation, userId);
+        String id = entity.getId();
+        // 获取数据库的班次时间段信息
+        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeById(id);
+        // 获取数据库的班次时间段ids
+        List<String> ids = schedulingShiftsTimes.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        // 获取传参的班次时间段ids
+        List<String> schedulingShiftsTimeIds = schedulingShiftsTimeMation.stream().map(SchedulingShiftsTime::getId).distinct().collect(Collectors.toList());
+        // 获取传参的班次时间段ids中不在数据库的班次时间段ids中的数据
+        List<String> idsNotInSchedulingShiftsTimeIds = ids.stream().filter(Id -> !schedulingShiftsTimeIds.contains(Id))
+            .collect(Collectors.toList());
+        // 找出 id 为空的 SchedulingShiftsTime 对象
+        List<SchedulingShiftsTime> emptyIdShifts = schedulingShiftsTimeMation.stream().filter(shift -> StrUtil.isEmpty(shift.getId()))
+            .collect(Collectors.toList());
+        // 找出 id 不为空的 SchedulingShiftsTime 对象
+        List<SchedulingShiftsTime> notEmptyIdShifts = schedulingShiftsTimeMation.stream().filter(shift -> StrUtil.isNotEmpty(shift.getId()))
+            .collect(Collectors.toList());
+        // 新增编辑中新的班次时间段
+        schedulingShiftsTimeService.createEntity(emptyIdShifts, userId);
+        // 删除多余的班次时间信息
+        schedulingShiftsTimeService.deleteSchedulingShiftsTimeByShiftIds(idsNotInSchedulingShiftsTimeIds);
+        if (CollectionUtil.isNotEmpty(notEmptyIdShifts)) {
+            schedulingShiftsTimeService.updateEntity(notEmptyIdShifts, userId);
         }
-
     }
 
     @Override

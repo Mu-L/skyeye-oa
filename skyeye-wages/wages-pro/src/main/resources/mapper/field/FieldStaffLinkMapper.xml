@@ -20,6 +20,7 @@
             a.department_id departmentId,
             a.job_id jobId,
             IFNULL(a.job_score_id, '') jobScoreId,
+            a.user_id userId,
             a.state,
             a.type,
             a.act_wages actWages
@@ -28,7 +29,10 @@
         WHERE
             date_format(a.entry_time, '%Y-%m') <![CDATA[ <= ]]> #{lastMonthDate}
         AND IF(LENGTH(a.quit_time) > 0 AND a.quit_time != '', date_format(a.quit_time, '%Y-%m') >= #{lastMonthDate}, 0 = 0)
-        AND a.id NOT IN (SELECT b.staff_id FROM wages_payment_history b WHERE b.staff_id = a.id AND b.pay_month = #{lastMonthDate})
+        AND a.id NOT IN (SELECT b.staff_id FROM wages_payment_history b WHERE b.staff_id = a.id AND b.pay_month = #{lastMonthDate}
+                                                                            <if test="tenantId != '' and tenantId != null">
+                                                                                AND b.tenant_id = #{tenantId}
+                                                                            </if>)
         AND a.design_wages = 2
         <if test="list != null and list.size > 0">
             AND a.id NOT IN
@@ -55,6 +59,9 @@
             a.create_id = b.user_id
         AND b.id = #{staffId}
         AND date_format(a.check_date, '%Y-%m') = #{lastMonthDate}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryLastMonthLeaveTime" resultType="java.util.Map">
@@ -72,10 +79,13 @@
         WHERE
             a.create_id = c.id
           AND a.id = b.parent_id
-          AND a.state = 2
-          AND b.state = 2
+          AND a.state = #{leaveTimeState}
+          AND b.state = #{leaveTimeSlotState}
           AND c.id = #{staffId}
           AND date_format(b.leave_day, '%Y-%m') = #{lastMonthDate}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <update id="editStaffMonthlyClearingWagesByStaffId">
@@ -88,7 +98,13 @@
         WHERE a.staff_id = #{staffId}
         AND a.field_type_key = b.`key`
         AND b.monthly_clearing = '1'
-        AND b.id = (SELECT c.id FROM wages_field_type c WHERE c.`key` = a.field_type_key ORDER BY c.last_update_time DESC LIMIT 1)
+        AND b.id = (SELECT c.id FROM wages_field_type c WHERE c.`key` = a.field_type_key
+                                        <if test="tenantId != '' and tenantId != null">
+                                            AND c.tenant_id = #{tenantId}
+                                        </if> ORDER BY c.last_update_time DESC LIMIT 1)
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </update>
 
     <select id="queryLastMonthCancleLeaveTime" resultType="java.util.Map">
@@ -104,10 +120,13 @@
         WHERE
             a.create_id = c.id
         AND a.id = b.parent_id
-        AND a.state = 2
-        AND b.state = 2
+        AND a.state = #{leaveTimeState}
+        AND b.state = #{leaveTimeSlotState}
         AND c.id = #{staffId}
         AND date_format(b.cancel_day, '%Y-%m') = #{lastMonthDate}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>

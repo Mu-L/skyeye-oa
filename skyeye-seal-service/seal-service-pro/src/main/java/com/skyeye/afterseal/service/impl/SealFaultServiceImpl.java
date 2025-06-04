@@ -7,6 +7,7 @@ package com.skyeye.afterseal.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.accessory.classenum.UserStockPutOutType;
 import com.skyeye.accessory.entity.ServiceUserStock;
@@ -19,10 +20,13 @@ import com.skyeye.afterseal.entity.SealFaultUseMaterial;
 import com.skyeye.afterseal.service.SealFaultService;
 import com.skyeye.afterseal.service.SealFaultUseMaterialService;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
@@ -167,14 +171,20 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
     }
 
     @Override
+    @IgnoreTenant
     public Double getAllFinishedServiceTime(String startTime, String endTime) {
         // 查询已完成的售后工单，并统计总耗时
-        MPJLambdaWrapper<SealFault> wrapper = new MPJLambdaWrapper<SealFault>()
-            .innerJoin(AfterSeal.class, AfterSeal::getId, SealFault::getObjectId);
+        MPJLambdaWrapper<SealFault> wrapper = JoinWrappers.lambda("seal", SealFault.class)
+            .innerJoin(AfterSeal.class,"after", AfterSeal::getId, SealFault::getObjectId);
         wrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), endTime)
                 .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), startTime);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("seal." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("after." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<SealFault> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFault.class, wrapper);
         if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
@@ -184,10 +194,11 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
     }
 
     @Override
+    @IgnoreTenant
     public Map<String, Double> getAllFinishedServiceTime(List<String> userIds, String startTime, String endTime) {
         // 查询已完成的售后工单，并统计总耗时
-        MPJLambdaWrapper<SealFault> wrapper = new MPJLambdaWrapper<SealFault>()
-            .innerJoin(AfterSeal.class, AfterSeal::getId, SealFault::getObjectId);
+        MPJLambdaWrapper<SealFault> wrapper = JoinWrappers.lambda("seal", SealFault.class)
+            .innerJoin(AfterSeal.class,"after", AfterSeal::getId, SealFault::getObjectId);
         wrapper.eq(AfterSeal::getState, AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), endTime)
@@ -195,6 +206,11 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
         }
         if (CollectionUtil.isNotEmpty(userIds)) {
             wrapper.in(SealFault::getCreateId, userIds);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("seal." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("after." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<SealFault> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFault.class, wrapper);
         if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {

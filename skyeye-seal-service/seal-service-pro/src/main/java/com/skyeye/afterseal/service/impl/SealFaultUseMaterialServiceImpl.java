@@ -7,6 +7,7 @@ package com.skyeye.afterseal.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.accessory.entity.ServiceUserStock;
@@ -18,13 +19,15 @@ import com.skyeye.afterseal.entity.SealFault;
 import com.skyeye.afterseal.entity.SealFaultUseMaterial;
 import com.skyeye.afterseal.service.SealFaultUseMaterialService;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +91,7 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
             Map<String, Object> norms = normsMap.get(sealFaultUseMaterial.getNormsId());
             sealFaultUseMaterial.setUnitPrice(norms.get("retailPrice").toString());
             sealFaultUseMaterial.setAllPrice(
-                CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(sealFaultUseMaterial.getOperNumber()), sealFaultUseMaterial.getUnitPrice()));
+                    CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(sealFaultUseMaterial.getOperNumber()), sealFaultUseMaterial.getUnitPrice()));
             // 计算主单总价
             allPrice = CalculationUtil.add(CommonNumConstants.NUM_TWO, sealFaultUseMaterial.getAllPrice(), allPrice);
         }
@@ -96,15 +99,22 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
     }
 
     @Override
+    @IgnoreTenant
     public Long queryUseCount(String startTime, String endTime) {
         // 查询已完成的售后工单，并统计关联的故障配件使用数量
-        MPJLambdaWrapper<SealFaultUseMaterial> wrapper = new MPJLambdaWrapper<SealFaultUseMaterial>()
-            .innerJoin(SealFault.class, SealFault::getId, SealFaultUseMaterial::getParentId)
-            .innerJoin(AfterSeal.class, AfterSeal::getId, SealFault::getObjectId);
+        MPJLambdaWrapper<SealFaultUseMaterial> wrapper = JoinWrappers.lambda("sfum", SealFaultUseMaterial.class)
+                .innerJoin(SealFault.class, "sf", SealFault::getId, SealFaultUseMaterial::getParentId)
+                .innerJoin(AfterSeal.class, "asl", AfterSeal::getId, SealFault::getObjectId);
         wrapper.eq(AfterSeal::getState, AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), endTime)
-                .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), startTime);
+                    .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), startTime);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("sfum." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("sf." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("asl." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<SealFaultUseMaterial> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFaultUseMaterial.class, wrapper);
         if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
@@ -114,23 +124,30 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
     }
 
     @Override
+    @IgnoreTenant
     public Map<String, Long> queryUseCountByUserId(List<String> userIdList, String startTime, String endTime) {
         // 查询已完成的售后工单，并统计关联的故障配件使用数量
-        MPJLambdaWrapper<SealFaultUseMaterial> wrapper = new MPJLambdaWrapper<SealFaultUseMaterial>()
-            .innerJoin(SealFault.class, SealFault::getId, SealFaultUseMaterial::getParentId)
-            .innerJoin(AfterSeal.class, AfterSeal::getId, SealFault::getObjectId);
+        MPJLambdaWrapper<SealFaultUseMaterial> wrapper = JoinWrappers.lambda("sfum", SealFaultUseMaterial.class)
+                .innerJoin(SealFault.class, "sf", SealFault::getId, SealFaultUseMaterial::getParentId)
+                .innerJoin(AfterSeal.class, "asl", AfterSeal::getId, SealFault::getObjectId);
         wrapper.eq(AfterSeal::getState, AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), endTime)
-                .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), startTime);
+                    .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), startTime);
         }
         if (CollectionUtil.isNotEmpty(userIdList)) {
             wrapper.in(SealFault::getCreateId, userIdList);
         }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("sfum." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("sf." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("asl." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
         List<SealFaultUseMaterial> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFaultUseMaterial.class, wrapper);
         if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
             return sealFaultUseMaterials.stream().collect(Collectors.groupingBy(SealFaultUseMaterial::getCreateId,
-                Collectors.summingLong(SealFaultUseMaterial::getOperNumber)));
+                    Collectors.summingLong(SealFaultUseMaterial::getOperNumber)));
         }
         return new HashMap<>();
     }

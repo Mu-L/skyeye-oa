@@ -62,7 +62,7 @@ public class TenantController {
         tenantService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAllTenantList", value = "获取所有租户信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryAllTenantList", value = "获取所有租户信息", method = "GET", allUse = "0")
     @RequestMapping("/post/TenantController/queryAllTenantList")
     public void queryAllTenantList(InputObject inputObject, OutputObject outputObject) {
         tenantService.queryAllTenantList(inputObject, outputObject);

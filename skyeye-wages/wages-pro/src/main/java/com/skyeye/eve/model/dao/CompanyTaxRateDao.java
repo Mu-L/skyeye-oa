@@ -4,6 +4,9 @@
 
 package com.skyeye.eve.model.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +20,7 @@ import java.util.Map;
  */
 public interface CompanyTaxRateDao {
 
-    List<Map<String, Object>> queryAllCompanyTaxRate();
+    @IgnoreTenant
+    List<Map<String, Object>> queryAllCompanyTaxRate(@Param("tenantId") String tenantId);
 
 }

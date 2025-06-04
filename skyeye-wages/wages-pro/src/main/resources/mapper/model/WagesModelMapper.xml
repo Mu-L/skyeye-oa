@@ -42,6 +42,9 @@
         <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
             #{item}
         </foreach>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
         AND a.model_id = b.id
         AND b.enabled = 1
         GROUP BY b.id ORDER BY b.`order_by` DESC

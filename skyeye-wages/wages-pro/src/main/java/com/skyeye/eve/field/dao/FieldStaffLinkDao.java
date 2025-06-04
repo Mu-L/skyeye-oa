@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.field.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.field.entity.FieldStaffLink;
 import org.apache.ibatis.annotations.Param;
@@ -30,7 +31,10 @@ public interface FieldStaffLinkDao extends SkyeyeBaseMapper<FieldStaffLink> {
      * @param staffId       不包含的员工id
      * @return
      */
-    Map<String, Object> queryNoWagesLastMonthByLastMonthDate(@Param("lastMonthDate") String lastMonthDate, @Param("list") List<String> staffId);
+    @IgnoreTenant
+    Map<String, Object> queryNoWagesLastMonthByLastMonthDate(@Param("lastMonthDate") String lastMonthDate,
+                                                             @Param("list") List<String> staffId,
+                                                             @Param("tenantId") String tenantId);
 
     /**
      * 获取上个月指定员工的所有考勤记录信息
@@ -39,31 +43,49 @@ public interface FieldStaffLinkDao extends SkyeyeBaseMapper<FieldStaffLink> {
      * @param lastMonthDate 上个月的年月
      * @return
      */
-    List<Map<String, Object>> queryLastMonthCheckWork(@Param("staffId") String staffId, @Param("lastMonthDate") String lastMonthDate);
+    @IgnoreTenant
+    List<Map<String, Object>> queryLastMonthCheckWork(@Param("staffId") String staffId,
+                                                      @Param("lastMonthDate") String lastMonthDate,
+                                                      @Param("tenantId") String tenantId);
 
     /**
      * 获取上个月指定员工的所有审批通过请假记录信息
      *
-     * @param staffId       员工id
-     * @param lastMonthDate 上个月的年月
+     * @param staffId            员工id
+     * @param lastMonthDate      上个月的年月
+     * @param leaveTimeState     请假记录状态  {@link com.skyeye.common.enumeration.FlowableStateEnum}
+     * @param leaveTimeSlotState 请假时间段状态 {@link com.skyeye.common.enumeration.FlowableChildStateEnum}
      * @return
      */
-    List<Map<String, Object>> queryLastMonthLeaveTime(@Param("staffId") String staffId, @Param("lastMonthDate") String lastMonthDate);
+    @IgnoreTenant
+    List<Map<String, Object>> queryLastMonthLeaveTime(@Param("staffId") String staffId,
+                                                      @Param("lastMonthDate") String lastMonthDate,
+                                                      @Param("leaveTimeState") String leaveTimeState,
+                                                      @Param("leaveTimeSlotState") String leaveTimeSlotState,
+                                                      @Param("tenantId") String tenantId);
 
     /**
      * 获取上个月指定员工的所有审批通过销假记录信息
      *
-     * @param staffId       员工id
-     * @param lastMonthDate 上个月的年月
+     * @param staffId            员工id
+     * @param lastMonthDate      上个月的年月
+     * @param leaveTimeState     请假记录状态  {@link com.skyeye.common.enumeration.FlowableStateEnum}
+     * @param leaveTimeSlotState 请假时间段状态 {@link com.skyeye.common.enumeration.FlowableChildStateEnum}
      * @return
      */
-    List<Map<String, Object>> queryLastMonthCancleLeaveTime(@Param("staffId") String staffId, @Param("lastMonthDate") String lastMonthDate);
+    @IgnoreTenant
+    List<Map<String, Object>> queryLastMonthCancleLeaveTime(@Param("staffId") String staffId,
+                                                            @Param("lastMonthDate") String lastMonthDate,
+                                                            @Param("leaveTimeState") String leaveTimeState,
+                                                            @Param("leaveTimeSlotState") String leaveTimeSlotState,
+                                                            @Param("tenantId") String tenantId);
 
     /**
      * 将指定员工月度清零的薪资字段设置为0
      *
      * @param staffId 员工id
      */
-    void editStaffMonthlyClearingWagesByStaffId(@Param("staffId") String staffId);
+    @IgnoreTenant
+    void editStaffMonthlyClearingWagesByStaffId(@Param("staffId") String staffId, @Param("tenantId") String tenantId);
 
 }

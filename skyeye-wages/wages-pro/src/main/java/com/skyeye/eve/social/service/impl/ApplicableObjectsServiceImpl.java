@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ApplicableObjectsServiceImpl
- * @Description: 社保公积金适用对象服务层
+ * @Description: 社保公积金适用对象服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2023/11/15 8:46
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
