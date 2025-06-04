@@ -189,7 +189,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     @Override
     @IgnoreTenant
     public void queryTenantUserByStaffId(InputObject inputObject, OutputObject outputObject) {
-        String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
+        String staffId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         // 只查询没有离职的用户
