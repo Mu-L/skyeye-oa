@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: WagesSocialSecurityFundServiceImpl
- * @Description: 社保公积金服务层
+ * @Description: 社保公积金服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2023/11/15 8:49
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

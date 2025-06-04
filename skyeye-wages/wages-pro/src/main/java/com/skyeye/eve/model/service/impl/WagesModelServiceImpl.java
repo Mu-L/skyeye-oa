@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: WagesModelServiceImpl
- * @Description: 薪资模板服务层
+ * @Description: 薪资模板服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/1/21 11:19
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

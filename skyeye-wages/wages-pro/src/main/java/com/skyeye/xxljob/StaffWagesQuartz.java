@@ -11,7 +11,10 @@ import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.WagesConstant;
 import com.skyeye.common.enumeration.AbnormalCheckworkType;
+import com.skyeye.common.enumeration.FlowableChildStateEnum;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.*;
 import com.skyeye.eve.field.classenum.WagesTypeEnum;
 import com.skyeye.eve.field.dao.FieldStaffLinkDao;
@@ -30,7 +33,9 @@ import com.skyeye.eve.payment.classenum.PaymentHistoryType;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
 import com.skyeye.eve.rest.checkwork.CheckWorkTimeService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.eve.social.entity.ApplicableObjects;
 import com.skyeye.eve.social.entity.SocialSecurityFund;
 import com.skyeye.eve.social.service.WagesSocialSecurityFundService;
@@ -39,6 +44,7 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -90,10 +96,19 @@ public class StaffWagesQuartz {
     @Autowired
     private WagesPaymentHistoryService wagesPaymentHistoryService;
 
+    @Autowired
+    private ITenantService iTenantService;
+
+    @Autowired
+    protected IAuthUserService iAuthUserService;
+
     /**
      * 当前薪资统计中的员工id存储在redis的key，因为存在多台机器同时处理员工薪资的情况，所以不去主动删除该缓存信息，等待自动失效即可
      */
     private static final String IN_STATISTICS_STAFF_REDIS_KEY = "inStatisticsWagesStaff";
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     /**
      * 每月十号的凌晨两点开始执行薪资统计任务
@@ -101,52 +116,73 @@ public class StaffWagesQuartz {
     @XxlJob("staffWagesQuartz")
     public void statisticsStaffWages() {
         try {
-            // 获取上个月的年月
-            String lastMonthDate = DateUtil.getLastMonthDate();
-            LOGGER.info("statistics staff wages month is {}", lastMonthDate);
-            // 个人所得税缴纳比例
-            Map<String, List<Map<String, Object>>> taxRate = getTaxRate();
-            // 所有启用中的薪资模板适用对象关系以及模板要素字段
-            List<WagesModel> wagesModelList = wagesModelService.queryWagesModelByDate(lastMonthDate);
-            // 所有启动中的社保公积金适用对象关系以及社保公积金参数信息
-            List<SocialSecurityFund> socialSecurityFund = wagesSocialSecurityFundService.querySocialSecurityFundByDate(lastMonthDate);
-            // 系统基础信息
-            Map<String, Object> systemFoundationSettings = iSystemFoundationSettingsService.querySystemFoundationSettingsList();
-            // 所有的考勤班次信息
-            List<Map<String, Object>> workTime =
-                ExecuteFeignClient.get(() -> checkWorkTimeService.getAllCheckWorkTime(lastMonthDate)).getRows();
-            while (true) {
-                // 获取一条未生成薪资的员工数据
-                Map<String, Object> staff = wagesStaffMationDao.queryNoWagesLastMonthByLastMonthDate(lastMonthDate, getStaffIdsFromRedis());
-                // 如果已经没有要统计薪资的员工，则停止统计
-                if (staff == null) {
-                    break;
+            if (tenantEnable) {
+                //  开启多租户
+                List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+                if (CollectionUtil.isEmpty(tenantList)) {
+                    return;
                 }
-                String staffId = staff.get("id").toString();
-                // 判断该员工的薪资统计是否在处理中，如果在处理中，则进行下一条
-                if (isInStatisticsRedisMation(staffId)) {
-                    continue;
-                }
-                try {
-                    // 锁定该员工为处理中
-                    addStaffIdInStatisticsRedisMation(staffId);
-                    // 开始统计
-                    calcStaffWages(staff, wagesModelList, socialSecurityFund, systemFoundationSettings, workTime, lastMonthDate, taxRate);
-                    // 将指定员工月度清零的薪资字段设置为0
-                    wagesStaffMationDao.editStaffMonthlyClearingWagesByStaffId(staffId);
-                } catch (Exception e) {
-                    LOGGER.warn("deal with staff failed, staffId is {}", staffId, e);
-                    break;
-                } finally {
-                    // 从正在处理中的员工集合数据中移除，说明该员工数据已经处理完成
-                    removeStaffIdInStatisticsRedisMation(staffId);
-                }
+                tenantList.forEach(tenant -> {
+                    String tenantId = tenant.get("id").toString();
+                    TenantContext.setTenantId(tenantId);
+                    calcUserStaffWages(tenantId);
+                });
+            } else {
+                // 未开启多租户
+                calcUserStaffWages(null);
             }
-            deleteStatisticsRedisMation();
         } catch (Exception e) {
             LOGGER.warn("StaffWagesQuartz error.", e);
         }
         LOGGER.info("statistics staff wages month is end");
+    }
+
+    private void calcUserStaffWages(String tenantId) {
+        // 获取上个月的年月
+        String lastMonthDate = DateUtil.getLastMonthDate();
+        LOGGER.info("statistics staff wages month is {}", lastMonthDate);
+        // 个人所得税缴纳比例
+        Map<String, List<Map<String, Object>>> taxRate = getTaxRate(tenantId);
+        // 所有启用中的薪资模板适用对象关系以及模板要素字段
+        List<WagesModel> wagesModelList = wagesModelService.queryWagesModelByDate(lastMonthDate);
+        // 所有启动中的社保公积金适用对象关系以及社保公积金参数信息
+        List<SocialSecurityFund> socialSecurityFund = wagesSocialSecurityFundService.querySocialSecurityFundByDate(lastMonthDate);
+        // 系统基础信息
+        Map<String, Object> systemFoundationSettings = iSystemFoundationSettingsService.querySystemFoundationSettingsList();
+        // 所有的考勤班次信息
+        List<Map<String, Object>> workTime =
+            ExecuteFeignClient.get(() -> checkWorkTimeService.getAllCheckWorkTime(lastMonthDate)).getRows();
+        while (true) {
+            // 获取一条未生成薪资的员工数据
+            Map<String, Object> staff = wagesStaffMationDao.queryNoWagesLastMonthByLastMonthDate(lastMonthDate, getStaffIdsFromRedis(tenantId), tenantId);
+            // 如果已经没有要统计薪资的员工，则停止统计
+            if (staff == null) {
+                break;
+            }
+            String staffId = staff.get("id").toString();
+            // 判断该员工的薪资统计是否在处理中，如果在处理中，则进行下一条
+            if (isInStatisticsRedisMation(staffId, tenantId)) {
+                continue;
+            }
+            try {
+                // 锁定该员工为处理中
+                addStaffIdInStatisticsRedisMation(staffId, tenantId);
+                if (tenantEnable) {
+                    staff = iAuthUserService.queryDataMationById(staff.get("userId").toString());
+                }
+                // 开始统计
+                calcStaffWages(staff, wagesModelList, socialSecurityFund, systemFoundationSettings, workTime, lastMonthDate, taxRate, tenantId);
+                // 将指定员工月度清零的薪资字段设置为0
+                wagesStaffMationDao.editStaffMonthlyClearingWagesByStaffId(staffId, tenantId);
+            } catch (Exception e) {
+                LOGGER.warn("deal with staff failed, staffId is {}", staffId, e);
+                break;
+            } finally {
+                // 从正在处理中的员工集合数据中移除，说明该员工数据已经处理完成
+                removeStaffIdInStatisticsRedisMation(staffId, tenantId);
+            }
+        }
+        deleteStatisticsRedisMation(tenantId);
     }
 
     /**
@@ -162,7 +198,7 @@ public class StaffWagesQuartz {
      */
     private void calcStaffWages(Map<String, Object> staff, List<WagesModel> wagesModelList, List<SocialSecurityFund> socialSecurityFund,
                                 Map<String, Object> systemFoundationSettings, List<Map<String, Object>> workTime, String lastMonthDate, Map<String,
-        List<Map<String, Object>>> taxRate) {
+        List<Map<String, Object>>> taxRate, String tenantId) {
         String companyId = staff.get("companyId").toString();
         String departmentId = staff.get("departmentId").toString();
         String staffId = staff.get("id").toString();
@@ -172,14 +208,14 @@ public class StaffWagesQuartz {
         // 获取该员工具备的模板id
         List<String> modelIds = getModelIdsForStaff(companyId, departmentId, staffId, wagesModelList);
         // 该员工拥有的所有薪资要素字段以及对应的值
-        List<Map<String, Object>> staffModelField = getUserStaffWagesModelField(modelIds, staffId);
+        List<Map<String, Object>> staffModelField = getUserStaffWagesModelField(modelIds, staffId, tenantId);
         Map<String, String> staffModelFieldMap = convert2Map(staffModelField);
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_SALARY.getKey(), actWages);
         // 获取该员工应该缴纳的社保公积金的金额
         String socialSecurityFundMoney = getSocialSecurityFundMoney(companyId, departmentId, staffId, socialSecurityFund, staffModelFieldMap);
         LOGGER.info("staffId is {}, socialSecurityFundMoney is {}", staffId, socialSecurityFundMoney);
         // 计算员工的考勤相关应扣的薪资
-        String staffCheckWorkMoney = calcStaffCheckWork(staffId, systemFoundationSettings, workTime, staffModelFieldMap, lastMonthDate);
+        String staffCheckWorkMoney = calcStaffCheckWork(staffId, systemFoundationSettings, workTime, staffModelFieldMap, lastMonthDate, tenantId);
         LOGGER.info("staffId is {}, staffCheckWorkMoney is {}", staffId, staffCheckWorkMoney);
         // 开始计算上月实发工资
         String monthlyStandardRealMoney = calcMonthRealMoney(lastMonthDate, taxRate, companyId, actWages,
@@ -443,7 +479,7 @@ public class StaffWagesQuartz {
      * @return 如果返回值为负数，则说明加班和销假>请假以及异常考勤
      */
     private String calcStaffCheckWork(String staffId, Map<String, Object> systemFoundationSettings, List<Map<String, Object>> workTime,
-                                      Map<String, String> staffModelFieldMap, String lastMonthDate) {
+                                      Map<String, String> staffModelFieldMap, String lastMonthDate, String tenantId) {
         // 1.获取该员工拥有的考勤班次id集合
         List<Map<String, Object>> staffTimeIdMation = sysEveUserStaffDao
             .queryStaffCheckWorkTimeRelationByStaffId(staffId);
@@ -453,7 +489,7 @@ public class StaffWagesQuartz {
             .filter(bean -> userTimeIds.contains(bean.get("id").toString()))
             .collect(Collectors.toList());
         // 2.获取上个月指定员工的所有考勤记录信息
-        List<Map<String, Object>> lastMonthCheckWork = wagesStaffMationDao.queryLastMonthCheckWork(staffId, lastMonthDate);
+        List<Map<String, Object>> lastMonthCheckWork = wagesStaffMationDao.queryLastMonthCheckWork(staffId, lastMonthDate, tenantId);
         // 3.设置应出勤的班次以及小时
         Map<String, Object> monthBe = wagesStaffMationService.setLastMonthBe(staffWorkTime, lastMonthDate);
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_NUM.getKey(),
@@ -469,9 +505,9 @@ public class StaffWagesQuartz {
         // 5.计算考勤的扣薪情况
         String checkWorkMoney = calcCheckWorkMation(lateMinute, earlyMinute, staffModelFieldMap, systemFoundationSettings);
         // 6.计算请假的扣薪情况
-        String leaveMoney = calcLeaveTimeMation(systemFoundationSettings, staffId, lastMonthDate, staffModelFieldMap);
+        String leaveMoney = calcLeaveTimeMation(systemFoundationSettings, staffId, lastMonthDate, staffModelFieldMap, tenantId);
         // 7.计算销假应退还给员工的薪资
-        String cancleLeaveMoney = calcCancleLeaveTimeMation(staffId, lastMonthDate, staffModelFieldMap);
+        String cancleLeaveMoney = calcCancleLeaveTimeMation(staffId, lastMonthDate, staffModelFieldMap, tenantId);
         // 计算请假以及异常考勤应结算的钱
         String shouldSubtractMoney = CalculationUtil.add(CommonNumConstants.NUM_TWO, checkWorkMoney, leaveMoney);
         return CalculationUtil.subtract(shouldSubtractMoney, cancleLeaveMoney, CommonNumConstants.NUM_TWO);
@@ -485,9 +521,10 @@ public class StaffWagesQuartz {
      * @param staffModelFieldMap 该员工拥有的所有薪资要素字段以及对应的值
      * @return
      */
-    private String calcCancleLeaveTimeMation(String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap) {
+    private String calcCancleLeaveTimeMation(String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap, String tenantId) {
         // 获取上个月指定员工的所有审批通过销假记录信息
-        List<Map<String, Object>> cancleLeaveTime = wagesStaffMationDao.queryLastMonthCancleLeaveTime(staffId, lastMonthDate);
+        List<Map<String, Object>> cancleLeaveTime = wagesStaffMationDao.queryLastMonthCancleLeaveTime(staffId, lastMonthDate,
+            FlowableStateEnum.PASS.getKey(), FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         // 上个月应出勤的小时数
         String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
         // 判断是否为0
@@ -635,9 +672,11 @@ public class StaffWagesQuartz {
      * @param staffModelFieldMap       该员工拥有的所有薪资要素字段以及对应的值
      * @return 请假的扣薪金额
      */
-    private String calcLeaveTimeMation(Map<String, Object> systemFoundationSettings, String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap) {
+    private String calcLeaveTimeMation(Map<String, Object> systemFoundationSettings, String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap,
+                                       String tenantId) {
         // 获取上个月指定员工的所有审批通过请假记录信息
-        List<Map<String, Object>> leaveTime = wagesStaffMationDao.queryLastMonthLeaveTime(staffId, lastMonthDate);
+        List<Map<String, Object>> leaveTime = wagesStaffMationDao.queryLastMonthLeaveTime(staffId, lastMonthDate,
+            FlowableStateEnum.PASS.getKey(), FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         // 企业假期类型以及扣薪信息
         List<Map<String, Object>> holidaysTypeJson = JSONUtil.toList(systemFoundationSettings.get("holidaysTypeJson").toString(), null);
         Map<String, List<Map<String, Object>>> leaveTimeGroupType = leaveTime.stream()
@@ -811,12 +850,12 @@ public class StaffWagesQuartz {
      * @param staffId  员工id
      * @return
      */
-    private List<Map<String, Object>> getUserStaffWagesModelField(List<String> modelIds, String staffId) {
+    private List<Map<String, Object>> getUserStaffWagesModelField(List<String> modelIds, String staffId, String tenantId) {
         if (modelIds == null || modelIds.isEmpty()) {
             return new ArrayList<>();
         }
         // 获取薪资要素字段以及对应的值
-        List<Map<String, Object>> modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId, null);
+        List<Map<String, Object>> modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId, null, tenantId);
         return modelField;
     }
 
@@ -825,8 +864,8 @@ public class StaffWagesQuartz {
      *
      * @return
      */
-    private Map<String, List<Map<String, Object>>> getTaxRate() {
-        List<Map<String, Object>> companyTaxRate = companyTaxRateDao.queryAllCompanyTaxRate();
+    private Map<String, List<Map<String, Object>>> getTaxRate(String tenantId) {
+        List<Map<String, Object>> companyTaxRate = companyTaxRateDao.queryAllCompanyTaxRate(tenantId);
         return companyTaxRate.stream()
             .collect(Collectors.groupingBy(map -> map.get("companyId").toString()));
     }
@@ -836,9 +875,10 @@ public class StaffWagesQuartz {
      *
      * @param staffIds 员工ids
      */
-    private void setToRedis(List<String> staffIds) {
+    private void setToRedis(List<String> staffIds, String tenantId) {
         // 默认存储时间为六个小时
-        jedisClient.set(IN_STATISTICS_STAFF_REDIS_KEY, JSONUtil.toJsonStr(staffIds), 60 * 60 * 6);
+        String redisKey = getRedisKey(tenantId);
+        jedisClient.set(redisKey, JSONUtil.toJsonStr(staffIds), 60 * 60 * 6);
     }
 
     /**
@@ -846,10 +886,10 @@ public class StaffWagesQuartz {
      *
      * @param staffId 员工id
      */
-    private void removeStaffIdInStatisticsRedisMation(String staffId) {
-        List<String> staffIds = getStaffIdsFromRedis();
+    private void removeStaffIdInStatisticsRedisMation(String staffId, String tenantId) {
+        List<String> staffIds = getStaffIdsFromRedis(tenantId);
         staffIds = staffIds.stream().filter(str -> !staffId.equals(str)).collect(Collectors.toList());
-        setToRedis(staffIds);
+        setToRedis(staffIds, tenantId);
     }
 
     /**
@@ -857,10 +897,10 @@ public class StaffWagesQuartz {
      *
      * @param staffId 员工id
      */
-    private void addStaffIdInStatisticsRedisMation(String staffId) {
-        List<String> staffIds = getStaffIdsFromRedis();
+    private void addStaffIdInStatisticsRedisMation(String staffId, String tenantId) {
+        List<String> staffIds = getStaffIdsFromRedis(tenantId);
         staffIds.add(staffId);
-        setToRedis(staffIds);
+        setToRedis(staffIds, tenantId);
     }
 
     /**
@@ -869,21 +909,36 @@ public class StaffWagesQuartz {
      * @param staffId 员工id
      * @return true：处理中，false：未在处理
      */
-    private boolean isInStatisticsRedisMation(String staffId) {
-        List<String> staffIds = getStaffIdsFromRedis();
+    private boolean isInStatisticsRedisMation(String staffId, String tenantId) {
+        List<String> staffIds = getStaffIdsFromRedis(tenantId);
         return staffIds.contains(staffId);
     }
 
-    private void deleteStatisticsRedisMation() {
-        jedisClient.del(IN_STATISTICS_STAFF_REDIS_KEY);
+    private void deleteStatisticsRedisMation(String tenantId) {
+        String redisKey = getRedisKey(tenantId);
+        jedisClient.del(redisKey);
     }
 
-    private List<String> getStaffIdsFromRedis() {
+    private List<String> getStaffIdsFromRedis(String tenantId) {
         List<String> staffIds = new ArrayList<>();
-        if (jedisClient.exists(IN_STATISTICS_STAFF_REDIS_KEY)) {
-            staffIds = JSONUtil.toList(JSONUtil.parseArray(jedisClient.get(IN_STATISTICS_STAFF_REDIS_KEY)), null);
+        String redisKey = getRedisKey(tenantId);
+        if (jedisClient.exists(redisKey)) {
+            staffIds = JSONUtil.toList(JSONUtil.parseArray(jedisClient.get(redisKey)), null);
         }
         return staffIds;
+    }
+
+    /**
+     * 获取Redis的键，根据租户ID区分
+     *
+     * @param tenantId 租户ID
+     * @return Redis的键
+     */
+    private String getRedisKey(String tenantId) {
+        if (!tenantEnable) {
+            return IN_STATISTICS_STAFF_REDIS_KEY;
+        }
+        return IN_STATISTICS_STAFF_REDIS_KEY + ":" + tenantId;
     }
 
 }

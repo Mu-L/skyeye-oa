@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.model.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.model.entity.WagesModelField;
 import org.apache.ibatis.annotations.Param;
@@ -29,7 +30,9 @@ public interface WagesModelFieldDao extends SkyeyeBaseMapper<WagesModelField> {
      * @param jobScoreId 职位定级id
      * @return 薪资要素字段信息，该员工的薪资信息以及对应的薪资描述薪资
      */
+    @IgnoreTenant
     public List<Map<String, Object>> queryWagesModelFieldByModelIdsAndStaffId(@Param("list") List<String> modelIds,
                                                                               @Param("staffId") String staffId,
-                                                                              @Param("jobScoreId") String jobScoreId);
+                                                                              @Param("jobScoreId") String jobScoreId,
+                                                                              @Param("tenantId") String tenantId);
 }

@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.model.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.model.entity.WagesModel;
@@ -24,5 +25,7 @@ public interface WagesModelDao extends SkyeyeBaseMapper<WagesModel> {
 
     List<Map<String, Object>> queryWagesModelList(CommonPageInfo pageInfo);
 
-    List<Map<String, Object>> queryWagesModelListByApplicableObjectIds(@Param("list") List<String> wagesApplicableObjectIds);
+    @IgnoreTenant
+    List<Map<String, Object>> queryWagesModelListByApplicableObjectIds(@Param("list") List<String> wagesApplicableObjectIds,
+                                                                       @Param("tenantId") String tenantId);
 }
