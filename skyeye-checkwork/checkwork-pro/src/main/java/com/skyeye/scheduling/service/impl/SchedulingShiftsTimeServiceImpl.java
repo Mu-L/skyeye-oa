@@ -85,11 +85,9 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
             return;
         }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), idList);
-        List<SchedulingShiftsTime> list = list(queryWrapper);
+        queryWrapper.in(CommonConstants.ID, idList);
         remove(queryWrapper);
-        List<String> shiftsTimeIds = list.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
-        schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        schedulingShiftsTimeWorkService.deleteShiftsTimeWorkByShiftsTimeIds(idList);
     }
 
     @Override
