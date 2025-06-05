@@ -6,9 +6,12 @@ package com.skyeye.checkwork.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.checkwork.classenum.CheckTypeFrom;
 import com.skyeye.checkwork.classenum.ClockInTime;
@@ -17,6 +20,7 @@ import com.skyeye.checkwork.classenum.ClockState;
 import com.skyeye.checkwork.dao.CheckWorkDao;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.checkwork.service.CheckWorkService;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CheckDayType;
@@ -26,6 +30,7 @@ import com.skyeye.common.enumeration.WeekTypeEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.constants.CheckWorkConstants;
@@ -116,7 +121,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId);
         // 2.获取今天的打卡记录
         String checkInTime = DateUtil.getHmsTimeAndToString();
-        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(DateUtil.getYmdTimeAndToString(), userId, timeId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(DateUtil.getYmdTimeAndToString(), userId, timeId, tenantId);
         if (ObjectUtil.isEmpty(todayCheckWork) && DateUtil.compareTimeHMS(checkInTime, workTime.get("clockOut").toString())) {
             // 今日没有打卡，且没有到下班时间，可以进行打卡
             CheckWork checkWork = new CheckWork();
@@ -161,8 +167,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @return 该班次的上下班时间，时间格式为HH:mm:ss
      */
     private Map<String, Object> getWorkTimeByUserMation(String timeId, String staffId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取指定班次的上下班时间
-        Map<String, Object> bean = checkWorkDao.queryStartWorkTime(timeId, staffId);
+        Map<String, Object> bean = checkWorkDao.queryStartWorkTime(timeId, staffId, tenantId);
         if (CollectionUtil.isEmpty(bean)) {
             // 您不具备该班次的考勤权限
             throw new CustomException("You do not have the attendance authority for this shift.");
@@ -190,7 +197,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         // 1.获取当前用户的考勤班次信息
         Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId);
         // 2.获取今天的打卡记录
-        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(DateUtil.getYmdTimeAndToString(), userId, timeId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(DateUtil.getYmdTimeAndToString(), userId, timeId, tenantId);
         CheckWork checkWork = new CheckWork();
         checkWork.setCheckDate(DateUtil.getYmdTimeAndToString());
         checkWork.setCreateId(userId);
@@ -256,10 +264,19 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     }
 
     @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryCheckWorkList(pageInfo);
         checkWorkTimeService.setMationForMap(beans, "timeId", "timeMation");
         return beans;
@@ -285,9 +302,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public void queryCheckWorkIdByAppealType(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("userId", inputObject.getLogParams().get("id"));
-        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkIdByAppealType(map);
+        String userId = inputObject.getLogParams().get("id").toString();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkIdByAppealType(userId, FlowableStateEnum.PASS.getKey(),
+            Arrays.asList(ClockState.START.getKey(), ClockState.NORMAL.getKey()), tenantId);
         checkWorkTimeService.setMationForMap(beans, "timeId", "timeMation");
         for (Map<String, Object> bean : beans) {
             Integer state = Integer.parseInt(bean.get("state").toString());
@@ -337,9 +355,11 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @return
      */
     private Map<String, Object> getWorkTime(String userId, String today, String timeId, String staffId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         Map<String, Object> workTime;
         // 判断今天是否是加班日
-        List<Map<String, Object>> overTimeMation = checkWorkOvertimeDao.queryPassThisDayAndCreateId(userId, today, FlowableChildStateEnum.ADEQUATE.getKey());
+        List<Map<String, Object>> overTimeMation = checkWorkOvertimeDao.queryPassThisDayAndCreateId(userId, today,
+            FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         if (CollectionUtil.isNotEmpty(overTimeMation)) {
             // 根据加班日判断显示打上班卡或者下班卡
             workTime = overTimeMation.get(0);
@@ -365,8 +385,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @return
      */
     private Map<String, Object> getChectBtn(String today, String userId, String timeId, Map<String, Object> workTime, String nowTimeHMS) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取今天的打卡记录
-        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(today, userId, timeId);
+        CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(today, userId, timeId, tenantId);
         Integer checkState = getCheckState(todayCheckWork, nowTimeHMS, workTime, today);
         Map<String, Object> result = new HashMap<>();
         result.put("isCheck", checkState);
@@ -427,7 +448,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String userId = inputObject.getLogParams().get("id").toString();
         List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
         LOGGER.info("需要查询的月份信息：{}", months);
-        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
         beans.forEach(bean -> {
             if ("-".equals(bean.get("timeId").toString())) {
                 // 加班日的打卡信息
@@ -490,8 +512,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
 
     @Override
     public void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取指定月份的节假日(type=3)
-        List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months);
+        List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months, tenantId);
         beans.addAll(holiday);
         // 开始计算上班日期
         calcWorkTime(beans, months, timeId);
@@ -592,7 +615,25 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Integer> timeWorkDay = getAllCheckWorkTime(map.get("startTime").toString(), map.get("endTime").toString());
         // 2.分页获取员工考勤信息
         Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
+
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkReport(map);
+        if (tenantEnable) {
+            // 如果开启多租户，则需要查询员工所在的租户下的员工信息
+            List<String> userIds = beans.stream().map(item -> item.get("userId").toString()).distinct().collect(Collectors.toList());
+            Map<String, Map<String, Object>> tenantUserMap = iAuthUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
+            beans.forEach(bean -> {
+                String userId = bean.get("userId").toString();
+                Map<String, Object> tenantUser = tenantUserMap.get(userId);
+                if (CollectionUtil.isNotEmpty(tenantUser)) {
+                    bean.put("jobNumber", tenantUser.get("jobNumber"));
+                    bean.put("companyId", tenantUser.get("companyId"));
+                    bean.put("departmentId", tenantUser.get("departmentId"));
+                    bean.put("jobId", tenantUser.get("jobId"));
+                }
+            });
+        }
         iCompanyService.setNameForMap(beans, "companyId", "companyName");
         iDepmentService.setNameForMap(beans, "departmentId", "departmentName");
         iCompanyJobService.setNameForMap(beans, "jobId", "jobName");
@@ -692,6 +733,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String arr = map.get("arr").toString();
         String[] dayarr = arr.split(",");
         List<Map<String, Object>> beans = new ArrayList<>();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         for (int i = 0, l = dayarr.length; i < l; i++) {
             map.put("day", dayarr[i]);
             Map<String, Object> bean = checkWorkDao.queryCheckWorkEcharts(map);
@@ -710,6 +753,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     @Override
     public void queryReportDetail(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         List<Map<String, Object>> beans = checkWorkDao.queryReportDetail(map);
         iAuthUserService.setNameForMap(beans, "createId", "createName");
         outputObject.setBeans(beans);
@@ -724,7 +769,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public List<Map<String, Object>> queryNotCheckMember(String timeId, String yesterdayTime) {
-        List<Map<String, Object>> beans = checkWorkDao.queryNotCheckMember(timeId, yesterdayTime);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkDao.queryNotCheckMember(timeId, yesterdayTime, tenantId);
         return beans;
     }
 
@@ -736,7 +782,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public List<Map<String, Object>> queryNotCheckEndWorkId(String timeId, String yesterdayTime) {
-        List<Map<String, Object>> beans = checkWorkDao.queryNotCheckEndWorkId(timeId, yesterdayTime);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkDao.queryNotCheckEndWorkId(timeId, yesterdayTime, tenantId);
         return beans;
     }
 
@@ -747,6 +794,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public void editCheckWorkBySystem(Map<String, Object> map) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         checkWorkDao.editCheckWorkBySystem(map);
     }
 
@@ -757,7 +806,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public List<Map<String, Object>> queryCheckWorkOvertimeWaitSettlement() {
-        List<Map<String, Object>> beans = checkWorkOvertimeDao.queryCheckWorkOvertimeWaitSettlement(FlowableChildStateEnum.ADEQUATE.getKey());
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkOvertimeDao.queryCheckWorkOvertimeWaitSettlement(FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         return beans;
     }
 
@@ -768,7 +818,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public void insertCheckWorkBySystem(List<Map<String, Object>> beans) {
-        checkWorkDao.insertCheckWorkBySystem(beans);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        checkWorkDao.insertCheckWorkBySystem(beans, tenantId);
     }
 
 }

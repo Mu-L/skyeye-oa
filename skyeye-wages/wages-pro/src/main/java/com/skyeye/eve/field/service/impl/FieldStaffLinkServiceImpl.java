@@ -78,9 +78,9 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         }
         Map<String, Object> staffMation = staffMap.get(staffId);
         List<String> wagesApplicableObject = Arrays.asList(new String[]{
-            staffMation.get("companyId").toString(),
-            staffMation.get("departmentId").toString(),
-            staffId});
+            staffMation.getOrDefault("companyId", StrUtil.EMPTY).toString(),
+            staffMation.getOrDefault("departmentId", StrUtil.EMPTY).toString(),
+            staffId}).stream().filter(StrUtil::isNotBlank).collect(Collectors.toList());
         List<Map<String, Object>> modelField = new ArrayList<>();
         String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
         // 1.获取薪资模板
@@ -88,7 +88,8 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         if (CollectionUtil.isNotEmpty(model)) {
             // 2.获取模板参数
             List<String> modelIds = model.stream().map(p -> p.get("id").toString()).collect(Collectors.toList());
-            modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId, staffMation.get("jobScoreId").toString(), tenantId);
+            modelField = wagesModelFieldDao.queryWagesModelFieldByModelIdsAndStaffId(modelIds, staffId,
+                staffMation.getOrDefault("jobScoreId", StrUtil.EMPTY).toString(), tenantId);
         }
         modelField.stream().forEach(bean -> {
             if ("1".equals(bean.get("monthlyClearing").toString())) {

@@ -8,22 +8,9 @@
             NAME_ = #{name}
         </set>
         WHERE ID_ = #{processDefinitionId}
+        <if test="tenantId != '' and tenantId != null">
+            AND TENANT_ID_ = #{tenantId}
+        </if>
     </update>
-
-    <delete id="deleteHisActivityInstanceByTaskId">
-        DELETE
-        FROM
-            ACT_HI_ACTINST
-        where
-            TASK_ID_ = #{taskId}
-    </delete>
-
-    <delete id="deleteHisTaskInstanceByTaskId">
-        DELETE
-        FROM
-            ACT_HI_TASKINST
-        where
-            ID_ = #{taskId}
-    </delete>
 
 </mapper>

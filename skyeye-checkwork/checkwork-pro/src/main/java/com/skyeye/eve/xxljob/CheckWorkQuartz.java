@@ -7,12 +7,14 @@ package com.skyeye.eve.xxljob;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.enumeration.WeekTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.eve.service.IScheduleDayService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -22,6 +24,7 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -54,6 +57,12 @@ public class CheckWorkQuartz {
     @Autowired
     private IScheduleDayService iScheduleDayService;
 
+    @Autowired
+    private ITenantService iTenantService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 定时器填充打卡信息,每天凌晨一点执行一次
      */
@@ -61,39 +70,57 @@ public class CheckWorkQuartz {
     public void editCheckWorkMation() {
         log.info("填充打卡信息定时任务执行");
         try {
-            // 1.获取所有的考勤班次信息
-            List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData();
-            // 得到昨天的时间
-            String yesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
-                DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD, DateAfterSpacePointTime.AroundType.BEFORE);
-            if (workTime != null && !workTime.isEmpty() && !iScheduleDayService.judgeISHoliday(yesterdayTime)) {
-                // 班次信息不为空，并且昨天不是节假日
-                log.info("Fill in the clocking information for timing task execution time is {}", yesterdayTime);
-                // 判断昨天的日期是周几
-                int weekDay = DateUtil.getWeek(yesterdayTime);
-                // 判断昨天的日期是单周还是双周
-                int weekType = DateUtil.getWeekType(yesterdayTime);
-                // 2.获取昨天应该打卡的班次信息
-                List<CheckWorkTime> shouldCheckTime = getShouldCheckTime(weekDay, weekType, workTime);
-                if (!shouldCheckTime.isEmpty()) {
-                    shouldCheckTime.forEach(bean -> {
-                        try {
-                            // 3.1 处理所有昨天只打早卡没有打晚卡的记录id
-                            handleNotCheckWorkEndMember(yesterdayTime, bean.getId());
-                            // 3.2 处理所有昨天没有打卡的用户
-                            handleNotCheckWorkMember(yesterdayTime, bean.getId());
-                        } catch (Exception e) {
-                            log.info("Handling abnormal attendance information, message is {}.", e);
-                        }
-                    });
+            if (tenantEnable) {
+                //  开启多租户
+                List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+                if (CollectionUtil.isEmpty(tenantList)) {
+                    return;
                 }
+                tenantList.forEach(tenant -> {
+                    String tenantId = tenant.get("id").toString();
+                    TenantContext.setTenantId(tenantId);
+                    calcCheckWork();
+                });
+            } else {
+                calcCheckWork();
             }
-            // 4 处理所有昨天加班只打早卡没有打晚卡的记录id
-            handleNotCheckWorkEndMember(yesterdayTime, "-");
+            calcCheckWork();
         } catch (Exception e) {
             log.warn("CheckWorkQuartz error.", e);
         }
         log.info("填充打卡信息定时任务 end");
+    }
+
+    private void calcCheckWork() {
+        // 1.获取所有的考勤班次信息
+        List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData();
+        // 得到昨天的时间
+        String yesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
+            DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD, DateAfterSpacePointTime.AroundType.BEFORE);
+        if (workTime != null && !workTime.isEmpty() && !iScheduleDayService.judgeISHoliday(yesterdayTime)) {
+            // 班次信息不为空，并且昨天不是节假日
+            log.info("Fill in the clocking information for timing task execution time is {}", yesterdayTime);
+            // 判断昨天的日期是周几
+            int weekDay = DateUtil.getWeek(yesterdayTime);
+            // 判断昨天的日期是单周还是双周
+            int weekType = DateUtil.getWeekType(yesterdayTime);
+            // 2.获取昨天应该打卡的班次信息
+            List<CheckWorkTime> shouldCheckTime = getShouldCheckTime(weekDay, weekType, workTime);
+            if (!shouldCheckTime.isEmpty()) {
+                shouldCheckTime.forEach(bean -> {
+                    try {
+                        // 3.1 处理所有昨天只打早卡没有打晚卡的记录id
+                        handleNotCheckWorkEndMember(yesterdayTime, bean.getId());
+                        // 3.2 处理所有昨天没有打卡的用户
+                        handleNotCheckWorkMember(yesterdayTime, bean.getId());
+                    } catch (Exception e) {
+                        log.info("Handling abnormal attendance information, message is {}.", e);
+                    }
+                });
+            }
+        }
+        // 4 处理所有昨天加班只打早卡没有打晚卡的记录id
+        handleNotCheckWorkEndMember(yesterdayTime, "-");
     }
 
     /**

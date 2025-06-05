@@ -26,7 +26,6 @@ import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -265,8 +264,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     @IgnoreTenant
     public SysEveUserStaff selectById(String id) {
         SysEveUserStaff sysEveUserStaff = super.selectById(id);
-        String tenantId = TenantContext.getTenantId();
-        if (tenantEnable && !StrUtil.equals(tenantId, TenantTypeEnum.PLATFORM.getCode())) {
+        if (tenantEnable) {
             // 设置当前默认租户下的用户信息
             sysEveUserStaff = tenantUserService.setThisTenantUserToDefault(sysEveUserStaff);
             if (ObjectUtil.isEmpty(sysEveUserStaff)) {

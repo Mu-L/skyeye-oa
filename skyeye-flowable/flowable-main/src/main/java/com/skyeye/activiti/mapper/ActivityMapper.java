@@ -4,6 +4,7 @@
 
 package com.skyeye.activiti.mapper;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -11,10 +12,9 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface ActivityMapper {
 
-    void updateProcessDefinitionName(@Param("name") String name, @Param("processDefinitionId") String processDefinitionId);
-
-    void deleteHisActivityInstanceByTaskId(@Param("taskId") String taskId);
-
-    void deleteHisTaskInstanceByTaskId(@Param("taskId") String taskId);
+    @IgnoreTenant
+    void updateProcessDefinitionName(@Param("name") String name,
+                                     @Param("processDefinitionId") String processDefinitionId,
+                                     @Param("tenantId") String tenantId);
 
 }

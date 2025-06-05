@@ -4,6 +4,7 @@
 
 package com.skyeye.trip.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.trip.entity.BusinessTrip;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public interface BusinessTripDao extends SkyeyeBaseMapper<BusinessTrip> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryBusinessTripList(CommonPageInfo pageInfo);
 
     /**
@@ -33,7 +35,10 @@ public interface BusinessTripDao extends SkyeyeBaseMapper<BusinessTrip> {
      * @param childState 子对象状态
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryStateIsSuccessBusinessTripDay(@Param("userId") String userId,
-                                                                 @Param("timeId") String timeId, @Param("months") List<String> months,
-                                                                 @Param("childState") String childState);
+                                                                 @Param("timeId") String timeId,
+                                                                 @Param("months") List<String> months,
+                                                                 @Param("childState") String childState,
+                                                                 @Param("tenantId") String tenantId);
 }

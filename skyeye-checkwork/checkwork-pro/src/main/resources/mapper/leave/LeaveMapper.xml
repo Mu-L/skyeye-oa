@@ -23,6 +23,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (a.odd_number like '%${keyword}%' OR a.`name` like '%${keyword}%')
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
         ORDER BY a.create_time DESC
     </select>
@@ -40,6 +43,9 @@
         AND b.state = 3
         AND b.leave_day = #{leaveDay}
         AND b.time_id = #{timeId}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryStateIsSuccessLeaveDayByUserIdAndMonths" resultType="java.util.Map">
@@ -58,6 +64,9 @@
             <foreach collection="months" item="month" separator="," open=" AND date_format(a.leave_day, '%Y-%m') in(" close=")">
                 #{month}
             </foreach>
+        </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
         </if>
     </select>
 
