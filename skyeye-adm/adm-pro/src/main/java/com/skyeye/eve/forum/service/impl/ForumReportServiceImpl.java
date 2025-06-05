@@ -9,13 +9,17 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.forum.classenum.ContentStateEnum;
@@ -89,11 +93,12 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
     }
 
     @Override
+    @IgnoreTenant
     public void queryReportNoCheckList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        MPJLambdaWrapper<ForumReport> mpjLambdaWrapper = new MPJLambdaWrapper<ForumReport>()
-            .innerJoin(ForumContent.class, ForumContent::getId, ForumReport::getForumId);
+        MPJLambdaWrapper<ForumReport> mpjLambdaWrapper = JoinWrappers.lambda("fr", ForumReport.class)
+            .innerJoin(ForumContent.class, "fc", ForumContent::getId, ForumReport::getForumId);
         // keyword查询条件
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             mpjLambdaWrapper.like(MybatisPlusUtil.toColumns(ForumContent::getForumTitle), commonPageInfo.getKeyword());
@@ -128,6 +133,13 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
         if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
             mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(ForumReport::getReportTypeId), commonPageInfo.getTypeId());
         }
+
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            mpjLambdaWrapper.eq("fr." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            mpjLambdaWrapper.eq("fc." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+
         // 根据创建时间降序排序
         mpjLambdaWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumReport::getReportTime));
         List<ForumReport> forumReportList = skyeyeBaseMapper.selectJoinList(ForumReport.class, mpjLambdaWrapper);
@@ -135,17 +147,15 @@ public class ForumReportServiceImpl extends SkyeyeBusinessServiceImpl<ForumRepor
             return;
         }
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(forumReportList), null);
-        for (Map<String, Object> map : beans) {
-            map.put("forumMation", forumContentService.selectById(map.get("forumId").toString()));
-            map.put("examineMation", iAuthUserService.queryDataMationById(map.get("examineId").toString()));
-        }
+        forumContentService.setMationForMap(beans, "forumId", "forumMation");
+        iAuthUserService.setMationForMap(beans, "examineId", "examineMation");
         iAuthUserService.setMationForMap(beans, "reportId", "reportMation");
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void checkForumReport(InputObject inputObject, OutputObject outputObject) {
         // 校验数据
         Map<String, Object> map = inputObject.getParams();
