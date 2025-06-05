@@ -23,11 +23,18 @@ import java.util.Map;
  */
 public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
 
-    Map<String, Object> queryStartWorkTime(@Param("timeId") String timeId, @Param("staffId") String staffId);
+    @IgnoreTenant
+    Map<String, Object> queryStartWorkTime(@Param("timeId") String timeId,
+                                           @Param("staffId") String staffId,
+                                           @Param("tenantId") String tenantId);
 
-    CheckWork queryisAlreadyCheck(@Param("checkDate") String checkDate, @Param("createId") String createId,
-                                  @Param("timeId") String timeId);
+    @IgnoreTenant
+    CheckWork queryisAlreadyCheck(@Param("checkDate") String checkDate,
+                                  @Param("createId") String createId,
+                                  @Param("timeId") String timeId,
+                                  @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCheckWorkList(CommonPageInfo pageInfo);
 
     /**
@@ -37,15 +44,14 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
      * @param yesterdayTime 日期信息,格式为：yyyy-MM-dd
      * @return
      */
-    List<Map<String, Object>> queryNotCheckMember(@Param("timeId") String timeId, @Param("yesterdayTime") String yesterdayTime);
+    @IgnoreTenant
+    List<Map<String, Object>> queryNotCheckMember(@Param("timeId") String timeId,
+                                                  @Param("yesterdayTime") String yesterdayTime,
+                                                  @Param("tenantId") String tenantId);
 
-    /**
-     * 新增打卡信息
-     *
-     * @param listBeans
-     * @return
-     */
-    int insertCheckWorkBySystem(List<Map<String, Object>> listBeans);
+    @IgnoreTenant
+    int insertCheckWorkBySystem(@Param("list") List<Map<String, Object>> list,
+                                @Param("tenantId") String tenantId);
 
     /**
      * 获取所有昨天没有打下班卡的用户
@@ -54,7 +60,10 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
      * @param yesterdayTime 日期信息,格式为：yyyy-MM-dd
      * @return
      */
-    List<Map<String, Object>> queryNotCheckEndWorkId(@Param("timeId") String timeId, @Param("yesterdayTime") String yesterdayTime);
+    @IgnoreTenant
+    List<Map<String, Object>> queryNotCheckEndWorkId(@Param("timeId") String timeId,
+                                                     @Param("yesterdayTime") String yesterdayTime,
+                                                     @Param("tenantId") String tenantId);
 
     /**
      * 填充下班卡信息
@@ -62,9 +71,14 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
      * @param item
      * @return
      */
+    @IgnoreTenant
     int editCheckWorkBySystem(Map<String, Object> item);
 
-    List<Map<String, Object>> queryCheckWorkIdByAppealType(Map<String, Object> map);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCheckWorkIdByAppealType(@Param("userId") String userId,
+                                                           @Param("state") String state,
+                                                           @Param("notInCheckState") List<Integer> notInCheckState,
+                                                           @Param("tenantId") String tenantId);
 
     /**
      * 获取指定员工指定班次在指定月份的所有打卡信息
@@ -80,10 +94,13 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
                                                           @Param("months") List<String> months,
                                                           @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCheckWorkReport(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryCheckWorkEcharts(Map<String, Object> beans);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryReportDetail(Map<String, Object> map);
 
     /**
@@ -96,6 +113,8 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
     List<Map<String, Object>> queryHolidayScheduleDayMation(@Param("list") List<String> months,
                                                             @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId);
+    @IgnoreTenant
+    List<Map<String, Object>> queryStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId,
+                                                                       @Param("tenantId") String tenantId);
 
 }

@@ -11,6 +11,9 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.checkwork.classenum.ClockInTime;
+import com.skyeye.checkwork.classenum.ClockOutTime;
+import com.skyeye.checkwork.classenum.ClockState;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -51,7 +54,7 @@ public class CheckWork extends CommonInfo {
     private String checkDate;
 
     @TableField(value = "state")
-    @Property(value = "考勤状态，参考#ClockState")
+    @Property(value = "考勤状态", enumClass = ClockState.class)
     private Integer state;
 
     @TableField(value = "clock_in")
@@ -59,7 +62,7 @@ public class CheckWork extends CommonInfo {
     private String clockIn;
 
     @TableField(value = "clock_in_state")
-    @ApiModelProperty(value = "上班打卡状态，参考#ClockInTime", required = "required,num")
+    @ApiModelProperty(value = "上班打卡状态", enumClass = ClockInTime.class, required = "required,num")
     private Integer clockInState;
 
     @TableField(value = "clock_out")
@@ -67,7 +70,7 @@ public class CheckWork extends CommonInfo {
     private String clockOut;
 
     @TableField(value = "clock_out_state")
-    @ApiModelProperty(value = "下班打卡状态，参考#ClockOutTime", required = "required,num")
+    @ApiModelProperty(value = "下班打卡状态", enumClass = ClockOutTime.class, required = "required,num")
     private Integer clockOutState;
 
     @TableField(value = "work_hours")
