@@ -6,12 +6,15 @@ package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.ActGroupUserDao;
 import com.skyeye.eve.entity.ActGroupUser;
@@ -81,9 +84,33 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
     }
 
     @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryUserInfoOnActGroup(commonPageInfo);
+        if (tenantEnable) {
+            // 如果开启多租户，则需要查询员工所在的租户下的员工信息
+            List<String> userIds = beans.stream().map(item -> item.get("userId").toString()).distinct().collect(Collectors.toList());
+            Map<String, Map<String, Object>> tenantUserMap = iAuthUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
+            beans.forEach(bean -> {
+                String userId = bean.get("userId").toString();
+                Map<String, Object> tenantUser = tenantUserMap.get(userId);
+                if (CollectionUtil.isNotEmpty(tenantUser)) {
+                    bean.put("companyId", tenantUser.get("companyId"));
+                    bean.put("departmentId", tenantUser.get("departmentId"));
+                    bean.put("jobId", tenantUser.get("jobId"));
+                }
+            });
+        }
+
         iCompanyService.setNameForMap(beans, "companyId", "companyName");
         iDepmentService.setNameForMap(beans, "departmentId", "departmentName");
         iCompanyJobService.setNameForMap(beans, "jobId", "jobName");

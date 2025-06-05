@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.entity.ActGroupUser;
 
@@ -20,10 +21,13 @@ import java.util.Map;
  */
 public interface ActGroupUserDao extends SkyeyeBaseMapper<ActGroupUser> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryUserListToActiviti(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryUserListToActivitiByGroup(Map<String, Object> parmter);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryUserInfoOnActGroup(CommonPageInfo commonPageInfo);
 
 }

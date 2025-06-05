@@ -30,12 +30,6 @@ public class ActivitiUserController {
     @Autowired
     private ActivitiUserService activitiUserService;
 
-    /**
-     * 获取人员选择
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode011", value = "获取人员选择", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "reqObj", name = "reqObj", value = "参数", required = "required")})
@@ -44,12 +38,6 @@ public class ActivitiUserController {
         activitiUserService.queryUserListToActiviti(inputObject, outputObject);
     }
 
-    /**
-     * 获取组人员选择
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode012", value = "获取组人员选择", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "reqObj", name = "reqObj", value = "参数", required = "required")})
@@ -58,12 +46,6 @@ public class ActivitiUserController {
         activitiUserService.queryUserGroupListToActiviti(inputObject, outputObject);
     }
 
-    /**
-     * 用户以及用户组信息同步到act表中
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "activitimode015", value = "获取组人员选择", method = "POST", allUse = "1")
     @RequestMapping("/post/ActivitiUserController/insertSyncUserListMationToAct")
     public void insertSyncUserListMationToAct(InputObject inputObject, OutputObject outputObject) {
