@@ -11,6 +11,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.checkwork.classenum.CheckTypeFrom;
 import com.skyeye.checkwork.classenum.ClockInTime;
@@ -260,6 +261,12 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             // 已经打过晚卡
             outputObject.setreturnMessage("今日已打过晚卡，请不要重复打卡！");
         }
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
     }
 
     @Override
