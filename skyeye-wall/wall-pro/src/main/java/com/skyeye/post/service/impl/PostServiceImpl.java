@@ -280,6 +280,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     @Override
     public Post selectById(String id) {
         Post post = super.selectById(id);
+        if(StrUtil.isEmpty(post.getId())){
+            throw new CustomException("帖子已被删除");
+        }
         setUserMation(post);
         return post;
     }

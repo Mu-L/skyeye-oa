@@ -134,6 +134,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
     @Override
     public Circle selectById(String id) {
         Circle circle = super.selectById(id);
+        if(StrUtil.isEmpty(circle.getId())){
+            throw new CustomException("圈子已被删除");
+        }
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         if(StrUtil.isEmpty(userToken)){
             circle.setIsJoin(false);
