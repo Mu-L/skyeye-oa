@@ -1,21 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <controller modelName="工作流模块">
-	
-	<!-- 
+
+	<!--
 		- allUse  是否需要登录才能使用   1是   0否  2需要登陆才能访问，但无需授权    默认为否
 	 -->
-	
-	<!-- 工作流开始 -->
-	<url id="activitimode003" path="/post/ActivitiModelController/editActivitiModelToDeploy" val="发布模型为流程定义" allUse="1" groupName="工作流操作">
-		<property id="modelId" name="modelId" ref="required" var="模型id"/>
-	</url>
-	<url id="activitimode007" path="/post/ActivitiModelController/deleteReleasedActivitiModelById" val="取消发布" allUse="1" groupName="工作流操作">
-		<property id="deploymentId" name="deploymentId" ref="required" var="部署流程id"/>
-	</url>
-	<url id="activitimode010" path="/post/ActivitiModelController/editApprovalActivitiTaskListByUserId" val="导出model的xml文件" allUse="0" method="GET" groupName="工作流操作">
-		<property id="modelId" name="modelId" ref="required" var="模型id" />
-	</url>
-	<!-- 工作流结束 -->
 
 	<!-- 工作流流程相关操作开始 -->
 	<url id="activitimode020" path="/post/ActivitiProcessController/updateProcessToHangUp" val="流程挂起" allUse="2" groupName="工作流流程相关操作">

@@ -257,7 +257,7 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
 
             ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deployment.getId()).singleResult();
             if (!StrUtil.isBlank(processName)) {
-                activityMapper.updateProcessDefinitionName(processName, processDefinition.getId());
+                activityMapper.updateProcessDefinitionName(processName, processDefinition.getId(), deployment.getTenantId());
                 LOGGER.info("流程模型【{}】没有配置流程名称，默认使用流程模型名称作为流程名称", processName);
             }
             LOGGER.info("流程【{}】成功发布", processName);
