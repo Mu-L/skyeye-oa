@@ -28,7 +28,7 @@
                 AND (a.`name` like '%${keyword}%' OR d.odd_number like '%${keyword}%')
             </if>
             <if test="tenantId != '' and tenantId != null">
-                AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId} AND e.tenant_id = #{tenantId}
+                AND a.tenant_id = #{tenantId} AND d.tenant_id = #{tenantId} AND e.tenant_id = #{tenantId}
             </if>
         </where>
         ORDER BY d.create_time DESC
