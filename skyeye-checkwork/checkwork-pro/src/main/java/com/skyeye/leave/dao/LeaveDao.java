@@ -4,6 +4,7 @@
 
 package com.skyeye.leave.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.leave.entity.Leave;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public interface LeaveDao extends SkyeyeBaseMapper<Leave> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMyCheckWorkLeaveList(CommonPageInfo pageInfo);
 
     /**
@@ -32,7 +34,11 @@ public interface LeaveDao extends SkyeyeBaseMapper<Leave> {
      * @param leaveDay 指定日期,格式为：yyyy-MM-dd
      * @return
      */
-    Map<String, Object> queryCheckWorkLeaveByMation(@Param("timeId") String timeId, @Param("createId") String createId, @Param("leaveDay") String leaveDay);
+    @IgnoreTenant
+    Map<String, Object> queryCheckWorkLeaveByMation(@Param("timeId") String timeId,
+                                                    @Param("createId") String createId,
+                                                    @Param("leaveDay") String leaveDay,
+                                                    @Param("tenantId") String tenantId);
 
     /**
      * 获取指定员工在指定月份和班次的所有审核通过的请假申请数据
@@ -42,7 +48,10 @@ public interface LeaveDao extends SkyeyeBaseMapper<Leave> {
      * @param months 指定月份，月格式（yyyy-MM）
      * @return
      */
-    List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(@Param("userId") String userId, @Param("timeId") String timeId,
-                                                                           @Param("months") List<String> months);
+    @IgnoreTenant
+    List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(@Param("userId") String userId,
+                                                                           @Param("timeId") String timeId,
+                                                                           @Param("months") List<String> months,
+                                                                           @Param("tenantId") String tenantId);
 
 }

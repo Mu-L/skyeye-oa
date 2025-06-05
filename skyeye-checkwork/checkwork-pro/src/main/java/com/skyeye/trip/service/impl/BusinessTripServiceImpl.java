@@ -5,6 +5,7 @@
 package com.skyeye.trip.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
@@ -13,9 +14,9 @@ import com.skyeye.common.enumeration.CheckDayType;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.trip.dao.BusinessTripDao;
 import com.skyeye.trip.entity.BusinessTrip;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
@@ -26,7 +27,10 @@ import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -47,13 +51,13 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     @Autowired
     private CheckWorkTimeService checkWorkTimeService;
 
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryBusinessTripList(pageInfo);
         return beans;
     }
@@ -136,7 +140,9 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
      */
     @Override
     public List<Map<String, Object>> queryStateIsSuccessBusinessTripDayByUserIdAndMonths(String userId, String timeId, List<String> months) {
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessBusinessTripDay(userId, timeId, months, FlowableChildStateEnum.ADEQUATE.getKey());
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessBusinessTripDay(userId, timeId, months,
+            FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         // 获取考勤班次信息
         List<String> timeIds = beans.stream()
             .map(bean -> bean.get("timeId").toString()).distinct().collect(Collectors.toList());

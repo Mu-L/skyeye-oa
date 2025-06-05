@@ -4,7 +4,13 @@
 
 package com.skyeye.eve.xxljob;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.google.common.base.Joiner;
+import com.skyeye.checkwork.dao.CheckWorkDao;
+import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.WagesConstant;
 import com.skyeye.common.enumeration.OvertimeSettlementType;
@@ -12,8 +18,7 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.eve.centerrest.entity.wages.WagesStaffWorkTimeMationRest;
 import com.skyeye.eve.centerrest.user.SysEveUserStaffCapitalService;
 import com.skyeye.eve.centerrest.wages.WagesStaffMationService;
-import com.skyeye.checkwork.dao.CheckWorkDao;
-import com.skyeye.checkwork.service.CheckWorkService;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.overtime.classenum.OvertimeSoltSettleState;
 import com.skyeye.overtime.service.OverTimeSlotService;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -56,6 +61,9 @@ public class CalcStaffWaitPayWages {
     private CheckWorkDao checkWorkDao;
 
     @Autowired
+    private IAuthUserService iAuthUserService;
+
+    @Autowired
     private WagesStaffMationService wagesStaffMationService;
 
     @Autowired
@@ -81,21 +89,34 @@ public class CalcStaffWaitPayWages {
         // 获取所有待结算的加班信息
         List<Map<String, Object>> overTimeWaitSettlementList = checkWorkService.queryCheckWorkOvertimeWaitSettlement();
         log.info("overTimeWaitSettlementList size is: {}", overTimeWaitSettlementList.size());
+
+        if (CollectionUtil.isEmpty(overTimeWaitSettlementList)) {
+            return;
+        }
+        // 获取用户信息
+        List<String> userIds = overTimeWaitSettlementList.stream()
+            .map(p -> p.get("userId").toString()).distinct().collect(Collectors.toList());
+        List<Map<String, Object>> userList = iAuthUserService.queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
+        Map<String, Map<String, Object>> userMap = userList.stream().collect(Collectors.toMap(p -> p.get("id").toString(), p -> p));
+
+        // 缓存用户的考勤信息
         Map<String, List<Map<String, Object>>> overTimeWaitSettlementByStaffId = overTimeWaitSettlementList.stream()
             .collect(Collectors.groupingBy(map -> map.get("staffId").toString() + map.get("overtimeMonth").toString()));
         for (Map.Entry<String, List<Map<String, Object>>> entry : overTimeWaitSettlementByStaffId.entrySet()) {
             List<Map<String, Object>> overTimeList = entry.getValue();
+            String userId = overTimeList.get(0).get("createId").toString();
+            Map<String, Object> user = userMap.get(userId);
             // 员工薪资
-            String actWages = overTimeList.get(0).get("actWages").toString();
+            String actWages = user.get("actWages").toString();
             String overtimeMonth = overTimeList.get(0).get("overtimeMonth").toString();
-            String staffId = overTimeList.get(0).get("staffId").toString();
+            String staffId = user.get("staffId").toString();
             String hourWages = getStaffHourWages(pointMonthCheckWorkTimeCache, actWages, overtimeMonth, staffId);
             String resultMoney = getAllOverTimeMoneyThisMonth(overTimeList, hourWages);
 
             Map<String, Object> params = new HashMap<>();
-            params.put("staffId", overTimeList.get(0).get("staffId").toString());
-            params.put("companyId", overTimeList.get(0).get("companyId").toString());
-            params.put("departmentId", overTimeList.get(0).get("departmentId").toString());
+            params.put("staffId", staffId);
+            params.put("companyId", user.getOrDefault("companyId", StrUtil.EMPTY).toString());
+            params.put("departmentId", user.getOrDefault("departmentId", StrUtil.EMPTY).toString());
             params.put("monthTime", overtimeMonth);
             params.put("type", 1);
             params.put("money", resultMoney);

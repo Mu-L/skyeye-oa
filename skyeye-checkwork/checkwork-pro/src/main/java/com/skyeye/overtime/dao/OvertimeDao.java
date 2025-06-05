@@ -4,6 +4,7 @@
 
 package com.skyeye.overtime.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.overtime.entity.OverTime;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public interface OvertimeDao extends SkyeyeBaseMapper<OverTime> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryOvertimeList(CommonPageInfo pageInfo);
 
     /**
@@ -29,12 +31,14 @@ public interface OvertimeDao extends SkyeyeBaseMapper<OverTime> {
      *
      * @param createId    创建人
      * @param overtimeDay 指定天
-     * @param childState 子对象状态
+     * @param childState  子对象状态
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryPassThisDayAndCreateId(@Param("createId") String createId,
                                                           @Param("overtimeDay") String overtimeDay,
-                                                          @Param("childState") String childState);
+                                                          @Param("childState") String childState,
+                                                          @Param("tenantId") String tenantId);
 
     /**
      * 获取指定员工在指定月份的所有审核通过的加班申请数据
@@ -43,8 +47,10 @@ public interface OvertimeDao extends SkyeyeBaseMapper<OverTime> {
      * @param months 指定月份，月格式（yyyy-MM）
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths(@Param("userId") String userId,
-                                                                                  @Param("months") List<String> months);
+                                                                                  @Param("months") List<String> months,
+                                                                                  @Param("tenantId") String tenantId);
 
     /**
      * 获取所有待结算的加班数据
@@ -52,6 +58,8 @@ public interface OvertimeDao extends SkyeyeBaseMapper<OverTime> {
      * @param childState 子对象状态
      * @return
      */
-    List<Map<String, Object>> queryCheckWorkOvertimeWaitSettlement(@Param("childState") String childState);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCheckWorkOvertimeWaitSettlement(@Param("childState") String childState,
+                                                                   @Param("tenantId") String tenantId);
 
 }

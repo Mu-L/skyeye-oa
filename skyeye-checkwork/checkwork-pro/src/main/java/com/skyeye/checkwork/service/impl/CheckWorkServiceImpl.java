@@ -6,6 +6,7 @@ package com.skyeye.checkwork.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -26,6 +27,7 @@ import com.skyeye.common.enumeration.WeekTypeEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.constants.CheckWorkConstants;
@@ -337,9 +339,11 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @return
      */
     private Map<String, Object> getWorkTime(String userId, String today, String timeId, String staffId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         Map<String, Object> workTime;
         // 判断今天是否是加班日
-        List<Map<String, Object>> overTimeMation = checkWorkOvertimeDao.queryPassThisDayAndCreateId(userId, today, FlowableChildStateEnum.ADEQUATE.getKey());
+        List<Map<String, Object>> overTimeMation = checkWorkOvertimeDao.queryPassThisDayAndCreateId(userId, today,
+            FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         if (CollectionUtil.isNotEmpty(overTimeMation)) {
             // 根据加班日判断显示打上班卡或者下班卡
             workTime = overTimeMation.get(0);
@@ -427,7 +431,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String userId = inputObject.getLogParams().get("id").toString();
         List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
         LOGGER.info("需要查询的月份信息：{}", months);
-        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
         beans.forEach(bean -> {
             if ("-".equals(bean.get("timeId").toString())) {
                 // 加班日的打卡信息
@@ -490,8 +495,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
 
     @Override
     public void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取指定月份的节假日(type=3)
-        List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months);
+        List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months, tenantId);
         beans.addAll(holiday);
         // 开始计算上班日期
         calcWorkTime(beans, months, timeId);
@@ -757,7 +763,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     @Override
     public List<Map<String, Object>> queryCheckWorkOvertimeWaitSettlement() {
-        List<Map<String, Object>> beans = checkWorkOvertimeDao.queryCheckWorkOvertimeWaitSettlement(FlowableChildStateEnum.ADEQUATE.getKey());
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = checkWorkOvertimeDao.queryCheckWorkOvertimeWaitSettlement(FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         return beans;
     }
 

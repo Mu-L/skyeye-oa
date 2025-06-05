@@ -22,6 +22,9 @@
             <if test="keyword != null and keyword != ''">
                 AND (a.odd_number like '%${keyword}%' OR a.`name` like '%${keyword}%')
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
         ORDER BY a.create_time DESC
     </select>
@@ -39,6 +42,9 @@
           AND a.id = b.parent_id
           AND b.state = #{childState}
           AND b.overtime_day = #{overtimeDay}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths" resultType="java.util.Map">
@@ -58,6 +64,9 @@
                 #{month}
             </foreach>
         </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryCheckWorkOvertimeWaitSettlement" resultType="java.util.Map">
@@ -66,18 +75,16 @@
             a.create_id createId,
             DATE_FORMAT(b.overtime_day, '%Y-%m') overtimeMonth,
             b.overtime_hour overtimeHour,
-            c.company_id companyId,
-            c.department_id departmentId,
-            c.id staffId,
-            c.act_wages actWages,
             b.overtime_settlement_type overtimeSettlementType
         FROM
-            check_work_overtime a
-            LEFT JOIN sys_eve_user_staff c ON a.create_id = c.user_id,
+            check_work_overtime a,
             check_work_overtime_time_slot b
         WHERE a.id = b.parent_id
         AND b.state = #{childState}
         AND b.settle_state = 1
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>

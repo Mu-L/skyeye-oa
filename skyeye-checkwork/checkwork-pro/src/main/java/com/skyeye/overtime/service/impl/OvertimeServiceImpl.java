@@ -5,6 +5,7 @@
 package com.skyeye.overtime.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
@@ -15,6 +16,7 @@ import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.OvertimeSettlementType;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.centerrest.entity.checkwork.UserStaffHolidayRest;
@@ -59,6 +61,9 @@ public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, 
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryOvertimeList(pageInfo);
         return beans;
     }
@@ -140,13 +145,16 @@ public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, 
         String staffId = user.get("staffId").toString();
         // 员工当前剩余补休
         String holidayNumber = user.get("holidayNumber").toString();
+
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取加班天数信息
         List<OverTimeSlot> overTimeSlotList = overTimeSlotService.selectByPId(overtimeId);
         for (OverTimeSlot overTimeSlot : overTimeSlotList) {
             String overtimeSoltId = overTimeSlot.getId();
             String overtimeDay = overTimeSlot.getOvertimeDay();
             String overtimeHour = overTimeSlot.getOvertimeHour();
-            List<Map<String, Object>> inData = skyeyeBaseMapper.queryPassThisDayAndCreateId(createId, overtimeDay, FlowableChildStateEnum.ADEQUATE.getKey());
+            List<Map<String, Object>> inData = skyeyeBaseMapper.queryPassThisDayAndCreateId(createId, overtimeDay,
+                FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
             if (CollectionUtil.isEmpty(inData)) {
                 // 如果指定天还没有审批通过的记录，则审批通过
                 overTimeSlotService.editStateById(overtimeSoltId, FlowableChildStateEnum.ADEQUATE.getKey());
@@ -179,7 +187,8 @@ public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, 
      */
     @Override
     public List<Map<String, Object>> queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths(String userId, List<String> months) {
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths(userId, months);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths(userId, months, tenantId);
         beans.forEach(bean -> {
             bean.put("type", CheckDayType.DAY_IS_WORK_OVERTIME.getKey());
             bean.put("className", CheckDayType.DAY_IS_WORK_OVERTIME.getClassName());

@@ -4,6 +4,7 @@
 
 package com.skyeye.checkwork.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
@@ -73,8 +74,11 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
      * @param months 月份集合
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> queryCheckWorkMationByMonth(@Param("userId") String userId,
-                                                          @Param("timeId") String timeId, @Param("months") List<String> months);
+                                                          @Param("timeId") String timeId,
+                                                          @Param("months") List<String> months,
+                                                          @Param("tenantId") String tenantId);
 
     List<Map<String, Object>> queryCheckWorkReport(Map<String, Object> map);
 
@@ -88,7 +92,9 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
      * @param months 指定月，格式["2020-04", "2020-05"...]
      * @return 指定月中的所有节假日
      */
-    List<Map<String, Object>> queryHolidayScheduleDayMation(@Param("list") List<String> months);
+    @IgnoreTenant
+    List<Map<String, Object>> queryHolidayScheduleDayMation(@Param("list") List<String> months,
+                                                            @Param("tenantId") String tenantId);
 
     List<Map<String, Object>> queryStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId);
 

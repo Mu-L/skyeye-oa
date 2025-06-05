@@ -5,6 +5,7 @@
 package com.skyeye.leave.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -18,6 +19,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -31,7 +33,6 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
-import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,13 +65,13 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
-    @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyCheckWorkLeaveList(pageInfo);
         return beans;
     }
@@ -250,7 +251,8 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
      */
     @Override
     public List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months) {
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months, tenantId);
         beans.forEach(bean -> {
             bean.put("title", CheckDayType.DAY_IS_BUSINESS_TRAVEL.getValue());
             bean.put("type", CheckDayType.DAY_IS_LEAVE.getKey());
@@ -303,8 +305,9 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
      */
     @Override
     public Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取请假日期信息
-        Map<String, Object> leaveDayMation = skyeyeBaseMapper.queryCheckWorkLeaveByMation(timeId, createId, leaveDay);
+        Map<String, Object> leaveDayMation = skyeyeBaseMapper.queryCheckWorkLeaveByMation(timeId, createId, leaveDay, tenantId);
         return leaveDayMation;
     }
 

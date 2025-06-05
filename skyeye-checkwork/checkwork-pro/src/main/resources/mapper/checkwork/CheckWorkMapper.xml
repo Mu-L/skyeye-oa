@@ -160,6 +160,9 @@
 					#{month}
 				</foreach>
 			</if>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
         UNION ALL
             SELECT
                 concat(a.id, 'b') id,
@@ -184,6 +187,9 @@
 				<foreach collection="months" item="month" separator="," open=" AND date_format(a.check_date, '%Y-%m') in(" close=")">
 					#{month}
 				</foreach>
+			</if>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
 			</if>
     </select>
     
@@ -337,6 +343,9 @@
 			DATE_FORMAT(a.start_time, '%Y-%m') = #{item} OR DATE_FORMAT(a.end_time, '%Y-%m') = #{item} OR
 		</foreach>
 		1 = 0)
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 
 	<select id="queryStaffCheckWorkTimeRelationByStaffId" resultType="java.util.Map">

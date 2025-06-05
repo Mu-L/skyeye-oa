@@ -25,6 +25,9 @@
             <if test="keyword != null and keyword != ''">
                 AND a.`name` like '%${keyword}%'
             </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
         ORDER BY a.create_time DESC
     </select>
@@ -47,6 +50,9 @@
                 <foreach collection="months" item="month" separator="," open=" AND date_format(a.travel_day, '%Y-%m') in(" close=")">
                     #{month}
                 </foreach>
+            </if>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
             </if>
         </where>
     </select>
