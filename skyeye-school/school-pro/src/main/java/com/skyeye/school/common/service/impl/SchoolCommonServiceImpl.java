@@ -6,6 +6,8 @@ package com.skyeye.school.common.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.google.common.base.Joiner;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.service.IAuthUserService;
@@ -18,7 +20,11 @@ import com.skyeye.school.student.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SchoolCommonServiceImpl
@@ -65,6 +71,58 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
             item.setDataMation(teacherMation);
         }
         return item;
+    }
+
+    @Override
+    public List<UserOrStudent> queryUserOrStudentList(List<String> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyList();
+        }
+        userIds = userIds.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyList();
+        }
+        Map<String, Map<String, Object>> studentMap = iUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
+        List<UserOrStudent> userOrStudentList = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(studentMap)) {
+            // 根据学号查询学生信息
+            List<String> studentNumbers = studentMap.values().stream()
+                .map(studentMation -> studentMation.getOrDefault("studentNumber", StrUtil.EMPTY).toString())
+                .collect(Collectors.toList());
+            List<Student> students = studentService.getStudents(studentNumbers);
+            Map<String, Student> studentMapByNumber = students.stream().collect(Collectors.toMap(Student::getNo, student -> student));
+            // 组装数据
+            studentMap.forEach((id, studentMation) -> {
+                UserOrStudent item = new UserOrStudent();
+                item.setUserOrStudent(true);
+                studentMation.put("userIdentity", LoginIdentity.STUDENT.getKey());
+                studentMation.put("password", StrUtil.EMPTY);
+                String studentNumber = studentMation.getOrDefault("studentNumber", StrUtil.EMPTY).toString();
+                if (StrUtil.isNotEmpty(studentNumber)) {
+                    Student student = studentMapByNumber.get(studentNumber);
+                    studentMation.put("studentMation", student);
+                }
+                item.setDataMation(studentMation);
+                userOrStudentList.add(item);
+            });
+        }
+        List<String> notStudentIds = userIds.stream().filter(id -> !studentMap.containsKey(id)).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(notStudentIds)) {
+            return userOrStudentList;
+        }
+        // 根据用户id查询教师信息
+        Map<String, Map<String, Object>> teacherMap = iAuthUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(notStudentIds));
+        if (CollectionUtil.isNotEmpty(teacherMap)) {
+            teacherMap.forEach((id, teacherMation) -> {
+                UserOrStudent item = new UserOrStudent();
+                item.setUserOrStudent(false);
+                teacherMation.put("userIdentity", LoginIdentity.TEACHER.getKey());
+                item.setDataMation(teacherMation);
+                userOrStudentList.add(item);
+            });
+        }
+
+        return userOrStudentList;
     }
 
     @Override

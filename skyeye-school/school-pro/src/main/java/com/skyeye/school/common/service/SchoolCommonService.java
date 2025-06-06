@@ -6,6 +6,7 @@ package com.skyeye.school.common.service;
 
 import com.skyeye.school.common.entity.UserOrStudent;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,6 +20,8 @@ import java.util.Map;
 public interface SchoolCommonService {
 
     UserOrStudent queryUserOrStudent(String userId);
+
+    List<UserOrStudent> queryUserOrStudentList(List<String> userIds);
 
     void checkUserCertification(Map<String, Object> certification);
 
