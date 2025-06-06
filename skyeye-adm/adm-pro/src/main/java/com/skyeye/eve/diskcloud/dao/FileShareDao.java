@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.diskcloud.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.diskcloud.entity.FileShare;
@@ -24,8 +25,11 @@ public interface FileShareDao extends SkyeyeBaseMapper<FileShare> {
 
     List<Map<String, Object>> queryShareFileList(CommonPageInfo pageInfo);
 
-    List<Map<String, Object>> queryShareFileFirstListByParentId(@Param("id") String id);
+    @IgnoreTenant
+    List<Map<String, Object>> queryShareFileFirstListByParentId(@Param("id") String id, @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryShareFileListByParentId(@Param("folderId") String folderId,
-                                                           @Param("deleteFlag") Integer deleteFlag);
+                                                           @Param("deleteFlag") Integer deleteFlag,
+                                                           @Param("tenantId") String tenantId);
 }
