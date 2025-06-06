@@ -4,6 +4,7 @@
 
 package com.skyeye.school.chat.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "好友关系", groupName = "好友关系")
@@ -89,20 +91,29 @@ public class FriendRelationshipServiceImpl extends SkyeyeBusinessServiceImpl<Fri
             .or()
             .eq(MybatisPlusUtil.toColumns(FriendRelationship::getFriendId), id));
         List<FriendRelationship> list = list(queryWrapper);
-        for (FriendRelationship item : list) {
-            String remainingId;
-            if (item.getUserId().equals(id)) {
-                remainingId = item.getFriendId();
-            } else {
-                remainingId = item.getUserId();
-            }
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(remainingId);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        // 将friendId和userId进行转换
+        List<String> userIds = list.stream().map(item -> {
+            return item.getUserId().equals(id) ? item.getFriendId() : item.getUserId();
+        }).collect(Collectors.toList());
+        Map<String, UserOrStudent> userOrStudentMap = schoolCommonService.queryUserOrStudentMap(userIds);
+
+        // 过滤掉已经注销的好友信息，然后在进行赋值
+        list = list.stream().filter(item -> {
+            String remainingId = item.getUserId().equals(id) ? item.getFriendId() : item.getUserId();
+            return userOrStudentMap.containsKey(remainingId);
+        }).map(item -> {
+            String remainingId = item.getUserId().equals(id) ? item.getFriendId() : item.getUserId();
+            UserOrStudent userOrStudent = userOrStudentMap.get(remainingId);
             if (userOrStudent.getUserOrStudent()) {
                 item.setStudentMation(userOrStudent.getDataMation());
             } else {
                 item.setTeacherMation(userOrStudent.getDataMation());
             }
-        }
+            return item;
+        }).collect(Collectors.toList());
         return list;
     }
 

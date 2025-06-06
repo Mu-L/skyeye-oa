@@ -126,6 +126,22 @@ public class SchoolCommonServiceImpl implements SchoolCommonService {
     }
 
     @Override
+    public Map<String, UserOrStudent> queryUserOrStudentMap(List<String> userIds) {
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        userIds = userIds.stream().filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+        List<UserOrStudent> userOrStudentList = queryUserOrStudentList(userIds);
+        if (CollectionUtil.isEmpty(userOrStudentList)) {
+            return Collections.emptyMap();
+        }
+        return userOrStudentList.stream().collect(Collectors.toMap(item -> item.getDataMation().get("id").toString(), item -> item));
+    }
+
+    @Override
     public void checkUserCertification(Map<String, Object> certification) {
         if (!certification.containsKey("state")) {
             throw new CustomException("请先进行学生认证");

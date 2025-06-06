@@ -23,6 +23,8 @@ public interface SchoolCommonService {
 
     List<UserOrStudent> queryUserOrStudentList(List<String> userIds);
 
+    Map<String, UserOrStudent> queryUserOrStudentMap(List<String> userIds);
+
     void checkUserCertification(Map<String, Object> certification);
 
 }
