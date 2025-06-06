@@ -30,12 +30,6 @@ public class SysEveUserStaffCapitalController {
     @Autowired
     private SysEveUserStaffCapitalService sysEveUserStaffCapitalService;
 
-    /**
-     * 新增员工待结算资金池信息(用于定时任务)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "addMonthMoney2StaffCapital", value = "新增员工待结算资金池信息(用于定时任务)", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),
@@ -49,12 +43,11 @@ public class SysEveUserStaffCapitalController {
         sysEveUserStaffCapitalService.addMonthMoney2StaffCapital(inputObject, outputObject);
     }
 
-    /**
-     * 根据月份以及部门查询未结算的额外资金
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @ApiOperation(id = "userStaffCapital001", value = "根据月份以及部门查询未结算的额外资金", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "limit", name = "limit", value = "分页参数,每页多少条数据", required = "required,num"),
+        @ApiImplicitParam(id = "page", name = "page", value = "分页参数,第几页", required = "required,num"),
+        @ApiImplicitParam(id = "monthTime", name = "monthTime", value = "未结算资金的月份")})
     @RequestMapping("/post/SysEveUserStaffCapitalController/queryStaffCapitalWaitPayMonthList")
     public void queryStaffCapitalWaitPayMonthList(InputObject inputObject, OutputObject outputObject) {
         sysEveUserStaffCapitalService.queryStaffCapitalWaitPayMonthList(inputObject, outputObject);

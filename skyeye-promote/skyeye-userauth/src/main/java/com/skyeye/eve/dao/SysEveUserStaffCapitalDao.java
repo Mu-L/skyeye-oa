@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,13 +20,18 @@ import java.util.Map;
  */
 public interface SysEveUserStaffCapitalDao {
 
+    @IgnoreTenant
     Map<String, Object> queryStaffCapitalMation(@Param("staffId") String staffId,
-                                                @Param("monthTime") String monthTime);
+                                                @Param("monthTime") String monthTime,
+                                                @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     void insertStaffCapitalMation(Map<String, Object> bean);
 
+    @IgnoreTenant
     void editStaffCapitalMoneyMation(Map<String, Object> bean);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryStaffCapitalWaitPayMonthList(Map<String, Object> map);
 
 }

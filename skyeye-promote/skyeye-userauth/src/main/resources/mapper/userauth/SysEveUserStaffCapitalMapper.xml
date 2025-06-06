@@ -9,13 +9,16 @@
             sys_eve_user_staff_capital a
         WHERE a.staff_id = #{staffId}
         AND a.month_time = #{monthTime}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <insert id="insertStaffCapitalMation">
         INSERT into sys_eve_user_staff_capital
-        (id, staff_id, company_id, department_id, month_time, money, type, state, create_time)
+        (id, staff_id, company_id, department_id, month_time, money, type, state, create_time, tenant_id)
         VALUES
-        (#{id}, #{staffId}, #{companyId}, #{departmentId}, #{monthTime}, #{money}, #{type}, #{state}, #{createTime})
+        (#{id}, #{staffId}, #{companyId}, #{departmentId}, #{monthTime}, #{money}, #{type}, #{state}, #{createTime}, #{tenantId})
     </insert>
 
     <update id="editStaffCapitalMoneyMation">
@@ -24,6 +27,9 @@
             money = #{money}
         </set>
         WHERE id = #{id}
+        <if test="tenantId != '' and tenantId != null">
+            AND tenant_id = #{tenantId}
+        </if>
     </update>
 
     <select id="queryStaffCapitalWaitPayMonthList" resultType="java.util.Map">
@@ -37,6 +43,9 @@
         WHERE a.type = 1
         <if test="monthTime != '' and monthTime != null">
             AND a.month_time = #{monthTime}
+        </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
         </if>
         GROUP BY a.month_time, a.department_id
         ORDER BY a.month_time ASC
