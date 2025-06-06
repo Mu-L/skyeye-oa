@@ -24,7 +24,7 @@ public class DwQuRadioController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwQuRadioList", value = "分页获取单选题选项表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryDwQuRadioList", value = "分页获取单选题选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwQuRadioController/queryDwQuRadioList")
     public void queryDwQuRadioList(InputObject inputObject, OutputObject outputObject) {
@@ -37,7 +37,7 @@ public class DwQuRadioController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteDwQuRadioById", value = "根据ID物理删除单选题选项表信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteDwQuRadioById", value = "根据ID物理删除单选题选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuRadioController/deleteDwQuRadioById")
@@ -51,7 +51,7 @@ public class DwQuRadioController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "changeVisibility", value = "逻辑删除单选题选项表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "changeVisibility", value = "逻辑删除单选题选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuRadioController/changeVisibility")

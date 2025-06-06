@@ -52,7 +52,7 @@ public class DwSurveyDirectoryController {
         dwSurveyDirectoryService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "changeWhetherDeleteById", value = "删除问卷信息,及改变whether_delete字段为2", method = "POST", allUse = "1")
+    @ApiOperation(id = "changeWhetherDeleteById", value = "删除问卷信息,及改变whether_delete字段为2", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "问卷id", required = "required")})
     @RequestMapping("/post/DwSurveyDirectoryController/changeWhetherDeleteById")

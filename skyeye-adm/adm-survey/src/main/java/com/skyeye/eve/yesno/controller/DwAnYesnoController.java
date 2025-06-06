@@ -26,7 +26,7 @@ public class DwAnYesnoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnYesno", value = "新增/编辑判断题保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwAnYesno", value = "新增/编辑判断题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnYesno.class)
     @RequestMapping("/post/DwAnYesnoController/writeDwAnYesno")
     public void writeDwAnYesno(InputObject inputObject, OutputObject outputObject) {
@@ -39,7 +39,7 @@ public class DwAnYesnoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwAnYesnoList", value = "获取判断题保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryDwAnYesnoList", value = "获取判断题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwAnYesnoController/queryDwAnYesnoList")
     public void queryDwAnYesnoList(InputObject inputObject, OutputObject outputObject) {
@@ -52,7 +52,7 @@ public class DwAnYesnoController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteDwAnYesnoById", value = "根据ID删除单选题保存表信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteDwAnYesnoById", value = "根据ID删除单选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnYesnoController/deleteDwAnYesnoById")

@@ -26,7 +26,7 @@ public class DwAnScoreController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnScore", value = "新增/编辑评分题保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwAnScore", value = "新增/编辑评分题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnScore.class)
     @RequestMapping("/post/DwAnScoreController/writeDwAnScore")
     public void writeDwAnScore(InputObject inputObject, OutputObject outputObject) {
@@ -39,7 +39,7 @@ public class DwAnScoreController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwAnScoreList", value = "获取评分题保存表信息列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryDwAnScoreList", value = "获取评分题保存表信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwAnScoreController/queryDwAnScoreList")
     public void queryDwAnScoreList(InputObject inputObject, OutputObject outputObject) {
@@ -52,7 +52,7 @@ public class DwAnScoreController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteDwAnScoreById", value = "根据ID删除评分题保存表信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteDwAnScoreById", value = "根据ID删除评分题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnScoreController/deleteDwAnScoreById")

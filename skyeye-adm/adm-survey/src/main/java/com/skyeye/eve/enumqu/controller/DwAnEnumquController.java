@@ -34,7 +34,7 @@ public class DwAnEnumquController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnEnumqu", value = "新增/编辑枚举题答案", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwAnEnumqu", value = "新增/编辑枚举题答案", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnEnumqu.class)
     @RequestMapping("/post/DwAnEnumquController/writeDwAnEnumqu")
     public void writeDwAnEnumqu(InputObject inputObject, OutputObject outputObject) {

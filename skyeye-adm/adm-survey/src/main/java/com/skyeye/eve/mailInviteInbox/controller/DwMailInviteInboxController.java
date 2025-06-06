@@ -26,7 +26,7 @@ public class DwMailInviteInboxController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwMailInviteInbox", value = "新增/编辑是非题结果保存表保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwMailInviteInbox", value = "新增/编辑是非题结果保存表保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwMailInviteInbox.class)
     @RequestMapping("/post/DwMailInviteInboxController/writeDwMailInviteInbox")
     public void writeDwMailInviteInbox(InputObject inputObject, OutputObject outputObject) {
@@ -39,7 +39,7 @@ public class DwMailInviteInboxController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwMailInviteInboxList", value = "获取是非题结果保存表信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryDwMailInviteInboxList", value = "获取是非题结果保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwMailInviteInboxController/queryDwMailInviteInboxList")
     public void queryDwMailInviteInboxList(InputObject inputObject, OutputObject outputObject) {
@@ -52,7 +52,7 @@ public class DwMailInviteInboxController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteDwMailInviteInboxById", value = "根据ID删除是非题结果保存表信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteDwMailInviteInboxById", value = "根据ID删除是非题结果保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwMailInviteInboxController/deleteDwMailInviteInboxById")

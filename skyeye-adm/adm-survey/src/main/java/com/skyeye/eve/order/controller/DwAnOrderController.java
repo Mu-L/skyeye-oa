@@ -35,7 +35,7 @@ public class DwAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnOrder", value = "新增/编辑评分题", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeDwAnOrder", value = "新增/编辑评分题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnOrder.class)
     @RequestMapping("/post/DwAnOrderController/writeDwAnOrder")
     public void writeDwAnOrder(InputObject inputObject, OutputObject outputObject) {
