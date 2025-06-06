@@ -119,9 +119,10 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
         String fieldStr = map.get("fieldStr").toString();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> wagesModelFieldMation = JSONUtil.toList(JSONUtil.parseArray(fieldStr), null);
         // 保存薪资要素字段信息
-        skyeyeBaseMapper.saveStaffWagesModelFieldMation(wagesModelFieldMation);
+        skyeyeBaseMapper.saveStaffWagesModelFieldMation(wagesModelFieldMation, tenantId);
         // 保存员工月标准薪资信息以及设定状态
         iSysEveUserStaffService.editSysUserStaffActMoneyById(staffId, map.get("actMoney").toString());
     }

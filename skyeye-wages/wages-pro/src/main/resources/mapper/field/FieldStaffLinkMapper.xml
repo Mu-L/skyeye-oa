@@ -10,6 +10,9 @@
             </set>
             WHERE staff_id = #{item.staffId}
             AND field_type_key = #{item.fieldKey}
+            <if test="tenantId != '' and tenantId != null">
+                AND tenant_id = #{tenantId}
+            </if>
         </foreach>
     </update>
 

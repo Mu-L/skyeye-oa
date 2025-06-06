@@ -22,7 +22,9 @@ import java.util.Map;
  */
 public interface FieldStaffLinkDao extends SkyeyeBaseMapper<FieldStaffLink> {
 
-    void saveStaffWagesModelFieldMation(@Param("list") List<Map<String, Object>> wagesModelFieldMation);
+    @IgnoreTenant
+    void saveStaffWagesModelFieldMation(@Param("list") List<Map<String, Object>> wagesModelFieldMation,
+                                        @Param("tenantId") String tenantId);
 
     /**
      * 获取一条还未计算上个月薪资的员工信息(不包含本月刚入职的新员工)
