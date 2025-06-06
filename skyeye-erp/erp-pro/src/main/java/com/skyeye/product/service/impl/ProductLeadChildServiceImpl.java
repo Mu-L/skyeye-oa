@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@SkyeyeService(name = "借出出库申请-子单据", groupName = "借出出库申请", flowable = true)
+@SkyeyeService(name = "借出出库申请-子单据", groupName = "借出出库申请", flowable = false)
 public class ProductLeadChildServiceImpl extends SkyeyeBusinessServiceImpl<ProductLeadChildDao, ProductLeadChild> implements ProductLeadChildService {
 
     @Override
