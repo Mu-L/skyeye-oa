@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.note.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.note.entity.Note;
@@ -22,13 +23,19 @@ import java.util.Map;
  */
 public interface NoteDao extends SkyeyeBaseMapper<Note> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNewNoteListByUserId(CommonPageInfo pageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileAndContentListByFolderId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileList(@Param("folderList") List<Map<String, Object>> folderList,
-                                            @Param("deleteFlag") Integer deleteFlag);
+                                            @Param("deleteFlag") Integer deleteFlag,
+                                            @Param("tenantId") String tenantId);
 
-    int insertFileListByList(@Param("fileList") List<Map<String, Object>> fileList);
+    @IgnoreTenant
+    int insertFileListByList(@Param("fileList") List<Map<String, Object>> fileList,
+                             @Param("tenantId") String tenantId);
 
 }

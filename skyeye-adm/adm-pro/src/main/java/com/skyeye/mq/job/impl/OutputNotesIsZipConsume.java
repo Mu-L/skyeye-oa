@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.folder.service.FolderService;
@@ -84,6 +85,9 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
     @Autowired
     private NoteService noteService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @Override
     public void onMessage(String data) {
         Map<String, Object> map = JSONUtil.toBean(data, null);
@@ -91,13 +95,17 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
         Map<String, Object> mation = new HashMap<>();
         try {
             LOGGER.info("start output job, jobId is {}", jobId);
+            String tenantId = map.getOrDefault("tenantId", StrUtil.EMPTY).toString();
+            if (tenantEnable) {
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
             this.updateJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
             String rowId = map.get("rowId").toString();
             // 类型
             String type = map.get("noteType").toString();
             if (FileFolderType.FOLDER.getKey().equals(type)) {
-                String zipFile = outputFolder(rowId, map.get("userId").toString());
+                String zipFile = outputFolder(rowId, map.get("userId").toString(), tenantId);
                 mation.put("filePath", zipFile);
             } else {
                 String zipFile = outPutFileContent(rowId, map.get("userId").toString());
@@ -129,11 +137,11 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
      * @param userId
      * @return
      */
-    private String outputFolder(String parentId, String userId) {
+    private String outputFolder(String parentId, String userId, String tenantId) {
         // 1.获取该目录下的所有目录
         List<Map<String, Object>> folderList = folderService.queryFolderAndChildList(Arrays.asList(parentId));
         // 2.获取所有目录下的所有文件
-        List<Map<String, Object>> files = noteDao.queryFileList(folderList, DeleteFlagEnum.NOT_DELETE.getKey());
+        List<Map<String, Object>> files = noteDao.queryFileList(folderList, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         String uuid = ToolUtil.getSurFaceId();
         // 文件存储基础路径
         String basePath = String.format("%s%s/%s/%s/", tPath, FileConstants.FileUploadPath.getSavePath(FileConstants.FileUploadPath.NOTE.getType()[0]), userId, uuid);
