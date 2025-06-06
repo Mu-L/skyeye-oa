@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.folder.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.folder.entity.Folder;
 import org.apache.ibatis.annotations.Param;
@@ -21,13 +22,20 @@ import java.util.Map;
  */
 public interface FolderDao extends SkyeyeBaseMapper<Folder> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFolderByUserId(@Param("parentId") String parentId,
                                                   @Param("createId") String createId,
                                                   @Param("moveId") String moveId,
-                                                  @Param("deleteFlag") Integer deleteFlag);
+                                                  @Param("deleteFlag") Integer deleteFlag,
+                                                  @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryFolderAndChildList(@Param("ids") List<String> ids, @Param("deleteFlag") Integer deleteFlag);
+    @IgnoreTenant
+    List<Map<String, Object>> queryFolderAndChildList(@Param("ids") List<String> ids,
+                                                      @Param("deleteFlag") Integer deleteFlag,
+                                                      @Param("tenantId") String tenantId);
 
-    int insertFileFolderList(@Param("folderList") List<Map<String, Object>> folderList);
+    @IgnoreTenant
+    int insertFileFolderList(@Param("folderList") List<Map<String, Object>> folderList,
+                             @Param("tenantId") String tenantId);
 
 }

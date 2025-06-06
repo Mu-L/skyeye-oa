@@ -127,6 +127,9 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     @Override
     public List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList) {
+        if (CollectionUtil.isEmpty(shiftsTimeIdList)){
+            return new ArrayList<>();
+        }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, shiftsTimeIdList);
         return list(queryWrapper);

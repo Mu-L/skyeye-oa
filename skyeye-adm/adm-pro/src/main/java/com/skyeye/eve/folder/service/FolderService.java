@@ -32,6 +32,6 @@ public interface FolderService extends SkyeyeBusinessService<Folder> {
 
     List<Map<String, Object>> queryFolderAndChildList(List<String> ids);
 
-    int insertFileFolderList(List<Map<String, Object>> folderList);
+    int insertFileFolderList(List<Map<String, Object>> folderList, String tenantId);
 
 }

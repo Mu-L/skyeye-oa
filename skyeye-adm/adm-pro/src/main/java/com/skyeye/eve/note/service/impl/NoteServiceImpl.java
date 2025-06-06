@@ -16,7 +16,6 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.object.PutObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -130,6 +129,9 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryNewNoteListByUserId(pageInfo);
         return beans;
     }
@@ -172,7 +174,7 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         Map<String, Object> user = inputObject.getLogParams();
         map.put("userId", user.get("id"));
         map.put("deleteFlag", DeleteFlagEnum.NOT_DELETE.getKey());
-        map.put("tenant_id", TenantContext.getTenantId());
+        map.put("tenantId", TenantContext.getTenantId());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryFileAndContentListByFolderId(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
@@ -208,7 +210,8 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
                 List<String> ids = folderList.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
                 folderService.deleteById(ids);
             }
-            List<Map<String, Object>> fileList = skyeyeBaseMapper.queryFileList(folderList, DeleteFlagEnum.NOT_DELETE.getKey());
+            String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+            List<Map<String, Object>> fileList = skyeyeBaseMapper.queryFileList(folderList, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             if (CollectionUtil.isNotEmpty(fileList)) {
                 // 删除之前的信息
                 List<String> ids = fileList.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
@@ -236,10 +239,10 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
                 }
             }
             if (CollectionUtil.isNotEmpty(folderList)) {
-                folderService.insertFileFolderList(folderList);
+                folderService.insertFileFolderList(folderList, tenantId);
             }
             if (CollectionUtil.isNotEmpty(fileList)) {
-                skyeyeBaseMapper.insertFileListByList(fileList);
+                skyeyeBaseMapper.insertFileListByList(fileList, tenantId);
             }
         }
     }
@@ -295,6 +298,7 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         json.put("noteType", type);
         json.put("rowId", id);
         json.put("userId", userId);
+        json.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         json.put("type", MqConstants.JobMateMationJobType.OUTPUT_NOTES_IS_ZIP.getJobType());
         // 启动任务
         JobMateMation jobMateMation = new JobMateMation();

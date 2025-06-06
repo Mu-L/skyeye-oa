@@ -19,6 +19,9 @@
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` like '%${keyword}%'
 			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.last_update_time DESC
 	</select>
@@ -26,16 +29,16 @@
 	<select id="queryFileAndContentListByFolderId" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT * FROM (
 		SELECT
-		a.id,
-		a.`name`,
-		#{parentId} parentId,
-		'../../assets/images/cloud/my-folder-icon.png' iconLogo,
-		1 isParent,
-		'folder' type,
-		'' remark,
-		CONVERT(a.create_time, char) createTime,
-		a.tenant_id  <!-- 显式添加tenant_id到结果集 -->
-		FROM note_folder a
+			a.id,
+			a.`name`,
+			#{parentId} parentId,
+			'../../assets/images/cloud/my-folder-icon.png' iconLogo,
+			1 isParent,
+			'folder' type,
+			'' remark,
+			CONVERT(a.create_time, char) createTime
+		FROM
+		    note_folder a
 		<where>
 			a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
 			AND a.delete_flag = #{deleteFlag}
@@ -43,23 +46,25 @@
 				AND a.`name` LIKE CONCAT('%',#{search},'%')
 			</if>
 			AND a.create_id = #{userId}
-			AND a.tenant_id = #{tenantId}
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.`name` DESC
 		) k
 		UNION ALL
 		SELECT * FROM (
 		SELECT
-		a.id,
-		a.`name`,
-		#{parentId} parentId,
-		a.icon_logo iconLogo,
-		0 isParent,
-		a.type,
-		a.remark,
-		CONVERT(a.create_time, char) createTime,
-		a.tenant_id  <!-- 显式添加tenant_id到结果集 -->
-		FROM note_content a
+			a.id,
+			a.`name`,
+			#{parentId} parentId,
+			a.icon_logo iconLogo,
+			0 isParent,
+			a.type,
+			a.remark,
+			CONVERT(a.create_time, char) createTime
+		FROM
+		    note_content a
 		<where>
 			a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM note_folder t WHERE t.id = #{parentId}), ''), #{parentId}, ',')
 			AND a.delete_flag = #{deleteFlag}
@@ -67,7 +72,9 @@
 				AND a.`name` LIKE CONCAT('%',#{search},'%')
 			</if>
 			AND a.create_id = #{userId}
-			AND a.tenant_id = #{tenantId}
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.`name` DESC
 		) j
@@ -95,17 +102,20 @@
 			<foreach collection="folderList" item="item" index="index" open="(" close=")" separator="OR">
 				a.parent_id = CONCAT(#{item.parentId}, #{item.id}, ',')
 			</foreach>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY LENGTH(a.parent_id) ASC
 	</select>
 	
 	<insert id="insertFileListByList" parameterType="java.util.Map">
 	     insert into note_content
-	     (id, `name`, icon_logo, remark, content, type, parent_id, delete_flag, create_id, create_time, last_update_id, last_update_time)
+	     (id, `name`, icon_logo, remark, content, type, parent_id, delete_flag, create_id, create_time, last_update_id, last_update_time, tenant_id)
 	     values
 		<foreach collection="fileList" item="item" index="index" separator="," >
 			(#{item.newId}, #{item.name}, #{item.iconLogo}, #{item.remark}, #{item.content}, #{item.type},
-			#{item.newParentId}, #{item.deleteFlag}, #{item.createId}, #{item.createTime}, #{item.lastUpdateId}, #{item.lastUpdateTime})
+			#{item.newParentId}, #{item.deleteFlag}, #{item.createId}, #{item.createTime}, #{item.lastUpdateId}, #{item.lastUpdateTime}, #{tenantId})
 		</foreach>  
 	</insert>
 	

@@ -14,7 +14,6 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.leave.entity.LeaveTimeSlot;
@@ -594,20 +593,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     public void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 格式是 "yyyy-MM-dd"
-        String endTime = commonPageInfo.getEndTime();
         // 车间id
         String holderId = commonPageInfo.getHolderId();
-        // 获取当前日期和时间, 格式为 "yyyy-MM-dd"
-        String timeAndToString = DateUtil.getYmdTimeAndToString();
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(holderId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
         }
-        if (StrUtil.isNotEmpty(endTime)) {
-            queryWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), endTime);
-        }
-        queryWrapper.ge(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), timeAndToString);
         List<Scheduling> schedulingList = list(queryWrapper);
         List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
         Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
@@ -665,7 +656,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getEmployeeId), employeeId);
         List<Scheduling> schedulingList = list(queryWrapper);
-        
+
         // 2. 获取所有相关的时间段信息
         List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
@@ -678,17 +669,17 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 4. 创建一个列表用于存放需要更新的排班记录
         List<Scheduling> resultSchedulingList = new ArrayList<>();
-        
+
         // 5. 遍历所有排班记录，检查时间是否冲突
         for (Scheduling scheduling : schedulingList) {
             List<SchedulingShiftsTime> shiftsTimes = stringListMap.get(scheduling.getShiftTimeId());
             if (CollectionUtil.isNotEmpty(shiftsTimes)) {
                 SchedulingShiftsTime schedulingShiftsTime = shiftsTimes.get(CommonNumConstants.NUM_ZERO);
-                
+
                 // 组合排班日期和时间段
                 String scheduleDate = scheduling.getScheduleDate();
                 LocalDateTime shiftStartDateTime = LocalDateTime.parse(scheduleDate + " " + schedulingShiftsTime.getStartTime(), formatter);
-                
+
                 // 处理跨天的情况
                 LocalDateTime shiftEndDateTime;
                 if (schedulingShiftsTime.getIsNextDay() != null && schedulingShiftsTime.getIsNextDay() == 1) {
@@ -701,7 +692,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
                 // 检查时间是否重叠
                 boolean isOverlapping = !shiftEndDateTime.isBefore(leaveStartDateTime) && !shiftStartDateTime.isAfter(leaveEndDateTime);
-                
+
                 if (isOverlapping) {
                     resultSchedulingList.add(scheduling);
                 }
