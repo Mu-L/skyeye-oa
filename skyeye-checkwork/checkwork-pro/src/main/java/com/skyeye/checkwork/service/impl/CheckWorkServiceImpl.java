@@ -609,6 +609,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryCheckWorkReport(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         // 1.获取所有的考勤班次在指定日期内需要上班多少天

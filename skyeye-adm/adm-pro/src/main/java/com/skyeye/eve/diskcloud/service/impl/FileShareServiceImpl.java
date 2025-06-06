@@ -8,6 +8,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -15,6 +16,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.BytesUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -123,18 +125,22 @@ public class FileShareServiceImpl extends SkyeyeBusinessServiceImpl<FileShareDao
         }
     }
 
+    public boolean tenantEnable = false;
+
     @Override
     public void queryShareFileListByParentId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String folderId = map.get("folderId").toString();
         String id = map.get("id").toString();
         List<Map<String, Object>> beans;
+        String tenantId = TenantContext.getTenantId();
+        System.out.println(tenantId);
         if ("-1".equals(folderId)) {
             // 加载初始目录
-            beans = skyeyeBaseMapper.queryShareFileFirstListByParentId(id);
+            beans = skyeyeBaseMapper.queryShareFileFirstListByParentId(id, tenantId);
         } else {
             // 加载子目录
-            beans = skyeyeBaseMapper.queryShareFileListByParentId(folderId, DeleteFlagEnum.NOT_DELETE.getKey());
+            beans = skyeyeBaseMapper.queryShareFileListByParentId(folderId, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         }
         for (Map<String, Object> bean : beans) {
             if (!DickCloudType.FOLDER.getKey().equals(bean.get("fileType").toString())) {

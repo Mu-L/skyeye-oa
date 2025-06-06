@@ -44,6 +44,10 @@
         WHERE a.id = #{id}
           AND a.file_id = b.id
           AND a.file_type = 'folder'
+            <if test="tenantId != null and tenantId != ''">
+                AND b.tenant_id = #{tenantId}
+                AND a.tenant_id = #{tenantId}
+            </if>
         UNION ALL
         SELECT
             b.id,
@@ -58,6 +62,10 @@
         WHERE a.id = #{id}
           AND a.file_id = b.id
           AND a.file_type = 'file'
+        <if test="tenantId != null and tenantId != ''">
+            AND b.tenant_id = #{tenantId}
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryShareFileListByParentId" resultType="java.util.Map">
@@ -75,6 +83,9 @@
                      file_catalog a
                  WHERE a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM file_catalog t WHERE t.id = #{folderId}), ''), #{folderId}, ',')
                    AND a.delete_flag = #{deleteFlag}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
                  UNION ALL
                  SELECT
                      a.id,
@@ -87,6 +98,9 @@
                      file_catelog_papers a
                  WHERE a.parent_id = CONCAT(IFNULL((SELECT t.parent_id FROM file_catalog t WHERE t.id = #{folderId}), ''), #{folderId}, ',')
                    AND a.delete_flag = #{deleteFlag}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
              ) k
     </select>
 </mapper>
