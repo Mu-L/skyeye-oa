@@ -22,12 +22,6 @@
             <groupId>com.skyeye</groupId>
             <artifactId>adm-pro</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>logging-interceptor</artifactId>
-                    <groupId>com.squareup.okhttp3</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
