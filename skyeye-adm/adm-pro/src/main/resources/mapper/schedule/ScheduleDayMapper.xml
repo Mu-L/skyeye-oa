@@ -13,7 +13,7 @@
 			a.end_time `end`,
 			CASE a.all_day WHEN '0' THEN false WHEN '1' THEN true ELSE true END allDay,
 			'1' showBg,
-			CASE WHEN DATE_FORMAT(a.start_time, '%Y-%m-%d') > DATE_FORMAT(NOW(), '%Y-%m-%d') THEN true ELSE false END editable, #是否可编辑
+			CASE WHEN DATE_FORMAT(a.start_time, '%Y-%m-%d') > DATE_FORMAT(NOW(), '%Y-%m-%d') THEN true ELSE false END editable,
 			a.type
 		FROM
 			schedule_day a
@@ -24,6 +24,9 @@
 			DATE_FORMAT(a.start_time, '%Y-%m') = #{item} OR DATE_FORMAT(a.end_time, '%Y-%m') = #{item} OR
 		</foreach>
 		1 = 0)
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryIsnullThistime" parameterType="java.util.Map" resultType="java.util.Map">

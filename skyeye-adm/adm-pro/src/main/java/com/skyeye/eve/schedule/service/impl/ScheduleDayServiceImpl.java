@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
@@ -21,6 +22,7 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ExcelUtil;
@@ -100,7 +102,7 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
     public void createPrepose(ScheduleDay entity) {
         String scheduleStartTime = entity.getStartTime();
         String remindTime = DateAfterSpacePointTime.getSpecifiedTime(entity.getRemindType(), scheduleStartTime,
-            DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
+                DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
         if (StrUtil.isNotBlank(remindTime)) {
             if (DateUtil.compare(remindTime, DateUtil.getTimeAndToString())) {
                 // 日程提醒时间早于当前时间
@@ -134,14 +136,16 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
     }
 
     @Override
+    @IgnoreTenant
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         Map<String, Object> map = inputObject.getParams();
         String userId = inputObject.getLogParams().get("id").toString();
         String yearMonth = map.get("yearMonth").toString();
         String timeId = map.get("checkWorkId").toString();
         List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取当前登录人指定月份的日程信息
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryScheduleDayMationByUserId(userId, months);
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryScheduleDayMationByUserId(userId, months, tenantId);
         beans.forEach(bean -> {
             bean.put("backgroundColor", CheckDayType.getColor(Integer.parseInt(bean.get("type").toString())));
         });
@@ -170,7 +174,7 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
     private List<ScheduleDay> getScheduleDayList(String userId, String timeHms) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
         queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", timeHms)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", timeHms);
+                .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", timeHms);
         queryWrapper.ne(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getCreateId), userId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime));
@@ -214,11 +218,11 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
                 if (minute >= 2) {
                     // 两分钟后
                     remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindTimeType, DateUtil.getTimeAndToString(),
-                        DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.AFTER, 2);
+                            DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.AFTER, 2);
                 } else if (minute < 2 && minute > 0) {
                     // minute分钟后
                     remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindTimeType, DateUtil.getTimeAndToString(),
-                        DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.AFTER, (int) minute);
+                            DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.AFTER, (int) minute);
                 } else {
                     // 日程开始时
                     remindTime = startTime;
@@ -342,7 +346,7 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
     private boolean judgeISHoliday(String day) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
         queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", day)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", day);
+                .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", day);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         List<ScheduleDay> scheduleDays = list(queryWrapper);
         if (CollectionUtil.isEmpty(scheduleDays)) {

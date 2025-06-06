@@ -22,7 +22,9 @@ import java.util.Map;
  */
 public interface ScheduleDayDao extends SkyeyeBaseMapper<ScheduleDay> {
 
-    List<Map<String, Object>> queryScheduleDayMationByUserId(@Param("userId") String userId, @Param("list") List<String> months);
+    List<Map<String, Object>> queryScheduleDayMationByUserId(@Param("userId") String userId,
+                                                             @Param("list") List<String> months,
+                                                             @Param("tenantId") String tenantId);
 
     Map<String, Object> queryIsnullThistime(@Param("startTime") String startTime, @Param("endTime") String endTime);
 
