@@ -594,20 +594,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     public void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 格式是 "yyyy-MM-dd"
-        String endTime = commonPageInfo.getEndTime();
         // 车间id
         String holderId = commonPageInfo.getHolderId();
-        // 获取当前日期和时间, 格式为 "yyyy-MM-dd"
-        String timeAndToString = DateUtil.getYmdTimeAndToString();
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(holderId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
         }
-        if (StrUtil.isNotEmpty(endTime)) {
-            queryWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), endTime);
-        }
-        queryWrapper.ge(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), timeAndToString);
         List<Scheduling> schedulingList = list(queryWrapper);
         List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
         Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
