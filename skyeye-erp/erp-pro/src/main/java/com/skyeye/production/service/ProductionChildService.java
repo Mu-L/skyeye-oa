@@ -5,6 +5,7 @@
 package com.skyeye.production.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.product.entity.ProductLeadChild;
 import com.skyeye.production.entity.ProductionChild;
 
 import java.util.List;
@@ -26,5 +27,4 @@ public interface ProductionChildService extends SkyeyeBusinessService<Production
     List<ProductionChild> selectByParentId(List<String> parentIds);
 
     void saveList(String parentId, List<ProductionChild> productionChildList);
-
 }
