@@ -595,11 +595,27 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 车间id
         String holderId = commonPageInfo.getHolderId();
+        // 班次名称
+        String keyword = commonPageInfo.getKeyword();
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(holderId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
         }
         List<Scheduling> schedulingList = list(queryWrapper);
+        // 如果 keyword 不为空，过滤 schedulingList
+        if (StrUtil.isNotEmpty(keyword)) {
+            List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+            List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
+            Map<String, String> idToNameMap = schedulingShifts.stream()
+                .collect(Collectors.toMap(SchedulingShifts::getId, SchedulingShifts::getName));
+            schedulingList = schedulingList.stream()
+                .filter(scheduling -> {
+                    String shiftName = idToNameMap.get(scheduling.getShiftId());
+                    return StrUtil.isNotEmpty(shiftName) && shiftName.contains(keyword);
+                })
+                .collect(Collectors.toList());
+        }
+        // 获取所有员工信息
         List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
         Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
             .filter(staffInfo -> staffInfo != null && staffInfo.get("userId") != null)
@@ -607,6 +623,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         Map<String, List<Map<String, Object>>> idStaffMap = allStaffList.stream()
             .filter(staffInfo -> staffInfo != null && staffInfo.get("id") != null)
             .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("id").toString()));
+        // 设置员工信息
         for (Scheduling scheduling : schedulingList) {
             String employeeId = scheduling.getEmployeeId();
             List<Map<String, Object>> staffInfoList = userIdMap.get(employeeId);
@@ -620,12 +637,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                 }
             }
         }
-        List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        // 获取班次时间和班次信息
         List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
+        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftTimeIds);
         Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
         Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
+        // 设置班次时间和班次信息
         for (Scheduling scheduling : schedulingList) {
             List<SchedulingShifts> shifts = schedulingShiftsMap.get(scheduling.getShiftId());
             if (CollectionUtil.isNotEmpty(shifts)) {
@@ -636,6 +654,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                 scheduling.setSchedulinghiftTimeMation(shiftsTimes.get(CommonNumConstants.NUM_ZERO));
             }
         }
+
+        // 设置创建人和最后更新人信息
+        iAuthUserService.setName(schedulingList, "createId", "createName");
+        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
+
+        // 设置输出对象
         outputObject.setBeans(schedulingList);
         outputObject.settotal(page.getTotal());
     }
