@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "应用与菜单的关系管理", groupName = "租户管理", manageShow = false, tenant = TenantEnum.PLATE)
+@SkyeyeService(name = "应用与菜单/权限点的关系管理", groupName = "租户管理", manageShow = false, tenant = TenantEnum.PLATE)
 public class TenantAppMenuServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppMenuDao, TenantAppMenu> implements TenantAppMenuService {
 
     @Override
