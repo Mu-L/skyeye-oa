@@ -88,6 +88,6 @@ public class User extends CommonInfo {
     private boolean checkFocus;
 
     @TableField("tenant_id")
-    @ApiModelProperty(value = "租户id")
+    @Property(value = "租户id")
     private String tenantId;
 }
