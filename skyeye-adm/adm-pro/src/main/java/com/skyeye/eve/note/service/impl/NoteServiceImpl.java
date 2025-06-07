@@ -174,7 +174,7 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         Map<String, Object> user = inputObject.getLogParams();
         map.put("userId", user.get("id"));
         map.put("deleteFlag", DeleteFlagEnum.NOT_DELETE.getKey());
-        map.put("tenantId", TenantContext.getTenantId());
+        map.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryFileAndContentListByFolderId(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());

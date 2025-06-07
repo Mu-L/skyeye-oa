@@ -11,6 +11,9 @@
             <foreach collection="jobScoreIdList" item="jobScoreId" index="index" open="(" close=")" separator=",">
                 #{jobScoreId}
             </foreach>
+            <if test="tenantId != null and tenantId != ''">
+                AND tenant_id = #{tenantId}
+            </if>
         </where>
     </delete>
 

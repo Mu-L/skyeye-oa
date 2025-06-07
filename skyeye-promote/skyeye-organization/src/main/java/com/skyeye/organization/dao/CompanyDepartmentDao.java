@@ -4,6 +4,7 @@
 
 package com.skyeye.organization.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.organization.entity.Department;
@@ -22,15 +23,25 @@ import java.util.Map;
  */
 public interface CompanyDepartmentDao extends SkyeyeBaseMapper<Department> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyDepartmentList(CommonPageInfo commonPageInfo);
 
-    Map<String, Object> queryCompanyDepartmentUserMationById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryCompanyDepartmentUserMationById(@Param("id") String id,
+                                                             @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyDepartmentListTreeByCompanyId(Map<String, Object> map);
 
-    Map<String, Object> queryCompanyJobNumMationById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryCompanyJobNumMationById(@Param("id") String id,
+                                                     @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCompanyDepartmentOrganization(Map<String, Object> map);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCompanyDepartmentOrganization(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryDepartmentList(@Param("companyIds") List<String> companyIds, @Param("departmentIds") List<String> departmentIds);
+    @IgnoreTenant
+    List<Map<String, Object>> queryDepartmentList(@Param("companyIds") List<String> companyIds,
+                                                  @Param("departmentIds") List<String> departmentIds,
+                                                  @Param("tenantId") String tenantId);
 }

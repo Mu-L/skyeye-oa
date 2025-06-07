@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.organization.dao.CompanyJobScoreDao;
 import com.skyeye.organization.entity.JobScore;
@@ -53,6 +54,9 @@ public class CompanyJobScoreServiceImpl extends SkyeyeBusinessServiceImpl<Compan
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         JobScoreQueryDo pageInfo = inputObject.getParams(JobScoreQueryDo.class);
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobScoreDao.queryCompanyJobScoreList(pageInfo);
         return beans;
     }
@@ -123,6 +127,9 @@ public class CompanyJobScoreServiceImpl extends SkyeyeBusinessServiceImpl<Compan
     public void queryEnableCompanyJobScoreList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         map.put("enabled", EnableEnum.ENABLE_USING.getKey());
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobScoreDao.queryEnableCompanyJobScoreList(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());

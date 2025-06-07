@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAreaService;
@@ -59,6 +60,9 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyMationList(map);
         iAreaService.setNameForMap(beans, "provinceId", "provinceName");
         iAreaService.setNameForMap(beans, "cityId", "cityName");
@@ -75,18 +79,19 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
 
     @Override
     public void deletePreExecution(String id) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 判断是否有子公司
-        Map<String, Object> bean = skyeyeBaseMapper.queryCompanyMationById(id);
+        Map<String, Object> bean = skyeyeBaseMapper.queryCompanyMationById(id, tenantId);
         if (Integer.parseInt(bean.get("childsNum").toString()) > 0) {
             throw new CustomException("该公司下存在子公司，无法直接删除。");
         }
         // 判断是否有部门
-        bean = skyeyeBaseMapper.queryCompanyDepartMentNumMationById(id);
+        bean = skyeyeBaseMapper.queryCompanyDepartMentNumMationById(id, tenantId);
         if (Integer.parseInt(bean.get("departmentNum").toString()) > 0) {
             throw new CustomException("该公司下存在部门，无法直接删除。");
         }
         // 判断是否有员工
-        bean = skyeyeBaseMapper.queryCompanyUserNumMationById(id);
+        bean = skyeyeBaseMapper.queryCompanyUserNumMationById(id, tenantId);
         if (Integer.parseInt(bean.get("companyUserNum").toString()) > 0) {
             throw new CustomException("该公司下存在员工，无法直接删除。");
         }
@@ -148,6 +153,9 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
     @Override
     public void queryCompanyMationListTree(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyMationListTree(map);
         String[] s;
         for (Map<String, Object> bean : beans) {
@@ -175,8 +183,8 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
      */
     @Override
     public void queryCompanyListToSelect(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyListToSelect(map);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyListToSelect(tenantId);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
@@ -189,13 +197,13 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
      */
     @Override
     public void queryCompanyOrganization(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> beans = new ArrayList<>();
         // 1.获取企业
-        List<Map<String, Object>> company = skyeyeBaseMapper.queryCompanyListToSelect(map);
+        List<Map<String, Object>> company = skyeyeBaseMapper.queryCompanyListToSelect(tenantId);
         beans.addAll(company);
         // 2.获取部门
-        List<Map<String, Object>> department = companyDepartmentDao.queryCompanyDepartmentOrganization(map);
+        List<Map<String, Object>> department = companyDepartmentDao.queryCompanyDepartmentOrganization(tenantId);
         for (Map<String, Object> bean : department) {
             String[] s = bean.get("parentId").toString().split(",");
             if (s.length > 0 && !"0".equals(bean.get("parentId").toString())) {
@@ -206,7 +214,11 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
         }
         beans.addAll(department);
         // 3.获取职位
-        List<Map<String, Object>> job = companyJobDao.queryCompanyJobSimpleList(new HashMap<>());
+        HashMap<String, Object> jobParams = new HashMap<>();
+        if (tenantEnable) {
+            jobParams.put("tenantId", TenantContext.getTenantId());
+        }
+        List<Map<String, Object>> job = companyJobDao.queryCompanyJobSimpleList(jobParams);
         for (Map<String, Object> bean : job) {
             String[] s = bean.get("parentId").toString().split(",");
             if (s.length > 0 && !"0".equals(bean.get("parentId").toString())) {
@@ -237,7 +249,8 @@ public class CompanyMationServiceImpl extends SkyeyeBusinessServiceImpl<CompanyM
 
     @Override
     public List<Map<String, Object>> queryCompanyList(String companyId) {
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyList(companyId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> beans = skyeyeBaseMapper.queryCompanyList(companyId, tenantId);
         return CollectionUtil.isNotEmpty(beans) ? beans : new ArrayList<>();
     }
 

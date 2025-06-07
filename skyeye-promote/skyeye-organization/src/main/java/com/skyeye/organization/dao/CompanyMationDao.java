@@ -4,6 +4,7 @@
 
 package com.skyeye.organization.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.organization.entity.Company;
 import org.apache.ibatis.annotations.Param;
@@ -21,17 +22,28 @@ import java.util.Map;
  */
 public interface CompanyMationDao extends SkyeyeBaseMapper<Company> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyMationList(Map<String, Object> map);
 
-    Map<String, Object> queryCompanyMationById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryCompanyMationById(@Param("id") String id,
+                                               @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyMationListTree(Map<String, Object> map);
 
-    Map<String, Object> queryCompanyUserNumMationById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryCompanyUserNumMationById(@Param("id") String id,
+                                                      @Param("tenantId") String tenantId);
 
-    Map<String, Object> queryCompanyDepartMentNumMationById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryCompanyDepartMentNumMationById(@Param("id") String id,
+                                                            @Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCompanyListToSelect(Map<String, Object> map);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCompanyListToSelect(@Param("tenantId") String tenantId);
 
-    List<Map<String, Object>> queryCompanyList(@Param("id") String id);
+    @IgnoreTenant
+    List<Map<String, Object>> queryCompanyList(@Param("id") String id,
+                                               @Param("tenantId") String tenantId);
 }

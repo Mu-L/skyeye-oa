@@ -4,6 +4,7 @@
 
 package com.skyeye.organization.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.organization.entity.JobScore;
 import com.skyeye.organization.entity.JobScoreQueryDo;
@@ -13,7 +14,9 @@ import java.util.Map;
 
 public interface CompanyJobScoreDao extends SkyeyeBaseMapper<JobScore> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyJobScoreList(JobScoreQueryDo pageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryEnableCompanyJobScoreList(Map<String, Object> map);
 }

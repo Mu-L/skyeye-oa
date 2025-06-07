@@ -4,6 +4,7 @@
 
 package com.skyeye.organization.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.organization.entity.CompanyJob;
@@ -14,11 +15,17 @@ import java.util.Map;
 
 public interface CompanyJobDao extends SkyeyeBaseMapper<CompanyJob> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyJobList(TableSelectInfo tableSelectInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyJobListTreeByDepartmentId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCompanyJobSimpleList(Map<String, Object> map);
 
-    List<Map<String, Object>> queryJobList(@Param("companyIds") List<String> companyIds, @Param("departmentIds") List<String> departmentIds);
+    @IgnoreTenant
+    List<Map<String, Object>> queryJobList(@Param("companyIds") List<String> companyIds,
+                                           @Param("departmentIds") List<String> departmentIds,
+                                           @Param("tenantId") String tenantId);
 }

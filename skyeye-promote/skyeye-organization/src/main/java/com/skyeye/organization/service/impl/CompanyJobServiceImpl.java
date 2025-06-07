@@ -5,13 +5,14 @@
 package com.skyeye.organization.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.itextpdf.text.pdf.qrcode.QRCode;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.organization.dao.CompanyJobDao;
 import com.skyeye.organization.entity.CompanyJob;
@@ -59,6 +60,9 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        if (tenantEnable) {
+            tableSelectInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobDao.queryCompanyJobList(tableSelectInfo);
         iCompanyService.setNameForMap(beans, "companyId", "companyName");
         iDepmentService.setNameForMap(beans, "departmentId", "departmentName");
@@ -89,6 +93,9 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
     @Override
     public void queryCompanyJobListTreeByDepartmentId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobDao.queryCompanyJobListTreeByDepartmentId(map);
         String[] s;
         for (Map<String, Object> bean : beans) {
@@ -117,6 +124,9 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
     @Override
     public void queryCompanyJobListByToSelect(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobDao.queryCompanyJobSimpleList(map);
         if (CollectionUtil.isNotEmpty(beans)) {
             outputObject.setBeans(beans);
@@ -133,6 +143,9 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
     @Override
     public void queryCompanyJobSimpleListByToSelect(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyJobDao.queryCompanyJobSimpleList(map);
         if (CollectionUtil.isNotEmpty(beans)) {
             outputObject.setBeans(beans);
@@ -142,9 +155,10 @@ public class CompanyJobServiceImpl extends SkyeyeBusinessServiceImpl<CompanyJobD
 
     @Override
     public List<Map<String, Object>> queryJobList(List<String> companyIds, List<String> departmentIds) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         companyIds = companyIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
         departmentIds = departmentIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
-        List<Map<String, Object>> beans = companyJobDao.queryJobList(companyIds, departmentIds);
+        List<Map<String, Object>> beans = companyJobDao.queryJobList(companyIds, departmentIds, tenantId);
         return CollectionUtil.isNotEmpty(beans) ? beans : new ArrayList<>();
     }
 

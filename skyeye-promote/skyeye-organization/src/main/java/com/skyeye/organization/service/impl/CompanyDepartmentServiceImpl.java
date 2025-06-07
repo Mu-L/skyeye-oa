@@ -9,11 +9,13 @@ import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.OvertimeSettlementType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.organization.dao.CompanyDepartmentDao;
@@ -47,14 +49,18 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
     @Autowired
     private CompanyMationService companyMationService;
 
-    /**
-     * 获取公司部门信息列表
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     */
+    @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyDepartmentDao.queryCompanyDepartmentList(commonPageInfo);
         companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
         beans.forEach(bean -> {
@@ -66,13 +72,14 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
 
     @Override
     public void deletePreExecution(String id) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 判断是否有员工
-        Map<String, Object> bean = companyDepartmentDao.queryCompanyDepartmentUserMationById(id);
+        Map<String, Object> bean = companyDepartmentDao.queryCompanyDepartmentUserMationById(id, tenantId);
         if (Integer.parseInt(bean.get("childsNum").toString()) > 0) {
             throw new CustomException("该部门下存在员工，无法直接删除。");
         }
         // 判断是否有职位
-        bean = companyDepartmentDao.queryCompanyJobNumMationById(id);
+        bean = companyDepartmentDao.queryCompanyJobNumMationById(id, tenantId);
         if (Integer.parseInt(bean.get("companyJobNum").toString()) > 0) {
             throw new CustomException("该部门下存在职位，无法直接删除。");
         }
@@ -87,6 +94,9 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
     @Override
     public void queryCompanyDepartmentListTreeByCompanyId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        if (tenantEnable) {
+            map.put("tenantId", TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = companyDepartmentDao.queryCompanyDepartmentListTreeByCompanyId(map);
         beans = ToolUtil.listToTree(beans, "id", "parentId", "children");
         outputObject.setBeans(beans);
@@ -143,9 +153,10 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
 
     @Override
     public List<Map<String, Object>> queryDepartmentList(List<String> companyIds, List<String> departmentIds) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         companyIds = companyIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
         departmentIds = departmentIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
-        List<Map<String, Object>> beans = companyDepartmentDao.queryDepartmentList(companyIds, departmentIds);
+        List<Map<String, Object>> beans = companyDepartmentDao.queryDepartmentList(companyIds, departmentIds, tenantId);
         return CollectionUtil.isNotEmpty(beans) ? beans : new ArrayList<>();
     }
 

@@ -4,6 +4,7 @@
 
 package com.skyeye.organization.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.organization.entity.JobScoreField;
 import org.apache.ibatis.annotations.Param;
@@ -12,6 +13,8 @@ import java.util.List;
 
 public interface CompanyJobScoreFieldDao extends SkyeyeBaseMapper<JobScoreField> {
 
-    int deleteCompanyJobScoreFieldByJobScoreId(@Param("jobScoreIdList") List<String> jobScoreIdList);
+    @IgnoreTenant
+    int deleteCompanyJobScoreFieldByJobScoreId(@Param("jobScoreIdList") List<String> jobScoreIdList,
+                                               @Param("tenantId") String tenantId);
 
 }

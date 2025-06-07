@@ -7,7 +7,14 @@
 			a.id,
 			a.`name`,
 			a.remark,
-			(SELECT COUNT(*) FROM sys_eve_user_staff b WHERE b.job_id = a.id) userNum,
+			<choose>
+				<when test="tenantId != null and tenantId != ''">
+					(SELECT COUNT(1) FROM tenant_user b WHERE b.job_id = a.id) userNum,
+				</when>
+				<otherwise>
+					(SELECT COUNT(1) FROM sys_eve_user_staff b WHERE b.job_id = a.id) userNum,
+				</otherwise>
+			</choose>
 			a.parent_id parentId,
 			a.company_id companyId,
 			a.department_id departmentId,
@@ -24,6 +31,9 @@
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` LIKE '%${keyword}%'
 			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.create_time DESC
 	</select>
@@ -37,6 +47,9 @@
 		FROM
 			company_job a
 		WHERE a.department_id = #{departmentId}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		ORDER BY a.parent_id ASC
 	</select>
 	
@@ -58,6 +71,9 @@
 			</if>
 			<if test="id != '' and id != null">
 				AND a.id != #{id}
+			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
 			</if>
 		</where>
 	</select>
@@ -85,6 +101,9 @@
 				<foreach collection="departmentIds" item="departmentId" index="index" open="(" close=")" separator=",">
 					#{departmentId}
 				</foreach>
+			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
 			</if>
 		</where>
 	</select>

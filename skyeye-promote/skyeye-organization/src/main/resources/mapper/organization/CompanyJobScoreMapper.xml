@@ -21,6 +21,9 @@
             <if test="keyword != null and keyword != ''">
                 AND a.`name` LIKE '%${keyword}%'
             </if>
+            <if test="tenantId != null and tenantId != ''">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
     </select>
 
@@ -36,6 +39,9 @@
             company_job_score a
         WHERE a.enabled = #{enabled}
         AND a.job_id = #{jobId}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>

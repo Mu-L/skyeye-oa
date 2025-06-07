@@ -13,9 +13,16 @@
 			a.area_id areaId,
 			a.township_id townshipId,
 			a.absolute_address absoluteAddress,
-			(SELECT COUNT(*) FROM company_mation f WHERE a.id = f.p_id) childsNum,
-			(SELECT COUNT(*) FROM sys_eve_user_staff g WHERE g.company_id = a.id) userNum,
-			(SELECT COUNT(*) FROM company_department h WHERE a.id = h.company_id) departmentNum,
+			(SELECT COUNT(1) FROM company_mation f WHERE a.id = f.p_id) childsNum,
+			<choose>
+				<when test="tenantId != null and tenantId != ''">
+					(SELECT COUNT(1) FROM tenant_user g WHERE g.company_id = a.id) userNum,
+				</when>
+				<otherwise>
+					(SELECT COUNT(1) FROM sys_eve_user_staff g WHERE g.company_id = a.id) userNum,
+				</otherwise>
+			</choose>
+			(SELECT COUNT(1) FROM company_department h WHERE a.id = h.company_id) departmentNum,
 			CONVERT(a.create_time, char) createTime
 		FROM
 			company_mation a
@@ -26,6 +33,9 @@
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` LIKE '%${keyword}%'
 			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.create_time DESC
 	</select>
@@ -34,25 +44,38 @@
 		SELECT
 			a.id,
 			a.p_id pId,
-			(SELECT COUNT(*) FROM company_mation b WHERE b.p_id = a.id) childsNum
+			(SELECT COUNT(1) FROM company_mation b WHERE b.p_id = a.id) childsNum
 		FROM
 			company_mation a
 		WHERE a.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryCompanyDepartMentNumMationById" resultType="java.util.Map">
 		SELECT 
-			COUNT(*) departmentNum
+			COUNT(1) departmentNum
 		FROM 
 			company_department a 
 		WHERE a.company_id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryCompanyUserNumMationById" resultType="java.util.Map">
 		SELECT 
-			COUNT(*) companyUserNum
-		FROM 
-			sys_eve_user_staff a 
+			COUNT(1) companyUserNum
+		FROM
+			<choose>
+				<when test="tenantId != null and tenantId != ''">
+					tenant_user a
+				</when>
+				<otherwise>
+					sys_eve_user_staff a
+				</otherwise>
+			</choose>
 		WHERE a.company_id = #{id}
 	</select>
 	
@@ -64,6 +87,9 @@
 			'[{"type": "0", "isChecked": "0"}]' checkArr
 		FROM
 			company_mation a
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		ORDER BY a.p_id ASC
 	</select>
 	
@@ -75,6 +101,11 @@
 			a.p_id parentId
 		FROM
 			company_mation a
+		<where>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 	</select>
 
     <select id="queryCompanyList" resultType="java.util.Map">
@@ -91,6 +122,9 @@
 		<where>
 			<if test="id != '' and id != null">
 				AND a.id = #{id}
+			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
 			</if>
 		</where>
 	</select>

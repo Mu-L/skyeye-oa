@@ -5,13 +5,15 @@
 package com.skyeye.organization.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.organization.entity.JobScoreField;
 import com.skyeye.organization.dao.CompanyJobScoreFieldDao;
+import com.skyeye.organization.entity.JobScoreField;
 import com.skyeye.organization.service.CompanyJobScoreFieldService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,14 +60,15 @@ public class CompanyJobScoreFieldServiceImpl extends SkyeyeBusinessServiceImpl<C
     }
 
     @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteJobScoreFieldByJobScoreId(String... jobScoreIds) {
         List<String> jobScoreIdList = Arrays.asList(jobScoreIds);
         jobScoreIdList = jobScoreIdList.stream().filter(str -> !ToolUtil.isBlank(str)).distinct().collect(Collectors.toList());
         if (CollectionUtil.isEmpty(jobScoreIdList)) {
             return;
         }
-        companyJobScoreFieldDao.deleteCompanyJobScoreFieldByJobScoreId(jobScoreIdList);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        companyJobScoreFieldDao.deleteCompanyJobScoreFieldByJobScoreId(jobScoreIdList, tenantId);
     }
 
 
