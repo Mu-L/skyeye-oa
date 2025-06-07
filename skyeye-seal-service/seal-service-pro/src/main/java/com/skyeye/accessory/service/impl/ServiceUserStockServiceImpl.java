@@ -13,6 +13,7 @@ import com.skyeye.accessory.classenum.UserStockPutOutType;
 import com.skyeye.accessory.dao.ServiceUserStockDao;
 import com.skyeye.accessory.entity.ServiceUserStock;
 import com.skyeye.accessory.service.ServiceUserStockService;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -34,13 +35,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ServiceUserStockServiceImpl
- * @Description: 用户配件申领单审核通过后的库存信息服务层
+ * @Description: 用户配件申领单审核通过后的库存信息服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/1/13 22:25
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "用户配件申领单审核通过后的库存信息", groupName = "用户配件申领单审核通过后的库存信息")
 public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<ServiceUserStockDao, ServiceUserStock> implements ServiceUserStockService {
 
     private static Logger LOGGER = LoggerFactory.getLogger(ServiceUserStockServiceImpl.class);

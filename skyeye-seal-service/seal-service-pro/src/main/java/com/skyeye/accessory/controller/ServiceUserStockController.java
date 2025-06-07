@@ -31,12 +31,6 @@ public class ServiceUserStockController {
     @Autowired
     private ServiceUserStockService serviceUserStockService;
 
-    /**
-     * 获取我申领的配件库存信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sealseservice031", value = "获取我申领的配件库存信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ServiceUserStockController/queryServiceUserStockList")
@@ -44,12 +38,6 @@ public class ServiceUserStockController {
         serviceUserStockService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据规格id获取我的库存
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyPartsNumByNormsId", value = "根据规格id获取我的库存", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格id", required = "required")})
