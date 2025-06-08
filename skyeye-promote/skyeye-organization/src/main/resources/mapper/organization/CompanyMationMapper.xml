@@ -87,9 +87,11 @@
 			'[{"type": "0", "isChecked": "0"}]' checkArr
 		FROM
 			company_mation a
-		<if test="tenantId != null and tenantId != ''">
-			AND a.tenant_id = #{tenantId}
-		</if>
+		<where>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		ORDER BY a.p_id ASC
 	</select>
 	
