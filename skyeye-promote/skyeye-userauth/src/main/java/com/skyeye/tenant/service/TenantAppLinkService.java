@@ -5,6 +5,8 @@
 package com.skyeye.tenant.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.TenantAppLink;
 
 import java.util.List;
@@ -23,4 +25,5 @@ public interface TenantAppLinkService extends SkyeyeBusinessService<TenantAppLin
 
     List<TenantAppLink> selectByTenantId(String tenantId);
 
+    void queryTenantAppLinkList(InputObject inputObject, OutputObject outputObject);
 }

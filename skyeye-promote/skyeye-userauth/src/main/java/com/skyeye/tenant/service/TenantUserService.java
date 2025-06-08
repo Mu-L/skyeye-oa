@@ -62,4 +62,6 @@ public interface TenantUserService extends SkyeyeBusinessService<TenantUser> {
     void quit(String staffId, String quitTime, String quitReason);
 
     void queryTenantUserStaffIdByTenantId(InputObject inputObject, OutputObject outputObject);
+
+    void queryTenantUserListByTenantId(InputObject inputObject, OutputObject outputObject);
 }

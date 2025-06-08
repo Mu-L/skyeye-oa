@@ -5,8 +5,14 @@
 package com.skyeye.tenant.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.service.TenantAppLinkService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -23,5 +29,13 @@ public class TenantAppLinkController {
 
     @Autowired
     private TenantAppLinkService tenantAppLinkService;
+
+    @ApiOperation(id = "queryTenantAppLinkList", value = "获取租户购买的应用列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required"))
+    @RequestMapping("/post/TenantAppLinkController/queryTenantAppLinkList")
+    public void queryTenantAppLinkList(InputObject inputObject, OutputObject outputObject) {
+        tenantAppLinkService.queryTenantAppLinkList(inputObject, outputObject);
+    }
 
 }

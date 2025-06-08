@@ -32,12 +32,6 @@ public class TenantAppBuyOrderController {
     @Autowired
     private TenantAppBuyOrderService tenantAppBuyOrderService;
 
-    /**
-     * 获取订单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTenantAppBuyOrderList", value = "获取订单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/TenantAppBuyOrderController/queryTenantAppBuyOrderList")
@@ -45,12 +39,6 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTenantAppBuyOrder", value = "新增/编辑订单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TenantAppBuyOrder.class)
     @RequestMapping("/post/TenantAppBuyOrderController/writeTenantAppBuyOrder")
@@ -58,12 +46,6 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 订单提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitTenantAppBuyOrder", value = "订单提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -73,12 +55,6 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 删除订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTenantAppBuyOrderById", value = "删除订单", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,18 +63,20 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeTenantAppBuyOrder", value = "撤销订单", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/TenantAppBuyOrderController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         tenantAppBuyOrderService.revoke(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryTenantOrderStatistics", value = "获取租户订单统计信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id", required = "required"))
+    @RequestMapping("/post/TenantAppBuyOrderController/queryTenantOrderStatistics")
+    public void queryTenantOrderStatistics(InputObject inputObject, OutputObject outputObject) {
+        tenantAppBuyOrderService.queryTenantOrderStatistics(inputObject, outputObject);
     }
 
 }

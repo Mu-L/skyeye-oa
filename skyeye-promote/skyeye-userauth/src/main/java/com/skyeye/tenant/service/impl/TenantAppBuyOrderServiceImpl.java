@@ -5,22 +5,26 @@
 package com.skyeye.tenant.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.dao.TenantAppBuyOrderDao;
-import com.skyeye.tenant.entity.TenantApp;
-import com.skyeye.tenant.entity.TenantAppBuyOrder;
-import com.skyeye.tenant.entity.TenantAppBuyOrderNum;
-import com.skyeye.tenant.entity.TenantAppBuyOrderYear;
+import com.skyeye.tenant.entity.*;
 import com.skyeye.tenant.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -125,5 +129,35 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<Tena
                 tenantAppLinkService.saveTenantAppLink(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderYear.getAppId(), tenantAppBuyOrderYear.getAccountYear());
             });
         }
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryTenantOrderStatistics(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = inputObject.getParams().get("tenantId").toString();
+        // 1. 查询租户的订单信息--包括所有状态
+        QueryWrapper<TenantAppBuyOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getBuyTenantId), tenantId);
+        List<TenantAppBuyOrder> tenantAppBuyOrderList = list(queryWrapper);
+        // 2. 查询租户的总订单金额--包括审核通过的
+        BigDecimal totalPrice = tenantAppBuyOrderList.stream()
+            .filter(tenantAppBuyOrder -> tenantAppBuyOrder.getState().equals(FlowableStateEnum.PASS.getKey()))
+            .map(bean -> new BigDecimal(bean.getAllPrice()))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 3. 查询租户的总订单数量--包括审核通过的
+        long totalCount = tenantAppBuyOrderList.stream()
+            .filter(tenantAppBuyOrder -> tenantAppBuyOrder.getState().equals(FlowableStateEnum.PASS.getKey()))
+            .count();
+        // 4. 查询租户购买的应用数量
+        List<TenantAppLink> tenantAppLinks = tenantAppLinkService.selectByTenantId(tenantId);
+        int appCount = tenantAppLinks.size();
+        // 5. 封装数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("totalPrice", totalPrice);
+        data.put("totalCount", totalCount);
+        data.put("appCount", appCount);
+        outputObject.setBean(data);
+        outputObject.setBeans(tenantAppBuyOrderList);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 }

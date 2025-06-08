@@ -106,4 +106,11 @@ public class TenantUserController {
     public void queryTenantUserStaffIdByTenantId(InputObject inputObject, OutputObject outputObject) {
         tenantUserService.queryTenantUserStaffIdByTenantId(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryTenantUserListByTenantId", value = "根据租户id分页查询租户下的用户信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/TenantUserController/queryTenantUserListByTenantId")
+    public void queryTenantUserListByTenantId(InputObject inputObject, OutputObject outputObject) {
+        tenantUserService.queryTenantUserListByTenantId(inputObject, outputObject);
+    }
 }

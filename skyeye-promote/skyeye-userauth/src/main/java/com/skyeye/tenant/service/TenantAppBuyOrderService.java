@@ -5,6 +5,8 @@
 package com.skyeye.tenant.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.tenant.entity.TenantAppBuyOrder;
 
 /**
@@ -17,4 +19,5 @@ import com.skyeye.tenant.entity.TenantAppBuyOrder;
  */
 public interface TenantAppBuyOrderService extends SkyeyeFlowableService<TenantAppBuyOrder> {
 
+    void queryTenantOrderStatistics(InputObject inputObject, OutputObject outputObject);
 }

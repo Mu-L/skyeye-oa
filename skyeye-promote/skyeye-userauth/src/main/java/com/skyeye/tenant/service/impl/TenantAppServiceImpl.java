@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: TenantAppServiceImpl
- * @Description: 租户应用管理服务层
+ * @Description: 租户应用管理服务层--平台租户
  * @author: skyeye云系列--卫志强
  * @date: 2024/7/29 16:38
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

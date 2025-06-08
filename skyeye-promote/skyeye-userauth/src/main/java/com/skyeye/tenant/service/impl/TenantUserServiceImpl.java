@@ -4,17 +4,21 @@
 
 package com.skyeye.tenant.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -506,6 +510,38 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         });
         outputObject.setBeans(tenantUserList);
         outputObject.settotal(tenantUserList.size());
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryTenantUserListByTenantId(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getTenantId())) {
+            throw new CustomException("租户ID不能为空");
+        }
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<TenantUser> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), commonPageInfo.getTenantId());
+        List<TenantUser> tenantUserList = super.list(queryWrapper);
+        if (CollectionUtil.isEmpty(tenantUserList)) {
+            return;
+        }
+        List<Map<String, Object>> beans = tenantUserList.stream()
+            .map(tenantUser -> BeanUtil.beanToMap(tenantUser)).collect(Collectors.toList());
+        List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        beans.forEach(bean -> {
+            String transferStaffId = bean.get("staffId").toString();
+            bean.put("staffMation", staffMap.get(transferStaffId));
+        });
+
+        // 设置组织信息
+        companyMationService.setNameMationForMap(beans, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(beans, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(beans, "jobId", "jobName", StrUtil.EMPTY);
+        companyJobScoreService.setNameMationForMap(beans, "jobScoreId", "jobScoreName", StrUtil.EMPTY);
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 
 }
