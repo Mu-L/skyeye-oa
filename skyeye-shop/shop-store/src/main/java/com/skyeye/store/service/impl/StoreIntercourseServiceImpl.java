@@ -4,13 +4,16 @@
 
 package com.skyeye.store.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.store.dao.StoreIntercourseDao;
 import com.skyeye.entity.intercourse.StoreIntercourseQueryDo;
+import com.skyeye.store.dao.StoreIntercourseDao;
 import com.skyeye.store.service.StoreIntercourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,9 +88,12 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryStoreIntercourseList(InputObject inputObject, OutputObject outputObject) {
         StoreIntercourseQueryDo storeIntercourseQuery = inputObject.getParams(StoreIntercourseQueryDo.class);
         Page pages = PageHelper.startPage(storeIntercourseQuery.getPage(), storeIntercourseQuery.getLimit());
+        String tenantId = TenantContext.getTenantId() != null ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        storeIntercourseQuery.setTenantId(tenantId);
         List<Map<String, Object>> beans = storeIntercourseDao.queryStoreIntercourseList(storeIntercourseQuery);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
@@ -128,6 +134,8 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
     public List<Map<String, Object>> queryStoreIntercourseListByDay(String day) {
         StoreIntercourseQueryDo storeIntercourseQuery = new StoreIntercourseQueryDo();
         storeIntercourseQuery.setDay(day);
+        String tenantId = TenantContext.getTenantId();
+        storeIntercourseQuery.setTenantId(tenantId);
         List<Map<String, Object>> storeIntercourseList = storeIntercourseDao.queryStoreIntercourseList(storeIntercourseQuery);
         return storeIntercourseList;
     }

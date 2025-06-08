@@ -50,7 +50,7 @@ public class StoreIntercourseController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "editStoreIntercourseState", value = "编辑指定门店的支出/收入往来的状态", method = "PUT", allUse = "1")
+        @ApiOperation(id = "editStoreIntercourseState", value = "编辑指定门店的支出/收入往来的状态", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "往来数据id", required = "required"),
         @ApiImplicitParam(id = "state", name = "state", value = "状态  1.待套餐购买门店确认  2.待保养门店确认  3.已确认", required = "required,num")})

@@ -76,6 +76,11 @@
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND s.intercourse_time >= #{startTime} AND #{endTime} >= s.intercourse_time
         </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND s.tenant_id = #{tenantId}
+            AND b.tenant_id = #{tenantId}
+            AND c.tenant_id = #{tenantId}
+        </if>
         ORDER BY s.intercourse_time DESC
     </select>
 
