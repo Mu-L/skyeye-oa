@@ -54,10 +54,6 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
     @Autowired
     private PostService postService;
 
-
-    @Autowired
-    private PopularPostService popularPostService;
-
     @Autowired
     private PictureService pictureService;
 
@@ -66,7 +62,6 @@ public class HistoryPostServiceImpl extends SkyeyeBusinessServiceImpl<HistoryPos
 
     @Override
     public String createEntity(HistoryPost entity, String userId) {
-        popularPostService.insertPopularPostList();
         QueryWrapper<HistoryPost> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getPostId), entity.getPostId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(HistoryPost::getCreateId), userId);

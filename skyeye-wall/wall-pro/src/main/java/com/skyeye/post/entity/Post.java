@@ -109,4 +109,8 @@ public class Post extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "业务逻辑对象")
     private String objectKey;
+
+    @TableField(value = "tenant_id")
+    @Property(value = "租户id")
+    private String tenantId;
 }

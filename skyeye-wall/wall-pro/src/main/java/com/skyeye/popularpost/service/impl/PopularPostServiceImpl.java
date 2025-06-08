@@ -9,7 +9,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.RedisConstants;
@@ -24,6 +23,7 @@ import com.skyeye.post.service.PostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -53,9 +53,11 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
 
     private static Logger LOGGER = LoggerFactory.getLogger(PopularPostServiceImpl.class);
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
-    public void insertPopularPostList() {
+    public void insertPopularPostList(String tenantId) {
         // 获取当前时间
         String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH);
         String key  = CacheConstants.XXL_JOP_POST + pointTime;
@@ -66,7 +68,12 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
             return;
         }
         //取出前30天内的post
-        List<Post> postList = postService.getBeforeThirtyDaysPost();
+        List<Post> postList;
+        if( tenantEnable){
+            postList = postService.getBeforeThirtyDaysPost(tenantId);
+        }else {
+            postList = postService.getBeforeThirtyDaysPost(null);
+        }
         //取出点赞量、评论量、浏览量
         Map<String, List<Integer>> listMap = getAll(postList);
         //计算权重

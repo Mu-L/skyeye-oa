@@ -47,6 +47,7 @@ import com.skyeye.user.service.UserService;
 import com.skyeye.user.userenum.LoginIdentity;
 import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,6 +97,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
 
     @Autowired
     private PostService postService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void validatorEntity(Post entity) {
@@ -400,7 +404,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     }
 
     @Override
-    public List<Post> getBeforeThirtyDaysPost() {
+    public List<Post> getBeforeThirtyDaysPost(String tenantId) {
         //获取前三十天以内的日期
         String beforeDay = getBeforeOrFutureDay(-29);
         String today = DateUtil.getTimeAndToString();
@@ -412,6 +416,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 // 取前三十天以内的帖子
                 .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+        if(tenantEnable){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getTenantId), tenantId);
+        }
         return list(queryWrapper);
     }
 

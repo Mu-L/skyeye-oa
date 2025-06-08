@@ -1,9 +1,18 @@
 package com.skyeye.xxljob;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.popularpost.service.PopularPostService;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: PostXxlJob
@@ -16,11 +25,37 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostXxlJob {
 
+    private static Logger LOGGER = LoggerFactory.getLogger(PostXxlJob.class);
+
+    @Autowired
+    private ITenantService iTenantService;
+
     @Autowired
     private PopularPostService popularPostService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     @XxlJob("getHotPostHandler")
     public void getHotPost() {
-        popularPostService.insertPopularPostList();
+        try {
+            if (tenantEnable) {
+                //  开启多租户
+                List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+                if (CollectionUtil.isEmpty(tenantList)) {
+                    return;
+                }
+                tenantList.forEach(tenant -> {
+                    String tenantId = tenant.get("id").toString();
+                    TenantContext.setTenantId(tenantId);
+                    popularPostService.insertPopularPostList(tenantId);
+                });
+            }else {
+                popularPostService.insertPopularPostList(null);
+            }
+        }catch (Exception e){
+            LOGGER.warn("xxljob getHotPostHandler error:{0}",e);
+        }
+
     }
 }
