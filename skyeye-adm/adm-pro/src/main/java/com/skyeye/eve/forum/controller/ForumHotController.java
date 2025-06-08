@@ -32,12 +32,6 @@ public class ForumHotController {
     @Autowired
     private ForumHotService forumHotService;
 
-    /**
-     * 获取热门贴
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHotForumList", value = "获取热门贴", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumHotController/queryHotForumList")
@@ -45,12 +39,6 @@ public class ForumHotController {
         forumHotService.queryHotForumList(inputObject, outputObject);
     }
 
-    /**
-     * 获取热门标签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryHotTagList", value = "获取热门标签", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumHotController/queryHotTagList")

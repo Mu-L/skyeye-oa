@@ -4,19 +4,17 @@
 
 package com.skyeye.eve.service.impl;
 
-import com.skyeye.common.constans.ForumConstants;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.dao.MainPageDao;
 import com.skyeye.eve.service.MainPageService;
-import com.skyeye.jedis.JedisClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -25,8 +23,8 @@ public class MainPageServiceImpl implements MainPageService {
     @Autowired
     private MainPageDao mainPageDao;
 
-    @Autowired
-    public JedisClientService jedisClient;
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     /**
      * 获取本月考勤天数，我的文件数，我的论坛帖数
@@ -37,12 +35,13 @@ public class MainPageServiceImpl implements MainPageService {
     @Override
     public void queryFourNumListByUserId(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取本月考勤天数
-        String checkOnWorkNum = mainPageDao.queryCheckOnWorkNumByUserId(userId);
+        String checkOnWorkNum = mainPageDao.queryCheckOnWorkNumByUserId(userId, tenantId);
         // 2.获取我的文件数
-        String diskCloudFileNum = mainPageDao.queryDiskCloudFileNumByUserId(userId);
+        String diskCloudFileNum = mainPageDao.queryDiskCloudFileNumByUserId(userId, tenantId);
         // 3.获取我的论坛帖数
-        String forumNum = mainPageDao.queryForumNumByUserId(userId);
+        String forumNum = mainPageDao.queryForumNumByUserId(userId, tenantId);
         Map<String, Object> map = new HashMap<>();
         map.put("checkOnWorkNum", checkOnWorkNum);
         map.put("diskCloudFileNum", diskCloudFileNum);
