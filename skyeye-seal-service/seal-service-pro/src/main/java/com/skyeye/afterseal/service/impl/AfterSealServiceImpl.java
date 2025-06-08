@@ -317,11 +317,13 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
             queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getEndTime())
                 .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getStartTime());
         }
-        queryWrapper.groupBy(MybatisPlusUtil.toColumns(AfterSeal::getTypeId));
         List<AfterSeal> resultList = list(queryWrapper);
         iSysDictDataService.setDataMation(resultList, AfterSeal::getTypeId);
+        // 根据typeId去重
+        List<AfterSeal> distinctList = resultList.stream().
+                collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(AfterSeal::getTypeId))), ArrayList::new));
         // 获取typeId对应的name
-        Map<String, String> stringMap = resultList.stream().collect(Collectors.toMap(AfterSeal::getTypeId, bean -> {
+        Map<String, String> stringMap = distinctList.stream().collect(Collectors.toMap(AfterSeal::getTypeId, bean -> {
             if (CollectionUtil.isNotEmpty(bean.getTypeMation())) {
                 return bean.getTypeMation().get("dictName").toString();
             } else {
@@ -427,7 +429,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
             // 配件使用数
             bean.put("totalParts", useCount.getOrDefault(userIdStr, defaultValue));
         }
-
+        // 根据平均工时倒序排序
+        beans.sort((o1, o2) -> Double.compare(Double.parseDouble(o2.get("avgProcessTime").toString()), Double.parseDouble(o1.get("avgProcessTime").toString())));
         outputObject.setBeans(beans);
     }
 
