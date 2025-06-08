@@ -117,6 +117,12 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 // 员工类型，参考#UserStaffType
                 wrapper.eq(TenantUser::getType, sysEveUserStaffQuery.getType());
             }
+            if(StrUtil.isNotEmpty(sysEveUserStaffQuery.getKeyword())){
+                wrapper.and(item->{
+                    item.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName),sysEveUserStaffQuery.getKeyword())
+                            .or().like("tru.job_number ",sysEveUserStaffQuery.getKeyword());
+                });
+            }
             List<SysEveUserStaff> sysEveUserStaffList = skyeyeBaseMapper.selectJoinList(SysEveUserStaff.class, wrapper);
             if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
                 tenantUserService.setThisTenantUserToDefault(sysEveUserStaffList);
