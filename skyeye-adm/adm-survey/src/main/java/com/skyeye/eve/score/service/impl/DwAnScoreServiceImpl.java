@@ -27,7 +27,7 @@ public class DwAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnScoreDao
     @Override
     public List<DwAnScore> selectBySurveyId(String surveyId) {
         QueryWrapper<DwAnScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnScore::getBelongId),surveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnScore::getBelongId), surveyId);
         return list(queryWrapper);
     }
 
@@ -35,7 +35,7 @@ public class DwAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnScoreDao
     public void queryDwAnScoreListById(InputObject inputObject, OutputObject outputObject) {
         String examAnScoreId = inputObject.getParams().get("id").toString();
         QueryWrapper<DwAnScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,examAnScoreId);
+        queryWrapper.eq(CommonConstants.ID, examAnScoreId);
         List<DwAnScore> dwAnScoreList = list(queryWrapper);
         outputObject.setBean(dwAnScoreList);
         outputObject.settotal(dwAnScoreList.size());

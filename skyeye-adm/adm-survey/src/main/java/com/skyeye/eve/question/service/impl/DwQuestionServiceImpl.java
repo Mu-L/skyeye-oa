@@ -14,15 +14,13 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
-import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
 import com.skyeye.eve.chen.entity.DwQuChenColumn;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
-import com.skyeye.eve.chen.service.*;
+import com.skyeye.eve.chen.service.DwQuChenColumnService;
+import com.skyeye.eve.chen.service.DwQuChenRowService;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
-import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
-import com.skyeye.eve.order.service.DwAnOrderService;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
 import com.skyeye.eve.question.dao.DwQuestionDao;
@@ -31,10 +29,8 @@ import com.skyeye.eve.question.entity.DwQuestionLogic;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwQuestionService;
 import com.skyeye.eve.radio.entity.DwQuRadio;
-import com.skyeye.eve.radio.service.DwAnRadioService;
 import com.skyeye.eve.radio.service.DwQuRadioService;
 import com.skyeye.eve.score.entity.DwQuScore;
-import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.score.service.DwQuScoreService;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,26 +62,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     private DwQuChenColumnService dwQuChenColumnService;
     @Autowired
     private DwQuChenRowService dwQuChenRowService;
-    @Autowired
-    private DwAnRadioService dwAnRadioService;
-    @Autowired
-    private DwAnCheckboxService dwAnCheckboxService;
-    @Autowired
-    private DwAnScoreService dwAnScoreService;
-    @Autowired
-    private DwAnOrderService dwAnOrderService;
-    @Autowired
-    private DwAnChenRadioService dwAnChenRadioService;
-    @Autowired
-    private DwAnChenCheckboxService dwAnChenCheckboxService;
-    @Autowired
-    private DwAnDfillblankService dwAnDfillblankService;
-    @Autowired
-    private DwAnChenFbkService dwAnChenFbkService;
-    @Autowired
-    private DwAnChenScoreService dwAnChenScoreService;
-    @Autowired
-    private DwAnCompChenRadioService dwAnCompChenRadioService;
 
     @Override
     public void createPrepose(List<DwQuestion> entity) {

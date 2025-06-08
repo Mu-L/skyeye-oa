@@ -54,7 +54,7 @@ public class DwAuCheckboxController {
      */
     @ApiOperation(id = "deleteDwAnCheckboxById", value = "删除多选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAuCheckboxController/deleteDwAnCheckboxById")
     public void deleteDwAnCheckboxById(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAuCheckboxController {
      */
     @ApiOperation(id = "queryDwAnCheckboxListById", value = "根据id获取多选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAuCheckboxController/queryDwAnCheckboxListById")
     public void queryDwAnCheckboxListById(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.queryDwAnCheckboxListById(inputObject, outputObject);

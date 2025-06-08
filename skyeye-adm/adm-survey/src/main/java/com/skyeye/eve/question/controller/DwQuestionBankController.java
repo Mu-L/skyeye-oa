@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.question.entity.DwQuestionBank;
 import com.skyeye.eve.question.service.DwQuestionBankService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +67,7 @@ public class DwQuestionBankController {
      */
     @ApiOperation(id = "deleteDwQuestionBankById", value = "根据ID删除题库信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuestionBankController/deleteDwQuestionBankById")
     public void deleteDwQuestionBankById(InputObject inputObject, OutputObject outputObject) {
         dwQuestionBankService.deleteById(inputObject, outputObject);
@@ -82,7 +81,7 @@ public class DwQuestionBankController {
      */
     @ApiOperation(id = "setUpDwQuestionBank", value = "发布题库", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuestionBankController/setUpDwQuestionBank")
     public void setUpDwQuestionBank(InputObject inputObject, OutputObject outputObject) {
         dwQuestionBankService.setUpDwQuestionBank(inputObject, outputObject);

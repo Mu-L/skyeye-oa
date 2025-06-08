@@ -54,7 +54,7 @@ public class DwAnYesnoController {
      */
     @ApiOperation(id = "deleteDwAnYesnoById", value = "根据ID删除单选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnYesnoController/deleteDwAnYesnoById")
     public void deleteDwAnYesnoById(InputObject inputObject, OutputObject outputObject) {
         dwAnYesnoService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnYesnoController {
      */
     @ApiOperation(id = "queryDwAnYesnoListById", value = "根据id获取单选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnYesnoController/queryDwAnYesnoListById")
     public void queryDwAnYesnoListById(InputObject inputObject, OutputObject outputObject) {
         dwAnYesnoService.queryDwAnYesnoListById(inputObject, outputObject);

@@ -54,7 +54,7 @@ public class DwAnChenScoreController {
      */
     @ApiOperation(id = "deleteDwAnChenScoreById", value = "删除矩阵多选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenScoreController/deleteDwAnChenScoreById")
     public void deleteDwAnChenScoreById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenScoreService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnChenScoreController {
      */
     @ApiOperation(id = "queryDwAnChenScoreListById", value = "根据id获取矩阵多选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenScoreController/queryDwAnChenScoreListById")
     public void queryDwAnChenScoreListById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenScoreService.queryDwAnChenScoreListById(inputObject, outputObject);

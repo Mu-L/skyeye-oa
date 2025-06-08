@@ -54,7 +54,7 @@ public class DwAnDfillblankController {
      */
     @ApiOperation(id = "deleteDwAnDfillblankById", value = "删除多行填空题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnDfillblankController/deleteDwAnDfillblankById")
     public void deleteDwAnDfillblankById(InputObject inputObject, OutputObject outputObject) {
         dwAnDfilllankService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnDfillblankController {
      */
     @ApiOperation(id = "queryDwAnDfillblankById", value = "根据id获取多行填空题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnDfillblankController/queryDwAnDfillblankById")
     public void queryDwAnDfillblankById(InputObject inputObject, OutputObject outputObject) {
         dwAnDfilllankService.queryDwAnDfillblankById(inputObject, outputObject);

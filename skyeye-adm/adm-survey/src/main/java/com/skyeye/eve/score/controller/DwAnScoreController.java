@@ -54,7 +54,7 @@ public class DwAnScoreController {
      */
     @ApiOperation(id = "deleteDwAnScoreById", value = "根据ID删除评分题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnScoreController/deleteDwAnScoreById")
     public void deleteDwAnScoreById(InputObject inputObject, OutputObject outputObject) {
         dwAnScoreService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnScoreController {
      */
     @ApiOperation(id = "queryDwAnScoreListById", value = "根据id获取评分题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnScoreController/queryDwAnScoreListById")
     public void queryDwAnScoreListById(InputObject inputObject, OutputObject outputObject) {
         dwAnScoreService.queryDwAnScoreListById(inputObject, outputObject);

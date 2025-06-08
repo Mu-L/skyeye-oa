@@ -16,16 +16,9 @@ package com.skyeye.eve.question.dao;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.question.entity.DwSurveyDirectory;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.Map;
 
 @Mapper
 public interface DwSurveyDirectoryDao extends SkyeyeBaseMapper<DwSurveyDirectory> {
-
-    Map<String, Object> querySurveyMationById(@Param("id") String id);
-
-    int editSurveyStateToEndNumZdById(Map<String, Object> map);
 
 }
 

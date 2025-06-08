@@ -54,7 +54,7 @@ public class DwAnChenFbkController {
      */
     @ApiOperation(id = "deleteDwAnChenFbkById", value = "删除矩阵填空题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenFbkController/deleteDwAnChenFbkById")
     public void deleteDwAnChenFbkById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenFbkService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnChenFbkController {
      */
     @ApiOperation(id = "queryDwAnChenFbkListById", value = "根据id获取矩阵填空题列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenFbkController/queryDwAnChenFbkListById")
     public void queryDwAnChenFbkListById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenFbkService.queryDwAnChenFbkListById(inputObject, outputObject);

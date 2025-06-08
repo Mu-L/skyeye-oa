@@ -80,7 +80,7 @@ public class DwQuestionController {
      */
     @ApiOperation(id = "selectDwQuestionById", value = "根据Ids批量查询题目", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")})
     @RequestMapping("/post/DwQuestionController/selectDwQuestionById")
     public void selectDwQuestionById(InputObject inputObject, OutputObject outputObject) {
         dwquestionService.selectByIds(inputObject, outputObject);
@@ -94,7 +94,7 @@ public class DwQuestionController {
      */
     @ApiOperation(id = "deleteDwQuestionById", value = "根据ID删除题目信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuestionController/deleteDwQuestionById")
     public void deleteDwQuestionById(InputObject inputObject, OutputObject outputObject) {
         dwquestionService.deleteById(inputObject, outputObject);

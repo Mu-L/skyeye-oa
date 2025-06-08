@@ -364,8 +364,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 保存排班结果
         if (CollectionUtil.isNotEmpty(finalSchedules)) {
-            // 为相邻时间段设置不同颜色
-            setColorsForAdjacentTimeSlots(finalSchedules);
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             super.createEntity(finalSchedules, userId);
         }
@@ -497,57 +495,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             })
             .collect(Collectors.toList());
     }
-
-    /**
-     * 为相邻时间段设置不同颜色
-     * 颜色规则：
-     * 1. 相邻时间段不能使用相同颜色
-     * 2. 使用5种基本颜色循环
-     * 3. 按时间顺序设置颜色
-     */
-    private void setColorsForAdjacentTimeSlots(List<Scheduling> schedules) {
-        String[] colors = {"green", "blue", "orange", "red", "gray"};
-
-        // 按日期和时间排序
-        schedules.sort((a, b) -> {
-            int dateCompare = a.getScheduleDate().compareTo(b.getScheduleDate());
-            if (dateCompare != 0) {
-                return dateCompare;
-            }
-            // 获取时间段信息
-            SchedulingShiftsTime timeA = schedulingShiftsTimeService.getById(a.getShiftTimeId());
-            SchedulingShiftsTime timeB = schedulingShiftsTimeService.getById(b.getShiftTimeId());
-            return timeA.getStartTime().compareTo(timeB.getStartTime());
-        });
-
-        // 为每个时间段设置颜色
-        Map<String, String> timeSlotColors = new HashMap<>();
-        int colorIndex = 0;
-        String lastColor = null;
-
-        for (Scheduling schedule : schedules) {
-            String timeSlotId = schedule.getShiftTimeId();
-
-            // 如果这个时间段还没有颜色
-            if (!timeSlotColors.containsKey(timeSlotId)) {
-                // 找到与上一个颜色不同的颜色
-                String color;
-                do {
-                    color = colors[colorIndex % colors.length];
-                    colorIndex++;
-                } while (color.equals(lastColor));
-
-                timeSlotColors.put(timeSlotId, color);
-                lastColor = color;
-            }
-
-            // 设置颜色
-            SchedulingShiftsTime timeSlot = schedulingShiftsTimeService.getById(timeSlotId);
-            timeSlot.setColor(timeSlotColors.get(timeSlotId));
-            schedulingShiftsTimeService.updateById(timeSlot);
-        }
-    }
-
 
     /**
      * 获取指定时间段可用的临时员工

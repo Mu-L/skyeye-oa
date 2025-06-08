@@ -48,7 +48,7 @@ public class DwQuScoreController {
      */
     @ApiOperation(id = "deleteDwQuScoreById", value = "根据ID物理删除评分题行选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuScoreController/deleteDwQuScoreById")
     public void deleteDwQuScoreById(InputObject inputObject, OutputObject outputObject) {
         dwQuScoreService.deleteById(inputObject, outputObject);
@@ -62,7 +62,7 @@ public class DwQuScoreController {
      */
     @ApiOperation(id = "changeVisibility", value = "逻辑删除评分题行选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuScoreController/changeVisibility")
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         dwQuScoreService.changeVisibility(inputObject, outputObject);

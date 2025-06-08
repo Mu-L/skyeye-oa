@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Service
 @SkyeyeService(name = "答卷 多行填空题保存表", groupName = "答卷 多行填空题保存表")
-public class DwAnDfillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnDfillblankDao,DwAnDfillblank> implements DwAnDfillblankService {
+public class DwAnDfillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnDfillblankDao, DwAnDfillblank> implements DwAnDfillblankService {
     @Override
     public void queryDwAnDfillblankById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

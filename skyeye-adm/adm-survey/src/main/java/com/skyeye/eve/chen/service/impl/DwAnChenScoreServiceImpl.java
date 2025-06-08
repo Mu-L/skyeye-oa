@@ -45,18 +45,18 @@ public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
     protected void updatePostpose(DwAnChenScore entity, String userId) {
         List<DwAnChenScore> chenCheckboxAn = entity.getDwChenScoreAn();
         QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.ne(CommonConstants.ID, entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongAnswerId), entity.getBelongAnswerId());
         List<DwAnChenScore> dwAnChenCheckboxList = list(queryWrapper);//数据库数据
         List<DwAnChenScore> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
         List<DwAnChenScore> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(DwAnChenScore::getId).collect(Collectors.toSet());
         List<DwAnChenScore> result = dwAnChenCheckboxList.stream().filter(
-                e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(DwAnChenScore::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);

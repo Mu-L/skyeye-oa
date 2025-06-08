@@ -40,7 +40,7 @@ public class DwQuOrderbyController {
      */
     @ApiOperation(id = "deleteDwQuOrderbyById", value = "根据ID物理删除排序题行选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuOrderbyController/deleteDwQuOrderbyById")
     public void deleteDwQuOrderbyById(InputObject inputObject, OutputObject outputObject) {
         dwQuOrderbyService.deleteById(inputObject, outputObject);
@@ -54,7 +54,7 @@ public class DwQuOrderbyController {
      */
     @ApiOperation(id = "changeVisibility", value = "逻辑删除排序题行选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuOrderbyController/changeVisibility")
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         dwQuOrderbyService.changeVisibility(inputObject, outputObject);

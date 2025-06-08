@@ -41,7 +41,7 @@ public class DwSurveyAnswerController {
      */
     @ApiOperation(id = "deleteSurveyAnswerById", value = "根据ID删除问卷回答信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwSurveyAnswerController/deleteSurveyAnswerById")
     public void deleteSurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.deleteById(inputObject, outputObject);
@@ -55,7 +55,7 @@ public class DwSurveyAnswerController {
      */
     @ApiOperation(id = "querySurveyAnswerById", value = "根据ID获取问卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwSurveyAnswerController/querySurveyAnswerById")
     public void querySurveyAnswerById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.selectById(inputObject, outputObject);//仅用了方法
@@ -81,7 +81,7 @@ public class DwSurveyAnswerController {
      */
     @ApiOperation(id = "queryNoOrYesSurveyAnswerList", value = "获取已/待批阅问卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "state", name = "state", value = "批阅状态", required = "required")})
+        @ApiImplicitParam(id = "state", name = "state", value = "批阅状态", required = "required")})
     @RequestMapping("/post/DwSurveyAnswerController/queryNoOrYesSurveyAnswerList")
     public void queryNoOrYesSurveyAnswerList(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.queryNoOrYesSurveyAnswerList(inputObject, outputObject);

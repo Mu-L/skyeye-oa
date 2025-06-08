@@ -54,7 +54,7 @@ public class DwAnChenRadioController {
      */
     @ApiOperation(id = "deleteDwAnChenRadioById", value = "删除矩阵单选题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenRadioController/deleteDwAnChenRadioById")
     public void deleteDwAnChenRadioById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenRadioService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnChenRadioController {
      */
     @ApiOperation(id = "queryDwAnChenRadioListById", value = "根据id获取矩阵单选题列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenRadioController/queryDwAnChenRadioListById")
     public void queryDwAnChenRadioListById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenRadioService.queryDwAnChenRadioListById(inputObject, outputObject);

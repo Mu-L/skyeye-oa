@@ -39,7 +39,7 @@ public class DwQuRadioController {
      */
     @ApiOperation(id = "deleteDwQuRadioById", value = "根据ID物理删除单选题选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuRadioController/deleteDwQuRadioById")
     public void deleteDwQuRadioById(InputObject inputObject, OutputObject outputObject) {
         dwQuRadioService.deleteById(inputObject, outputObject);
@@ -53,7 +53,7 @@ public class DwQuRadioController {
      */
     @ApiOperation(id = "changeVisibility", value = "逻辑删除单选题选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuRadioController/changeVisibility")
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         dwQuRadioService.changeVisibility(inputObject, outputObject);
