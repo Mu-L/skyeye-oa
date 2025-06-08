@@ -80,6 +80,7 @@ public class SysDictTypeServiceImpl extends SkyeyeBusinessServiceImpl<SysDictTyp
     }
 
     @Override
+    @IgnoreTenant
     public List<SysDictType> queryDictTypeIdByDictCode(List<String> dictCodeList, Integer enabled) {
         if (CollectionUtil.isEmpty(dictCodeList)) {
             return new ArrayList<>();
