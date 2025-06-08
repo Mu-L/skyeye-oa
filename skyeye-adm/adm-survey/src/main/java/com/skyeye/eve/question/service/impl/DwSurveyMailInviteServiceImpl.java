@@ -27,9 +27,11 @@ import java.util.regex.Pattern;
 public class DwSurveyMailInviteServiceImpl extends SkyeyeBusinessServiceImpl<DwSurveyMailInviteDao, DwSurveyMailInvite> implements DwSurveyMailInviteService {
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$";
+
     public static boolean isValidEmail(String email) {
         return Pattern.matches(EMAIL_REGEX, email);
     }
+
     @Override
     protected void createPrepose(DwSurveyMailInvite entity) {
         Integer audit = entity.getAudit();
@@ -43,10 +45,10 @@ public class DwSurveyMailInviteServiceImpl extends SkyeyeBusinessServiceImpl<DwS
         if (status == null) {
             throw new CustomException("状态不能为空");
         } else if (!status.equals(CommonNumConstants.NUM_ZERO) &&
-                !status.equals(CommonNumConstants.NUM_ONE) &&
-                !status.equals(CommonNumConstants.NUM_TWO) &&
-                !status.equals(CommonNumConstants.NUM_THREE) &&
-                !status.equals(CommonNumConstants.NUM_FOUR)) {
+            !status.equals(CommonNumConstants.NUM_ONE) &&
+            !status.equals(CommonNumConstants.NUM_TWO) &&
+            !status.equals(CommonNumConstants.NUM_THREE) &&
+            !status.equals(CommonNumConstants.NUM_FOUR)) {
             throw new CustomException("状态不合法");
         }
         String dwSendUserMail = entity.getDwSendUserMail();
@@ -79,7 +81,7 @@ public class DwSurveyMailInviteServiceImpl extends SkyeyeBusinessServiceImpl<DwS
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<DwSurveyMailInvite> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwQuestionBank::getCreateTime));
-        List<DwSurveyMailInvite> dwSurveyMailInvites= list(queryWrapper);
+        List<DwSurveyMailInvite> dwSurveyMailInvites = list(queryWrapper);
         iAuthUserService.setName(dwSurveyMailInvites, "createId", "createName");
         iAuthUserService.setName(dwSurveyMailInvites, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(dwSurveyMailInvites);

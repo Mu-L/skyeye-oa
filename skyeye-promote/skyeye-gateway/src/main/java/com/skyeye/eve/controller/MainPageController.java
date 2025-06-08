@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.controller;
 
+import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.service.MainPageService;
@@ -23,6 +24,7 @@ public class MainPageController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
+    @ApiOperation(id = "mainpage001", value = "获取本月考勤天数，我的文件数，我的论坛帖数", method = "POST", allUse = "2")
     @RequestMapping("/post/MainPageController/queryFourNumListByUserId")
     public void queryFourNumListByUserId(InputObject inputObject, OutputObject outputObject) {
         mainPageService.queryFourNumListByUserId(inputObject, outputObject);

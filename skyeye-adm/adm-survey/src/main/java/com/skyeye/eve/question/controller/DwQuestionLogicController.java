@@ -8,7 +8,6 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
-import com.skyeye.eve.question.service.DwQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,7 +53,7 @@ public class DwQuestionLogicController {
      */
     @ApiOperation(id = "deleteMyDwQuestionLogicById", value = "根据ID删除题目逻辑信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuestionController/deleteMyDwQuestionLogicById")
     public void deleteMyDwQuestionLogicById(InputObject inputObject, OutputObject outputObject) {
         dwQuestionLogicService.deleteById(inputObject, outputObject);

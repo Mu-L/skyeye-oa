@@ -63,7 +63,7 @@ public class DwAnOrderController {
      */
     @ApiOperation(id = "deleteDwAnOrderById", value = "删除评分题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnOrderController/deleteDwAnOrderById")
     public void deleteDwAnOrderById(InputObject inputObject, OutputObject outputObject) {
         dwAnOrderService.deleteById(inputObject, outputObject);
@@ -77,7 +77,7 @@ public class DwAnOrderController {
      */
     @ApiOperation(id = "queryDwAnOrderById", value = "根据id获取填空题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnOrderController/queryDwAnOrderById")
     public void queryDwAnOrderById(InputObject inputObject, OutputObject outputObject) {
         dwAnOrderService.queryDwAnOrderById(inputObject, outputObject);

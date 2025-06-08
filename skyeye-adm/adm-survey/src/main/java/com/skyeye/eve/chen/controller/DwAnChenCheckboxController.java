@@ -29,6 +29,7 @@ public class DwAnChenCheckboxController {
     @ApiOperation(id = "writeDwAnChenCheckbox", value = "新增/编辑矩阵多选题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnChenCheckbox.class)
     @RequestMapping("/post/DwAnChenCheckboxController/writeDwAnChenCheckbox")
+
     public void writeDwAnChenCheckbox(InputObject inputObject, OutputObject outputObject) {
         dwAnChenCheckboxService.saveOrUpdateEntity(inputObject, outputObject);
     }
@@ -54,7 +55,7 @@ public class DwAnChenCheckboxController {
      */
     @ApiOperation(id = "deleteDwAnChenCheckboxById", value = "删除矩阵多选题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenCheckboxController/deleteDwAnChenCheckboxById")
     public void deleteDwAnChenCheckboxById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenCheckboxService.deleteById(inputObject, outputObject);
@@ -68,7 +69,7 @@ public class DwAnChenCheckboxController {
      */
     @ApiOperation(id = "queryDwAnChenCheckboxListById", value = "根据id获取矩阵多选题列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnChenCheckboxController/queryDwAnChenCheckboxListById")
     public void queryDwAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject) {
         dwAnChenCheckboxService.queryDwAnChenCheckboxListById(inputObject, outputObject);

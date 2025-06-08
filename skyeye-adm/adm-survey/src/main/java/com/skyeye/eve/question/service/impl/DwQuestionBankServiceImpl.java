@@ -30,15 +30,15 @@ public class DwQuestionBankServiceImpl extends SkyeyeBusinessServiceImpl<DwQuest
         Integer bankState = entity.getBankState();
         if (bankState != null) {
             if (!bankState.equals(CommonNumConstants.NUM_ZERO) &&
-                    !bankState.equals(CommonNumConstants.NUM_ONE)) {
+                !bankState.equals(CommonNumConstants.NUM_ONE)) {
                 throw new CustomException("题库状态不正确");
             }
             Integer bankTag = entity.getBankTag();
             if (bankTag == null) {
                 throw new CustomException("题库标签不能为空");
             } else if (!bankTag.equals(CommonNumConstants.NUM_ZERO) &&
-                    !bankTag.equals(CommonNumConstants.NUM_ONE) &&
-                    !bankTag.equals(CommonNumConstants.NUM_TWO)) {
+                !bankTag.equals(CommonNumConstants.NUM_ONE) &&
+                !bankTag.equals(CommonNumConstants.NUM_TWO)) {
                 throw new CustomException("题库标签不正确");
             }
         }

@@ -30,7 +30,7 @@ public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao
     public void queryDwAnRadioListById(InputObject inputObject, OutputObject outputObject) {
         String examAnRadioId = inputObject.getParams().get("id").toString();
         QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(CommonConstants.ID,examAnRadioId);
+        queryWrapper.eq(CommonConstants.ID, examAnRadioId);
         List<DwAnRadio> dwAnRadioList = list(queryWrapper);
         outputObject.setBean(dwAnRadioList);
         outputObject.settotal(dwAnRadioList.size());

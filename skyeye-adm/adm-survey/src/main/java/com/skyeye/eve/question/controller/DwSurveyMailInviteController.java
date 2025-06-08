@@ -7,9 +7,7 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.question.entity.DwSurveyDirectory;
 import com.skyeye.eve.question.entity.DwSurveyMailInvite;
-import com.skyeye.eve.question.service.DwSurveyDirectoryService;
 import com.skyeye.eve.question.service.DwSurveyMailInviteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,7 +67,7 @@ public class DwSurveyMailInviteController {
      */
     @ApiOperation(id = "deleteDwSurveyMailInviteById", value = "根据ID删除邮件服务信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwSurveyMailInviteController/deleteDwSurveyMailInviteById")
     public void deleteDwSurveyMailInviteById(InputObject inputObject, OutputObject outputObject) {
         dwSurveyMailInviteService.deleteById(inputObject, outputObject);

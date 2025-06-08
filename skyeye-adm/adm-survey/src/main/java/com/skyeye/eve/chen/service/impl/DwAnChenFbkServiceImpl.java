@@ -47,18 +47,18 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
     protected void updatePostpose(DwAnChenFbk entity, String userId) {
         List<DwAnChenFbk> chenFbkList = entity.getDwChenFbkAn();
         QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(CommonConstants.ID,entity.getId());
+        queryWrapper.ne(CommonConstants.ID, entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongAnswerId), entity.getBelongAnswerId());
         List<DwAnChenFbk> dwAnChenCheckboxList = list(queryWrapper);//数据库数据
         List<DwAnChenFbk> NoIdChenCheckbox = chenFbkList.stream().filter(
-                e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
         List<DwAnChenFbk> YesIdChenCheckbox = chenFbkList.stream().filter(
-                e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(DwAnChenFbk::getId).collect(Collectors.toSet());
         List<DwAnChenFbk> result = dwAnChenCheckboxList.stream().filter(
-                e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(DwAnChenFbk::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);
@@ -70,6 +70,7 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
             super.updateEntity(YesIdChenCheckbox, userId);
         }
     }
+
     @Override
     public void queryDwAnChenFbkListById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -105,7 +106,7 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         dwAnChenCheckbox.setDwChenFbkAn(list(queryWrapper1));
         return dwAnChenCheckbox;
     }

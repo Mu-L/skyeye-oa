@@ -16,5 +16,5 @@ import com.skyeye.eve.chen.entity.DwQuChenOption;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye-report Inc. All rights reserved.
  * 注意：本内容具体规则请参照readme执行，地址：https://gitee.com/doc_wei01/skyeye-report/blob/master/README.md
  */
-public interface DwQuChenOptionService extends SkyeyeBusinessService<DwQuChenOption>{
+public interface DwQuChenOptionService extends SkyeyeBusinessService<DwQuChenOption> {
 }

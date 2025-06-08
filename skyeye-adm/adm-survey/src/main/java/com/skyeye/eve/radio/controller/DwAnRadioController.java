@@ -26,7 +26,7 @@ public class DwAnRadioController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-        @ApiOperation(id = "writeDwAnRadio", value = "新增单选题保存表信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeDwAnRadio", value = "新增单选题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnRadio.class)
     @RequestMapping("/post/DwAnRadioController/writeDwAnRadio")
     public void writeDwAnRadio(InputObject inputObject, OutputObject outputObject) {
@@ -54,7 +54,7 @@ public class DwAnRadioController {
      */
     @ApiOperation(id = "deleteDwAnRadioById", value = "根据ID删除单选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnRadioController/deleteDwAnRadioById")
     public void deleteDwAnRadioById(InputObject inputObject, OutputObject outputObject) {
         dwAnRadioService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class DwAnRadioController {
      */
     @ApiOperation(id = "queryDwAnRadioListById", value = "根据id获取单选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnRadioController/queryDwAnRadioListById")
     public void queryDwAnRadioListById(InputObject inputObject, OutputObject outputObject) {
         dwAnRadioService.queryDwAnRadioListById(inputObject, outputObject);

@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @SkyeyeService(name = "是非题结果保存表管理", groupName = "是非题结果保存表管理")
-public class DwMailInviteInboxServiceImpl extends SkyeyeBusinessServiceImpl<DwMailInviteInboxDao,DwMailInviteInbox> implements DwMailInviteInboxService {
+public class DwMailInviteInboxServiceImpl extends SkyeyeBusinessServiceImpl<DwMailInviteInboxDao, DwMailInviteInbox> implements DwMailInviteInboxService {
     @Override
     public void queryDwMailInviteInboxListById(InputObject inputObject, OutputObject outputObject) {
         String dwMailInviteInboxId = inputObject.getParams().get("id").toString();

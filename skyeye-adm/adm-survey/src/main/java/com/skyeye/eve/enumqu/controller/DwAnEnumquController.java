@@ -62,7 +62,7 @@ public class DwAnEnumquController {
      */
     @ApiOperation(id = "deleteDwAnEnumquById", value = "删除枚举题答案信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnEnumquController/deleteDwAnEnumquById")
     public void deleteDwAnEnumquById(InputObject inputObject, OutputObject outputObject) {
         dwAnEnumquService.deleteById(inputObject, outputObject);
@@ -76,7 +76,7 @@ public class DwAnEnumquController {
      */
     @ApiOperation(id = "queryDwAnEnumquListById", value = "根据id获取枚举题答案列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnEnumquController/queryDwAnEnumquListById")
     public void queryDwAnEnumquListById(InputObject inputObject, OutputObject outputObject) {
         dwAnEnumquService.queryDwAnEnumquListById(inputObject, outputObject);

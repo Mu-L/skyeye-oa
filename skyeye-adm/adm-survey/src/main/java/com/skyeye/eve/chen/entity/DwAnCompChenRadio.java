@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
@@ -33,31 +32,31 @@ public class DwAnCompChenRadio extends CommonInfo {
     private String id;
 
     @TableField("belong_answer_id")
-    @ApiModelProperty(value = "对应的答卷信息表" )
+    @ApiModelProperty(value = "对应的答卷信息表")
     private String belongAnswerId;
 
     @TableField("qu_option_id")
-    @ApiModelProperty(value = "问题选项标识符ID" )
+    @ApiModelProperty(value = "问题选项标识符ID")
     private String quOptionId;
 
     @TableField("belong_id")
-    @ApiModelProperty(value = "所属问卷ID" )
+    @ApiModelProperty(value = "所属问卷ID")
     private String belongId;
 
     @TableField("qu_id")
-    @ApiModelProperty(value = "所属题目ID" )
+    @ApiModelProperty(value = "所属题目ID")
     private String quId;
 
     @TableField("qu_col_id")
-    @ApiModelProperty(value = "矩阵列选项ID " )
+    @ApiModelProperty(value = "矩阵列选项ID ")
     private String quColId;
 
     @TableField("qu_row_id")
-    @ApiModelProperty(value = "矩阵行选项ID" )
+    @ApiModelProperty(value = "矩阵行选项ID")
     private String quRowId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "1 是 0非" )
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
     @TableField(exist = false)

@@ -40,7 +40,7 @@ public class DwQuChenColumnController {
      */
     @ApiOperation(id = "deleteDwQuChenColumnAndRowById", value = "根据ID物理删除矩阵题-列-行选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwQuChenColumnController/deleteDwQuChenColumnAndRowById")
     public void deleteDwQuChenColumnAndRowById(InputObject inputObject, OutputObject outputObject) {
         dwQuChenColumnService.deleteById(inputObject, outputObject);
@@ -54,9 +54,9 @@ public class DwQuChenColumnController {
      */
     @ApiOperation(id = "changeVisibility", value = "逻辑删除矩阵题-列-行选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "quId", name = "quId", value = "所属题Id", required = "required"),
-            @ApiImplicitParam(id = "createId", name = "createId", value = "创建人Id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "quId", name = "quId", value = "所属题Id", required = "required"),
+        @ApiImplicitParam(id = "createId", name = "createId", value = "创建人Id", required = "required")})
     @RequestMapping("/post/DwQuChenColumnController/changeVisibility")
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         dwQuChenColumnService.changeVisibility(inputObject, outputObject);

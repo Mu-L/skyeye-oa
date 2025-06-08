@@ -15,23 +15,17 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.answer.service.DwAnAnswerService;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
-import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
 import com.skyeye.eve.chen.service.*;
 import com.skyeye.eve.enumqu.service.DwAnEnumquService;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
-import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
 import com.skyeye.eve.order.service.DwAnOrderService;
-import com.skyeye.eve.orderby.service.DwQuOrderbyService;
 import com.skyeye.eve.question.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.question.entity.DwSurveyAnswer;
 import com.skyeye.eve.question.entity.DwSurveyDirectory;
-import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwSurveyAnswerService;
 import com.skyeye.eve.radio.service.DwAnRadioService;
-import com.skyeye.eve.radio.service.DwQuRadioService;
 import com.skyeye.eve.score.service.DwAnScoreService;
-import com.skyeye.eve.score.service.DwQuScoreService;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,22 +40,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "问卷回答信息表管理", groupName = "问卷回答信息表管理")
 public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurveyAnswerDao, DwSurveyAnswer> implements DwSurveyAnswerService {
 
-    @Autowired
-    private DwQuestionLogicService dwQuestionLogicService;
-    @Autowired
-    private DwQuRadioService dwQuRadioService;
-    @Autowired
-    private DwQuScoreService dwQuScoreService;
-    @Autowired
-    private DwQuCheckboxService dwQuCheckboxService;
-    @Autowired
-    private DwQuMultiFillblankService dwQuMultiFillblankService;
-    @Autowired
-    private DwQuOrderbyService dwQuOrderbyService;
-    @Autowired
-    private DwQuChenColumnService dwQuChenColumnService;
-    @Autowired
-    private DwQuChenRowService dwQuChenRowService;
     @Autowired
     private DwAnRadioService dwAnRadioService;
     @Autowired

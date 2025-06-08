@@ -4,19 +4,21 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
-import java.util.Map;
 
 public interface MainPageDao {
 
-    String queryCheckOnWorkNumByUserId(@Param("userId") String userId);
+    @IgnoreTenant
+    String queryCheckOnWorkNumByUserId(@Param("userId") String userId,
+                                       @Param("tenantId") String tenantId);
 
-    String queryDiskCloudFileNumByUserId(@Param("userId") String userId);
+    @IgnoreTenant
+    String queryDiskCloudFileNumByUserId(@Param("userId") String userId,
+                                         @Param("tenantId") String tenantId);
 
-    String queryForumNumByUserId(@Param("userId") String userId);
-
-    List<Map<String, Object>> queryHotForumList(Map<String, Object> map);
+    @IgnoreTenant
+    String queryForumNumByUserId(@Param("userId") String userId,
+                                 @Param("tenantId") String tenantId);
 
 }

@@ -4,12 +4,10 @@
 
 package com.skyeye.eve.chen.service.impl;
 
-import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.eve.chen.dao.DwQuChenOptionDao;
 import com.skyeye.eve.chen.entity.DwQuChenOption;
 import com.skyeye.eve.chen.service.DwQuChenOptionService;
-import org.springframework.stereotype.Service;
 
 /**
  * @ClassName: DwQuChenOptionServiceImpl

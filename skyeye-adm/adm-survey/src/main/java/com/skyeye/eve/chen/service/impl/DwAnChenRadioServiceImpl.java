@@ -38,7 +38,7 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
     @Override
     protected void createPostpose(DwAnChenRadio entity, String userId) {
         List<DwAnChenRadio> dFillblankAn = entity.getDwChenRadioAn();
-        if (CollectionUtil.isNotEmpty(dFillblankAn))  {
+        if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
         }
     }
@@ -47,18 +47,18 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
     protected void updatePostpose(DwAnChenRadio entity, String userId) {
         List<DwAnChenRadio> chenCheckboxAn = entity.getDwChenRadioAn();
         QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.ne(CommonConstants.ID, entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
         List<DwAnChenRadio> dwAnChenCheckboxList = list(queryWrapper);//数据库数据
         List<DwAnChenRadio> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
         List<DwAnChenRadio> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(DwAnChenRadio::getId).collect(Collectors.toSet());
         List<DwAnChenRadio> result = dwAnChenCheckboxList.stream().filter(
-                e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(DwAnChenRadio::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);

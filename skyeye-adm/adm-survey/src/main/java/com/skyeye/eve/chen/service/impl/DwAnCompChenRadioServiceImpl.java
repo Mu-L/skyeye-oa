@@ -43,18 +43,18 @@ public class DwAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAn
     protected void updatePostpose(DwAnCompChenRadio entity, String userId) {
         List<DwAnCompChenRadio> chenCheckboxAn = entity.getDwCompChenRadioAn();
         QueryWrapper<DwAnCompChenRadio> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ne(CommonConstants.ID,  entity.getId());
+        queryWrapper.ne(CommonConstants.ID, entity.getId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getBelongId), entity.getBelongId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getQuId), entity.getQuId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
         List<DwAnCompChenRadio> dwAnChenCheckboxList = list(queryWrapper);//数据库数据
         List<DwAnCompChenRadio> NoIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
+            e -> StrUtil.isEmpty(e.getId())).collect(Collectors.toList());//id为空的数据
         List<DwAnCompChenRadio> YesIdChenCheckbox = chenCheckboxAn.stream().filter(
-                e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
+            e -> StrUtil.isNotEmpty(e.getId())).collect(Collectors.toList());//id不为空的数据
         Set<String> yesIdSet = YesIdChenCheckbox.stream().map(DwAnCompChenRadio::getId).collect(Collectors.toSet());
         List<DwAnCompChenRadio> result = dwAnChenCheckboxList.stream().filter(
-                e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
+            e -> !yesIdSet.contains(e.getId())).collect(Collectors.toList());
         List<String> TodeleteIds = result.stream().map(DwAnCompChenRadio::getId).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(TodeleteIds)) {
             deleteById(TodeleteIds);
@@ -78,11 +78,10 @@ public class DwAnCompChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAn
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getBelongAnswerId), belongAnswerId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getBelongId), belongId);
         queryWrapper1.eq(MybatisPlusUtil.toColumns(DwAnCompChenRadio::getQuId), quId);
-        queryWrapper1.ne(CommonConstants.ID,id);
+        queryWrapper1.ne(CommonConstants.ID, id);
         dwAnChenCheckbox.setDwCompChenRadioAn(list(queryWrapper1));
         return dwAnChenCheckbox;
     }
-
 
 
     @Override
