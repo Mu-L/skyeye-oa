@@ -630,7 +630,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             if (CollectionUtil.isNotEmpty(staffInfoList)) {
                 scheduling.setStaffMation(staffInfoList);
             } else {
-                // 如果没有根据userId查找到员工信息，则尝试根据id查找（临时工）
                 staffInfoList = idStaffMap.get(employeeId);
                 if (CollectionUtil.isNotEmpty(staffInfoList)) {
                     scheduling.setStaffMation(staffInfoList);
@@ -639,10 +638,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         }
         // 获取班次时间和班次信息
         List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftTimeIds);
-        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
         Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
+
+        List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
+        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+
         // 设置班次时间和班次信息
         for (Scheduling scheduling : schedulingList) {
             List<SchedulingShifts> shifts = schedulingShiftsMap.get(scheduling.getShiftId());
@@ -654,12 +656,76 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                 scheduling.setSchedulinghiftTimeMation(shiftsTimes.get(CommonNumConstants.NUM_ZERO));
             }
         }
-
-        // 设置创建人和最后更新人信息
         iAuthUserService.setName(schedulingList, "createId", "createName");
         iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
+        outputObject.setBeans(schedulingList);
+        outputObject.settotal(page.getTotal());
+    }
 
-        // 设置输出对象
+
+    public void querySchedulingListByTimeSlot1(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 车间id
+        String holderId = commonPageInfo.getHolderId();
+        // 班次名称
+        String keyword = commonPageInfo.getKeyword();
+        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(holderId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
+        }
+        List<Scheduling> schedulingList = list(queryWrapper);
+        List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
+        if (StrUtil.isNotEmpty(keyword)) {
+            schedulingList = new ArrayList<>();
+            // 班次id和班次名称的map
+            Map<String, String> idToNameMap = schedulingShifts.stream()
+                .collect(Collectors.toMap(SchedulingShifts::getId, SchedulingShifts::getName));
+            for (Scheduling scheduling : schedulingList) {
+                String shiftId = scheduling.getShiftId();
+                String shiftName = idToNameMap.get(shiftId);
+                if (StrUtil.isNotEmpty(shiftName) && shiftName.contains(keyword)) {
+                    schedulingList.add(scheduling);
+                }
+            }
+        }
+        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
+            .filter(staffInfo -> staffInfo != null && staffInfo.get("userId") != null)
+            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("userId").toString()));
+        Map<String, List<Map<String, Object>>> idStaffMap = allStaffList.stream()
+            .filter(staffInfo -> staffInfo != null && staffInfo.get("id") != null)
+            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("id").toString()));
+        for (Scheduling scheduling : schedulingList) {
+            String employeeId = scheduling.getEmployeeId();
+            List<Map<String, Object>> staffInfoList = userIdMap.get(employeeId);
+            if (CollectionUtil.isNotEmpty(staffInfoList)) {
+                scheduling.setStaffMation(staffInfoList);
+            } else {
+                // 如果没有根据userId查找到员工信息，则尝试根据id查找（临时工）
+                staffInfoList = idStaffMap.get(employeeId);
+                if (CollectionUtil.isNotEmpty(staffInfoList)) {
+                    scheduling.setStaffMation(staffInfoList);
+                }
+            }
+        }
+        List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
+        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
+        Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
+        for (Scheduling scheduling : schedulingList) {
+            List<SchedulingShifts> shifts = schedulingShiftsMap.get(scheduling.getShiftId());
+            if (CollectionUtil.isNotEmpty(shifts)) {
+                scheduling.setSchedulingShiftMation(shifts.get(CommonNumConstants.NUM_ZERO));
+            }
+            List<SchedulingShiftsTime> shiftsTimes = stringListMap.get(scheduling.getShiftTimeId());
+            if (CollectionUtil.isNotEmpty(shiftsTimes)) {
+                scheduling.setSchedulinghiftTimeMation(shiftsTimes.get(CommonNumConstants.NUM_ZERO));
+            }
+        }
+        iAuthUserService.setName(schedulingList, "createId", "createName");
+        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(schedulingList);
         outputObject.settotal(page.getTotal());
     }

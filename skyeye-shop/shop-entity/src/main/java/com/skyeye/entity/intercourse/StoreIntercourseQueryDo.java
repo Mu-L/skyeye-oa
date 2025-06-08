@@ -41,6 +41,9 @@ public class StoreIntercourseQueryDo extends CommonPageInfo implements Serializa
     @ApiModelProperty(value = "结束日期")
     private String endTime;
 
+    @ApiModelProperty(value = "租户值")
+    private String tenantId;
+
     /**
      * 单据往来日期，格式为yyyy-MM-dd
      */
