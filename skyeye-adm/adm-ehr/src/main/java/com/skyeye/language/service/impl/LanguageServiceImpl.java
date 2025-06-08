@@ -4,17 +4,16 @@
 
 package com.skyeye.language.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.language.dao.LanguageDao;
 import com.skyeye.language.entity.Language;
 import com.skyeye.language.service.LanguageService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: LanguageServiceImpl
@@ -29,10 +28,12 @@ import java.util.Map;
 public class LanguageServiceImpl extends SkyeyeBusinessServiceImpl<LanguageDao, Language> implements LanguageService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLanguageList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<Language> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Language> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Language::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override

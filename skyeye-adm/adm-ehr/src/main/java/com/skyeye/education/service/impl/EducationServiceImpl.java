@@ -4,17 +4,16 @@
 
 package com.skyeye.education.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.education.dao.EducationDao;
 import com.skyeye.education.entity.Education;
 import com.skyeye.education.service.EducationService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: EducationServiceImpl
@@ -29,10 +28,12 @@ import java.util.Map;
 public class EducationServiceImpl extends SkyeyeBusinessServiceImpl<EducationDao, Education> implements EducationService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryEducationList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<Education> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Education> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Education::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override

@@ -4,21 +4,20 @@
 
 package com.skyeye.certificate.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.certificate.dao.CertificateDao;
 import com.skyeye.certificate.entity.Certificate;
 import com.skyeye.certificate.service.CertificateService;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: CertificateServiceImpl
- * @Description: 员工证书管理服务类
+ * @Description: 员工证书管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:37
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -29,10 +28,12 @@ import java.util.Map;
 public class CertificateServiceImpl extends SkyeyeBusinessServiceImpl<CertificateDao, Certificate> implements CertificateService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryCertificateList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<Certificate> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Certificate> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Certificate::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override

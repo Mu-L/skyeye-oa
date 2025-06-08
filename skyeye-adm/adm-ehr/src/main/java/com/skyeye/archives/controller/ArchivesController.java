@@ -32,12 +32,6 @@ public class ArchivesController {
     @Autowired
     private ArchivesService archivesService;
 
-    /**
-     * 查询档案信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySysStaffArchivesList", value = "查询档案信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArchivesController/querySysStaffArchivesList")
@@ -45,12 +39,6 @@ public class ArchivesController {
         archivesService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑员工档案信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSysStaffArchives", value = "新增/编辑员工档案信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Archives.class)
     @RequestMapping("/post/ArchivesController/writeSysStaffArchives")
@@ -58,12 +46,6 @@ public class ArchivesController {
         archivesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除员工档案信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSysStaffArchivesById", value = "删除员工档案信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
