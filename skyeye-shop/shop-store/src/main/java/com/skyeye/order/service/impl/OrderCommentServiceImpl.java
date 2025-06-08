@@ -17,6 +17,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -46,14 +47,14 @@ import java.util.stream.Stream;
 
 /**
  * @ClassName: OrderCommentServiceImpl
- * @Description: 商品订单评价管理
+ * @Description: 商品订单评价管理--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/8 10:39
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "商品订单评价管理", groupName = "商品订单评价管理")
+@SkyeyeService(name = "商品订单评价管理", groupName = "商品订单评价管理", tenant = TenantEnum.NO_ISOLATION)
 public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderCommentDao, OrderComment> implements OrderCommentService {
 
     @Autowired

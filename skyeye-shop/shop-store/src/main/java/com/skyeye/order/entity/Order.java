@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.AreaInfo;
 import com.skyeye.order.enums.*;
 import lombok.Data;
@@ -41,7 +40,7 @@ public class Order extends AreaInfo {
     private String oddNumber;
 
     @TableField("type")
-    @ApiModelProperty(value = "订单类型", required = "required",enumClass = ShopOrderType.class)
+    @ApiModelProperty(value = "订单类型", required = "required", enumClass = ShopOrderType.class)
     private Integer type;
 
     @TableField("terminal")
@@ -53,7 +52,7 @@ public class Order extends AreaInfo {
     private String userIp;
 
     @TableField("state")
-    @Property(value = "状态",enumClass = ShopOrderState.class)
+    @Property(value = "状态", enumClass = ShopOrderState.class)
     private Integer state;
 
     @TableField("count")
@@ -69,7 +68,7 @@ public class Order extends AreaInfo {
     private String cancelTime;
 
     @TableField("cancel_type")
-    @Property(value = "取消类型",enumClass = ShopOrderCancelType.class)
+    @Property(value = "取消类型", enumClass = ShopOrderCancelType.class)
     private Integer cancelType;
 
     @TableField("comment_state")
@@ -224,7 +223,4 @@ public class Order extends AreaInfo {
     @Property(value = "支付成功的外部订单号")
     private String extensionNo;
 
-    @TableField("create_name")
-    @ApiModelProperty(value = "创建人")
-    private String createName;
 }

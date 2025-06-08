@@ -5,7 +5,6 @@
 package com.skyeye.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -13,10 +12,10 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
-import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderItemDao;
 import com.skyeye.order.entity.Order;
@@ -39,14 +38,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: OrderItemServiceImpl
- * @Description: 商品订单子单项管理
+ * @Description: 商品订单子单项管理--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/8 10:39
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "商品订单子单项管理", groupName = "商品订单子单项管理")
+@SkyeyeService(name = "商品订单子单项管理", groupName = "商品订单子单项管理", tenant = TenantEnum.NO_ISOLATION)
 public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao, OrderItem> implements OrderItemService {
 
     @Autowired
@@ -156,7 +155,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     @Override
     public void UpdateOrderItemState(String orderItemId) {
         OrderItem orderItem = selectById(orderItemId);
-        if (orderItem.getOrderItemState()==CommonNumConstants.NUM_TWO) {
+        if (orderItem.getOrderItemState() == CommonNumConstants.NUM_TWO) {
             throw new CustomException("该订单已收货");
         }
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();

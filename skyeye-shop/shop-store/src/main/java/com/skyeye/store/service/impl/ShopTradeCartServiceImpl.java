@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -37,14 +38,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopTradeCartServiceImpl
- * @Description: 购物车管理服务层
+ * @Description: 购物车管理服务层--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:07
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "购物车管理", groupName = "购物车管理")
+@SkyeyeService(name = "购物车管理", groupName = "购物车管理", tenant = TenantEnum.NO_ISOLATION)
 public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTradeCartDao, ShopTradeCart> implements ShopTradeCartService {
 
     @Autowired
@@ -118,7 +119,7 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
         QueryWrapper<ShopTradeCart> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getMaterialId), shopTradeCart.getMaterialId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getNormsId), shopTradeCart.getNormsId());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getCreateId),userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopTradeCart::getCreateId), userId);
         ShopTradeCart one = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(one)) {
             shopTradeCart.setId(one.getId());

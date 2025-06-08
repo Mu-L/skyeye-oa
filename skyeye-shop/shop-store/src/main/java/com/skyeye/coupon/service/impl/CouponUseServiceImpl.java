@@ -16,6 +16,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.constans.SysUserAuthConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
@@ -51,14 +52,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: CouponUseServiceImpl
- * @Description: 优惠券领取信息管理服务层
+ * @Description: 优惠券领取信息管理服务层--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/10/23 10:43
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "优惠券领取信息管理", groupName = "优惠券领取信息管理")
+@SkyeyeService(name = "优惠券领取信息管理", groupName = "优惠券领取信息管理", tenant = TenantEnum.NO_ISOLATION)
 public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao, CouponUse> implements CouponUseService {
 
     @Autowired
@@ -82,8 +83,8 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         if (coupon.getTakeType() == CouponTakeType.REGISTER.getKey()) {
             String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
             Member member = memberService.selectById(currentUserId);
-            int distanceDay = DateUtil.getDistanceDay(member.getCreateTime(),DateUtil.getTimeAndToString());
-            if ( distanceDay > 30) {
+            int distanceDay = DateUtil.getDistanceDay(member.getCreateTime(), DateUtil.getTimeAndToString());
+            if (distanceDay > 30) {
                 throw new CustomException("您已经不是新用户，无法领取新人券");
             }
         }

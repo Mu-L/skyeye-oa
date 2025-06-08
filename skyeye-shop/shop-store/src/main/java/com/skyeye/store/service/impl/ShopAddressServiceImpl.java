@@ -14,6 +14,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -37,14 +38,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopAddressServiceImpl
- * @Description: 收件地址管理服务层
+ * @Description: 收件地址管理服务层--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "收件地址管理", groupName = "收件地址管理")
+@SkyeyeService(name = "收件地址管理", groupName = "收件地址管理", tenant = TenantEnum.NO_ISOLATION)
 public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddressDao, ShopAddress> implements ShopAddressService {
 
     @Autowired
@@ -131,7 +132,7 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
         iAreaService.setDataMation(list, ShopAddress::getTownshipId);
         shopAddressLabelService.setDataMation(list, ShopAddress::getLabelId);
         Map<String, Map<String, Object>> result = list.stream().collect(
-                Collectors.toMap(ShopAddress::getId, shopAddress -> JSONUtil.toBean(JSONUtil.toJsonStr(shopAddress), null), (key1, key2) -> key2));
+            Collectors.toMap(ShopAddress::getId, shopAddress -> JSONUtil.toBean(JSONUtil.toJsonStr(shopAddress), null), (key1, key2) -> key2));
         return result;
     }
 
