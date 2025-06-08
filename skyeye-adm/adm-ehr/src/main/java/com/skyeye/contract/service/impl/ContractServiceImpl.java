@@ -4,21 +4,20 @@
 
 package com.skyeye.contract.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.dao.ContractDao;
 import com.skyeye.contract.entity.Contract;
 import com.skyeye.contract.service.ContractService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @ClassName: ContractServiceImpl
- * @Description: 员工合同管理服务类
+ * @Description: 员工合同管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:37
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -29,10 +28,12 @@ import java.util.Map;
 public class ContractServiceImpl extends SkyeyeBusinessServiceImpl<ContractDao, Contract> implements ContractService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryContractList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<Contract> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Contract> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Contract::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override

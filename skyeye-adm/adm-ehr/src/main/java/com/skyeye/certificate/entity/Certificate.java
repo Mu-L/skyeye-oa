@@ -39,11 +39,11 @@ public class Certificate extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField(value = "certificate_number")
-    @ApiModelProperty(value = "证书编号", required = "required")
+    @ApiModelProperty(value = "证书编号", required = "required", fuzzyLike = true)
     private String certificateNumber;
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "证书名称", required = "required")
+    @ApiModelProperty(value = "证书名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "type_id")

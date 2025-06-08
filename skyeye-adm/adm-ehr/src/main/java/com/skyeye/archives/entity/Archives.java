@@ -41,7 +41,7 @@ public class Archives extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField(value = "archives_number")
-    @ApiModelProperty(value = "档案编号", required = "required")
+    @ApiModelProperty(value = "档案编号", required = "required", fuzzyLike = true)
     private String archivesNumber;
 
     @TableField(value = "company_id")

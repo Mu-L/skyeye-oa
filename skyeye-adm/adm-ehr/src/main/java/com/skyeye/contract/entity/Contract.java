@@ -41,7 +41,7 @@ public class Contract extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField(value = "contract_number")
-    @ApiModelProperty(value = "合同编号", required = "required")
+    @ApiModelProperty(value = "合同编号", required = "required", fuzzyLike = true)
     private String contractNumber;
 
     @TableField(value = "type_id")

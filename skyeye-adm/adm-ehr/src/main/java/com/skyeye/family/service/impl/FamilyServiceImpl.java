@@ -4,17 +4,16 @@
 
 package com.skyeye.family.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.family.dao.FamilyDao;
 import com.skyeye.family.entity.Family;
 import com.skyeye.family.service.FamilyService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: FamilyServiceImpl
@@ -29,10 +28,12 @@ import java.util.Map;
 public class FamilyServiceImpl extends SkyeyeBusinessServiceImpl<FamilyDao, Family> implements FamilyService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryFamilyList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<Family> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Family> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Family::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override
