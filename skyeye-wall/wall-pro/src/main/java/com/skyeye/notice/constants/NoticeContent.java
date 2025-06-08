@@ -35,5 +35,6 @@ public class NoticeContent {
 
     public static final String DELETE_VIDEO = "该视频已删除";
     public static final String POST_DELETE = "该帖子已删除";
+    public static final String CIRCLE_DELETE = "该圈子已删除";
 
 }

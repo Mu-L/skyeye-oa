@@ -34,6 +34,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.joincircle.entity.JoinCircle;
 import com.skyeye.joincircle.service.JoinCircleService;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.notice.service.NoticeService;
 import com.skyeye.post.service.PostService;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -71,6 +72,9 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
 
     @Autowired
     private JoinCircleService joinCircleService;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Override
     public void validatorEntity(Circle entity) {
@@ -110,6 +114,7 @@ public class CircleServiceImpl extends SkyeyeBusinessServiceImpl<CircleDao, Circ
         materialService.deleteByCircleId(id);
         circleViewService.deleteCircleViewByCircleId(id);
         joinCircleService.deleteJoinByCircleId(id);
+        noticeService.deleteByCircleId(id);
     }
 
     @Override

@@ -409,6 +409,18 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
         }
     }
 
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void deleteByCircleId(String id) {
+        QueryWrapper<Notice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        List<Notice> list = list(queryWrapper);
+        list.forEach(notice -> {
+            notice.setContent(NoticeContent.CIRCLE_DELETE);
+        });
+        updateEntity(list, null);
+    }
+
     /**
      * 删除帖子、视频之后将修改通知内容
      */

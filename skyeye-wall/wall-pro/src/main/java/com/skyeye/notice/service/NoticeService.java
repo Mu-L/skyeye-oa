@@ -33,4 +33,6 @@ public interface NoticeService extends SkyeyeBusinessService<Notice> {
     void updateAllNoticeRead(InputObject inputObject, OutputObject outputObject);
 
     void shareCircle(InputObject inputObject, OutputObject outputObject);
+
+    void deleteByCircleId(String id);
 }
