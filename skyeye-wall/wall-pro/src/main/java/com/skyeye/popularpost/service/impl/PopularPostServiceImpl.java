@@ -58,20 +58,27 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
 
     @Override
     public void insertPopularPostList(String tenantId) {
-        // 获取当前时间
-        String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH);
-        String key  = CacheConstants.XXL_JOP_POST + pointTime;
-        // 判断redis中是否存在该key-- 不存在ture 存在false
-        Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, key, RedisConstants.XXL_JOP_POST_EXPIRE, TimeUnit.SECONDS);
-        if(Boolean.FALSE.equals(flag) ){
-            LOGGER.info(TipsConstants.TASK_IS_SKIPPING);
-            return;
-        }
         //取出前30天内的post
         List<Post> postList;
-        if( tenantEnable){
+        // 获取当前时间
+        String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH);
+
+        if (tenantEnable) {
+            String key = CacheConstants.XXL_JOP_POST + tenantId + StrUtil.COLON + pointTime;
+            Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, key, RedisConstants.XXL_JOP_POST_EXPIRE, TimeUnit.SECONDS);
+            if (Boolean.FALSE.equals(flag)) {
+                LOGGER.info(TipsConstants.TASK_IS_SKIPPING);
+                return;
+            }
             postList = postService.getBeforeThirtyDaysPost(tenantId);
-        }else {
+        } else {
+            String key = CacheConstants.XXL_JOP_POST + pointTime;
+            // 判断redis中是否存在该key-- 不存在ture 存在false
+            Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, key, RedisConstants.XXL_JOP_POST_EXPIRE, TimeUnit.SECONDS);
+            if (Boolean.FALSE.equals(flag)) {
+                LOGGER.info(TipsConstants.TASK_IS_SKIPPING);
+                return;
+            }
             postList = postService.getBeforeThirtyDaysPost(null);
         }
         //取出点赞量、评论量、浏览量
@@ -106,7 +113,7 @@ public class PopularPostServiceImpl extends SkyeyeBusinessServiceImpl<PopularPos
         Map<String, Double> powerMap = new HashMap<>();
         listMap.forEach((key, list) -> {
             double power = list.get(CommonNumConstants.NUM_ZERO) * 0.5 +
-                list.get(CommonNumConstants.NUM_ONE) * 0.2 + list.get(CommonNumConstants.NUM_TWO) * 0.3;
+                    list.get(CommonNumConstants.NUM_ONE) * 0.2 + list.get(CommonNumConstants.NUM_TWO) * 0.3;
             powerMap.put(key, power);
         });
         return powerMap;
