@@ -57,7 +57,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String realEndTime;
 
     @TableField("survey_model")
-    @ApiModelProperty(value = "问卷所属的问卷模块   1问卷模块  2试题模块", required = "required")
+    @ApiModelProperty(value = "问卷所属的问卷模块   1问卷模块  2试题模块")
     private Integer surveyModel;
 
     @TableField("an_item_least_num")
@@ -97,7 +97,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String endTime;
 
     @TableField("rule")
-    @ApiModelProperty(value = "调查规则 1公开, 2私有, 3令牌(表示启用访问密码)", required = "required")
+    @ApiModelProperty(value = "调查规则 1公开, 2私有, 3令牌(表示启用访问密码)")
     private Integer rule;
 
     @TableField("rule_code")
@@ -105,7 +105,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String ruleCode;
 
     @TableField("answer_num")
-    @ApiModelProperty(value = "回答次数", required = "required")
+    @ApiModelProperty(value = "回答次数")
     private Integer answerNum;
 
     @TableField("refresh")
@@ -129,11 +129,11 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String sid;
 
     @TableField("dir_type")
-    @ApiModelProperty(value = "1目录   2问卷", required = "required")
+    @ApiModelProperty(value = "1目录   2问卷")
     private Integer dirType;
 
     @TableField("end_type")
-    @ApiModelProperty(value = "结束方式   1手动结束,2依据结束时间,3依据收到的份数", required = "required")
+    @ApiModelProperty(value = "结束方式   1手动结束,2依据结束时间,3依据收到的份数")
     private Integer endType;
 
     @TableField("mail_only")
@@ -157,7 +157,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private Integer fraction;
 
     @TableField("whether_delete")
-    @ApiModelProperty(value = "是否删除  1.未删除  2.删除", required = "required")
+    @ApiModelProperty(value = "是否删除  1.未删除  2.删除")
     private Integer whetherDelete;
 
     @TableField(exist = false)

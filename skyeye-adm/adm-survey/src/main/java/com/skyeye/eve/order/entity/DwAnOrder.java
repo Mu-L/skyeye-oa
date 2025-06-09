@@ -19,7 +19,7 @@ import lombok.Data;
 @Data
 //@RedisCacheField(name = "Dw:order")
 @TableName(value = "dw_an_order")
-@ApiModel("答卷 评分题实体类")
+@ApiModel("答卷 排序题实体类")
 public class DwAnOrder extends CommonInfo {
 
     @TableId("id")
@@ -35,7 +35,7 @@ public class DwAnOrder extends CommonInfo {
     private String belongId;
 
     @TableField("ordery_num")
-    @ApiModelProperty(value = "订单编号")
+    @ApiModelProperty(value = "编号")
     private String orderyNum;
 
     @TableField("qu_id")

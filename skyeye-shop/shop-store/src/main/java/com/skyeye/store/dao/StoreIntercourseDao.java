@@ -25,7 +25,6 @@ public interface StoreIntercourseDao {
 
     void insertStoreIntercourse(List<Map<String, Object>> shopStoreIntercourseMationList);
 
-    @IgnoreTenant
     List<Map<String, Object>> queryStoreIntercourseList(StoreIntercourseQueryDo storeIntercourseQuery);
 
     Map<String, Object> queryStoreIntercourseById(@Param("id") String id);

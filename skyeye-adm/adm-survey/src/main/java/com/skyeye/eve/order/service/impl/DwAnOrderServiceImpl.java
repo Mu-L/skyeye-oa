@@ -24,7 +24,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "答卷 评分题", groupName = "答卷 评分题")
+@SkyeyeService(name = "答卷 排序题", groupName = "答卷 排序题")
 public class DwAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<DwAnOrderDao, DwAnOrder> implements DwAnOrderService {
 
     @Override
