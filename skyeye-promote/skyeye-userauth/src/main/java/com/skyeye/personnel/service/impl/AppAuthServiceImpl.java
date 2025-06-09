@@ -186,6 +186,10 @@ public class AppAuthServiceImpl implements AppAuthService {
             jedisClientService.set(cacheKey, JSON.toJSONString(authPointList));
         }
         user.put("isAdmin", isAdmin ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
+        user.put("companyId", tenantUser.getCompanyId());
+        user.put("departmentId", tenantUser.getDepartmentId());
+        user.put("jobId", tenantUser.getJobId());
+        user.put("jobScoreId", tenantUser.getJobScoreId());
         // 这里只修改当前终端的登录信息，其他终端的登录信息不会受到影响
         SysUserAuthConstants.setUserLoginRedisCache(userIdAndType, user);
         // 设置角色信息
