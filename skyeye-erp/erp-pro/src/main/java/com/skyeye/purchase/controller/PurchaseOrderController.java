@@ -120,7 +120,7 @@ public class PurchaseOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "insertPurchaseExchange", value = "采购单信息转采购换货单", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertPurchaseExchange", value = "采购单信息转采购换货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseOrderController/insertPurchaseExchange")
