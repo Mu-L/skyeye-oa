@@ -272,6 +272,9 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
             LOGGER.info("set userMation to redis cache start.");
             setMenuToRedis(userMation, userId);
             judgeAndGetSchoolMation(userMation, userId);
+        } else {
+            // TODO 多租户模式挤掉同类型终端的其他登录信息
+
         }
 
         setUserLoginRedisMation(userId, userMation, false);
