@@ -21,7 +21,6 @@ import com.skyeye.common.WallConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
@@ -49,7 +48,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -92,7 +90,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryCommentList(commonPageInfo);
         List<String> ids = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
 
         // 查询子评论
         List<Comment> child = getCommentMapList(ids);
@@ -101,12 +99,12 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
 
         // 获取评论图片
         ids = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         Map<String, List<Picture>> picturetMap = pictureService.getPictureMapListByIds(ids);
         // 获取点赞信息
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         Map<String, Boolean> checkUpvoteMap = Collections.emptyMap();
-        if(StrUtil.isNotEmpty(userToken)) {
+        if (StrUtil.isNotEmpty(userToken)) {
             String userId = inputObject.getLogParams().get("id").toString();
             checkUpvoteMap = upvoteService.checkUpvote(userId, ids.toArray(new String[]{}));
         }
@@ -120,16 +118,16 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
                 bean.put("picture", pictures.stream().findFirst().orElse(null));
             }
             // 设置点赞信息
-            if (CollectionUtil.isNotEmpty(finalCheckUpvoteMap)){
+            if (CollectionUtil.isNotEmpty(finalCheckUpvoteMap)) {
                 bean.put("checkUpvote", finalCheckUpvoteMap.get(id));
             }
             // 设置用户信息
             String loginIdentity = bean.get("loginIdentity").toString();
-            if(anonymity == WhetherEnum.DISABLE_USING.getKey()){ // 非匿名
-                if(LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
+            if (anonymity == WhetherEnum.DISABLE_USING.getKey()) { // 非匿名
+                if (LoginIdentity.STUDENT.getKey().equals(loginIdentity)) {
                     userService.setMationForMap(bean, "createId", "createMation");
                     userService.setMationForMap(bean, "userId", "userMation");
-                }else {
+                } else {
                     iAuthUserService.setMationForMap(bean, "createId", "createMation");
                     iAuthUserService.setMationForMap(bean, "userId", "userMation");
                 }
@@ -162,7 +160,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         List<Comment> commentList = list(queryWrapper);
 
         List<String> ids = commentList.stream()
-            .map(Comment::getId).collect(Collectors.toList());
+                .map(Comment::getId).collect(Collectors.toList());
         Map<String, List<Picture>> picturetMap = pictureService.getPictureMapListByIds(ids);
         commentList.forEach(comment -> {
             String id = comment.getId();
@@ -172,7 +170,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             }
         });
         List<Comment> bean = commentList.stream().map(comment -> {
-            if(comment.getAnonymity() == WhetherEnum.DISABLE_USING.getKey()){
+            if (comment.getAnonymity() == WhetherEnum.DISABLE_USING.getKey()) {
                 if (LoginIdentity.STUDENT.getKey().equals(comment.getLoginIdentity())) {
                     userService.setDataMation(commentList, Comment::getCreateId);
                 } else {
@@ -182,7 +180,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
             return comment;
         }).collect(Collectors.toList());
         Map<String, List<Comment>> commentMap = bean.stream()
-            .collect(Collectors.groupingBy(Comment::getPostId));
+                .collect(Collectors.groupingBy(Comment::getPostId));
         return commentMap;
     }
 
@@ -221,7 +219,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         queryWrapper.eq(MybatisPlusUtil.toColumns(Comment::getParentId), entity.getId());
         List<Comment> commentList = list(queryWrapper);
         List<String> ids = commentList.stream()
-            .map(Comment::getId).collect(Collectors.toList());
+                .map(Comment::getId).collect(Collectors.toList());
         ids.add(entity.getId());
         pictureService.deleteByCommentIds(ids);
         noticeService.deleteVideoNoticeByCommentIds(ids);
@@ -249,7 +247,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
     @Override
     public void createEntity(InputObject inputObject, OutputObject outputObject) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-        if(StrUtil.isEmpty(userToken)){
+        if (StrUtil.isEmpty(userToken)) {
             throw new CustomException("请先完成登录！");
         }
         super.createEntity(inputObject, outputObject);
@@ -284,23 +282,23 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         notice.setType(TypeEnum.COMMENT.getKey());
         notice.setCommentKey(commentService.getServiceClassName());
         notice.setObjectKey(postService.getServiceClassName());
-        if(StrUtil.isNotEmpty(comment.getCommentId())){
+        if (StrUtil.isNotEmpty(comment.getCommentId())) {
             // 回复通知
             Comment parentComment = commentService.selectById(comment.getCommentId());
             notice.setReceiveId(parentComment.getCreateId());
             notice.setCommentId(comment.getId());
             notice.setContent(NoticeContent.COMMENT_REPLY);
-        }else {
+        } else {
             // 新增通知
             notice.setReceiveId(post.getCreateId());
             notice.setCommentId(comment.getId());
             notice.setContent(NoticeContent.COMMENT_POST);
         }
         notice.setObjectId(post.getId());
-        if(StrUtil.isNotEmpty(post.getCircleId())){
+        if (StrUtil.isNotEmpty(post.getCircleId())) {
             notice.setCircleId(post.getCircleId());
             notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
-        }else {
+        } else {
             notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
         }
         noticeService.createEntity(notice, userId);
@@ -310,7 +308,7 @@ public class CommentServiceImpl extends SkyeyeBusinessServiceImpl<CommentDao, Co
         Post post = postService.selectById(postId);
         if (post.getCommentNum() != null) {
             postService.updateCommentCount(post.getId(), CalculationUtil.add(CommonNumConstants.NUM_ZERO,
-                post.getCommentNum(), String.valueOf(CommonNumConstants.NUM_ONE)));
+                    post.getCommentNum(), String.valueOf(CommonNumConstants.NUM_ONE)));
         }
     }
 
