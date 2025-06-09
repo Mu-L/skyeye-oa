@@ -23,14 +23,14 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.email.classenum.EmailState;
 import com.skyeye.eve.email.dao.EmailDao;
-import com.skyeye.eve.email.entity.EmailUser;
-import com.skyeye.eve.email.service.EmailService;
 import com.skyeye.eve.email.entity.Email;
 import com.skyeye.eve.email.entity.EmailEnclosure;
 import com.skyeye.eve.email.entity.EmailParams;
-import com.skyeye.eve.rest.mq.JobMateMation;
+import com.skyeye.eve.email.entity.EmailUser;
 import com.skyeye.eve.email.service.EmailEnclosureService;
+import com.skyeye.eve.email.service.EmailService;
 import com.skyeye.eve.email.service.EmailUserService;
+import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,6 +220,10 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         email.setState(state);
         email.setMessageJobType(messageJobType);
         email.setEmailUserId(emailParams.getEmailUserId());
+
+        EmailUser emailUser = emailUserService.selectById(emailParams.getEmailUserId());
+        email.setFromPeople(emailUser.getEmailAddress());
+
         email.setEmailEnclosure(emailParams.getEmailEnclosure());
         if (StrUtil.isNotEmpty(id)) {
             updateEntity(email, userId);
