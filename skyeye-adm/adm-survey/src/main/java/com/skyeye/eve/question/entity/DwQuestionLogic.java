@@ -38,7 +38,7 @@ public class DwQuestionLogic extends OperatorUserInfo {
     private String cgQuItemId;
 
     @TableField("ck_qu_id")
-    @ApiModelProperty(value = "回答选择的题ID", required = "required")
+    @ApiModelProperty(value = "回答选择的题ID")
     private String ckQuId;
 
     @TableField("ge_le")
@@ -46,7 +46,7 @@ public class DwQuestionLogic extends OperatorUserInfo {
     private String geLe;
 
     @TableField("logic_type")
-    @ApiModelProperty(value = "逻辑类型  (1=跳转,2显示)", required = "required")
+    @ApiModelProperty(value = "逻辑类型  (1=跳转,2显示)")
     private Integer logicType;
 
     @TableField("score_num")
