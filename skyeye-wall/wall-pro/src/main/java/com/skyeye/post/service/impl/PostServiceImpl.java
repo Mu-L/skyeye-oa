@@ -201,9 +201,18 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
             }
+            // 获取用户加入的圈子
+            List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
+            List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            if(CollectionUtil.isNotEmpty(circleIds)){
+                queryWrapper.and(wrapper -> wrapper.in(MybatisPlusUtil.toColumns(Post::getCircleId), circleIds)
+                        .or().eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
+            }else {
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            }
             bean = list(queryWrapper);
+            circleService.setDataMation(bean,Post::getCircleId);
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
