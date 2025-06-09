@@ -33,10 +33,7 @@ import com.skyeye.purchase.dao.PurchasePutDao;
 import com.skyeye.purchase.entity.PurchaseDelivery;
 import com.skyeye.purchase.entity.PurchaseOrder;
 import com.skyeye.purchase.entity.PurchasePut;
-import com.skyeye.purchase.service.PurchaseDeliveryService;
-import com.skyeye.purchase.service.PurchaseOrderService;
-import com.skyeye.purchase.service.PurchasePutService;
-import com.skyeye.purchase.service.PurchaseReturnsService;
+import com.skyeye.purchase.service.*;
 import com.skyeye.util.ErpOrderUtil;
 import com.skyeye.whole.entity.WholeOrderOut;
 import com.skyeye.whole.service.WholeOrderOutService;
@@ -77,6 +74,9 @@ public class PurchasePutServiceImpl extends SkyeyeErpOrderServiceImpl<PurchasePu
 
     @Autowired
     private DepotPutService depotPutService;
+
+    @Autowired
+    private PurchaseExchangesService purchaseExchangesService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -167,8 +167,10 @@ public class PurchasePutServiceImpl extends SkyeyeErpOrderServiceImpl<PurchasePu
         super.checkFromOrderMaterialNorms(erpOrderItemList, inSqlNormsId);
         // 获取已经下达采购退货单的商品信息
         Map<String, Integer> returnExecuteNum = purchaseReturnsService.calcMaterialNormsNumByFromId(entity.getFromId());
-        // 来源单据的商品数量 - 当前单据的商品数量 - 已经入库的商品数量 - 已经退货的商品数量
-        super.setOrCheckOperNumber(erpOrderItemList, setData, orderNormsNum, executeNum, returnExecuteNum);
+        // 获取已经下达采购换货单的商品信息
+        Map<String, Integer> exchangeExecuteNum = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
+        // 来源单据的商品数量 - 当前单据的商品数量 - 已经入库的商品数量 - 已经退货的商品数量 - 已经换货的商品数量
+        super.setOrCheckOperNumber(erpOrderItemList, setData, orderNormsNum, executeNum, returnExecuteNum, exchangeExecuteNum);
         if (setData) {
             // 过滤掉剩余数量为0的商品
             erpOrderItemList = erpOrderItemList.stream()

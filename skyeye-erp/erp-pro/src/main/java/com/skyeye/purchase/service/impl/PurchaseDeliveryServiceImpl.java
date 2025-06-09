@@ -27,21 +27,21 @@ import com.skyeye.inspection.classenum.QualityInspectionFromType;
 import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.service.QualityInspectionService;
 import com.skyeye.material.classenum.MaterialInOrderType;
-import com.skyeye.purchase.classenum.DeliveryPutState;
-import com.skyeye.purchase.classenum.OrderArrivalState;
-import com.skyeye.purchase.classenum.PurchaseDeliveryFromType;
-import com.skyeye.purchase.classenum.PurchasePutFromType;
+import com.skyeye.purchase.classenum.*;
 import com.skyeye.purchase.dao.PurchaseDeliveryDao;
 import com.skyeye.purchase.entity.PurchaseDelivery;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchaseOrder;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.service.PurchaseDeliveryService;
+import com.skyeye.purchase.service.PurchaseExchangesService;
 import com.skyeye.purchase.service.PurchaseOrderService;
 import com.skyeye.purchase.service.PurchasePutService;
 import com.skyeye.whole.entity.WholeOrderOut;
 import com.skyeye.whole.service.WholeOrderOutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +72,9 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
 
     @Autowired
     private WholeOrderOutService wholeOrderOutService;
+
+    @Autowired
+    private PurchaseExchangesService purchaseExchangesService;
 
     @Override
     public QueryWrapper<PurchaseDelivery> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -168,6 +171,9 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         } else if (entity.getFromTypeId() == PurchaseDeliveryFromType.WHOLE_ORDER_OUT.getKey()) {
             // 整单委外单
             checkAndUpdateWholeOrderOutState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
+        } else if (entity.getFromTypeId() == PurchaseDeliveryFromType.PURCHASE_EXCHANGES.getKey()) {
+            // 采购换货单
+            checkAndUpdatePurchaseExchangesState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
         }
     }
 
@@ -192,14 +198,39 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         }
     }
 
+    private void checkAndUpdatePurchaseExchangesState(PurchaseDelivery entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId){
+        PurchaseExchange purchaseExchange = purchaseExchangesService.selectById(entity.getFromId());
+        if (CollectionUtil.isEmpty(purchaseExchange.getErpOrderItemList())) {
+            throw new CustomException("该采购退货单下未包含商品.");
+        }
+        // 校验传进来的商品信息是否都在来源单中
+        super.checkFromOrderMaterialNorms(purchaseExchange.getErpOrderItemList(), inSqlNormsId);
+        // 来源单据的商品数量 - 当前单据的商品数量 - 已经到货的商品数量
+        super.setOrCheckOperNumber(purchaseExchange.getErpOrderItemList(), setData, orderNormsNum, executeNum);
+        if (setData) {
+            // 过滤掉剩余数量为0的商品
+            List<ErpOrderItem> erpOrderItemList = purchaseExchange.getErpOrderItemList().stream()
+                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+            // 如果该整单委外单的商品已经全部下达了到货单，那说明已经完成了订单的【到货内容】
+            if (CollectionUtil.isEmpty(erpOrderItemList)) {
+                purchaseExchangesService.editArrivalState(purchaseExchange.getId(), OrderArrivalState.COMPLATE_ARRIVAL.getKey());
+            } else {
+                purchaseExchangesService.editArrivalState(purchaseExchange.getId(), OrderArrivalState.PARTIAL_ARRIVAL.getKey());
+            }
+        }
+    }
+
+
     private void checkAndUpdatePurchaseOrderState(PurchaseDelivery entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
         PurchaseOrder purchaseOrder = purchaseOrderService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(purchaseOrder.getErpOrderItemList())) {
             throw new CustomException("该采购订单下未包含商品.");
         }
         super.checkFromOrderMaterialNorms(purchaseOrder.getErpOrderItemList(), inSqlNormsId);
-        // 来源单据的商品数量 - 当前单据的商品数量 - 已经到货的商品数量
-        super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), setData, orderNormsNum, executeNum);
+        // 获取已经下达采购换货单的商品信息
+        Map<String, Integer> normsExchangeNumMap = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
+        // 来源单据的商品数量 - 当前单据的商品数量 - 已经到货的商品数量 - 已经换货的商品数量
+        super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), setData, orderNormsNum, executeNum, normsExchangeNumMap);
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = purchaseOrder.getErpOrderItemList().stream()
@@ -305,16 +336,13 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         String id = inputObject.getParams().get("id").toString();
         PurchaseDelivery purchaseDelivery = selectById(id);
         Map<String, Integer> normsNum = qualityInspectionService.calcMaterialNormsNumByFromId(id);
+        // 查询被转到换货单的商品
+        Map<String, Integer> normsNumMap = purchaseExchangesService.calcMaterialNormsNumByFromId(id);
         // 过滤掉【采购到货单】中免检的商品
         List<ErpOrderItem> erpOrderItemList = purchaseDelivery.getErpOrderItemList().stream()
             .filter(bean -> bean.getQualityInspection() != OrderItemQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey())
             .collect(Collectors.toList());
-        erpOrderItemList.forEach(erpOrderItem -> {
-            Integer surplusNum = erpOrderItem.getOperNumber()
-                - (normsNum.containsKey(erpOrderItem.getNormsId()) ? normsNum.get(erpOrderItem.getNormsId()) : 0);
-            // 设置未下达质检单的商品数量
-            erpOrderItem.setOperNumber(surplusNum);
-        });
+        super.setOrCheckOperNumber(erpOrderItemList, true, normsNum, normsNumMap);
         // 过滤掉数量为0的进行生成质检单
         purchaseDelivery.setErpOrderItemList(erpOrderItemList.stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
@@ -349,16 +377,13 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         String id = inputObject.getParams().get("id").toString();
         PurchaseDelivery purchaseDelivery = selectById(id);
         Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
+        // 查询被转到换货单的商品
+        Map<String, Integer> normsNumMap = purchaseExchangesService.calcMaterialNormsNumByFromId(id);
         // 获取【采购到货单】中免检的商品
         List<ErpOrderItem> erpOrderItemList = purchaseDelivery.getErpOrderItemList().stream()
             .filter(bean -> bean.getQualityInspection() == OrderItemQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey())
             .collect(Collectors.toList());
-        erpOrderItemList.forEach(erpOrderItem -> {
-            Integer surplusNum = erpOrderItem.getOperNumber()
-                - (normsNum.containsKey(erpOrderItem.getNormsId()) ? normsNum.get(erpOrderItem.getNormsId()) : 0);
-            // 设置未下达采购入库单的商品数量
-            erpOrderItem.setOperNumber(surplusNum);
-        });
+        super.setOrCheckOperNumber(erpOrderItemList, true, normsNum, normsNumMap);
         // 过滤掉数量为0的进行生成采购入库单
         purchaseDelivery.setErpOrderItemList(erpOrderItemList.stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));

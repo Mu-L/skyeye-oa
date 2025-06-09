@@ -11,10 +11,7 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.purchase.entity.PurchaseDelivery;
-import com.skyeye.purchase.entity.PurchaseOrder;
-import com.skyeye.purchase.entity.PurchasePut;
-import com.skyeye.purchase.entity.PurchaseReturn;
+import com.skyeye.purchase.entity.*;
 import com.skyeye.purchase.service.PurchaseOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,7 +64,7 @@ public class PurchaseOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryPurchaseOrderTransById", value = "转采购入库单/到货单/采购退货单时，根据id查询采购订单信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryPurchaseOrderTransById", value = "转采购入库单/到货单/采购退货单/采购换货单时，根据id查询采购订单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseOrderController/queryPurchaseOrderTransById")
@@ -117,4 +114,17 @@ public class PurchaseOrderController {
         purchaseOrderService.insertPurchaseOrderToReturns(inputObject, outputObject);
     }
 
+    /**
+     * 采购单信息转采购换货单
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "insertPurchaseExchange", value = "采购单信息转采购换货单", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/PurchaseOrderController/insertPurchaseExchange")
+    public void insertPurchaseExchange(InputObject inputObject, OutputObject outputObject) {
+        purchaseOrderService.insertPurchaseOrderToExchanges(inputObject, outputObject);
+    }
 }

@@ -49,4 +49,8 @@ public interface QualityInspectionService extends SkyeyeFlowableService<QualityI
     void queryQualityInspectionTransReturnById(InputObject inputObject, OutputObject outputObject);
 
     void qualityInspectionToPurchaseReturn(InputObject inputObject, OutputObject outputObject);
+
+    void queryQualityInspectionTransExchangesById(InputObject inputObject, OutputObject outputObject);
+
+    void qualityInspectionToPurchaseExchanges(InputObject inputObject, OutputObject outputObject);
 }

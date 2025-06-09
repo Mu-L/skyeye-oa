@@ -13,6 +13,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.service.QualityInspectionService;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.entity.PurchaseReturn;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,6 +158,34 @@ public class QualityInspectionController {
     @RequestMapping("/post/QualityInspectionController/qualityInspectionToPurchaseReturn")
     public void qualityInspectionToPurchaseReturn(InputObject inputObject, OutputObject outputObject) {
         qualityInspectionService.qualityInspectionToPurchaseReturn(inputObject, outputObject);
+    }
+
+    /**
+     * 转采购换货单时，根据id查询质检单信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryQualityInspectionTransExchangesById", value = "转采购换货单时，根据id查询质检单信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/QualityInspectionController/queryQualityInspectionTransExchangesById")
+    public void queryQualityInspectionTransExchangesById(InputObject inputObject, OutputObject outputObject) {
+        qualityInspectionService.queryQualityInspectionTransExchangesById(inputObject, outputObject);
+    }
+
+    /**
+     * 质检单转采购换货单
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "qualityInspectionToPurchaseExchanges", value = "质检单转采购换货单", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/QualityInspectionController/qualityInspectionToPurchaseExchanges")
+    public void qualityInspectionToPurchaseExchanges(InputObject inputObject, OutputObject outputObject) {
+        qualityInspectionService.qualityInspectionToPurchaseExchanges(inputObject, outputObject);
     }
 
 }

@@ -50,4 +50,6 @@ public interface PurchaseOrderService extends SkyeyeErpOrderService<PurchaseOrde
     void queryPurchaseOrderTransById(InputObject inputObject, OutputObject outputObject);
 
     void insertPurchaseOrderToReturns(InputObject inputObject, OutputObject outputObject);
+
+    void insertPurchaseOrderToExchanges(InputObject inputObject, OutputObject outputObject);
 }

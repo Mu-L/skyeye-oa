@@ -31,14 +31,13 @@ import com.skyeye.production.classenum.ProductionOutState;
 import com.skyeye.production.entity.Production;
 import com.skyeye.production.entity.ProductionChild;
 import com.skyeye.production.service.ProductionService;
-import com.skyeye.purchase.classenum.OrderArrivalState;
-import com.skyeye.purchase.classenum.PurchaseDeliveryFromType;
-import com.skyeye.purchase.classenum.PurchasePutFromType;
-import com.skyeye.purchase.classenum.PurchaseReturnsFromType;
+import com.skyeye.purchase.classenum.*;
 import com.skyeye.purchase.entity.PurchaseDelivery;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.entity.PurchaseReturn;
 import com.skyeye.purchase.service.PurchaseDeliveryService;
+import com.skyeye.purchase.service.PurchaseExchangesService;
 import com.skyeye.purchase.service.PurchasePutService;
 import com.skyeye.purchase.service.PurchaseReturnsService;
 import com.skyeye.util.ErpOrderUtil;
@@ -48,6 +47,7 @@ import com.skyeye.whole.entity.WholeOrderOut;
 import com.skyeye.whole.service.WholeOrderOutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +77,9 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
 
     @Autowired
     private PurchaseReturnsService purchaseReturnsService;
+
+    @Autowired
+    private PurchaseExchangesService purchaseExchangesService;
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -226,12 +229,14 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
         WholeOrderOut wholeOrderOut = selectById(id);
         // 该整单委外单下的已经下达采购退货单(审核通过)的数量
         Map<String, Integer> normsReturnMap = purchaseReturnsService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
+        // 该整单委外单下的已经下达采购换货单(审核通过)的数量
+        Map<String, Integer> normsExchangeMap = purchaseExchangesService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
         if (wholeOrderOut.getQualityInspection() == OrderQualityInspectionType.NEED_QUALITYINS_INS.getKey()) {
             // 需要质检，计算未到货数量
             Map<String, Integer> normsNum = purchaseDeliveryService.calcMaterialNormsNumByFromId(id);
             wholeOrderOut.getErpOrderItemList().forEach(erpOrderItem -> {
-                // 整单委外单数量 - 已到货数量 - 已退货数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap);
+                // 整单委外单数量 - 已到货数量 - 已退货数量 - 已换货数量
+                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
                 // 设置未下达到货单的商品数量
                 erpOrderItem.setOperNumber(surplusNum);
             });
@@ -239,8 +244,8 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             // 免检，计算未入库的数量
             Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
             wholeOrderOut.getErpOrderItemList().forEach(erpOrderItem -> {
-                // 整单委外单数量 - 已入库数量 - 已退货数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap);
+                // 整单委外单数量 - 已入库数量 - 已退货数量 - 已换货数量
+                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
                 // 设置未下达采购入库单的商品数量
                 erpOrderItem.setOperNumber(surplusNum);
             });
@@ -313,6 +318,27 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             purchaseReturn.setFromTypeId(PurchaseReturnsFromType.WHOLE_ORDER_OUT.getKey());
             purchaseReturn.setId(StrUtil.EMPTY);
             purchaseReturnsService.createEntity(purchaseReturn, userId);
+        } else {
+            outputObject.setreturnMessage("状态错误，无法下达采购退货单.");
+        }
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void insertWholeOrderOutToExchanges(InputObject inputObject, OutputObject outputObject) {
+        PurchaseExchange purchaseExchange = inputObject.getParams(PurchaseExchange.class);
+        // 获取整单委外单状态
+        WholeOrderOut order = selectById(purchaseExchange.getId());
+        if (ObjectUtil.isEmpty(order)) {
+            throw new CustomException("该数据不存在.");
+        }
+        // 审核通过/部分完成的可以转到采购换货单
+        if (FlowableStateEnum.PASS.getKey().equals(order.getState()) || ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey().equals(order.getState())) {
+            String userId = inputObject.getLogParams().get("id").toString();
+            purchaseExchange.setFromId(purchaseExchange.getId());
+            purchaseExchange.setFromTypeId(PurchaseExchangesFromType.WHOLE_ORDER_OUT.getKey());
+            purchaseExchange.setId(StrUtil.EMPTY);
+            purchaseExchangesService.createEntity(purchaseExchange, userId);
         } else {
             outputObject.setreturnMessage("状态错误，无法下达采购退货单.");
         }

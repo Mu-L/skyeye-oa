@@ -131,4 +131,11 @@ public class QualityInspectionItem extends CommonInfo {
     @ApiModelProperty(value = "备注")
     private String remark;
 
+    @TableField("exchanges_number")
+    @ApiModelProperty(value = "换货数量", required = "required,num")
+    private Integer exchangesNumber;
+
+    @TableField("exchanges_reason")
+    @ApiModelProperty(value = "换货原因")
+    private String exchangesReason;
 }

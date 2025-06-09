@@ -37,14 +37,8 @@ import com.skyeye.production.entity.ProductionPlanChild;
 import com.skyeye.production.service.ProductionPlanService;
 import com.skyeye.purchase.classenum.*;
 import com.skyeye.purchase.dao.PurchaseOrderDao;
-import com.skyeye.purchase.entity.PurchaseDelivery;
-import com.skyeye.purchase.entity.PurchaseOrder;
-import com.skyeye.purchase.entity.PurchasePut;
-import com.skyeye.purchase.entity.PurchaseReturn;
-import com.skyeye.purchase.service.PurchaseDeliveryService;
-import com.skyeye.purchase.service.PurchaseOrderService;
-import com.skyeye.purchase.service.PurchasePutService;
-import com.skyeye.purchase.service.PurchaseReturnsService;
+import com.skyeye.purchase.entity.*;
+import com.skyeye.purchase.service.*;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,6 +67,9 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
 
     @Autowired
     private PurchaseReturnsService purchaseReturnsService;
+
+    @Autowired
+    private PurchaseExchangesService purchaseExchangesService;
 
     @Autowired
     private SupplierContractService supplierContractService;
@@ -328,6 +325,27 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void insertPurchaseOrderToExchanges(InputObject inputObject, OutputObject outputObject) {
+        PurchaseExchange purchaseExchange = inputObject.getParams(PurchaseExchange.class);
+        // 获取采购单状态
+        PurchaseOrder order = selectById(purchaseExchange.getId());
+        if (ObjectUtil.isEmpty(order)) {
+            throw new CustomException("该数据不存在.");
+        }
+        // 审核通过/部分完成的可以转到采购换货单
+        if (FlowableStateEnum.PASS.getKey().equals(order.getState()) || ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey().equals(order.getState())) {
+            String userId = inputObject.getLogParams().get("id").toString();
+            purchaseExchange.setFromId(purchaseExchange.getId());
+            purchaseExchange.setFromTypeId(PurchaseExchangesFromType.PURCHASE_ORDER.getKey());
+            purchaseExchange.setId(StrUtil.EMPTY);
+            purchaseExchangesService.createEntity(purchaseExchange, userId);
+        } else {
+            outputObject.setreturnMessage("状态错误，无法下达采购换货单.");
+        }
+    }
+
+    @Override
     public void approvalEndIsSuccess(PurchaseOrder entity) {
         entity = selectById(entity.getId());
         checkMaterialNorms(entity, true);
@@ -339,16 +357,18 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         PurchaseOrder purchaseOrder = selectById(id);
         // 该采购订单下的已经下达采购退货单(审核通过)的数量
         Map<String, Integer> normsReturnMap = purchaseReturnsService.calcMaterialNormsNumByFromId(purchaseOrder.getId());
+        // 该采购订单下的已经下达采购换货单(审核通过)的数量
+        Map<String, Integer> normsExchangeMap = purchaseExchangesService.calcMaterialNormsNumByFromId(purchaseOrder.getId());
         if (purchaseOrder.getQualityInspection() == OrderQualityInspectionType.NEED_QUALITYINS_INS.getKey()) {
             // 需要质检，计算未到货数量
             Map<String, Integer> normsNum = purchaseDeliveryService.calcMaterialNormsNumByFromId(id);
-            // 设置未下达到货单的商品数量-----采购订单数量 - 已到货数量 - 已退货数量
-            super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), true, normsNum, normsReturnMap);
+            // 设置未下达到货单的商品数量-----采购订单数量 - 已到货数量 - 已退货数量 - 已换货数量
+            super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), true, normsNum, normsReturnMap, normsExchangeMap);
         } else {
             // 免检，计算未入库的数量
             Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
-            // 设置未下达采购入库单的商品数量-----采购订单数量 - 已入库数量 - 已退货数量
-            super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), true, normsNum, normsReturnMap);
+            // 设置未下达采购入库单的商品数量-----采购订单数量 - 已入库数量 - 已退货数量 - 已换货数量
+            super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), true, normsNum, normsReturnMap, normsExchangeMap);
         }
         // 过滤掉数量为0的进行生成采购入库单/到货单/退货单
         purchaseOrder.setErpOrderItemList(purchaseOrder.getErpOrderItemList().stream()

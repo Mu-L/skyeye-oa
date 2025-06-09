@@ -13,6 +13,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.purchase.entity.PurchaseDelivery;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.service.PurchaseDeliveryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ public class PurchaseDeliveryController {
      */
     @ApiOperation(id = "queryPurchaseDeliveryTransById", value = "转质检单时，根据id查询到货单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseDeliveryController/queryPurchaseDeliveryTransById")
     public void queryPurchaseDeliveryTransById(InputObject inputObject, OutputObject outputObject) {
         purchaseDeliveryService.queryPurchaseDeliveryTransById(inputObject, outputObject);
@@ -82,7 +83,7 @@ public class PurchaseDeliveryController {
      */
     @ApiOperation(id = "deliveryToQualityInspection", value = "到货单转质检单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = QualityInspection.class, value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseDeliveryController/deliveryToQualityInspection")
     public void deliveryToQualityInspection(InputObject inputObject, OutputObject outputObject) {
         purchaseDeliveryService.deliveryToQualityInspection(inputObject, outputObject);
@@ -96,7 +97,7 @@ public class PurchaseDeliveryController {
      */
     @ApiOperation(id = "queryPurchaseDeliveryTransPurchasePutById", value = "转采购入库单时，根据id查询到货单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseDeliveryController/queryPurchaseDeliveryTransPurchasePutById")
     public void queryPurchaseDeliveryTransPurchasePutById(InputObject inputObject, OutputObject outputObject) {
         purchaseDeliveryService.queryPurchaseDeliveryTransPurchasePutById(inputObject, outputObject);
@@ -110,7 +111,7 @@ public class PurchaseDeliveryController {
      */
     @ApiOperation(id = "deliveryToPurchasePut", value = "到货单转采购入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchasePut.class, value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PurchaseDeliveryController/deliveryToPurchasePut")
     public void deliveryToPurchasePut(InputObject inputObject, OutputObject outputObject) {
         purchaseDeliveryService.deliveryToPurchasePut(inputObject, outputObject);

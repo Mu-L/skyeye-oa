@@ -42,4 +42,6 @@ public interface WholeOrderOutService extends SkyeyeErpOrderService<WholeOrderOu
     void insertWholeOrderOutToTurnDelivery(InputObject inputObject, OutputObject outputObject);
 
     void insertWholeOrderOutToReturns(InputObject inputObject, OutputObject outputObject);
+
+    void insertWholeOrderOutToExchanges(InputObject inputObject, OutputObject outputObject);
 }

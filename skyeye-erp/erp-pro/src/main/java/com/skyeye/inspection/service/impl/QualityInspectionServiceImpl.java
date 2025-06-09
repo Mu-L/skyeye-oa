@@ -39,17 +39,21 @@ import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.organization.service.IDepmentService;
+import com.skyeye.purchase.classenum.PurchaseExchangesFromType;
 import com.skyeye.purchase.classenum.PurchasePutFromType;
 import com.skyeye.purchase.classenum.PurchaseReturnsFromType;
 import com.skyeye.purchase.entity.PurchaseDelivery;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.entity.PurchaseReturn;
 import com.skyeye.purchase.service.PurchaseDeliveryService;
+import com.skyeye.purchase.service.PurchaseExchangesService;
 import com.skyeye.purchase.service.PurchasePutService;
 import com.skyeye.purchase.service.PurchaseReturnsService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -93,6 +97,9 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private PurchaseExchangesService purchaseExchangesService;
 
     @Override
     public QueryWrapper<QualityInspection> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -152,7 +159,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
                 String samplingRatio = CalculationUtil.divide(qualityInspectionItem.getQualityInspectionRatio(), "100", CommonNumConstants.NUM_TWO);
                 // 计算需要抽检的数量
                 int samplingNum = Integer.parseInt(
-                    CalculationUtil.multiply(CommonNumConstants.NUM_ZERO, samplingRatio, String.valueOf(qualityInspectionItem.getOperNumber())));
+                        CalculationUtil.multiply(CommonNumConstants.NUM_ZERO, samplingRatio, String.valueOf(qualityInspectionItem.getOperNumber())));
                 // 实际验收总数量 < 需要抽检的数量
                 if (tempNum < samplingNum) {
                     throw new CustomException("抽检数量不足，请确认.");
@@ -178,7 +185,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         }
         // 当前质检单的商品数量
         Map<String, Integer> orderNormsNum = entity.getQualityInspectionItemList().stream()
-            .collect(Collectors.toMap(QualityInspectionItem::getNormsId, QualityInspectionItem::getOperNumber));
+                .collect(Collectors.toMap(QualityInspectionItem::getNormsId, QualityInspectionItem::getOperNumber));
         // 获取同一个来源单据下已经质检(审批通过)的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
@@ -187,26 +194,26 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
             PurchaseDelivery purchaseDelivery = purchaseDeliveryService.selectById(entity.getFromId());
             // 过滤掉到货单中免检的商品
             List<ErpOrderItem> erpOrderItemList = purchaseDelivery.getErpOrderItemList().stream()
-                .filter(bean -> bean.getQualityInspection() != OrderItemQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey())
-                .collect(Collectors.toList());
+                    .filter(bean -> bean.getQualityInspection() != OrderItemQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey())
+                    .collect(Collectors.toList());
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 throw new CustomException("该到货单下未包含需要质检的商品.");
             }
             List<String> fromNormsIds = erpOrderItemList.stream()
-                .map(ErpOrderItem::getNormsId).collect(Collectors.toList());
+                    .map(ErpOrderItem::getNormsId).collect(Collectors.toList());
             // 求差集(到货单不包含的商品)
             List<String> diffList = inSqlNormsId.stream()
-                .filter(num -> !fromNormsIds.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !fromNormsIds.contains(num)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(diffList)) {
                 List<MaterialNorms> materialNormsList = materialNormsService.selectByIds(diffList.toArray(new String[]{}));
                 List<String> normsNames = materialNormsList.stream().map(MaterialNorms::getName).collect(Collectors.toList());
                 throw new CustomException(String.format(Locale.ROOT, "该到货单下未包含如下商品规格：【%s】.",
-                    Joiner.on(CommonCharConstants.COMMA_MARK).join(normsNames)));
+                        Joiner.on(CommonCharConstants.COMMA_MARK).join(normsNames)));
             }
             erpOrderItemList.forEach(erpOrderItem -> {
                 Integer surplusNum = erpOrderItem.getOperNumber()
-                    - (orderNormsNum.containsKey(erpOrderItem.getNormsId()) ? orderNormsNum.get(erpOrderItem.getNormsId()) : 0)
-                    - (executeNum.containsKey(erpOrderItem.getNormsId()) ? executeNum.get(erpOrderItem.getNormsId()) : 0);
+                        - (orderNormsNum.containsKey(erpOrderItem.getNormsId()) ? orderNormsNum.get(erpOrderItem.getNormsId()) : 0)
+                        - (executeNum.containsKey(erpOrderItem.getNormsId()) ? executeNum.get(erpOrderItem.getNormsId()) : 0);
                 if (surplusNum < 0) {
                     throw new CustomException("超出到货单的商品数量.");
                 }
@@ -217,7 +224,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 erpOrderItemList = erpOrderItemList.stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                        .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
                 // 该到货单的商品已经全部进行了质检
                 if (CollectionUtil.isEmpty(erpOrderItemList)) {
                     purchaseDeliveryService.editQualityInspection(purchaseDelivery.getId(), OrderQualityInspectionType.COMPLATE_QUALITY_INSPECTION.getKey());
@@ -243,7 +250,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         materialService.setDataMation(qualityInspection.getQualityInspectionItemList(), QualityInspectionItem::getMaterialId);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             MaterialNorms norms = qualityInspectionItem.getMaterialMation().getMaterialNorms()
-                .stream().filter(bean -> StrUtil.equals(qualityInspectionItem.getNormsId(), bean.getId())).findFirst().orElse(null);
+                    .stream().filter(bean -> StrUtil.equals(qualityInspectionItem.getNormsId(), bean.getId())).findFirst().orElse(null);
             qualityInspectionItem.setNormsMation(norms);
         });
         // 仓库信息
@@ -296,7 +303,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         if (CollectionUtil.isNotEmpty(qualityInspectionItemList)) {
             // 分组计算已经质检的数量
             return qualityInspectionItemList.stream()
-                .collect(Collectors.groupingBy(QualityInspectionItem::getNormsId, Collectors.summingInt(QualityInspectionItem::getOperNumber)));
+                    .collect(Collectors.groupingBy(QualityInspectionItem::getNormsId, Collectors.summingInt(QualityInspectionItem::getOperNumber)));
         }
         return cn.hutool.core.map.MapUtil.newHashMap();
     }
@@ -325,7 +332,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
             return;
         }
         List<String> ids = beans.stream().filter(bean -> !MapUtil.checkKeyIsNull(bean, idKey))
-            .map(bean -> bean.get(idKey).toString()).distinct().collect(Collectors.toList());
+                .map(bean -> bean.get(idKey).toString()).distinct().collect(Collectors.toList());
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
@@ -333,7 +340,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         queryWrapper.in(CommonConstants.ID, ids);
         List<QualityInspection> qualityInspectionList = list(queryWrapper);
         Map<String, QualityInspection> qualityInspectionMap = qualityInspectionList.stream()
-            .collect(Collectors.toMap(QualityInspection::getId, bean -> bean));
+                .collect(Collectors.toMap(QualityInspection::getId, bean -> bean));
         for (Map<String, Object> bean : beans) {
             if (!MapUtil.checkKeyIsNull(bean, idKey)) {
                 QualityInspection entity = qualityInspectionMap.get(bean.get(idKey).toString());
@@ -352,13 +359,13 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             Integer surplusNum = qualityInspectionItem.getQualifiedNumber() + qualityInspectionItem.getConcessionNumber()
-                - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+                    - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
             // 设置未下达采购入库单的商品数量
             qualityInspectionItem.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购入库单
         qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
-            .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+                .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
         // 供应商
         supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
         outputObject.setBean(qualityInspection);
@@ -393,13 +400,13 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             // 退还数量 - 已退货数量
             Integer surplusNum = qualityInspectionItem.getReturnNumber()
-                - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+                    - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
             // 设置未下达采购退货单的商品数量
             qualityInspectionItem.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购退货单
         qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
-            .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+                .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
         // 供应商
         supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
         outputObject.setBean(qualityInspection);
@@ -426,4 +433,45 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         }
     }
 
+    @Override
+    public void queryQualityInspectionTransExchangesById(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        QualityInspection qualityInspection = selectById(id);
+        Map<String, Integer> normsNum = purchaseExchangesService.calcMaterialNormsNumByFromId(id);
+        qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
+            // 换货数量 - 已换货数量
+            Integer surplusNum = qualityInspectionItem.getExchangesNumber()
+                    - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+            // 设置未下达采购换货单的商品数量
+            qualityInspectionItem.setOperNumber(surplusNum);
+        });
+        // 过滤掉数量为0的进行生成采购换货单
+        qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
+                .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+        // 供应商
+        supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
+        outputObject.setBean(qualityInspection);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void qualityInspectionToPurchaseExchanges(InputObject inputObject, OutputObject outputObject) {
+        PurchaseExchange purchaseExchange = inputObject.getParams(PurchaseExchange.class);
+        // 获取质检单状态
+        QualityInspection qualityInspection = selectById(purchaseExchange.getId());
+        if (ObjectUtil.isEmpty(qualityInspection)) {
+            throw new CustomException("该数据不存在.");
+        }
+        // 审核通过的可以进行采购退货单
+        if (FlowableStateEnum.PASS.getKey().equals(qualityInspection.getState())) {
+            String userId = inputObject.getLogParams().get("id").toString();
+            purchaseExchange.setFromId(purchaseExchange.getId());
+            purchaseExchange.setFromTypeId(PurchaseExchangesFromType.QUALITY_INSPECTION.getKey());
+            purchaseExchange.setId(StrUtil.EMPTY);
+            purchaseExchangesService.createEntity(purchaseExchange, userId);
+        } else {
+            outputObject.setreturnMessage("状态错误，无法下达质检单.");
+        }
+    }
 }

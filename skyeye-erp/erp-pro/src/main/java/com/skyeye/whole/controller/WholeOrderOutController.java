@@ -12,6 +12,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.purchase.entity.PurchaseDelivery;
+import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchasePut;
 import com.skyeye.purchase.entity.PurchaseReturn;
 import com.skyeye.whole.entity.WholeOrderOut;
@@ -67,7 +68,7 @@ public class WholeOrderOutController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryWholeOrderOutTransById", value = "转采购入库单/到货单/采购退货单时，根据id查询整单委外单信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryWholeOrderOutTransById", value = "转采购入库单/到货单/采购退货单/采购换货单时，根据id查询整单委外单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/WholeOrderOutController/queryWholeOrderOutTransById")
@@ -117,4 +118,17 @@ public class WholeOrderOutController {
         wholeOrderOutService.insertWholeOrderOutToReturns(inputObject, outputObject);
     }
 
+    /**
+     * 整单委外单信息转采购换货单
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "insertWholeOrderOutToExchanges", value = "整单委外单信息转采购换货单", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/WholeOrderOutController/insertWholeOrderOutToExchanges")
+    public void insertWholeOrderOutToExchanges(InputObject inputObject, OutputObject outputObject) {
+        wholeOrderOutService.insertWholeOrderOutToExchanges(inputObject, outputObject);
+    }
 }
