@@ -218,17 +218,17 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
         String width = params.get("width").toString();
         String height = params.get("height").toString();
         // 获取模板详情
-        PrintTemplate template = getById(id);
+        PrintTemplate template = selectById(id);
         if (template == null) {
             throw new CustomException("打印模板不存在");
         }
-        String userId = inputObject.getLogParams().get("id").toString();
         template.setConfigContent(configContent);
         template.setPaperSize(paperSize);
         template.setOrientation(orientation);
         template.setMargin(margin);
         template.setWidth(width);
         template.setHeight(height);
-        updateEntity(template, userId);
+        updateById(template);
+        refreshCache(id);
     }
 }
