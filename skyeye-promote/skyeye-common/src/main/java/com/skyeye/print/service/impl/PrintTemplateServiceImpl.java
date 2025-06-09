@@ -62,6 +62,12 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
     }
 
     @Override
+    protected void updatePrepose(PrintTemplate entity) {
+        PrintTemplate oldPrintTemplate = selectById(entity.getId());
+        entity.setConfigContent(oldPrintTemplate.getConfigContent());
+    }
+
+    @Override
     protected QueryWrapper<PrintTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<PrintTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(PrintTemplate::getObjectKey), commonPageInfo.getObjectKey());
