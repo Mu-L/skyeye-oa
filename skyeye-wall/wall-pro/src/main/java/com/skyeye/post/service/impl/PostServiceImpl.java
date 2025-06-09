@@ -110,7 +110,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
     }
 
-        private Post setUserMation(Post post) {
+    private Post setUserMation(Post post) {
         String userToken = GetUserToken.getUserToken(InputObject.getRequest());
         Map<String, Boolean> checkUpvote = new HashMap<>();
         if (StrUtil.isNotEmpty(userToken)) {
@@ -200,11 +200,10 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
-                queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             }
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
-            circleService.setDataMation(bean,Post::getCircleId);
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
@@ -304,7 +303,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void deletePostpose(String id) {
         pictureService.deleteByPostId(id);
         commentService.deleteByPostId(id);
-        noticeService.deleteByObjectId(id,postService.getServiceClassName());
+        noticeService.deleteByObjectId(id, postService.getServiceClassName());
         historyPostService.deleteHisPostByPostIds(Collections.singletonList(id));
     }
 
@@ -416,7 +415,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 // 取前三十天以内的帖子
                 .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-        if(tenantEnable){
+        if (tenantEnable) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getTenantId), tenantId);
         }
         return list(queryWrapper);
@@ -491,12 +490,12 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, id);
         remove(queryWrapper);
-        noticeService.deleteByObjectId(id,postService.getServiceClassName());
+        noticeService.deleteByObjectId(id, postService.getServiceClassName());
     }
 
     @Override
     public List<Post> queryPostListByIds(List<String> postIds) {
-        if(CollectionUtil.isEmpty(postIds)){
+        if (CollectionUtil.isEmpty(postIds)) {
             return Collections.emptyList();
         }
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();

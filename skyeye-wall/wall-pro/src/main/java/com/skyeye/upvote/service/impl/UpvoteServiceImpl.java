@@ -86,11 +86,11 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
                 Post post = postService.selectById(comment.getPostId());
                 notice.setCommentKey(commentService.getServiceClassName());
                 notice.setReceiveId(comment.getCreateId());
-                if(StrUtil.isNotEmpty(post.getCircleId())){
+                if (StrUtil.isNotEmpty(post.getCircleId())) {
                     notice.setObjectId(post.getId());
                     notice.setCircleId(post.getCircleId());
                     notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
-                }else {
+                } else {
                     notice.setObjectId(post.getId());
                     notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
                 }
@@ -106,11 +106,11 @@ public class UpvoteServiceImpl extends SkyeyeBusinessServiceImpl<UpvoteDao, Upvo
                 // 点赞
                 String receiveId = postService.selectById(upvote.getObjectId()).getCreateId();
                 Post post = postService.selectById(upvote.getObjectId());
-                if(StrUtil.isNotEmpty(post.getCircleId())){
+                if (StrUtil.isNotEmpty(post.getCircleId())) {
                     notice.setObjectId(post.getId());
                     notice.setCircleId(post.getCircleId());
                     notice.setNoticeType(NoticeTypeEnum.TYPE_CIRCLE.getKey());
-                }else {
+                } else {
                     notice.setObjectId(post.getId());
                     notice.setNoticeType(NoticeTypeEnum.TYPE_WALL.getKey());
                 }
