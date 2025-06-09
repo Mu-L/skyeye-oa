@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@Api(value = "答卷 评分题", tags = "答卷 评分题", modelName = "答卷 评分题")
+@Api(value = "答卷 排序题", tags = "答卷 排序题", modelName = "答卷 排序题")
 public class DwAnOrderController {
 
     @Autowired

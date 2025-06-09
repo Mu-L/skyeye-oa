@@ -51,11 +51,11 @@ public class DwSurveyAnswer extends CommonInfo {
     private Integer completeItemNum;
 
     @TableField("data_source")
-    @ApiModelProperty(value = "数据来源  0网调  1录入数据 2移动数据 3导入数据", required = "required")
+    @ApiModelProperty(value = "数据来源  0网调  1录入数据 2移动数据 3导入数据")
     private Integer dataSource;
 
     @TableField("handle_state")
-    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过", required = "required")
+    @ApiModelProperty(value = "审核状态  0未处理 1通过 2不通过")
     private Integer handleState;
 
     @TableField("ip_addr")

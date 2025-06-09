@@ -17,7 +17,6 @@ import lombok.Data;
 /**
  * @ClassName: DwSurveyMailInvite
  * @Description: 问卷选择发送邮件调查时的邮件服务实体类
- * TODO :问卷发送邮件
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/8 14:35
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
