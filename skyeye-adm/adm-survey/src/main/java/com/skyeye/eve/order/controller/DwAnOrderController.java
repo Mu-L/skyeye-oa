@@ -35,7 +35,7 @@ public class DwAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writeDwAnOrder", value = "新增/编辑评分题", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeDwAnOrder", value = "新增/编辑排序题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnOrder.class)
     @RequestMapping("/post/DwAnOrderController/writeDwAnOrder")
     public void writeDwAnOrder(InputObject inputObject, OutputObject outputObject) {
@@ -48,7 +48,7 @@ public class DwAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwAnOrderList", value = "获取评分题信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryDwAnOrderList", value = "获取排序题信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwAnOrderController/queryDwAnOrderList")
     public void queryDwAnOrderList(InputObject inputObject, OutputObject outputObject) {
@@ -61,7 +61,7 @@ public class DwAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteDwAnOrderById", value = "删除评分题信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteDwAnOrderById", value = "删除排序题信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnOrderController/deleteDwAnOrderById")
@@ -75,7 +75,7 @@ public class DwAnOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDwAnOrderById", value = "根据id获取填空题保存表列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryDwAnOrderById", value = "根据id获取排序题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/DwAnOrderController/queryDwAnOrderById")

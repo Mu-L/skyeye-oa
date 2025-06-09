@@ -35,7 +35,7 @@ public class DwAnOrder extends CommonInfo {
     private String belongId;
 
     @TableField("ordery_num")
-    @ApiModelProperty(value = "订单编号")
+    @ApiModelProperty(value = "编号")
     private String orderyNum;
 
     @TableField("qu_id")
