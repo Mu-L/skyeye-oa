@@ -80,7 +80,7 @@ public class ReportCommonController {
 
     @ApiOperation(id = "reportcommon005", value = "解析Rest接口", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "serviceStr", name = "serviceStr", value = "接口对应的服务", required = "required"),
+        @ApiImplicitParam(id = "serviceStr", name = "serviceStr", value = "接口对应的服务"),
         @ApiImplicitParam(id = "requestUrl", name = "requestUrl", value = "请求路径", required = "required"),
         @ApiImplicitParam(id = "requestMethod", name = "requestMethod", value = "请求方式", required = "required"),
         @ApiImplicitParam(id = "requestHeader", name = "requestHeader", value = "请求头", required = "required,json"),

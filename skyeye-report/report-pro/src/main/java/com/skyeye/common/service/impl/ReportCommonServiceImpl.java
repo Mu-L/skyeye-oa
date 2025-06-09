@@ -9,9 +9,11 @@ import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.ReportConstants;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.service.ReportCommonService;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.HttpRequestUtil;
 import com.skyeye.database.service.ReportDataBaseService;
 import com.skyeye.eve.entity.ReportDataSource;
@@ -24,6 +26,7 @@ import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
@@ -48,6 +51,9 @@ public class ReportCommonServiceImpl implements ReportCommonService {
 
     @Autowired
     private ReportDataBaseService reportDataBaseService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void testConnection(InputObject inputObject, OutputObject outputObject) {
@@ -454,6 +460,12 @@ public class ReportCommonServiceImpl implements ReportCommonService {
             List<Map<String, Object>> array = JSONUtil.toList(requestHeader, null);
             Map<String, String> requestHeaderKey2Value = array.stream()
                 .collect(Collectors.toMap(bean -> bean.get("headerKey").toString(), bean -> bean.get("headerValue").toString()));
+
+            if (tenantEnable) {
+                requestHeaderKey2Value.put("tenantId", TenantContext.getTenantId());
+            }
+            String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+            requestHeaderKey2Value.put("userToken", userToken);
 
             LOGGER.info("发送REST请求: {}, 方法: {}", requestUrl, requestMethod);
 

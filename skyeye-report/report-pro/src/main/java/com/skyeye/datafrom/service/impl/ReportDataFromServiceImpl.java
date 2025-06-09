@@ -10,8 +10,10 @@ import com.alibaba.fastjson.JSON;
 import com.jayway.jsonpath.JsonPath;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.HttpRequestUtil;
 import com.skyeye.database.service.ReportDataBaseService;
 import com.skyeye.datafrom.classenum.ReportDataFromType;
@@ -25,6 +27,7 @@ import com.skyeye.sql.query.factory.QueryerFactory;
 import com.skyeye.util.XmlExercise;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -56,6 +59,9 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
 
     @Autowired
     private ReportDataBaseService reportDataBaseService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -156,6 +162,11 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 ReportDataFromRest restEntity = reportDataFrom.getRestEntity();
                 Map<String, String> requestHeaderKey2Value = restEntity.getHeader().stream()
                     .collect(Collectors.toMap(bean -> bean.get("headerKey").toString(), bean -> bean.get("headerValue").toString()));
+                if (tenantEnable) {
+                    requestHeaderKey2Value.put("tenantId", TenantContext.getTenantId());
+                }
+                String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+                requestHeaderKey2Value.put("userToken", userToken);
 
                 String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, inputParams);
                 return responseData;
