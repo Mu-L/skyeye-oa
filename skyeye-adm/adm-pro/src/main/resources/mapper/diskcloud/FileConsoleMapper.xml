@@ -15,6 +15,9 @@
 		<if test="folderType != '1'.toString()">
 			AND a.create_id = #{userId}
 		</if>
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		AND a.delete_flag = #{deleteFlag}
 		ORDER BY a.`name` ASC
 	</select>
@@ -96,25 +99,28 @@
 		<foreach collection="list" item="item" index="index" open="(" close=")" separator="OR">
 			a.parent_id = CONCAT(#{item.parentId}, #{item.id}, ',')
 		</foreach>
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		ORDER BY LENGTH(a.parent_id) ASC
 	</select>
 	
 	<insert id="insertFolderList" parameterType="java.util.Map">
 	     insert into file_catalog
-	     (id, `name`, parent_id, delete_flag, source_id, create_id, create_time, last_update_id ,last_update_time)
+	     (id, `name`, parent_id, delete_flag, source_id, create_id, create_time, last_update_id ,last_update_time, tenant_id)
 	     values
 		<foreach collection="list" item="item" index="index" separator="," >  
-			(#{item.newId}, #{item.name}, #{item.newParentId}, #{item.deleteFlag}, #{item.id}, #{item.createId}, #{item.createTime}, #{item.createId}, #{item.createTime})
+			(#{item.newId}, #{item.name}, #{item.newParentId}, #{item.deleteFlag}, #{item.id}, #{item.createId}, #{item.createTime}, #{item.createId}, #{item.createTime}, #{tenantId})
 		</foreach>  
 	</insert>
 	
 	<insert id="insertShareFileListByList" parameterType="java.util.Map">
 	     insert into file_catelog_papers
-	     (id, `name`, thumbnail, address, type, size, size_type, chunk, chunk_size, parent_id, delete_flag, source_id, create_id, create_time, last_update_id, last_update_time)
+	     (id, `name`, thumbnail, address, type, size, size_type, chunk, chunk_size, parent_id, delete_flag, source_id, create_id, create_time, last_update_id, last_update_time, tenant_id)
 	     values
 		<foreach collection="list" item="item" index="index" separator="," >  
 			(#{item.newId}, #{item.name}, #{item.thumbnail}, #{item.address}, #{item.type}, #{item.size}, #{item.sizeType}, #{item.chunk}, #{item.chunkSize},
-			#{item.newParentId}, #{item.deleteFlag}, #{item.id}, #{item.createId}, #{item.createTime}, #{item.createId}, #{item.createTime})
+			#{item.newParentId}, #{item.deleteFlag}, #{item.id}, #{item.createId}, #{item.createTime}, #{item.createId}, #{item.createTime}, #{tenantId})
 		</foreach>  
 	</insert>
 	

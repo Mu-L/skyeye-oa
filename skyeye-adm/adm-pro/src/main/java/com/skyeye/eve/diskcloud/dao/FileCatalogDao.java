@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.diskcloud.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.diskcloud.entity.FileCatalog;
 import org.apache.ibatis.annotations.Param;
@@ -21,6 +22,9 @@ import java.util.Map;
  */
 public interface FileCatalogDao extends SkyeyeBaseMapper<FileCatalog> {
 
-    List<Map<String, Object>> queryFolderAndChildList(@Param("ids") List<String> ids, @Param("deleteFlag") Integer deleteFlag);
+    @IgnoreTenant
+    List<Map<String, Object>> queryFolderAndChildList(@Param("ids") List<String> ids,
+                                                      @Param("deleteFlag") Integer deleteFlag,
+                                                      @Param("tenantId") String tenantId);
 
 }

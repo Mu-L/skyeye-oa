@@ -23,6 +23,7 @@ import java.util.Map;
  */
 public interface FileShareDao extends SkyeyeBaseMapper<FileShare> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryShareFileList(CommonPageInfo pageInfo);
 
     @IgnoreTenant

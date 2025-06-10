@@ -4,21 +4,20 @@
 
 package com.skyeye.eve.email.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.email.dao.EmailSendModelDao;
 import com.skyeye.eve.email.entity.EmailSendModel;
 import com.skyeye.eve.email.service.EmailSendModelService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @ClassName: EmailSendModelServiceImpl
- * @Description: 邮件发送模板服务层
+ * @Description: 邮件发送模板服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/9 21:48
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -29,11 +28,10 @@ import java.util.Map;
 public class EmailSendModelServiceImpl extends SkyeyeBusinessServiceImpl<EmailSendModelDao, EmailSendModel> implements EmailSendModelService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        commonPageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailSendModelList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<EmailSendModel> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<EmailSendModel> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(EmailSendModel::getCreateId), userId);
+        return queryWrapper;
     }
-
 }

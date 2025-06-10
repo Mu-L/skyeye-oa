@@ -100,7 +100,7 @@ public class OutputNotesIsZipConsume implements RocketMQListener<String> {
                 TenantContext.setTenantId(tenantId);
             }
             // 任务开始
-            this.updateJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
+            this.updateJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             String rowId = map.get("rowId").toString();
             // 类型
             String type = map.get("noteType").toString();

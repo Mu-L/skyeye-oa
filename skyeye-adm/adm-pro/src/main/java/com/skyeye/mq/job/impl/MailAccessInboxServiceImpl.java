@@ -4,8 +4,10 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.EmailUtil;
 import com.skyeye.common.util.ShowMail;
 import com.skyeye.common.util.ToolUtil;
@@ -51,6 +53,9 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
     @Autowired
     private EmailDao emailDao;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
@@ -59,9 +64,14 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
             LOGGER.info("get mail start");
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             LOGGER.info("jobId id is {}", jobId);
             try {
                 //获取服务器信息
@@ -91,7 +101,7 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
                 //附件集合
                 List<Map<String, Object>> enclosureBeans = new ArrayList<>();
                 //获取当前邮箱已有的邮件
-                List<Map<String, Object>> emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.NORMAL.getKey());
+                List<Map<String, Object>> emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.NORMAL.getKey(), tenantId);
 
                 //创建目录
                 ToolUtil.createFolder(basePath);
@@ -121,36 +131,36 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
                         beans.add(bean);
                     }
                     if (beans.size() >= 20) {//每20条数据保存一次
-                        emailDao.insertEmailListToServer(beans);
+                        emailDao.insertEmailListToServer(beans, tenantId);
                         if (!enclosureBeans.isEmpty()) {
-                            emailDao.insertEmailEnclosureListToServer(enclosureBeans);
+                            emailDao.insertEmailEnclosureListToServer(enclosureBeans, tenantId);
                         }
                         beans.clear();
                         enclosureBeans.clear();
                         //重置当前邮箱已有的邮件
-                        emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.NORMAL.getKey());
+                        emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.NORMAL.getKey(), tenantId);
                     }
                 }
                 if (!beans.isEmpty()) {
-                    emailDao.insertEmailListToServer(beans);
+                    emailDao.insertEmailListToServer(beans, tenantId);
                 }
                 if (!enclosureBeans.isEmpty()) {
-                    emailDao.insertEmailEnclosureListToServer(enclosureBeans);
+                    emailDao.insertEmailEnclosureListToServer(enclosureBeans, tenantId);
                 }
             } catch (Exception e) {
                 LOGGER.warn("Inbox mail acquisition failed, reason is {}.", e);
                 // 任务失败
-                MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
+                MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
                 return;
             } finally {
             }
             LOGGER.info("get mail end");
             // 任务完成
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, StrUtil.EMPTY);
         } catch (Exception e) {
             LOGGER.warn("Inbox mail acquisition failed, reason is {}.", e);
             // 任务失败
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
         }
     }
 

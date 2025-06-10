@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.StringUtil;
@@ -17,8 +16,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.articles.dao.ArticlesDao;
 import com.skyeye.eve.articles.entity.Articles;
 import com.skyeye.eve.articles.service.ArticlesService;
-import com.skyeye.eve.coderule.service.ICodeRuleService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,9 +33,6 @@ import java.util.Map;
 @SkyeyeService(name = "用品管理", groupName = "用品模块")
 public class ArticlesServiceImpl extends SkyeyeBusinessServiceImpl<ArticlesDao, Articles> implements ArticlesService {
 
-    @Autowired
-    private ICodeRuleService iCodeRuleService;
-
     @Override
     public void createPrepose(Articles entity) {
         setArticlesNum(entity);
@@ -55,8 +49,7 @@ public class ArticlesServiceImpl extends SkyeyeBusinessServiceImpl<ArticlesDao, 
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryArticlesList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         return beans;
     }

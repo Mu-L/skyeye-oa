@@ -8,7 +8,6 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -20,6 +19,7 @@ import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.BytesUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constans.DiskCloudConstants;
 import com.skyeye.eve.diskcloud.classenum.DickCloudType;
 import com.skyeye.eve.diskcloud.classenum.ShareState;
 import com.skyeye.eve.diskcloud.classenum.ShareType;
@@ -31,7 +31,6 @@ import com.skyeye.eve.diskcloud.service.FileCatalogService;
 import com.skyeye.eve.diskcloud.service.FileConsoleService;
 import com.skyeye.eve.diskcloud.service.FileShareService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.constans.DiskCloudConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +59,9 @@ public class FileShareServiceImpl extends SkyeyeBusinessServiceImpl<FileShareDao
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryShareFileList(pageInfo);
         beans.forEach(bean -> {
             bean.put("fileTypeName", DickCloudType.getTypeName(bean.get("fileType").toString()));

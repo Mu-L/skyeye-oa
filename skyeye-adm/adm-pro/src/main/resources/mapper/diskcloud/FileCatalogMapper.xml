@@ -16,6 +16,9 @@
         <foreach collection="ids" item="id" index="index" open="(" close=")" separator="OR">
             INSTR(CONCAT(',', a.parent_id, ','), CONCAT(',', #{id}, ',')) OR a.id = #{id}
         </foreach>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
         ORDER BY LENGTH(a.parent_id) ASC
     </select>
 

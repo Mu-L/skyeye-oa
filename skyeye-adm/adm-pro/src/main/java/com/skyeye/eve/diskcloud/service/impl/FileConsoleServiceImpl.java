@@ -131,6 +131,8 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
             map.put("folderType", this.getFolderType(parentId));
             map.put("userId", userId);
             map.put("deleteFlag", DeleteFlagEnum.NOT_DELETE.getKey());
+            String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+            map.put("tenantId", tenantId);
             List<Map<String, Object>> beans = fileConsoleDao.queryFileFolderByUserIdAndParentId(map);
             outputObject.setBeans(beans);
         }
@@ -627,9 +629,10 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 fileBeans.add(object.get("rowId").toString());
             }
         }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         if (!folderBeans.isEmpty()) {//选择保存的文件夹不为空
             List<Map<String, Object>> folderNew = fileCatalogService.queryFolderAndChildList(folderBeans);
-            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             for (Map<String, Object> folder : folderNew) {//重置父id
                 String[] str = folder.get("parentId").toString().split(",");
                 folder.put("directParentId", str[str.length - 1]);
@@ -658,20 +661,20 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 setCopyFileMation(userId, basePath, visitPath, file);
             }
             if (!folderNew.isEmpty()) {
-                fileConsoleDao.insertFolderList(folderNew);
+                fileConsoleDao.insertFolderList(folderNew, tenantId);
             }
             if (!fileNew.isEmpty()) {
-                fileConsoleDao.insertShareFileListByList(fileNew);
+                fileConsoleDao.insertShareFileListByList(fileNew, tenantId);
             }
         }
         if (!fileBeans.isEmpty()) {//选择保存的文件不为空
-            List<Map<String, Object>> fileNew = fileConsoleDao.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = fileConsoleDao.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             //为文件重置新参数
             for (Map<String, Object> file : fileNew) {
                 file.put("newParentId", folderId);
                 setCopyFileMation(userId, basePath, visitPath, file);
             }
-            fileConsoleDao.insertShareFileListByList(fileNew);
+            fileConsoleDao.insertShareFileListByList(fileNew, tenantId);
         }
     }
 
@@ -909,19 +912,19 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 fileBeans.add(object.get("rowId").toString());
             }
         }
-
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 加载数据
         List<Map<String, Object>> dowlLoadFile = new ArrayList<>();
         if (!folderBeans.isEmpty()) {
             // 选择保存的文件夹不为空
             List<Map<String, Object>> folderNew = fileCatalogService.queryFolderAndChildList(folderBeans);
-            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             dowlLoadFile.addAll(folderNew);
             dowlLoadFile.addAll(fileNew);
         }
         if (!fileBeans.isEmpty()) {
             // 选择保存的文件不为空
-            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             dowlLoadFile.addAll(fileNew);
         }
 
@@ -983,6 +986,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
         String id = map.get("id").toString();
         FileConsole fileConsole = selectById(id);
         if (FileType.judgeIsAllowedFileType(fileConsole.getType(), 4)) {//压缩包
+            String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
             String userId = inputObject.getLogParams().get("id").toString();
             String basePath = tPath + FileConstants.FileUploadPath.getSavePath(FILE_PATH_TYPE) + "/" + userId + "/";
             String visitPath = FileConstants.FileUploadPath.getVisitPath(FILE_PATH_TYPE) + userId;
@@ -1067,7 +1071,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                     item.put("createTime", DateUtil.getTimeAndToString());
                 }
                 if (!folderList.isEmpty()) {
-                    fileConsoleDao.insertFolderList(folderList);
+                    fileConsoleDao.insertFolderList(folderList, tenantId);
                 }
                 for (Map<String, Object> item : fileList) {//文件
                     File f = new File(tPath.replace("images", "") + item.get("address").toString());
@@ -1111,7 +1115,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                     item.put("createTime", DateUtil.getTimeAndToString());
                 }
                 if (!fileList.isEmpty()) {
-                    fileConsoleDao.insertShareFileListByList(fileList);
+                    fileConsoleDao.insertShareFileListByList(fileList, tenantId);
                 }
             } else {
                 outputObject.setreturnMessage("该文件已不存在。");
@@ -1156,12 +1160,13 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 fileBeans.add(object.get("rowId").toString());
             }
         }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         if (!folderBeans.isEmpty()) {//选择保存的文件夹不为空
             List<Map<String, Object>> folderNew = fileCatalogService.queryFolderAndChildList(folderBeans);
             if (!folderNew.isEmpty()) {//删除之前的信息
                 fileCatalogService.deleteById(folderNew.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList()));
             }
-            List<Map<String, Object>> fileNew = fileConsoleDao.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = fileConsoleDao.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             if (!fileNew.isEmpty()) {//删除之前的信息
                 deleteById(fileNew.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList()));
             }
@@ -1195,14 +1200,14 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 file.put("createTime", DateUtil.getTimeAndToString());
             }
             if (!folderNew.isEmpty()) {
-                fileConsoleDao.insertFolderList(folderNew);
+                fileConsoleDao.insertFolderList(folderNew, tenantId);
             }
             if (!fileNew.isEmpty()) {
-                fileConsoleDao.insertShareFileListByList(fileNew);
+                fileConsoleDao.insertShareFileListByList(fileNew, tenantId);
             }
         }
         if (!fileBeans.isEmpty()) {//选择保存的文件不为空
-            List<Map<String, Object>> fileNew = fileConsoleDao.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = fileConsoleDao.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             if (!fileNew.isEmpty()) {//删除之前的信息
                 deleteById(fileNew.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList()));
             }
@@ -1213,7 +1218,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 file.put("createId", userId);
                 file.put("createTime", DateUtil.getTimeAndToString());
             }
-            fileConsoleDao.insertShareFileListByList(fileNew);
+            fileConsoleDao.insertShareFileListByList(fileNew, tenantId);
         }
     }
 
@@ -1304,16 +1309,17 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
         }
         String basePath = tPath + FileConstants.FileUploadPath.getSavePath(FILE_PATH_TYPE) + "/temporaryfile/" + userId + "/";
         FileUtil.createDirs(basePath);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         //加载数据
         List<Map<String, Object>> dowlLoadFile = new ArrayList<>();
         if (!folderBeans.isEmpty()) {//选择保存的文件夹不为空
             List<Map<String, Object>> folderNew = fileCatalogService.queryFolderAndChildList(folderBeans);
-            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             dowlLoadFile.addAll(folderNew);
             dowlLoadFile.addAll(fileNew);
         }
         if (!fileBeans.isEmpty()) {//选择保存的文件不为空
-            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey());
+            List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
             dowlLoadFile.addAll(fileNew);
         }
 
