@@ -66,7 +66,6 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
             entity.setFromId(entity.getId());
             entity.setId(StrUtil.EMPTY);
             entity.setFromKey(entity.getServiceClassName());
-            entity.setState(FlowableStateEnum.PASS.getKey());
         }
     }
 
@@ -199,17 +198,5 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         }
         receivePayment.setFromMation(CollectionUtil.isEmpty(paymentCollection) ? new HashMap<>() : paymentCollection.get(CommonNumConstants.NUM_ZERO));
         return receivePayment;
-    }
-
-    @Override
-    public void approvalEndIsSuccess(ReceivePayment entity) {
-        // 审核成功
-        if (entity.getFromKey().equals(ReceivePaymentKeyEnum.ERP_PURCHASE_ORDER_KEY.getKey())) {
-            // 修改应付事项--修改已付金额
-            iErpPayableService.updatePayableById(entity.getFromId(), entity.getPrice());
-        } else if (entity.getFromKey().equals(ReceivePaymentKeyEnum.CRM_RECEIVE_KEY.getKey())) {
-            // 修改回收事项---修改已回收金额
-            iCrmReceivableService.updateReceivableById(entity.getFromId(), entity.getPrice());
-        }
     }
 }

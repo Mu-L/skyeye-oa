@@ -28,6 +28,7 @@ import com.skyeye.receivable.service.ReceivableService;
 import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -121,6 +122,7 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void approvalEndIsSuccess(PaymentCollection entity) {
         // 修改合同的回款金额
         crmContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
@@ -128,6 +130,7 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
         // 远程调用新增收付款信息
         entity.setFormSubType(FormSubType.DRAFT.getKey());
+        entity.setServiceClassName(this.getServiceClassName());
         ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
     }
 
