@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.gw.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.gw.entity.GwSendDocument;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public interface GwSendDocumentDao extends SkyeyeBaseMapper<GwSendDocument> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryGwSendDocumentList(CommonPageInfo pageInfo);
 
 }

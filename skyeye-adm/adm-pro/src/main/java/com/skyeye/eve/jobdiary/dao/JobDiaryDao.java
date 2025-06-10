@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.jobdiary.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.jobdiary.entity.JobDiary;
@@ -21,8 +22,10 @@ import java.util.Map;
  */
 public interface JobDiaryDao extends SkyeyeBaseMapper<JobDiary> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMyReceivedJobDiaryList(CommonPageInfo commonPageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMysendJobDiaryList(CommonPageInfo commonPageInfo);
 
 }

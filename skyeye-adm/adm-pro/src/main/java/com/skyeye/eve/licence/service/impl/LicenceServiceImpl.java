@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  * @ClassName: LicenceServiceImpl
- * @Description: 证照管理服务类
+ * @Description: 证照管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/4/5 13:09
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -56,8 +56,7 @@ public class LicenceServiceImpl extends SkyeyeBusinessServiceImpl<LicenceDao, Li
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLicenceList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "licenceAdmin", "licenceAdminMation");
         iAuthUserService.setMationForMap(beans, "borrowId", "borrowMation");
         return beans;
@@ -136,20 +135,16 @@ public class LicenceServiceImpl extends SkyeyeBusinessServiceImpl<LicenceDao, Li
         refreshCache(id);
     }
 
-    /**
-     * 获取我借用中的证照列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryMyRevertLicencePageList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setChargePersonId(inputObject.getLogParams().get("id").toString());
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLicenceList(pageInfo);
-        iAuthUserService.setMationForMap(beans, "licenceAdmin", "licenceAdminMation");
-        outputObject.setBeans(beans);
+        QueryWrapper<Licence> queryWrapper = super.getQueryWrapper(pageInfo);
+        // 我借用中的
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Licence::getBorrowId), inputObject.getLogParams().get("id").toString());
+        List<Licence> licenceList = list(queryWrapper);
+        iAuthUserService.setDataMation(licenceList, Licence::getLicenceAdmin);
+        outputObject.setBeans(licenceList);
         outputObject.settotal(pages.getTotal());
     }
 

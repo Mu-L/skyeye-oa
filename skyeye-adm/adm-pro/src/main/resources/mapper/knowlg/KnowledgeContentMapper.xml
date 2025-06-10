@@ -39,6 +39,9 @@
 					#{state}
 				</foreach>
 			</if>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.create_time DESC
 	</select>

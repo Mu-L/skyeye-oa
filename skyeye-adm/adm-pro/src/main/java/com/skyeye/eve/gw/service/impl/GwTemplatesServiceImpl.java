@@ -7,7 +7,6 @@ package com.skyeye.eve.gw.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -24,7 +23,7 @@ import java.util.Map;
 
 /**
  * @ClassName: GwTemplatesServiceImpl
- * @Description: 套红模板服务层
+ * @Description: 套红模板服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/25 11:15
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -39,9 +38,7 @@ public class GwTemplatesServiceImpl extends SkyeyeBusinessServiceImpl<GwTemplate
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryGwTemplatesList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         sealService.setMationForMap(beans, "sealId", "sealMation");
         return beans;
     }

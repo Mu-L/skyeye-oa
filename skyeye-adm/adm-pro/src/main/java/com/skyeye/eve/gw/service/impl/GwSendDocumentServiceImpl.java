@@ -18,6 +18,7 @@ import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.eve.gw.classenum.GwDocumentOpenCategory;
@@ -80,6 +81,9 @@ public class GwSendDocumentServiceImpl extends SkyeyeFlowableServiceImpl<GwSendD
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         pageInfo.setDepartmentId(inputObject.getLogParams().get("departmentId").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryGwSendDocumentList(pageInfo);
         iDepmentService.setMationForMap(beans, "sendDepartmentId", "sendDepartmentMation");
         gwTemplatesService.setMationForMap(beans, "templateId", "templateMation");

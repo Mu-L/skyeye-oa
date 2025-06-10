@@ -37,7 +37,7 @@ import java.util.Map;
 public class GwReceiveDocument extends SkyeyeFlowable {
 
     @TableField("title")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required", fuzzyLike = true)
     private String title;
 
     @TableField("secret")
