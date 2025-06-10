@@ -15,6 +15,7 @@ import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -123,6 +124,9 @@ public class EmailUserServiceImpl extends SkyeyeBusinessServiceImpl<EmailUserDao
             // 消息队列参数对象
             Map<String, Object> emailNotice = new HashMap<>();
             emailNotice.put("type", type);//消息队列任务类型
+            if (tenantEnable) {
+                emailNotice.put("tenantId", TenantContext.getTenantId());//租户id
+            }
             emailNotice.put("userAddress", emailUser.getEmailAddress());//邮箱地址
             emailNotice.put("userPassword", emailUser.getEmailPassword());//邮箱密码
             emailNotice.put("userId", userId);

@@ -29,6 +29,9 @@
             <if test="keyword != null and keyword != ''">
                 AND a.title LIKE '%${keyword}%'
             </if>
+            <if test="tenantId != null and tenantId != ''">
+                AND a.tenant_id = #{tenantId}
+            </if>
         </where>
         ORDER BY a.send_date DESC
     </select>
@@ -43,24 +46,27 @@
             OR INSTR(CONCAT(',', a.to_cc, ','), CONCAT(',', #{userAddress}, ','))
             OR INSTR(CONCAT(',', a.to_bcc, ','), CONCAT(',', #{userAddress}, ',')))
           AND a.state = #{state}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <insert id="insertEmailListToServer" parameterType="java.util.Map">
         insert into email_mail
-        (id, title, send_date, replay_sign, is_new, is_contain_attach, from_people, to_people, to_cc, to_bcc, message_id, content, create_time, state)
+        (id, title, send_date, replay_sign, is_new, is_contain_attach, from_people, to_people, to_cc, to_bcc, message_id, content, create_time, state, tenant_id)
         values
         <foreach collection="list" item="item" index="index" separator="," >
             (#{item.id}, #{item.title}, #{item.sendDate}, #{item.replaySign}, #{item.isNew}, #{item.isContainAttach}, #{item.fromPeople}, #{item.toPeople}, #{item.toCc},
-            #{item.toBcc}, #{item.messageId}, #{item.content}, #{item.createTime}, #{item.emailState})
+            #{item.toBcc}, #{item.messageId}, #{item.content}, #{item.createTime}, #{item.emailState}, #{tenantId})
         </foreach>
     </insert>
 
     <insert id="insertEmailEnclosureListToServer" parameterType="java.util.Map">
         insert into email_enclosure
-        (id, file_name, file_ext_name, file_path, file_size, parent_id)
+        (id, file_name, file_ext_name, file_path, file_size, parent_id, tenant_id)
         values
         <foreach collection="list" item="item" index="index" separator="," >
-            (#{item.id}, #{item.fileName}, #{item.fileExtName}, #{item.filePath}, #{item.fileSize}, #{item.parentId})
+            (#{item.id}, #{item.fileName}, #{item.fileExtName}, #{item.filePath}, #{item.fileSize}, #{item.parentId}, #{tenantId})
         </foreach>
     </insert>
 
@@ -72,6 +78,9 @@
             </if>
         </set>
         WHERE id = #{id}
+        <if test="tenantId != null and tenantId != ''">
+            AND tenant_id = #{tenantId}
+        </if>
     </update>
 
     <select id="queryEmailListByEmailFromAddress" resultType="java.util.Map">
@@ -82,6 +91,9 @@
             email_mail a
         WHERE a.from_people = #{userAddress}
           AND a.state = #{state}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>

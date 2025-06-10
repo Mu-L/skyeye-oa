@@ -4,8 +4,10 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.email.dao.EmailDao;
@@ -50,6 +52,9 @@ public class MailDraftsEditServiceImpl implements RocketMQListener<String> {
     @Autowired
     private EmailService emailService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
@@ -58,6 +63,11 @@ public class MailDraftsEditServiceImpl implements RocketMQListener<String> {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
             MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
             //获取服务器信息
@@ -93,6 +103,9 @@ public class MailDraftsEditServiceImpl implements RocketMQListener<String> {
                 Map<String, Object> emailEditMessageId = new HashMap<>();
                 emailEditMessageId.put("id", emailId);
                 emailEditMessageId.put("messageId", messageId);
+                if (tenantEnable) {
+                    emailEditMessageId.put("tenantId", tenantId);
+                }
                 emailDao.editEmailMessageIdByEmailId(emailEditMessageId);
             }
             // 任务完成

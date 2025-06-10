@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.email.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.email.entity.Email;
@@ -22,17 +23,29 @@ import java.util.Map;
  */
 public interface EmailDao extends SkyeyeBaseMapper<Email> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryEmailListByEmailId(CommonPageInfo commonPageInfo);
 
-    List<Map<String, Object>> queryEmailListByEmailAddress(@Param("userAddress") String userAddress, @Param("state") Integer state);
+    @IgnoreTenant
+    List<Map<String, Object>> queryEmailListByEmailAddress(@Param("userAddress") String userAddress,
+                                                           @Param("state") Integer state,
+                                                           @Param("tenantId") String tenantId);
 
-    int insertEmailListToServer(List<Map<String, Object>> enclosureBeans);
+    @IgnoreTenant
+    int insertEmailListToServer(@Param("list") List<Map<String, Object>> enclosureBeans,
+                                @Param("tenantId") String tenantId);
 
-    int insertEmailEnclosureListToServer(List<Map<String, Object>> beans);
+    @IgnoreTenant
+    int insertEmailEnclosureListToServer(@Param("list") List<Map<String, Object>> beans,
+                                         @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     int editEmailMessageIdByEmailId(Map<String, Object> emailEditMessageId);
 
-    List<Map<String, Object>> queryEmailListByEmailFromAddress(@Param("userAddress") String userAddress, @Param("state") Integer state);
+    @IgnoreTenant
+    List<Map<String, Object>> queryEmailListByEmailFromAddress(@Param("userAddress") String userAddress,
+                                                               @Param("state") Integer state,
+                                                               @Param("tenantId") String tenantId);
 
 
 }

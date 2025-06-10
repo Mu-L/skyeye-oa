@@ -4,8 +4,10 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.EmailUtil;
 import com.skyeye.common.util.ShowMail;
 import com.skyeye.common.util.ToolUtil;
@@ -53,6 +55,9 @@ public class MailAccessDraftsServiceImpl implements RocketMQListener<String> {
     @Autowired
     private EmailDao emailDao;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
@@ -61,8 +66,13 @@ public class MailAccessDraftsServiceImpl implements RocketMQListener<String> {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             //获取服务器信息
             Map<String, Object> emailServer = iSystemFoundationSettingsService.querySystemFoundationSettingsList();
 
@@ -91,7 +101,7 @@ public class MailAccessDraftsServiceImpl implements RocketMQListener<String> {
             //附件集合
             List<Map<String, Object>> enclosureBeans = new ArrayList<>();
             //获取当前邮箱已有的邮件
-            List<Map<String, Object>> emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.DRAFT.getKey());
+            List<Map<String, Object>> emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.DRAFT.getKey(), tenantId);
 
             //创建目录
             ToolUtil.createFolder(basePath);
@@ -117,28 +127,28 @@ public class MailAccessDraftsServiceImpl implements RocketMQListener<String> {
                 }
                 if (beans.size() >= 20) {//每20条数据保存一次
                     if (!beans.isEmpty()) {
-                        emailDao.insertEmailListToServer(beans);
+                        emailDao.insertEmailListToServer(beans, tenantId);
                     }
                     if (!enclosureBeans.isEmpty()) {
-                        emailDao.insertEmailEnclosureListToServer(enclosureBeans);
+                        emailDao.insertEmailEnclosureListToServer(enclosureBeans, tenantId);
                     }
                     beans.clear();
                     enclosureBeans.clear();
-                    emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.DRAFT.getKey());
+                    emailHasMail = emailDao.queryEmailListByEmailAddress(username, EmailState.DRAFT.getKey(), tenantId);
                 }
             }
             if (!beans.isEmpty()) {
-                emailDao.insertEmailListToServer(beans);
+                emailDao.insertEmailListToServer(beans, tenantId);
             }
             if (!enclosureBeans.isEmpty()) {
-                emailDao.insertEmailEnclosureListToServer(enclosureBeans);
+                emailDao.insertEmailEnclosureListToServer(enclosureBeans, tenantId);
             }
             // 任务完成
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, StrUtil.EMPTY);
         } catch (Exception e) {
             LOGGER.warn("Draft mail access failed, reason is {}.", e);
             // 任务失败
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
         }
     }
 

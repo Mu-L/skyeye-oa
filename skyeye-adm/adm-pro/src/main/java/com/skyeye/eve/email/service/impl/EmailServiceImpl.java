@@ -10,6 +10,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.base.handler.enclosure.service.IEnclosureService;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -19,6 +20,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.email.classenum.EmailState;
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: EmailServiceImpl
- * @Description: 邮件管理服务层
+ * @Description: 邮件管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/8 9:15
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -65,9 +67,18 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
     private EmailUserService emailUserService;
 
     @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         return beans;
     }
@@ -124,6 +135,9 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         emailNotice.put("type", entity.getMessageJobType());//消息队列任务类型
         emailNotice.put("userAddress", emailUser.getEmailAddress());//邮箱地址
         emailNotice.put("userPassword", emailUser.getEmailPassword());//邮箱密码
+        if (tenantEnable) {
+            emailNotice.put("tenantId", TenantContext.getTenantId());//租户id
+        }
         emailNotice.put("title", entity.getTitle());//邮件标题
         emailNotice.put("content", entity.getContent());//邮件内容
         emailNotice.put("toPeople", entity.getToPeople());//邮件接收人
@@ -167,6 +181,9 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
@@ -184,6 +201,9 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.DELETE.getKey()));
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
@@ -201,6 +221,9 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.DRAFT.getKey()));
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());

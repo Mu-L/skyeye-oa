@@ -4,8 +4,10 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.email.dao.EmailDao;
@@ -44,6 +46,9 @@ public class ComplexMailDeliveryServiceImpl implements RocketMQListener<String> 
     @Value("${IMAGES_PATH}")
     private String tPath;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Autowired
     private EmailDao emailDao;
 
@@ -55,8 +60,13 @@ public class ComplexMailDeliveryServiceImpl implements RocketMQListener<String> 
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             // 获取服务器信息
             Map<String, Object> emailServer = iSystemFoundationSettingsService.querySystemFoundationSettingsList();
             String title = map.get("title").toString();// 标题
@@ -79,19 +89,22 @@ public class ComplexMailDeliveryServiceImpl implements RocketMQListener<String> 
             }
             // 发送邮件
             String messageId = new MailUtil(username, password, emailServer.get("emailSendServer").toString())
-                .send(toPeople, toCc, toBCc, title, content, tPath.replace("images", ""), beans);
+                .send(toPeople, toCc, toBCc, title, content, tPath.replace("images", StrUtil.EMPTY), beans);
             if (!ToolUtil.isBlank(messageId)) {
                 Map<String, Object> emailEditMessageId = new HashMap<>();
                 emailEditMessageId.put("id", emailId);
                 emailEditMessageId.put("messageId", messageId);
+                if (tenantEnable) {
+                    emailEditMessageId.put("tenantId", tenantId);
+                }
                 emailDao.editEmailMessageIdByEmailId(emailEditMessageId);
             }
             // 任务完成
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, StrUtil.EMPTY);
         } catch (Exception e) {
             LOGGER.warn("send email failed, reason is {}.", e);
             // 任务失败
-            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
+            MqSendUtil.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
         }
     }
 
