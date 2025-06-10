@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.diskcloud.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -13,14 +14,15 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constans.DiskCloudConstants;
 import com.skyeye.eve.diskcloud.classenum.DefaultFolder;
 import com.skyeye.eve.diskcloud.dao.FileCatalogDao;
 import com.skyeye.eve.diskcloud.entity.FileCatalog;
 import com.skyeye.eve.diskcloud.service.FileCatalogService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.constans.DiskCloudConstants;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -109,6 +111,10 @@ public class FileCatalogServiceImpl extends SkyeyeBusinessServiceImpl<FileCatalo
 
     @Override
     public List<Map<String, Object>> queryFolderAndChildList(List<String> ids) {
-        return skyeyeBaseMapper.queryFolderAndChildList(ids, DeleteFlagEnum.NOT_DELETE.getKey());
+        if (CollectionUtil.isEmpty(ids)) {
+            return CollectionUtil.newArrayList();
+        }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        return skyeyeBaseMapper.queryFolderAndChildList(ids, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
     }
 }

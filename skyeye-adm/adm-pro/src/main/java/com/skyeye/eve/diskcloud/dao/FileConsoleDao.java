@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.diskcloud.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.diskcloud.entity.FileConsole;
 import org.apache.ibatis.annotations.Param;
@@ -21,38 +22,55 @@ import java.util.Map;
  */
 public interface FileConsoleDao extends SkyeyeBaseMapper<FileConsole> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileFolderByUserIdAndParentId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFilesListByFolderId(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryChildFileListByFolder(@Param("list") List<Map<String, Object>> folderNew,
-                                                         @Param("deleteFlag") Integer deleteFlag);
+                                                         @Param("deleteFlag") Integer deleteFlag,
+                                                         @Param("tenantId") String tenantId);
 
-    int insertFolderList(List<Map<String, Object>> folderNew);
+    @IgnoreTenant
+    int insertFolderList(@Param("list") List<Map<String, Object>> folderNew,
+                         @Param("tenantId") String tenantId);
 
-    int insertShareFileListByList(List<Map<String, Object>> fileNew);
+    @IgnoreTenant
+    int insertShareFileListByList(@Param("list") List<Map<String, Object>> fileNew,
+                                  @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryShareFileListByFileList(@Param("ids") List<String> ids,
-                                                           @Param("deleteFlag") Integer deleteFlag);
+                                                           @Param("deleteFlag") Integer deleteFlag,
+                                                           @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     Map<String, Object> queryAllNumFile(@Param("deleteFlag") Integer deleteFlag,
                                         @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     Map<String, Object> queryAllNumFileToday(@Param("deleteFlag") Integer deleteFlag,
                                              @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     Map<String, Object> queryAllNumFileThisWeek(@Param("deleteFlag") Integer deleteFlag,
                                                 @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileTypeNum(@Param("deleteFlag") Integer deleteFlag,
                                                @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileStorageNum(@Param("deleteFlag") Integer deleteFlag,
                                                   @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNewFileNum(@Param("deleteFlag") Integer deleteFlag,
                                               @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryFileTypeNumSevenDay(@Param("deleteFlag") Integer deleteFlag,
                                                        @Param("tenantId") String tenantId);
 
