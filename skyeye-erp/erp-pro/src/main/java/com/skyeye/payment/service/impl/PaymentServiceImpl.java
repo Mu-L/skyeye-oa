@@ -128,7 +128,9 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
         payableService.updatePayablePaidPrice(entity.getPayableId(), entity.getPrice());
         // 远程调用财政管理--新增收付款管理
         entity.setFormSubType(FormSubType.DRAFT.getKey());
-        ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
+        Map<String, Object> map = BeanUtil.beanToMap(entity);
+        map.put("fromKey",getServiceClassName());
+        ifsReceivePaymentService.addIFsReceivePayment(map);
     }
 
     @Override

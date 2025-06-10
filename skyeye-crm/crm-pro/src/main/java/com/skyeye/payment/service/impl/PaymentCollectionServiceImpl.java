@@ -26,6 +26,8 @@ import com.skyeye.payment.entity.PaymentCollection;
 import com.skyeye.payment.service.PaymentCollectionService;
 import com.skyeye.receivable.service.ReceivableService;
 import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,8 +132,9 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
         // 远程调用新增收付款信息
         entity.setFormSubType(FormSubType.DRAFT.getKey());
-        entity.setServiceClassName(this.getServiceClassName());
-        ifsReceivePaymentService.addIFsReceivePayment(BeanUtil.beanToMap(entity));
+        Map<String, Object> map = BeanUtil.beanToMap(entity);
+        map.put("fromKey",getServiceClassName());
+        ifsReceivePaymentService.addIFsReceivePayment(map);
     }
 
     @Override

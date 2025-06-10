@@ -121,10 +121,12 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
         UpdateWrapper<Payable> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, payableId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPaidPrice), price);
-        if (receivable.getAmountPrice().equals(price)) {
+        if (Double.parseDouble(price) >= Double.parseDouble(receivable.getAmountPrice())) {
             updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PAID_STATE.getKey());
-        }else if(Double.parseDouble(price) > CommonNumConstants.NUM_ONE){
+        } else if (Double.parseDouble(price) > CommonNumConstants.NUM_ZERO) {
             updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PART_PAID_STATE.getKey());
+        }else {
+            updateWrapper.set(MybatisPlusUtil.toColumns(Payable::getPayState), ErpPayStateEnum.PAY_STATE.getKey());
         }
         update(updateWrapper);
     }
