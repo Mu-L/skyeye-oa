@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -17,6 +18,7 @@ import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -51,9 +53,18 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
     private String tPath;
 
     @Override
+    @IgnoreTenant
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        super.queryPageList(inputObject, outputObject);
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryKnowledgeContentList(pageInfo);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         return beans;
@@ -108,9 +119,13 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryAllKnowledgeContentList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryKnowledgeContentList(pageInfo);
         iAuthUserService.setNameForMap(beans, "createId", "createName");
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
@@ -161,10 +176,14 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryAllPassKnowledgeContentList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         pageInfo.setState(String.valueOf(KnowlgContentState.PASS.getKey()));
+        if (tenantEnable) {
+            pageInfo.setTenantId(TenantContext.getTenantId());
+        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryKnowledgeContentList(pageInfo);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         iAuthUserService.setNameForMap(beans, "createId", "createName");

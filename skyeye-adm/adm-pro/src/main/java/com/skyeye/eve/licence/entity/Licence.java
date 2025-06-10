@@ -34,7 +34,7 @@ import java.util.Map;
 public class Licence extends BaseGeneralInfo {
 
     @TableField(value = "licence_num")
-    @ApiModelProperty(value = "证照编号", required = "required")
+    @ApiModelProperty(value = "证照编号", required = "required", fuzzyLike = true)
     private String licenceNum;
 
     @TableField(value = "issuing_organization")

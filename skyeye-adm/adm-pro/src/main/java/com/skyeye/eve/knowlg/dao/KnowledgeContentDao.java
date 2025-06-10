@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.knowlg.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.knowlg.entity.KnowledgeContent;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public interface KnowledgeContentDao extends SkyeyeBaseMapper<KnowledgeContent> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryKnowledgeContentList(CommonPageInfo pageInfo);
 
 }

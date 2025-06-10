@@ -8,7 +8,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -22,11 +21,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: GwModelServiceImpl
- * @Description: 公文模版服务层
+ * @Description: 公文模版服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/29 9:32
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -38,14 +36,6 @@ public class GwModelServiceImpl extends SkyeyeBusinessServiceImpl<GwModelDao, Gw
 
     @Value("${IMAGES_PATH}")
     private String tPath;
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryGwModelList(pageInfo);
-        return beans;
-    }
 
     @Override
     public void validatorEntity(GwModel entity) {

@@ -8,8 +8,6 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
 import com.skyeye.eve.gw.dao.GwReceiveDocumentDao;
 import com.skyeye.eve.gw.entity.GwReceiveDocument;
 import com.skyeye.eve.gw.service.GwReceiveDocumentService;
@@ -22,7 +20,7 @@ import java.util.Map;
 
 /**
  * @ClassName: GwReceiveDocumentServiceImpl
- * @Description: 公文收文管理服务层
+ * @Description: 公文收文管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/4/26 22:40
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -34,13 +32,6 @@ public class GwReceiveDocumentServiceImpl extends SkyeyeFlowableServiceImpl<GwRe
 
     @Autowired
     private IDepmentService iDepmentService;
-
-    @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryGwReceiveDocumentList(pageInfo);
-        return beans;
-    }
 
     @Override
     public GwReceiveDocument selectById(String id) {

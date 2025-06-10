@@ -4,12 +4,8 @@
 
 package com.skyeye.eve.gw.dao;
 
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.gw.entity.GwTemplates;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: GwTemplatesDao
@@ -21,5 +17,4 @@ import java.util.Map;
  */
 public interface GwTemplatesDao extends SkyeyeBaseMapper<GwTemplates> {
 
-    List<Map<String, Object>> queryGwTemplatesList(CommonPageInfo pageInfo);
 }
