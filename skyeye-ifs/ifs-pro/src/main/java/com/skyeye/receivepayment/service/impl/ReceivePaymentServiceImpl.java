@@ -61,6 +61,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
 
     @Override
     public void createPrepose(ReceivePayment entity) {
+        super.createPrepose(entity);
         if (StrUtil.isNotEmpty(entity.getId())) {
             entity.setFromId(entity.getId());
             entity.setId(StrUtil.EMPTY);
