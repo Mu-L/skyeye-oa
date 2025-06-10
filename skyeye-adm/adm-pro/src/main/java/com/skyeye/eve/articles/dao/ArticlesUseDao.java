@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.articles.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.articles.entity.ArticlesUse;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
@@ -21,6 +22,7 @@ import java.util.Map;
  */
 public interface ArticlesUseDao extends SkyeyeBaseMapper<ArticlesUse> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMyArticlesList(CommonPageInfo pageInfo);
 
 }
