@@ -58,9 +58,6 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Autowired
     private DepotOutService depotOutService;
 
-    @Autowired
-    private ProductLeadService productLeadService;
-
     private void checkMaterialNorms(ProductLeadOutStock entity, boolean setData) {
         if (StrUtil.isEmpty(entity.getFromId())) {
             return;
@@ -84,13 +81,12 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         Map<String, Integer> orderNormsNum,
         Map<String, Integer> executeNum,
         List<String> inSqlNormsId) {
-        ProductLeadOutStock productLeadOutStock = selectById(entity.getFromId());
-        if (CollectionUtil.isEmpty(productLeadOutStock.getErpOrderItemList())) {
+        if (CollectionUtil.isEmpty(entity.getErpOrderItemList())) {
             throw new CustomException("该借出出库订单没有商品信息");
         }
-        List<String> fromNormsIds = productLeadOutStock.getErpOrderItemList().stream().map(ErpOrderItem::getNormsId).collect(Collectors.toList());
+        List<String> fromNormsIds = entity.getErpOrderItemList().stream().map(ErpOrderItem::getNormsId).collect(Collectors.toList());
         super.checkIdFromOrderMaterialNorms(fromNormsIds, inSqlNormsId);
-        productLeadOutStock.getErpOrderItemList().forEach(productLeadChild -> {
+        entity.getErpOrderItemList().forEach(productLeadChild -> {
                 Integer operNumber = ErpOrderUtil.checkOperNumber(productLeadChild.getOperNumber(), productLeadChild.getNormsId(), orderNormsNum, executeNum);
                 if (setData) {
                     productLeadChild.setOperNumber(operNumber);

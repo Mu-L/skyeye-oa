@@ -52,13 +52,13 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     }
 
     private void getTotalPrice(ProductLead entity) {
-        String totalPrice = productLeadChildService.calcOrderAllTotalPrice(entity.getProductLeadChildList());
-        entity.setAllPrice(totalPrice);
+        String totalPrice = productLeadChildService.calcOrderAllTotalPrice(entity.getErpOrderItemList());
+        entity.setTotalPrice(totalPrice);
     }
 
     @Override
     public void writeChild(ProductLead entity, String userId) {
-        productLeadChildService.saveList(entity.getId(), entity.getProductLeadChildList());
+        productLeadChildService.saveList(entity.getId(), entity.getErpOrderItemList());
         super.writeChild(entity, userId);
     }
 
@@ -71,7 +71,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     public ProductLead selectById(String id) {
         ProductLead productLead = super.selectById(id);
         List<ProductLeadChild> productLeadChildren = productLeadChildService.selectProductLeadChildById(id);
-        productLead.setProductLeadChildList(productLeadChildren);
+        productLead.setErpOrderItemList(productLeadChildren);
         return productLead;
     }
 
