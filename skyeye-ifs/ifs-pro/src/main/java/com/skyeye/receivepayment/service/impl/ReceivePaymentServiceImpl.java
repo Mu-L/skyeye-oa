@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "收付款管理", groupName = "收付款管理")
+@SkyeyeService(name = "收付款管理", groupName = "收付款管理",flowable = true)
 public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<ReceivePaymentDao, ReceivePayment> implements ReceivePaymentService {
 
 
