@@ -120,11 +120,14 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             // 去除多余的空格
             startTime = startTime.trim();
             endTime = endTime.trim();
-            LocalDate startLocalTime = LocalDate.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            LocalDate endLocalTime = LocalDate.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            boolean isCrossDay = endLocalTime.isAfter(startLocalTime);
-            if (!isCrossDay) {
-                throw new CustomException("开始时间不能晚于结束时间");
+            try {
+                LocalDateTime startLocalTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                LocalDateTime endLocalTime = LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                if (endLocalTime.isBefore(startLocalTime)) {
+                    throw new CustomException("开始时间不能晚于结束时间");
+                }
+            } catch (Exception e) {
+                throw new CustomException("时间格式错误，请使用yyyy-MM-dd HH:mm格式");
             }
         }
         // 获取车间Id
@@ -178,10 +181,19 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         // 获取所有员工信息
         List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
 
-        // 区分正式员工和临时员工
-        Map<Boolean, List<Map<String, Object>>> staffByType = allStaffList.stream()
+        // 过滤出指定的员工
+        List<Map<String, Object>> selectedStaffList = allStaffList.stream()
             .filter(staff -> staff.get("id") != null && employeeIdList.contains(staff.get("id").toString()))
+            .collect(Collectors.toList());
+
+        if (selectedStaffList.isEmpty()) {
+            throw new CustomException("未找到指定的员工信息");
+        }
+
+        // 区分正式员工和临时员工
+        Map<Boolean, List<Map<String, Object>>> staffByType = selectedStaffList.stream()
             .collect(Collectors.groupingBy(staff -> staff.get("userId") != null && StrUtil.isNotEmpty(staff.get("userId").toString())));
+        
         // 获取正式员工
         List<Map<String, Object>> formalStaff = staffByType.getOrDefault(true, new ArrayList<>());
         // 获取临时员工
@@ -211,13 +223,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         Map<String, List<SchedulingShiftsTimeWork>> shiftsTimeWorkMap = shiftsTimeWorkList.stream()
             .collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
 
-        // 按时间段长度排序，优先分配较长的时间段
-        shiftTimes.sort((a, b) -> {
-            int aDuration = calculateDuration(a.getStartTime(), a.getEndTime());
-            int bDuration = calculateDuration(b.getStartTime(), b.getEndTime());
-            return bDuration - aDuration;
-        });
-
         // 时间范围内的所有日期
         List<LocalDate> dateRange = generateDateRange(startTime, endTime);
 
@@ -242,20 +247,37 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                     int minRequired = shiftTime.getMinStaff() != null ? shiftTime.getMinStaff() : 0;
                     int maxAllowed = shiftTime.getMaxStaff() != null ? shiftTime.getMaxStaff() : Integer.MAX_VALUE;
 
+                    // 计算需要分配的总人数
+                    int totalToAssign = Math.min(maxAllowed, employeeIdList.size());
+                    
                     // 优先分配正式员工
-                    int toAssign = Math.min(maxAllowed, availableFormalStaff.size());
-                    if (toAssign < minRequired) {
-                        // 如果正式员工不足，使用临时员工补充
-                        int remainingRequired = minRequired - toAssign;
-                        int tempToAssign = Math.min(remainingRequired, availableTempStaff.size());
-                        toAssign += tempToAssign;
+                    int formalToAssign = Math.min(totalToAssign, availableFormalStaff.size());
+                    int tempToAssign = totalToAssign - formalToAssign;
+
+                    // 分配正式员工
+                    for (int i = 0; i < formalToAssign; i++) {
+                        Map<String, Object> staff = availableFormalStaff.get(i);
+                        String employeeId = staff.get("id").toString();
+
+                        Scheduling scheduling = new Scheduling();
+                        scheduling.setEmployeeId(employeeId);
+                        scheduling.setShiftId(schedulingShiftsId);
+                        scheduling.setShiftTimeId(shiftTime.getId());
+                        scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
+                        scheduling.setFarmId(farmId);
+                        scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
+                        scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey());
+
+                        // 设置权重
+                        Integer weight = employeeIdWeightMap.get(employeeId);
+                        scheduling.setSchedulingWeight(weight);
+
+                        finalSchedules.add(scheduling);
                     }
 
-                    // 分配员工
-                    for (int i = 0; i < toAssign; i++) {
-                        Map<String, Object> staff = i < availableFormalStaff.size() ?
-                            availableFormalStaff.get(i) :
-                            availableTempStaff.get(i - availableFormalStaff.size());
+                    // 分配临时员工
+                    for (int i = 0; i < tempToAssign; i++) {
+                        Map<String, Object> staff = availableTempStaff.get(i);
                         String employeeId = staff.get("id").toString();
 
                         Scheduling scheduling = new Scheduling();
@@ -366,6 +388,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         if (CollectionUtil.isNotEmpty(finalSchedules)) {
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             super.createEntity(finalSchedules, userId);
+        } else {
+            throw new CustomException("未能生成有效的排班记录");
         }
     }
 
