@@ -6,7 +6,6 @@ package com.skyeye.eve.vehicle.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.eve.vehicle.dao.InsuranceDao;
@@ -41,8 +40,7 @@ public class InsuranceServiceImpl extends SkyeyeBusinessServiceImpl<InsuranceDao
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryInsuranceList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         return beans;
     }
