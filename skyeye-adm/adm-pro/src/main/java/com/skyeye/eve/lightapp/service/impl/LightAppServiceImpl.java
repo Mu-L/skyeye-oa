@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -31,7 +30,7 @@ import java.util.Map;
 
 /**
  * @ClassName: LightAppServiceImpl
- * @Description: 轻应用管理服务类
+ * @Description: 轻应用管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:54
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -49,8 +48,7 @@ public class LightAppServiceImpl extends SkyeyeBusinessServiceImpl<LightAppDao, 
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLightAppList(commonPageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         lightAppTypeService.setMationForMap(beans, "typeId", "typeMation");
         return beans;
     }

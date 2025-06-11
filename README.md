@@ -24,8 +24,7 @@
 
 ④ [功能清单](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)
 
-⑤ 体验地址：`Star`后将`Star`的截图(有效截图如下，如果无效，则不予回应)发送到下方公众号，并备注姓名和手机号，作者会私发你体验地址。在`Gitee`、`Gitcode`、`Github`任意一处Star后，均可获取体验账号。
-![输入图片说明](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/star.png)
+⑤ 体验地址：`Star`后在下方微信公众号里回复【体验】，会有具体的获取方式。
 
 ## 项目地址
 
@@ -34,7 +33,7 @@
 
 ## 🐶 沟通交流
 
-| |   知识星球   | 微信公众号(Skyeye智能制造云办公)已接入Skyeye AI，可在公众号留言咨询，或者提Issues。 | 如果你决定现在进星球了，可以直接加我微信。(PS: 咨询在公众号，公众号有人工客服) |
+| |   知识星球   | 微信公众号(Skyeye智能制造云办公)，可在公众号留言咨询，或者提Issues。 | 如果你决定现在进星球了，可以直接加我微信。(PS: 咨询在公众号，公众号有人工客服) |
 |:---------------------:|:---------------------:|:--------------------------------:|:-------------------:|
 | 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
 

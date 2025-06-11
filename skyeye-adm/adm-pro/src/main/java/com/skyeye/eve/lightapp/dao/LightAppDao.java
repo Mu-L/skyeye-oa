@@ -4,12 +4,8 @@
 
 package com.skyeye.eve.lightapp.dao;
 
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.lightapp.entity.LightApp;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: LightAppDao
@@ -20,7 +16,5 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 public interface LightAppDao extends SkyeyeBaseMapper<LightApp> {
-
-    List<Map<String, Object>> queryLightAppList(CommonPageInfo commonPageInfo);
 
 }

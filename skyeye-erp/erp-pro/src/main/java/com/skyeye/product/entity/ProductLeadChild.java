@@ -41,9 +41,9 @@ public class ProductLeadChild extends CommonInfo {
     @ApiModelProperty(value = "总金额", defaultValue = "0")
     private String allPrice;
 
-    @TableField("number")
+    @TableField("oper_number")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer number;
+    private Integer operNumber;
 
     @TableField(exist = false)
     @Property(value = "规格信息")

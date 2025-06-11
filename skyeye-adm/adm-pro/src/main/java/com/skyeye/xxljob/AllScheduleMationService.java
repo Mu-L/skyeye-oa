@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.rest.notice.UserMessage;
 import com.skyeye.eve.schedule.classenum.ScheduleState;
@@ -21,6 +22,7 @@ import com.skyeye.eve.service.IUserNoticeService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -54,13 +56,20 @@ public class AllScheduleMationService {
     @Autowired
     private IUserNoticeService iUserNoticeService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @XxlJob("allScheduleMationService")
     public void call() {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String scheduleId = paramMap.get("objectId");
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         ScheduleDay scheduleDay = scheduleDayService.selectById(scheduleId);
-        List<Map<String, Object>> users = scheduleDayDao.queryAllUserAndEmailISNotNull();
+        List<Map<String, Object>> users = scheduleDayDao.queryAllUserAndEmailISNotNull(tenantId);
         List<Map<String, Object>> userJson = new ArrayList<>();
         for (Map<String, Object> user : users) {
             //发送消息

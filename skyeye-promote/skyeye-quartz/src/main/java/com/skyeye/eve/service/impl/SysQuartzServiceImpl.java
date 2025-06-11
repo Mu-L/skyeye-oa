@@ -10,6 +10,7 @@ import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.xxljob.XxlJobInfo;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
@@ -19,6 +20,7 @@ import com.skyeye.eve.service.SysQuartzService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -42,6 +44,9 @@ public class SysQuartzServiceImpl implements SysQuartzService {
 
     @Autowired
     private IAuthUserService iAuthUserService;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     /**
      * 启动定时任务
@@ -83,6 +88,9 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         xxlJobInfo.setExecutorTimeout(0);
         xxlJobInfo.setExecutorFailRetryCount(0);
         xxlJobInfo.setGlueRemark("GLUE代码初始化");
+        if (tenantEnable) {
+            xxlJobInfo.setTenantId(TenantContext.getTenantId());
+        }
         return xxlJobInfo;
     }
 

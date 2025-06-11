@@ -24,7 +24,7 @@ public class ProductLeadChildServiceImpl extends SkyeyeBusinessServiceImpl<Produ
         for (ProductLeadChild productLeadChild : productLeadChildList) {
             // 计算子单据总价：单价 * 数量
             BigDecimal itemAllPrice = new BigDecimal(productLeadChild.getUnitPrice());
-            itemAllPrice = itemAllPrice.multiply(new BigDecimal(productLeadChild.getNumber()));
+            itemAllPrice = itemAllPrice.multiply(new BigDecimal(productLeadChild.getOperNumber()));
             productLeadChild.setAllPrice(itemAllPrice.toString());
             totalPrice = new BigDecimal(totalPrice).add(itemAllPrice).toString();
         }

@@ -4,10 +4,12 @@
 
 package com.skyeye.xxljob;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
@@ -19,6 +21,7 @@ import com.skyeye.eve.service.*;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -51,12 +54,19 @@ public class MyScheduleDayMationService {
     @Autowired
     private IUserNoticeService iUserNoticeService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @XxlJob("myScheduleDayMationService")
     public void call() {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String userId = paramMap.get("userId");
         String scheduleId = paramMap.get("objectId");
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         Map<String, Object> userMation = iAuthUserService.queryDataMationById(userId);
         // 获取日程信息
         ScheduleDay scheduleDay = scheduleDayService.selectById(scheduleId);

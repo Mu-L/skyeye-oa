@@ -69,7 +69,7 @@ public class ProductLeadController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "deleteProductLead", value = "删除借出申请", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteProductLead", value = "删除借出申请", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProductLeadController/deleteProductLead")
@@ -83,7 +83,7 @@ public class ProductLeadController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "revokeProductLead", value = "撤销借出申请", method = "PUT", allUse = "1")
+    @ApiOperation(id = "revokeProductLead", value = "撤销借出申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/ProductLeadController/revoke")
@@ -111,7 +111,7 @@ public class ProductLeadController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "productLeadToContractOutStock", value = "借出申请单转借出出库单", method = "POST", allUse = "1")
+    @ApiOperation(id = "productLeadToContractOutStock", value = "借出申请单转借出出库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ProductLeadOutStock.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProductLeadController/productLeadToContractOutStock")

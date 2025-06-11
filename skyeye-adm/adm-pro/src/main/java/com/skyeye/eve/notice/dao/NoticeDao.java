@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.notice.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.notice.entity.Notice;
@@ -22,8 +23,10 @@ import java.util.Map;
  */
 public interface NoticeDao extends SkyeyeBaseMapper<Notice> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNoticeList(CommonPageInfo pageInfo);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryAllUserList(@Param("userIds") List<String> userIds, @Param("stateList") List<String> stateList);
 
 }

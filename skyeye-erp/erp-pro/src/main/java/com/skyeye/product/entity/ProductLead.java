@@ -22,16 +22,16 @@ public class ProductLead extends SkyeyeFlowable {
     @ApiModelProperty(value = "单据日期", required = "required")
     private String operTime;
 
-    @TableField("object_id")
+    @TableField("holder_id")
     @ApiModelProperty(value = "关联的客户/供应商/会员id")
-    private String objectId;
+    private String holderId;
 
-    @TableField("all_price")
+    @TableField("total_price")
     @ApiModelProperty(value = "总价钱")
-    private String allPrice;
+    private String totalPrice;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "借出申请明细信息", required = "required,json")
-    private List<ProductLeadChild> productLeadChildList;
+    private List<ProductLeadChild> erpOrderItemList;
 
 }

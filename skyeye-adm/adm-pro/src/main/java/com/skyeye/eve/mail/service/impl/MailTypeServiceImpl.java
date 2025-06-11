@@ -21,11 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: MailTypeServiceImpl
- * @Description: 通讯录分组管理服务层
+ * @Description: 通讯录分组管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/10/23 12:56
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -36,11 +35,10 @@ import java.util.Map;
 public class MailTypeServiceImpl extends SkyeyeBusinessServiceImpl<MailTypeDao, MailType> implements MailTypeService {
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        commonPageInfo.setCreateId(InputObject.getLogParamsStatic().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryMailTypeList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<MailType> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<MailType> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MailType::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

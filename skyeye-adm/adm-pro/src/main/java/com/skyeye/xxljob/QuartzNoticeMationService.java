@@ -4,13 +4,16 @@
 
 package com.skyeye.xxljob;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.notice.service.NoticeService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -31,11 +34,18 @@ public class QuartzNoticeMationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuartzNoticeMationService.class);
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @XxlJob("quartzNoticeMationService")
     public void call() {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String noticeId = paramMap.get("objectId");
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         LOGGER.info("start quartz notice, notice id is: {}", noticeId);
         // 上线状态
         noticeService.editNoticeStateToUp(noticeId);

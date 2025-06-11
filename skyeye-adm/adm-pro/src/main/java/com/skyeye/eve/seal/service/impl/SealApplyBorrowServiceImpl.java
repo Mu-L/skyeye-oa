@@ -6,12 +6,14 @@ package com.skyeye.eve.seal.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.seal.dao.SealApplyBorrowDao;
 import com.skyeye.eve.seal.entity.SealUse;
 import com.skyeye.eve.seal.entity.SealUseLink;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SealApplyBorrowServiceImpl
- * @Description: 印章借用服务类
+ * @Description: 印章借用服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/24 15:57
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -45,11 +47,10 @@ public class SealApplyBorrowServiceImpl extends SkyeyeFlowableServiceImpl<SealAp
     private SealUseLinkService sealUseLinkService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealUseList(pageInfo);
-        return beans;
+    protected QueryWrapper<SealUse> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<SealUse> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SealUse::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

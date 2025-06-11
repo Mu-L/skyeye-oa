@@ -30,7 +30,7 @@ import java.util.List;
 public class SealRevert extends SkyeyeFlowable {
 
     @TableField("title")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required", fuzzyLike = true)
     private String title;
 
     @TableField("remark")
