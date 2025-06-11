@@ -87,4 +87,8 @@ public class ReceivePayment extends SkyeyeFlowable {
     @TableField("paid_time")
     @ApiModelProperty(value = "收付款日期")
     private String paidTime;
+
+    @TableField(value = "tenant_id")
+    @Property(value = "所属租户")
+    private String tenantId;
 }

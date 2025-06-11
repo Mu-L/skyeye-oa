@@ -1,9 +1,18 @@
 package com.skyeye.xxljob;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.receivepayment.service.FundAnalysisService;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: FundAnalysisXxlJob
@@ -19,6 +28,15 @@ public class FundAnalysisXxlJob {
     @Autowired
     private  FundAnalysisService fundAnalysisService;
 
+
+    private static Logger LOGGER = LoggerFactory.getLogger(FundAnalysisXxlJob.class);
+
+    @Autowired
+    private ITenantService iTenantService;
+
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 定时任务
      * 每月一次
@@ -27,6 +45,23 @@ public class FundAnalysisXxlJob {
 
     @XxlJob("writeFundAnalysisRecord")
     public void writeFundAnalysisRecord() {
-        fundAnalysisService.writeFundAnalysisRecord();
+        try {
+            if (tenantEnable) {
+                //  开启多租户
+                List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+                if (CollectionUtil.isEmpty(tenantList)) {
+                    return;
+                }
+                tenantList.forEach(tenant -> {
+                    String tenantId = tenant.get("id").toString();
+                    TenantContext.setTenantId(tenantId);
+                    fundAnalysisService.writeFundAnalysisRecord(tenantId);
+                });
+            }else {
+                fundAnalysisService.writeFundAnalysisRecord(null);
+            }
+        }catch (Exception e){
+            LOGGER.warn("xxljob writeFundAnalysisRecord error:{0}",e);
+        }
     }
 }

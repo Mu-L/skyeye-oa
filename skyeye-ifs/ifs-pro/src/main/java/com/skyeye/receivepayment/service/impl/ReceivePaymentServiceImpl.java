@@ -24,6 +24,7 @@ import com.skyeye.rest.crm.receivable.service.ICrmReceivableService;
 import com.skyeye.rest.erp.payable.service.IErpPayableService;
 import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -58,6 +59,8 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Autowired
     private IErpPayableService iErpPayableService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void createPrepose(ReceivePayment entity) {
@@ -88,7 +91,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     }
 
     @Override
-    public List<ReceivePayment> getBeforeThirtyDaysReceivePayment() {
+    public List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId) {
         //获取前三十天以内的日期
         String beforeDay = getBeforeOrFutureDay(-29);
         String today = DateUtil.getTimeAndToString();
@@ -97,6 +100,9 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getState), FlowableStateEnum.PASS.getKey())
                 .between(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
+        if(tenantEnable){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getTenantId), tenantId);
+        }
         return list(queryWrapper);
     }
 

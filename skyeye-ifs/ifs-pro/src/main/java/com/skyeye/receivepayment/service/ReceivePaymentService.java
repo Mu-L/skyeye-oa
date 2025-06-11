@@ -20,5 +20,5 @@ public interface ReceivePaymentService extends SkyeyeFlowableService<ReceivePaym
 
     void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject);
 
-    List<ReceivePayment> getBeforeThirtyDaysReceivePayment();
+    List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId);
 }

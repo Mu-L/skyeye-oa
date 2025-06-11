@@ -22,6 +22,7 @@ import com.skyeye.rest.crm.receivable.service.ICrmReceivableService;
 import com.skyeye.rest.erp.payable.service.IErpPayableService;
 import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,9 +60,9 @@ public class FundAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FundAnaly
 
 
     @Override
-    public void writeFundAnalysisRecord() {
+    public void writeFundAnalysisRecord(String tenantId) {
         // 取出前30天的收付款审批成功的记录
-        List<ReceivePayment> record = receivePaymentService.getBeforeThirtyDaysReceivePayment();
+        List<ReceivePayment> record = receivePaymentService.getBeforeThirtyDaysReceivePayment(tenantId);
         if (CollectionUtil.isEmpty(record)) {
             return;
         }

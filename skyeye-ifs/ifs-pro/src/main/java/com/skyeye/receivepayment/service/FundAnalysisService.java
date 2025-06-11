@@ -14,7 +14,7 @@ import com.skyeye.receivepayment.entity.FundAnalysis;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface FundAnalysisService extends SkyeyeBusinessService<FundAnalysis> {
-    void writeFundAnalysisRecord();
+    void writeFundAnalysisRecord(String tenantId);
 
     void queryFundAnalysis(InputObject inputObject, OutputObject outputObject);
 }
