@@ -6,7 +6,6 @@ package com.skyeye.eve.vehicle.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.eve.vehicle.dao.AccidentDao;
 import com.skyeye.eve.vehicle.entity.Accident;
@@ -20,7 +19,7 @@ import java.util.Map;
 
 /**
  * @ClassName: AccidentServiceImpl
- * @Description: 车辆事故管理服务类
+ * @Description: 车辆事故管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/6/17 21:45
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -35,8 +34,7 @@ public class AccidentServiceImpl extends SkyeyeBusinessServiceImpl<AccidentDao, 
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAccidentList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         // 设置驾驶员信息
         iAuthUserService.setMationForMap(beans, "driverId", "driverMation");

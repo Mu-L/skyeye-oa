@@ -59,12 +59,10 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        commonPageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
-        commonPageInfo.setObjectId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryUserMessageList(commonPageInfo);
-        return beans;
+    protected QueryWrapper<UserMessage> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<UserMessage> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getReceiveId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     /**

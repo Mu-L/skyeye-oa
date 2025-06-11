@@ -53,4 +53,6 @@ public class XxlJobInfo {
      */
     private String objectId;
 
+    private String tenantId;
+
 }

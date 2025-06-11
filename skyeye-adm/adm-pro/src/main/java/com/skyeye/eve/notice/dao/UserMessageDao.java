@@ -4,12 +4,8 @@
 
 package com.skyeye.eve.notice.dao;
 
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.notice.entity.UserMessage;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: UserMessageDao
@@ -20,7 +16,5 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface UserMessageDao extends SkyeyeBaseMapper<UserMessage> {
-
-    List<Map<String, Object>> queryUserMessageList(CommonPageInfo commonPageInfo);
 
 }

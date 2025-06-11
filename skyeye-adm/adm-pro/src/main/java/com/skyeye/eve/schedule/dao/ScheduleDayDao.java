@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.schedule.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.schedule.entity.ScheduleDay;
@@ -22,15 +23,22 @@ import java.util.Map;
  */
 public interface ScheduleDayDao extends SkyeyeBaseMapper<ScheduleDay> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryScheduleDayMationByUserId(@Param("userId") String userId,
                                                              @Param("list") List<String> months,
                                                              @Param("tenantId") String tenantId);
 
-    Map<String, Object> queryIsnullThistime(@Param("startTime") String startTime, @Param("endTime") String endTime);
+    @IgnoreTenant
+    Map<String, Object> queryIsnullThistime(@Param("startTime") String startTime,
+                                            @Param("endTime") String endTime,
+                                            @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryScheduleList(CommonPageInfo commonPageInfo);
 
-    List<Map<String, Object>> queryAllUserAndEmailISNotNull();
+    @IgnoreTenant
+    List<Map<String, Object>> queryAllUserAndEmailISNotNull(@Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMyAgencyList(CommonPageInfo pageInfo);
 }

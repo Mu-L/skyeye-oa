@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ForumHotServiceImpl
- * @Description: 论坛热门帖子管理服务层
+ * @Description: 论坛热门帖子管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:52
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -64,8 +64,8 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String end = today.format(DateTimeFormatter.ISO_DATE);
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
-                .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), StrUtil.EMPTY)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
+            .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), StrUtil.EMPTY)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
         List<ForumHot> bean = list(queryWrapper);
         List<String> ids = new ArrayList<>();
         for (ForumHot forumHot : bean) {
@@ -89,9 +89,9 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String today = DateUtil.getTimeAndToString();
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .gt(MybatisPlusUtil.toColumns(ForumContent::getBrowseNum), CommonNumConstants.NUM_ONE)
-                .between(MybatisPlusUtil.toColumns(ForumContent::getCreateTime), beforeDay, today)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+            .gt(MybatisPlusUtil.toColumns(ForumContent::getBrowseNum), CommonNumConstants.NUM_ONE)
+            .between(MybatisPlusUtil.toColumns(ForumContent::getCreateTime), beforeDay, today)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> forumContents = forumContentService.list(queryWrapper);
 
         // 取出 浏览量、评论量
@@ -117,8 +117,8 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         // 取出前10 的帖子
         if (ids.size() > CommonNumConstants.NUM_TEN) {
             ids = ids.entrySet()
-                    .stream().limit(CommonNumConstants.NUM_TEN)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .stream().limit(CommonNumConstants.NUM_TEN)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
         List<ForumHot> beans = new ArrayList<>();
         for (Map.Entry<String, Float> entry : ids.entrySet()) {
@@ -143,8 +143,8 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String end = today.format(DateTimeFormatter.ISO_DATE);
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
         queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
-                .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), StrUtil.EMPTY)
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::   getOrderBy));
+            .eq(MybatisPlusUtil.toColumns(ForumHot::getForumId), StrUtil.EMPTY)
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
         List<ForumHot> forumHots = list(queryWrapper);
         // 设置标签信息
         for (ForumHot forumHot : forumHots) {
@@ -163,9 +163,9 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String today = DateUtil.getTimeAndToString();
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .between(MybatisPlusUtil.toColumns(ForumContent::getCreateTime), beforeDay, today)
-                .select(MybatisPlusUtil.toColumns(ForumContent::getTagId))
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+            .between(MybatisPlusUtil.toColumns(ForumContent::getCreateTime), beforeDay, today)
+            .select(MybatisPlusUtil.toColumns(ForumContent::getTagId))
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> forumContents = forumContentService.list(queryWrapper);
 
         List<String> tagIds = new ArrayList<>();
@@ -179,11 +179,11 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         }
         // 分组统计
         Map<String, Long> collect = tagIds.stream().collect(
-                Collectors.groupingBy(e -> e, Collectors.counting())
+            Collectors.groupingBy(e -> e, Collectors.counting())
         );
         // 排序
         List<Map.Entry<String, Long>> collectSort = collect.entrySet()
-                .stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toList());
+            .stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toList());
         Map<String, Float> tagHot = new HashMap<>();
         for (Map.Entry<String, Long> entry : collectSort) {
             tagHot.put(entry.getKey(), (float) entry.getValue());
@@ -191,8 +191,8 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         // 取前10
         if (tagHot.size() > CommonNumConstants.NUM_TEN) {
             tagHot = tagHot.entrySet()
-                    .stream().limit(CommonNumConstants.NUM_TEN)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .stream().limit(CommonNumConstants.NUM_TEN)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
         // 保存到ForumHot
         List<ForumHot> forumHots = new ArrayList<>();
@@ -208,7 +208,8 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
     }
 
     /**
-     * 根据帖子id删除热门记录*/
+     * 根据帖子id删除热门记录
+     */
     @Override
     public void deleteByForumId(String id) {
         QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
