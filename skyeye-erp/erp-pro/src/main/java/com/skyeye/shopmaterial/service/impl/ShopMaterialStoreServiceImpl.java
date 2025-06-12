@@ -13,6 +13,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -189,6 +190,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public Map<String, ShopMaterialStore> queryShopMaterialStoreByMaterialIds(String... materialIds) {
         List<String> idList = Arrays.asList(materialIds).stream()
             .filter(materialId -> StrUtil.isNotEmpty(materialId)).distinct().collect(Collectors.toList());
@@ -204,6 +206,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ShopMaterialStore shopMaterialStore = selectById(id);

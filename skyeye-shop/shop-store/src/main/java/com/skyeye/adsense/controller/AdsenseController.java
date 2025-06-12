@@ -34,12 +34,6 @@ public class AdsenseController {
     @Autowired
     private AdsenseService adsenseService;
 
-    /**
-     * 分頁查询广告位管理信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAdsenseList", value = "分页查询广告位管理信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DeliveryController/queryAdsenseList")
@@ -47,12 +41,6 @@ public class AdsenseController {
         adsenseService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑广告位管理信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAdsense", value = "新增/编辑广告位管理信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Adsense.class)
     @RequestMapping("/post/AdsenseController/writeAdsense")
@@ -60,12 +48,6 @@ public class AdsenseController {
         adsenseService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 批量删除广告位管理信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAdsenseByIds", value = "批量删除广告位管理信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
@@ -74,24 +56,12 @@ public class AdsenseController {
         adsenseService.deleteByIds(inputObject, outputObject);
     }
 
-    /**
-     * 获取已启用广告位管理信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAdsense", value = "获取已启用广告位管理信息", method = "POST", allUse = "0")
     @RequestMapping("/post/AdsenseController/queryAdsense")
     public void queryAdsense(InputObject inputObject, OutputObject outputObject) {
         adsenseService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取广告位
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAdsenseById", value = "根据id获取广告位", method = "POST", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/AdsenseController/queryAdsenseById")

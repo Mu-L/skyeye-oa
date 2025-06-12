@@ -8,6 +8,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: StoreServiceImpl
- * @Description: 门店管理服务层
+ * @Description: 门店管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 12:35
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -88,6 +89,12 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
             });
         }
         return beans;
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryStoreListFoServer(InputObject inputObject, OutputObject outputObject) {
+        queryPageList(inputObject, outputObject);
     }
 
     @Override

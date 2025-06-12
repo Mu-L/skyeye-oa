@@ -5,13 +5,13 @@
 package com.skyeye.coupon.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -42,9 +42,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -184,6 +185,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
         return coupon;
     }
+
     @Override
     public QueryWrapper<Coupon> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Coupon> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -259,6 +261,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     @Override
+    @IgnoreTenant
     public void queryCouponListByMaterialId(InputObject inputObject, OutputObject outputObject) {
         String materialId = inputObject.getParams().get("materialId").toString();
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);

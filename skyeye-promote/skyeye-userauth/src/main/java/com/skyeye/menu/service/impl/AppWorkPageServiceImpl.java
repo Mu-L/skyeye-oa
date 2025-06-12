@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "手机端菜单管理", groupName = "菜单管理", tenant = TenantEnum.PLATE)
+@SkyeyeService(name = "手机端菜单管理", groupName = "菜单管理", tenant = TenantEnum.PLATE, memoryCache = true)
 public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPageDao, AppWorkPage> implements AppWorkPageService {
 
     @Autowired

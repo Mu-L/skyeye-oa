@@ -32,12 +32,6 @@ public class ShopAddressController {
     @Autowired
     private ShopAddressService shopAddressService;
 
-    /**
-     * 新增/编辑收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeShopAddress", value = "新增/编辑收件地址信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ShopAddress.class)
     @RequestMapping("/post/ShopAddressController/writeShopAddress")
@@ -45,12 +39,6 @@ public class ShopAddressController {
         shopAddressService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 批量删除收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteShopAddressByIds", value = "批量删除收件地址信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
@@ -59,12 +47,6 @@ public class ShopAddressController {
         shopAddressService.deleteByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectShopAddressById", value = "根据id查询收件地址信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,24 +55,12 @@ public class ShopAddressController {
         shopAddressService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyShopAddress", value = "获取收件地址信息", method = "POST", allUse = "2")
     @RequestMapping("/post/ShopAddressController/queryMyShopAddress")
     public void queryMyShopAddress(InputObject inputObject, OutputObject outputObject) {
         shopAddressService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 获取默认收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDefaultShopAddress", value = "获取默认收件地址信息", method = "POST", allUse = "2")
     @RequestMapping("/post/ShopAddressController/queryDefaultShopAddress")
     public void queryDefaultShopAddress(InputObject inputObject, OutputObject outputObject) {

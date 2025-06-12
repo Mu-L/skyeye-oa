@@ -11,6 +11,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.brand.entity.Brand;
 import com.skyeye.brand.service.BrandService;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopMaterialServiceImpl
- * @Description: 商城商品服务层
+ * @Description: 商城商品服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/4 17:54
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -179,6 +180,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialListForStore(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         ResultEntity resultEntity = iShopStoreService.queryStoreListFoServer(commonPageInfo);
@@ -210,6 +212,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public void queryBrandShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         MPJLambdaWrapper<ShopMaterial> wrapper = new MPJLambdaWrapper<ShopMaterial>()
             .innerJoin(Material.class, Material::getId, ShopMaterial::getMaterialId)
@@ -259,6 +262,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public ShopMaterial queryShopMaterialByMaterialId(String materialId) {
         QueryWrapper<ShopMaterial> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterial::getMaterialId), materialId);
@@ -296,7 +300,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         List<Map<String, Object>> result = shopMaterials.stream().map(bean -> {
             Map<String, Object> item = new HashMap<>();
             item.put("id", bean.getMaterialId());
-            item.put("name", ObjectUtil.isEmpty(bean.getMaterialMation()) ? "": StrUtil.isEmpty(bean.getMaterialMation().getName()) ? "" : bean.getMaterialMation().getName());
+            item.put("name", ObjectUtil.isEmpty(bean.getMaterialMation()) ? "" : StrUtil.isEmpty(bean.getMaterialMation().getName()) ? "" : bean.getMaterialMation().getName());
             return item;
         }).collect(Collectors.toList());
         outputObject.setBeans(result);

@@ -44,7 +44,7 @@ public class ShopStoreController {
         @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", required = "required,num", defaultValue = "1")})
     @RequestMapping("/post/ShopStoreController/queryStoreListFoServer")
     public void queryStoreListFoServer(InputObject inputObject, OutputObject outputObject) {
-        shopStoreService.queryPageList(inputObject, outputObject);
+        shopStoreService.queryStoreListFoServer(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeStore", value = "添加/编辑门店", method = "POST", allUse = "1")

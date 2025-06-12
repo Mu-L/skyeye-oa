@@ -32,12 +32,6 @@ public class BrandController {
     @Autowired
     private BrandService brandService;
 
-    /**
-     * 获取品牌列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBrandList", value = "获取品牌列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/BrandController/queryBrandList")
@@ -45,24 +39,12 @@ public class BrandController {
         brandService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据已启用的品牌列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnabledBrandList", value = "根据已启用查询品牌列表", method = "POST", allUse = "0")
     @RequestMapping("/post/BrandController/queryEnabledBrandList")
     public void queryEnabledBrandList(InputObject inputObject, OutputObject outputObject) {
         brandService.queryEnabledBrandList(inputObject, outputObject);
     }
 
-    /**
-     * 根据已启用查询品牌列表(可分页)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPageEnabledBrandList", value = "根据已启用查询品牌列表(可分页)", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/BrandController/queryPageEnabledBrandList")
@@ -70,12 +52,6 @@ public class BrandController {
         brandService.queryPageEnabledBrandList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑品牌信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeBrand", value = "新增/编辑品牌信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Brand.class)
     @RequestMapping("/post/BrandController/writeBrand")
@@ -83,12 +59,6 @@ public class BrandController {
         brandService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除品牌信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteBrandById", value = "根据ID删除品牌信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

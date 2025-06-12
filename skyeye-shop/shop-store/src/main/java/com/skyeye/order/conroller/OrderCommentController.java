@@ -32,12 +32,6 @@ public class OrderCommentController {
     @Autowired
     private OrderCommentService orderCommentService;
 
-    /**
-     * 新增商品订单评价信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertOrderComment", value = "新增商品订单评价信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = OrderComment.class)
     @RequestMapping("/post/OrderCommentController/insertOrderComment")
@@ -45,12 +39,6 @@ public class OrderCommentController {
         orderCommentService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除商品订单评价信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteOrderCommentById", value = "根据id删除商品订单评价信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -59,12 +47,6 @@ public class OrderCommentController {
         orderCommentService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询商品订单评价信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectOrderCommentById", value = "根据id查询商品订单评价信息", method = "POST", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderCommentController/selectOrderCommentById")
@@ -72,12 +54,6 @@ public class OrderCommentController {
         orderCommentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 分页查询商品订单评价信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryOrderCommentPageList", value = "分页查询商品订单评价信息", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderCommentController/queryOrderCommentPageList")
@@ -85,12 +61,6 @@ public class OrderCommentController {
         orderCommentService.queryOrderCommentPageList(inputObject, outputObject);
     }
 
-    /**
-     * 分页查询商品订单评价信息PC
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryOrderCommentPageListPC", value = "分页查询商品订单评价信息PC", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderCommentController/queryOrderCommentPageListPC")
@@ -98,12 +68,6 @@ public class OrderCommentController {
         orderCommentService.queryPageList(inputObject,outputObject);
     }
 
-    /**
-     * 分页查询自己的商品订单评价信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyOrderCommentList", value = "分页查询自己的商品订单评价信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderCommentController/queryMyOrderCommentList")

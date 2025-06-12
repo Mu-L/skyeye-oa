@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.MapUtil;
@@ -83,6 +84,7 @@ public class MaterialNormsStockServiceImpl extends SkyeyeBusinessServiceImpl<Mat
      * @return
      */
     @Override
+    @IgnoreTenant
     public Map<String, List<MaterialNormsStock>> queryNormsStockByNormsId(List<String> normsIds, Integer type) {
         if (CollectionUtil.isEmpty(normsIds)) {
             return new HashMap<>();
