@@ -22,7 +22,7 @@
 
 ③ 具备低代码、功能全面、快速便捷开发、无需重复的CRUD等优点，短时间内可完成一款系统的开发。
 
-④ [功能清单](https://docs.qq.com/sheet/DYUtPdWhTbVBITlpL?tab=000001)
+④ [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)，需申请权限
 
 ⑤ 体验地址：`Star`后在下方微信公众号里回复【体验】，会有具体的获取方式。
 
