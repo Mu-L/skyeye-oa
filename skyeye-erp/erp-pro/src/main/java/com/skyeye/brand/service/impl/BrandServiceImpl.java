@@ -46,6 +46,7 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
     }
 
     @Override
+    @IgnoreTenant
     public void queryPageEnabledBrandList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = null;
@@ -59,5 +60,11 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
         List<Brand> brandList = list(wrapper);
         outputObject.setBeans(brandList);
         outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    @IgnoreTenant
+    public Brand selectById(String id) {
+        return super.selectById(id);
     }
 }

@@ -152,6 +152,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         List<ShopMaterialStore> shopMaterialStoreList = shopMaterialStoreService.queryShopMaterialList(inputObject, outputObject);
         if (CollectionUtil.isEmpty(shopMaterialStoreList)) {

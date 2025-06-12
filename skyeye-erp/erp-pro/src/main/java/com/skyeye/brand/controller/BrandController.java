@@ -66,4 +66,13 @@ public class BrandController {
     public void deleteBrandById(InputObject inputObject, OutputObject outputObject) {
         brandService.deleteById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryBrandById", value = "根据ID查询品牌信息", method = "GET", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/BrandController/queryBrandById")
+    public void queryBrandById(InputObject inputObject, OutputObject outputObject) {
+        brandService.selectById(inputObject, outputObject);
+    }
+
 }
