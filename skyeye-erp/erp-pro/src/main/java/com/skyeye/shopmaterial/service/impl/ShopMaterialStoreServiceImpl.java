@@ -275,6 +275,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds) {
         if (CollectionUtil.isEmpty(storeIds)) {
             return MapUtil.empty();

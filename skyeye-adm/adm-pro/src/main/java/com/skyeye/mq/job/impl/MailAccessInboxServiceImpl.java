@@ -79,6 +79,7 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
 
                 String storeType = emailServer.get("emailType").toString();//邮箱类型
                 String host = emailServer.get("emailReceiptServer").toString();//邮箱收件服务器
+                String emailReceiptServerPort = emailServer.get("emailReceiptServerPort").toString();//邮箱收件服务器端口
                 String username = map.get("userAddress").toString();//登录邮箱账号
                 String password = map.get("userPassword").toString();//密码
                 String basePath = tPath + "upload/emailenclosure/";//附件存储路径
@@ -88,7 +89,7 @@ public class MailAccessInboxServiceImpl implements RocketMQListener<String> {
                 // 设置精确到小数点后0位
                 numberFormat.setMaximumFractionDigits(0);
 
-                Folder folder = ToolUtil.getFolderByServer(host, username, password, storeType, "INBOX");
+                Folder folder = ToolUtil.getFolderByServer(host, emailReceiptServerPort, username, password, storeType, "INBOX");
                 if (!folder.exists()) {//如果文件夹不存在，则创建
                     folder.create(Folder.HOLDS_MESSAGES);
                 }

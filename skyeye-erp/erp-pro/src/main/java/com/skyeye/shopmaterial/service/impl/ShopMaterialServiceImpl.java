@@ -275,6 +275,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public Map<String, ShopMaterial> queryShopMaterialByMaterialId(List<String> materialIds) {
         materialIds = materialIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
         if (CollectionUtil.isEmpty(materialIds)) {

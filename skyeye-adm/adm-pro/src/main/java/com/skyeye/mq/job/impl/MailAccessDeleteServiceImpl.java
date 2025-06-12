@@ -79,13 +79,14 @@ public class MailAccessDeleteServiceImpl implements RocketMQListener<String> {
 
             String storeType = emailServer.get("emailType").toString();//邮箱类型
             String host = emailServer.get("emailReceiptServer").toString();//邮箱收件服务器
+            String emailReceiptServerPort = emailServer.get("emailReceiptServerPort").toString();//邮箱收件服务器端口
             String username = map.get("userAddress").toString();//登录邮箱账号
             String password = map.get("userPassword").toString();//密码
             String basePath = tPath + FileConstants.FileUploadPath.getSavePath(
                 FileConstants.FileUploadPath.EMAIL_ENCLOSURE.getType()[0]
             );//附件存储路径
 
-            Folder folder = ToolUtil.getFolderByServer(host, username, password, storeType, "Deleted Messages");
+            Folder folder = ToolUtil.getFolderByServer(host, emailReceiptServerPort, username, password, storeType, "Deleted Messages");
             if (!folder.exists()) {//如果文件夹不存在，则创建
                 folder.create(Folder.HOLDS_MESSAGES);
             }
@@ -110,10 +111,8 @@ public class MailAccessDeleteServiceImpl implements RocketMQListener<String> {
                     message[i].getFolder().open(Folder.READ_ONLY);
                 }
                 re = new ShowMail((MimeMessage) message[i]);
-                //如果该邮件在本地数据库中不存在并且messageId不为空
-                //收件人或者抄送人或者暗送人是当前账号
-                if (!ToolUtil.judgeInListByMessage(emailHasMail, re.getMessageId()) && !ToolUtil.isBlank(re.getMessageId())
-                    && (re.getMailAddress("to").indexOf(username) > -1 || re.getMailAddress("cc").indexOf(username) > -1 || re.getMailAddress("bcc").indexOf(username) > -1)) {
+                // 如果该邮件在本地数据库中不存在并且messageId不为空，则保存到数据库
+                if (!ToolUtil.judgeInListByMessage(emailHasMail, re.getMessageId()) && !ToolUtil.isBlank(re.getMessageId())) {
                     bean = EmailUtil.getEmailMationByUtil(re, message[i]);
                     String rowId = ToolUtil.getSurFaceId();
                     re.setDateFormat(DateUtil.YYYY_MM_DD_HH_MM_SS);

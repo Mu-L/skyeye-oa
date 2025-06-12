@@ -76,21 +76,24 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         return beans;
     }
 
     private CommonPageInfo getPageObject(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
+            throw new CustomException("请先绑定邮箱后再进行操作。");
+        }
         EmailUser emailUser = emailUserService.selectById(commonPageInfo.getObjectId());
         String userId = inputObject.getLogParams().get("id").toString();
         if (!userId.equals(emailUser.getCreateId())) {
             throw new CustomException("该邮箱信息不存在或者该邮箱信息不属于当前账号。");
         }
         commonPageInfo.setObjectId(emailUser.getEmailAddress());
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         return commonPageInfo;
     }
 
@@ -169,61 +172,34 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         return email;
     }
 
-    /**
-     * 获取我的已发送邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySendedEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取我的已删除邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDeleteEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
+        commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FIVE));
         commonPageInfo.setState(String.valueOf(EmailState.DELETE.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取我的草稿箱邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDraftsEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.DRAFT.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
