@@ -76,7 +76,8 @@ public class SysTAreaServiceImpl extends SkyeyeBusinessServiceImpl<SysTAreaDao, 
 
     @Override
     @IgnoreTenant
-    public List<SysTArea> selectByIds(String... ids) {
-        return super.selectByIds(ids);
+    public void selectByIds(InputObject inputObject, OutputObject outputObject) {
+        super.selectByIds(inputObject, outputObject);
     }
+
 }

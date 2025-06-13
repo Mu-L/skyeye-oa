@@ -64,7 +64,8 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
 
     @Override
     @IgnoreTenant
-    public Brand selectById(String id) {
-        return super.selectById(id);
+    public void selectById(InputObject inputObject, OutputObject outputObject) {
+        super.selectById(inputObject, outputObject);
     }
+
 }
