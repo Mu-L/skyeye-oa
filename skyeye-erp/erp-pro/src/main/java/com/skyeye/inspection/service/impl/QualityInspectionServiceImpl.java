@@ -27,6 +27,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.inspection.classenum.QualityInspectionExchangesState;
 import com.skyeye.inspection.classenum.QualityInspectionFromType;
 import com.skyeye.inspection.classenum.QualityInspectionPutState;
 import com.skyeye.inspection.classenum.QualityInspectionReturnState;
@@ -135,6 +136,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
     private void checkOrderItem(QualityInspection entity) {
         Integer putState = QualityInspectionPutState.NOT_NEED_PUT.getKey();
         Integer returnState = QualityInspectionReturnState.NOT_NEED_RETURN.getKey();
+        Integer exchangesState = QualityInspectionExchangesState.NOT_NEED_EXCHANGES.getKey();
 
         if (CollectionUtil.isEmpty(entity.getQualityInspectionItemList())) {
             throw new CustomException("请最少选择一条产品信息");
@@ -152,7 +154,7 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
                 // 全检
                 // 质检数量 != 实际验收总数量
                 if (qualityInspectionItem.getOperNumber() != tempNum) {
-                    throw new CustomException("验收数量不等于【合格数量】 + 【验收退回数量】 + 【让步接收数量】，请确认.");
+                    throw new CustomException("验收数量不等于【合格数量】 + 【验收退回数量】 + 【让步接收数量】 + 【验收换货数量】，请确认.");
                 }
             } else if (qualityInspectionItem.getQualityInspection() == OrderItemQualityInspectionType.SAMPLING_INS.getKey()) {
                 // 抽检
@@ -175,9 +177,14 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
             if (qualityInspectionItem.getReturnNumber() > 0) {
                 returnState = QualityInspectionReturnState.NEED_RETURN.getKey();
             }
+            // 设置换货状态
+            if (qualityInspectionItem.getExchangesNumber() > CommonNumConstants.NUM_ZERO) {
+                exchangesState = QualityInspectionExchangesState.NEED_EXCHANGES.getKey();
+            }
         }
         entity.setPutState(putState);
         entity.setReturnState(returnState);
+        entity.setExchangesState(exchangesState);
     }
 
     private void checkMaterialNorms(QualityInspection entity, boolean setData) {
@@ -323,6 +330,15 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         UpdateWrapper<QualityInspection> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(QualityInspection::getReturnState), returnState);
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
+    @Override
+    public void editExchangesState(String id, Integer returnState) {
+        UpdateWrapper<QualityInspection> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(QualityInspection::getExchangesState), returnState);
         update(updateWrapper);
         refreshCache(id);
     }

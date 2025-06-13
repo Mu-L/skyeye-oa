@@ -40,6 +40,8 @@ public interface QualityInspectionService extends SkyeyeFlowableService<QualityI
      */
     void editReturnState(String id, Integer returnState);
 
+    void editExchangesState(String id, Integer returnState);
+
     void setQualityInspectionMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
     void queryQualityInspectionTransById(InputObject inputObject, OutputObject outputObject);
