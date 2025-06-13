@@ -34,4 +34,6 @@ public interface EmailService extends SkyeyeBusinessService<Email> {
     void insertToSendEmailMationByEmailId(InputObject inputObject, OutputObject outputObject);
 
     void insertForwardToSendEmailMationByUserId(InputObject inputObject, OutputObject outputObject);
+
+    void clearEmailByObjectId(InputObject inputObject, OutputObject outputObject);
 }
