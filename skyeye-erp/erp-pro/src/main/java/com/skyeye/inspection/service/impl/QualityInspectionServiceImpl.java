@@ -145,8 +145,9 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
         }
 
         for (QualityInspectionItem qualityInspectionItem : entity.getQualityInspectionItemList()) {
-            // 实际验收总数量 = 合格数量 + 验收退回数量 + 让步接收数量
-            int tempNum = qualityInspectionItem.getQualifiedNumber() + qualityInspectionItem.getReturnNumber() + qualityInspectionItem.getConcessionNumber();
+            // 实际验收总数量 = 合格数量 + 验收退回数量 + 让步接收数量 + 换货数量
+            int tempNum = qualityInspectionItem.getQualifiedNumber() + qualityInspectionItem.getReturnNumber()
+                    + qualityInspectionItem.getConcessionNumber() + qualityInspectionItem.getExchangesNumber();
             if (qualityInspectionItem.getQualityInspection() == OrderItemQualityInspectionType.FULL_INSPECTION.getKey()) {
                 // 全检
                 // 质检数量 != 实际验收总数量
