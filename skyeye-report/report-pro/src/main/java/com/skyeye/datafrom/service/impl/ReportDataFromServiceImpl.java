@@ -174,7 +174,9 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 // 1.获取数据源信息
                 ReportDataSource dataBase = reportDataBaseService.getReportDataSource(reportDataFrom.getSqlEntity().getDataBaseId());
                 List<ReportMetaDataRow> metaDataRows = QueryerFactory.create(dataBase).getMetaDataRows(reportDataFrom.getSqlEntity().getSqlContent());
-                return JSON.toJSONString(resetSqlResultData(metaDataRows));
+                Map<String, Object> result = new HashMap<>();
+                result.put("data", resetSqlResultData(metaDataRows));
+                return JSON.toJSONString(result);
             }
         }
         return "{}";
