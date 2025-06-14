@@ -43,4 +43,8 @@ public class Scheduling extends OperatorUserInfo {
     @ApiModelProperty(value = "排班时间段")
     private List<SchedulingTime> schedulingTimeMation;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "班次信息")
+    private SchedulingShifts shiftMation;
+
 }

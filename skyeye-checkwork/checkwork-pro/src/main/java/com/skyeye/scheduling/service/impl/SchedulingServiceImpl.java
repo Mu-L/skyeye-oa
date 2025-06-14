@@ -8,7 +8,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -76,6 +75,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
     @Autowired
     private SchedulingTimeWorkService schedulingTimeWorkService;
+
+    @Autowired
+    private SchedulingShiftsService schedulingShiftsService;
 
     @Override
     protected void createPrepose(Scheduling entity) {
@@ -676,10 +678,18 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Override
     public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String holderId = commonPageInfo.getHolderId();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(StrUtil.isNotEmpty(holderId), MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Scheduling::getCreateTime));
         List<Scheduling> schedulingList = list(queryWrapper);
+        List<String> collect = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(collect);
+        Map<String, List<SchedulingShifts>> collect1 = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+        for (Scheduling scheduling : schedulingList) {
+            scheduling.setShiftMation(collect1.get(scheduling.getShiftId()).get(CommonNumConstants.NUM_ZERO));
+        }
         outputObject.setBeans(schedulingList);
         outputObject.settotal(page.getTotal());
 
