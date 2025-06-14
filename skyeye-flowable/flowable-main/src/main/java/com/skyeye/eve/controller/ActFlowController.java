@@ -63,11 +63,10 @@ public class ActFlowController {
     }
 
     @ApiOperation(id = "queryActFlowListByClassName", value = "根据适用对象获取流程模型列表", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "className", name = "className", value = "类的Refrence", required = "required")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActFlowController/queryActFlowListByClassName")
     public void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
-        actFlowService.queryList(inputObject, outputObject);
+        actFlowService.queryActFlowListByClassName(inputObject, outputObject);
     }
 
 }

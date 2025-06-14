@@ -100,12 +100,10 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     public void validatorEntity(DsFormPage entity) {
         super.validatorEntity(entity);
         if (entity.getType().equals(DsFormPageType.PROCESS_ATTR.getKey())) {
-            if (StrUtil.isEmpty(entity.getActFlowId())) {
-                throw new CustomException("Process information cannot be empty.");
-            }
+            // 流程属性布局，每一个业务对象只能绑定一个
             QueryWrapper<DsFormPage> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), entity.getClassName());
-            queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getActFlowId), entity.getActFlowId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getType), entity.getType());
             if (StringUtils.isNotEmpty(entity.getId())) {
                 queryWrapper.ne(CommonConstants.ID, entity.getId());
             }
@@ -255,7 +253,7 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     }
 
     /**
-     * 根据业务对象的serviceClassName和流程模型id查找表单布局
+     * 根据业务对象的serviceClassName查找表单布局
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -264,11 +262,9 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     public void queryDsFormPageForProcess(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String serviceClassName = params.get("serviceClassName").toString();
-        String actFlowId = params.get("actFlowId").toString();
         // 根据业务对象的serviceClassName和流程模型id查询
         QueryWrapper<DsFormPage> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), serviceClassName);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getActFlowId), actFlowId);
         queryWrapper.select(CommonConstants.ID);
         DsFormPage dsFormPage = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(dsFormPage)) {
