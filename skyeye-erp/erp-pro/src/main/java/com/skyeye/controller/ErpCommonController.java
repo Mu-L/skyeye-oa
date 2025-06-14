@@ -85,7 +85,8 @@ public class ErpCommonController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "订单id", required = "required"),
         @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "单据类型，值为服务类的className", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required"),
+        @ApiImplicitParam(id = "modelKey", name = "modelKey", value = "模型的key", required = "required")})
     @RequestMapping("/post/ErpCommonController/orderSubmitToApproval")
     public void orderSubmitToApproval(InputObject inputObject, OutputObject outputObject) {
         erpCommonService.orderSubmitToApproval(inputObject, outputObject);
