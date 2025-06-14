@@ -38,4 +38,6 @@ public interface LeaveService extends SkyeyeFlowableService<Leave> {
     Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay);
 
     void getLeaveTypeList(InputObject inputObject, OutputObject outputObject);
+
+    List<Leave> queryLeaveByFormalUserIds(List<String> formalUserIds);
 }

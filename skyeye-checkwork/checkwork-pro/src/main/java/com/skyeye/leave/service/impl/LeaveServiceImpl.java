@@ -324,6 +324,17 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
         outputObject.settotal(result.size());
     }
 
+    @Override
+    public List<Leave> queryLeaveByFormalUserIds(List<String> formalUserIds) {
+        if (CollectionUtil.isEmpty(formalUserIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<Leave> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(Leave::getCreateId), formalUserIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Leave::getState), "pass");
+        return list(queryWrapper);
+    }
+
     private List<Map<String, Object>> getLeaveTypeList() {
         List<Map<String, Object>> result = new ArrayList<>();
         List<Map<String, Object>> holidaysTypeMation = getSystemHolidaysTypeJsonMation();

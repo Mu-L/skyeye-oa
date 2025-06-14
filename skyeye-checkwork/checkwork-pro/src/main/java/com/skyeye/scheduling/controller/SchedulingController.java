@@ -28,6 +28,14 @@ public class SchedulingController {
         schedulingService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "querySchedulingById", value = "根据Id查询排班记录", method = "POST", allUse = "2")
+    @ApiImplicitParams(
+        @ApiImplicitParam(id = "id", name = "id", value = "排班id", required = "required"))
+    @RequestMapping("/post/SchedulingController/querySchedulingById")
+    public void querySchedulingById(InputObject inputObject, OutputObject outputObject) {
+        schedulingService.selectById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "autoComputeScheduling", value = "智能计算排班", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SchedulingAuto.class)
     @RequestMapping("/post/SchedulingController/autoComputeScheduling")
@@ -35,11 +43,13 @@ public class SchedulingController {
         schedulingService.autoComputeScheduling(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "querySchedulingListByTimeSlot", value = "查询时间段范围的排班", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/SchedulingController/querySchedulingListByTimeSlot")
-    public void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject) {
-        schedulingService.querySchedulingListByTimeSlot(inputObject, outputObject);
+    @ApiOperation(id = "querySchedulingByStaffId", value = "查询当前账户的排班记录", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "startTime", name = "startTime", value = "开始时间(格式 yyyy-MM-dd)", required = "required"),
+        @ApiImplicitParam(id = "endTime", name = "endTime", value = "结束时间(格式 yyyy-MM-dd)", required = "required")})
+    @RequestMapping("/post/SchedulingController/querySchedulingByStaffId")
+    public void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject) {
+        schedulingService.querySchedulingByStaffId(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteSchedulingByIds", value = "删除排班人员", method = "DELETE", allUse = "2")
@@ -48,6 +58,13 @@ public class SchedulingController {
     @RequestMapping("/post/SchedulingController/deleteSchedulingByIds")
     public void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject) {
         schedulingService.deleteSchedulingByIds(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "querySchedulingList", value = "查询所有排班记录", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SchedulingController/querySchedulingList")
+    public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
+        schedulingService.querySchedulingList(inputObject, outputObject);
     }
 
 }

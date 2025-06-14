@@ -50,12 +50,12 @@ public class SchedulingLeaveController {
         schedulingLeaveService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateSchedulingLeave", value = "根据Id修改临时工请假状态", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键Id", required = "required"),
-        @ApiImplicitParam(id = "status", name = "status", value = "请假状态", required = "required")})
-    @RequestMapping("/post/SchedulingLeaveController/updateSchedulingLeave")
-    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
-        schedulingLeaveService.updateSchedulingLeave(inputObject, outputObject);
-    }
+//    @ApiOperation(id = "updateSchedulingLeave", value = "根据Id修改临时工请假状态", method = "POST", allUse = "2")
+//    @ApiImplicitParams({
+//        @ApiImplicitParam(id = "id", name = "id", value = "主键Id", required = "required"),
+//        @ApiImplicitParam(id = "status", name = "status", value = "请假状态", required = "required")})
+//    @RequestMapping("/post/SchedulingLeaveController/updateSchedulingLeave")
+//    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
+//        schedulingLeaveService.updateSchedulingLeave(inputObject, outputObject);
+//    }
 }

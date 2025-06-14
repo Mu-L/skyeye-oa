@@ -33,4 +33,11 @@ public class SchedulingShiftsTimeWorkServiceImpl extends SkyeyeBusinessServiceIm
         queryWrapper.in(CommonConstants.ID, shiftsTimeIds);
         remove(queryWrapper);
     }
+
+    @Override
+    public List<SchedulingShiftsTimeWork> queryShiftsTimeWorkByIds(List<String> schedulingShiftsTimeWorkId) {
+        QueryWrapper<SchedulingShiftsTimeWork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, schedulingShiftsTimeWorkId);
+        return list(queryWrapper);
+    }
 }

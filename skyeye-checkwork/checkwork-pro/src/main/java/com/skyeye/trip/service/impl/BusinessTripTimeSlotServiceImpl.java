@@ -43,4 +43,13 @@ public class BusinessTripTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<B
             .collect(Collectors.groupingBy(BusinessTripTimeSlot::getParentId));
         return stringListMap;
     }
+
+    @Override
+    public List<BusinessTripTimeSlot> queryBusinessTripTimeSlotByIdsAndTime(List<String> tripIds, String startTime, String endTime) {
+        QueryWrapper<BusinessTripTimeSlot> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(BusinessTripTimeSlot::getParentId), tripIds);
+        queryWrapper.ge(MybatisPlusUtil.toColumns(BusinessTripTimeSlot::getTravelDay), startTime);
+        queryWrapper.le(MybatisPlusUtil.toColumns(BusinessTripTimeSlot::getTravelDay), endTime);
+        return list(queryWrapper);
+    }
 }

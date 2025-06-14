@@ -20,4 +20,6 @@ import java.util.Map;
  */
 public interface BusinessTripTimeSlotService extends SkyeyeLinkDataService<BusinessTripTimeSlot> {
     Map<String, List<BusinessTripTimeSlot>> queryBusinessTripTimeSlotListByBusinessTripIds(List<String> allBusinessTripIds);
+
+    List<BusinessTripTimeSlot> queryBusinessTripTimeSlotByIdsAndTime(List<String> tripIds, String startTime, String endTime);
 }

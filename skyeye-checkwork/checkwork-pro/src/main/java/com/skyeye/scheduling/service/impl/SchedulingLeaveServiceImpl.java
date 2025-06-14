@@ -68,22 +68,22 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         outputObject.setBeans(schedulingLeaves);
     }
 
-    @Override
-    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String id = map.get("id").toString();
-        String status = map.get("status").toString();
-        SchedulingLeave schedulingLeave = selectById(id);
-        schedulingLeave.setStatus(Integer.valueOf(status));
-        super.updateEntity(schedulingLeave, schedulingLeave.getCreateId());
-        if (Integer.valueOf(status).equals(CommonNumConstants.NUM_TWO)) {
-            SchedulingLeave schedulingLeave1 = selectById(id);
-            String employeeId = schedulingLeave1.getEmployeeId();
-            String startTime = schedulingLeave1.getStartTime();
-            String endTime = schedulingLeave1.getEndTime();
-            schedulingService.updateEmployStateByLeave(employeeId,startTime,endTime);
-        }
-    }
+//    @Override
+//    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
+//        Map<String, Object> map = inputObject.getParams();
+//        String id = map.get("id").toString();
+//        String status = map.get("status").toString();
+//        SchedulingLeave schedulingLeave = selectById(id);
+//        schedulingLeave.setStatus(Integer.valueOf(status));
+//        super.updateEntity(schedulingLeave, schedulingLeave.getCreateId());
+//        if (Integer.valueOf(status).equals(CommonNumConstants.NUM_TWO)) {
+//            SchedulingLeave schedulingLeave1 = selectById(id);
+//            String employeeId = schedulingLeave1.getEmployeeId();
+//            String startTime = schedulingLeave1.getStartTime();
+//            String endTime = schedulingLeave1.getEndTime();
+//            schedulingService.updateEmployStateByLeave(employeeId,startTime,endTime);
+//        }
+//    }
 
     @Override
     public Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime) {

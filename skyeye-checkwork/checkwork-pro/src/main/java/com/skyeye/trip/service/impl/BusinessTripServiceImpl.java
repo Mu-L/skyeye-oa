@@ -188,6 +188,14 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
         return stringListMap;
     }
 
+    @Override
+    public List<BusinessTrip> queryBusinessTripByUserIds(List<String> formalUserIds) {
+        QueryWrapper<BusinessTrip> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), formalUserIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getState), "pass");
+        return list(queryWrapper);
+    }
+
     private List<BusinessTrip> queryAllBusinessTripListByStaffId(List<String> allIds) {
         if (CollectionUtil.isEmpty(allIds)) {
             return new ArrayList<>();

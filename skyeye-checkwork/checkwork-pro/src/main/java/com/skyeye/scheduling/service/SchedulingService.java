@@ -9,10 +9,9 @@ public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
 
     void autoComputeScheduling(InputObject inputObject, OutputObject outputObject);
 
-    void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject);
+    void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject);
 
     void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject);
 
-    void updateEmployStateByLeave(String employeeId, String startTime, String endTime);
-
+    void querySchedulingList(InputObject inputObject, OutputObject outputObject);
 }
