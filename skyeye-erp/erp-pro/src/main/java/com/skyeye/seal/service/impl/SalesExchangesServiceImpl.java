@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.constants.FlowableConstants;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonConstants;
@@ -143,21 +144,23 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
     }
 
     @Override
+    public void approvalEnd(String processInstanceId, String result) {
+        SalesExchanges entity = selectByProcessInstanceId(processInstanceId);
+        if (FlowableConstants.APPROVAL_PASS.equalsIgnoreCase(result)) {
+            approvalEndIsSuccess(entity);
+            // 换货单审批通过后修改状态为待出库
+            editStateById(entity.getId(), String.valueOf(DepotOutState.NEED_OUT.getKey()));
+        } else {
+            approvalEndIsFailed(entity);
+            editStateById(entity.getId(), FlowableStateEnum.REJECT.getKey());
+        }
+    }
+    @Override
     public void approvalEndIsSuccess(SalesExchanges entity) {
         entity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
-        // 换货单审批通过后修改状态为待出库
-        changesState(entity.getId());
     }
-    private void changesState(String id) {
-        UpdateWrapper<SalesExchanges> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(SalesExchanges::getState), String.valueOf(DepotOutState.NEED_OUT.getKey()));
-        update(updateWrapper);
-        refreshCache(id);
-    }
-
     @Override
     public void querySalesExchangesToDepotPutById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
