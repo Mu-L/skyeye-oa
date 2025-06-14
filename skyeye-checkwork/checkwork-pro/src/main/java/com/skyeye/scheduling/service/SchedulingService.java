@@ -13,4 +13,5 @@ public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
 
     void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject);
 
+    void querySchedulingList(InputObject inputObject, OutputObject outputObject);
 }

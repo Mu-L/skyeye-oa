@@ -6,10 +6,14 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -27,7 +31,6 @@ import com.skyeye.trip.entity.BusinessTrip;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
 import com.skyeye.trip.service.BusinessTripService;
 import com.skyeye.trip.service.BusinessTripTimeSlotService;
-import com.sun.star.awt.grid.XGridSelectionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -465,7 +468,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<Map<String, Object>> availableFormalStaff = getAvailableFormalStaffForTimeSlot(
             formalStaff, dateRange, shiftTime, formalLeaveMap, tripMap);
         List<Map<String, Object>> availableInformalStaff = getAvailableTempStaffForTimeSlot(
-            informalStaff, dateRange, shiftTime, informalLeaveMap);
+            informalStaff, dateRange, informalLeaveMap);
 
         // 3. 合并并排序员工列表
         List<Map<String, Object>> allAvailableStaff = new ArrayList<>();
@@ -631,7 +634,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     private List<Map<String, Object>> getAvailableTempStaffForTimeSlot(
         List<Map<String, Object>> staffList,
         List<LocalDate> dateRange,
-        SchedulingShiftsTime shiftTime,
         Map<String, List<SchedulingLeave>> leaveMap) {
 
         return staffList.stream()
@@ -669,6 +671,18 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         String ids = inputObject.getParams().get("ids").toString();
         List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK));
         deleteById(idList);
+    }
+
+    @Override
+    public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Scheduling::getCreateTime));
+        List<Scheduling> schedulingList = list(queryWrapper);
+        outputObject.setBeans(schedulingList);
+        outputObject.settotal(page.getTotal());
+
     }
 
     @Override

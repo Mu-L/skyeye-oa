@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.Scheduling;
@@ -57,6 +58,13 @@ public class SchedulingController {
     @RequestMapping("/post/SchedulingController/deleteSchedulingByIds")
     public void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject) {
         schedulingService.deleteSchedulingByIds(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "querySchedulingList", value = "查询所有排班记录", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/SchedulingController/querySchedulingList")
+    public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
+        schedulingService.querySchedulingList(inputObject, outputObject);
     }
 
 }
