@@ -26,10 +26,14 @@ public class SchedulingAuto {
     private String schedulingShiftsTimeIds;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "排班开始时间 格式:yyyy-MM-dd HH:mm" ,required = "required")
+    @ApiModelProperty(value = "班次时间段下工位id" ,required = "required")
+    private String schedulingShiftsTimeWorkId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "排班开始时间 格式:yyyy-MM-dd" ,required = "required")
     private String startTime;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "排班结束时间 格式:yyyy-MM-dd HH:mm" ,required = "required")
+    @ApiModelProperty(value = "排班结束时间 格式:yyyy-MM-dd " ,required = "required")
     private String endTime;
 }

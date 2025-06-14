@@ -23,4 +23,6 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
     void editStateById(String id, String state, Integer useYearHoliday);
 
     Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds);
+
+    List<LeaveTimeSlot> queryTimeAndIds(List<String> leaveIds, String startTime, String endTime);
 }
