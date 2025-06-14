@@ -44,7 +44,8 @@ public enum DepotPutFromType implements SkyeyeEnumClass {
     CONFIRM_RETURN(6, "物料退货单", ConfirmReturnServiceImpl.class.getName(), true, false),
     MACHIN_PUT(7, "加工入库单", MachinPutServiceImpl.class.getName(), true, false),
     SHOP_RETURNS(8, "门店退货单", ShopReturnsServiceImpl.class.getName(), true, false),
-    SHOP_CONFIRM_RETURNS(9, "门店物料退货单", ShopConfirmReturnServiceImpl.class.getName(), true, false);
+    SHOP_CONFIRM_RETURNS(9, "门店物料退货单", ShopConfirmReturnServiceImpl.class.getName(), true, false),
+    SALES_EXCHANGES(10, "销售换货单", null, false, false);
 
 
     private Integer key;

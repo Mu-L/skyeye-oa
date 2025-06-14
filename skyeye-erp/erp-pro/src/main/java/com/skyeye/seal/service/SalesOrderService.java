@@ -36,4 +36,6 @@ public interface SalesOrderService extends SkyeyeErpOrderService<SalesOrder> {
     void querySealsOrderTransProductionPlanById(InputObject inputObject, OutputObject outputObject);
 
     void insertSealsOrderToProductionPlan(InputObject inputObject, OutputObject outputObject);
+
+    void insertSealsOrderToSealExchanges(InputObject inputObject, OutputObject outputObject);
 }

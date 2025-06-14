@@ -12,6 +12,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.production.entity.ProductionPlan;
+import com.skyeye.seal.entity.SalesExchanges;
 import com.skyeye.seal.entity.SalesOrder;
 import com.skyeye.seal.entity.SalesOutLet;
 import com.skyeye.seal.entity.SalesReturns;
@@ -93,7 +94,7 @@ public class SalesOrderController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "querySealsOrderTransById", value = "转销售出库单/销售退货单时，根据id查询销售订单信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "querySealsOrderTransById", value = "转销售出库单/销售退货单/销售换货单时，根据id查询销售订单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SalesOrderController/querySealsOrderTransById")
@@ -127,6 +128,20 @@ public class SalesOrderController {
     @RequestMapping("/post/SalesOrderController/insertSealsOrderToSealsReturns")
     public void insertSealsOrderToSealsReturns(InputObject inputObject, OutputObject outputObject) {
         salesOrderService.insertSealsOrderToSealsReturns(inputObject, outputObject);
+    }
+
+    /**
+     * 销售订单转换货单
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "insertSealsOrderToSealExchanges", value = "销售订单转换货单", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = SalesExchanges.class, value = {
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/SalesOrderController/insertSealsOrderToSealExchanges")
+    public void insertSealsOrderToSealExchanges(InputObject inputObject, OutputObject outputObject) {
+        salesOrderService.insertSealsOrderToSealExchanges(inputObject, outputObject);
     }
 
     /**
