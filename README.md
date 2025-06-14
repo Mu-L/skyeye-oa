@@ -33,9 +33,9 @@
 
 ## 🐶 沟通交流
 
-| |   知识星球   | 微信公众号(Skyeye智能制造云办公)，可在公众号留言咨询，或者提Issues。 | 如果你决定现在进星球了，可以直接加我微信。(PS: 咨询在公众号，公众号有人工客服) |
-|:---------------------:|:---------------------:|:--------------------------------:|:-------------------:|
-| 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
+| |   知识星球   | 微信公众号(Skyeye智能制造云办公)，可在公众号留言咨询，或者提Issues。 | 售前咨询群 | 如果你决定现在进星球了，可以直接加我微信 |
+|:---------------------:|:---------------------:|:--------------------------------:|:-------------------:|:-------------------:|
+| 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
 
 ## Skyeye云整体规划图
 
