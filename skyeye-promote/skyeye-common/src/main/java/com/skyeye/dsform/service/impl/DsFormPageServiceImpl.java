@@ -265,6 +265,7 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
         // 根据业务对象的serviceClassName和流程模型id查询
         QueryWrapper<DsFormPage> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), serviceClassName);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getType), DsFormPageType.PROCESS_ATTR.getKey());
         queryWrapper.select(CommonConstants.ID);
         DsFormPage dsFormPage = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(dsFormPage)) {
