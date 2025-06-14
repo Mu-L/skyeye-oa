@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import org.flowable.engine.impl.persistence.entity.ModelEntityImpl;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: FlowModelDao
@@ -23,4 +24,6 @@ public interface FlowReModelDao {
     @IgnoreTenant
     List<ModelEntityImpl> getModelByIds(@Param("ids") List<String> ids, @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
+    List<ModelEntityImpl> getModelByIdsForTenant(@Param("list") List<Map<String, Object>> actFlowList);
 }

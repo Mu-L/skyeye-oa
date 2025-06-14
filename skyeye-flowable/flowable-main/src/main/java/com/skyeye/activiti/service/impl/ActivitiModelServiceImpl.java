@@ -204,6 +204,24 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         });
     }
 
+    @Override
+    public void setActivitiModelListForTenant(List<Map<String, Object>> actFlowList) {
+        // 查询模型
+        List<ModelEntityImpl> modelList = flowReModelDao.getModelByIdsForTenant(actFlowList);
+        Map<String, Model> modelMap = modelList.stream().collect(Collectors.toMap(bean -> bean.getId(), bean -> bean));
+        // 查询发布流程
+        List<String> deploymentIds = modelList.stream().filter(bean -> !ToolUtil.isBlank(bean.getDeploymentId())).map(bean -> bean.getDeploymentId()).collect(Collectors.toList());
+        List<ProcessDefinitionEntityImpl> procdefList = flowReProcdefDao.getProcdefByDeploymentIds(deploymentIds);
+        Map<String, ProcessDefinition> procdefMap = procdefList.stream().collect(Collectors.toMap(bean -> bean.getDeploymentId(), bean -> bean));
+
+        actFlowList.forEach(bean -> {
+            Model model = modelMap.get(bean.get("modelId").toString());
+            bean.put("model", BeanUtil.beanToMap(model));
+            ProcessDefinition processDefinition = procdefMap.get(model.getDeploymentId());
+            bean.put("procdef", processDefinition != null ? BeanUtil.beanToMap(processDefinition) : new HashMap<>());
+        });
+    }
+
     /**
      * 发布模型为流程定义
      *

@@ -27,6 +27,8 @@ public interface ActivitiModelService {
 
     void setActivitiModelList(List<Map<String, Object>> actFlowList);
 
+    void setActivitiModelListForTenant(List<Map<String, Object>> actFlowList);
+
     void editActivitiModelToDeploy(InputObject inputObject, OutputObject outputObject);
 
     void deleteActivitiModelById(String modelId);

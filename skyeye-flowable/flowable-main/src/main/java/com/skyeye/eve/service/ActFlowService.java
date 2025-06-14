@@ -5,6 +5,8 @@
 package com.skyeye.eve.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.ActFlowMation;
 
 import java.util.List;
@@ -30,4 +32,5 @@ public interface ActFlowService extends SkyeyeBusinessService<ActFlowMation> {
      */
     ActFlowMation getActFlow(String serviceClassName);
 
+    void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
 }
