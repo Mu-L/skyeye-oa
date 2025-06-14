@@ -135,4 +135,14 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         outputObject.settotal(pages.getTotal());
     }
 
+    @Override
+    public void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
+        String serviceClassName = inputObject.getParams().get("serviceClassName").toString();
+        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), serviceClassName);
+        List<ActFlowMation> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
+
 }
