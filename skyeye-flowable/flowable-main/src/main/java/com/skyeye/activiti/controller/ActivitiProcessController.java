@@ -58,7 +58,7 @@ public class ActivitiProcessController {
 
     @ApiOperation(id = "activitiProcess002", value = "启动流程时获取流程下一个用户节点的审批人", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "actKey", name = "actKey", value = "工作流模型的key", required = "required"),
+        @ApiImplicitParam(id = "modelKey", name = "modelKey", value = "工作流模型的key", required = "required"),
         @ApiImplicitParam(id = "businessData", name = "businessData", value = "业务数据,根据不同的业务数据走不同的工作流")})
     @RequestMapping("/post/ActivitiProcessController/nextPrcessApproverByProcessDefinitionKey")
     public void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {

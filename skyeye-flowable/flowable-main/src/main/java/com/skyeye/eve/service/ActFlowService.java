@@ -24,13 +24,7 @@ public interface ActFlowService extends SkyeyeBusinessService<ActFlowMation> {
 
     Map<String, ActFlowMation> actIdToFlowNameByIds(List<String> ids);
 
-    /**
-     * 根据服务类名获取流程模型信息
-     *
-     * @param serviceClassName 服务类名
-     * @return
-     */
-    ActFlowMation getActFlow(String serviceClassName);
+    ActFlowMation getActFlowByModelKey(String modelKey);
 
     void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
 

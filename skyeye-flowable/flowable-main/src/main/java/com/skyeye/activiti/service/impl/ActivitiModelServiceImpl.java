@@ -41,10 +41,7 @@ import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.impl.persistence.entity.ModelEntityImpl;
 import org.flowable.engine.impl.persistence.entity.ProcessDefinitionEntityImpl;
-import org.flowable.engine.repository.Deployment;
-import org.flowable.engine.repository.Model;
-import org.flowable.engine.repository.ModelQuery;
-import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.repository.*;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.slf4j.Logger;
@@ -327,10 +324,19 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
      * @return
      */
     private boolean judgeProcessKeyIsLive(ActFlowMation actFlowMation) {
-        List<ProcessDefinition> processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionKey(actFlowMation.getModelKey()).list();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(actFlowMation.getModelKey());
+        if (tenantEnable) {
+            processDefinitionQuery.processDefinitionTenantId(tenantId);
+        }
+        List<ProcessDefinition> processDefinition = processDefinitionQuery.list();
         if (processDefinition != null) {
             List<String> deploymentIds = processDefinition.stream().map(p -> p.getDeploymentId()).collect(Collectors.toList());
-            List<Model> beans = repositoryService.createModelQuery().latestVersion().orderByLastUpdateTime().desc().list();
+            ModelQuery modelQuery = repositoryService.createModelQuery();
+            if (tenantEnable) {
+                modelQuery.modelTenantId(tenantId);
+            }
+            List<Model> beans = modelQuery.latestVersion().orderByLastUpdateTime().desc().list();
             beans = beans.stream().filter(bean -> deploymentIds.contains(bean.getDeploymentId())).collect(Collectors.toList());
             if (beans != null && !beans.isEmpty()) {
                 return true;

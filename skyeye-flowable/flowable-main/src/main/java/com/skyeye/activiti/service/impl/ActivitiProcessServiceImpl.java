@@ -311,19 +311,14 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
     @Override
     public void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String actKey = params.get("actKey").toString();
+        String modelKey = params.get("modelKey").toString();
         // 获取业务数据
         String businessDataStr = params.get("businessData").toString();
         Map<String, Object> businessData = null;
         if (!ToolUtil.isBlank(businessDataStr)) {
             businessData = JSONObject.fromObject(businessDataStr);
         }
-        ActFlowMation actFlowMation = actFlowService.getActFlow(actKey);
-        if (actFlowMation == null) {
-            outputObject.setreturnMessage("流程不存在或未启动.");
-            return;
-        }
-        List<Map<String, Object>> user = this.nextPrcessApproverByProcessDefinitionKey(actFlowMation.getModelKey());
+        List<Map<String, Object>> user = this.nextPrcessApproverByProcessDefinitionKey(modelKey);
         outputObject.setBeans(user);
     }
 
@@ -428,7 +423,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             return;
         }
         // 根据业务数据和className获取配置的工作流key,如果actModel没有配置，则无法提交审批
-        ActFlowMation actFlowMation = actFlowService.getActFlow(flowableSubData.getObjectKey());
+        ActFlowMation actFlowMation = actFlowService.getActFlowByModelKey(flowableSubData.getModelKey());
         if (actFlowMation != null) {
             LOGGER.info("actFlow mation is: " + JSONUtil.toJsonStr(actFlowMation));
             // 提交审批
