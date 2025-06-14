@@ -109,10 +109,6 @@ public class DsFormPage extends OperatorUserInfo {
     @ApiModelProperty(value = "开启数据权限后，需要填写权限点编号(列表接口的权限点编号)")
     private String dataAuthPointNum;
 
-    @TableField("act_flow_id")
-    @ApiModelProperty(value = "工作流模型id")
-    private String actFlowId;
-
     @TableField("is_flowable")
     @ApiModelProperty(value = "是否开启工作流，只有开启了工作流的业务对象可以设置这个字段，参考#WhetherEnum", required = "num")
     private Integer isFlowable;

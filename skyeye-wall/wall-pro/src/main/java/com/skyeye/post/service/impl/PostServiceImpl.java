@@ -425,7 +425,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         if (tenantEnable) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getTenantId), tenantId);
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         return list(queryWrapper);
     }

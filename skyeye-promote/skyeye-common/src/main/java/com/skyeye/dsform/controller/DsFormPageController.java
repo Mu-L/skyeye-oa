@@ -67,8 +67,7 @@ public class DsFormPageController {
 
     @ApiOperation(id = "queryDsFormPageForProcess", value = "根据业务对象的serviceClassName和流程模型id查找表单布局", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "业务对象的serviceClassName", required = "required"),
-        @ApiImplicitParam(id = "actFlowId", name = "actFlowId", value = "流程模型id", required = "required")})
+        @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "业务对象的serviceClassName", required = "required")})
     @RequestMapping("/post/DsFormPageController/queryDsFormPageForProcess")
     public void queryDsFormPageForProcess(InputObject inputObject, OutputObject outputObject) {
         dsFormPageService.queryDsFormPageForProcess(inputObject, outputObject);

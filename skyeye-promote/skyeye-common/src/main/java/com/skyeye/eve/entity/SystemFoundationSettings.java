@@ -65,11 +65,11 @@ public class SystemFoundationSettings extends CommonInfo {
     private Integer noChargeId;
 
     @TableField(value = "holidays_type_json", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "企业假期类型以及扣薪信息", required = "required,json")
+    @ApiModelProperty(value = "企业假期类型以及扣薪信息", required = "json")
     private List<Map<String, Object>> holidaysTypeJson;
 
     @TableField(value = "year_holidays_mation", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "年假信息", required = "required,json")
+    @ApiModelProperty(value = "年假信息", required = "json")
     private List<Map<String, Object>> yearHolidaysMation;
 
     @TableField(value = "abnormal_mation", typeHandler = JacksonTypeHandler.class)
@@ -77,7 +77,7 @@ public class SystemFoundationSettings extends CommonInfo {
     private List<Map<String, Object>> abnormalMation;
 
     @TableField(value = "sys_order_basic_design", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "系统单据是否需要审核的设置", required = "required,json")
+    @ApiModelProperty(value = "系统单据是否需要审核的设置--暂时没用", required = "json")
     private List<Map<String, Object>> sysOrderBasicDesign;
 
 }

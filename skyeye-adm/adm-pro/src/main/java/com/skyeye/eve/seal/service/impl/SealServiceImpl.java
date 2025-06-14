@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * @ClassName: SealServiceImpl
- * @Description: 印章管理服务类
+ * @Description: 印章管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/4/5 13:02
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -39,8 +39,7 @@ public class SealServiceImpl extends SkyeyeBusinessServiceImpl<SealDao, Seal> im
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "sealAdmin", "sealAdminMation");
         iAuthUserService.setMationForMap(beans, "borrowId", "borrowMation");
         return beans;
@@ -127,20 +126,16 @@ public class SealServiceImpl extends SkyeyeBusinessServiceImpl<SealDao, Seal> im
         refreshCache(id);
     }
 
-    /**
-     * 获取我借用中的印章列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryMyRevertSealPageList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setChargePersonId(inputObject.getLogParams().get("id").toString());
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealList(pageInfo);
-        iAuthUserService.setMationForMap(beans, "sealAdmin", "sealAdminMation");
-        outputObject.setBeans(beans);
+        QueryWrapper<Seal> queryWrapper = super.getQueryWrapper(pageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Seal::getBorrowId), inputObject.getLogParams().get("id").toString());
+        List<Seal> sealList = list(queryWrapper);
+        iAuthUserService.setDataMation(sealList, Seal::getSealAdmin);
+        outputObject.setBeans(sealList);
         outputObject.settotal(pages.getTotal());
     }
 

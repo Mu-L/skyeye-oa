@@ -32,7 +32,7 @@ public class LightAppType extends IconOrImgInfo {
     private String id;
 
     @TableField("`name`")
-    @ApiModelProperty(value = "名称", required = "required")
+    @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "order_by")

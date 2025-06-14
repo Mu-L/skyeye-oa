@@ -6,13 +6,13 @@ package com.skyeye.eve.email.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.base.handler.enclosure.service.IEnclosureService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.MqConstants;
@@ -23,6 +23,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.email.classenum.EmailState;
 import com.skyeye.eve.email.dao.EmailDao;
 import com.skyeye.eve.email.entity.Email;
@@ -58,9 +59,6 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
     private EmailEnclosureService emailEnclosureService;
 
     @Autowired
-    private IEnclosureService iEnclosureService;
-
-    @Autowired
     private IJobMateMationService iJobMateMationService;
 
     @Autowired
@@ -76,21 +74,24 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         return beans;
     }
 
     private CommonPageInfo getPageObject(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
+            throw new CustomException("请先绑定邮箱后再进行操作。");
+        }
         EmailUser emailUser = emailUserService.selectById(commonPageInfo.getObjectId());
         String userId = inputObject.getLogParams().get("id").toString();
         if (!userId.equals(emailUser.getCreateId())) {
             throw new CustomException("该邮箱信息不存在或者该邮箱信息不属于当前账号。");
         }
         commonPageInfo.setObjectId(emailUser.getEmailAddress());
+        if (tenantEnable) {
+            commonPageInfo.setTenantId(TenantContext.getTenantId());
+        }
         return commonPageInfo;
     }
 
@@ -169,61 +170,34 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         return email;
     }
 
-    /**
-     * 获取我的已发送邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void querySendedEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.NORMAL.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取我的已删除邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDeleteEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
+        commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FIVE));
         commonPageInfo.setState(String.valueOf(EmailState.DELETE.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取我的草稿箱邮件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDraftsEmailListByEmailId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = getPageObject(inputObject);
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         commonPageInfo.setType(String.valueOf(CommonNumConstants.NUM_FOUR));
         commonPageInfo.setState(String.valueOf(EmailState.DRAFT.getKey()));
-        if (tenantEnable) {
-            commonPageInfo.setTenantId(TenantContext.getTenantId());
-        }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryEmailListByEmailId(commonPageInfo);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
@@ -299,5 +273,26 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
     public void insertForwardToSendEmailMationByUserId(InputObject inputObject, OutputObject outputObject) {
         EmailParams emailParams = inputObject.getParams(EmailParams.class);
         createEmail(emailParams, EmailState.NORMAL.getKey(), inputObject.getLogParams().get("id").toString(), MqConstants.JobMateMationJobType.COMPLEX_MAIL_DELIVERY.getJobType(), null);
+    }
+
+    @Override
+    public void clearEmailByObjectId(InputObject inputObject, OutputObject outputObject) {
+        String objectId = inputObject.getParams().get("objectId").toString();
+        EmailUser emailUser = emailUserService.selectById(objectId);
+        String userId = inputObject.getLogParams().get("id").toString();
+        if (!userId.equals(emailUser.getCreateId())) {
+            throw new CustomException("该邮箱信息不存在或者该邮箱信息不属于当前账号。");
+        }
+        QueryWrapper<Email> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(w -> w
+            .eq(MybatisPlusUtil.toColumns(Email::getFromPeople), emailUser.getEmailAddress())
+            .or()
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToPeople) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
+            .or()
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToCc) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
+            .or()
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToBcc) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
+        );
+        remove(queryWrapper);
     }
 }

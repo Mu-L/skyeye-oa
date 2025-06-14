@@ -8,15 +8,16 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
-import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.shopmaterialnorms.rest.IShopMaterialNormsRest;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: StoreServiceImpl
- * @Description: 门店管理服务层
+ * @Description: 门店管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 12:35
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -81,13 +82,26 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
         if (StrUtil.isNotEmpty(commonPageInfo.getLatitude()) && StrUtil.isNotEmpty(commonPageInfo.getLongitude())) {
             // 计算距离并添加距离字段
             beans.forEach(bean -> {
-                double distance = ToolUtil.calculateDistance(Double.parseDouble(commonPageInfo.getLatitude()), Double.parseDouble(commonPageInfo.getLongitude()),
-                    Double.parseDouble(MapUtil.checkKeyIsNull(bean, "latitude") ? "0" : bean.get("latitude").toString()),
-                    Double.parseDouble(MapUtil.checkKeyIsNull(bean, "longitude") ? "0" : bean.get("longitude").toString()));
-                bean.put("distance", distance);
+                String longitude = bean.getOrDefault("longitude", CommonNumConstants.NUM_ZERO).toString();
+                String latitude = bean.getOrDefault("latitude", CommonNumConstants.NUM_ZERO).toString();
+                if (StrUtil.equals("undefined", longitude) || StrUtil.equals("undefined", latitude)
+                    || StrUtil.isEmpty(longitude) || StrUtil.isEmpty(latitude)) {
+                    bean.put("distance", CommonNumConstants.NUM_ZERO);
+                } else {
+                    double distance = ToolUtil.calculateDistance(Double.parseDouble(commonPageInfo.getLatitude()), Double.parseDouble(commonPageInfo.getLongitude()),
+                        Double.parseDouble(latitude),
+                        Double.parseDouble(longitude));
+                    bean.put("distance", distance);
+                }
             });
         }
         return beans;
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryStoreListFoServer(InputObject inputObject, OutputObject outputObject) {
+        queryPageList(inputObject, outputObject);
     }
 
     @Override

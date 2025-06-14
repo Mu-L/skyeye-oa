@@ -6,12 +6,14 @@ package com.skyeye.eve.licence.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.licence.dao.LicenceUseDao;
 import com.skyeye.eve.licence.entity.LicenceUse;
 import com.skyeye.eve.licence.entity.LicenceUseLink;
@@ -23,12 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @ClassName: LicenceApplyBorrowServiceImpl
- * @Description: 证照借用服务层
+ * @Description: 证照借用服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/24 22:58
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -45,11 +46,10 @@ public class LicenceApplyBorrowServiceImpl extends SkyeyeFlowableServiceImpl<Lic
     private LicenceService licenceService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLicenceBorrowList(pageInfo);
-        return beans;
+    protected QueryWrapper<LicenceUse> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<LicenceUse> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LicenceUse::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

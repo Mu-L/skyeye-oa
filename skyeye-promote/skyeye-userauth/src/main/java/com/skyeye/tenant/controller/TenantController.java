@@ -54,6 +54,14 @@ public class TenantController {
         tenantService.selectById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryTenantByIds", value = "根据id批量查询租户信息", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/TenantController/queryTenantByIds")
+    public void queryTenantByIds(InputObject inputObject, OutputObject outputObject) {
+        tenantService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "deleteTenantById", value = "删除租户", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "租户ID", required = "required")})

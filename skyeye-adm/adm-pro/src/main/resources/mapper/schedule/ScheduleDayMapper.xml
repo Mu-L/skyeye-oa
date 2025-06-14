@@ -39,6 +39,9 @@
 		AND b.type = 3
 		AND ((#{startTime} >= a.start_time AND a.end_time >= #{startTime}) OR (#{endTime} >= b.start_time AND b.end_time >= #{endTime}))
 		ORDER BY a.start_time DESC, b.start_time DESC
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+		</if>
 		LIMIT 1
 	</select>
 	
@@ -72,6 +75,9 @@
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` like '%${keyword}%'
 			</if>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
+			</if>
 		</where>
 		ORDER BY a.create_time DESC
 	</select>
@@ -83,8 +89,15 @@
 			a.email
 		FROM
 			sys_eve_user_staff a
+			<if test="tenantId != null and tenantId != ''">
+				,tenant_user b
+			</if>
 		WHERE a.email IS NOT NULL
 		  AND LENGTH(a.email) > 0
+		<if test="tenantId != null and tenantId != ''">
+			AND b.tenant_id = #{tenantId}
+			AND b.staff_id = a.id
+		</if>
 		GROUP BY a.email
 	</select>
 
@@ -108,6 +121,9 @@
 			</if>
 			<if test="keyword != null and keyword != ''">
 				AND a.`name` like '%${keyword}%'
+			</if>
+			<if test="tenantId != '' and tenantId != null">
+				AND a.tenant_id = #{tenantId}
 			</if>
 		</where>
 		ORDER BY a.create_time DESC

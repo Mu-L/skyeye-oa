@@ -74,4 +74,10 @@ public class SysTAreaServiceImpl extends SkyeyeBusinessServiceImpl<SysTAreaDao, 
         outputObject.settotal(beans.size());
     }
 
+    @Override
+    @IgnoreTenant
+    public void selectByIds(InputObject inputObject, OutputObject outputObject) {
+        super.selectByIds(inputObject, outputObject);
+    }
+
 }

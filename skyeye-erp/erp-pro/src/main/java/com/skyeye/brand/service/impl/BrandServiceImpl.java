@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.brand.dao.BrandDao;
 import com.skyeye.brand.entity.Brand;
@@ -23,7 +24,7 @@ import java.util.List;
 
 /**
  * @ClassName: BrandServiceImpl
- * @Description: 品牌管理服务层
+ * @Description: 品牌管理服务层--平台租户
  * @author: skyeye云系列--卫志强
  * @date: 2024/6/17 21:15
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -34,6 +35,7 @@ import java.util.List;
 public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand> implements BrandService {
 
     @Override
+    @IgnoreTenant
     public void queryEnabledBrandList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<Brand> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(Brand::getEnabled), EnableEnum.ENABLE_USING.getKey());
@@ -44,6 +46,7 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
     }
 
     @Override
+    @IgnoreTenant
     public void queryPageEnabledBrandList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = null;
@@ -58,4 +61,11 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
         outputObject.setBeans(brandList);
         outputObject.settotal(pages.getTotal());
     }
+
+    @Override
+    @IgnoreTenant
+    public void selectById(InputObject inputObject, OutputObject outputObject) {
+        super.selectById(inputObject, outputObject);
+    }
+
 }

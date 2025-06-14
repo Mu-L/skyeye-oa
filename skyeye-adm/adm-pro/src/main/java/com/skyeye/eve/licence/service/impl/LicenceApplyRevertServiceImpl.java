@@ -6,12 +6,14 @@ package com.skyeye.eve.licence.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.licence.dao.LicenceRevertDao;
 import com.skyeye.eve.licence.entity.LicenceRevert;
 import com.skyeye.eve.licence.entity.LicenceRevertLink;
@@ -23,12 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @ClassName: LicenceApplyRevertServiceImpl
- * @Description: 证照归还申请服务层
+ * @Description: 证照归还申请服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/8/1 10:49
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -45,11 +46,10 @@ public class LicenceApplyRevertServiceImpl extends SkyeyeFlowableServiceImpl<Lic
     private LicenceService licenceService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryLicenceRevertList(pageInfo);
-        return beans;
+    protected QueryWrapper<LicenceRevert> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<LicenceRevert> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LicenceRevert::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

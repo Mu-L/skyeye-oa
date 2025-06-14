@@ -16,12 +16,18 @@
         <where>
             AND a.state = #{state}
             <if test="type == '' or type == null">
-                AND (a.to_people = #{objectId}
+                AND (INSTR(CONCAT(',', a.to_people, ','), CONCAT(',', #{objectId}, ','))
                     OR INSTR(CONCAT(',', a.to_cc, ','), CONCAT(',', #{objectId}, ','))
                     OR INSTR(CONCAT(',', a.to_bcc, ','), CONCAT(',', #{objectId}, ',')))
             </if>
-            <if test="type == '4'">
+            <if test="type == '4'.toString()">
                 AND a.from_people = #{objectId}
+            </if>
+            <if test="type == '5'.toString()">
+                AND (a.from_people = #{objectId}
+                OR INSTR(CONCAT(',', a.to_people, ','), CONCAT(',', #{objectId}, ','))
+                OR INSTR(CONCAT(',', a.to_cc, ','), CONCAT(',', #{objectId}, ','))
+                OR INSTR(CONCAT(',', a.to_bcc, ','), CONCAT(',', #{objectId}, ',')))
             </if>
             <if test="sqlExtract != '' and sqlExtract != null">
                 ${sqlExtract}

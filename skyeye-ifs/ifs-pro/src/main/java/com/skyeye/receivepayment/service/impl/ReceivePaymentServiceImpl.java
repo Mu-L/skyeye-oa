@@ -7,6 +7,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -24,6 +25,7 @@ import com.skyeye.rest.crm.receivable.service.ICrmReceivableService;
 import com.skyeye.rest.erp.payable.service.IErpPayableService;
 import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -58,6 +60,8 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Autowired
     private IErpPayableService iErpPayableService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
 
     @Override
     public void createPrepose(ReceivePayment entity) {
@@ -88,7 +92,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     }
 
     @Override
-    public List<ReceivePayment> getBeforeThirtyDaysReceivePayment() {
+    public List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId) {
         //获取前三十天以内的日期
         String beforeDay = getBeforeOrFutureDay(-29);
         String today = DateUtil.getTimeAndToString();
@@ -97,6 +101,9 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
         queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getState), FlowableStateEnum.PASS.getKey())
                 .between(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
+        if(tenantEnable){
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
         return list(queryWrapper);
     }
 

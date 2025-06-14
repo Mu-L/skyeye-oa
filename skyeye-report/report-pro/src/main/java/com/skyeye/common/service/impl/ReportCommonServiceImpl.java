@@ -360,6 +360,7 @@ public class ReportCommonServiceImpl implements ReportCommonService {
                     // 格式化为"表名.列名"的形式
                     nodePaths.add(prefix + "." + columnName);
                 }
+                column.setName("data[*]." + column.getName());
             }
 
             // 4.构造返回结果

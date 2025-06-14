@@ -22,7 +22,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum SealOutLetFromType implements SkyeyeEnumClass {
 
-    SEAL_ORDER(1, "销售订单", true, false);
+    SEAL_ORDER(1, "销售订单", true, false),
+    SALE_EXCHANGES(2, "销售换货单", true, false),;
 
     private Integer key;
 

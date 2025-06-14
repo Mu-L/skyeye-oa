@@ -4,11 +4,13 @@
 
 package com.skyeye.eve.vehicle.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.vehicle.dao.VehicleApplyUseDao;
 import com.skyeye.eve.vehicle.entity.VehicleUse;
 import com.skyeye.eve.vehicle.service.VehicleApplyUseService;
@@ -45,14 +47,19 @@ public class VehicleApplyUseServiceImpl extends SkyeyeFlowableServiceImpl<Vehicl
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryVehicleUseList(pageInfo);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         vehicleService.setMationForMap(beans, "vehicleId", "vehicleMation");
         // 设置驾驶员信息
         iAuthUserService.setMationForMap(beans, "driverId", "driverMation");
         return beans;
+    }
+
+    @Override
+    protected QueryWrapper<VehicleUse> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<VehicleUse> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(VehicleUse::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

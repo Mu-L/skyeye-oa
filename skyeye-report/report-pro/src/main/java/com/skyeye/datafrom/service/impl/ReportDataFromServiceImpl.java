@@ -168,13 +168,15 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 String userToken = GetUserToken.getUserToken(InputObject.getRequest());
                 requestHeaderKey2Value.put("userToken", userToken);
 
-                String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, inputParams);
+                String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, restEntity.getRequestBody());
                 return responseData;
             } else if (reportDataFrom.getType() == ReportDataFromType.SQL.getKey()) {
                 // 1.获取数据源信息
                 ReportDataSource dataBase = reportDataBaseService.getReportDataSource(reportDataFrom.getSqlEntity().getDataBaseId());
                 List<ReportMetaDataRow> metaDataRows = QueryerFactory.create(dataBase).getMetaDataRows(reportDataFrom.getSqlEntity().getSqlContent());
-                return JSON.toJSONString(resetSqlResultData(metaDataRows));
+                Map<String, Object> result = new HashMap<>();
+                result.put("data", resetSqlResultData(metaDataRows));
+                return JSON.toJSONString(result);
             }
         }
         return "{}";

@@ -89,18 +89,34 @@ public class EmailController {
         emailService.editToDraftsEmailMationByUserId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "useremail016", value = "保存邮件为草稿", method = "POST", allUse = "2")
+    @ApiOperation(id = "useremail016", value = "草稿箱里的邮件发送", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertToSendEmailMationByEmailId")
     public void insertToSendEmailMationByEmailId(InputObject inputObject, OutputObject outputObject) {
         emailService.insertToSendEmailMationByEmailId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "useremail019", value = "保存邮件为草稿", method = "POST", allUse = "2")
+    @ApiOperation(id = "useremail019", value = "转发邮件发送", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EmailParams.class)
     @RequestMapping("/post/EmailController/insertForwardToSendEmailMationByUserId")
     public void insertForwardToSendEmailMationByUserId(InputObject inputObject, OutputObject outputObject) {
         emailService.insertForwardToSendEmailMationByUserId(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deleteEmailById", value = "根据id删除邮件信息", method = "DELETE", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/EmailController/deleteEmailById")
+    public void deleteEmailById(InputObject inputObject, OutputObject outputObject) {
+        emailService.deleteById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "clearEmailByObjectId", value = "根据用户绑定的邮箱id清空邮件信息", method = "DELETE", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "用户绑定的邮箱id", required = "required")})
+    @RequestMapping("/post/EmailController/clearEmailByObjectId")
+    public void clearEmailByObjectId(InputObject inputObject, OutputObject outputObject) {
+        emailService.clearEmailByObjectId(inputObject, outputObject);
     }
 
 }

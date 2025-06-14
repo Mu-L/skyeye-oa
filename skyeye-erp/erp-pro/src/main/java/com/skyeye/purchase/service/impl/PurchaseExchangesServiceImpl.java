@@ -5,33 +5,30 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
-import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
-import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
-import com.skyeye.inspection.classenum.QualityInspectionReturnState;
+import com.skyeye.inspection.classenum.QualityInspectionExchangesState;
 import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.entity.QualityInspectionItem;
 import com.skyeye.inspection.service.QualityInspectionService;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.purchase.classenum.PurchaseDeliveryFromType;
 import com.skyeye.purchase.classenum.PurchaseExchangesFromType;
-import com.skyeye.purchase.classenum.QualityInspectionExchangesState;
 import com.skyeye.purchase.dao.PurchaseExchangesDao;
 import com.skyeye.purchase.entity.PurchaseDelivery;
 import com.skyeye.purchase.entity.PurchaseExchange;
 import com.skyeye.purchase.entity.PurchaseOrder;
-import com.skyeye.purchase.entity.PurchaseReturn;
 import com.skyeye.purchase.service.*;
 import com.skyeye.util.ErpOrderUtil;
 import com.skyeye.whole.entity.WholeOrderOut;
@@ -107,6 +104,9 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
             // 整单委外单
             wholeOrderOutService.setDataMation(purchaseExchange, PurchaseExchange::getFromId);
         }
+        purchaseExchange.getErpOrderItemList().forEach(erpOrderItem -> {
+            erpOrderItem.setQualityInspectionMation(OrderItemQualityInspectionType.getMation(erpOrderItem.getQualityInspection()));
+        });
         return purchaseExchange;
     }
 
@@ -179,9 +179,9 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
                     .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList());
             // 如果该质检单的商品已经退货完成，那说明已经完成了质检单的内容
             if (CollectionUtil.isEmpty(qualityInspectionItemList)) {
-                qualityInspectionService.editReturnState(qualityInspection.getId(), QualityInspectionExchangesState.COMPLATE_EXCHANGES.getKey());
+                qualityInspectionService.editExchangesState(qualityInspection.getId(), QualityInspectionExchangesState.COMPLATE_EXCHANGES.getKey());
             } else {
-                qualityInspectionService.editReturnState(qualityInspection.getId(), QualityInspectionExchangesState.PARTIAL_EXCHANGES.getKey());
+                qualityInspectionService.editExchangesState(qualityInspection.getId(), QualityInspectionExchangesState.PARTIAL_EXCHANGES.getKey());
             }
         }
     }
@@ -217,6 +217,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
     }
+
     @Override
     public void queryPurchaseExchangesTransToDeliveryById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();

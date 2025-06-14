@@ -4,12 +4,8 @@
 
 package com.skyeye.eve.vehicle.dao;
 
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.eve.vehicle.entity.Maintenance;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: MaintenanceDao
@@ -20,7 +16,5 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface MaintenanceDao extends SkyeyeBaseMapper<Maintenance> {
-
-    List<Map<String, Object>> queryMaintenanceList(CommonPageInfo pageInfo);
 
 }

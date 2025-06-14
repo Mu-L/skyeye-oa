@@ -27,6 +27,7 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -185,8 +186,9 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
                 }
                 if (tenantEnable) {
                     // 多组户
-                    userMation.put("tenantId", user.getTenantId());
-                    userMation.put("tenantMation", iTenantService.queryDataMationById(user.getTenantId()));
+                    String tenantId = user.getTenantId();
+                    userMation.put(CommonConstants.TENANT_ID, tenantId);
+                    userMation.put("tenantMation", iTenantService.queryDataMationById(tenantId));
                 }
                 userMation.put("userToken", userToken);
                 userMation.put("password", null);
@@ -214,7 +216,7 @@ public class UserServiceImpl extends SkyeyeBusinessServiceImpl<UserDao, User> im
         User user = new User();
         if (tenantEnable) {
             // 多租户模式下
-            String tenantId = (String) map.get("tenantId");
+            String tenantId = (String) map.get(CommonConstants.TENANT_ID);
             if (StrUtil.isEmpty(tenantId)) {
                 throw new CustomException("请选择租户!");
             }

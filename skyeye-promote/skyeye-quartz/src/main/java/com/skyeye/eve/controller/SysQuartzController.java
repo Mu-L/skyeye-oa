@@ -23,12 +23,6 @@ public class SysQuartzController {
     @Autowired
     private SysQuartzService sysQuartzService;
 
-    /**
-     * 启动定时任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "startUpTaskQuartz", value = "启动定时任务", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SysQuartzMation.class)
     @RequestMapping("/post/SysQuartzController/startUpTaskQuartz")
@@ -36,12 +30,6 @@ public class SysQuartzController {
         sysQuartzService.startUpTaskQuartz(inputObject, outputObject);
     }
 
-    /**
-     * 停止并删除定时任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "stopAndDeleteTaskQuartz", value = "停止并删除定时任务", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "任务的唯一值，例如：工作计划的id等", required = "required")})
