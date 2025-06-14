@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonConstants;
@@ -103,6 +104,9 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
             // 整单委外单
             wholeOrderOutService.setDataMation(purchaseExchange, PurchaseExchange::getFromId);
         }
+        purchaseExchange.getErpOrderItemList().forEach(erpOrderItem -> {
+            erpOrderItem.setQualityInspectionMation(OrderItemQualityInspectionType.getMation(erpOrderItem.getQualityInspection()));
+        });
         return purchaseExchange;
     }
 
