@@ -17,6 +17,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
@@ -675,6 +676,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         deleteById(idList);
     }
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -690,6 +694,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         for (Scheduling scheduling : schedulingList) {
             scheduling.setShiftMation(collect1.get(scheduling.getShiftId()).get(CommonNumConstants.NUM_ZERO));
         }
+        iAuthUserService.setName(schedulingList, "createId", "createName");
+        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(schedulingList);
         outputObject.settotal(page.getTotal());
 
