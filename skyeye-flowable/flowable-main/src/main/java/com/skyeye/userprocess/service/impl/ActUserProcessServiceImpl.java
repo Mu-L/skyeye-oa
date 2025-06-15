@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -26,13 +27,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActUserProcessServiceImpl
- * @Description: 用户启动的流程管理服务层
+ * @Description: 用户启动的流程管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/12/18 10:32
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "用户启动的流程", groupName = "用户启动的流程")
 public class ActUserProcessServiceImpl extends SkyeyeBusinessServiceImpl<ActUserProcessDao, ActUserProcess> implements ActUserProcessService {
 
     @Autowired

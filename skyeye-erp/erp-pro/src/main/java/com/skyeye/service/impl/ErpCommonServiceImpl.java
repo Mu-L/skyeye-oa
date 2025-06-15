@@ -183,11 +183,12 @@ public class ErpCommonServiceImpl implements ErpCommonService {
         Map<String, Object> map = inputObject.getParams();
         String serviceClassName = map.get("serviceClassName").toString();
         String id = map.get("id").toString();
+        String modelKey = map.get("modelKey").toString();
         String approvalId = map.get("approvalId").toString();
         try {
             Class<?> clazz = Class.forName(serviceClassName);
             SkyeyeErpOrderService skyeyeErpOrderService = (SkyeyeErpOrderService) SpringUtils.getBean(clazz);
-            skyeyeErpOrderService.submitToApproval(id, FormSubType.SUB_FLOWABLE.getKey(), approvalId);
+            skyeyeErpOrderService.submitToApproval(id, FormSubType.SUB_FLOWABLE.getKey(), approvalId, modelKey);
         } catch (Exception ex) {
             throw new RuntimeException("orderSubmitToApproval error", ex);
         }

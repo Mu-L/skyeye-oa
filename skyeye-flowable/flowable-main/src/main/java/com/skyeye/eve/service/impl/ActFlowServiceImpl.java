@@ -98,16 +98,10 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         return actFlowMationMap;
     }
 
-    /**
-     * 根据服务类名获取流程模型信息
-     *
-     * @param serviceClassName 服务类名
-     * @return
-     */
     @Override
-    public ActFlowMation getActFlow(String serviceClassName) {
+    public ActFlowMation getActFlowByModelKey(String modelKey) {
         QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), serviceClassName);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getModelKey), modelKey);
         return getOne(queryWrapper, false);
     }
 
