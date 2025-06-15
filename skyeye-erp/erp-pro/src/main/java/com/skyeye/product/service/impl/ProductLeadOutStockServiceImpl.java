@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -36,6 +37,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "借出出库", groupName = "借出出库", flowable = true)
 public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<ProductLeadOutStockDao, ProductLeadOutStock> implements ProductLeadOutStockService {
+
+    @Autowired
+    private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
 
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -129,5 +133,10 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库出库单.");
         }
+    }
+
+    @Override
+    public void deletePostpose(String id) {
+        skyeyeErpOrderItemService.deleteByPId(id);
     }
 }

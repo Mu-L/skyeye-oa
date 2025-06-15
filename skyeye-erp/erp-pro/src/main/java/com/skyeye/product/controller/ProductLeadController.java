@@ -86,7 +86,7 @@ public class ProductLeadController {
     @ApiOperation(id = "revokeProductLead", value = "撤销借出申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
-    @RequestMapping("/post/ProductLeadController/revoke")
+    @RequestMapping("/post/ProductLeadController/revokeProductLead")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         productLeadService.revoke(inputObject, outputObject);
     }
