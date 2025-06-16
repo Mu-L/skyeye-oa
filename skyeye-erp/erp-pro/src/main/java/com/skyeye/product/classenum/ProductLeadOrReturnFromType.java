@@ -8,9 +8,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum ProductLeadFromType implements SkyeyeEnumClass {
+public enum ProductLeadOrReturnFromType implements SkyeyeEnumClass {
 
-    LOANOUT(1, "借出出库单", true, false);
+    LOANOUT(1, "借出出库单", true, false),
+    LOANIN(2, "归还入库单", true, false);
 
     private Integer key;
 

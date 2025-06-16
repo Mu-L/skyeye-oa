@@ -97,7 +97,7 @@ public class ProductLeadOutStockController {
      */
     @ApiOperation(id = "revokeProductOutStock", value = "撤销借出出库", method = "PUT", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "revokeProductOutStock", name = "processInstanceId", value = "流程实例id", required = "required")})
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/ProductLeadOutStockController/revokeProductOutStock")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         productLeadOutStockService.revoke(inputObject, outputObject);

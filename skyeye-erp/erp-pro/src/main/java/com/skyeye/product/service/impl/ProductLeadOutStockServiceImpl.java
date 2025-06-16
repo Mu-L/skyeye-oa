@@ -19,11 +19,10 @@ import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
-import com.skyeye.product.classenum.ProductLeadFromType;
+import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadOutStockDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
-import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +40,9 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Autowired
     private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
 
+    @Autowired
+    private DepotOutService depotOutService;
+
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -55,12 +57,21 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
 
     @Override
     public void validatorEntity(ProductLeadOutStock entity) {
+        List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
+        if (CollectionUtil.isEmpty(erpOrderItemList)) {
+            throw new CustomException("该借出出库订单没有商品信息");
+        }
+        erpOrderItemList.forEach(
+            e -> {
+                String depotId = e.getDepotId();
+                if (StrUtil.isEmpty(depotId)) {
+                    throw new CustomException("商品[" + e.getMaterialMation().getName() + "]没有选择仓库");
+                }
+            }
+        );
         entity.setOtherState(DepotOutState.NEED_OUT.getKey());
         checkMaterialNorms(entity, false);
     }
-
-    @Autowired
-    private DepotOutService depotOutService;
 
     private void checkMaterialNorms(ProductLeadOutStock entity, boolean setData) {
         if (StrUtil.isEmpty(entity.getFromId())) {
@@ -72,11 +83,10 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         // 获取已经下达借出出库订单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
-        if (entity.getFromTypeId() == ProductLeadFromType.LOANOUT.getKey()) {
+        if (entity.getFromTypeId() == ProductLeadOrReturnFromType.LOANOUT.getKey()) {
             // 借出出库单
             checkAndUpdateFromState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
         }
-
     }
 
     private void checkAndUpdateFromState(
@@ -103,7 +113,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     public void queryProductLeadOutStockById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ProductLeadOutStock productLeadOutStock = selectById(id);
-        // 该补料出库单下的已经下达仓库出库单(审核通过)的数量
+        // 该出库单下的已经下达仓库出库单(审核通过)的数量
         Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(productLeadOutStock.getId());
         // 设置未下达商品数量-----补料出库单数量 - 已出库数量
         super.setOrCheckOperNumber(productLeadOutStock.getErpOrderItemList(), true, depotNumMap);
@@ -118,7 +128,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void insertProductLeadOutStockToTurnDepot(InputObject inputObject, OutputObject outputObject) {
         DepotOut depotOut = inputObject.getParams(DepotOut.class);
-        // 获取补料出库单状态
+        // 获取借出出库单状态
         ProductLeadOutStock productLeadOutStock = selectById(depotOut.getId());
         if (ObjectUtil.isEmpty(productLeadOutStock)) {
             throw new CustomException("该数据不存在.");
@@ -127,12 +137,27 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         if (FlowableStateEnum.PASS.getKey().equals(productLeadOutStock.getState())) {
             String userId = inputObject.getLogParams().get("id").toString();
             depotOut.setFromId(depotOut.getId());
-            depotOut.setFromTypeId(DepotOutFromType.PATCH_OUTLET.getKey());
+            depotOut.setFromTypeId(ProductLeadOrReturnFromType.LOANOUT.getKey());
             depotOut.setId(StrUtil.EMPTY);
             depotOutService.createEntity(depotOut, userId);
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库出库单.");
         }
+    }
+
+    @Override
+    public List<ProductLeadOutStock> queryLeadByHolderId(String holderId) {
+        QueryWrapper<ProductLeadOutStock> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductLeadOutStock::getHolderId), holderId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductLeadOutStock::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProductLeadOutStock::getCreateTime));
+        List<ProductLeadOutStock> list = list(queryWrapper);
+        List<String> productLeadOutStockIds = list.stream().map(ProductLeadOutStock::getId).collect(Collectors.toList());
+        List<ErpOrderItem> erpOrderItems = skyeyeErpOrderItemService.queryErpOrderItemByPIds(productLeadOutStockIds);
+        Map<String, List<ErpOrderItem>> stringListMap = erpOrderItems.stream().collect(Collectors.groupingBy(ErpOrderItem::getParentId));
+        list.forEach(productLeadOutStock ->
+            productLeadOutStock.setErpOrderItemList(stringListMap.get(productLeadOutStock.getId())));
+        return list(queryWrapper);
     }
 
     @Override

@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
-import com.skyeye.common.entity.features.SkyeyeFlowable;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.material.entity.Material;
@@ -15,9 +14,9 @@ import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
 
 @Data
-@TableName(value = "erp_product_lead_child")
-@ApiModel("借出申请表-子单据表实体类")
-public class ProductLeadChild extends SkyeyeLinkData {
+@TableName(value = "erp_product_return_child")
+@ApiModel("归还申请表-子单据表实体类")
+public class ProductReturnChild extends SkyeyeLinkData {
 
     @TableField("material_id")
     @ApiModelProperty(value = "产品id", required = "required")
@@ -44,7 +43,7 @@ public class ProductLeadChild extends SkyeyeLinkData {
     private MaterialNorms normsMation;
 
     @TableField(value = "unit_price")
-    @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")
+    @ApiModelProperty(value = "销售单价", required = "double", defaultValue = "0")
     private String unitPrice;
 
     @TableField(value = "depot_id")
@@ -54,4 +53,5 @@ public class ProductLeadChild extends SkyeyeLinkData {
     @TableField(exist = false)
     @Property(value = "仓库信息")
     private Depot depotMation;
+
 }

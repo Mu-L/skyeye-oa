@@ -331,7 +331,7 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
         }
         QueryWrapper<Leave> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(Leave::getCreateId), formalUserIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Leave::getState), "pass");
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Leave::getState), FlowableStateEnum.PASS.getKey());
         return list(queryWrapper);
     }
 

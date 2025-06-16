@@ -192,7 +192,7 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     public List<BusinessTrip> queryBusinessTripByUserIds(List<String> formalUserIds) {
         QueryWrapper<BusinessTrip> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), formalUserIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getState), "pass");
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getState), FlowableStateEnum.PASS.getKey());
         return list(queryWrapper);
     }
 
