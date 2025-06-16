@@ -7,11 +7,13 @@ package com.skyeye.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.SysUserAuthConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.RequestType;
 import com.skyeye.common.enumeration.SmsSceneEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -40,6 +42,7 @@ import static com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl.TR
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "商城登录", groupName = "商城登录", tenant = TenantEnum.NO_ISOLATION)
 public class ShopAppAuthServiceImpl implements ShopAppAuthService {
 
     @Autowired
