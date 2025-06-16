@@ -122,6 +122,7 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
     }
 
     @Override
+    @IgnoreTenant
     public ShopStore selectById(String id) {
         ShopStore shopStore = super.selectById(id);
         shopAreaService.setDataMation(shopStore, ShopStore::getShopAreaId);
