@@ -17,6 +17,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
@@ -514,10 +515,10 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 queryWrapper1.eq(MybatisPlusUtil.toColumns(FileConsole::getFileMd5), md5);
                 queryWrapper1.eq(MybatisPlusUtil.toColumns(FileConsole::getChunk), chunk);
                 remove(queryWrapper1);
-                LOGGER.error("文件上传失败，请重新上传");
+                outputObject.setreturnMessage(String.format(Locale.ROOT, "MD5:%s,分块:%s不存在", md5, chunk));
             }
         } else {
-            LOGGER.error("文件上传失败，请重新上传");
+            outputObject.setreturnMessage(String.format(Locale.ROOT, "MD5:%s,分块:%s不存在", md5, chunk));
         }
     }
 
@@ -919,20 +920,28 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
             // 选择保存的文件夹不为空
             List<Map<String, Object>> folderNew = fileCatalogService.queryFolderAndChildList(folderBeans);
             List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryChildFileListByFolder(folderNew, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
+            fileNew.forEach(file -> {
+                file.put("fileAddress", file.get("address").toString());
+            });
             dowlLoadFile.addAll(folderNew);
             dowlLoadFile.addAll(fileNew);
         }
         if (!fileBeans.isEmpty()) {
             // 选择保存的文件不为空
             List<Map<String, Object>> fileNew = skyeyeBaseMapper.queryShareFileListByFileList(fileBeans, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
+            fileNew.forEach(file -> {
+                file.put("fileAddress", file.get("address").toString());
+            });
             dowlLoadFile.addAll(fileNew);
         }
 
         if (!dowlLoadFile.isEmpty()) {
             for (Map<String, Object> folder : dowlLoadFile) {
                 // 重置父id
-                String[] str = folder.get("parentId").toString().split(",");
+                String[] str = folder.get("parentId").toString().split(CommonCharConstants.COMMA_MARK);
                 folder.put("directParentId", str[str.length - 1]);
+                folder.put("fileName", folder.get("name").toString());
+                folder.put("fileType", folder.get("type").toString());
             }
             //将数据转化为树的形式，方便进行父id重新赋值
             dowlLoadFile = ToolUtil.listToTree(dowlLoadFile, "id", "directParentId", "children");
@@ -940,7 +949,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
             String fileName = String.valueOf(System.currentTimeMillis());//压缩包文件名
             String basePath = tPath + FileConstants.FileUploadPath.getSavePath(FILE_PATH_TYPE) + "/" + userId;
             String visitPath = FileConstants.FileUploadPath.getVisitPath(FILE_PATH_TYPE) + userId;
-            String strZipPath = basePath + "/" + fileName + ".zip";
+            String strZipPath = basePath + CommonCharConstants.SLASH_MARK + fileName + ".zip";
             File zipFile = new File(strZipPath);
             if (zipFile.exists()) {
                 outputObject.setreturnMessage("该文件已存在，生成失败。");
@@ -949,7 +958,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 ZipOutputStream out = null;
                 try {
                     out = new ZipOutputStream(new FileOutputStream(strZipPath));
-                    ToolUtil.recursionZip(out, dowlLoadFile, "", tPath.replace("images", ""), 2);
+                    ToolUtil.recursionZip(out, dowlLoadFile, StrUtil.EMPTY, tPath.replace("images", StrUtil.EMPTY), 2);
                 } catch (Exception ee) {
                     throw new CustomException(ee);
                 } finally {
@@ -964,7 +973,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
             fileConsole.setChunkSize(String.valueOf(zipFile.length()));
             fileConsole.setType(FileType.PACKAGE_IS_ZIP.getKey());
             fileConsole.setSizeType("bytes");
-            String trueFileName = visitPath + "/" + fileName + "." + FileType.PACKAGE_IS_ZIP.getKey();
+            String trueFileName = visitPath + CommonCharConstants.SLASH_MARK + fileName + "." + FileType.PACKAGE_IS_ZIP.getKey();
             fileConsole.setAddress(trueFileName);
             fileConsole.setThumbnail("../../assets/images/rar.png");
             createEntity(fileConsole, userId);
@@ -990,7 +999,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
             String userId = inputObject.getLogParams().get("id").toString();
             String basePath = tPath + FileConstants.FileUploadPath.getSavePath(FILE_PATH_TYPE) + "/" + userId + "/";
             String visitPath = FileConstants.FileUploadPath.getVisitPath(FILE_PATH_TYPE) + userId;
-            String zipfile = tPath.replace("images", "") + fileConsole.getAddress();//压缩包文件
+            String zipfile = tPath.replace("images", StrUtil.EMPTY) + fileConsole.getAddress();//压缩包文件
             if (new File(zipfile).exists()) {
                 ZipEntry entry;
                 ZipFile zip = null;

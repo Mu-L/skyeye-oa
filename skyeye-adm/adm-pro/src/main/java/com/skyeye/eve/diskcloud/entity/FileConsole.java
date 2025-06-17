@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.diskcloud.classenum.FileType;
 import lombok.Data;
 
 /**
@@ -45,7 +46,7 @@ public class FileConsole extends OperatorUserInfo {
     private String address;
 
     @TableField(value = "type")
-    @Property(value = "文件类型，参考#FileType")
+    @Property(value = "文件类型", enumClass = FileType.class)
     private String type;
 
     @TableField(value = "size")
