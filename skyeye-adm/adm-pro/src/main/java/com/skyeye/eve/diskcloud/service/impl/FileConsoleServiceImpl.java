@@ -1014,15 +1014,15 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                     zip = new ZipFile(zipfile, charset);
                     Map<String, Object> bean;
                     Enumeration<ZipEntry> enums = (Enumeration<ZipEntry>) zip.entries();
-                    String fileName = "";//文件名称
-                    String fileZipPath = "";//文件路径--作为文件父id
-                    String newSaveFileName = "";//新文件保存名称
+                    String fileName;//文件名称
+                    String fileZipPath;//文件路径--作为文件父id
+                    String newSaveFileName;//新文件保存名称
                     while (enums.hasMoreElements()) {
                         entry = enums.nextElement();
                         bean = new HashMap<>();
                         if (entry.isDirectory()) {
                             fileName = ToolUtil.getSubStr("/" + entry.getName(), 2);//文件名
-                            fileZipPath = entry.getName().replace(fileName, "");//文件路径--作为文件父id
+                            fileZipPath = entry.getName().replace(fileName, StrUtil.EMPTY);//文件路径--作为文件父id
                             if (ToolUtil.isBlank(fileZipPath)) {
                                 bean.put("parentId", "0");
                             } else {
@@ -1031,8 +1031,8 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                             bean.put("originalName", entry.getName());
                             bean.put("id", entry.getName());
                             bean.put("newId", ToolUtil.getSurFaceId());
-                            bean.put("name", fileName.replace("/", ""));
-                            bean.put("address", "");
+                            bean.put("name", fileName.replace("/", StrUtil.EMPTY));
+                            bean.put("address", StrUtil.EMPTY);
                             bean.put("fileExtName", DickCloudType.FOLDER.getKey());
                             beans.add(bean);
                         } else {
@@ -1082,19 +1082,21 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                 if (!folderList.isEmpty()) {
                     fileConsoleDao.insertFolderList(folderList, tenantId);
                 }
+                String baseShowPath = tPath.replace("images", StrUtil.EMPTY);
                 for (Map<String, Object> item : fileList) {//文件
-                    File f = new File(tPath.replace("images", "") + item.get("address").toString());
+                    File f = new File(baseShowPath + item.get("address").toString());
                     item.put("sizeType", "bytes");//文件大小单位
                     item.put("size", f.length());//文件大小
                     item.put("chunk", 0);//文件整合完之后的序号 默认0
                     item.put("chunkSize", f.length());//文件整合之后的大小
                     String fileExtName = item.get("fileExtName").toString();
+                    item.put("type", fileExtName);
                     if (FileType.judgeIsAllowedFileType(fileExtName, 1)) {//图片
                         item.put("thumbnail", item.get("address").toString());//文件缩略图地址
                     } else if (FileType.judgeIsAllowedFileType(fileExtName, 6)) {//电子书
                         String picName = System.currentTimeMillis() + ".jpg";
                         String newFilename = basePath + picName;
-                        writeAndReadQpubFileThumbnail(tPath.replace("images", "") + item.get("address").toString(), newFilename);
+                        writeAndReadQpubFileThumbnail(baseShowPath + item.get("address").toString(), newFilename);
                         // 文件缩略图地址
                         item.put("thumbnail", visitPath + "/" + picName);
                     } else if (FileType.judgeIsAllowedFileType(fileExtName, 2)) {
@@ -1105,12 +1107,12 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
                         item.put("thumbnail", FileType.getIconByFileExt(fileExtName));
                     } else if (FileType.judgeIsAllowedFileType(fileExtName, 3)) {//视频
                         String ffmpegGPath = tPath + "/util/ffmpeg.exe";//工具路径
-                        String fileThumbnail = String.valueOf(System.currentTimeMillis()) + ".jpg";
+                        String fileThumbnail = System.currentTimeMillis() + ".jpg";
                         FileUtil.createDirs(basePath + "ffmpeg/");
-                        if (ToolUtil.take(tPath.replace("images", "") + item.get("address").toString(), basePath + "ffmpeg/" + fileThumbnail, ffmpegGPath)) {
+                        if (ToolUtil.take(baseShowPath + item.get("address").toString(), basePath + "ffmpeg/" + fileThumbnail, ffmpegGPath)) {
                             item.put("thumbnail", visitPath + "/ffmpeg/" + fileThumbnail);
                         } else {
-                            FileUtil.deleteFile(tPath.replace("images", "") + item.get("address").toString());
+                            FileUtil.deleteFile(baseShowPath + item.get("address").toString());
                             outputObject.setreturnMessage("上传失败。");
                             return;
                         }
