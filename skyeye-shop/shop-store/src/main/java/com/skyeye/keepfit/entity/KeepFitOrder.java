@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.keepfit.classenum.KeepFitOrderState;
 import com.skyeye.meal.entity.MealOrderChild;
 import com.skyeye.store.entity.ShopStore;
 import lombok.Data;
@@ -124,7 +125,7 @@ public class KeepFitOrder extends OperatorUserInfo {
     private ShopStore storeMation;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#KeepFitOrderState")
+    @Property(value = "状态", enumClass = KeepFitOrderState.class)
     private Integer state;
 
     @TableField(value = "online_day")

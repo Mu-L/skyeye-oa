@@ -6,7 +6,7 @@
         SELECT
             a.store_id keepfitStoreId,
             c.store_id mealByStoreId,
-            IFNULL(SUM(IFNULL(a.meal_single_price, 0)), 0) mealAllSinglePrice,
+            IFNULL(SUM(IFNULL(b.meal_price, 0)), 0) mealAllSinglePrice,
             DATE_FORMAT(a.create_time, '%Y-%m-%d') createTime
         FROM
             shop_keepfit_order a
@@ -15,15 +15,18 @@
         WHERE a.state IN(2, 3)
         AND DATE_FORMAT(a.create_time, '%Y-%m-%d') = #{day}
         AND a.store_id != c.store_id
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
         GROUP BY a.store_id, c.store_id
     </select>
 
     <insert id="insertStoreIntercourse" parameterType="java.util.Map">
         INSERT INTO shop_store_intercourse
-        (id, keepfi_store_id, meal_by_store_id, meal_all_single_price, intercourse_time, state)
+        (id, keepfi_store_id, meal_by_store_id, meal_all_single_price, intercourse_time, state, tenant_id)
         VALUES
         <foreach collection="list" item="item" index="index" separator="," >
-        (#{item.id}, #{item.keepfitStoreId}, #{item.mealByStoreId}, #{item.mealAllSinglePrice}, #{item.createTime}, #{item.state})
+        (#{item.id}, #{item.keepfitStoreId}, #{item.mealByStoreId}, #{item.mealAllSinglePrice}, #{item.createTime}, #{item.state}, #{tenantId})
         </foreach>
     </insert>
 
@@ -95,6 +98,9 @@
         FROM
             shop_store_intercourse s
         WHERE s.id = #{id}
+        <if test="tenantId != '' and tenantId != null">
+            AND s.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <update id="editStoreIntercourseState">
@@ -103,6 +109,9 @@
             state = #{state},
         </set>
         WHERE id = #{id}
+        <if test="tenantId != '' and tenantId != null">
+            AND tenant_id = #{tenantId}
+        </if>
     </update>
 
 </mapper>
