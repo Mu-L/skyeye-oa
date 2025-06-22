@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.entity.codedoc.model.CodeModelQueryDo;
 
 import java.util.List;
@@ -19,18 +20,25 @@ import java.util.Map;
  */
 public interface CodeModelDao {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCodeModelList(CodeModelQueryDo codeModelQuery);
 
+    @IgnoreTenant
     Map<String, Object> queryCodeModelMationByName(Map<String, Object> map);
 
+    @IgnoreTenant
     int insertCodeModelMation(Map<String, Object> map);
 
+    @IgnoreTenant
     int deleteCodeModelById(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryCodeModelMationToEditById(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryCodeModelMationByIdAndName(Map<String, Object> map);
 
+    @IgnoreTenant
     int editCodeModelMationById(Map<String, Object> map);
 
 }

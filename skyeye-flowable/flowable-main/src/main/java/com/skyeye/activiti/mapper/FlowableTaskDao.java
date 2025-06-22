@@ -4,6 +4,7 @@
 
 package com.skyeye.activiti.mapper;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public interface FlowableTaskDao {
      * @param pageInfo 参数
      * @return
      */
+    @IgnoreTenant
     List<Map<String, Object>> getApplyingTasks(CommonPageInfo pageInfo);
 
 }
