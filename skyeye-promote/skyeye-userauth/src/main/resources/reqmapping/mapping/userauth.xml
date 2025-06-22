@@ -12,23 +12,6 @@
 	</url>
 	<!-- 聊天结束 -->
 	
-	<!-- 系统各部分说明开始 -->
-	<url id="exexplain001" path="/post/ExExplainController/insertExExplainMation" val="添加代码生成器说明信息" allUse="2" groupName="系统各部分说明">
-		<property id="title" name="title" ref="required" var="代码生成器说明标题"/>
-		<property id="content" name="content" ref="required" var="代码生成器说明内容"/>
-		<property id="type" name="type" ref="required,num" var="说明介绍类型" />
-	</url>
-	<url id="exexplain002" path="/post/ExExplainController/queryExExplainMation" val="编辑代码生成器说明信息时进行回显" allUse="2" groupName="系统各部分说明">
-		<property id="type" name="type" ref="required,num" var="说明介绍类型" />
-	</url>
-	<url id="exexplain003" path="/post/ExExplainController/editExExplainMationById" val="编辑代码生成器说明信息" allUse="2" groupName="系统各部分说明">
-	    <property id="rowId" name="id" ref="required" var="代码生成器说明id"/>
-	    <property id="title" name="title" ref="required" var="代码生成器说明标题"/>
-		<property id="content" name="content" ref="required" var="代码生成器说明内容"/>
-		<property id="type" name="type" ref="required,num" var="说明介绍类型" />
-	</url>
-	<!-- 系统各部分说明结束 -->
-	
 	<!-- 数据库备份开始 -->
 	<url id="sysdatasqlbackups001" path="/post/SysDataSqlController/querySysDataSqlBackupsList" val="获取历史备份列表" allUse="1" groupName="数据库备份">
 		<property id="limit" name="limit" ref="required,num" var="分页参数,每页多少条数据" />

@@ -8,14 +8,12 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.entity.explain.ExExplain;
 import com.skyeye.eve.service.ExExplainService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -33,51 +31,19 @@ public class ExExplainController {
     @Autowired
     private ExExplainService exExplainService;
 
-    /**
-     * 添加使用说明信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ExExplainController/insertExExplainMation")
-    public void insertExExplainMation(InputObject inputObject, OutputObject outputObject) {
-        exExplainService.insertExExplainMation(inputObject, outputObject);
+    @ApiOperation(id = "writeExExplainMation", value = "新增/编辑使用说明信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ExExplain.class)
+    @RequestMapping("/post/ExExplainController/writeExExplainMation")
+    public void writeExExplainMation(InputObject inputObject, OutputObject outputObject) {
+        exExplainService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 编辑使用说明信息时进行回显
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ExExplainController/queryExExplainMation")
-    public void queryExExplainMation(InputObject inputObject, OutputObject outputObject) {
-        exExplainService.queryExExplainMation(inputObject, outputObject);
-    }
-
-    /**
-     * 编辑使用说明信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/ExExplainController/editExExplainMationById")
-    public void editExExplainMationById(InputObject inputObject, OutputObject outputObject) {
-        exExplainService.editExExplainMationById(inputObject, outputObject);
-    }
-
-    /**
-     * 获取使用说明信息供展示
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryExExplainMationToShow", value = "获取使用说明信息供展示", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryExExplainByType", value = "获取使用说明信息供展示", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "type", name = "type", value = "说明介绍类型", required = "required,num")})
-    @RequestMapping("/post/ExExplainController/queryExExplainMationToShow")
-    public void queryExExplainMationToShow(InputObject inputObject, OutputObject outputObject) {
-        exExplainService.queryExExplainMationToShow(inputObject, outputObject);
+    @RequestMapping("/post/ExExplainController/queryExExplainByType")
+    public void queryExExplainByType(InputObject inputObject, OutputObject outputObject) {
+        exExplainService.queryExExplainByType(inputObject, outputObject);
     }
 
 }
