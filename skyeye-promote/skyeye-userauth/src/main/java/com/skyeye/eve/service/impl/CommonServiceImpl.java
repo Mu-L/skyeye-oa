@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.annotation.tenant.TenantIsolation;
@@ -13,6 +14,7 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.HttpClient;
@@ -66,6 +68,9 @@ public class CommonServiceImpl implements CommonService {
     @Value("${IMAGES_PATH}")
     private String tPath;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     /**
      * 代码生成器生成下载文件
      *
@@ -88,6 +93,7 @@ public class CommonServiceImpl implements CommonService {
         try {
             out = new ZipOutputStream(new FileOutputStream(strZipPath));
             byte[] buffer = new byte[1024];
+            String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
 
             for (int i = 0; i < array.size(); i++) {
                 JSONObject object = (JSONObject) array.get(i);
@@ -105,7 +111,7 @@ public class CommonServiceImpl implements CommonService {
                     out.write(buffer, 0, len);
                 }
                 out.closeEntry();
-                Map<String, Object> bean = getCodeModelHoitoryObject(user, zipName, object, content);
+                Map<String, Object> bean = getCodeModelHoitoryObject(user, zipName, object, content, tenantId);
                 inBeans.add(bean);
             }
         } catch (Exception ex) {
@@ -116,7 +122,7 @@ public class CommonServiceImpl implements CommonService {
         commonDao.insertCodeModelHistory(inBeans);
     }
 
-    private Map<String, Object> getCodeModelHoitoryObject(Map<String, Object> user, String zipName, JSONObject object, String content) {
+    private Map<String, Object> getCodeModelHoitoryObject(Map<String, Object> user, String zipName, JSONObject object, String content, String tenantId) {
         Map<String, Object> bean = new HashMap<>();
         bean.put("tableName", object.getStr("tableName"));
         bean.put("groupId", object.getStr("groupId"));
@@ -130,6 +136,7 @@ public class CommonServiceImpl implements CommonService {
         }
         bean.put("filePath", zipName);
         DataCommonUtil.setCommonData(bean, user.get("id").toString());
+        bean.put("tenantId", tenantId);
         return bean;
     }
 

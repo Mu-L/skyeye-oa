@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.model.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,6 +20,8 @@ import java.util.Map;
  */
 public interface SysEveUserStaffDao {
 
-    List<Map<String, Object>> queryStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId);
+    @IgnoreTenant
+    List<Map<String, Object>> queryStaffCheckWorkTimeRelationByStaffId(@Param("staffId") String staffId,
+                                                                       @Param("tenantId") String tenantId);
 
 }

@@ -4,13 +4,16 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.skyeye.common.constans.Constants;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.FileConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.eve.dao.CodeModelHistoryDao;
 import com.skyeye.eve.entity.codedoc.history.CodeModelHistoryQueryDo;
@@ -27,7 +30,16 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * @ClassName: CodeModelHistoryServiceImpl
+ * @Description: 代码生成历史服务层--平台隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/22 11:15
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
+@SkyeyeService(name = "代码生成历史", groupName = "代码生成历史", tenant = TenantEnum.PLATE)
 public class CodeModelHistoryServiceImpl implements CodeModelHistoryService {
 
     @Autowired
@@ -35,6 +47,9 @@ public class CodeModelHistoryServiceImpl implements CodeModelHistoryService {
 
     @Value("${IMAGES_PATH}")
     private String tPath;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     /**
      * 获取模板生成历史列表
@@ -45,6 +60,8 @@ public class CodeModelHistoryServiceImpl implements CodeModelHistoryService {
     @Override
     public void queryCodeModelHistoryList(InputObject inputObject, OutputObject outputObject) {
         CodeModelHistoryQueryDo codeModelHistoryQuery = inputObject.getParams(CodeModelHistoryQueryDo.class);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        codeModelHistoryQuery.setTenantId(tenantId);
         Page pages = PageHelper.startPage(codeModelHistoryQuery.getPage(), codeModelHistoryQuery.getLimit());
         List<Map<String, Object>> beans = codeModelHistoryDao.queryCodeModelHistoryList(codeModelHistoryQuery);
         String basePath = tPath + FileConstants.FileUploadPath.CODE_GENERATOR.getSavePath();
@@ -71,6 +88,8 @@ public class CodeModelHistoryServiceImpl implements CodeModelHistoryService {
     public void insertCodeModelHistoryCreate(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String basePath = tPath + FileConstants.FileUploadPath.CODE_GENERATOR.getSavePath();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         FileUtil.createDirs(basePath);
         String strZipPath = basePath + "/" + map.get("filePath").toString();
         File zipFile = new File(strZipPath);

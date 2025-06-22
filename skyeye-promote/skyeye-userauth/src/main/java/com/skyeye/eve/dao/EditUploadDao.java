@@ -4,13 +4,16 @@
 
 package com.skyeye.eve.dao;
 
-import java.util.List;
-import java.util.Map;
+import com.skyeye.eve.entity.edit.EditUpload;
 
-public interface EditUploadDao {
-
-    int insertFileImgMation(Map<String, Object> bean);
-
-    List<Map<String, Object>> queryFileImgMation(Map<String, Object> bean);
+/**
+ * @ClassName: EditUploadDao
+ * @Description: 富文本资源上传数据层
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/22 14:25
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+public interface EditUploadDao extends SkyeyeBaseMapper<EditUpload> {
 
 }

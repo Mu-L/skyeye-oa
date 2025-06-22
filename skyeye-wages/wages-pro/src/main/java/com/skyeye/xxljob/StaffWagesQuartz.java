@@ -481,8 +481,7 @@ public class StaffWagesQuartz {
     private String calcStaffCheckWork(String staffId, Map<String, Object> systemFoundationSettings, List<Map<String, Object>> workTime,
                                       Map<String, String> staffModelFieldMap, String lastMonthDate, String tenantId) {
         // 1.获取该员工拥有的考勤班次id集合
-        List<Map<String, Object>> staffTimeIdMation = sysEveUserStaffDao
-            .queryStaffCheckWorkTimeRelationByStaffId(staffId);
+        List<Map<String, Object>> staffTimeIdMation = sysEveUserStaffDao.queryStaffCheckWorkTimeRelationByStaffId(staffId, tenantId);
         List<String> userTimeIds = staffTimeIdMation.stream()
             .map(p -> p.get("timeId").toString()).collect(Collectors.toList());
         List<Map<String, Object>> staffWorkTime = workTime.stream()
