@@ -8,11 +8,11 @@
 
 **2. [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)    [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)**
 
-**3. [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)，优先看这个。《《《《《《《《《《《《《《这个文件必看，有`移动端`的详细说明。**
+**3. [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)，优先看这个。**
 
 **4. Skyeye云是一个20+人的小团队，包括前端、后端、测试。每次发版都是经过全量测试的，保证产品的质量。**
 
-**5. 基础功能包括但不限于：动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
+**5. 基础功能包括但不限于：低代码、动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
 
 **为什么推荐使用本项目？**
 
@@ -33,9 +33,9 @@
 
 ## 🐶 沟通交流
 
-| |   知识星球   | 微信公众号(Skyeye智能制造云办公)，可在公众号留言咨询，或者提Issues。 | 售前咨询群 | 如果你决定现在进星球了，可以直接加我微信 |
-|:---------------------:|:---------------------:|:--------------------------------:|:-------------------:|:-------------------:|
-| 微信扫码 | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
+|   知识星球   | 微信公众号(Skyeye智能制造云办公) | Skyeye云交流群 | 星球用户加我微信 |
+|:---------------------:|:--------------------------------:|:-------------------:|:-------------------:|
+| ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
 
 ## Skyeye云整体规划图
 
