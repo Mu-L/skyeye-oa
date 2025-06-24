@@ -28,6 +28,9 @@
                 AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
                 AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
             </if>
+            <if test="tenantId != null and tenantId != ''">
+                AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+            </if>
              GROUP BY a.object_id) b
     </select>
 
@@ -54,14 +57,17 @@
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
         </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
     </select>
 
     <select id="queryKeepFitOrderNum" resultType="java.lang.String">
         SELECT
-        COUNT(1) keepFitOrderNum
+            COUNT(1) keepFitOrderNum
         FROM
-        shop_keepfit_order a,
-        shop_store b
+            shop_keepfit_order a,
+            shop_store b
         WHERE a.store_id = b.id
         <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
             #{state}
@@ -75,15 +81,18 @@
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
+        </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
         </if>
     </select>
 
     <select id="queryKeepFitOrderPrice" resultType="java.lang.String">
         SELECT
-        FORMAT(IFNULL(SUM(a.pay_price), 0), 2) keepFitOrderNum
+            FORMAT(IFNULL(SUM(a.pay_price), 0), 2) keepFitOrderNum
         FROM
-        shop_keepfit_order a,
-        shop_store b
+            shop_keepfit_order a,
+            shop_store b
         WHERE a.store_id = b.id
         <foreach collection="keepFitStateList" item="state" separator="," open=" AND a.state in(" close=")">
             #{state}
@@ -97,6 +106,9 @@
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
+        </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
         </if>
     </select>
 
@@ -129,6 +141,9 @@
                 </if>
                 <if test="storeId != '' and storeId != null">
                     AND a.store_id = #{storeId}
+                </if>
+                <if test="tenantId != null and tenantId != ''">
+                    AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
                 </if>) d ON DATE_FORMAT(d.create_time, '%Y-%m') = c.year_month
         GROUP BY c.`year_month`
     </select>
@@ -157,6 +172,9 @@
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
         </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
+        </if>
         GROUP BY a.store_id
     </select>
 
@@ -180,6 +198,9 @@
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
+        </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
         </if>
         GROUP BY a.store_id
     </select>
@@ -207,6 +228,9 @@
         <if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
             AND DATE_FORMAT(a.create_time, '%Y-%m') >= #{startTime}
             AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m')
+        </if>
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
         </if>
         GROUP BY a.nature_id
     </select>
@@ -239,6 +263,9 @@
 
             <if test="storeId != '' and storeId != null">
                 AND a.store_id = #{storeId}
+            </if>
+            <if test="tenantId != null and tenantId != ''">
+                AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
             </if>) d ON DATE_FORMAT(d.create_time, '%Y-%m') = c.year_month
         GROUP BY c.`year_month`
     </select>

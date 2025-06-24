@@ -4,8 +4,11 @@
 
 package com.skyeye.meal.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.service.ISysDictDataService;
 import com.skyeye.keepfit.classenum.KeepFitOrderState;
@@ -13,6 +16,7 @@ import com.skyeye.meal.classenum.ShopMealOrderState;
 import com.skyeye.meal.dao.StatisticsShopDao;
 import com.skyeye.meal.service.StatisticsShopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -22,13 +26,14 @@ import java.util.Map;
 
 /**
  * @ClassName: StatisticsShopServiceImpl
- * @Description: 商城统计服务层
+ * @Description: 商城统计服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/3/12 23:58
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "商城统计", groupName = "商城统计", manageShow = false)
 public class StatisticsShopServiceImpl implements StatisticsShopService {
 
     @Autowired
@@ -36,6 +41,9 @@ public class StatisticsShopServiceImpl implements StatisticsShopService {
 
     @Autowired
     private ISysDictDataService iSysDictDataService;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     /**
      * 统计分析
@@ -46,6 +54,8 @@ public class StatisticsShopServiceImpl implements StatisticsShopService {
     @Override
     public void queryStatisticsShop(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        params.put("tenantId", tenantId);
         // 套餐订单状态
         params.put("mealStateList", Arrays.asList(ShopMealOrderState.PAY.getKey()));
         // 保养订单状态

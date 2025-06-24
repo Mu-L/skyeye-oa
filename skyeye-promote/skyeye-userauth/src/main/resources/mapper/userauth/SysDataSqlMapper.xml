@@ -11,6 +11,11 @@
 			CONVERT(a.create_time, char) createTime
 		FROM
 			sys_data_sql_backups a
+		<where>
+			<if test="tenantId != null and tenantId != ''">
+				AND a.tenant_id = #{tenantId}
+			</if>
+		</where>
 		ORDER BY
 			a.create_time DESC
 	</select>
@@ -36,9 +41,9 @@
 	
 	<insert id="insertTableBackUps" parameterType="java.util.Map">
 	     INSERT into sys_data_sql_backups 
-	     (id, sql_title, sql_version, sql_path, file_size, mysql_version, create_id, create_time)
+	     (id, sql_title, sql_version, sql_path, file_size, mysql_version, create_id, create_time, tenant_id)
 	     VALUES
-	     (#{id}, #{sqlTitle}, #{sqlVersion}, #{filePath}, #{fileSize}, #{mysqlVersion}, #{createId}, #{createTime})
+	     (#{id}, #{sqlTitle}, #{sqlVersion}, #{filePath}, #{fileSize}, #{mysqlVersion}, #{createId}, #{createTime}, #{tenantId})
 	</insert>
 	
 	<select id="queryDataSqlVersionById" parameterType="java.util.Map" resultType="java.util.Map">
@@ -49,6 +54,9 @@
 			sys_data_sql_backups a
 		WHERE
 			a.id = #{rowId}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 </mapper>

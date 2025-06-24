@@ -4,19 +4,26 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+
 import java.util.List;
 import java.util.Map;
 
 public interface SysDataSqlDao {
 
+    @IgnoreTenant
     List<Map<String, Object>> querySysDataSqlBackupsList(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryAllTableMationList(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryDataSqlVersion(Map<String, Object> map);
 
+    @IgnoreTenant
     int insertTableBackUps(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryDataSqlVersionById(Map<String, Object> map);
 
 }

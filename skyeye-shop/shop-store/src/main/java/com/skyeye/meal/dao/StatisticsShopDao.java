@@ -4,6 +4,8 @@
 
 package com.skyeye.meal.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+
 import java.util.List;
 import java.util.Map;
 
@@ -17,21 +19,30 @@ import java.util.Map;
  */
 public interface StatisticsShopDao {
 
+    @IgnoreTenant
     String queryMealOrderMemberByNum(Map<String, Object> params);
 
+    @IgnoreTenant
     String queryMealOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     String queryKeepFitOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     String queryKeepFitOrderPrice(Map<String, Object> params);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMonthMealOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryStoreMealOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryStoreKeepFitOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryNatureMealOrderNum(Map<String, Object> params);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryMonthKeepFitOrderNum(Map<String, Object> params);
 }

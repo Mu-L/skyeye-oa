@@ -4,6 +4,8 @@
 
 package com.skyeye.eve.service.impl;
 
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.dao.SysDataBaseDao;
@@ -15,7 +17,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @ClassName: SysDataBaseServiceImpl
+ * @Description: 数据库管理服务层--平台隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/24 8:40
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
+@SkyeyeService(name = "数据库管理", groupName = "数据库管理", manageShow = false, tenant = TenantEnum.PLATE)
 public class SysDataBaseServiceImpl implements SysDataBaseService {
 
     @Autowired

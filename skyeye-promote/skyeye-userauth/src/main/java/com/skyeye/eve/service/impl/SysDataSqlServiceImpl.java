@@ -4,10 +4,14 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.BytesUtil;
 import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.FileUtil;
@@ -25,7 +29,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @ClassName: SysDataSqlServiceImpl
+ * @Description: 数据库备份管理服务层--平台隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/24 8:56
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
+@SkyeyeService(name = "数据库备份管理", groupName = "数据库备份管理", manageShow = false, tenant = TenantEnum.PLATE)
 public class SysDataSqlServiceImpl implements SysDataSqlService {
 
     @Autowired
@@ -49,6 +62,9 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
     @Value("${jdbc.database.address}")
     private String address;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     /**
      * 获取历史备份列表
      *
@@ -59,6 +75,8 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
     public void querySysDataSqlBackupsList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         List<Map<String, Object>> beans = sysDataSqlDao.querySysDataSqlBackupsList(map);
         for (Map<String, Object> bean : beans) {
             bean.put("fileSize", BytesUtil.sizeFormatNum2String(Long.parseLong(bean.get("fileSize").toString())));
@@ -139,6 +157,8 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
             }
 
             if (process.waitFor() == 0) {
+                String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+                map.put("tenantId", tenantId);
                 // 备份成功，保存到数据库
                 DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
                 map.put("mysqlVersion", version.get("version")); // 数据库版本
@@ -168,6 +188,8 @@ public class SysDataSqlServiceImpl implements SysDataSqlService {
     @Override
     public void insertTableReduction(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         Map<String, Object> bean = sysDataSqlDao.queryDataSqlVersionById(map);
         if (bean != null && !bean.isEmpty()) {
             String basePath = tPath.replace("images", "");
