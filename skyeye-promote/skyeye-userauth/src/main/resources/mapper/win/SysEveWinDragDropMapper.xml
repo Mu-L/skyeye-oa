@@ -9,6 +9,9 @@
 		FROM 
 			sys_eve_user_custom_menubox b
 		WHERE b.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND b.tenant_id = #{tenantId}
+		</if>
 		UNION
 		SELECT
 			c.id,
@@ -16,6 +19,9 @@
 		FROM
 			sys_eve_user_custom_menu c
 		WHERE c.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND c.tenant_id = #{tenantId}
+		</if>
 	</select>
 
 	<select id="queryMenuMationTypeById" parameterType="java.util.Map" resultType="java.util.Map">
@@ -25,6 +31,9 @@
 		FROM
 			sys_eve_menu a
 		WHERE a.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		UNION
 		SELECT
 			b.id,
@@ -32,6 +41,9 @@
 		FROM
 			sys_eve_user_custom_menu b
 		WHERE b.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND b.tenant_id = #{tenantId}
+		</if>
 		UNION
 		SELECT
 			c.id,
@@ -39,6 +51,9 @@
 		FROM
 			sys_eve_user_custom_menubox c
 		WHERE c.id = #{id}
+		<if test="tenantId != null and tenantId != ''">
+			AND c.tenant_id = #{tenantId}
+		</if>
 	</select>
 
 	<select id="queryCustomDeskTopsMenuByUserId" resultType="java.util.Map">

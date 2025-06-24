@@ -28,7 +28,7 @@ import java.util.Map;
 
 /**
  * @ClassName: SysEveUserCustomMenuServiceImpl
- * @Description: 用户自定义菜单服务层
+ * @Description: 用户自定义菜单服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2025/5/5 21:10
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
