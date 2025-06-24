@@ -46,17 +46,4 @@
 	</url>
 	<!-- 系统管理结束 -->
 	
-	<!-- 便签开始 -->
-	<url id="stickynotes001" path="/post/StickyNotesController/insertStickyNotesMation" val="新增便签" allUse="2" groupName="便签模块">
-		<property id="content" name="content" ref="required" var="便签内容" />
-	</url>
-	<url id="stickynotes003" path="/post/StickyNotesController/editStickyNotesMation" val="编辑便签" allUse="2" groupName="便签模块">
-		<property id="rowId" name="id" ref="required" var="便签ID" />
-		<property id="content" name="content" ref="required" var="便签内容" />
-	</url>
-	<url id="stickynotes004" path="/post/StickyNotesController/deleteStickyNotesMation" val="删除便签" allUse="2" groupName="便签模块">
-		<property id="rowId" name="id" ref="required" var="便签ID" />
-	</url>
-	<!-- 便签结束 -->
-
 </controller>

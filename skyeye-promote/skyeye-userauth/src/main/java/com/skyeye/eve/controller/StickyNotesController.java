@@ -5,9 +5,12 @@
 package com.skyeye.eve.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.entity.sticky.StickyNotes;
 import com.skyeye.eve.service.StickyNotesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,49 +31,25 @@ public class StickyNotesController {
     @Autowired
     private StickyNotesService stickyNotesService;
 
-    /**
-     * 新增便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/StickyNotesController/insertStickyNotesMation")
-    public void insertStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        stickyNotesService.insertStickyNotesMation(inputObject, outputObject);
+    @ApiOperation(id = "writeStickyNotes", value = "新增/编辑便签", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = StickyNotes.class)
+    @RequestMapping("/post/StickyNotesController/writeStickyNotes")
+    public void writeStickyNotes(InputObject inputObject, OutputObject outputObject) {
+        stickyNotesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 查询便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStickyNotesList", value = "查询便签", method = "GET", allUse = "2")
     @RequestMapping("/post/StickyNotesController/queryStickyNotesList")
     public void queryStickyNotesList(InputObject inputObject, OutputObject outputObject) {
         stickyNotesService.queryStickyNotesList(inputObject, outputObject);
     }
 
-    /**
-     * 编辑便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/StickyNotesController/editStickyNotesMation")
-    public void editStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        stickyNotesService.editStickyNotesMation(inputObject, outputObject);
-    }
-
-    /**
-     * 删除便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @RequestMapping("/post/StickyNotesController/deleteStickyNotesMation")
-    public void deleteStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        stickyNotesService.deleteStickyNotesMation(inputObject, outputObject);
+    @ApiOperation(id = "deleteStickyNotesById", value = "删除便签", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/StickyNotesController/deleteStickyNotesById")
+    public void deleteStickyNotesById(InputObject inputObject, OutputObject outputObject) {
+        stickyNotesService.deleteById(inputObject, outputObject);
     }
 
 }

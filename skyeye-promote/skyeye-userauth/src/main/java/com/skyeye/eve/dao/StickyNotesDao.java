@@ -4,17 +4,8 @@
 
 package com.skyeye.eve.dao;
 
-import java.util.List;
-import java.util.Map;
+import com.skyeye.eve.entity.sticky.StickyNotes;
 
-public interface StickyNotesDao {
-
-    int insertStickyNotesMation(Map<String, Object> map);
-
-    List<Map<String, Object>> selectStickyNotesMation(Map<String, Object> map);
-
-    int editStickyNotesMation(Map<String, Object> map);
-
-    int deleteStickyNotesMation(Map<String, Object> map);
+public interface StickyNotesDao extends SkyeyeBaseMapper<StickyNotes> {
 
 }
