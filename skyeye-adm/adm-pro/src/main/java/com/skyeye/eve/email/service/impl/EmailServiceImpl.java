@@ -223,6 +223,7 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
 
         email.setEmailEnclosure(emailParams.getEmailEnclosure());
         if (StrUtil.isNotEmpty(id)) {
+            email.setId(id);
             updateEntity(email, userId);
         } else {
             createEntity(email, userId);
