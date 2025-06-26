@@ -1,11 +1,13 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.scheduling.dao.SchedulingTimeWorkDao;
 import com.skyeye.scheduling.entity.SchedulingTimeWork;
 import com.skyeye.scheduling.entity.SchedulingTimeWorkPeople;
@@ -26,6 +28,9 @@ public class SchedulingTimeWorkServiceImpl extends SkyeyeBusinessServiceImpl<Sch
 
     @Autowired
     private SchedulingTimeWorkPeopleService schedulingTimeWorkPeopleService;
+
+    @Autowired
+    private ISysEveUserStaffService iSysEveUserStaffService;
 
     @Override
     protected void createPrepose(List<SchedulingTimeWork> entity) {
@@ -70,6 +75,18 @@ public class SchedulingTimeWorkServiceImpl extends SkyeyeBusinessServiceImpl<Sch
             List<String> schedulingTimeWorkPeopleIds = schedulingTimeWorkPeopleMation.stream().map(SchedulingTimeWorkPeople::getId).collect(Collectors.toList());
             // 数据库员工记录
             List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.queryPeopleByThreeId(id, schedulingId, schedulingTimeId);
+            List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+            timeWorkPeople.forEach(
+                staff -> {
+                    String employeeId = staff.getEmployeeId();
+                    Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
+                    if (ObjectUtil.isNotEmpty(staffMap)) {
+                        staff.setStaffMation(staffMap);
+                    }
+                }
+            );
+            iAuthUserService.setName(timeWorkPeople, "createId", "createName");
+            iAuthUserService.setName(timeWorkPeople, "lastUpdateId", "lastUpdateName");
             List<String> timeWorkPeopleList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getId).collect(Collectors.toList());
             List<String> deleteIds = timeWorkPeopleList.stream().filter(
                 time -> !schedulingTimeWorkPeopleIds.contains(time)

@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 @TableName(value = "check_work_scheduling_time_work_people", autoResultMap = true)
 @ApiModel("排班工位下员工表实体类")
@@ -33,4 +35,7 @@ public class SchedulingTimeWorkPeople extends OperatorUserInfo {
     @ApiModelProperty(value = "排班时间段id")
     private String schedulingTimeId;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "员工信息")
+    private Map<String, Object> staffMation;
 }
