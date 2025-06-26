@@ -101,4 +101,28 @@ public class InvoiceController {
         invoiceService.revoke(inputObject, outputObject);
     }
 
+    /**
+     * 发票开具
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllInvoiceList", value = "获取给客户所有的发票列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/InvoiceController/queryAllInvoiceList")
+    public void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject) {
+        invoiceService.queryAllInvoiceList(inputObject, outputObject);
+    }
+
+    /**
+     * 发票统计
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryInvoiceStatistics", value = "发票统计", method = "POST", allUse = "2")
+    @RequestMapping("/post/InvoiceController/queryInvoiceStatistics")
+    public void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject) {
+        invoiceService.queryInvoiceStatistics(inputObject, outputObject);
+    }
 }
