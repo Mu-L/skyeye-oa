@@ -24,4 +24,6 @@ public interface KeepFitOrderService extends SkyeyeBusinessService<KeepFitOrder>
     void verificationOrder(InputObject inputObject, OutputObject outputObject);
 
     void complateKeepFitOrder(InputObject inputObject, OutputObject outputObject);
+
+    void queryListByStoreIdsAndDate(InputObject inputObject, OutputObject outputObject);
 }

@@ -10,8 +10,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -19,6 +22,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -33,6 +37,8 @@ import com.skyeye.keepfit.entity.KeepFitOrderConsume;
 import com.skyeye.keepfit.service.KeepFitOrderConsumeService;
 import com.skyeye.keepfit.service.KeepFitOrderService;
 import com.skyeye.meal.classenum.ShopMealOrderType;
+import com.skyeye.meal.entity.MealOrder;
+import com.skyeye.meal.entity.MealOrderChild;
 import com.skyeye.meal.service.MealOrderChildService;
 import com.skyeye.rest.norms.service.IMaterialNormsCodeService;
 import com.skyeye.service.MemberService;
@@ -174,18 +180,18 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
             }
             // 从数据库查询入库状态的条形码信息
             List<Map<String, Object>> materialNormsCodeList = iMaterialNormsCodeService.queryMaterialNormsCode(entity.getStoreId(), allNormsCodeList,
-                CommonNumConstants.NUM_ONE);
+                    CommonNumConstants.NUM_ONE);
             List<String> inSqlNormsCodeList = materialNormsCodeList.stream().map(bean -> bean.get("codeNum").toString()).collect(Collectors.toList());
             // 获取所有前端传递过来的条形码信息，求差集(在入参中有，但是在数据库中不包含的条形码信息)
             List<String> diffList = allNormsCodeList.stream()
-                .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(diffList)) {
                 throw new CustomException(
-                    String.format(Locale.ROOT, "编码【%s】不存在/未入库/已经出库，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
+                        String.format(Locale.ROOT, "编码【%s】不存在/未入库/已经出库，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
             }
             // 判断条形码是否就在出库仓库里面
             Map<String, Map<String, Object>> materialNormsCodeMap = materialNormsCodeList.stream()
-                .collect(Collectors.toMap(bean -> bean.get("codeNum").toString(), bean -> bean));
+                    .collect(Collectors.toMap(bean -> bean.get("codeNum").toString(), bean -> bean));
             for (KeepFitOrderConsume keepFitOrderConsume : entity.getConsumeMationList()) {
                 Map<String, Object> material = materialMap.get(keepFitOrderConsume.getMaterialId());
                 Integer itemCode = Integer.parseInt(material.get("itemCode").toString());
@@ -195,7 +201,7 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
                         Map<String, Object> materialNormsCode = materialNormsCodeMap.get(normsCode);
                         if (!StrUtil.equals(materialNormsCode.get("storeId").toString(), entity.getStoreId())) {
                             throw new CustomException(
-                                String.format(Locale.ROOT, "条形码【%s】不在指定门店，请确认", normsCode));
+                                    String.format(Locale.ROOT, "条形码【%s】不在指定门店，请确认", normsCode));
                         }
                         if (!StrUtil.equals(materialNormsCode.get("normsId").toString(), keepFitOrderConsume.getNormsId())) {
                             throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与商品规格不匹配，请确认", normsCode));
@@ -219,7 +225,7 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
             Map<String, Object> norms = normsMap.get(keepFitOrderConsume.getNormsId());
             if (keepFitOrderConsume.getOperNumber() == 0) {
                 throw new CustomException(
-                    String.format(Locale.ROOT, "耗材【%s】【%s】的数量不能为0，请确认", material.get("name").toString(), norms.get("name").toString()));
+                        String.format(Locale.ROOT, "耗材【%s】【%s】的数量不能为0，请确认", material.get("name").toString(), norms.get("name").toString()));
             }
 
             Integer itemCode = Integer.parseInt(material.get("itemCode").toString());
@@ -227,10 +233,10 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
                 // 一物一码
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(keepFitOrderConsume.getCodeNum().split("\n")).stream()
-                    .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                 if (keepFitOrderConsume.getOperNumber() != normsCodeList.size()) {
                     throw new CustomException(
-                        String.format(Locale.ROOT, "耗材【%s】【%s】的条形码数量与明细数量不一致，请确认", material.get("name").toString(), norms.get("name").toString()));
+                            String.format(Locale.ROOT, "耗材【%s】【%s】的条形码数量与明细数量不一致，请确认", material.get("name").toString(), norms.get("name").toString()));
                 }
                 allCodeNum += normsCodeList.size();
                 keepFitOrderConsume.setNormsCodeList(normsCodeList);
@@ -391,6 +397,43 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
         } else {
             throw new CustomException("订单状态已改变，不允许多次完成.");
         }
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryListByStoreIdsAndDate(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        MPJLambdaWrapper<KeepFitOrder> wrapper = JoinWrappers.lambda("kfo", KeepFitOrder.class)
+                .leftJoin(MealOrderChild.class, "moc", MealOrderChild::getId, KeepFitOrder::getMealOrderChildId)
+                .leftJoin(MealOrder.class, "mo", MealOrder::getId, MealOrderChild::getOrderId);
+        wrapper.eq(MybatisPlusUtil.toColumns(MealOrder::getStoreId), params.get("mealStoreId").toString())
+                .eq(MybatisPlusUtil.toColumns(KeepFitOrder::getStoreId), params.get("keepFitStoreId").toString())
+                .eq(MybatisPlusUtil.toColumns(KeepFitOrder::getOnlineDay), params.get("date").toString());
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("kfo." + CommonConstants.TENANT_ID_FIELD, tenantId)
+                    .eq("moc." + CommonConstants.TENANT_ID_FIELD, tenantId)
+                    .eq("mo." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        List<KeepFitOrder> beans = skyeyeBaseMapper.selectJoinList(KeepFitOrder.class, wrapper);
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        List<String> keepFitOrderIdList = beans.stream().map(KeepFitOrder::getId).collect(Collectors.toList());
+        List<KeepFitOrderConsume> keepFitOrderConsumeList = keepFitOrderConsumeService.selectByOrderIds(keepFitOrderIdList);
+        Map<String, List<KeepFitOrderConsume>> listMap = keepFitOrderConsumeList.stream().collect(Collectors.groupingBy(KeepFitOrderConsume::getOrderId));
+        // 维修技师信息
+        List<String> serviceTechnicianIdList = beans.stream().map(KeepFitOrder::getServiceTechnicianId).collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(serviceTechnicianIdList);
+        beans.forEach(bean -> {
+            bean.setConsumeMationList(listMap.getOrDefault(bean.getId(), Collections.emptyList()));
+            Map<String, Object> codeNumMation = new HashMap<>();
+            codeNumMation.put("name", bean.getCodeNum());
+            bean.setCodeNumMation(codeNumMation);
+            bean.setServiceTechnicianMation(staffMap.get(bean.getServiceTechnicianId()));
+        });
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
 }

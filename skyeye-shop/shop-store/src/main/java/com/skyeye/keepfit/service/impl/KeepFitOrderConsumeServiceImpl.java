@@ -22,6 +22,7 @@ import com.skyeye.keepfit.service.KeepFitOrderConsumeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -89,5 +90,16 @@ public class KeepFitOrderConsumeServiceImpl extends SkyeyeBusinessServiceImpl<Ke
             }
             createEntity(keepFitOrderConsumeList, StrUtil.EMPTY);
         }
+    }
+
+    @Override
+    public List<KeepFitOrderConsume> selectByOrderIds(List<String> keepFitOrderIdList) {
+        List<KeepFitOrderConsume> keepFitOrderConsumeList = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(keepFitOrderIdList)){
+            QueryWrapper<KeepFitOrderConsume> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in(MybatisPlusUtil.toColumns(KeepFitOrderConsume::getOrderId), keepFitOrderIdList);
+            keepFitOrderConsumeList =  list(queryWrapper);
+        }
+        return keepFitOrderConsumeList;
     }
 }

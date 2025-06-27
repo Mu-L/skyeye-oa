@@ -34,6 +34,7 @@ import com.skyeye.meal.service.ShopMealService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -173,6 +174,17 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         iMaterialNormsService.setDataMation(mealOrderChildList, MealOrderChild::getNormsId);
         outputObject.setBeans(mealOrderChildList);
         outputObject.settotal(mealOrderChildList.size());
+    }
+
+    @Override
+    public List<MealOrderChild> queryListByCodeNum(String codeNum) {
+        List<MealOrderChild> mealOrderChildList = new ArrayList<>();
+        if (StrUtil.isNotEmpty(codeNum)){
+            QueryWrapper<MealOrderChild> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getCodeNum), codeNum);
+            mealOrderChildList = list(queryWrapper);
+        }
+        return mealOrderChildList;
     }
 
 }

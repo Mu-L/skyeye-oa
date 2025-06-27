@@ -5,10 +5,12 @@
 package com.skyeye.meal.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -214,6 +216,19 @@ public class MealOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealOrderDao
         updateWrapper.set(MybatisPlusUtil.toColumns(MealOrder::getState), state);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void queryMealOrderListByCodeNum(InputObject inputObject, OutputObject outputObject) {
+        String codeNum = inputObject.getParams().get("codeNum").toString();
+        List<MealOrderChild> mealOrderChildList = mealOrderChildService.queryListByCodeNum(codeNum);
+        if (CollectionUtil.isEmpty(mealOrderChildList)){
+            return;
+        }
+        MealOrder mealOrder = selectById(mealOrderChildList.get(CommonNumConstants.NUM_ZERO).getOrderId());
+        mealOrder.setMealList(mealOrderChildList);
+        outputObject.setBean(mealOrder);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }

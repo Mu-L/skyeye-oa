@@ -27,4 +27,5 @@ public interface KeepFitOrderConsumeService extends SkyeyeBusinessService<KeepFi
 
     void saveList(String orderId, List<KeepFitOrderConsume> keepFitOrderConsumeList);
 
+    List<KeepFitOrderConsume> selectByOrderIds(List<String> keepFitOrderIdList);
 }
