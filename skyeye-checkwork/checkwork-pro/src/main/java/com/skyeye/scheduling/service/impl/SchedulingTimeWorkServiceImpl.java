@@ -78,8 +78,7 @@ public class SchedulingTimeWorkServiceImpl extends SkyeyeBusinessServiceImpl<Sch
             List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
             timeWorkPeople.forEach(
                 staff -> {
-                    String employeeId = staff.getEmployeeId();
-                    Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
+                    Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), staff.getEmployeeId())).findFirst().orElse(null);
                     if (ObjectUtil.isNotEmpty(staffMap)) {
                         staff.setStaffMation(staffMap);
                     }
