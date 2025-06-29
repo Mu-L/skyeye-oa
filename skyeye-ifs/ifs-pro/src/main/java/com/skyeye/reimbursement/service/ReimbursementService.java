@@ -5,6 +5,8 @@
 package com.skyeye.reimbursement.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.reimbursement.entity.Reimbursement;
 
 /**
@@ -17,4 +19,5 @@ import com.skyeye.reimbursement.entity.Reimbursement;
  */
 public interface ReimbursementService extends SkyeyeFlowableService<Reimbursement> {
 
+    void queryCostAnalysis(InputObject inputObject, OutputObject outputObject);
 }

@@ -22,7 +22,7 @@ import java.util.Map;
  */
 @Data
 @TableName(value = "crm_receivable")
-@ApiModel("应付事项实体类")
+@ApiModel("应收事项实体类")
 public class Receivable extends SkyeyeFlowable {
 
     @TableId("id")

@@ -100,4 +100,28 @@ public class LoanBorrowController {
         loanBorrowService.revoke(inputObject, outputObject);
     }
 
+    /**
+     * 借款单类型占比图
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryLoanBorrowTypePie", value = "借款单类型占比图", method = "POST", allUse = "1")
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowTypePie")
+    public void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowTypePie(inputObject, outputObject);
+    }
+
+    /**
+     * 部门类型占比图
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryLoanBorrowDeptPie", value = "部门类型占比图", method = "POST", allUse = "1")
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowDeptPie")
+    public void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowDeptPie(inputObject, outputObject);
+    }
+
 }

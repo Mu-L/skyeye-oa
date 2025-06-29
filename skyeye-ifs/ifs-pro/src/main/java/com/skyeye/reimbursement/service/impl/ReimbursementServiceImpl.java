@@ -11,6 +11,7 @@ import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.reimbursement.dao.ReimbursementDao;
 import com.skyeye.reimbursement.entity.Reimbursement;
@@ -102,4 +103,8 @@ public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<Reimburs
         reimbursementChildService.editStateByPId(entity.getId(), FlowableChildStateEnum.REJECT.getKey());
     }
 
+    @Override
+    public void queryCostAnalysis(InputObject inputObject, OutputObject outputObject) {
+        reimbursementChildService.queryReimbursementAnalysis(inputObject, outputObject);
+    }
 }
