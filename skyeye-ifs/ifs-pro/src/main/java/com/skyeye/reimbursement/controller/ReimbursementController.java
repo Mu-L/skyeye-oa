@@ -100,4 +100,16 @@ public class ReimbursementController {
         reimbursementService.revoke(inputObject, outputObject);
     }
 
+    /**
+     * 费用分析
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCostAnalysis", value = "费用分析", method = "POST", allUse = "1")
+    @RequestMapping("/post/ReimbursementController/queryCostAnalysis")
+    public void queryCostAnalysis(InputObject inputObject, OutputObject outputObject) {
+        reimbursementService.queryCostAnalysis(inputObject, outputObject);
+    }
+
 }
