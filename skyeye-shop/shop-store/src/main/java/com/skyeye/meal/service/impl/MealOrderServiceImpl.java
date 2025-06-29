@@ -5,12 +5,10 @@
 package com.skyeye.meal.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -37,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -222,13 +221,18 @@ public class MealOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealOrderDao
     public void queryMealOrderListByCodeNum(InputObject inputObject, OutputObject outputObject) {
         String codeNum = inputObject.getParams().get("codeNum").toString();
         List<MealOrderChild> mealOrderChildList = mealOrderChildService.queryListByCodeNum(codeNum);
-        if (CollectionUtil.isEmpty(mealOrderChildList)){
-            return;
+        shopMealService.setDataMation(mealOrderChildList, MealOrderChild::getMealId);
+        List<Map<String, String>> beans = new ArrayList<>();
+        for (MealOrderChild mealOrderChild : mealOrderChildList) {
+            if (ObjectUtil.isNotEmpty(mealOrderChild.getMealMation())){
+                Map<String, String> bean = new HashMap<>();
+                bean.put("id", mealOrderChild.getId());
+                bean.put("name", mealOrderChild.getMealMation().getName());
+                beans.add(bean);
+            }
         }
-        MealOrder mealOrder = selectById(mealOrderChildList.get(CommonNumConstants.NUM_ZERO).getOrderId());
-        mealOrder.setMealList(mealOrderChildList);
-        outputObject.setBean(mealOrder);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
 }

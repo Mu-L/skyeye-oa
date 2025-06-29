@@ -82,7 +82,7 @@ public class MealOrderController {
 
     @ApiOperation(id = "queryMealOrderListByCodeNum", value = "根据规格物品编码查询套餐订单信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "codeNum", name = "codeNum", value = "规格物品编码", required = "required")})
+            @ApiImplicitParam(id = "codeNum", name = "codeNum", value = "规格物品编码")})
     @RequestMapping("/post/MealController/queryMealOrderListByCodeNum")
     public void queryMealOrderListByCodeNum(InputObject inputObject, OutputObject outputObject) {
         mealOrderService.queryMealOrderListByCodeNum(inputObject, outputObject);
