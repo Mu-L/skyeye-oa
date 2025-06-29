@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * @ClassName: ReceivePaymentKeyEnum
- * @Description: 收付款管理业务keyl类型枚举
+ * @Description: 收付款管理业务key类型枚举
  * @author: skyeye云系列--卫志强
  * @date: 2022/11/24 22:46
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
