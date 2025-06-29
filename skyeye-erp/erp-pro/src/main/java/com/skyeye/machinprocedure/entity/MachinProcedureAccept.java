@@ -120,7 +120,7 @@ public class MachinProcedureAccept extends SkyeyeFlowable {
     private List<MachinProcedureAcceptChild> machinScrapProcedureAcceptChildList;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "验收人生产数量列表", required = "json")
+    @ApiModelProperty(value = "员工生产数量列表", required = "json")
     private List<MachinProcedureAcceptProductNum> machinProcedureAcceptProductNumList;
 
 }
