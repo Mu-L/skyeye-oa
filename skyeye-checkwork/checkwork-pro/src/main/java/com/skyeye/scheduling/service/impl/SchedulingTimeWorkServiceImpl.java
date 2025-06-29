@@ -15,6 +15,7 @@ import com.skyeye.scheduling.service.SchedulingTimeWorkPeopleService;
 import com.skyeye.scheduling.service.SchedulingTimeWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -123,8 +124,15 @@ public class SchedulingTimeWorkServiceImpl extends SkyeyeBusinessServiceImpl<Sch
         for (SchedulingTimeWork schedulingTimeWork : schedulingTimeWorkList) {
             String timeWorkIdId = schedulingTimeWork.getId();
             String schedulingTimeId = schedulingTimeWork.getSchedulingTimeId();
-            List<SchedulingTimeWorkPeople> timeWorkPeople1 = collect.get(schedulingTimeId).get(timeWorkIdId);
-            schedulingTimeWork.setSchedulingTimeWorkPeopleMation(timeWorkPeople1);
+            // 获取对应时间ID的映射
+            Map<String, List<SchedulingTimeWorkPeople>> timeWorkMap = collect.get(schedulingTimeId);
+            if (!CollectionUtils.isEmpty(timeWorkMap)) {
+                // 获取对应时间工作ID的列表
+                List<SchedulingTimeWorkPeople> timeWorkPeople1 = timeWorkMap.get(timeWorkIdId);
+                if (timeWorkPeople1 != null) {
+                    schedulingTimeWork.setSchedulingTimeWorkPeopleMation(timeWorkPeople1);
+                }
+            }
         }
         return schedulingTimeWorkList;
     }
