@@ -403,12 +403,14 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
     @IgnoreTenant
     public void queryListByStoreIdsAndDate(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        String storeIdColum = MybatisPlusUtil.toColumns(MealOrder::getStoreId);
         MPJLambdaWrapper<KeepFitOrder> wrapper = JoinWrappers.lambda("kfo", KeepFitOrder.class)
                 .leftJoin(MealOrderChild.class, "moc", MealOrderChild::getId, KeepFitOrder::getMealOrderChildId)
                 .leftJoin(MealOrder.class, "mo", MealOrder::getId, MealOrderChild::getOrderId);
-        wrapper.eq(MybatisPlusUtil.toColumns(MealOrder::getStoreId), params.get("mealStoreId").toString())
-                .eq(MybatisPlusUtil.toColumns(KeepFitOrder::getStoreId), params.get("keepFitStoreId").toString())
+        wrapper.eq("mo." + storeIdColum, params.get("mealStoreId").toString())
+                .eq("kfo." + storeIdColum, params.get("keepFitStoreId").toString())
                 .eq(MybatisPlusUtil.toColumns(KeepFitOrder::getOnlineDay), params.get("date").toString());
+        wrapper.selectAll(KeepFitOrder.class);
         if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
             wrapper.eq("kfo." + CommonConstants.TENANT_ID_FIELD, tenantId)
