@@ -13,6 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @ClassName: LessonReviewModelController
+ * @Description: 听评课模型管理控制层
+ * @author: skyeye云系列--卫志强
+ * @date: 2023/8/8 14:55
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的F
+ */
 @RestController
 @Api(value = "听评课模型管理", tags = "听评课模型管理", modelName = "听评课模型管理")
 public class LessonReviewModelController {

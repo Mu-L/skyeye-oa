@@ -11,6 +11,7 @@ import com.skyeye.scheduling.entity.SchedulingShiftsTimeWork;
 import com.skyeye.scheduling.service.SchedulingShiftsTimeWorkService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,6 +20,9 @@ public class SchedulingShiftsTimeWorkServiceImpl extends SkyeyeBusinessServiceIm
 
     @Override
     public List<SchedulingShiftsTimeWork> queryShiftsTimeWorkByShiftsTimeIds(List<String> shiftsTimeIds) {
+        if (CollectionUtil.isEmpty(shiftsTimeIds)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<SchedulingShiftsTimeWork> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTimeWork::getShiftsTimeId), shiftsTimeIds);
         return list(queryWrapper);

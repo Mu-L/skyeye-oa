@@ -715,7 +715,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(schedulingList);
         outputObject.settotal(page.getTotal());
-
     }
 
     @Override

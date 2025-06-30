@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @TableName(value = "school_lesson review_type")
 @ApiModel(value = "听评表角色管理实体类")
@@ -36,4 +38,8 @@ public class LessonReviewType extends OperatorUserInfo {
     @TableField("lectures_role_id")
     @ApiModelProperty(value = "关联角色id")
     private String lecturesRoleId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "关联角色名称子项")
+    private List<LessonReviewType> typeChildrenMation;
 }
