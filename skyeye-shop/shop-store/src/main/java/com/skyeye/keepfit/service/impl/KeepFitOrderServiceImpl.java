@@ -424,15 +424,23 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
         List<String> keepFitOrderIdList = beans.stream().map(KeepFitOrder::getId).collect(Collectors.toList());
         List<KeepFitOrderConsume> keepFitOrderConsumeList = keepFitOrderConsumeService.selectByOrderIds(keepFitOrderIdList);
         Map<String, List<KeepFitOrderConsume>> listMap = keepFitOrderConsumeList.stream().collect(Collectors.groupingBy(KeepFitOrderConsume::getOrderId));
-        // 维修技师信息
-        List<String> serviceTechnicianIdList = beans.stream().map(KeepFitOrder::getServiceTechnicianId).collect(Collectors.toList());
+        List<String> allStaffIdList = new ArrayList<>();
+        for (KeepFitOrder bean : beans) {
+            allStaffIdList.add(bean.getServiceTechnicianId());
+            allStaffIdList.add(bean.getComplatePayUserId());
+            allStaffIdList.add(bean.getVerificationUserId());
+        }
+        // 维修技师信息、核销人信息、完成支付人信息
+        List<String> serviceTechnicianIdList = allStaffIdList.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(serviceTechnicianIdList);
         beans.forEach(bean -> {
             bean.setConsumeMationList(listMap.getOrDefault(bean.getId(), Collections.emptyList()));
             Map<String, Object> codeNumMation = new HashMap<>();
             codeNumMation.put("name", bean.getCodeNum());
             bean.setCodeNumMation(codeNumMation);
-            bean.setServiceTechnicianMation(staffMap.get(bean.getServiceTechnicianId()));
+            bean.setServiceTechnicianMation(staffMap.getOrDefault(bean.getServiceTechnicianId(), null));
+            bean.setComplatePayUserMation(staffMap.getOrDefault(bean.getComplatePayUserId(), null));
+            bean.setVerificationUserMation(staffMap.getOrDefault(bean.getVerificationUserId(), null));
         });
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
