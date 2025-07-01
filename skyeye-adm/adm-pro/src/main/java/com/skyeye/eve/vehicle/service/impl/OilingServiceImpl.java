@@ -4,9 +4,16 @@
 
 package com.skyeye.eve.vehicle.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.vehicle.dao.OilingDao;
 import com.skyeye.eve.vehicle.entity.Oiling;
 import com.skyeye.eve.vehicle.service.OilingService;
@@ -47,4 +54,20 @@ public class OilingServiceImpl extends SkyeyeBusinessServiceImpl<OilingDao, Oili
         return oiling;
     }
 
+    @Override
+    public void queryNoPageOilingList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        QueryWrapper<Oiling> queryWrapper = new QueryWrapper<>();
+        //获取前三十天以内的日期
+        String payMonth = DateUtil.getLastMonthDate();
+        queryWrapper.like(MybatisPlusUtil.toColumns(Oiling::getCreateTime), payMonth);
+        if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
+            queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
+        }
+        List<Oiling> list = list(queryWrapper);
+        List<Map<String, Object>> result = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        vehicleService.setMationForMap(result, "vehicleId", "vehicleMation");
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
 }
