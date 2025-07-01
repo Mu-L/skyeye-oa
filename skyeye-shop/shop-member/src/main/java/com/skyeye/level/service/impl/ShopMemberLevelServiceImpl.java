@@ -6,6 +6,7 @@ package com.skyeye.level.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -58,6 +59,12 @@ public class ShopMemberLevelServiceImpl extends SkyeyeBusinessServiceImpl<ShopMe
     @IgnoreTenant
     public ShopMemberLevel selectById(String id) {
         return super.selectById(id);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(M bean, SFunction<M, ?> sFunction) {
+        super.setDataMation(bean, sFunction);
     }
 
     @Override
