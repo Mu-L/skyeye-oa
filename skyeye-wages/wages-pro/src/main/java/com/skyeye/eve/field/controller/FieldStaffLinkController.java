@@ -12,6 +12,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.wages.WagesStaffWorkTimeMation;
 import com.skyeye.eve.field.service.FieldStaffLinkService;
+import com.skyeye.xxljob.StaffWagesQuartz;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,12 +31,15 @@ public class FieldStaffLinkController {
 
     @Autowired
     private FieldStaffLinkService wagesStaffMationService;
+    @Autowired
+    private StaffWagesQuartz staffWagesQuartz;
 
     @ApiOperation(id = "wagesstaff002", value = "根据员工id获取该员工拥有的薪资字段", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required")})
     @RequestMapping("/post/WagesStaffMationController/queryStaffWagesModelFieldMationListByStaffId")
     public void queryStaffWagesModelFieldMationListByStaffId(InputObject inputObject, OutputObject outputObject) {
+        staffWagesQuartz.statisticsStaffWages();
         wagesStaffMationService.queryStaffWagesModelFieldMationListByStaffId(inputObject, outputObject);
     }
 

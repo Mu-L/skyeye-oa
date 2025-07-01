@@ -112,6 +112,7 @@ public class StaffWagesQuartz {
 
     /**
      * 每月十号的凌晨两点开始执行薪资统计任务
+     * 1. 员工的薪资必须是已设定状态 design_wages = 2
      */
     @XxlJob("staffWagesQuartz")
     public void statisticsStaffWages() {
@@ -155,6 +156,7 @@ public class StaffWagesQuartz {
         while (true) {
             // 获取一条未生成薪资的员工数据
             Map<String, Object> staff = wagesStaffMationDao.queryNoWagesLastMonthByLastMonthDate(lastMonthDate, getStaffIdsFromRedis(tenantId), tenantId);
+            System.out.println(JSONUtil.toJsonStr(staff));
             // 如果已经没有要统计薪资的员工，则停止统计
             if (staff == null) {
                 break;
@@ -169,6 +171,11 @@ public class StaffWagesQuartz {
                 addStaffIdInStatisticsRedisMation(staffId, tenantId);
                 if (tenantEnable) {
                     staff = iAuthUserService.queryDataMationById(staff.get("userId").toString());
+                    if (CollectionUtil.isEmpty(staff)) {
+                        continue;
+                    }
+                    staff.put("userId", staff.get("id"));
+                    staff.put("id", staffId);
                 }
                 // 开始统计
                 calcStaffWages(staff, wagesModelList, socialSecurityFund, systemFoundationSettings, workTime, lastMonthDate, taxRate, tenantId);
@@ -199,8 +206,8 @@ public class StaffWagesQuartz {
     private void calcStaffWages(Map<String, Object> staff, List<WagesModel> wagesModelList, List<SocialSecurityFund> socialSecurityFund,
                                 Map<String, Object> systemFoundationSettings, List<Map<String, Object>> workTime, String lastMonthDate, Map<String,
         List<Map<String, Object>>> taxRate, String tenantId) {
-        String companyId = staff.get("companyId").toString();
-        String departmentId = staff.get("departmentId").toString();
+        String companyId = staff.getOrDefault("companyId", StrUtil.EMPTY).toString();
+        String departmentId = staff.getOrDefault("departmentId", StrUtil.EMPTY).toString();
         String staffId = staff.get("id").toString();
         // 员工应发薪资
         String actWages = staff.get("actWages").toString();
@@ -227,7 +234,8 @@ public class StaffWagesQuartz {
     }
 
     private List<String> getModelIdsForStaff(String companyId, String departmentId, String staffId, List<WagesModel> wagesModelList) {
-        List<String> temIds = CollectionUtil.newArrayList(companyId, departmentId, staffId);
+        List<String> temIds = CollectionUtil.newArrayList(companyId, departmentId, staffId).stream()
+            .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         List<String> modelIds = wagesModelList.stream().filter(bean -> {
             List<String> objectIds = bean.getApplicableObjectsList().stream().map(ModelApplicableObjects::getObjectId).collect(Collectors.toList());
             return objectIds.stream().anyMatch(str -> temIds.contains(str));
@@ -399,6 +407,9 @@ public class StaffWagesQuartz {
     private String calcTaxRate(String monthlyStandardRealMoney, Map<String, List<Map<String, Object>>> taxRate, String companyId, String lastMonthDate,
                                Map<String, String> staffModelFieldMap) {
         List<Map<String, Object>> companyTaxRate = taxRate.get(companyId);
+        if (CollectionUtil.isEmpty(companyTaxRate)) {
+            return monthlyStandardRealMoney;
+        }
         String finalMonthlyStandardRealMoney = monthlyStandardRealMoney;
         List<Map<String, Object>> staffTaxRate = companyTaxRate.stream().filter(bean -> {
             String intervalStr = String.format(Locale.ROOT, "[%s, %s)", bean.get("minMoney").toString(), bean.get("maxMoney").toString());
