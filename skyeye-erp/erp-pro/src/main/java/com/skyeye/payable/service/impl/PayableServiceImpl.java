@@ -104,6 +104,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
         QueryWrapper<Payable> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Payable::getContractId), contractId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Payable::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.ne(MybatisPlusUtil.toColumns(Payable::getPayState),ErpPayStateEnum.PAID_STATE.getKey());
         List<Payable> payableList = list(queryWrapper);
         payableList.forEach(item -> {
             item.setName(item.getOddNumber());

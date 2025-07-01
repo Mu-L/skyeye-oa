@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
+import com.skyeye.common.enumeration.PayTypeEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -97,6 +98,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         QueryWrapper<Receivable> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Receivable::getContractId), contractId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Receivable::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.ne(MybatisPlusUtil.toColumns(Receivable::getPayState),CrmPayStateEnum.PAID_STATE.getKey());
         List<Receivable> receivableList = list(queryWrapper);
         receivableList.forEach(item -> {
             item.setName(item.getOddNumber());
