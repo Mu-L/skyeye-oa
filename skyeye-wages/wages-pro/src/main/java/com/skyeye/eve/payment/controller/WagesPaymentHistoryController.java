@@ -85,4 +85,13 @@ public class WagesPaymentHistoryController {
         wagesPaymentHistoryService.queryWagesStaffPaymentDetail(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryStaffIdLastWages", value = "获取员工上个月薪资", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "tenantId", name = "tenantId", value = "租户id")
+    })
+    @RequestMapping("/post/WagesPaymentHistoryController/queryStaffIdLastWages")
+    public void queryStaffIdLastWages(InputObject inputObject, OutputObject outputObject) {
+        wagesPaymentHistoryService.queryStaffIdLastWages(inputObject, outputObject);
+    }
+
 }

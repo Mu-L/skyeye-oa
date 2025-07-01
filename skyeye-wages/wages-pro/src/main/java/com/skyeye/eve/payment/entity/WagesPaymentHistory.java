@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.CommonInfo;
@@ -34,6 +35,10 @@ public class WagesPaymentHistory extends CommonInfo {
     @TableField("staff_id")
     @ApiModelProperty(value = "员工id", required = "required")
     private String staffId;
+
+    @TableField(exist = false)
+    @Property(value = "员工信息")
+    private Map<String,Object> staffMation;
 
     @TableField("pay_month")
     @ApiModelProperty(value = "发放的薪资年月", required = "required")
