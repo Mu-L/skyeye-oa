@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
@@ -21,7 +22,6 @@ import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.personnel.classenum.UserStaffType;
-import com.skyeye.personnel.classenum.UserStaffWorkstationType;
 import lombok.Data;
 
 import java.util.List;
