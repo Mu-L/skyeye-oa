@@ -78,6 +78,7 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         supplierContractService.setMationForMap(beans, "contractId", "contractMation");
+        payableService.setMationForMap(beans, "payableId", "payableMation");
         return beans;
     }
 
@@ -87,6 +88,8 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
         paymentCollection.setName(paymentCollection.getOddNumber());
         // 合同信息
         supplierContractService.setDataMation(paymentCollection, Payment::getContractId);
+        // 应收事项信息
+        payableService.setDataMation(paymentCollection, Payment::getPayableId);
         return paymentCollection;
     }
 
