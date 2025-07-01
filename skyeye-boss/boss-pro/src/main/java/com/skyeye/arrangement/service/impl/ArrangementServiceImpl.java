@@ -288,12 +288,6 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         }
     }
 
-    /**
-     * 设置入职结果
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void setInductionResult(InputObject inputObject, OutputObject outputObject) {
@@ -373,6 +367,8 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         if (StrUtil.isEmpty(map.get("inductionState").toString())) {
             throw new CustomException("员工入职状态不能为空。");
         }
+        sysUserStaff.setWorkstationType(Integer.parseInt(map.get("workstationType").toString()));
+        sysUserStaff.setHourlyPrice(map.get("hourlyPrice").toString());
         sysUserStaff.setState(Integer.parseInt(map.get("inductionState").toString()));
         sysUserStaff.setTrialTime(map.get("trialTime").toString());
         sysUserStaff.setInterviewArrangementId(arrangement.getId());
@@ -398,6 +394,8 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         if (StrUtil.isEmpty(map.get("inductionState").toString())) {
             throw new CustomException("员工入职状态不能为空。");
         }
+        tenantUserInviteRest.setWorkstationType(Integer.parseInt(map.get("workstationType").toString()));
+        tenantUserInviteRest.setHourlyPrice(map.get("hourlyPrice").toString());
         tenantUserInviteRest.setState(Integer.parseInt(map.get("inductionState").toString()));
         tenantUserInviteRest.setTrialTime(map.get("trialTime").toString());
         tenantUserInviteRest.setInterviewArrangementId(arrangement.getId());

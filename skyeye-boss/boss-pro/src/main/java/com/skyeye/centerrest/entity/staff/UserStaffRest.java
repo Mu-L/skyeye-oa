@@ -6,6 +6,7 @@ package com.skyeye.centerrest.entity.staff;
 
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -86,5 +87,11 @@ public class UserStaffRest implements Serializable {
      * 如果有试用期，则为转正日期
      */
     private String becomeWorkerTime;
+
+    @ApiModelProperty(value = "员工工种类型", enumClass = UserStaffWorkstationType.class, required = "required,num")
+    private Integer workstationType;
+
+    @ApiModelProperty(value = "工种类型是小时工的时候的单价")
+    private String hourlyPrice;
 
 }
