@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
@@ -207,5 +208,9 @@ public class TenantUser extends OperatorUserInfo {
     @TableField("is_admin")
     @ApiModelProperty(value = "是否是管理员", enumClass = WhetherEnum.class, required = "required,num")
     private Integer isAdmin;
+
+    @TableField("workstation_type")
+    @ApiModelProperty(value = "员工工种类型", enumClass = UserStaffWorkstationType.class, required = "required,num")
+    private Integer workstationType;
 
 }
