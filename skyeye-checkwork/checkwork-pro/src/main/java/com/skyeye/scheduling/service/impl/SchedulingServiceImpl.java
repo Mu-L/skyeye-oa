@@ -179,9 +179,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         } catch (Exception e) {
             throw new CustomException("解析员工ID和权重数据失败：" + e.getMessage());
         }
-
-        // 3. 获取员工信息
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employeeIds);
 
         // 3.1 区分正式员工和临时员工
         List<String> formalUserIds = new ArrayList<>();
@@ -448,7 +446,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     private void getStaffMation(List<SchedulingTimeWorkPeople> timeWorkPeople) {
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        List<String> employIdList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList());
+        String employIds = String.join(CommonCharConstants.COMMA_MARK, employIdList);
+        List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employIds);
         timeWorkPeople.forEach(
             staff -> {
                 String employeeId = staff.getEmployeeId();

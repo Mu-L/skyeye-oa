@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.rest.promote.service.ISysEveUserStaffService;
@@ -76,7 +77,9 @@ public class SchedulingTimeWorkServiceImpl extends SkyeyeBusinessServiceImpl<Sch
             List<String> schedulingTimeWorkPeopleIds = schedulingTimeWorkPeopleMation.stream().map(SchedulingTimeWorkPeople::getId).collect(Collectors.toList());
             // 数据库员工记录
             List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.queryPeopleByThreeId(id, schedulingId, schedulingTimeId);
-            List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+            String employIds = String.join(CommonCharConstants.COMMA_MARK, timeWorkPeople.stream()
+                .map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList()));
+            List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employIds);
             timeWorkPeople.forEach(
                 staff -> {
                     Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), staff.getEmployeeId())).findFirst().orElse(null);

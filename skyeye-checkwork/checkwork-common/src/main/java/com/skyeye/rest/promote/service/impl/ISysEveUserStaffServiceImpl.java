@@ -16,9 +16,4 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     @Autowired
     private ISysEveUserStaffRest iSysEveUserStaffRest;
 
-    @Override
-    public List<Map<String, Object>> queryAllStaffList() {
-        return ExecuteFeignClient.get(() -> iSysEveUserStaffRest.commonselpeople007()).getRows();
-    }
-
 }

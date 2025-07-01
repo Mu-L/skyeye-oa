@@ -9,11 +9,4 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(value = "${webroot.skyeye-pro}", configuration = ClientConfiguration.class)
 public interface ISysEveUserStaffRest {
 
-    /**
-     * 查询所有未离职员工
-     *
-     */
-    @PostMapping("/commonselpeople007")
-    String commonselpeople007();
-
 }
