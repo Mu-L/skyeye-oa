@@ -363,15 +363,6 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         outputObject.settotal(list.size());
     }
 
-    public String getBeforeOrFutureDay(int num) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar c = Calendar.getInstance();
-        c.setTime(new Date());
-        c.add(Calendar.DATE, num);
-        Date m = c.getTime();
-        return format.format(m);
-    }
-
     @Override
     public void approvalEndIsSuccess(PurchaseOrder entity) {
         entity = selectById(entity.getId());
