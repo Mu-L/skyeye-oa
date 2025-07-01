@@ -21,6 +21,7 @@ import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
 import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.personnel.classenum.UserStaffType;
+import com.skyeye.personnel.classenum.UserStaffWorkstationType;
 import lombok.Data;
 
 import java.util.List;
@@ -207,5 +208,9 @@ public class TenantUser extends OperatorUserInfo {
     @TableField("is_admin")
     @ApiModelProperty(value = "是否是管理员", enumClass = WhetherEnum.class, required = "required,num")
     private Integer isAdmin;
+
+    @TableField("workstation_type")
+    @ApiModelProperty(value = "员工工种类型", enumClass = UserStaffWorkstationType.class, required = "required,num")
+    private Integer workstationType;
 
 }
