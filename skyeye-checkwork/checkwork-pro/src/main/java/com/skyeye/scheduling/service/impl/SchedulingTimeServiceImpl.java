@@ -31,12 +31,6 @@ public class SchedulingTimeServiceImpl extends SkyeyeBusinessServiceImpl<Schedul
     @Override
     protected void createPrepose(List<SchedulingTime> entity) {
         for (SchedulingTime schedulingTime : entity) {
-            String startTime = schedulingTime.getStartTime();
-            String endTime = schedulingTime.getEndTime();
-            boolean compareTimeHMS = DateUtil.compareTimeHMS(startTime, endTime);
-            if (!compareTimeHMS) {
-                throw new RuntimeException("班次开始时间不能大于结束时间");
-            }
             Integer minStaff = schedulingTime.getMinStaff();
             Integer maxStaff = schedulingTime.getMaxStaff();
             if (minStaff > maxStaff) {

@@ -52,9 +52,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     private LeaveService leaveService;
 
     @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
-
-    @Autowired
     private SchedulingTimeService schedulingTimeService;
 
     @Autowired
