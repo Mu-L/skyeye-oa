@@ -79,7 +79,7 @@ public class LoanBorrow extends SkyeyeFlowable {
     private Integer paidState;
 
     @TableField(value = "paid_price")
-    @ApiModelProperty(value = "已还款金额")
+    @ApiModelProperty(value = "已还款金额",defaultValue = "0")
     private String paidPrice;
 
 }
