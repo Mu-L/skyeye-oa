@@ -41,13 +41,12 @@ import com.skyeye.purchase.dao.PurchaseOrderDao;
 import com.skyeye.purchase.entity.*;
 import com.skyeye.purchase.service.*;
 import com.skyeye.util.ErpOrderUtil;
+import com.skyeye.whole.entity.WholeOrderOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -354,10 +353,8 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         Map<String, Object> map = inputObject.getParams();
         QueryWrapper<PurchaseOrder> queryWrapper = new QueryWrapper<>();
         //获取前三十天以内的日期
-        String beforeDay = getBeforeOrFutureDay(-29);
-        String today = DateUtil.getTimeAndToString();
-        queryWrapper.ge(MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime), beforeDay);
-        queryWrapper.le(MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime), today);
+        String payMonth = DateUtil.getLastMonthDate();
+        queryWrapper.like(MybatisPlusUtil.toColumns(WholeOrderOut::getCreateTime), payMonth);
         if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
             queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
         }
