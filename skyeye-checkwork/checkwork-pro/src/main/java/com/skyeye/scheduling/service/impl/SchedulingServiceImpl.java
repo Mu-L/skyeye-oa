@@ -709,7 +709,15 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(collect);
         Map<String, List<SchedulingShifts>> collect1 = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
         for (Scheduling scheduling : schedulingList) {
-            scheduling.setShiftMation(collect1.get(scheduling.getShiftId()).get(CommonNumConstants.NUM_ZERO));
+            if (scheduling != null && scheduling.getShiftId() != null) {
+                List<SchedulingShifts> schedulingShifts1 = collect1.get(scheduling.getShiftId());
+                if (CollectionUtil.isNotEmpty(schedulingShifts1)) {
+                    SchedulingShifts schedulingShifts2 = schedulingShifts1.get(CommonNumConstants.NUM_ZERO);
+                    if (ObjectUtil.isNotEmpty(schedulingShifts2)) {
+                        scheduling.setShiftMation(schedulingShifts2);
+                    }
+                }
+            }
         }
         iAuthUserService.setName(schedulingList, "createId", "createName");
         iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");

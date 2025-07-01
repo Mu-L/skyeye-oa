@@ -13,13 +13,7 @@ public interface ISysEveUserStaffRest {
      * 查询所有未离职员工
      *
      */
-    @PostMapping("/queryAllStaffList")
-    String queryAllStaffList();
+    @PostMapping("/commonselpeople007")
+    String commonselpeople007();
 
-    /**
-     * 根据员工Ids查询所员工
-     *
-     */
-    @PostMapping("/queryEmployeeListByIds")
-    String queryEmployeeListByIds(@RequestParam("employeeIds")String employeeIds);
 }
