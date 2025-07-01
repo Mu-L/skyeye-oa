@@ -11,6 +11,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.equipment.dao.EquipmentDao;
 import com.skyeye.equipment.entity.Equipment;
@@ -19,8 +20,9 @@ import com.skyeye.farm.service.FarmService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -69,9 +71,11 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
     public void queryNoPageAllEquipmentList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
-        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
-        String formattedDate = oneMonthAgo.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        queryWrapper.ge(MybatisPlusUtil.toColumns(Equipment::getCreateTime), formattedDate);
+        //获取前三十天以内的日期
+        String beforeDay = getBeforeOrFutureDay(-29);
+        String today = DateUtil.getTimeAndToString();
+        queryWrapper.ge(MybatisPlusUtil.toColumns(Equipment::getCreateTime), beforeDay);
+        queryWrapper.le(MybatisPlusUtil.toColumns(Equipment::getCreateTime), today);
         if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
             queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
         }
@@ -80,4 +84,12 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
         outputObject.settotal(list.size());
     }
 
+    public String getBeforeOrFutureDay(int num) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        c.setTime(new Date());
+        c.add(Calendar.DATE, num);
+        Date m = c.getTime();
+        return format.format(m);
+    }
 }
