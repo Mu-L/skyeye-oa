@@ -24,12 +24,8 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     private LessonReviewTypeService lessonReviewTypeService;
 
     @Override
-    protected void createPrepose(LessonReviewModel entity) {
-        noName(entity);
-    }
-
-    @Override
-    protected void updatePrepose(LessonReviewModel entity) {
+    protected void validatorEntity(LessonReviewModel entity) {
+        super.validatorEntity(entity);
         noName(entity);
     }
 

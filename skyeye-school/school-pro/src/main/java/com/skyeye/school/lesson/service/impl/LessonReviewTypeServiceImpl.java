@@ -30,12 +30,8 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
     private LessonReviewModelService lessonReviewModelService;
 
     @Override
-    protected void createPrepose(LessonReviewType entity) {
-        NonClassHourOrId(entity);
-    }
-
-    @Override
-    protected void updatePrepose(LessonReviewType entity) {
+    protected void validatorEntity(LessonReviewType entity) {
+        super.validatorEntity(entity);
         NonClassHourOrId(entity);
     }
 
