@@ -54,7 +54,7 @@ public class ExamAnRadioController {
      */
     @ApiOperation(id = "deleteExamAnRadioById", value = "根据ID删除单选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamAnRadioController/deleteExamAnRadioById")
     public void deleteExamAnRadioById(InputObject inputObject, OutputObject outputObject) {
         examAnRadioService.deleteById(inputObject, outputObject);
@@ -68,7 +68,7 @@ public class ExamAnRadioController {
      */
     @ApiOperation(id = "queryExamAnRadioListById", value = "根据id获取单选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamAnRadioController/queryExamAnRadioListById")
     public void queryExamAnRadioListById(InputObject inputObject, OutputObject outputObject) {
         examAnRadioService.queryExamAnRadioListById(inputObject, outputObject);
