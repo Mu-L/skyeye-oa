@@ -21,7 +21,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Component
-public class examXxlJob {
+public class ExamXxlJob {
 
     @Autowired
     private ExamSurveyDirectoryService examSurveyDirectoryService;
@@ -29,7 +29,7 @@ public class examXxlJob {
     @Autowired
     private IQuartzService iQuartzService;
 
-    private static Logger log = LoggerFactory.getLogger(examXxlJob.class);
+    private static Logger log = LoggerFactory.getLogger(ExamXxlJob.class);
 
 
     @XxlJob("createExam")
