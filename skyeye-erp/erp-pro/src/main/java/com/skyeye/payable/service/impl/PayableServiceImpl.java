@@ -81,6 +81,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     @Override
     public Payable selectById(String id) {
         Payable payable = super.selectById(id);
+        payable.setName(payable.getOddNumber());
         supplierContractService.setDataMation(payable, Payable::getContractId);
         iContactsService.setDataMation(payable, Payable::getContactId);
         return payable;
@@ -89,6 +90,9 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     @Override
     public List<Payable> selectByIds(String... ids) {
         List<Payable> payableList = super.selectByIds(ids);
+        payableList.forEach(payable -> {
+            payable.setName(payable.getOddNumber());
+        });
         supplierContractService.setDataMation(payableList, Payable::getContractId);
         iContactsService.setDataMation(payableList, Payable::getContactId);
         return payableList;
