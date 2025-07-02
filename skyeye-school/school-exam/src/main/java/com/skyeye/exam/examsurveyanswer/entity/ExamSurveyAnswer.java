@@ -6,12 +6,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
-import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
-import com.skyeye.eve.examquestion.entity.Question;
 import com.skyeye.exam.examananswer.entity.ExamAnAnswer;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
@@ -32,7 +28,6 @@ import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.major.entity.Major;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
