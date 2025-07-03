@@ -35,7 +35,7 @@ public class TenantAppLink extends CommonInfo {
     private String buyTenantId;
 
     @TableField(value = "app_id")
-    @Property(value = "应用id")
+    @ApiModelProperty(value = "应用id")
     private String appId;
 
     @TableField(exist = false)
@@ -43,11 +43,11 @@ public class TenantAppLink extends CommonInfo {
     private TenantApp appMation;
 
     @TableField(value = "start_time")
-    @Property(value = "有效期开始时间")
+    @ApiModelProperty(value = "有效期开始时间")
     private String startTime;
 
     @TableField(value = "end_time")
-    @Property(value = "有效期结束时间")
+    @ApiModelProperty(value = "有效期结束时间")
     private String endTime;
 
 }
