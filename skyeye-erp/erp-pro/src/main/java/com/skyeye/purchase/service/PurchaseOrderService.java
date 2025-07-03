@@ -53,5 +53,5 @@ public interface PurchaseOrderService extends SkyeyeErpOrderService<PurchaseOrde
 
     void insertPurchaseOrderToExchanges(InputObject inputObject, OutputObject outputObject);
 
-    void queryNoPagePurchaseorderList(InputObject inputObject, OutputObject outputObject);
+    void queryLastMonthPurchaseOrderCost(InputObject inputObject, OutputObject outputObject);
 }

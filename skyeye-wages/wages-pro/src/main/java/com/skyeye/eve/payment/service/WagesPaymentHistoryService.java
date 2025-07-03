@@ -32,6 +32,4 @@ public interface WagesPaymentHistoryService extends SkyeyeBusinessService<WagesP
     void editWagesPaymentHistoryState(String staffId, String payMonth, Integer state);
 
     void queryWagesStaffPaymentDetail(InputObject inputObject, OutputObject outputObject);
-
-    void queryStaffIdLastWages(InputObject inputObject, OutputObject outputObject);
 }

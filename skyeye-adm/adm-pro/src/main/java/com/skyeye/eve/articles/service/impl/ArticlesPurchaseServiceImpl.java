@@ -5,6 +5,7 @@
 package com.skyeye.eve.articles.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
@@ -13,7 +14,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.articles.dao.ArticlesPurchaseDao;
 import com.skyeye.eve.articles.entity.ArticlesPurchase;
@@ -21,11 +24,16 @@ import com.skyeye.eve.articles.entity.ArticlesPurchaseLink;
 import com.skyeye.eve.articles.service.ArticlesPurchaseLinkService;
 import com.skyeye.eve.articles.service.ArticlesPurchaseService;
 import com.skyeye.eve.articles.service.ArticlesService;
+import com.skyeye.eve.assets.entity.AssetPurchase;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.project.service.IProProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -46,11 +54,21 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
     @Autowired
     private ArticlesService articlesService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
     @Override
     protected QueryWrapper<ArticlesPurchase> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ArticlesPurchase> queryWrapper = super.getQueryWrapper(commonPageInfo);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateId), userId);
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            String lastMonth = DateUtil.getLastMonthDate();
+            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId), commonPageInfo.getObjectId());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime));
+        }
         return queryWrapper;
     }
 
@@ -113,6 +131,7 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
         });
         articlesPurchase.setStateName(FlowableStateEnum.getStateName(articlesPurchase.getState()));
         iAuthUserService.setName(articlesPurchase, "createId", "createName");
+        iProProjectService.setDataMation(articlesPurchase,ArticlesPurchase::getProjectId);
         return articlesPurchase;
     }
 
@@ -140,5 +159,35 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
     @Override
     protected void approvalEndIsFailed(ArticlesPurchase entity) {
         articlesPurchaseLinkService.editStateByPId(entity.getId(), FlowableChildStateEnum.REJECT.getKey());
+    }
+
+    @Override
+    public void queryLastMonthAssetArticleCost(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<ArticlesPurchase> queryWrapper = new QueryWrapper<>();
+        //获取上个月日期
+        String lastMonth = DateUtil.getLastMonthDate();
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
+        List<ArticlesPurchase> bean = list(queryWrapper);
+        if(CollectionUtil.isEmpty(bean)){
+            return;
+        }
+        // 根据projectId分组
+        Map<String, List<ArticlesPurchase>> groupMap = bean.stream().collect(Collectors.groupingBy(ArticlesPurchase::getProjectId));
+        List<Map<String,Object>> result = new ArrayList<>();
+        for (Map.Entry<String, List<ArticlesPurchase>> entry : groupMap.entrySet()) {
+            Map<String,Object> map = new HashMap<>();
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            map.put("projectId",entry.getKey());
+            for (ArticlesPurchase articlesPurchase : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(articlesPurchase.getAllPrice()) ? "0" : articlesPurchase.getAllPrice(),
+                        price);
+            }
+            map.put("price",price);
+            result.add(map);
+        }
+        outputObject.setBeans(result);
     }
 }

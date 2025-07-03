@@ -46,18 +46,6 @@ public class OilingController {
     }
 
     /**
-     * 不分页查询车辆加油列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryNoPageOilingList", value = "不分页查询车辆加油列表", method = "POST", allUse = "1")
-    @RequestMapping("/post/OilingController/queryNoPageOilingList")
-    public void queryNoPageOilingList(InputObject inputObject, OutputObject outputObject) {
-        oilingService.queryNoPageOilingList(inputObject, outputObject);
-    }
-
-    /**
      * 新增/修改加油信息
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -78,7 +66,7 @@ public class OilingController {
      */
     @ApiOperation(id = "oiling003", value = "根据id删除加油信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OilingController/deleteOilingById")
     public void deleteOilingById(InputObject inputObject, OutputObject outputObject) {
         oilingService.deleteById(inputObject, outputObject);

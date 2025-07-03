@@ -30,4 +30,5 @@ public interface AssetPurchaseService extends SkyeyeFlowableService<AssetPurchas
 
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
+    void queryLastMonthAssetPurchaseCost(InputObject inputObject, OutputObject outputObject);
 }

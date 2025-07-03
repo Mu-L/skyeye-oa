@@ -6,13 +6,9 @@
 
 **1. 星球用户（只有星球用户才能获取完整源代码，扫描下方知识星球二维码加入星球）拿到源码后可进行学习、毕设、企业等使用。**
 
-**2. [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)    [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)**
+**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)      [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)**
 
-**3. [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)，优先看这个。**
-
-**4. 基础功能包括但不限于：低代码、动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
-
-**5. [官方网站](http://ip.makerview.cn:30003/skyPortal)**
+**3. 基础功能包括但不限于：低代码、动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
 
 **为什么推荐使用本项目？**
 
@@ -22,9 +18,7 @@
 
 ③ 具备低代码、功能全面、快速便捷开发、无需重复的CRUD等优点，短时间内可完成一款系统的开发。
 
-④ [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)，仅限已经获取了体验账号和星球用户申请，功能清单结合体验账号，效果更加。
-
-⑤ 体验地址：`Star`后在下方微信公众号里回复【体验】，会有具体的获取方式。
+④ 体验地址：`Star`后在下方微信公众号里回复【体验】，会有具体的获取方式。
 
 ## 项目地址
 

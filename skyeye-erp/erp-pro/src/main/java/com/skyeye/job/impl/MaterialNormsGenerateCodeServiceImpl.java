@@ -9,6 +9,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.FileConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.eve.coderule.service.ICodeRuleService;
@@ -66,12 +67,20 @@ public class MaterialNormsGenerateCodeServiceImpl implements RocketMQListener<St
     @Value("${spring.application.name}")
     private String springApplicationName;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Override
     public void onMessage(String data) {
         LOGGER.info("start material norms get Bar Code, data is {}", data);
         Map<String, Object> map = JSONUtil.toBean(data, null);
         List<Map<String, Object>> list = JSONUtil.toList(map.get("list").toString(), null);
         String className = map.get("className").toString();
+        String tenantId = StrUtil.EMPTY;
+        if (tenantEnable) {
+            tenantId = map.get("tenantId").toString();
+            TenantContext.setTenantId(tenantId);
+        }
 
         List<String> materialIdList = list.stream().map(bean -> bean.get("materialId").toString()).distinct().collect(Collectors.toList());
         Map<String, Material> materialMap = materialService.selectMapByIds(materialIdList);

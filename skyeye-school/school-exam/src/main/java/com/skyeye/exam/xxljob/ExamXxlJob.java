@@ -31,7 +31,6 @@ public class ExamXxlJob {
 
     private static Logger log = LoggerFactory.getLogger(ExamXxlJob.class);
 
-
     @XxlJob("createExam")
     public void createExam() {
         String param = XxlJobHelper.getJobParam();

@@ -16,6 +16,7 @@ import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: AssetPurchase
@@ -50,5 +51,13 @@ public class AssetPurchase extends SkyeyeFlowable {
     @TableField(exist = false)
     @ApiModelProperty(value = "资产信息", required = "required,json")
     private List<AssetPurchaseLink> purchaseLinks;
+
+    @TableField("project_id")
+    @ApiModelProperty(value = "项目id")
+    private String projectId;
+
+    @TableField(exist = false)
+    @Property(value = "项目信息")
+    private Map<String,Object> projectMation;
 
 }

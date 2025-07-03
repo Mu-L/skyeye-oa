@@ -66,7 +66,7 @@ public class MaintenanceController {
      */
     @ApiOperation(id = "maintenance003", value = "根据id删除维修信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/MaintenanceController/deleteMaintenanceById")
     public void deleteMaintenanceById(InputObject inputObject, OutputObject outputObject) {
         maintenanceService.deleteById(inputObject, outputObject);

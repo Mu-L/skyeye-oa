@@ -5,8 +5,6 @@
 package com.skyeye.eve.vehicle.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.vehicle.entity.Oiling;
 
 /**
@@ -19,5 +17,4 @@ import com.skyeye.eve.vehicle.entity.Oiling;
  */
 public interface OilingService extends SkyeyeBusinessService<Oiling> {
 
-    void queryNoPageOilingList(InputObject inputObject, OutputObject outputObject);
 }

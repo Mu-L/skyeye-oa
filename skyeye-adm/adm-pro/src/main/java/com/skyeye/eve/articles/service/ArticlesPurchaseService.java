@@ -5,6 +5,8 @@
 package com.skyeye.eve.articles.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.articles.entity.ArticlesPurchase;
 
 /**
@@ -17,4 +19,5 @@ import com.skyeye.eve.articles.entity.ArticlesPurchase;
  */
 public interface ArticlesPurchaseService extends SkyeyeFlowableService<ArticlesPurchase> {
 
+    void queryLastMonthAssetArticleCost(InputObject inputObject, OutputObject outputObject);
 }

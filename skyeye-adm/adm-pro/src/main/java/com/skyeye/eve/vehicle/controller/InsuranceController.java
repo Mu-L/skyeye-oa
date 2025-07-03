@@ -66,10 +66,9 @@ public class InsuranceController {
      */
     @ApiOperation(id = "insurance003", value = "根据id删除保险信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/InsuranceController/deleteInsuranceById")
     public void deleteInsuranceById(InputObject inputObject, OutputObject outputObject) {
         insuranceService.deleteById(inputObject, outputObject);
     }
-
 }

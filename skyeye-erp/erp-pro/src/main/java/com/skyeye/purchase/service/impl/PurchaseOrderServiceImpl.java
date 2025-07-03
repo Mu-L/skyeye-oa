@@ -8,8 +8,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.classenum.OrderQualityInspectionType;
@@ -21,6 +24,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.classenum.SupplierContractChildStateEnum;
@@ -28,7 +32,9 @@ import com.skyeye.contract.entity.SupplierContract;
 import com.skyeye.contract.entity.SupplierContractChild;
 import com.skyeye.contract.service.SupplierContractService;
 import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderItem;
+import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialFromType;
 import com.skyeye.material.classenum.MaterialInOrderType;
@@ -88,6 +94,16 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getFromId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getFromId), commonPageInfo.getFromId());
+        }
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            String lastMonth = DateUtil.getLastMonthDate();
+            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId), commonPageInfo.getObjectId());
+            queryWrapper.and(w -> {
+                w.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getState), FlowableStateEnum.PASS.getKey())
+                        .or().eq(MybatisPlusUtil.toColumns(PurchaseOrder::getState), ErpOrderStateEnum.COMPLETED.getKey());
+            });
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime));
         }
         return queryWrapper;
     }
@@ -349,18 +365,33 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
     }
 
     @Override
-    public void queryNoPagePurchaseorderList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
+    public void queryLastMonthPurchaseOrderCost(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<PurchaseOrder> queryWrapper = new QueryWrapper<>();
-        //获取前三十天以内的日期
-        String payMonth = DateUtil.getLastMonthDate();
-        queryWrapper.like(MybatisPlusUtil.toColumns(WholeOrderOut::getCreateTime), payMonth);
-        if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
-            queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
+        //获取上个月日期
+        String lastMonth = DateUtil.getLastMonthDate();
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId));
+        List<PurchaseOrder> bean = list(queryWrapper);
+
+        if(CollectionUtil.isEmpty(bean)){
+            return;
         }
-        List<PurchaseOrder> list = list(queryWrapper);
-        outputObject.setBeans(list);
-        outputObject.settotal(list.size());
+        // 根据projectId分组
+        Map<String, List<PurchaseOrder>> groupMap = bean.stream().collect(Collectors.groupingBy(PurchaseOrder::getProjectId));
+        List<Map<String,Object>> result = new ArrayList<>();
+        for (Map.Entry<String, List<PurchaseOrder>> entry : groupMap.entrySet()) {
+            Map<String,Object> map = new HashMap<>();
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            map.put("projectId",entry.getKey());
+            for (PurchaseOrder purchaseOrder : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(purchaseOrder.getTotalPrice()) ? "0" : purchaseOrder.getTotalPrice(),
+                        price);
+            }
+            map.put("price",price);
+            result.add(map);
+        }
+        outputObject.setBeans(result);
     }
 
     @Override
