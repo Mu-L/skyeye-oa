@@ -14,7 +14,7 @@ public class ISchedulingServiceImpl extends IServiceImpl implements ISchedulingS
     @Autowired
     private ISchedulingRest iSchedulingRest;
     @Override
-    public ResultEntity deleteSchedulingByWorkId(String workId) {
-        return ExecuteFeignClient.get(() -> iSchedulingRest.deleteSchedulingByWorkId(workId));
+    public void deleteSchedulingByWorkId(String workId) {
+         ExecuteFeignClient.get(() -> iSchedulingRest.deleteSchedulingByWorkId(workId));
     }
 }
