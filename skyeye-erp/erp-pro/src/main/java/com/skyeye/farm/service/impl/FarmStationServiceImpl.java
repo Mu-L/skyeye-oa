@@ -10,6 +10,8 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.farm.dao.FarmStationDao;
 import com.skyeye.farm.entity.FarmStation;
 import com.skyeye.farm.service.FarmStationService;
+import com.skyeye.rest.scheduling.ISchedulingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "车间工位管理", groupName = "车间工位管理")
 public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStationDao, FarmStation> implements FarmStationService {
 
+    @Autowired
+    private ISchedulingService iSchedulingService;
 
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<FarmStation> wrapper) {
@@ -33,4 +37,8 @@ public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStatio
         }
     }
 
+    @Override
+    protected void deletePreExecution(String id) {
+        iSchedulingService.deleteSchedulingByWorkId(id);
+    }
 }

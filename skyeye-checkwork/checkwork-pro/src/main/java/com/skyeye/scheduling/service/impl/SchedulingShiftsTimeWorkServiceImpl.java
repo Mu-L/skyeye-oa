@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.scheduling.dao.SchedulingShiftsTimeWorkDao;
 import com.skyeye.scheduling.entity.SchedulingShiftsTimeWork;
@@ -43,5 +45,13 @@ public class SchedulingShiftsTimeWorkServiceImpl extends SkyeyeBusinessServiceIm
         QueryWrapper<SchedulingShiftsTimeWork> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, schedulingShiftsTimeWorkId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteSchedulingByWorkId(InputObject inputObject, OutputObject outputObject) {
+        String workId = inputObject.getParams().get("workId").toString();
+        QueryWrapper<SchedulingShiftsTimeWork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingShiftsTimeWork::getWorkId), workId);
+        remove(queryWrapper);
     }
 }
