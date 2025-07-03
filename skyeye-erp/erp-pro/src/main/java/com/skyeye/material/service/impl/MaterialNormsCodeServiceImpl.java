@@ -18,6 +18,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.PropertiesUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -202,6 +203,7 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         jobBody.put("whetherCreatTask", false);
         jobBody.put("list", JSONUtil.toJsonStr(list));
         jobBody.put("className", MaterialNormsCodeServiceImpl.class.getName());
+        jobBody.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         String topic = PropertiesUtil.getPropertiesValue("${topic.material-norms-code-generate-barcode}");
         jobBody.put("topic", topic);
         JobMateMation jobMateMation = new JobMateMation();

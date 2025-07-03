@@ -99,7 +99,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
      */
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void sendMQProducer(String jsonStr, String userId) {
+    public void  sendMQProducer(String jsonStr, String userId) {
         Map<String, Object> jobBody = JSONUtil.toBean(jsonStr, null);
         String topic;
         SendResult sendResult;
