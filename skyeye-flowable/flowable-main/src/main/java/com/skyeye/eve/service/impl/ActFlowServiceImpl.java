@@ -14,6 +14,7 @@ import com.skyeye.activiti.service.ActivitiModelService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -54,6 +55,18 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         // 设置流程模型信息
         activitiModelService.setActivitiModelList(beans);
         return beans;
+    }
+
+    @Override
+    protected void validatorEntity(ActFlowMation entity) {
+        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getModelKey), entity.getModelKey());
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        if (this.count(queryWrapper) > 0) {
+            throw new IllegalArgumentException("模型Key已存在");
+        }
     }
 
     @Override

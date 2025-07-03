@@ -465,9 +465,13 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
             List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(dwSurveyDirectory.getId());
             List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(questionList), null);
-            for (Map<String, Object> question : list) {
+            for (int i = 0; i < list.size(); i++) {
+                Map<String, Object> question = list.get(i);
                 question.put("quTypeName ", QuType.getCName(Integer.parseInt(question.get("quType").toString())));
-                getQuestionOptionReportListMation(question);
+
+                // 接收返回值并更新列表中的对象
+                question = getQuestionOptionReportListMation(question);
+                list.set(i, question);
             }
             outputObject.setBean(dwSurveyDirectory);
             outputObject.setBeans(list);

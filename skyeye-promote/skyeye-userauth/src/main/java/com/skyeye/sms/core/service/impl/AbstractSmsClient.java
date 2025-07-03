@@ -26,7 +26,7 @@ public abstract class AbstractSmsClient implements SmsClient {
         this.properties = properties;
     }
 
-    /**
+    /**0
      * 初始化
      */
     public final void init() {

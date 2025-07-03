@@ -19,6 +19,7 @@ import com.skyeye.print.service.PrintHtmlGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -40,6 +41,9 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
 
     @Autowired
     private SpringTemplateEngine templateEngine;
+
+    @Value("${webroot.fileBath}")
+    private String webRootfileBath;
 
     @Override
     public String generateHtml(PrintTemplate printTemplate, Map<String, Object> data) {
@@ -275,7 +279,7 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         }
 
         if (StrUtil.isBlank(element.getSrc())) {
-            String base64 = ImagesUtil.urlToBase64(element.getUrl());
+            String base64 = ImagesUtil.urlToBase64(webRootfileBath + element.getUrl());
             element.setSrc(base64);
         }
 

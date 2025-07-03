@@ -9,7 +9,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
@@ -25,7 +24,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"modelKey"})
 @RedisCacheField(name = "act:flow", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @TableName(value = "act_flow")
 @ApiModel("流程配置实体类")
