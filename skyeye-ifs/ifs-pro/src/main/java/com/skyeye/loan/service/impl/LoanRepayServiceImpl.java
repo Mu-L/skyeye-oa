@@ -4,6 +4,7 @@
 
 package com.skyeye.loan.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
@@ -12,10 +13,14 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.loan.dao.LoanRepayDao;
 import com.skyeye.loan.entity.LoanRepay;
+import com.skyeye.loan.service.LoanBorrowService;
 import com.skyeye.loan.service.LoanRepayService;
 import com.skyeye.loan.service.UserLoanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: LoanRepayServiceImpl
@@ -32,6 +37,9 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
     @Autowired
     private UserLoanService userLoanService;
 
+    @Autowired
+    private LoanBorrowService loanBorrowService;
+
     @Override
     public QueryWrapper<LoanRepay> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<LoanRepay> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -41,15 +49,28 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
     }
 
     @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        // 借款单信息
+        loanBorrowService.setMationForMap(beans, "loanBorrowId","loanBorrowMation");
+        return beans;
+    }
+
+    @Override
     public LoanRepay selectById(String id) {
         LoanRepay loanRepay = super.selectById(id);
         iSysDictDataService.setDataMation(loanRepay, LoanRepay::getPayTypeId);
+        loanBorrowService.setDataMation(loanRepay,LoanRepay::getLoanBorrowId);
         return loanRepay;
     }
 
     @Override
     public void approvalEndIsSuccess(LoanRepay entity) {
         userLoanService.calcUserLoanPrice(entity.getCreateId(), entity.getPrice(), false);
+        if(StrUtil.isNotEmpty(entity.getLoanBorrowId())){
+            // 更新借款单状态
+            loanBorrowService.updateLoanBorrowStatePrice(entity.getLoanBorrowId(), entity.getPrice());
+        }
     }
 
 }

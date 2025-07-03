@@ -4,11 +4,14 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+
 import java.util.List;
 import java.util.Map;
 
 public interface CommonDao {
 
+    @IgnoreTenant
     int insertCodeModelHistory(List<Map<String, Object>> inBeans);
 
 }

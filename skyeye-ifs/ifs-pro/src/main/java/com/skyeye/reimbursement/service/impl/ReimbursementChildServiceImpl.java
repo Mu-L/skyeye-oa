@@ -4,14 +4,23 @@
 
 package com.skyeye.reimbursement.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.reimbursement.dao.ReimbursementChildDao;
 import com.skyeye.reimbursement.entity.ReimbursementChild;
 import com.skyeye.reimbursement.service.ReimbursementChildService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ReimbursementChildServiceImpl
@@ -32,6 +41,30 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
             totalPrice = CalculationUtil.add(totalPrice, orderItem.getPrice());
         }
         return totalPrice;
+    }
+
+    @Override
+    public void queryReimbursementAnalysis(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<ReimbursementChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime));
+        List<ReimbursementChild> bean = list(queryWrapper);
+        if(CollectionUtil.isEmpty(bean)){
+            return;
+        }
+        List<Map<String, Object>> result = new ArrayList<>();
+        iSysDictDataService.setDataMation(bean, ReimbursementChild::getReimburseProId);
+        // 按reimburseProId分组
+        Map<String, List<ReimbursementChild>> map = bean.stream().collect(Collectors.groupingBy(ReimbursementChild::getReimburseProId));
+        //求占比
+        for (Map.Entry<String, List<ReimbursementChild>> entry : map.entrySet()) {
+            String reimburseProName = entry.getValue().get(CommonNumConstants.NUM_ZERO).getReimburseProMation().get("dictName").toString();
+            BigDecimal percent = new BigDecimal(entry.getValue().size()).divide(new BigDecimal(bean.size()), 2, RoundingMode.HALF_UP);
+            Map<String, Object> deptInfo = new HashMap<>();
+            deptInfo.put("name", reimburseProName);
+            deptInfo.put("pie", percent.multiply(new BigDecimal(100)) + "%");
+            result.add(deptInfo);
+        }
+        outputObject.setBeans(result);
     }
 
 }

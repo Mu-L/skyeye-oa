@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -79,9 +80,7 @@ public class ReimbursementController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "submitReimbursementToApproval", value = "报销订单提交审批", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/ReimbursementController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         reimbursementService.submitToApproval(inputObject, outputObject);
@@ -99,6 +98,18 @@ public class ReimbursementController {
     @RequestMapping("/post/ReimbursementController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         reimbursementService.revoke(inputObject, outputObject);
+    }
+
+    /**
+     * 费用分析
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryCostAnalysis", value = "费用分析", method = "POST", allUse = "1")
+    @RequestMapping("/post/ReimbursementController/queryCostAnalysis")
+    public void queryCostAnalysis(InputObject inputObject, OutputObject outputObject) {
+        reimbursementService.queryCostAnalysis(inputObject, outputObject);
     }
 
 }

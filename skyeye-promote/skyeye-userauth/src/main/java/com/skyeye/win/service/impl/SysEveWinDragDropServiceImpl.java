@@ -7,6 +7,7 @@ package com.skyeye.win.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.ObjectConstant;
 import com.skyeye.common.object.OutputObject;
@@ -28,7 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @ClassName: SysEveWinDragDropServiceImpl
+ * @Description: 自定义菜单或文件夹管理服务层--强隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/24 9:10
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
+@SkyeyeService(name = "自定义菜单或文件夹管理", groupName = "自定义菜单或文件夹管理", manageShow = false)
 public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
 
     @Autowired
@@ -59,6 +69,8 @@ public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
         String id = map.get("id").toString();
         String userId = inputObject.getLogParams().get("id").toString();
         map.put("userId", userId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         Map<String, Object> bean = sysEveWinDragDropDao.queryMenuMationFromSysById(map);//查询菜单
         if (CollectionUtil.isNotEmpty(bean)) {
             // 菜单存在
@@ -101,6 +113,8 @@ public class SysEveWinDragDropServiceImpl implements SysEveWinDragDropService {
     @Override
     public void queryMenuMationTypeById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        map.put("tenantId", tenantId);
         Map<String, Object> bean = sysEveWinDragDropDao.queryMenuMationTypeById(map);
         outputObject.setBean(bean);
     }

@@ -1,10 +1,11 @@
 package com.skyeye.product.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.product.classenum.ProductLeadFromType;
+import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadDao;
 import com.skyeye.product.entity.ProductLead;
 import com.skyeye.product.entity.ProductLeadChild;
@@ -42,13 +43,27 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Override
     public void createPrepose(ProductLead entity) {
         super.createPrepose(entity);
+        depotYesOrNo(entity);
         getTotalPrice(entity);
     }
 
     @Override
     protected void updatePrepose(ProductLead entity) {
         super.updatePrepose(entity);
+        depotYesOrNo(entity);
         getTotalPrice(entity);
+    }
+
+    private static void depotYesOrNo(ProductLead entity) {
+        List<ProductLeadChild> erpOrderItemList = entity.getErpOrderItemList();
+        erpOrderItemList.forEach(
+            e -> {
+                String depotId = e.getDepotId();
+                if (StrUtil.isEmpty(depotId)) {
+                    throw new RuntimeException("请选择仓库");
+                }
+            }
+        );
     }
 
     private void getTotalPrice(ProductLead entity) {
@@ -79,9 +94,10 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductLeadOutStock productLeadOutStock = inputObject.getParams(ProductLeadOutStock.class);
         productLeadOutStock.setFromId(productLeadOutStock.getId());
-        productLeadOutStock.setFromTypeId(ProductLeadFromType.LOANOUT.getKey());
+        productLeadOutStock.setFromTypeId(ProductLeadOrReturnFromType.LOANOUT.getKey());
         productLeadOutStock.setId(null);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
     }
+
 }

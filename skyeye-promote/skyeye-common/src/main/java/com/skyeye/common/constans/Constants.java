@@ -14,15 +14,6 @@ package com.skyeye.common.constans;
  */
 public class Constants {
 
-    /**
-     * 保存模板说明的redis的key
-     */
-    public static final String REDIS_CODEMODEL_EXPLAIN_EXEXPLAIN = "exexplaintocodemodel";
-
-    public static String getSysExplainExexplainRedisKey(Integer type) {
-        return REDIS_CODEMODEL_EXPLAIN_EXEXPLAIN + "_" + type;
-    }
-
     // win系统桌面图片列表的redis的key
     public static final String SYS_WIN_BG_PIC_REDIS_KEY = "sys_win_bg_pic_redis_key";
 

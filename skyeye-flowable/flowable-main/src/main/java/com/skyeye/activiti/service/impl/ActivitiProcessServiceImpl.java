@@ -5,6 +5,7 @@
 package com.skyeye.activiti.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.common.base.Joiner;
 import com.skyeye.activiti.cmd.nextusertask.FindNextUserTaskNodeCmd;
@@ -18,6 +19,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.ActFlowMation;
 import com.skyeye.eve.entity.ActGroupUser;
@@ -44,12 +46,15 @@ import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
 import org.flowable.engine.repository.Model;
+import org.flowable.engine.repository.ModelQuery;
 import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.repository.ProcessDefinitionQuery;
 import org.flowable.task.api.Task;
 import org.nutz.trans.Trans;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -101,6 +106,9 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
 
     @Autowired
     private ActGroupUserService actGroupUserService;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     /**
      * 流程挂起
@@ -303,27 +311,31 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
     @Override
     public void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String actKey = params.get("actKey").toString();
+        String modelKey = params.get("modelKey").toString();
         // 获取业务数据
         String businessDataStr = params.get("businessData").toString();
         Map<String, Object> businessData = null;
         if (!ToolUtil.isBlank(businessDataStr)) {
             businessData = JSONObject.fromObject(businessDataStr);
         }
-        ActFlowMation actFlowMation = actFlowService.getActFlow(actKey);
-        if (actFlowMation == null) {
-            outputObject.setreturnMessage("流程不存在或未启动.");
-            return;
-        }
-        List<Map<String, Object>> user = this.nextPrcessApproverByProcessDefinitionKey(actFlowMation.getModelKey());
+        List<Map<String, Object>> user = this.nextPrcessApproverByProcessDefinitionKey(modelKey);
         outputObject.setBeans(user);
     }
 
     public List<Map<String, Object>> nextPrcessApproverByProcessDefinitionKey(String processDefinitionKey) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> user = new ArrayList<>();
-        List<ProcessDefinition> processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey).list();
+        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey);
+        if (tenantEnable) {
+            processDefinitionQuery.processDefinitionTenantId(tenantId);
+        }
+        List<ProcessDefinition> processDefinition = processDefinitionQuery.list();
         if (processDefinition != null) {
-            List<Model> beans = repositoryService.createModelQuery().latestVersion().orderByLastUpdateTime().desc().list();
+            ModelQuery modelQuery = repositoryService.createModelQuery();
+            if (tenantEnable) {
+                modelQuery.modelTenantId(tenantId);
+            }
+            List<Model> beans = modelQuery.latestVersion().orderByLastUpdateTime().desc().list();
             List<String> deploymentIds = beans.stream().map(p -> p.getDeploymentId()).collect(Collectors.toList());
             processDefinition = processDefinition.stream().filter(bean -> deploymentIds.contains(bean.getDeploymentId())).collect(Collectors.toList());
             if (processDefinition != null && !processDefinition.isEmpty()) {
@@ -411,7 +423,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             return;
         }
         // 根据业务数据和className获取配置的工作流key,如果actModel没有配置，则无法提交审批
-        ActFlowMation actFlowMation = actFlowService.getActFlow(flowableSubData.getObjectKey());
+        ActFlowMation actFlowMation = actFlowService.getActFlowByModelKey(flowableSubData.getModelKey());
         if (actFlowMation != null) {
             LOGGER.info("actFlow mation is: " + JSONUtil.toJsonStr(actFlowMation));
             // 提交审批

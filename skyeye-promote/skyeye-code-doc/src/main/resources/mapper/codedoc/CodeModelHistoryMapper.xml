@@ -10,6 +10,9 @@
 		FROM
 			code_model_history a
 		WHERE a.group_id = #{groupId}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		GROUP BY a.file_path
 		ORDER BY a.create_time DESC
 	</select>
@@ -22,6 +25,9 @@
 		FROM
 			code_model_history a
 		WHERE a.file_path = #{filePath}
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 </mapper>

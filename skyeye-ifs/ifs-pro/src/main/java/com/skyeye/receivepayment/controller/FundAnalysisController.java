@@ -1,11 +1,9 @@
 package com.skyeye.receivepayment.controller;
 
 import com.skyeye.annotation.api.Api;
-import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.FundAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;

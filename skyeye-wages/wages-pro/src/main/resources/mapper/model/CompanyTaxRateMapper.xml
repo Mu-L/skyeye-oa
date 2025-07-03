@@ -23,9 +23,11 @@
             a.sort_no sortNo
         FROM
             company_tax_rate a
-        <if test="tenantId != '' and tenantId != null">
-            AND a.tenant_id = #{tenantId}
-        </if>
+        <where>
+            <if test="tenantId != '' and tenantId != null">
+                AND a.tenant_id = #{tenantId}
+            </if>
+        </where>
         ORDER BY a.sort_no ASC
     </select>
 

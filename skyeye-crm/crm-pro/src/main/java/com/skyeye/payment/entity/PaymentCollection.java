@@ -63,6 +63,10 @@ public class PaymentCollection extends SkyeyeFlowable {
     @ApiModelProperty(value = "应收事项id")
     private String receivableId;
 
+    @TableField(exist = false)
+    @Property(value = "应收事项")
+    private Map<String, Object> receivableMation;
+
     @TableField(value = "price")
     @ApiModelProperty(value = "回款金额", required = "double", defaultValue = "0")
     private String price;

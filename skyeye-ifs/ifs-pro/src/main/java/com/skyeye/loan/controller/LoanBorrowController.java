@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -79,9 +80,7 @@ public class LoanBorrowController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "submitLoanBorrowToApproval", value = "借款单提交审批", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/LoanBorrowController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         loanBorrowService.submitToApproval(inputObject, outputObject);
@@ -99,6 +98,30 @@ public class LoanBorrowController {
     @RequestMapping("/post/LoanBorrowController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         loanBorrowService.revoke(inputObject, outputObject);
+    }
+
+    /**
+     * 借款单类型占比图
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryLoanBorrowTypePie", value = "借款单类型占比图", method = "POST", allUse = "1")
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowTypePie")
+    public void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowTypePie(inputObject, outputObject);
+    }
+
+    /**
+     * 部门类型占比图
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryLoanBorrowDeptPie", value = "部门类型占比图", method = "POST", allUse = "1")
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowDeptPie")
+    public void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowDeptPie(inputObject, outputObject);
     }
 
 }

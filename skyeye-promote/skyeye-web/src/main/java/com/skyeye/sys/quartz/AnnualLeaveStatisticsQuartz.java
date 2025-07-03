@@ -11,7 +11,6 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
-import com.skyeye.personnel.dao.SysEveUserStaffDao;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -40,9 +39,6 @@ public class AnnualLeaveStatisticsQuartz {
 
     @Autowired
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
-
-    @Autowired
-    private SysEveUserStaffDao sysEveUserStaffDao;
 
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;

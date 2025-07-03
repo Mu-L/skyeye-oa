@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -214,6 +215,24 @@ public class MealOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealOrderDao
         updateWrapper.set(MybatisPlusUtil.toColumns(MealOrder::getState), state);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public void queryMealOrderListByCodeNum(InputObject inputObject, OutputObject outputObject) {
+        String codeNum = inputObject.getParams().get("codeNum").toString();
+        List<MealOrderChild> mealOrderChildList = mealOrderChildService.queryListByCodeNum(codeNum);
+        shopMealService.setDataMation(mealOrderChildList, MealOrderChild::getMealId);
+        List<Map<String, String>> beans = new ArrayList<>();
+        for (MealOrderChild mealOrderChild : mealOrderChildList) {
+            if (ObjectUtil.isNotEmpty(mealOrderChild.getMealMation())){
+                Map<String, String> bean = new HashMap<>();
+                bean.put("id", mealOrderChild.getId());
+                bean.put("name", mealOrderChild.getMealMation().getName());
+                beans.add(bean);
+            }
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
 }

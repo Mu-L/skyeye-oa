@@ -8,8 +8,10 @@
             a.check_work_time_id timeId
         FROM
             sys_eve_user_staff_time a
-        WHERE
-            a.staff_id = #{staffId}
+        WHERE a.staff_id = #{staffId}
+        <if test="tenantId != null and tenantId != ''">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>

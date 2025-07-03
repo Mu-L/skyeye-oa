@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -79,9 +80,7 @@ public class InvoiceController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "submitInvoiceToApproval", value = "发票提交审批", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/InvoiceController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         invoiceService.submitToApproval(inputObject, outputObject);
@@ -102,4 +101,28 @@ public class InvoiceController {
         invoiceService.revoke(inputObject, outputObject);
     }
 
+    /**
+     * 发票开具
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryAllInvoiceList", value = "获取给客户所有的发票列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/InvoiceController/queryAllInvoiceList")
+    public void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject) {
+        invoiceService.queryAllInvoiceList(inputObject, outputObject);
+    }
+
+    /**
+     * 发票统计
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryInvoiceStatistics", value = "发票统计", method = "POST", allUse = "2")
+    @RequestMapping("/post/InvoiceController/queryInvoiceStatistics")
+    public void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject) {
+        invoiceService.queryInvoiceStatistics(inputObject, outputObject);
+    }
 }

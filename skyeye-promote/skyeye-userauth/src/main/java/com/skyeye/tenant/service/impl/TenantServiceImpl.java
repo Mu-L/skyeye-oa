@@ -87,6 +87,12 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
 
     @Override
     @IgnoreTenant
+    public void selectByIds(InputObject inputObject, OutputObject outputObject) {
+        super.selectByIds(inputObject, outputObject);
+    }
+
+    @Override
+    @IgnoreTenant
     public List<Tenant> selectByIds(String... ids) {
         return super.selectByIds(ids);
     }

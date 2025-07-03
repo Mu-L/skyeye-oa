@@ -14,6 +14,24 @@
             <foreach collection="ids" item="id" separator="," open=" AND a.ID_ in(" close=")">
                 #{id}
             </foreach>
+            <if test="tenantId != null and tenantId != ''">
+                AND a.TENANT_ID_ = #{tenantId}
+            </if>
+        </where>
+    </select>
+    <select id="getModelByIdsForTenant"
+            resultType="org.flowable.engine.impl.persistence.entity.ModelEntityImpl">
+        SELECT
+            a.ID_ id,
+            a.NAME_ name,
+            a.VERSION_ version,
+            a.DEPLOYMENT_ID_ deploymentId
+        FROM
+            act_re_model a
+        <where>
+            <foreach collection="list" item="item" index="index" open="(" close=")" separator="OR">
+                a.ID_ = #{item.modelId} AND a.TENANT_ID_ = #{item.tenantId}
+            </foreach>
         </where>
     </select>
 

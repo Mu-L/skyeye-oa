@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.common.entity.features.SkyeyeLinkData;
+import com.skyeye.depot.entity.Depot;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
@@ -15,15 +17,7 @@ import lombok.Data;
 @Data
 @TableName(value = "erp_product_lead_child")
 @ApiModel("借出申请表-子单据表实体类")
-public class ProductLeadChild extends CommonInfo {
-
-    @TableId("id")
-    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
-    private String id;
-
-    @TableField("parent_id")
-    @Property("单据id")
-    private String parentId;
+public class ProductLeadChild extends SkyeyeLinkData {
 
     @TableField("material_id")
     @ApiModelProperty(value = "产品id", required = "required")
@@ -53,7 +47,11 @@ public class ProductLeadChild extends CommonInfo {
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")
     private String unitPrice;
 
-    @TableField("remark")
-    @ApiModelProperty(value = "备注")
-    private String remark;
+    @TableField(value = "depot_id")
+    @ApiModelProperty(value = "仓库id")
+    private String depotId;
+
+    @TableField(exist = false)
+    @Property(value = "仓库信息")
+    private Depot depotMation;
 }

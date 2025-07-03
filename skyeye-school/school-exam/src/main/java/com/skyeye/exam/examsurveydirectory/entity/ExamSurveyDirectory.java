@@ -8,7 +8,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.eve.entity.School;
-import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.school.faculty.entity.Faculty;
 import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.major.entity.Major;

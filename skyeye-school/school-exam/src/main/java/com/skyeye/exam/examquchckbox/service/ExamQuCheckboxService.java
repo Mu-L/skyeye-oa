@@ -3,7 +3,7 @@ package com.skyeye.exam.examquchckbox.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 
 import java.util.List;

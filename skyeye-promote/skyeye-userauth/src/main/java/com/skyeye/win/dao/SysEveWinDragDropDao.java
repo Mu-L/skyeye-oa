@@ -12,8 +12,10 @@ import java.util.Map;
 
 public interface SysEveWinDragDropDao {
 
+    @IgnoreTenant
     Map<String, Object> queryMenuMationFromSysById(Map<String, Object> map);
 
+    @IgnoreTenant
     Map<String, Object> queryMenuMationTypeById(Map<String, Object> map);
 
     @IgnoreTenant

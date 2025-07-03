@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -108,9 +109,7 @@ public class SupplierContractController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "mysuppliercontract009", value = "合同提交审批", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/SupplierContractController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         supplierContractService.submitToApproval(inputObject, outputObject);

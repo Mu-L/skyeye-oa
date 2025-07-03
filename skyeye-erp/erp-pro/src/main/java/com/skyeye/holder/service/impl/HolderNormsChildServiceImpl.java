@@ -16,6 +16,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IBarCodeService;
+import com.skyeye.holder.classenum.HolderNormsChildState;
 import com.skyeye.holder.dao.HolderNormsChildDao;
 import com.skyeye.holder.entity.HolderNormsChild;
 import com.skyeye.holder.service.HolderNormsChildService;
@@ -112,6 +113,8 @@ public class HolderNormsChildServiceImpl extends SkyeyeBusinessServiceImpl<Holde
         queryWrapper.eq(MybatisPlusUtil.toColumns(HolderNormsChild::getHolderId), holderId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(HolderNormsChild::getHolderKey), holderKey);
         queryWrapper.eq(MybatisPlusUtil.toColumns(HolderNormsChild::getNormsId), normsId);
+        // 只查询正常的状态
+        queryWrapper.eq(MybatisPlusUtil.toColumns(HolderNormsChild::getState), HolderNormsChildState.NORMAL_TRANSACTIONS.getKey());
         List<HolderNormsChild> holderNormsChildList = list(queryWrapper);
         List<Map<String, Object>> resultList = holderNormsChildList.stream().map(bean -> {
             Map<String, Object> map = BeanUtil.beanToMap(bean);

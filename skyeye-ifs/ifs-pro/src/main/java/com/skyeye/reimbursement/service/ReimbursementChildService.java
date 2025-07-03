@@ -5,6 +5,8 @@
 package com.skyeye.reimbursement.service;
 
 import com.skyeye.base.business.service.SkyeyeLinkDataService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.reimbursement.entity.ReimbursementChild;
 
 import java.util.List;
@@ -27,4 +29,5 @@ public interface ReimbursementChildService extends SkyeyeLinkDataService<Reimbur
      */
     String calcOrderAllTotalPrice(List<ReimbursementChild> orderItemList);
 
+    void queryReimbursementAnalysis(InputObject inputObject, OutputObject outputObject);
 }

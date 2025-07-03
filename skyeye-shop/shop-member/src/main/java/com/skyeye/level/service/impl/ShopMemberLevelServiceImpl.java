@@ -6,7 +6,9 @@ package com.skyeye.level.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -22,14 +24,14 @@ import java.util.Map;
 
 /**
  * @ClassName: ShopMemberLevelServiceImpl
- * @Description: 会员等级服务层--不隔离
+ * @Description: 会员等级服务层--平台隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "会员等级", groupName = "会员等级", tenant = TenantEnum.NO_ISOLATION)
+@SkyeyeService(name = "会员等级", groupName = "会员等级", tenant = TenantEnum.PLATE)
 public class ShopMemberLevelServiceImpl extends SkyeyeBusinessServiceImpl<ShopMemberLevelDao, ShopMemberLevel> implements ShopMemberLevelService {
 
     @Override
@@ -47,12 +49,26 @@ public class ShopMemberLevelServiceImpl extends SkyeyeBusinessServiceImpl<ShopMe
     }
 
     @Override
+    @IgnoreTenant
     public ShopMemberLevel getMinLevel() {
         List<ShopMemberLevel> beans = queryAllEnabledMemberLevel();
         return beans.stream().findFirst().orElse(null);
     }
 
     @Override
+    @IgnoreTenant
+    public ShopMemberLevel selectById(String id) {
+        return super.selectById(id);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(M bean, SFunction<M, ?> sFunction) {
+        super.setDataMation(bean, sFunction);
+    }
+
+    @Override
+    @IgnoreTenant
     public ShopMemberLevel getSimpleLevelByLevel(Integer level) {
         QueryWrapper<ShopMemberLevel> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMemberLevel::getEnabled), EnableEnum.ENABLE_USING.getKey());

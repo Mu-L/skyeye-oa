@@ -5,6 +5,8 @@
 package com.skyeye.invoice.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.invoice.entity.Invoice;
 
 /**
@@ -17,4 +19,7 @@ import com.skyeye.invoice.entity.Invoice;
  */
 public interface InvoiceService extends SkyeyeFlowableService<Invoice> {
 
+    void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject);
+
+    void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject);
 }

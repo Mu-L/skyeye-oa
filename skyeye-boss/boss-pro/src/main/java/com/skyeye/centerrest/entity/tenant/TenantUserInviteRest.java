@@ -7,6 +7,7 @@ package com.skyeye.centerrest.entity.tenant;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.enumeration.UserStaffState;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -55,5 +56,11 @@ public class TenantUserInviteRest implements Serializable {
 
     @ApiModelProperty(value = "关联的面试安排信息id")
     private String interviewArrangementId;
+
+    @ApiModelProperty(value = "员工工种类型", enumClass = UserStaffWorkstationType.class, required = "required,num")
+    private Integer workstationType;
+
+    @ApiModelProperty(value = "工种类型是小时工的时候的单价")
+    private String hourlyPrice;
 
 }

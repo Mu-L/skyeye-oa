@@ -4,17 +4,13 @@
 
 package com.skyeye.eve.service;
 
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.eve.entity.sticky.StickyNotes;
 
-public interface StickyNotesService {
-
-    void insertStickyNotesMation(InputObject inputObject, OutputObject outputObject);
+public interface StickyNotesService extends SkyeyeBusinessService<StickyNotes> {
 
     void queryStickyNotesList(InputObject inputObject, OutputObject outputObject);
-
-    void editStickyNotesMation(InputObject inputObject, OutputObject outputObject);
-
-    void deleteStickyNotesMation(InputObject inputObject, OutputObject outputObject);
 
 }

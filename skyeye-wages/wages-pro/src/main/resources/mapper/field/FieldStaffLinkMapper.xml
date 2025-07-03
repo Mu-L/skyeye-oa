@@ -29,19 +29,35 @@
             a.act_wages actWages
         FROM
             sys_eve_user_staff a
+            <if test="tenantId != '' and tenantId != null">
+            ,tenant_user k
+            </if>
         WHERE
-            date_format(a.entry_time, '%Y-%m') <![CDATA[ <= ]]> #{lastMonthDate}
-        AND IF(LENGTH(a.quit_time) > 0 AND a.quit_time != '', date_format(a.quit_time, '%Y-%m') >= #{lastMonthDate}, 0 = 0)
-        AND a.id NOT IN (SELECT b.staff_id FROM wages_payment_history b WHERE b.staff_id = a.id AND b.pay_month = #{lastMonthDate}
+            a.id NOT IN (SELECT b.staff_id FROM wages_payment_history b WHERE b.staff_id = a.id AND b.pay_month = #{lastMonthDate}
                                                                             <if test="tenantId != '' and tenantId != null">
                                                                                 AND b.tenant_id = #{tenantId}
                                                                             </if>)
-        AND a.design_wages = 2
         <if test="list != null and list.size > 0">
             AND a.id NOT IN
             <foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+        </if>
+        <choose>
+            <when test="tenantId != null and tenantId != ''">
+                AND k.design_wages = 2
+                AND IF(LENGTH(k.quit_time) > 0 AND k.quit_time != '', date_format(k.quit_time, '%Y-%m') >= #{lastMonthDate}, 0 = 0)
+                AND date_format(k.entry_time, '%Y-%m') <![CDATA[ <= ]]> #{lastMonthDate}
+            </when>
+            <otherwise>
+                AND a.design_wages = 2
+                AND IF(LENGTH(a.quit_time) > 0 AND a.quit_time != '', date_format(a.quit_time, '%Y-%m') >= #{lastMonthDate}, 0 = 0)
+                AND date_format(a.entry_time, '%Y-%m') <![CDATA[ <= ]]> #{lastMonthDate}
+            </otherwise>
+        </choose>
+        <if test="tenantId != '' and tenantId != null">
+            AND a.id = k.staff_id
+            AND k.tenant_id = #{tenantId}
         </if>
         LIMIT 1
     </select>

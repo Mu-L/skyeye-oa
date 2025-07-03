@@ -223,6 +223,7 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
 
         email.setEmailEnclosure(emailParams.getEmailEnclosure());
         if (StrUtil.isNotEmpty(id)) {
+            email.setId(id);
             updateEntity(email, userId);
         } else {
             createEntity(email, userId);
@@ -287,11 +288,11 @@ public class EmailServiceImpl extends SkyeyeBusinessServiceImpl<EmailDao, Email>
         queryWrapper.and(w -> w
             .eq(MybatisPlusUtil.toColumns(Email::getFromPeople), emailUser.getEmailAddress())
             .or()
-            .apply("INSTR(CONCAT(',', {0}, ','), CONCAT(',', {1}, ','))", MybatisPlusUtil.toColumns(Email::getToPeople), emailUser.getEmailAddress())
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToPeople) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
             .or()
-            .apply("INSTR(CONCAT(',', {0}, ','), CONCAT(',', {1}, ','))", MybatisPlusUtil.toColumns(Email::getToCc), emailUser.getEmailAddress())
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToCc) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
             .or()
-            .apply("INSTR(CONCAT(',', {0}, ','), CONCAT(',', {1}, ','))", MybatisPlusUtil.toColumns(Email::getToBcc), emailUser.getEmailAddress())
+            .apply("INSTR(CONCAT(',', " + MybatisPlusUtil.toColumns(Email::getToBcc) + ", ','), CONCAT(',', {0}, ','))", emailUser.getEmailAddress())
         );
         remove(queryWrapper);
     }

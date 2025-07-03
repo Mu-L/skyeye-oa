@@ -4,18 +4,16 @@
 
 package com.skyeye.eve.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: ActFlowMation
@@ -26,7 +24,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"modelKey"})
 @RedisCacheField(name = "act:flow", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @TableName(value = "act_flow")
 @ApiModel("流程配置实体类")
@@ -55,5 +52,13 @@ public class ActFlowMation extends OperatorUserInfo {
     @TableField(value = "apply_service_class_name")
     @ApiModelProperty(value = "适用的服务类名")
     private String applyServiceClassName;
+
+    @TableField(value = "tenant_id", updateStrategy = FieldStrategy.NEVER)
+    @Property(value = "租户id")
+    private String tenantId;
+
+    @TableField(exist = false)
+    @Property(value = "租户信息")
+    private Map<String, Object> tenantMation;
 
 }

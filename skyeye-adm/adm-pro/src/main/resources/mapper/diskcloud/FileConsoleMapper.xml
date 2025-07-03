@@ -144,6 +144,9 @@
 		<foreach collection="ids" item="id" index="index" open="(" close=")" separator="OR">
 			a.id = #{id}
 		</foreach>
+		<if test="tenantId != null and tenantId != ''">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		ORDER BY LENGTH(a.parent_id) ASC
 	</select>
 	

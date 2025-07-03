@@ -4,13 +4,17 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
+
 import java.util.List;
 import java.util.Map;
 
 public interface SysDataBaseDao {
 
+    @IgnoreTenant
     List<Map<String, Object>> querySysDataBaseSelectList(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> querySysDataBaseDescSelectList(Map<String, Object> map);
 
 }

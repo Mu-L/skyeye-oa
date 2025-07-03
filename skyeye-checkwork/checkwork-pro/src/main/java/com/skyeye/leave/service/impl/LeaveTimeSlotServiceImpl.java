@@ -53,4 +53,13 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
             .collect(Collectors.groupingBy(LeaveTimeSlot::getParentId));
         return listMap;
     }
+
+    @Override
+    public List<LeaveTimeSlot> queryTimeAndIds(List<String> leaveIds, String startTime, String endTime) {
+        QueryWrapper<LeaveTimeSlot> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(LeaveTimeSlot::getParentId), leaveIds);
+        queryWrapper.ge(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), startTime);
+        queryWrapper.le(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), endTime);
+        return list(queryWrapper);
+    }
 }

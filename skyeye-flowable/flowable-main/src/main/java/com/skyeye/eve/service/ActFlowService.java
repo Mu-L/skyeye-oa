@@ -5,6 +5,8 @@
 package com.skyeye.eve.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.ActFlowMation;
 
 import java.util.List;
@@ -22,12 +24,9 @@ public interface ActFlowService extends SkyeyeBusinessService<ActFlowMation> {
 
     Map<String, ActFlowMation> actIdToFlowNameByIds(List<String> ids);
 
-    /**
-     * 根据服务类名获取流程模型信息
-     *
-     * @param serviceClassName 服务类名
-     * @return
-     */
-    ActFlowMation getActFlow(String serviceClassName);
+    ActFlowMation getActFlowByModelKey(String modelKey);
 
+    void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
+
+    void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
 }

@@ -4,14 +4,16 @@
 
 package com.skyeye.eve.dao;
 
-import java.util.Map;
+import com.skyeye.eve.entity.explain.ExExplain;
 
-public interface ExExplainDao {
-
-    int insertExExplainMation(Map<String, Object> map);
-
-    Map<String, Object> queryExExplainMation(Map<String, Object> map);
-
-    int editExExplainMationById(Map<String, Object> map);
+/**
+ * @ClassName: ExExplainDao
+ * @Description: 说明设置数据层
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/22 14:54
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
+public interface ExExplainDao extends SkyeyeBaseMapper<ExExplain> {
 
 }

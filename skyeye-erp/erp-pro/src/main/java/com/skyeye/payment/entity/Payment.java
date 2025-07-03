@@ -72,4 +72,8 @@ public class Payment extends SkyeyeFlowable {
     @ApiModelProperty(value = "应付id", required = "required")
     private String payableId;
 
+    @TableField(exist = false)
+    @Property(value = "应付信息")
+    private Map<String, Object> payableMation;
+
 }

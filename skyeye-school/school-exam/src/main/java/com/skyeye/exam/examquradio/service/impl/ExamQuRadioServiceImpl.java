@@ -17,7 +17,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
-import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquradio.dao.ExamQuRadioDao;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import com.skyeye.exam.examquradio.service.ExamQuRadioService;

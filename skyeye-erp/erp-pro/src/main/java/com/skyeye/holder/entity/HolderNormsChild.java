@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.holder.classenum.HolderNormsChildState;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
@@ -72,7 +73,7 @@ public class HolderNormsChild extends CommonInfo {
     private String normsCodeNum;
 
     @TableField("state")
-    @ApiModelProperty(value = "状态，参考#HolderNormsChildState", required = "required")
+    @ApiModelProperty(value = "状态", enumClass = HolderNormsChildState.class, required = "required")
     private Integer state;
 
 }

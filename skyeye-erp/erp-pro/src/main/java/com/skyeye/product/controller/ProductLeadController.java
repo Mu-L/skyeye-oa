@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -23,7 +24,7 @@ public class ProductLeadController {
     private ProductLeadService productLeadService;
 
     /**
-     * 获取借出出库订单列表
+     * 获取借出申请订单列表
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -55,13 +56,12 @@ public class ProductLeadController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "submitProductLeadToApproval", value = "借出申请提交审批", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/ProductLeadController/submitProductLeadToApproval")
     public void submitProductLeadToApproval(InputObject inputObject, OutputObject outputObject) {
         productLeadService.submitToApproval(inputObject, outputObject);
     }
+
 
     /**
      * 删除借出申请
@@ -86,7 +86,7 @@ public class ProductLeadController {
     @ApiOperation(id = "revokeProductLead", value = "撤销借出申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
-    @RequestMapping("/post/ProductLeadController/revoke")
+    @RequestMapping("/post/ProductLeadController/revokeProductLead")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         productLeadService.revoke(inputObject, outputObject);
     }

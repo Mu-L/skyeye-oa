@@ -24,8 +24,10 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.seal.classenum.SealOutLetFromType;
 import com.skyeye.seal.dao.SalesOutLetDao;
+import com.skyeye.seal.entity.SalesExchanges;
 import com.skyeye.seal.entity.SalesOrder;
 import com.skyeye.seal.entity.SalesOutLet;
+import com.skyeye.seal.service.SalesExchangesService;
 import com.skyeye.seal.service.SalesOrderService;
 import com.skyeye.seal.service.SalesOutLetService;
 import com.skyeye.seal.service.SalesReturnsService;
@@ -33,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.sasl.SaslException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +61,9 @@ public class SalesOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOutLe
 
     @Autowired
     private DepotOutService depotOutService;
+
+    @Autowired
+    private SalesExchangesService salesExchangesService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -105,6 +111,9 @@ public class SalesOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOutLe
         if (entity.getFromTypeId() == SealOutLetFromType.SEAL_ORDER.getKey()) {
             // 销售订单
             checkAndUpdateSalesOrderState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
+        }else if (entity.getFromTypeId() == SealOutLetFromType.SALE_EXCHANGES.getKey()){
+            // 销售换货单
+            checkAndUpdateSalesExchangesState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
         }
     }
 
@@ -127,6 +136,28 @@ public class SalesOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOutLe
                 salesOrderService.editStateById(salesOrder.getId(), ErpOrderStateEnum.COMPLETED.getKey());
             } else {
                 salesOrderService.editStateById(salesOrder.getId(), ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey());
+            }
+        }
+    }
+
+    private void checkAndUpdateSalesExchangesState(SalesOutLet entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+        SalesExchanges salesExchanges = salesExchangesService.selectById(entity.getFromId());
+        if (CollectionUtil.isEmpty(salesExchanges.getErpOrderItemList())) {
+            throw new CustomException("该销售订单下未包含商品.");
+        }
+        super.checkFromOrderMaterialNorms(salesExchanges.getErpOrderItemList(), inSqlNormsId);
+        // 来源单据的商品数量 - 当前单据的商品数量 - 已经出库的商品数量
+        super.setOrCheckOperNumber(salesExchanges.getErpOrderItemList(), setData, orderNormsNum, executeNum);
+        if (setData) {
+            // 过滤掉剩余数量为0的商品
+            List<ErpOrderItem> erpOrderItemList = salesExchanges.getErpOrderItemList().stream()
+                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+            // 如果该销售换货订单的商品已经全部生成了销售出库单，那说明已经完成销售换货订单的内容
+            if (CollectionUtil.isEmpty(erpOrderItemList)) {
+                // 和退货不一样，换货同时需要出库和入库，state-> 出库状态， otherState-> 入库状态
+                salesExchangesService.editStateById(salesExchanges.getId(), String.valueOf(DepotOutState.COMPLATE_OUT.getKey()));
+            } else {
+                salesExchangesService.editStateById(salesExchanges.getId(), String.valueOf(DepotOutState.PARTIAL_OUT.getKey()));
             }
         }
     }

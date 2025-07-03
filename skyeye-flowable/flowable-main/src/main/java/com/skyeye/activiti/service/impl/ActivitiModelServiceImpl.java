@@ -41,10 +41,7 @@ import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.impl.persistence.entity.ModelEntityImpl;
 import org.flowable.engine.impl.persistence.entity.ProcessDefinitionEntityImpl;
-import org.flowable.engine.repository.Deployment;
-import org.flowable.engine.repository.Model;
-import org.flowable.engine.repository.ModelQuery;
-import org.flowable.engine.repository.ProcessDefinition;
+import org.flowable.engine.repository.*;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.Task;
 import org.slf4j.Logger;
@@ -204,6 +201,24 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         });
     }
 
+    @Override
+    public void setActivitiModelListForTenant(List<Map<String, Object>> actFlowList) {
+        // 查询模型
+        List<ModelEntityImpl> modelList = flowReModelDao.getModelByIdsForTenant(actFlowList);
+        Map<String, Model> modelMap = modelList.stream().collect(Collectors.toMap(bean -> bean.getId(), bean -> bean));
+        // 查询发布流程
+        List<String> deploymentIds = modelList.stream().filter(bean -> !ToolUtil.isBlank(bean.getDeploymentId())).map(bean -> bean.getDeploymentId()).collect(Collectors.toList());
+        List<ProcessDefinitionEntityImpl> procdefList = flowReProcdefDao.getProcdefByDeploymentIds(deploymentIds);
+        Map<String, ProcessDefinition> procdefMap = procdefList.stream().collect(Collectors.toMap(bean -> bean.getDeploymentId(), bean -> bean));
+
+        actFlowList.forEach(bean -> {
+            Model model = modelMap.get(bean.get("modelId").toString());
+            bean.put("model", BeanUtil.beanToMap(model));
+            ProcessDefinition processDefinition = procdefMap.get(model.getDeploymentId());
+            bean.put("procdef", processDefinition != null ? BeanUtil.beanToMap(processDefinition) : new HashMap<>());
+        });
+    }
+
     /**
      * 发布模型为流程定义
      *
@@ -309,10 +324,19 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
      * @return
      */
     private boolean judgeProcessKeyIsLive(ActFlowMation actFlowMation) {
-        List<ProcessDefinition> processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionKey(actFlowMation.getModelKey()).list();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(actFlowMation.getModelKey());
+        if (tenantEnable) {
+            processDefinitionQuery.processDefinitionTenantId(tenantId);
+        }
+        List<ProcessDefinition> processDefinition = processDefinitionQuery.list();
         if (processDefinition != null) {
             List<String> deploymentIds = processDefinition.stream().map(p -> p.getDeploymentId()).collect(Collectors.toList());
-            List<Model> beans = repositoryService.createModelQuery().latestVersion().orderByLastUpdateTime().desc().list();
+            ModelQuery modelQuery = repositoryService.createModelQuery();
+            if (tenantEnable) {
+                modelQuery.modelTenantId(tenantId);
+            }
+            List<Model> beans = modelQuery.latestVersion().orderByLastUpdateTime().desc().list();
             beans = beans.stream().filter(bean -> deploymentIds.contains(bean.getDeploymentId())).collect(Collectors.toList());
             if (beans != null && !beans.isEmpty()) {
                 return true;

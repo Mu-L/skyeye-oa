@@ -8,14 +8,21 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.activiti.service.ActivitiModelService;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.ActFlowDao;
 import com.skyeye.eve.entity.ActFlowMation;
 import com.skyeye.eve.service.ActFlowService;
+import com.skyeye.eve.service.ITenantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +46,27 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
     @Autowired
     private ActivitiModelService activitiModelService;
 
+    @Autowired
+    private ITenantService iTenantService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置流程模型信息
         activitiModelService.setActivitiModelList(beans);
         return beans;
+    }
+
+    @Override
+    protected void validatorEntity(ActFlowMation entity) {
+        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getModelKey), entity.getModelKey());
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        if (this.count(queryWrapper) > 0) {
+            throw new IllegalArgumentException("模型Key已存在");
+        }
     }
 
     @Override
@@ -89,34 +111,45 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         return actFlowMationMap;
     }
 
-    /**
-     * 根据服务类名获取流程模型信息
-     *
-     * @param serviceClassName 服务类名
-     * @return
-     */
     @Override
-    public ActFlowMation getActFlow(String serviceClassName) {
+    public ActFlowMation getActFlowByModelKey(String modelKey) {
         QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), serviceClassName);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getModelKey), modelKey);
         return getOne(queryWrapper, false);
     }
 
-    /**
-     * 根据适用对象获取流程模型列表
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     */
     @Override
-    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
-        String className = inputObject.getParams().get("className").toString();
-        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), className);
+    @IgnoreTenant
+    public void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(pageInfo.getServiceClassName())) {
+            throw new IllegalArgumentException("服务类名不能为空");
+        }
+        Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
+        QueryWrapper<ActFlowMation> queryWrapper = super.getQueryWrapper(pageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), pageInfo.getServiceClassName());
         List<ActFlowMation> list = list(queryWrapper);
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
-        // 设置流程模型信息
-        activitiModelService.setActivitiModelList(beans);
-        return beans;
+        if (!tenantEnable) {
+            // 未开启多租户时，设置流程模型信息
+            activitiModelService.setActivitiModelList(beans);
+        } else {
+            // 开启多租户时，设置租户信息
+            iTenantService.setMationForMap(beans, "tenantId", "tenantMation");
+            activitiModelService.setActivitiModelListForTenant(beans);
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
+        String serviceClassName = inputObject.getParams().get("serviceClassName").toString();
+        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), serviceClassName);
+        List<ActFlowMation> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
 }

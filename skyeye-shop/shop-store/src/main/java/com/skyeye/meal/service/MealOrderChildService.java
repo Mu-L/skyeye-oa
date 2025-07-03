@@ -36,4 +36,6 @@ public interface MealOrderChildService extends SkyeyeBusinessService<MealOrderCh
     void updateStateISNotUseById(String id);
 
     void queryMealMationByMaterial(InputObject inputObject, OutputObject outputObject);
+
+    List<MealOrderChild> queryListByCodeNum(String codeNum);
 }

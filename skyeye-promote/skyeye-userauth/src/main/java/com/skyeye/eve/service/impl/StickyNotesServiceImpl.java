@@ -4,78 +4,38 @@
 
 package com.skyeye.eve.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DataCommonUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.StickyNotesDao;
+import com.skyeye.eve.entity.sticky.StickyNotes;
 import com.skyeye.eve.service.StickyNotesService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * @ClassName: StickyNotesServiceImpl
+ * @Description: 便签管理服务层--强隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/23 9:01
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
-public class StickyNotesServiceImpl implements StickyNotesService {
+@SkyeyeService(name = "便签管理", groupName = "便签管理")
+public class StickyNotesServiceImpl extends SkyeyeBusinessServiceImpl<StickyNotesDao, StickyNotes> implements StickyNotesService {
 
-    @Autowired
-    private StickyNotesDao stickyNotesDao;
-
-    /**
-     * 新增便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void insertStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        DataCommonUtil.setCommonData(map, inputObject.getLogParams().get("id").toString());
-        stickyNotesDao.insertStickyNotesMation(map);
-        outputObject.setBean(map);
-    }
-
-    /**
-     * 查询便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryStickyNotesList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        map.put("createId", inputObject.getLogParams().get("id"));
-        List<Map<String, Object>> beans = stickyNotesDao.selectStickyNotesMation(map);
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
-    }
-
-    /**
-     * 编辑便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void editStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        stickyNotesDao.editStickyNotesMation(map);
-    }
-
-    /**
-     * 删除便签
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void deleteStickyNotesMation(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        stickyNotesDao.deleteStickyNotesMation(map);
+        QueryWrapper<StickyNotes> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(StickyNotes::getCreateId), inputObject.getLogParams().get("id").toString());
+        List<StickyNotes> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
 }

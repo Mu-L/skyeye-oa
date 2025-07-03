@@ -132,4 +132,20 @@ public class KeepFitOrderController {
         keepFitOrderService.complateKeepFitOrder(inputObject, outputObject);
     }
 
+    /**
+     * 根据套餐门店id、保养订单门店id和日期查询保养订单列表
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryListByStoreIdsAndDate", value = "根据套餐门店id、保养订单门店id和日期查询保养订单列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "mealStoreId", name = "mealStoreId", value = "套餐订单门店id", required = "required"),
+            @ApiImplicitParam(id = "keepFitStoreId", name = "keepFitStoreId", value = "保养订单门店id", required = "required"),
+            @ApiImplicitParam(id = "date", name = "date", value = "日期", required = "required")})
+    @RequestMapping("/post/KeepFitOrderController/queryListByStoreIdsAndDate")
+    public void queryListByStoreIdsAndDate(InputObject inputObject, OutputObject outputObject) {
+        keepFitOrderService.queryListByStoreIdsAndDate(inputObject, outputObject);
+    }
+
 }

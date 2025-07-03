@@ -12,7 +12,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquchenrow.dao.ExamQuChenRowDao;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;

@@ -39,4 +39,6 @@ public interface BusinessTripService extends SkyeyeFlowableService<BusinessTrip>
     void queryYesDoTime(String employeeId);
 
     Map<String, List<BusinessTripTimeSlot>> queryStateIsSuccessBusinessTripDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId);
+
+    List<BusinessTrip> queryBusinessTripByUserIds(List<String> formalUserIds);
 }

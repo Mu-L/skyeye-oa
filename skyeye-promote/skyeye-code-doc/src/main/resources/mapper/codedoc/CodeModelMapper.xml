@@ -9,7 +9,10 @@
 			a.model_content modelContent,
 			a.model_text modelText,
 			a.model_type modelType,
-			(SELECT COUNT(*) FROM code_model_history b WHERE b.model_id = a.id) useNum,
+			(SELECT COUNT(*) FROM code_model_history b WHERE b.model_id = a.id
+													<if test="tenantId != '' and tenantId != null">
+														AND a.tenant_id = #{tenantId}
+													</if>) useNum,
 			a.create_id createId,
 			CONVERT(a.create_time, char) createTime,
 			a.last_update_id lastUpdateId,
@@ -17,6 +20,9 @@
 		FROM
 			code_model a
 		WHERE a.group_id = #{groupId}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 		ORDER BY a.create_time DESC
 	</select>
 	
@@ -29,15 +35,18 @@
 		WHERE a.group_id = #{groupId}
 		AND a.model_name = #{modelName}
 		AND a.model_type = #{modelType}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<insert id="insertCodeModelMation" parameterType="java.util.Map">
 	     INSERT into code_model 
 	     (id, group_id, model_name, model_content, model_text, model_type,
-		  create_id, create_time, last_update_id, last_update_time)
+		  create_id, create_time, last_update_id, last_update_time, tenant_id)
 	     VALUES
 	     (#{id}, #{groupId}, #{modelName}, #{modelContent}, #{modelText}, #{modelType},
-		  #{createId}, #{createTime}, #{createId}, #{createTime})
+		  #{createId}, #{createTime}, #{createId}, #{createTime}, #{tenantId})
 	</insert>
 	
 	<delete id="deleteCodeModelById" parameterType="java.util.Map">
@@ -45,6 +54,9 @@
 		FROM
 			code_model
 		WHERE id = #{id}
+		<if test="tenantId != '' and tenantId != null">
+			AND tenant_id = #{tenantId}
+		</if>
 	</delete>
 	
 	<select id="queryCodeModelMationToEditById" parameterType="java.util.Map" resultType="java.util.Map">
@@ -57,6 +69,9 @@
 		FROM
 			code_model a
 		WHERE a.id = #{id}
+		<if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<select id="queryCodeModelMationByIdAndName" parameterType="java.util.Map" resultType="java.util.Map">
@@ -69,6 +84,9 @@
 		AND a.group_id = #{groupId}
 		AND a.model_name = #{modelName}
 		AND a.model_type = #{modelType}
+		 <if test="tenantId != '' and tenantId != null">
+			AND a.tenant_id = #{tenantId}
+		</if>
 	</select>
 	
 	<update id="editCodeModelMationById" parameterType="java.util.Map">
@@ -88,6 +106,9 @@
 			last_update_time = #{lastUpdateTime}
 		</set>
 		WHERE id = #{id}
+		<if test="tenantId != '' and tenantId != null">
+			AND tenant_id = #{tenantId}
+		</if>
 	</update>
 	
 </mapper>

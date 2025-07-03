@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.entity.codedoc.history.CodeModelHistoryQueryDo;
 
 import java.util.List;
@@ -11,8 +12,10 @@ import java.util.Map;
 
 public interface CodeModelHistoryDao {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCodeModelHistoryList(CodeModelHistoryQueryDo codeModelHistoryQuery);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryCodeModelHistoryListByFilePath(Map<String, Object> map);
 
 }

@@ -4,11 +4,18 @@
 
 package com.skyeye.invoice.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 
 import com.skyeye.contract.service.SupplierContractService;
@@ -27,9 +34,8 @@ import com.skyeye.payment.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SupplierInvoiceServiceImpl
@@ -105,4 +111,47 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         paymentService.updateInvoicePrice(entity.getPaymentCollectionId(), entity.getPrice());
     }
 
+    @Override
+    public void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo =  inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierInvoice::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime));
+        List<SupplierInvoice> bean = list(queryWrapper);
+        // 合同信息
+        supplierContractService.setDataMation(bean, SupplierInvoice::getContractId);
+        // 回款信息
+        paymentService.setDataMation(bean, SupplierInvoice::getPaymentCollectionId);
+        // 发票抬头
+        supplierInvoiceHeaderService.setDataMation(bean, SupplierInvoice::getInvoiceHeaderId);
+        outputObject.setBeans(bean);
+        outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierInvoice::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime));
+        List<SupplierInvoice> bean = list(queryWrapper);
+        // 按typeId分组
+        Map<String, List<SupplierInvoice>> map = bean.stream().collect(Collectors.groupingBy(SupplierInvoice::getTypeId));
+        List<Map<String, Object>> beans = new ArrayList<>();
+        for (Map.Entry<String, List<SupplierInvoice>> entry : map.entrySet()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("typeId", entry.getKey());
+            result.put("count", entry.getValue().size());
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            for (SupplierInvoice invoice : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(invoice.getPrice()) ? "0" : invoice.getPrice(),
+                        price);
+            }
+            result.put("price", price);
+            beans.add(result);
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
 }

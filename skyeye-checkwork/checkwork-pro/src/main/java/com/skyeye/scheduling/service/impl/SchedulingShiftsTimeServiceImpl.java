@@ -107,6 +107,9 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     @Override
     public List<SchedulingShiftsTime> queryTimeByIdList(List<String> schedulingShiftsIds) {
+        if (CollectionUtil.isEmpty(schedulingShiftsIds)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), schedulingShiftsIds);
         return list(queryWrapper);
@@ -127,12 +130,19 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     @Override
     public List<SchedulingShiftsTime> queryShiftsTimeByIdList(List<String> shiftsTimeIdList) {
-        if (CollectionUtil.isEmpty(shiftsTimeIdList)){
+        if (CollectionUtil.isEmpty(shiftsTimeIdList)) {
             return new ArrayList<>();
         }
         QueryWrapper<SchedulingShiftsTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, shiftsTimeIdList);
-        return list(queryWrapper);
+        List<SchedulingShiftsTime> shiftsTimeList = list(queryWrapper);
+        List<String> shiftsTimeIds = shiftsTimeList.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
+        List<SchedulingShiftsTimeWork> schedulingShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        Map<String, List<SchedulingShiftsTimeWork>> stringListMap = schedulingShiftsTimeWorks.stream().collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
+        for (SchedulingShiftsTime schedulingShiftsTime : shiftsTimeList) {
+            schedulingShiftsTime.setShiftsTimeWorkMation(stringListMap.get(schedulingShiftsTime.getId()));
+        }
+        return shiftsTimeList;
     }
 
     @Override
@@ -141,4 +151,5 @@ public class SchedulingShiftsTimeServiceImpl extends SkyeyeBusinessServiceImpl<S
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingShiftsTime::getShiftId), id);
         return list(queryWrapper);
     }
+
 }

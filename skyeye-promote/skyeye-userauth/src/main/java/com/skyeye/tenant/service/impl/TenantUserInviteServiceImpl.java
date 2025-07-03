@@ -205,8 +205,12 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         if (tenantUserInvite.getIsUsed().equals(IsUsedEnum.INVALID.getKey())) {
             throw new CustomException("该邀请已作废");
         }
-        // 新增用户信息
-        String staffId = saveUserStaff(params, tenantUserInvite);
+        // 校验手机号
+        String staffId = sysEveUserStaffService.queryUserStaffByPhone(tenantUserInvite.getPhone());
+        if (StrUtil.isEmpty(staffId)) {
+            // 手机号不存在，则新增用户信息
+            staffId = saveUserStaff(params, tenantUserInvite);
+        }
         // 更新邀请信息
         TenantContext.setTenantId(tenantId);
         UpdateWrapper<TenantUserInvite> updateWrapper = new UpdateWrapper<>();
@@ -227,6 +231,8 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         tenantUser.setTrialTime(tenantUserInvite.getTrialTime());
         tenantUser.setInterviewArrangementId(tenantUserInvite.getInterviewArrangementId());
         tenantUser.setTenantUserInviteId(tenantUserInvite.getId());
+        tenantUser.setWorkstationType(tenantUserInvite.getWorkstationType());
+        tenantUser.setHourlyPrice(tenantUserInvite.getHourlyPrice());
         tenantUserService.createEntity(tenantUser, tenantUserInvite.getCreateId());
     }
 
@@ -240,6 +246,8 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         sysEveUserStaff.setPassword(params.get("password").toString());
         // 开启自动注册账号
         sysEveUserStaff.setWhetherRegister(WhetherEnum.ENABLE_USING.getKey());
+        sysEveUserStaff.setWorkstationType(tenantUserInvite.getWorkstationType());
+        sysEveUserStaff.setHourlyPrice(tenantUserInvite.getHourlyPrice());
         // 保存用户信息
         return sysEveUserStaffService.createEntity(sysEveUserStaff, tenantUserInvite.getCreateId());
     }

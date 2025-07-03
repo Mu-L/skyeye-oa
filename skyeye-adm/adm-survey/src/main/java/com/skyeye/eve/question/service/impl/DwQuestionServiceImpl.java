@@ -172,7 +172,25 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     @Override
     protected void updatePostpose(List<DwQuestion> dwQuestionList, String userId) {
         deleteNoBelongDwQuestions(dwQuestionList);
+        List<List<DwQuestionLogic>> questionLogicList = dwQuestionList.stream().map(DwQuestion::getQuestionLogic).collect(Collectors.toList());
+        // 过滤出 id 不为空的数据
+        List<List<DwQuestionLogic>> nonEmptyIdList = dwQuestionList.stream()
+            .map(DwQuestion::getQuestionLogic)
+            .map(logics -> logics.stream()
+                .filter(logic -> logic.getId() != null && !logic.getId().isEmpty())
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
+        for (List<DwQuestionLogic> dwQuestionLogics : nonEmptyIdList) {
+            dwQuestionLogicService.updateEntity(dwQuestionLogics, userId);
+        }
 
+        // 过滤出 id 为空的数据
+        List<List<DwQuestionLogic>> emptyIdList = dwQuestionList.stream()
+            .map(DwQuestion::getQuestionLogic)
+            .map(logics -> logics.stream()
+                .filter(logic -> logic.getId() == null || logic.getId().isEmpty())
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
         // 批量更新各题型数据
         dwQuRadioService.updateRadios(dwQuestionList, userId);
         dwQuScoreService.updateScores(dwQuestionList, userId);

@@ -20,6 +20,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.entity.ErpOrderItem;
@@ -342,6 +343,21 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
         } else {
             outputObject.setreturnMessage("状态错误，无法下达采购退货单.");
         }
+    }
+
+    @Override
+    public void queryNoPageWholeOrderOutList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        QueryWrapper<WholeOrderOut> queryWrapper = new QueryWrapper<>();
+        //获取前一个月的日期
+        String payMonth = DateUtil.getLastMonthDate();
+        queryWrapper.like(MybatisPlusUtil.toColumns(WholeOrderOut::getCreateTime), payMonth);
+        if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
+            queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
+        }
+        List<WholeOrderOut> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
 }

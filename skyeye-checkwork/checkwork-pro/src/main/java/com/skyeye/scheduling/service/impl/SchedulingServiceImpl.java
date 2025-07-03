@@ -1,38 +1,42 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
+import com.skyeye.leave.service.LeaveTimeSlotService;
 import com.skyeye.rest.promote.service.ISysEveUserStaffService;
-import com.skyeye.scheduling.classenum.SchedulePeopleType;
-import com.skyeye.scheduling.classenum.ScheduleType;
 import com.skyeye.scheduling.dao.SchedulingDao;
 import com.skyeye.scheduling.entity.*;
 import com.skyeye.scheduling.service.*;
+import com.skyeye.trip.entity.BusinessTrip;
 import com.skyeye.trip.entity.BusinessTripTimeSlot;
 import com.skyeye.trip.service.BusinessTripService;
+import com.skyeye.trip.service.BusinessTripTimeSlotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +52,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     private LeaveService leaveService;
 
     @Autowired
-    private ISysEveUserStaffService iSysEveUserStaffService;
+    private SchedulingTimeService schedulingTimeService;
 
     @Autowired
     private SchedulingShiftsTimeService schedulingShiftsTimeService;
@@ -60,430 +64,444 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     private SchedulingLeaveService schedulingLeaveService;
 
     @Autowired
+    private BusinessTripTimeSlotService businessTripTimeSlotService;
+
+    @Autowired
+    private LeaveTimeSlotService leaveTimeSlotService;
+
+    @Autowired
+    private SchedulingTimeWorkPeopleService schedulingTimeWorkPeopleService;
+
+    @Autowired
+    private SchedulingTimeWorkService schedulingTimeWorkService;
+
+    @Autowired
     private SchedulingShiftsService schedulingShiftsService;
 
     @Override
     protected void createPrepose(Scheduling entity) {
-        String employeeId = entity.getEmployeeId();
-        String shiftId = entity.getShiftId();
-        String scheduleDate = entity.getScheduleDate();
-        String farmId = entity.getFarmId();
-        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getEmployeeId), employeeId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getShiftId), shiftId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), scheduleDate);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), farmId);
-        List<Scheduling> schedulingList = list(queryWrapper);
-        if (CollectionUtil.isNotEmpty(schedulingList)) {
-            throw new CustomException("该员工已存在该班次");
+        String startTime = entity.getStartTime();
+        String endTime = entity.getEndTime();
+        boolean compareTime = DateUtil.compareTime(startTime, endTime, "yyyy-MM-dd");
+        if (!compareTime) {
+            throw new CustomException("开始时间不能大于结束时间");
         }
     }
 
     @Override
-    protected void createPrepose(List<Scheduling> entities) {
-        if (CollectionUtil.isEmpty(entities)) {
+    protected void createPostpose(Scheduling entity, String userId) {
+        List<SchedulingTime> schedulingTimeMation = entity.getSchedulingTimeMation();
+        if (CollectionUtil.isEmpty(schedulingTimeMation)) {
             return;
         }
-        List<String> employeeIds = entities.stream().map(Scheduling::getEmployeeId).collect(Collectors.toList());
-        List<String> shiftIds = entities.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
-        List<String> scheduleDates = entities.stream().map(Scheduling::getScheduleDate).collect(Collectors.toList());
-        List<String> farmIds = entities.stream().map(Scheduling::getFarmId).collect(Collectors.toList());
-        List<String> shiftTimeIds = entities.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(Scheduling::getEmployeeId), employeeIds);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Scheduling::getShiftId), shiftIds);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Scheduling::getScheduleDate), scheduleDates);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Scheduling::getFarmId), farmIds);
-        queryWrapper.in(MybatisPlusUtil.toColumns(Scheduling::getShiftTimeId), shiftTimeIds);
-        List<Scheduling> existingSchedulings = list(queryWrapper);
-        for (Scheduling entity : entities) {
-            for (Scheduling existing : existingSchedulings) {
-                if (entity.getEmployeeId().equals(existing.getEmployeeId())
-                    && entity.getShiftId().equals(existing.getShiftId())
-                    && entity.getScheduleDate().equals(existing.getScheduleDate())
-                    && entity.getFarmId().equals(existing.getFarmId())) {
-                    throw new CustomException("员工ID " + entity.getEmployeeId() + " 在车间 " + entity.getFarmId() + " 在日期 " + entity.getScheduleDate() + "的班次 " + entity.getShiftId() + " 已存在排班记录");
-                }
-            }
+        for (SchedulingTime schedulingTime : schedulingTimeMation) {
+            schedulingTime.setSchedulingId(entity.getId());
+        }
+        schedulingTimeService.createEntity(schedulingTimeMation, userId);
+    }
+
+    @Override
+    protected void updatePostpose(Scheduling entity, String userId) {
+        List<SchedulingTime> schedulingTimeMation = entity.getSchedulingTimeMation();
+        if (CollectionUtil.isEmpty(schedulingTimeMation)) {
+            return;
+        }
+        // 入参现在的排班时间段
+        List<SchedulingTime> nonEmptyIdSchedulingTimes = schedulingTimeMation.stream()
+            .filter(time -> time.getId() != null && !time.getId().isEmpty()).collect(Collectors.toList());
+        List<String> schedulingTimeIds = nonEmptyIdSchedulingTimes.stream().map(SchedulingTime::getId).collect(Collectors.toList());
+        // 查询数据库中的排班时间
+        List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeBySchedulingId(entity.getId());
+        List<String> schedulingTimeIdList = schedulingTimes.stream().map(SchedulingTime::getId).collect(Collectors.toList());
+        // 拿到数据库中不在入参中的时间段id
+        List<String> deleteSchedulingTimeIds = schedulingTimeIdList.stream().filter(
+            time -> !schedulingTimeIds.contains(time)).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(deleteSchedulingTimeIds)) {
+            schedulingTimeService.deleteBySchedulingTimeIds(deleteSchedulingTimeIds);
+        }
+        // 将列表分为 id 不为空和 id 为空的两组
+        Map<Boolean, List<SchedulingTime>> partitioned = schedulingTimeMation.stream()
+            .collect(Collectors.partitioningBy(time -> time.getId() != null && !time.getId().isEmpty()));
+
+        // id不为空的数据
+        List<SchedulingTime> nonEmptyIdSchedulingTime = partitioned.get(true);
+        if (CollectionUtil.isNotEmpty(nonEmptyIdSchedulingTime)) {
+            schedulingTimeService.updateEntity(nonEmptyIdSchedulingTime, userId);
+        }
+        // id为空的数据
+        List<SchedulingTime> emptyIdSchedulingTimes = partitioned.get(false);
+        if (CollectionUtil.isNotEmpty(emptyIdSchedulingTimes)) {
+            schedulingTimeService.createEntity(emptyIdSchedulingTimes, userId);
         }
     }
 
+    @Override
+    public Scheduling selectById(String id) {
+        Scheduling scheduling = super.selectById(id);
+        List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeBySchedulingId(id);
+        if (CollectionUtil.isNotEmpty(schedulingTimes)) {
+            scheduling.setSchedulingTimeMation(schedulingTimes);
+        }
+        return scheduling;
+    }
 
     @Override
     public void autoComputeScheduling(InputObject inputObject, OutputObject outputObject) {
         SchedulingAuto schedulingAuto = inputObject.getParams(SchedulingAuto.class);
-        // 获取开始时间,格式是yyyy-MM-dd HH:mm
-        String startTime = schedulingAuto.getStartTime();
-        // 获取结束时间,格式是yyyy-MM-dd HH:mm
-        String endTime = schedulingAuto.getEndTime();
-        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
-            // 去除多余的空格
-            startTime = startTime.trim();
-            endTime = endTime.trim();
-            try {
-                LocalDateTime startLocalTime = LocalDateTime.parse(startTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-                LocalDateTime endLocalTime = LocalDateTime.parse(endTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-                if (endLocalTime.isBefore(startLocalTime)) {
-                    throw new CustomException("开始时间不能晚于结束时间");
-                }
-            } catch (Exception e) {
-                throw new CustomException("时间格式错误，请使用yyyy-MM-dd HH:mm格式");
-            }
-        }
-        // 获取车间Id
+
+        // 1. 获取基本参数
         String farmId = schedulingAuto.getFarmId();
-        // 获取班次Id
         String schedulingShiftsId = schedulingAuto.getSchedulingShiftsId();
-        // 获取班次时间段Id
-        String schedulingShiftsTimeIds = schedulingAuto.getSchedulingShiftsTimeIds();
-        List<String> shiftsTimeIdList = Arrays.asList(schedulingShiftsTimeIds.split(CommonCharConstants.COMMA_MARK));
-        // 获取员工Id列表
         String employeeIds = schedulingAuto.getEmployeeIds();
+        String schedulingShiftsTimeIds = schedulingAuto.getSchedulingShiftsTimeIds();
+        String schedulingShiftsTimeWorkId = schedulingAuto.getSchedulingShiftsTimeWorkId();
+        String startTime = schedulingAuto.getStartTime();
+        String endTime = schedulingAuto.getEndTime();
 
-        // 解析员工ID和权重
-        List<String> employeeIdList;
+        // 2. 解析员工ID和权重
         Map<String, Integer> employeeIdWeightMap = new HashMap<>();
+        try {
+            JSONArray employeeArray = JSON.parseArray(employeeIds);
+            for (int i = 0; i < employeeArray.size(); i++) {
+                JSONObject employee = employeeArray.getJSONObject(i);
+                String id = employee.getString("id");
+                if (StrUtil.isNotBlank(id)) {
+                    if (employee.containsKey("weight") && StrUtil.isNotBlank(employee.getString("weight"))) {
+                        employeeIdWeightMap.put(id, employee.getInteger("weight"));
+                    } else {
+                        employeeIdWeightMap.put(id, 50);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new CustomException("解析员工ID和权重数据失败：" + e.getMessage());
+        }
+        List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employeeIds);
 
-        if (employeeIds.startsWith("[")) {
-            // 处理带权重的格式 [{"id":"xxx","weight":"100"}]
-            List<Map<String, Object>> employeeIdWeightList = JSONUtil.parseArray(employeeIds).stream()
-                .map(obj -> (Map<String, Object>) obj)
-                .collect(Collectors.toList());
-            employeeIdList = employeeIdWeightList.stream()
-                .map(map -> map.get("id").toString())
-                .collect(Collectors.toList());
-            employeeIdWeightMap = employeeIdWeightList.stream()
-                .collect(Collectors.toMap(
-                    map -> map.get("id").toString(),
-                    map -> map.get("weight") != null ? Integer.parseInt(map.get("weight").toString()) : 1
-                ));
-        } else {
-            // 处理逗号分隔的纯ID格式 "id1,id2,id3"
-            employeeIdList = Arrays.asList(employeeIds.split(CommonCharConstants.COMMA_MARK));
-            // 为所有员工设置默认权重1
-            for (String id : employeeIdList) {
-                employeeIdWeightMap.put(id, 1);
+        // 3.1 区分正式员工和临时员工
+        List<String> formalUserIds = new ArrayList<>();
+        List<String> informalEmployeeIds = new ArrayList<>();
+        Map<String, String> userIdToStaffIdMap = new HashMap<>();
+
+        for (Map<String, Object> staff : allStaffList) {
+            String staffId = staff.get("id").toString();
+            Object userId = staff.get("userId");
+            if (userId != null && StrUtil.isNotBlank(userId.toString())) {
+                formalUserIds.add(userId.toString());
+                userIdToStaffIdMap.put(userId.toString(), staffId);
+            } else {
+                informalEmployeeIds.add(staffId);
             }
         }
 
-        autoScheduling(farmId, schedulingShiftsId, shiftsTimeIdList, employeeIdList, employeeIdWeightMap, startTime, endTime);
-    }
+        // 4. 获取班次时间段信息
+        List<String> shiftsTimeIdList = Arrays.asList(schedulingShiftsTimeIds.split(CommonCharConstants.COMMA_MARK));
+        List<SchedulingShiftsTime> shiftsTimeList = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftsTimeIdList);
 
-    private void autoScheduling(
-        String farmId, // 车间Id
-        String schedulingShiftsId, // 班次Id
-        List<String> shiftsTimeIdList, // 时间段Id列表
-        List<String> employeeIdList, // 员工Id列表
-        Map<String, Integer> employeeIdWeightMap, // 员工ID到权重的映射
-        String startTime, // 开始时间
-        String endTime // 结束时间
-    ) {
-        // 获取所有员工信息
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
+        // 5. 获取指定工位信息
+        List<String> workIds = Arrays.asList(schedulingShiftsTimeWorkId.split(CommonCharConstants.COMMA_MARK));
 
-        // 过滤出指定的员工
-        List<Map<String, Object>> selectedStaffList = allStaffList.stream()
-            .filter(staff -> staff.get("id") != null && employeeIdList.contains(staff.get("id").toString()))
-            .collect(Collectors.toList());
-
-        if (selectedStaffList.isEmpty()) {
-            throw new CustomException("未找到指定的员工信息");
+        // 获取所有班次时间段下的工位信息
+        List<SchedulingShiftsTimeWork> allShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByIds(workIds);
+        if (CollectionUtil.isEmpty(allShiftsTimeWorks)) {
+            throw new CustomException("未找到指定的工位信息");
         }
 
-        // 区分正式员工和临时员工
-        Map<Boolean, List<Map<String, Object>>> staffByType = selectedStaffList.stream()
-            .collect(Collectors.groupingBy(staff -> staff.get("userId") != null && StrUtil.isNotEmpty(staff.get("userId").toString())));
-        
-        // 获取正式员工
-        List<Map<String, Object>> formalStaff = staffByType.getOrDefault(true, new ArrayList<>());
-        // 获取临时员工
-        List<Map<String, Object>> tempStaff = staffByType.getOrDefault(false, new ArrayList<>());
-
-        // 获取正式员工的请假和出差信息
-        Map<String, List<LeaveTimeSlot>> formalLeaveMap = leaveService.queryStateIsSuccessLeaveDayByUserId(
-            startTime, endTime, formalStaff);
-        Map<String, List<BusinessTripTimeSlot>> formalTripMap = businessTripService.queryStateIsSuccessBusinessTripDayByUserId(
-            startTime, endTime, formalStaff);
-
-        // 获取临时员工的请假信息
-        Map<String, List<SchedulingLeave>> tempLeaveMap = schedulingLeaveService.queryLeaveByEmployeeIds(
-            tempStaff.stream().map(staff -> staff.get("id").toString()).collect(Collectors.toList()),
-            startTime,
-            endTime
-        );
-
-        // 获取班次下的所有时间段
-        List<SchedulingShiftsTime> shiftTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftsTimeIdList);
-        if (CollectionUtil.isEmpty(shiftTimes)) {
-            throw new CustomException("未找到对应的班次时间段信息");
+        // 建立时间段和工位的映射关系
+        Map<String, List<SchedulingShiftsTimeWork>> timeSlotToWorkMap = new HashMap<>();
+        for (SchedulingShiftsTime shiftsTime : shiftsTimeList) {
+            List<SchedulingShiftsTimeWork> timeSlotWorks = allShiftsTimeWorks.stream()
+                .filter(work -> shiftsTime.getId().equals(work.getShiftsTimeId()))
+                .collect(Collectors.toList());
+            timeSlotToWorkMap.put(shiftsTime.getId(), timeSlotWorks);
         }
 
-        // 获取每个时间段下面工位需求
-        List<SchedulingShiftsTimeWork> shiftsTimeWorkList = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIdList);
-        Map<String, List<SchedulingShiftsTimeWork>> shiftsTimeWorkMap = shiftsTimeWorkList.stream()
-            .collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
+        // 6. 获取请假和出差信息
+        Map<String, List<LeaveTimeSlot>> formalLeaveMap = queryLeaveByEmployeeIds(formalUserIds, startTime, endTime);
+        Map<String, List<BusinessTripTimeSlot>> tripMap = queryTripByEmployeeIds(formalUserIds, startTime, endTime);
+        Map<String, List<SchedulingLeave>> informalLeaveMap = schedulingLeaveService.queryLeaveByEmployeeIds(informalEmployeeIds, startTime, endTime);
 
-        // 时间范围内的所有日期
+        // 7. 创建排班结果
+        Scheduling scheduling = new Scheduling();
+        scheduling.setShiftId(schedulingShiftsId);
+        scheduling.setScheduleType(CommonNumConstants.NUM_ONE);
+        scheduling.setFarmId(farmId);
+        scheduling.setStartTime(startTime);
+        scheduling.setEndTime(endTime);
+
+        // 8. 生成日期范围
         List<LocalDate> dateRange = generateDateRange(startTime, endTime);
 
-        // 存储最终的排班结果
-        List<Scheduling> finalSchedules = new ArrayList<>();
+        // 9. 创建排班时间列表
+        List<SchedulingTime> schedulingTimeList = new ArrayList<>();
 
-        // 遍历每个日期
-        for (LocalDate date : dateRange) {
-            // 遍历每个时间段
-            for (SchedulingShiftsTime shiftTime : shiftTimes) {
-                // 获取当前可用的正式员工和临时员工
-                List<Map<String, Object>> availableFormalStaff = getAvailableFormalStaffForTimeSlot(
-                    formalStaff, date, shiftTime, formalLeaveMap, formalTripMap);
-                List<Map<String, Object>> availableTempStaff = getAvailableTempStaffForTimeSlot(
-                    tempStaff, date, shiftTime, tempLeaveMap);
+        // 用于跟踪每个时间段已分配的员工
+        Map<String, Set<String>> timeSlotAssignedStaffMap = new HashMap<>();
+        // 用于跟踪全局已分配的员工
+        Set<String> globalAssignedStaffIds = new HashSet<>();
 
-                // 获取该时间段的所有工位需求
-                List<SchedulingShiftsTimeWork> workPositions = shiftsTimeWorkMap.get(shiftTime.getId());
+        // 为每个时间段创建排班信息
+        for (SchedulingShiftsTime shiftsTime : shiftsTimeList) {
+            // 创建时间段信息
+            SchedulingTime schedulingTime = new SchedulingTime();
+            schedulingTime.setStartTime(shiftsTime.getStartTime());
+            schedulingTime.setEndTime(shiftsTime.getEndTime());
+            schedulingTime.setIsNextDay(shiftsTime.getIsNextDay());
+            schedulingTime.setColor(shiftsTime.getColor());
+            schedulingTime.setName(shiftsTime.getName());
+            schedulingTime.setMinStaff(shiftsTime.getMinStaff());
+            schedulingTime.setMaxStaff(shiftsTime.getMaxStaff());
+            schedulingTime.setSchedulingId(scheduling.getId());
 
-                // 如果没有工位需求，使用时间段的最小/最大需求人数
-                if (CollectionUtil.isEmpty(workPositions)) {
-                    int minRequired = shiftTime.getMinStaff() != null ? shiftTime.getMinStaff() : 0;
-                    int maxAllowed = shiftTime.getMaxStaff() != null ? shiftTime.getMaxStaff() : Integer.MAX_VALUE;
+            // 获取当前时间段下的工位列表
+            List<SchedulingShiftsTimeWork> timeSlotWorks = timeSlotToWorkMap.get(shiftsTime.getId());
+            if (timeSlotWorks != null && !timeSlotWorks.isEmpty()) {
+                List<SchedulingTimeWork> timeWorkList = new ArrayList<>();
 
-                    // 计算需要分配的总人数
-                    int totalToAssign = Math.min(maxAllowed, employeeIdList.size());
-                    
-                    // 优先分配正式员工
-                    int formalToAssign = Math.min(totalToAssign, availableFormalStaff.size());
-                    int tempToAssign = totalToAssign - formalToAssign;
+                // 获取当前时间段的所有可用员工
+                List<Map<String, Object>> availableStaff = getAvailableStaffForTimeSlot(
+                    allStaffList,
+                    dateRange,
+                    shiftsTime,
+                    formalLeaveMap,
+                    tripMap,
+                    informalLeaveMap,
+                    employeeIdWeightMap
+                );
 
-                    // 分配正式员工
-                    for (int i = 0; i < formalToAssign; i++) {
-                        Map<String, Object> staff = availableFormalStaff.get(i);
-                        String employeeId = staff.get("id").toString();
+                // 按权重排序可用员工
+                availableStaff.sort((a, b) -> {
+                    String idA = a.get("id").toString();
+                    String idB = b.get("id").toString();
+                    int weightA = employeeIdWeightMap.getOrDefault(idA, 50);
+                    int weightB = employeeIdWeightMap.getOrDefault(idB, 50);
+                    return Integer.compare(weightB, weightA);
+                });
 
-                        Scheduling scheduling = new Scheduling();
-                        scheduling.setEmployeeId(employeeId);
-                        scheduling.setShiftId(schedulingShiftsId);
-                        scheduling.setShiftTimeId(shiftTime.getId());
-                        scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                        scheduling.setFarmId(farmId);
-                        scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
-                        scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey());
+                // 将员工分为已分配和未分配两组
+                List<String> unassignedStaff = new ArrayList<>();
+                List<String> assignedStaff = new ArrayList<>();
 
-                        // 设置权重
-                        Integer weight = employeeIdWeightMap.get(employeeId);
-                        scheduling.setSchedulingWeight(weight);
-
-                        finalSchedules.add(scheduling);
+                for (String employeeId : employeeIdWeightMap.keySet()) {
+                    if (globalAssignedStaffIds.contains(employeeId)) {
+                        assignedStaff.add(employeeId);
+                    } else {
+                        unassignedStaff.add(employeeId);
                     }
-
-                    // 分配临时员工
-                    for (int i = 0; i < tempToAssign; i++) {
-                        Map<String, Object> staff = availableTempStaff.get(i);
-                        String employeeId = staff.get("id").toString();
-
-                        Scheduling scheduling = new Scheduling();
-                        scheduling.setEmployeeId(employeeId);
-                        scheduling.setShiftId(schedulingShiftsId);
-                        scheduling.setShiftTimeId(shiftTime.getId());
-                        scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                        scheduling.setFarmId(farmId);
-                        scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
-                        scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey());
-
-                        // 设置权重
-                        Integer weight = employeeIdWeightMap.get(employeeId);
-                        scheduling.setSchedulingWeight(weight);
-
-                        finalSchedules.add(scheduling);
-                    }
-                    continue;
                 }
+
+                // 优先使用未分配的员工
+                List<String> staffToAssign = new ArrayList<>();
+                staffToAssign.addAll(unassignedStaff);
+                staffToAssign.addAll(assignedStaff);
+
+                // 按最小需求人数对工位进行排序（从小到大）
+                timeSlotWorks.sort((a, b) -> Integer.compare(a.getMinStaff(), b.getMinStaff()));
 
                 // 为每个工位分配员工
-                for (SchedulingShiftsTimeWork workPosition : workPositions) {
-                    // 获取该工位的已分配人数
-                    int currentAssigned = (int) finalSchedules.stream()
-                        .filter(s -> s.getShiftTimeId().equals(shiftTime.getId()) &&
-                            s.getWorkId().equals(workPosition.getWorkId()) &&
-                            s.getScheduleDate().equals(date.format(DateTimeFormatter.ISO_DATE)))
-                        .count();
+                for (SchedulingShiftsTimeWork workInfo : timeSlotWorks) {
+                    // 创建工位信息
+                    SchedulingTimeWork timeWork = new SchedulingTimeWork();
+                    timeWork.setWorkId(workInfo.getWorkId());
+                    timeWork.setMinStaff(workInfo.getMinStaff());
+                    timeWork.setMaxStaff(workInfo.getMaxStaff());
+                    timeWork.setSchedulingId(scheduling.getId());
+                    timeWork.setSchedulingTimeId(schedulingTime.getId());
 
-                    // 计算该工位还需要分配的人数
-                    int minRequired = workPosition.getMinStaff() != null ? workPosition.getMinStaff() : 0;
-                    int maxAllowed = workPosition.getMaxStaff() != null ? workPosition.getMaxStaff() : Integer.MAX_VALUE;
+                    List<SchedulingTimeWorkPeople> workPeopleList = new ArrayList<>();
+                    Set<String> currentWorkAssignedStaffIds = new HashSet<>();
 
-                    // 如果当前已分配人数超过最大限制，跳过该工位
-                    if (currentAssigned >= maxAllowed) {
-                        continue;
-                    }
+                    // 计算当前工位应该分配的员工数量
+                    int minStaff = workInfo.getMinStaff();
+                    int maxStaff = workInfo.getMaxStaff();
+                    int availableStaffCount = staffToAssign.size();
 
-                    // 优先分配正式员工
-                    int remainingSlots = maxAllowed - currentAssigned;
-                    int toAssign = Math.min(remainingSlots, availableFormalStaff.size());
+                    // 如果是最后一个工位，分配所有剩余员工
+                    if (timeSlotWorks.indexOf(workInfo) == timeSlotWorks.size() - 1) {
+                        while (!staffToAssign.isEmpty() && workPeopleList.size() < maxStaff) {
+                            String employeeId = staffToAssign.remove(0);
+                            if (!currentWorkAssignedStaffIds.contains(employeeId)) {
+                                SchedulingTimeWorkPeople workPeople = new SchedulingTimeWorkPeople();
+                                workPeople.setEmployeeId(employeeId);
+                                workPeopleList.add(workPeople);
+                                currentWorkAssignedStaffIds.add(employeeId);
+                                globalAssignedStaffIds.add(employeeId);
+                            }
+                        }
+                    } else {
+                        // 计算当前工位应该分配的员工数量
+                        int staffToAssignCount;
 
-                    // 如果当前已分配人数小于最小需求，但可用人数不足，则使用所有可用人数
-                    if (currentAssigned < minRequired) {
-                        toAssign = Math.min(availableFormalStaff.size(), minRequired - currentAssigned);
-                    }
-
-                    // 分配正式员工
-                    for (int i = 0; i < toAssign; i++) {
-                        Map<String, Object> staff = availableFormalStaff.get(i);
-                        String employeeId = staff.get("id").toString();
-
-                        Scheduling scheduling = new Scheduling();
-                        scheduling.setEmployeeId(employeeId);
-                        scheduling.setShiftId(schedulingShiftsId);
-                        scheduling.setShiftTimeId(shiftTime.getId());
-                        scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                        scheduling.setFarmId(farmId);
-                        scheduling.setWorkId(workPosition.getWorkId());
-                        scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
-                        scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey());
-
-                        // 设置权重
-                        Integer weight = employeeIdWeightMap.get(employeeId);
-                        scheduling.setSchedulingWeight(weight);
-
-                        finalSchedules.add(scheduling);
-                    }
-
-                    // 从可用员工列表中移除已分配的员工
-                    availableFormalStaff = availableFormalStaff.subList(toAssign, availableFormalStaff.size());
-
-                    // 如果正式员工不足，使用临时员工补充
-                    if (currentAssigned + toAssign < minRequired) {
-                        int remainingRequired = minRequired - (currentAssigned + toAssign);
-                        int tempToAssign = Math.min(remainingRequired, availableTempStaff.size());
-
-                        // 分配临时员工
-                        for (int i = 0; i < tempToAssign; i++) {
-                            Map<String, Object> staff = availableTempStaff.get(i);
-                            String employeeId = staff.get("id").toString();
-
-                            Scheduling scheduling = new Scheduling();
-                            scheduling.setEmployeeId(employeeId);
-                            scheduling.setShiftId(schedulingShiftsId);
-                            scheduling.setShiftTimeId(shiftTime.getId());
-                            scheduling.setScheduleDate(date.format(DateTimeFormatter.ISO_DATE));
-                            scheduling.setFarmId(farmId);
-                            scheduling.setWorkId(workPosition.getWorkId());
-                            scheduling.setScheduleType(ScheduleType.AUTOMATIC.getKey());
-                            scheduling.setSchedulePeopleType(SchedulePeopleType.ONDUTY.getKey());
-
-                            // 设置权重
-                            Integer weight = employeeIdWeightMap.get(employeeId);
-                            scheduling.setSchedulingWeight(weight);
-
-                            finalSchedules.add(scheduling);
+                        // 如果剩余员工数量不足以满足最小需求，则优先满足最小需求人数较小的工位
+                        if (availableStaffCount < minStaff) {
+                            // 如果当前工位是最小需求人数最小的工位，则分配所有剩余员工
+                            if (timeSlotWorks.indexOf(workInfo) == 0) {
+                                staffToAssignCount = Math.min(maxStaff, availableStaffCount);
+                            } else {
+                                // 其他工位不分配员工
+                                staffToAssignCount = 0;
+                            }
+                        } else {
+                            // 如果剩余员工数量足够，则分配最小需求人数
+                            staffToAssignCount = Math.min(maxStaff, minStaff);
                         }
 
-                        // 从可用员工列表中移除已分配的员工
-                        availableTempStaff = availableTempStaff.subList(tempToAssign, availableTempStaff.size());
+                        // 分配员工到当前工位
+                        for (int i = 0; i < staffToAssignCount && !staffToAssign.isEmpty(); i++) {
+                            String employeeId = staffToAssign.remove(0);
+                            if (!currentWorkAssignedStaffIds.contains(employeeId)) {
+                                SchedulingTimeWorkPeople workPeople = new SchedulingTimeWorkPeople();
+                                workPeople.setEmployeeId(employeeId);
+                                workPeopleList.add(workPeople);
+                                currentWorkAssignedStaffIds.add(employeeId);
+                                globalAssignedStaffIds.add(employeeId);
+                            }
+                        }
                     }
+
+                    timeWork.setSchedulingTimeWorkPeopleMation(workPeopleList);
+                    timeWorkList.add(timeWork);
                 }
+
+                schedulingTime.setSchedulingTimeWorkMation(timeWorkList);
             }
+
+            schedulingTimeList.add(schedulingTime);
         }
 
-        // 保存排班结果
-        if (CollectionUtil.isNotEmpty(finalSchedules)) {
-            String userId = InputObject.getLogParamsStatic().get("id").toString();
-            super.createEntity(finalSchedules, userId);
-        } else {
-            throw new CustomException("未能生成有效的排班记录");
-        }
+        scheduling.setSchedulingTimeMation(schedulingTimeList);
+        outputObject.setBean(scheduling);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    /**
-     * 计算员工权重
-     * 权重规则：
-     * 1. 员工类型：正式员工(有userId) +30分，临时员工 +10分
-     * 2. 工龄：根据workTime计算，每满一年加10分
-     * 3. 在职状态：
-     * - 在职(1) +20分
-     * - 试用期(4) +10分
-     * - 见习(3) +5分
-     * - 离职(2)和退休(5) 不参与排班
-     * 4. 已分配班次：每多分配一次，权重减少5分，防止过度分配
-     */
-    private Map<String, Integer> calculateEmployeeWeights(List<Map<String, Object>> staffList, // 员工列表
-                                                          Map<String, Map<String, Object>> employeeJobMap) // 员工职位信息
-    {
-        Map<String, Integer> weights = new HashMap<>();
-        // 记录每个职位的已分配次数
-        Map<String, Integer> jobAssignmentCount = new HashMap<>();
+    @Override
+    public void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject) {
+        String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
+        String startTime = inputObject.getParams().get("startTime").toString();
+        String endTime = inputObject.getParams().get("endTime").toString();
+
+        // 1. 查询指定时间范围内的排班记录
+        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+        schedulingWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), startTime)
+            .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), endTime);
+        List<Scheduling> schedulingList = list(schedulingWrapper);
+
+        if (CollectionUtil.isEmpty(schedulingList)) {
+            outputObject.setBean(new ArrayList<>());
+            outputObject.settotal(CommonNumConstants.NUM_ZERO);
+            return;
+        }
+
+        List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+        List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+        getStaffMation(timeWorkPeople);
+        iAuthUserService.setName(timeWorkPeople, "createId", "createName");
+        iAuthUserService.setName(timeWorkPeople, "lastUpdateId", "lastUpdateName");
+        if (CollectionUtil.isEmpty(timeWorkPeople)) {
+            throw new CustomException("未查询到排班信息");
+        }
+
+        // 获取所有相关的ID
+        List<String> workIds = timeWorkPeople.stream()
+            .map(SchedulingTimeWorkPeople::getSchedulingTimeWorkId).collect(Collectors.toList());
+        List<String> timeIds = timeWorkPeople.stream()
+            .map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+        List<SchedulingTimeWork> workList = schedulingTimeWorkService.querySchedulingTimeByIds(workIds);
+        List<SchedulingTime> timeList = schedulingTimeService.querySchedulingTimeByTimeIds(timeIds);
+
+        // 构建四层嵌套结构
+        List<Scheduling> resultList = new ArrayList<>();
+        for (Scheduling scheduling : schedulingList) {
+            if (!schedulingIds.contains(scheduling.getId())) {
+                continue;
+            }
+            // 获取当前排班下的时间段
+            List<SchedulingTime> filteredTimeList = timeList.stream()
+                .filter(time -> time.getSchedulingId().equals(scheduling.getId()))
+                .collect(Collectors.toList());
+
+            for (SchedulingTime time : filteredTimeList) {
+                // 获取当前时间段下的工位
+                List<SchedulingTimeWork> filteredWorkList = workList.stream()
+                    .filter(work -> work.getSchedulingTimeId().equals(time.getId()))
+                    .collect(Collectors.toList());
+
+                for (SchedulingTimeWork work : filteredWorkList) {
+                    // 获取当前工位下的员工
+                    List<SchedulingTimeWorkPeople> filteredPeopleList = timeWorkPeople.stream()
+                        .filter(people -> people.getSchedulingTimeWorkId().equals(work.getId()))
+                        .collect(Collectors.toList());
+                    work.setSchedulingTimeWorkPeopleMation(filteredPeopleList);
+                }
+                time.setSchedulingTimeWorkMation(filteredWorkList);
+            }
+            scheduling.setSchedulingTimeMation(filteredTimeList);
+            resultList.add(scheduling);
+        }
+        outputObject.setBean(resultList);
+        outputObject.settotal(resultList.size());
+    }
+
+    private void getStaffMation(List<SchedulingTimeWorkPeople> timeWorkPeople) {
+        List<String> employIdList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList());
+        String employIds = String.join(CommonCharConstants.COMMA_MARK, employIdList);
+        List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employIds);
+        timeWorkPeople.forEach(
+            staff -> {
+                String employeeId = staff.getEmployeeId();
+                Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
+                if (ObjectUtil.isNotEmpty(staffMap)) {
+                    staff.setStaffMation(staffMap);
+                }
+            }
+        );
+    }
+
+    private List<Map<String, Object>> getAvailableStaffForTimeSlot(
+        List<Map<String, Object>> staffList,
+        List<LocalDate> dateRange,
+        SchedulingShiftsTime shiftTime,
+        Map<String, List<LeaveTimeSlot>> formalLeaveMap,
+        Map<String, List<BusinessTripTimeSlot>> tripMap,
+        Map<String, List<SchedulingLeave>> informalLeaveMap,
+        Map<String, Integer> employeeIdWeightMap) {
+
+        // 1. 分离正式员工和非正式员工
+        List<Map<String, Object>> formalStaff = new ArrayList<>();
+        List<Map<String, Object>> informalStaff = new ArrayList<>();
 
         for (Map<String, Object> staff : staffList) {
-            int weight = 0;
-            String staffId = staff.get("id").toString();
-            String jobId = staff.get("jobId") != null ? staff.get("jobId").toString() : null;
-
-            // 1. 员工类型权重
-            if (staff.get("userId") != null && StrUtil.isNotEmpty(staff.get("userId").toString())) {
-                weight += 30; // 正式员工
-            } else {
-                weight += 10; // 临时员工
-            }
-
-            // 2. 工龄权重
-            if (staff.get("workTime") != null) {
-                String workTime = staff.get("workTime").toString();
-                try {
-                    LocalDate workDate = LocalDate.parse(workTime);
-                    int workYears = Period.between(workDate, LocalDate.now()).getYears();
-                    weight += workYears * 10;
-                } catch (Exception e) {
-                    // 如果日期解析失败，不计算工龄权重
+            String employeeId = staff.get("id").toString();
+            if (employeeIdWeightMap.containsKey(employeeId)) {
+                if (staff.get("type") != null && "formal".equals(staff.get("type"))) {
+                    formalStaff.add(staff);
+                } else {
+                    informalStaff.add(staff);
                 }
             }
-
-            // 3. 在职状态权重
-            Integer state = staff.get("state") != null ? Integer.parseInt(staff.get("state").toString()) : null;
-            if (state != null) {
-                switch (state) {
-                    case 1: // 在职(转正的员工)
-                        weight += 20;
-                        break;
-                    case 4: // 试用期(未转正的员工)
-                        weight += 10;
-                        break;
-                    case 3: // 见习(实习生)
-                        weight += 5;
-                        break;
-                    case 2: // 离职
-                    case 5: // 退休
-                        // 离职和退休的员工不参与排班，权重设为0
-                        weight = 0;
-                        break;
-                }
-            }
-
-            // 4. 考虑已分配班次数量，防止过度分配
-            if (jobId != null) {
-                int currentAssignments = jobAssignmentCount.getOrDefault(jobId, 0);
-                weight -= currentAssignments * 5; // 每多分配一次，权重减少5分
-            }
-
-            weights.put(staffId, weight);
         }
 
-        return weights;
-    }
+        // 2. 获取可用员工
+        List<Map<String, Object>> availableFormalStaff = getAvailableFormalStaffForTimeSlot(
+            formalStaff, dateRange, shiftTime, formalLeaveMap, tripMap);
+        List<Map<String, Object>> availableInformalStaff = getAvailableTempStaffForTimeSlot(
+            informalStaff, dateRange, informalLeaveMap);
 
-    /**
-     * 计算时间段长度（分钟）
-     */
-    private int calculateDuration(String startTime, String endTime) {
-        // 处理时间格式，确保小时是两位数
-        startTime = startTime.length() == 7 ? "0" + startTime : startTime;
-        endTime = endTime.length() == 7 ? "0" + endTime : endTime;
+        // 3. 合并并排序员工列表
+        List<Map<String, Object>> allAvailableStaff = new ArrayList<>();
+        allAvailableStaff.addAll(availableFormalStaff);
+        allAvailableStaff.addAll(availableInformalStaff);
 
-        // 如果时间包含秒，则使用 HH:mm:ss 格式，否则使用 HH:mm 格式
-        DateTimeFormatter formatter = startTime.length() > 5 ?
-            DateTimeFormatter.ofPattern("HH:mm:ss") :
-            DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime start = LocalTime.parse(startTime, formatter);
-        LocalTime end = LocalTime.parse(endTime, formatter);
-        return (int) java.time.Duration.between(start, end).toMinutes();
+        // 4. 根据权重排序
+        allAvailableStaff.sort((a, b) -> {
+            String idA = a.get("id").toString();
+            String idB = b.get("id").toString();
+            int weightA = employeeIdWeightMap.getOrDefault(idA, 1);
+            int weightB = employeeIdWeightMap.getOrDefault(idB, 1);
+            return Integer.compare(weightB, weightA);
+        });
+
+        return allAvailableStaff;
     }
 
     /**
@@ -491,7 +509,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
      */
     private List<Map<String, Object>> getAvailableFormalStaffForTimeSlot(
         List<Map<String, Object>> staffList,
-        LocalDate date,
+        List<LocalDate> dateRange,
         SchedulingShiftsTime shiftTime,
         Map<String, List<LeaveTimeSlot>> leaveMap,
         Map<String, List<BusinessTripTimeSlot>> tripMap) {
@@ -499,19 +517,33 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         return staffList.stream()
             .filter(staff -> {
                 String staffId = staff.get("id").toString();
+                String shiftStartTime = shiftTime.getStartTime();
+                String shiftEndTime = shiftTime.getEndTime();
+
                 // 检查是否请假
                 if (leaveMap.containsKey(staffId)) {
                     for (LeaveTimeSlot leave : leaveMap.get(staffId)) {
-                        if (date.equals(LocalDate.parse(leave.getLeaveDay()))) {
-                            return false;
+                        if (dateRange.contains(LocalDate.parse(leave.getLeaveDay()))) {
+                            // 检查时间段是否冲突
+                            String leaveStartTime = leave.getLeaveStartTime();
+                            String leaveEndTime = leave.getLeaveEndTime();
+                            if (isTimeOverlap(shiftStartTime, shiftEndTime, leaveStartTime, leaveEndTime)) {
+                                return false;
+                            }
                         }
                     }
                 }
+
                 // 检查是否出差
                 if (tripMap.containsKey(staffId)) {
                     for (BusinessTripTimeSlot trip : tripMap.get(staffId)) {
-                        if (date.equals(LocalDate.parse(trip.getTravelDay()))) {
-                            return false;
+                        if (dateRange.contains(LocalDate.parse(trip.getTravelDay()))) {
+                            // 检查时间段是否冲突
+                            String tripStartTime = trip.getStartTime();
+                            String tripEndTime = trip.getEndTime();
+                            if (isTimeOverlap(shiftStartTime, shiftEndTime, tripStartTime, tripEndTime)) {
+                                return false;
+                            }
                         }
                     }
                 }
@@ -521,12 +553,104 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     /**
+     * 检查两个时间段是否重叠
+     */
+    private boolean isTimeOverlap(String start1, String end1, String start2, String end2) {
+        // 处理时间格式，确保小时是两位数
+        start1 = start1.length() == 7 ? "0" + start1 : start1;
+        end1 = end1.length() == 7 ? "0" + end1 : end1;
+        start2 = start2.length() == 7 ? "0" + start2 : start2;
+        end2 = end2.length() == 7 ? "0" + end2 : end2;
+
+        // 如果时间包含秒，则使用 HH:mm:ss 格式，否则使用 HH:mm 格式
+        DateTimeFormatter formatter = start1.length() > 5 ?
+            DateTimeFormatter.ofPattern("HH:mm:ss") :
+            DateTimeFormatter.ofPattern("HH:mm");
+
+        LocalTime s1 = LocalTime.parse(start1, formatter);
+        LocalTime e1 = LocalTime.parse(end1, formatter);
+        LocalTime s2 = LocalTime.parse(start2, formatter);
+        LocalTime e2 = LocalTime.parse(end2, formatter);
+
+        // 检查时间段是否重叠
+        return !(e1.isBefore(s2) || s1.isAfter(e2));
+    }
+
+    /**
+     * 查询正式员工请假信息
+     */
+    private Map<String, List<LeaveTimeSlot>> queryLeaveByEmployeeIds(List<String> formalUserIds, String startTime, String endTime) {
+        Map<String, List<LeaveTimeSlot>> result = new HashMap<>();
+        if (CollectionUtil.isEmpty(formalUserIds)) {
+            return result;
+        }
+        List<Leave> leaveList = leaveService.queryLeaveByFormalUserIds(formalUserIds);
+        // 2. 获取所有请假ID
+        List<String> leaveIds = leaveList.stream()
+            .map(Leave::getId)
+            .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(leaveIds)) {
+            return result;
+        }
+
+        List<LeaveTimeSlot> timeSlotList = leaveTimeSlotService.queryTimeAndIds(leaveIds, startTime, endTime);
+        // 4. 建立请假ID到员工ID的映射
+        Map<String, String> leaveIdToEmployeeIdMap = leaveList.stream()
+            .collect(Collectors.toMap(Leave::getId, Leave::getCreateId));
+
+        // 5. 按员工ID分组
+        for (LeaveTimeSlot timeSlot : timeSlotList) {
+            String employeeId = leaveIdToEmployeeIdMap.get(timeSlot.getParentId());
+            if (employeeId != null) {
+                result.computeIfAbsent(employeeId, k -> new ArrayList<>()).add(timeSlot);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 查询正式员工出差信息
+     */
+    private Map<String, List<BusinessTripTimeSlot>> queryTripByEmployeeIds(List<String> formalUserIds, String startTime, String endTime) {
+        Map<String, List<BusinessTripTimeSlot>> result = new HashMap<>();
+        if (CollectionUtil.isEmpty(formalUserIds)) {
+            return result;
+        }
+        List<BusinessTrip> tripList = businessTripService.queryBusinessTripByUserIds(formalUserIds);
+
+        // 2. 获取所有出差ID
+        List<String> tripIds = tripList.stream()
+            .map(BusinessTrip::getId)
+            .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(tripIds)) {
+            return result;
+        }
+        List<BusinessTripTimeSlot> timeSlotList = businessTripTimeSlotService.queryBusinessTripTimeSlotByIdsAndTime(tripIds, startTime, endTime);
+
+        // 4. 建立出差ID到员工ID的映射
+        Map<String, String> tripIdToEmployeeIdMap = tripList.stream()
+            .collect(Collectors.toMap(BusinessTrip::getId, BusinessTrip::getCreateId));
+
+        // 5. 按员工ID分组
+        for (BusinessTripTimeSlot timeSlot : timeSlotList) {
+            String employeeId = tripIdToEmployeeIdMap.get(timeSlot.getParentId());
+            if (employeeId != null) {
+                result.computeIfAbsent(employeeId, k -> new ArrayList<>()).add(timeSlot);
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * 获取指定时间段可用的临时员工
      */
     private List<Map<String, Object>> getAvailableTempStaffForTimeSlot(
         List<Map<String, Object>> staffList,
-        LocalDate date,
-        SchedulingShiftsTime shiftTime,
+        List<LocalDate> dateRange,
         Map<String, List<SchedulingLeave>> leaveMap) {
 
         return staffList.stream()
@@ -537,7 +661,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                     for (SchedulingLeave leave : leaveMap.get(staffId)) {
                         LocalDate leaveStartDate = LocalDate.parse(leave.getStartTime().split(" ")[0]);
                         LocalDate leaveEndDate = LocalDate.parse(leave.getEndTime().split(" ")[0]);
-                        if (!date.isBefore(leaveStartDate) && !date.isAfter(leaveEndDate)) {
+                        if (!dateRange.contains(leaveStartDate) && !dateRange.contains(leaveEndDate)) {
                             return false;
                         }
                     }
@@ -551,7 +675,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         LocalDate start = LocalDate.parse(startTime, formatter);
         LocalDate end = LocalDate.parse(endTime, formatter);
-
         List<LocalDate> dates = new ArrayList<>();
         while (!start.isAfter(end)) {
             dates.add(start);
@@ -561,213 +684,46 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     @Override
-    public void querySchedulingListByTimeSlot(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 车间id
-        String holderId = commonPageInfo.getHolderId();
-        // 班次名称
-        String keyword = commonPageInfo.getKeyword();
-        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(holderId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
-        }
-        List<Scheduling> schedulingList = list(queryWrapper);
-        // 如果 keyword 不为空，过滤 schedulingList
-        if (StrUtil.isNotEmpty(keyword)) {
-            List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
-            List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
-            Map<String, String> idToNameMap = schedulingShifts.stream()
-                .collect(Collectors.toMap(SchedulingShifts::getId, SchedulingShifts::getName));
-            schedulingList = schedulingList.stream()
-                .filter(scheduling -> {
-                    String shiftName = idToNameMap.get(scheduling.getShiftId());
-                    return StrUtil.isNotEmpty(shiftName) && shiftName.contains(keyword);
-                })
-                .collect(Collectors.toList());
-        }
-        // 获取所有员工信息
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
-        Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
-            .filter(staffInfo -> staffInfo != null && staffInfo.get("userId") != null)
-            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("userId").toString()));
-        Map<String, List<Map<String, Object>>> idStaffMap = allStaffList.stream()
-            .filter(staffInfo -> staffInfo != null && staffInfo.get("id") != null)
-            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("id").toString()));
-        // 设置员工信息
-        for (Scheduling scheduling : schedulingList) {
-            String employeeId = scheduling.getEmployeeId();
-            List<Map<String, Object>> staffInfoList = userIdMap.get(employeeId);
-            if (CollectionUtil.isNotEmpty(staffInfoList)) {
-                scheduling.setStaffMation(staffInfoList);
-            } else {
-                staffInfoList = idStaffMap.get(employeeId);
-                if (CollectionUtil.isNotEmpty(staffInfoList)) {
-                    scheduling.setStaffMation(staffInfoList);
-                }
-            }
-        }
-        // 获取班次时间和班次信息
-        List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
-        Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
-
-        List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
-        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
-        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
-
-        // 设置班次时间和班次信息
-        for (Scheduling scheduling : schedulingList) {
-            List<SchedulingShifts> shifts = schedulingShiftsMap.get(scheduling.getShiftId());
-            if (CollectionUtil.isNotEmpty(shifts)) {
-                scheduling.setSchedulingShiftMation(shifts.get(CommonNumConstants.NUM_ZERO));
-            }
-            List<SchedulingShiftsTime> shiftsTimes = stringListMap.get(scheduling.getShiftTimeId());
-            if (CollectionUtil.isNotEmpty(shiftsTimes)) {
-                scheduling.setSchedulinghiftTimeMation(shiftsTimes.get(CommonNumConstants.NUM_ZERO));
-            }
-        }
-        iAuthUserService.setName(schedulingList, "createId", "createName");
-        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(schedulingList);
-        outputObject.settotal(page.getTotal());
-    }
-
-
-    public void querySchedulingListByTimeSlot1(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 车间id
-        String holderId = commonPageInfo.getHolderId();
-        // 班次名称
-        String keyword = commonPageInfo.getKeyword();
-        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(holderId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
-        }
-        List<Scheduling> schedulingList = list(queryWrapper);
-        List<String> shiftIds = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
-        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(shiftIds);
-        if (StrUtil.isNotEmpty(keyword)) {
-            schedulingList = new ArrayList<>();
-            // 班次id和班次名称的map
-            Map<String, String> idToNameMap = schedulingShifts.stream()
-                .collect(Collectors.toMap(SchedulingShifts::getId, SchedulingShifts::getName));
-            for (Scheduling scheduling : schedulingList) {
-                String shiftId = scheduling.getShiftId();
-                String shiftName = idToNameMap.get(shiftId);
-                if (StrUtil.isNotEmpty(shiftName) && shiftName.contains(keyword)) {
-                    schedulingList.add(scheduling);
-                }
-            }
-        }
-        List<Map<String, Object>> allStaffList = iSysEveUserStaffService.queryAllStaffList();
-        Map<String, List<Map<String, Object>>> userIdMap = allStaffList.stream()
-            .filter(staffInfo -> staffInfo != null && staffInfo.get("userId") != null)
-            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("userId").toString()));
-        Map<String, List<Map<String, Object>>> idStaffMap = allStaffList.stream()
-            .filter(staffInfo -> staffInfo != null && staffInfo.get("id") != null)
-            .collect(Collectors.groupingBy(staffInfo -> staffInfo.get("id").toString()));
-        for (Scheduling scheduling : schedulingList) {
-            String employeeId = scheduling.getEmployeeId();
-            List<Map<String, Object>> staffInfoList = userIdMap.get(employeeId);
-            if (CollectionUtil.isNotEmpty(staffInfoList)) {
-                scheduling.setStaffMation(staffInfoList);
-            } else {
-                // 如果没有根据userId查找到员工信息，则尝试根据id查找（临时工）
-                staffInfoList = idStaffMap.get(employeeId);
-                if (CollectionUtil.isNotEmpty(staffInfoList)) {
-                    scheduling.setStaffMation(staffInfoList);
-                }
-            }
-        }
-        List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        Map<String, List<SchedulingShifts>> schedulingShiftsMap = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
-        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
-        Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
-        for (Scheduling scheduling : schedulingList) {
-            List<SchedulingShifts> shifts = schedulingShiftsMap.get(scheduling.getShiftId());
-            if (CollectionUtil.isNotEmpty(shifts)) {
-                scheduling.setSchedulingShiftMation(shifts.get(CommonNumConstants.NUM_ZERO));
-            }
-            List<SchedulingShiftsTime> shiftsTimes = stringListMap.get(scheduling.getShiftTimeId());
-            if (CollectionUtil.isNotEmpty(shiftsTimes)) {
-                scheduling.setSchedulinghiftTimeMation(shiftsTimes.get(CommonNumConstants.NUM_ZERO));
-            }
-        }
-        iAuthUserService.setName(schedulingList, "createId", "createName");
-        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
-        outputObject.setBeans(schedulingList);
-        outputObject.settotal(page.getTotal());
-    }
-
-    @Override
     public void deleteSchedulingByIds(InputObject inputObject, OutputObject outputObject) {
         String ids = inputObject.getParams().get("ids").toString();
-        String[] split = ids.split(CommonCharConstants.COMMA_MARK);
-        List<String> idList = Arrays.asList(split);
+        List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK));
+        deleteById(idList);
+    }
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
+    @Override
+    public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String holderId = commonPageInfo.getHolderId();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(CommonConstants.ID, idList);
-        remove(queryWrapper);
+        queryWrapper.eq(StrUtil.isNotEmpty(holderId), MybatisPlusUtil.toColumns(Scheduling::getFarmId), holderId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Scheduling::getCreateTime));
+        List<Scheduling> schedulingList = list(queryWrapper);
+        List<String> collect = schedulingList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIds(collect);
+        Map<String, List<SchedulingShifts>> collect1 = schedulingShifts.stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+        for (Scheduling scheduling : schedulingList) {
+            if (scheduling != null && scheduling.getShiftId() != null) {
+                List<SchedulingShifts> schedulingShifts1 = collect1.get(scheduling.getShiftId());
+                if (CollectionUtil.isNotEmpty(schedulingShifts1)) {
+                    SchedulingShifts schedulingShifts2 = schedulingShifts1.get(CommonNumConstants.NUM_ZERO);
+                    if (ObjectUtil.isNotEmpty(schedulingShifts2)) {
+                        scheduling.setShiftMation(schedulingShifts2);
+                    }
+                }
+            }
+        }
+        iAuthUserService.setName(schedulingList, "createId", "createName");
+        iAuthUserService.setName(schedulingList, "lastUpdateId", "lastUpdateName");
+        outputObject.setBeans(schedulingList);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
-    public void updateEmployStateByLeave(String employeeId, String startTime, String endTime) {
-        // 1. 获取该员工的所有排班记录
-        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Scheduling::getEmployeeId), employeeId);
-        List<Scheduling> schedulingList = list(queryWrapper);
-
-        // 2. 获取所有相关的时间段信息
-        List<String> shiftTimeIds = schedulingList.stream().map(Scheduling::getShiftTimeId).collect(Collectors.toList());
-        List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryShiftsTimeByIdList(shiftTimeIds);
-        Map<String, List<SchedulingShiftsTime>> stringListMap = schedulingShiftsTimes.stream().collect(Collectors.groupingBy(SchedulingShiftsTime::getId));
-
-        // 3. 将传入的请假时间转换为 LocalDateTime
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime leaveStartDateTime = LocalDateTime.parse(startTime, formatter);
-        LocalDateTime leaveEndDateTime = LocalDateTime.parse(endTime, formatter);
-
-        // 4. 创建一个列表用于存放需要更新的排班记录
-        List<Scheduling> resultSchedulingList = new ArrayList<>();
-
-        // 5. 遍历所有排班记录，检查时间是否冲突
-        for (Scheduling scheduling : schedulingList) {
-            List<SchedulingShiftsTime> shiftsTimes = stringListMap.get(scheduling.getShiftTimeId());
-            if (CollectionUtil.isNotEmpty(shiftsTimes)) {
-                SchedulingShiftsTime schedulingShiftsTime = shiftsTimes.get(CommonNumConstants.NUM_ZERO);
-
-                // 组合排班日期和时间段
-                String scheduleDate = scheduling.getScheduleDate();
-                LocalDateTime shiftStartDateTime = LocalDateTime.parse(scheduleDate + " " + schedulingShiftsTime.getStartTime(), formatter);
-
-                // 处理跨天的情况
-                LocalDateTime shiftEndDateTime;
-                if (schedulingShiftsTime.getIsNextDay() != null && schedulingShiftsTime.getIsNextDay() == 1) {
-                    // 如果是跨天，结束时间要加一天
-                    shiftEndDateTime = LocalDateTime.parse(scheduleDate + " " + schedulingShiftsTime.getEndTime(), formatter)
-                        .plusDays(1);
-                } else {
-                    shiftEndDateTime = LocalDateTime.parse(scheduleDate + " " + schedulingShiftsTime.getEndTime(), formatter);
-                }
-
-                // 检查时间是否重叠
-                boolean isOverlapping = !shiftEndDateTime.isBefore(leaveStartDateTime) && !shiftStartDateTime.isAfter(leaveEndDateTime);
-
-                if (isOverlapping) {
-                    resultSchedulingList.add(scheduling);
-                }
-            }
-        }
-
-        // 6. 批量更新状态
-        if (CollectionUtil.isNotEmpty(resultSchedulingList)) {
-            for (Scheduling scheduling : resultSchedulingList) {
-                scheduling.setSchedulePeopleType(SchedulePeopleType.ONLEAVE.getKey());
-            }
-            // 使用批量更新
-            super.updateBatchById(resultSchedulingList);
-        }
+    protected void deletePreExecution(List<String> ids) {
+        schedulingTimeService.deleteBySchedulingIds(ids);
     }
-
 }

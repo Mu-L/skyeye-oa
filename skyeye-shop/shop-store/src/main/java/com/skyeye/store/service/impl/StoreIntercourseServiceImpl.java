@@ -7,6 +7,7 @@ package com.skyeye.store.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -16,6 +17,7 @@ import com.skyeye.entity.intercourse.StoreIntercourseQueryDo;
 import com.skyeye.store.dao.StoreIntercourseDao;
 import com.skyeye.store.service.StoreIntercourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,17 +25,21 @@ import java.util.Map;
 
 /**
  * @ClassName: StoreIntercourseServiceImpl
- * @Description: 门店往来管理服务层
+ * @Description: 门店往来管理服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/3/10 21:55
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
+@SkyeyeService(name = "门店往来管理", groupName = "门店往来管理")
 public class StoreIntercourseServiceImpl implements StoreIntercourseService {
 
     @Autowired
     private StoreIntercourseDao storeIntercourseDao;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     public enum State {
         WAIT_MEAL_BY_STORE(1, "待套餐购买门店确认"),
@@ -57,14 +63,15 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
     }
 
     /**
-     * 获取指定日期的支出/收入往来的数据
+     * 获取指定日期的支出/收入往来的数据，只有保养订单关联了包养订单，才会记录统计数据
      *
      * @param day 指定日期
      * @return 指定日期的支出/收入往来的数据
      */
     @Override
     public List<Map<String, Object>> queryStoreIntercourseByDay(String day) {
-        List<Map<String, Object>> storeIntercourseList = storeIntercourseDao.queryStoreIntercourseByDay(day);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<Map<String, Object>> storeIntercourseList = storeIntercourseDao.queryStoreIntercourseByDay(day, tenantId);
         return storeIntercourseList;
     }
 
@@ -78,7 +85,8 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
         shopStoreIntercourseMationList.forEach(bean -> {
             bean.put("id", ToolUtil.getSurFaceId());
         });
-        storeIntercourseDao.insertStoreIntercourse(shopStoreIntercourseMationList);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        storeIntercourseDao.insertStoreIntercourse(shopStoreIntercourseMationList, tenantId);
     }
 
     /**
@@ -110,7 +118,9 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
         Integer state = Integer.parseInt(params.get("state").toString());
-        Map<String, Object> storeIntercourse = storeIntercourseDao.queryStoreIntercourseById(id);
+
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        Map<String, Object> storeIntercourse = storeIntercourseDao.queryStoreIntercourseById(id, tenantId);
         // 获取当前的状态
         Integer currentState = Integer.parseInt(storeIntercourse.get("state").toString());
         if (currentState == State.WAIT_MEAL_BY_STORE.getState() && state == State.WAIT_KEEPFIT_STORE.getState()) {
@@ -121,7 +131,7 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
             outputObject.setreturnMessage("Status to change, please refresh the page.");
             return;
         }
-        storeIntercourseDao.editStoreIntercourseState(id, state);
+        storeIntercourseDao.editStoreIntercourseState(id, state, tenantId);
     }
 
     /**

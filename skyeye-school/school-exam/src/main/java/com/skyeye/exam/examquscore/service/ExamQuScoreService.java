@@ -3,7 +3,7 @@ package com.skyeye.exam.examquscore.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquscore.entity.ExamQuScore;
 
 import java.util.List;

@@ -5,6 +5,8 @@
 package com.skyeye.loan.service;
 
 import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.loan.entity.LoanBorrow;
 
 /**
@@ -17,4 +19,9 @@ import com.skyeye.loan.entity.LoanBorrow;
  */
 public interface LoanBorrowService extends SkyeyeFlowableService<LoanBorrow> {
 
+    void updateLoanBorrowStatePrice(String loanBorrowId, String price);
+
+    void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject);
+
+    void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject);
 }

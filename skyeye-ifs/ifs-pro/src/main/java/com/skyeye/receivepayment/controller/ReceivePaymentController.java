@@ -4,6 +4,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -59,9 +60,7 @@ public class ReceivePaymentController {
     }
 
     @ApiOperation(id = "submitReceivePaymentToApproval", value = "收付款申请提交审批", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/ReceivePaymentController/submitReceivePaymentToApproval")
     public void submitReceivePaymentToApproval(InputObject inputObject, OutputObject outputObject) {
         receivePaymentService.submitToApproval(inputObject, outputObject);

@@ -10,4 +10,5 @@ public interface SchedulingShiftsTimeWorkService extends SkyeyeBusinessService<S
 
     void deleteShiftsTimeWorkByShiftsTimeIds(List<String> shiftsTimeIds);
 
+    List<SchedulingShiftsTimeWork> queryShiftsTimeWorkByIds(List<String> schedulingShiftsTimeWorkId);
 }

@@ -4,6 +4,7 @@
 
 package com.skyeye.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,14 +20,17 @@ import java.util.Map;
  */
 public interface ErpPageDao {
 
+    @IgnoreTenant
     String queryThisMonthErpOrder(@Param("idKey") String idKey,
                                   @Param("states") List<String> states,
                                   @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> querySixMonthOrderMoneyList(@Param("idKey") String idKey,
                                                           @Param("states") List<String> states,
                                                           @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryTwelveMonthProfitMoneyList(@Param("idKeys") List<String> idKeys,
                                                               @Param("states") List<String> states,
                                                               @Param("tenantId") String tenantId);

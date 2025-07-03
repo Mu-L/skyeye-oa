@@ -27,13 +27,16 @@ import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.production.classenum.ProductionPlanFromType;
 import com.skyeye.production.entity.ProductionPlan;
 import com.skyeye.production.service.ProductionPlanService;
+import com.skyeye.seal.classenum.SalesExchangesFromType;
 import com.skyeye.seal.classenum.SealOrderFromType;
 import com.skyeye.seal.classenum.SealOutLetFromType;
 import com.skyeye.seal.classenum.SealReturnFromType;
 import com.skyeye.seal.dao.SalesOrderDao;
+import com.skyeye.seal.entity.SalesExchanges;
 import com.skyeye.seal.entity.SalesOrder;
 import com.skyeye.seal.entity.SalesOutLet;
 import com.skyeye.seal.entity.SalesReturns;
+import com.skyeye.seal.service.SalesExchangesService;
 import com.skyeye.seal.service.SalesOrderService;
 import com.skyeye.seal.service.SalesOutLetService;
 import com.skyeye.seal.service.SalesReturnsService;
@@ -70,6 +73,9 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
 
     @Autowired
     private ProductionPlanService productionPlanService;
+
+    @Autowired
+    private SalesExchangesService salesExchangesService;
 
     @Override
     public QueryWrapper<SalesOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -205,8 +211,10 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
         Map<String, Integer> normsNum = salesOutLetService.calcMaterialNormsNumByFromId(id);
         // 获取已经退货的数量
         Map<String, Integer> normsReturnsNum = salesReturnsService.calcMaterialNormsNumByFromId(id);
-        // 设置未下达销售出库单/销售退货单的商品数量-----订单数量 - 已入库的数量 - 已退货的数量
-        super.setOrCheckOperNumber(salesOrder.getErpOrderItemList(), true, normsNum, normsReturnsNum);
+        // 获取已经换货的数量
+        Map<String, Integer> normsExchangeNum = salesExchangesService.calcMaterialNormsNumByFromId(id);
+        // 设置未下达销售出库单/销售退货单的商品数量-----订单数量 - 已入库的数量 - 已退货的数量 - 已换货的数量
+        super.setOrCheckOperNumber(salesOrder.getErpOrderItemList(), true, normsNum, normsReturnsNum, normsExchangeNum);
         // 过滤掉数量为0的进行生成销售出库单/销售退货单
         salesOrder.setErpOrderItemList(salesOrder.getErpOrderItemList().stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
@@ -253,6 +261,26 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
             salesReturnsService.createEntity(salesReturns, userId);
         } else {
             outputObject.setreturnMessage("状态错误，无法出库.");
+        }
+    }
+
+    @Override
+    public void insertSealsOrderToSealExchanges(InputObject inputObject, OutputObject outputObject) {
+        SalesExchanges salesExchanges = inputObject.getParams(SalesExchanges.class);
+        // 获取销售单状态
+        SalesOrder order = selectById(salesExchanges.getId());
+        if (ObjectUtil.isEmpty(order)) {
+            throw new CustomException("该数据不存在.");
+        }
+        // 审核通过/部分完成的可以进行退货
+        if (FlowableStateEnum.PASS.getKey().equals(order.getState()) || ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey().equals(order.getState())) {
+            String userId = inputObject.getLogParams().get("id").toString();
+            salesExchanges.setFromId(salesExchanges.getId());
+            salesExchanges.setFromTypeId(SalesExchangesFromType.SEAL_ORDER.getKey());
+            salesExchanges.setId(StrUtil.EMPTY);
+            salesExchangesService.createEntity(salesExchanges, userId);
+        } else {
+            outputObject.setreturnMessage("状态错误，无法操作.");
         }
     }
 

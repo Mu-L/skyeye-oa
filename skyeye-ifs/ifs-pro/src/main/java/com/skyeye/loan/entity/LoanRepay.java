@@ -58,4 +58,12 @@ public class LoanRepay extends SkyeyeFlowable {
     @ApiModelProperty(value = "还款金额", required = "required,double")
     private String price;
 
+    @TableField(value = "loan_borrow_id")
+    @ApiModelProperty(value = "借款id")
+    private String loanBorrowId;
+
+    @TableField(exist = false)
+    @Property(value = "借款信息")
+    private Map<String, Object> loanBorrowMation;
+
 }

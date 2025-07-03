@@ -7,6 +7,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -101,7 +102,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
                 .between(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime), beforeDay, today)
                 .orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
         if(tenantEnable){
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getTenantId), tenantId);
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         return list(queryWrapper);
     }

@@ -4,21 +4,23 @@
 
 package com.skyeye.ueditor.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
-import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.FileUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.dao.EditUploadDao;
-import com.skyeye.jedis.JedisClientService;
+import com.skyeye.eve.entity.edit.EditUpload;
 import com.skyeye.ueditor.service.EditUploadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,17 +31,19 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.*;
 
-
+/**
+ * @ClassName: EditUploadServiceImpl
+ * @Description: 富文本资源上传的实现类--强隔离
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/6/22 14:26
+ * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ */
 @Service
-public class EditUploadServiceImpl implements EditUploadService {
+@SkyeyeService(name = "富文本资源上传", groupName = "富文本资源上传")
+public class EditUploadServiceImpl extends SkyeyeBusinessServiceImpl<EditUploadDao, EditUpload> implements EditUploadService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EditUploadServiceImpl.class);
-
-    @Autowired
-    private EditUploadDao editUploadDao;
-
-    @Autowired
-    public JedisClientService jedisClient;
 
     @Value("${IMAGES_PATH}")
     private String tPath;
@@ -88,14 +92,13 @@ public class EditUploadServiceImpl implements EditUploadService {
                 // 能访问到你现在图片的路径
                 String filePath = FileConstants.FileUploadPath.getVisitPath(FileConstants.FileUploadPath.UEDITOR.getType()[0]) + newFileName;
                 rs.put("url", filePath);
-                Map<String, Object> bean = new HashMap<>();
-                bean.put("imgPath", filePath);
-                bean.put("fileOriginalName", fileName);
-                // 用户信息
-                Map<String, Object> userMation = InputObject.getLogParamsStatic();
-                DataCommonUtil.setCommonData(bean, userMation.get("id").toString());
-                bean.put("createType", "2");
-                editUploadDao.insertFileImgMation(bean);
+
+                String userId = InputObject.getLogParamsStatic().get("id").toString();
+                EditUpload bean = new EditUpload();
+                bean.setImgPath(filePath);
+                bean.setFileOriginalName(fileName);
+                createEntity(bean, userId);
+
                 rs.put("returnCode", CommonNumConstants.NUM_ZERO);
                 rs.put("returnMessage", "上传成功!");
                 outputObject.setObject(rs);
@@ -119,18 +122,18 @@ public class EditUploadServiceImpl implements EditUploadService {
     public Map<String, Object> downloadContentPic(HttpServletRequest req, String userId) {
         Map<String, Object> rs = new HashMap<>();
         rs.put("state", "SUCCESS");// UEDITOR的规则:不为SUCCESS则显示state的内容
-        Map<String, Object> bean = new HashMap<>();
-        // 用户信息
-        bean.put("createId", userId);
-        bean.put("url", "");
         int page = Integer.parseInt(req.getParameter("start")) / Integer.parseInt(req.getParameter("size"));
         page++;
         int limit = Integer.parseInt(req.getParameter("size"));
         Page pages = PageHelper.startPage(page, limit);
-        List<Map<String, Object>> beans = editUploadDao.queryFileImgMation(bean);
+
+        QueryWrapper<EditUpload> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(EditUpload::getCreateId), userId);
+        List<EditUpload> list = list(queryWrapper);
+
         //获取当前页数的总数
         long total = pages.getTotal();
-        rs.put("list", beans);
+        rs.put("list", list);
         rs.put("total", total);
         rs.put("start", req.getParameter("start"));
         return rs;

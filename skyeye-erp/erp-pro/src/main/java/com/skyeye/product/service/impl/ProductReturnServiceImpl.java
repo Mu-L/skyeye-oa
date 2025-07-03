@@ -1,0 +1,130 @@
+package com.skyeye.product.service.impl;
+
+import cn.hutool.core.collection.CollectionUtil;
+import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.entity.ErpOrderItem;
+import com.skyeye.exception.CustomException;
+import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
+import com.skyeye.product.dao.ProductReturnDao;
+import com.skyeye.product.entity.ProductLeadOutStock;
+import com.skyeye.product.entity.ProductReturn;
+import com.skyeye.product.entity.ProductReturnChild;
+import com.skyeye.product.entity.ProductReturnInStock;
+import com.skyeye.product.service.ProductLeadOutStockService;
+import com.skyeye.product.service.ProductReturnChildService;
+import com.skyeye.product.service.ProductReturnInStockService;
+import com.skyeye.product.service.ProductReturnService;
+import com.skyeye.rest.project.service.IProProjectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
+public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductReturnDao, ProductReturn> implements ProductReturnService {
+
+    @Autowired
+    private IProProjectService iProProjectService;
+
+    @Autowired
+    private ProductReturnChildService productReturnChildService;
+
+    @Autowired
+    private ProductLeadOutStockService productLeadOutStockService;
+
+    @Autowired
+    private ProductReturnInStockService productReturnInStockService;
+
+    @Override
+    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        return beans;
+    }
+
+    @Override
+    public void createPrepose(ProductReturn entity) {
+        super.createPrepose(entity);
+        getTotalPrice(entity);
+        checkForLentOutItems(entity);
+    }
+
+    @Override
+    protected void updatePrepose(ProductReturn entity) {
+        super.updatePrepose(entity);
+        getTotalPrice(entity);
+        checkForLentOutItems(entity);
+    }
+
+    private void checkForLentOutItems(ProductReturn entity) {
+        String holderId = entity.getHolderId();
+        List<ProductLeadOutStock> productLeadOutStocks = productLeadOutStockService.queryLeadByHolderId(holderId);
+        if (CollectionUtil.isEmpty(productLeadOutStocks)) {
+            throw new CustomException("该客户/供应商没有借出记录，无法归还.");
+        }
+        // 借出客户/供应商的商品
+        List<ErpOrderItem> erpOrderItemAllList = new ArrayList<>();
+        for (ProductLeadOutStock productLeadOutStock : productLeadOutStocks) {
+            List<ErpOrderItem> erpOrderItemList = productLeadOutStock.getErpOrderItemList();
+            erpOrderItemAllList.addAll(erpOrderItemList);
+        }
+        // 现在客户/供应商归还的商品
+        List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
+        // 检查是否存在匹配
+        for (ProductReturnChild productReturnChild : erpOrderItemList) {
+            boolean isMatched = false;
+            for (ErpOrderItem erpOrderItem : erpOrderItemAllList) {
+                if (productReturnChild.getMaterialId().equals(erpOrderItem.getMaterialId()) &&
+                    productReturnChild.getNormsId().equals(erpOrderItem.getNormsId()) &&
+                    productReturnChild.getOperNumber() <= erpOrderItem.getOperNumber() &&
+                    productReturnChild.getUnitPrice().equals(erpOrderItem.getUnitPrice())) {
+                    isMatched = true;
+                    break;
+                }
+            }
+            if (!isMatched) {
+                throw new CustomException("归还的商品与借出商品不匹配，请检查归还的商品信息.");
+            }
+        }
+    }
+
+    private void getTotalPrice(ProductReturn entity) {
+        String totalPrice = productReturnChildService.calcOrderAllTotalPrice(entity.getErpOrderItemList());
+        entity.setTotalPrice(totalPrice);
+    }
+
+    @Override
+    public void writeChild(ProductReturn entity, String userId) {
+        productReturnChildService.saveList(entity.getId(), entity.getErpOrderItemList());
+        super.writeChild(entity, userId);
+    }
+
+    @Override
+    public void deletePostpose(String id) {
+        productReturnChildService.deleteByParentId(id);
+    }
+
+    @Override
+    public ProductReturn selectById(String id) {
+        ProductReturn productReturn = super.selectById(id);
+        List<ProductReturnChild> productLeadChildren = productReturnChildService.selectProductLeadChildById(id);
+        productReturn.setErpOrderItemList(productLeadChildren);
+        return productReturn;
+    }
+
+    @Override
+    public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
+        ProductReturnInStock productReturnInStock = inputObject.getParams(ProductReturnInStock.class);
+        productReturnInStock.setFromId(productReturnInStock.getId());
+        productReturnInStock.setFromTypeId(ProductLeadOrReturnFromType.LOANIN.getKey());
+        productReturnInStock.setId(null);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        productReturnInStockService.createEntity(productReturnInStock, userId);
+    }
+}

@@ -21,13 +21,23 @@ import java.util.Map;
  */
 public interface StoreIntercourseDao {
 
-    List<Map<String, Object>> queryStoreIntercourseByDay(@Param("day") String day);
+    @IgnoreTenant
+    List<Map<String, Object>> queryStoreIntercourseByDay(@Param("day") String day,
+                                                         @Param("tenantId") String tenantId);
 
-    void insertStoreIntercourse(List<Map<String, Object>> shopStoreIntercourseMationList);
+    @IgnoreTenant
+    void insertStoreIntercourse(@Param("list") List<Map<String, Object>> shopStoreIntercourseMationList,
+                                @Param("tenantId") String tenantId);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryStoreIntercourseList(StoreIntercourseQueryDo storeIntercourseQuery);
 
-    Map<String, Object> queryStoreIntercourseById(@Param("id") String id);
+    @IgnoreTenant
+    Map<String, Object> queryStoreIntercourseById(@Param("id") String id,
+                                                  @Param("tenantId") String tenantId);
 
-    void editStoreIntercourseState(@Param("id") String id, @Param("state") Integer state);
+    @IgnoreTenant
+    void editStoreIntercourseState(@Param("id") String id,
+                                   @Param("state") Integer state,
+                                   @Param("tenantId") String tenantId);
 }

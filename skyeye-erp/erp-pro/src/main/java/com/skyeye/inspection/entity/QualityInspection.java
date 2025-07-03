@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.inspection.classenum.QualityInspectionExchangesState;
 import lombok.Data;
 
 import java.util.List;
@@ -67,6 +68,10 @@ public class QualityInspection extends SkyeyeFlowable {
     @TableField("return_state")
     @Property(value = "退货状态，参考#QualityInspectionReturnState")
     private Integer returnState;
+
+    @TableField("exchanges_state")
+    @Property(value = "换货状态", enumClass = QualityInspectionExchangesState.class)
+    private Integer exchangesState;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "质检单明细信息", required = "required,json")

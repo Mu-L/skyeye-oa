@@ -19,8 +19,8 @@
 			b.TABLE_COMMENT AS id,
 			b.TABLE_COMMENT AS name
 		FROM
-			information_schema. COLUMNS a
-		LEFT JOIN information_schema. TABLES b ON a.TABLE_NAME = b.TABLE_NAME
+			information_schema.COLUMNS a
+		LEFT JOIN information_schema.TABLES b ON a.TABLE_NAME = b.TABLE_NAME
 		WHERE
 			a.TABLE_SCHEMA = #{dbName}
 		AND b.TABLE_COMMENT IS NOT NULL

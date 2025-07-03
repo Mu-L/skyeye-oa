@@ -62,6 +62,10 @@ public class Equipment extends BaseGeneralInfo {
     @ApiModelProperty(value = "车间id", required = "required")
     private String farmId;
 
+    @TableField(value = "unit_price")
+    @ApiModelProperty(value = "单价")
+    private String unitPrice;
+
     @TableField(exist = false)
     @Property(value = "车间信息")
     private Farm farmMation;
