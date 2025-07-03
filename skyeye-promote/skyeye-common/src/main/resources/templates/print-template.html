@@ -216,7 +216,7 @@
 
             <!-- 文本元素 -->
             <div th:if="${element.type == 'text'}" 
-                th:style="${'font-size:' + (element.fontSize ?: 12) + 'pt;' +
+                th:style="${'font-size:' + (element.fontSize ?: 12) + 'px;' +
                          'font-weight:' + (element.bold ? 'bold' : 'normal') + ';' +
                          'font-style:' + (element.italic ? 'italic' : 'normal') + ';' +
                          'text-decoration:' + (element.underline ? 'underline' : 'none') + ';' +
