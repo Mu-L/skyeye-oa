@@ -4,11 +4,16 @@
 
 package com.skyeye.whole.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.classenum.OrderQualityInspectionType;
@@ -20,9 +25,11 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialInOrderType;
@@ -51,6 +58,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -344,20 +352,4 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             outputObject.setreturnMessage("状态错误，无法下达采购退货单.");
         }
     }
-
-    @Override
-    public void queryNoPageWholeOrderOutList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        QueryWrapper<WholeOrderOut> queryWrapper = new QueryWrapper<>();
-        //获取前一个月的日期
-        String payMonth = DateUtil.getLastMonthDate();
-        queryWrapper.like(MybatisPlusUtil.toColumns(WholeOrderOut::getCreateTime), payMonth);
-        if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
-            queryWrapper.eq(CommonConstants.TENANT_ID, map.get("tenantId").toString());
-        }
-        List<WholeOrderOut> list = list(queryWrapper);
-        outputObject.setBeans(list);
-        outputObject.settotal(list.size());
-    }
-
 }

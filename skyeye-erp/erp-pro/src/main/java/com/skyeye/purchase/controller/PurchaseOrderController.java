@@ -46,15 +46,15 @@ public class PurchaseOrderController {
     }
 
     /**
-     * 不分页获取采购订单列表
+     * 获取上个月采购订单成本
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryNoPagePurchaseorderList", value = "不分页获取采购订单列表", method = "POST", allUse = "2")
-    @RequestMapping("/post/PurchaseOrderController/queryNoPagePurchaseorderList")
-    public void queryNoPagePurchaseorderList(InputObject inputObject, OutputObject outputObject) {
-        purchaseOrderService.queryNoPagePurchaseorderList(inputObject, outputObject);
+    @ApiOperation(id = "queryLastMonthPurchaseOrderCost", value = "获取上个月采购订单成本", method = "POST", allUse = "2")
+    @RequestMapping("/post/PurchaseOrderController/queryLastMonthPurchaseOrderCost")
+    public void queryLastMonthPurchaseOrderCost(InputObject inputObject, OutputObject outputObject) {
+        purchaseOrderService.queryLastMonthPurchaseOrderCost(inputObject, outputObject);
     }
 
     /**

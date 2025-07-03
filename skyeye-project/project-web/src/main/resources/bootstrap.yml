@@ -42,3 +42,8 @@ feign:
       default:
         loggerLevel: FULL
 
+webroot:
+  # erp
+  skyeye-erp: skyeye-erp-${spring.profiles.active}
+  # adm
+  skyeye-adm: skyeye-adm-${spring.profiles.active}

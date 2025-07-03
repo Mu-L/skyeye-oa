@@ -38,7 +38,8 @@ logging:
 webroot:
   # 考勤相关的服务
   skyeye-checkwork: skyeye-checkwork-${spring.profiles.active}
-
+  # 项目相关的服务
+  skyeye-project: skyeye-project-${spring.profiles.active}
 topic:
   # 资产生成条形码的消息
   asset-generate-barcode: ASSET_GENERATE_BARCODE

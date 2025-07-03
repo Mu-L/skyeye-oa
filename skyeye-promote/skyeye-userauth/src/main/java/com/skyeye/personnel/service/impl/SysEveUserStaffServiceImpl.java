@@ -123,6 +123,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                             .or().like("tru.job_number ",sysEveUserStaffQuery.getKeyword());
                 });
             }
+            wrapper.orderByDesc(MybatisPlusUtil.toColumns(SysEveUserStaff::getCreateTime));
             List<SysEveUserStaff> sysEveUserStaffList = skyeyeBaseMapper.selectJoinList(SysEveUserStaff.class, wrapper);
             if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
                 tenantUserService.setThisTenantUserToDefault(sysEveUserStaffList);

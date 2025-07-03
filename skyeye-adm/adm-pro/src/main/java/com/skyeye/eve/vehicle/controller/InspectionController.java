@@ -66,10 +66,9 @@ public class InspectionController {
      */
     @ApiOperation(id = "inspection003", value = "根据id删除年检信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/InspectionController/deleteInspectionById")
     public void deleteInspectionById(InputObject inputObject, OutputObject outputObject) {
         inspectionService.deleteById(inputObject, outputObject);
     }
-
 }

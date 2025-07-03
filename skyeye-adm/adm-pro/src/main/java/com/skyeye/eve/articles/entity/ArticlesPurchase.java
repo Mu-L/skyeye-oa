@@ -8,12 +8,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ArticlesPurchase
@@ -44,5 +46,13 @@ public class ArticlesPurchase extends SkyeyeFlowable {
     @TableField(exist = false)
     @ApiModelProperty(value = "用品信息", required = "required,json")
     private List<ArticlesPurchaseLink> purchaseLink;
+
+    @TableField("project_id")
+    @ApiModelProperty(value = "项目id")
+    private String projectId;
+
+    @TableField(exist = false)
+    @Property("项目信息")
+    private Map<String, Object> projectMation;
 
 }

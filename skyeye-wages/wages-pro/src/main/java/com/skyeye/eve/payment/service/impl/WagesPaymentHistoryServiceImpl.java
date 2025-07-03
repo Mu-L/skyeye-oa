@@ -4,29 +4,23 @@
 
 package com.skyeye.eve.payment.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.payment.classenum.PaymentHistoryState;
 import com.skyeye.eve.payment.dao.WagesPaymentHistoryDao;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
-import com.skyeye.eve.service.IAuthUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -128,30 +122,5 @@ public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Wa
         WagesPaymentHistory wagesPaymentHistory = getOne(queryWrapper, false);
         outputObject.setBean(wagesPaymentHistory);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
-    }
-
-    @Override
-    public void queryStaffIdLastWages(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        // 获取上一个月的日期如 2025-05
-        String payMonth = DateUtil.getLastMonthDate();
-        QueryWrapper<WagesPaymentHistory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(WagesPaymentHistory::getPayMonth), payMonth);
-        if (map.containsKey("tenantId") && StrUtil.isNotEmpty(map.get("tenantId").toString())) {
-            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, map.get("tenantId").toString());
-        }
-        List<WagesPaymentHistory> bean = list(queryWrapper);
-        if (CollectionUtil.isEmpty(bean)) {
-            return;
-        }
-        // 设置员工信息
-        List<String> staffIds = bean.stream().map(WagesPaymentHistory::getStaffId).collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        bean.forEach(item -> {
-            item.setStaffMation(staffMap.get(item.getStaffId()));
-            item.setServiceClassName(getServiceClassName());
-        });
-        outputObject.setBeans(bean);
-        outputObject.settotal(bean.size());
     }
 }

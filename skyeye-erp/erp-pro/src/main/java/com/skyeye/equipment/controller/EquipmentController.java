@@ -85,15 +85,22 @@ public class EquipmentController {
     }
 
     /**
-     * 不分页获取所有设备列表
+     * 查询上个月采购设备的成本
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryNoPageAllEquipmentList", value = "不分页获取所有设备列表", method = "GET", allUse = "2")
-    @RequestMapping("/post/EquipmentController/queryNoPageAllEquipmentList")
-    public void queryNoPageAllEquipmentList(InputObject inputObject, OutputObject outputObject) {
-        equipmentService.queryNoPageAllEquipmentList(inputObject, outputObject);
+    @ApiOperation(id = "queryLastMonthEquipmentCost", value = "查询上个月采购设备的成本", method = "POST", allUse = "2")
+    @RequestMapping("/post/EquipmentController/queryLastMonthEquipmentCost")
+    public void queryLastMonthEquipmentCost(InputObject inputObject, OutputObject outputObject) {
+        equipmentService.queryLastMonthEquipmentCost(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryLastMonthEquipmentList", value = "根据objectId(项目id)分页获取上个月设备列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/EquipmentController/queryLastMonthEquipmentList")
+    public void queryLastMonthEquipmentList(InputObject inputObject, OutputObject outputObject) {
+        equipmentService.queryLastMonthEquipmentList(inputObject, outputObject);
     }
 
 }

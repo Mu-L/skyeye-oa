@@ -18,6 +18,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.assets.classenum.PurchaseOrderStateEnum;
@@ -30,14 +31,14 @@ import com.skyeye.eve.assets.entity.AssetPurchasePut;
 import com.skyeye.eve.assets.entity.AssetPurchaseReturn;
 import com.skyeye.eve.assets.service.*;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.project.service.IProProjectService;
+import org.openxmlformats.schemas.drawingml.x2006.chart.STRotY;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,11 +65,31 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
     @Autowired
     private AssetPurchaseReturnService assetPurchaseReturnService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
     @Override
     public QueryWrapper<AssetPurchase> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<AssetPurchase> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getIdKey), getServiceClassName());
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId), commonPageInfo.getObjectId());
+            String lastMonth = DateUtil.getLastMonthDate();
+            queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime) + ", '%Y-%m') = ?", lastMonth);
+            queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime));
+            queryWrapper.and(w -> {
+                w.eq(MybatisPlusUtil.toColumns(AssetPurchase::getState), FlowableStateEnum.PASS.getKey())
+                        .or().eq(MybatisPlusUtil.toColumns(AssetPurchase::getState), PurchaseOrderStateEnum.COMPLETED.getKey());
+            });
+        }
         return queryWrapper;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        return beans;
     }
 
     @Override
@@ -91,8 +112,8 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
 
     private void checkOrderItem(List<AssetPurchaseLink> assetPurchaseLinks) {
         List<String> assetIds = assetPurchaseLinks.stream()
-            .map(bean -> String.format(Locale.ROOT, "%s-%s", bean.getFromId(), bean.getAssetId())).distinct()
-            .collect(Collectors.toList());
+                .map(bean -> String.format(Locale.ROOT, "%s-%s", bean.getFromId(), bean.getAssetId())).distinct()
+                .collect(Collectors.toList());
         if (assetPurchaseLinks.size() != assetIds.size()) {
             throw new CustomException("单据中不允许相同来源的同一资产信息");
         }
@@ -135,6 +156,7 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         iSysDictDataService.setDataMation(assetPurchase.getPurchaseLinks(), AssetPurchaseLink::getFromId);
         assetPurchase.setStateName(FlowableStateEnum.getStateName(assetPurchase.getState()));
         iAuthUserService.setName(assetPurchase, "createId", "createName");
+        iProProjectService.setDataMation(assetPurchase, AssetPurchase::getProjectId);
         return assetPurchase;
     }
 
@@ -166,15 +188,15 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         assetPurchase.getPurchaseLinks().forEach(purchaseLink -> {
             // 采购订单数量 - 已入库数量 - 已退货数量
             Integer surplusNum = purchaseLink.getPurchaseNum()
-                - (putExecuteNum.containsKey(purchaseLink.getAssetId()) ? putExecuteNum.get(purchaseLink.getAssetId()) : 0)
-                - (returnExecuteNum.containsKey(purchaseLink.getAssetId()) ? returnExecuteNum.get(purchaseLink.getAssetId()) : 0);
+                    - (putExecuteNum.containsKey(purchaseLink.getAssetId()) ? putExecuteNum.get(purchaseLink.getAssetId()) : 0)
+                    - (returnExecuteNum.containsKey(purchaseLink.getAssetId()) ? returnExecuteNum.get(purchaseLink.getAssetId()) : 0);
             // 设置未下达采购入库单/采购退货单的资产数量
             purchaseLink.setPurchaseNum(surplusNum);
         });
 
         // 过滤掉数量为0的进行生成采购入库单/退货单
         assetPurchase.setPurchaseLinks(assetPurchase.getPurchaseLinks().stream()
-            .filter(purchaseLink -> purchaseLink.getPurchaseNum() > 0).collect(Collectors.toList()));
+                .filter(purchaseLink -> purchaseLink.getPurchaseNum() > 0).collect(Collectors.toList()));
         outputObject.setBean(assetPurchase);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -227,7 +249,7 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
             return;
         }
         List<String> ids = beans.stream().filter(bean -> !MapUtil.checkKeyIsNull(bean, idKey))
-            .map(bean -> bean.get(idKey).toString()).distinct().collect(Collectors.toList());
+                .map(bean -> bean.get(idKey).toString()).distinct().collect(Collectors.toList());
         if (CollectionUtils.isEmpty(ids)) {
             return;
         }
@@ -244,5 +266,35 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
                 bean.put(mationKey, entity);
             }
         }
+    }
+
+    @Override
+    public void queryLastMonthAssetPurchaseCost(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<AssetPurchase> queryWrapper = new QueryWrapper<>();
+        //获取上个月日期
+        String lastMonth = DateUtil.getLastMonthDate();
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getIdKey), getServiceClassName());
+        List<AssetPurchase> bean = list(queryWrapper);
+        if(CollectionUtil.isEmpty(bean)){
+            return;
+        }
+        // 根据projectId分组
+        Map<String, List<AssetPurchase>> groupMap = bean.stream().collect(Collectors.groupingBy(AssetPurchase::getProjectId));
+        List<Map<String,Object>> result = new ArrayList<>();
+        for (Map.Entry<String, List<AssetPurchase>> entry : groupMap.entrySet()) {
+            Map<String,Object> map = new HashMap<>();
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            map.put("projectId",entry.getKey());
+            for (AssetPurchase assetPurchase : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(assetPurchase.getAllPrice()) ? "0" : assetPurchase.getAllPrice(),
+                        price);
+            }
+            map.put("price",price);
+            result.add(map);
+        }
+        outputObject.setBeans(result);
     }
 }
