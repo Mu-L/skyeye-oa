@@ -90,7 +90,7 @@ public class EquipmentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryLastMonthEquipmentCost", value = "查询上个月采购设备的成本", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryLastMonthEquipmentCost", value = "查询上个月采购设备的成本", method = "POST", allUse = "0")
     @RequestMapping("/post/EquipmentController/queryLastMonthEquipmentCost")
     public void queryLastMonthEquipmentCost(InputObject inputObject, OutputObject outputObject) {
         equipmentService.queryLastMonthEquipmentCost(inputObject, outputObject);

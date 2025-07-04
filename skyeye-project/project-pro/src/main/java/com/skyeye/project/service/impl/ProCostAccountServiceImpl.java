@@ -88,24 +88,24 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
         //erp采购--材料成本
         List<Map<String, Object>> purchaseOrderList = iErpPurchaseOrderService.queryLastMonthPurchaseOrderCost();
 
-        addCostAccountList(costAccountList, tenantId, purchaseOrderList, ProCostAccountEnum.MATERIAL.getKey());
+        addCostAccountList(costAccountList, purchaseOrderList, ProCostAccountEnum.MATERIAL.getKey());
         // erp设备成本
         List<Map<String, Object>> equipmentCost = iErpEquipmentService.queryLastMonthEquipmentCost();
-        addCostAccountList(costAccountList, tenantId, equipmentCost, ProCostAccountEnum.EQUIPMENT.getKey());
+        addCostAccountList(costAccountList, equipmentCost, ProCostAccountEnum.EQUIPMENT.getKey());
 
         // 其他成本---行政的资产+用品
         // 用品采购
         List<Map<String, Object>> articlePurchaseCost = iAdmArticlePurchaseService.queryLastMonthAssetArticleCost();
-        addCostAccountList(costAccountList, tenantId, articlePurchaseCost, ProCostAccountEnum.OTHER.getKey());
+        addCostAccountList(costAccountList, articlePurchaseCost, ProCostAccountEnum.OTHER.getKey());
 
         // 资产采购
         List<Map<String, Object>> assetPurchaseCost = iAdmAssetPurchaseService.queryLastMonthAssetPurchaseCost();
-        addCostAccountList(costAccountList, tenantId, assetPurchaseCost, ProCostAccountEnum.OTHER.getKey());
+        addCostAccountList(costAccountList, assetPurchaseCost, ProCostAccountEnum.OTHER.getKey());
 
         createEntity(costAccountList, null);
     }
 
-    private void addCostAccountList(List<CostAccount> costAccountList, String tenantId, List<Map<String, Object>> costList, Integer costType) {
+    private void addCostAccountList(List<CostAccount> costAccountList, List<Map<String, Object>> costList, Integer costType) {
         if (CollectionUtil.isNotEmpty(costList)) {
             String lastMonth = DateUtil.getLastMonthDate();
             for (Map<String, Object> map : costList) {
@@ -115,9 +115,6 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
                 costAccount.setTotalPrice(map.get("price").toString());
                 costAccount.setAddFlag(ProAddFlagEnum.SYSTEM_ADD.getKey());
                 costAccount.setCreateTime(lastMonth);
-                if (StrUtil.isNotEmpty(tenantId)) {
-                    costAccount.setTenantId(tenantId);
-                }
                 costAccountList.add(costAccount);
             }
         }

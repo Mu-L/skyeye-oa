@@ -59,7 +59,7 @@ public class ArticlesPurchaseController {
         articlesPurchaseService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryLastMonthAssetArticleCost", value = "获取上个月个项目用品采购申请成本", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryLastMonthAssetArticleCost", value = "获取上个月个项目用品采购申请成本", method = "POST", allUse = "0")
     @RequestMapping("/post/ArticlesPurchaseController/queryLastMonthAssetArticleCost")
     public void queryLastMonthAssetArticleCost(InputObject inputObject, OutputObject outputObject) {
         articlesPurchaseService.queryLastMonthAssetArticleCost(inputObject, outputObject);
