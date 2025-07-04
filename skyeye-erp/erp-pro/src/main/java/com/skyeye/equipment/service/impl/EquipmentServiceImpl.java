@@ -90,13 +90,13 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
         queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(Equipment::getBuyTime)+", '%Y-%m') = {0}",lastMonth);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(Equipment::getProjectId));
         List<Equipment> bean = list(queryWrapper);
-
+        List<Map<String,Object>> result = new ArrayList<>();
         if(CollectionUtil.isEmpty(bean)){
+            outputObject.setBeans(result);
             return;
         }
-           // 根据projectId分组
+        // 根据projectId分组
         Map<String, List<Equipment>> groupMap = bean.stream().collect(Collectors.groupingBy(Equipment::getProjectId));
-        List<Map<String,Object>> result = new ArrayList<>();
         for (Map.Entry<String, List<Equipment>> entry : groupMap.entrySet()) {
             Map<String,Object> map = new HashMap<>();
             String price = String.valueOf(CommonNumConstants.NUM_ZERO);

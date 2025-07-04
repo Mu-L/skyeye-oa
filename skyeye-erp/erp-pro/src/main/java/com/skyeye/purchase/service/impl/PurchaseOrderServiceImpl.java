@@ -379,13 +379,13 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId));
         queryWrapper.ne(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId), StrUtil.EMPTY);
         List<PurchaseOrder> bean = list(queryWrapper);
-
+        List<Map<String,Object>> result = new ArrayList<>();
         if(CollectionUtil.isEmpty(bean)){
+            outputObject.setBeans(result);
             return;
         }
         // 根据projectId分组
         Map<String, List<PurchaseOrder>> groupMap = bean.stream().collect(Collectors.groupingBy(PurchaseOrder::getProjectId));
-        List<Map<String,Object>> result = new ArrayList<>();
         for (Map.Entry<String, List<PurchaseOrder>> entry : groupMap.entrySet()) {
             Map<String,Object> map = new HashMap<>();
             String price = String.valueOf(CommonNumConstants.NUM_ZERO);

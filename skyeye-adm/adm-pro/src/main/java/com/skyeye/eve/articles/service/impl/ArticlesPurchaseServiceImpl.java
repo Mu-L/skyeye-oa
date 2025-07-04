@@ -178,12 +178,13 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId));
         queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
         List<ArticlesPurchase> bean = list(queryWrapper);
+        List<Map<String,Object>> result = new ArrayList<>();
         if(CollectionUtil.isEmpty(bean)){
+            outputObject.setBeans(result);
             return;
         }
         // 根据projectId分组
         Map<String, List<ArticlesPurchase>> groupMap = bean.stream().collect(Collectors.groupingBy(ArticlesPurchase::getProjectId));
-        List<Map<String,Object>> result = new ArrayList<>();
         for (Map.Entry<String, List<ArticlesPurchase>> entry : groupMap.entrySet()) {
             Map<String,Object> map = new HashMap<>();
             String price = String.valueOf(CommonNumConstants.NUM_ZERO);

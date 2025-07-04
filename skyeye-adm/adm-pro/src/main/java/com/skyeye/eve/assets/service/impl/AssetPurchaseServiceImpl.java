@@ -277,12 +277,13 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId));
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getIdKey), getServiceClassName());
         List<AssetPurchase> bean = list(queryWrapper);
+        List<Map<String,Object>> result = new ArrayList<>();
         if(CollectionUtil.isEmpty(bean)){
+            outputObject.setBeans(result);
             return;
         }
         // 根据projectId分组
         Map<String, List<AssetPurchase>> groupMap = bean.stream().collect(Collectors.groupingBy(AssetPurchase::getProjectId));
-        List<Map<String,Object>> result = new ArrayList<>();
         for (Map.Entry<String, List<AssetPurchase>> entry : groupMap.entrySet()) {
             Map<String,Object> map = new HashMap<>();
             String price = String.valueOf(CommonNumConstants.NUM_ZERO);
