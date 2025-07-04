@@ -39,7 +39,7 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
     protected void validatorEntity(List<LessonReviewType> entity) {
         super.validatorEntity(entity);
         entity.forEach(
-            lessonReviewType -> NonClassHourOrId(lessonReviewType)
+                lessonReviewType -> NonClassHourOrId(lessonReviewType)
         );
     }
 
@@ -78,15 +78,15 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
         List<LessonReviewType> NoessonReviewTypes = new ArrayList<>();
         if (ObjectUtil.isNotEmpty(lessonReviewTypeList)) {
             NoessonReviewTypes = lessonReviewTypeList.stream().filter(
-                lessonReviewType -> StrUtil.isEmpty(lessonReviewType.getParentId())
+                    lessonReviewType -> StrUtil.isEmpty(lessonReviewType.getParentId())
             ).collect(Collectors.toList());
             List<LessonReviewType> YeslessonReviewTypes = lessonReviewTypeList.stream().filter(
-                lessonReviewType -> StrUtil.isNotEmpty(lessonReviewType.getParentId())
+                    lessonReviewType -> StrUtil.isNotEmpty(lessonReviewType.getParentId())
             ).collect(Collectors.toList());
             Map<String, List<LessonReviewType>> collected =
-                YeslessonReviewTypes.stream().collect(Collectors.groupingBy(LessonReviewType::getParentId));
+                    YeslessonReviewTypes.stream().collect(Collectors.groupingBy(LessonReviewType::getParentId));
             NoessonReviewTypes.forEach(
-                lessonReviewType -> lessonReviewType.setTypeChildrenMation(collected.get(lessonReviewType.getId()))
+                    lessonReviewType -> lessonReviewType.setTypeChildrenMation(collected.get(lessonReviewType.getId()))
             );
         }
         return NoessonReviewTypes;
