@@ -200,6 +200,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialByNormsIdList(InputObject inputObject, OutputObject outputObject) {
         List<String> normsIdList = Arrays.asList(inputObject.getParams().get("normsIds").toString()
                 .split(CommonCharConstants.COMMA_MARK))

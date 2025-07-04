@@ -9,6 +9,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopMaterialNormsServiceImpl
- * @Description: 商城商品规格参数服务层
+ * @Description: 商城商品规格参数服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/4 17:10
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -73,6 +74,7 @@ public class ShopMaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public List<ShopMaterialNorms> queryShopMaterialByNormsIdList(List<String> normsIdList) {
         if (CollectionUtil.isEmpty(normsIdList)) {
             return CollectionUtil.newArrayList();
