@@ -7,9 +7,11 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -28,8 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ProCostAccountServiceImpl
@@ -59,21 +63,11 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
     private ProProjectService proProjectService;
 
 
-
     @Override
     public void validatorEntity(CostAccount entity) {
         super.validatorEntity(entity);
-        if(Double.parseDouble(entity.getTotalPrice())<0){
+        if (Double.parseDouble(entity.getTotalPrice()) < 0) {
             throw new CustomException("总金额不能小于0");
-        }
-    }
-
-    @Override
-    public void createPrepose(CostAccount entity) {
-        super.createPrepose(entity);
-        if (entity.getCostType() == ProAddFlagEnum.HAND_ADD.getKey()) {
-            String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM);
-            entity.setCreateTime(pointTime);
         }
     }
 
@@ -123,18 +117,73 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
     @Override
     public void queryProCostAccountList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        if (StrUtil.isEmpty(commonPageInfo.getType())) {
-            throw new CustomException("成本类型不能为空");
-        }
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        String lastMonth = DateUtil.getLastMonthDate();
+        String todayMonth = DateUtil.getPointTime(DateUtil.YYYY_MM);
         QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getCostType), Integer.parseInt(commonPageInfo.getType()));
+        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getCostType), Integer.parseInt(commonPageInfo.getType()));
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getProjectId), commonPageInfo.getObjectId());
+        }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CostAccount::getTotalPrice));
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getCreateTime), lastMonth);
+        queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m') = {0}", todayMonth);
         List<CostAccount> bean = list(queryWrapper);
         proProjectService.setDataMation(bean, CostAccount::getProjectId);
+        iAuthUserService.setDataMation(bean, CostAccount::getCreateId);
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryCostAccountViews(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String startTime = params.get("startTime").toString();
+        String endTime = params.get("endTime").toString();
+        QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime);
+        List<CostAccount> bean = list(queryWrapper);
+        Map<String, Object> result = new HashMap<>();
+        result.put(ProCostAccountEnum.HUMAN.getCode(), 0);
+        result.put(ProCostAccountEnum.MATERIAL.getCode(), 0);
+        result.put(ProCostAccountEnum.EQUIPMENT.getCode(), 0);
+        result.put(ProCostAccountEnum.OUTSOURCING.getCode(), 0);
+        result.put(ProCostAccountEnum.OTHER.getCode(), 0);
+        result.put("totalCost", 0);
+        if (CollectionUtil.isEmpty(bean)) {
+            outputObject.setBean(result);
+            return;
+        }
+        // 根据costType分组
+        Map<Integer, List<CostAccount>> group = bean.stream().collect(Collectors.groupingBy(CostAccount::getCostType));
+        // 循环枚举ProCostAccountEnum
+        for (ProCostAccountEnum proCostAccountEnum : ProCostAccountEnum.values()) {
+            List<CostAccount> list = group.getOrDefault(proCostAccountEnum.getKey(), new ArrayList<>());
+            if (CollectionUtil.isEmpty(list)) continue;
+            // 计算金额
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            for (CostAccount costAccount : list) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(costAccount.getTotalPrice()) ? "0" : costAccount.getTotalPrice(),
+                        price);
+            }
+            result.put(proCostAccountEnum.getCode(), price);
+        }
+        // 计算总金额 循环result
+        String totalPrice = String.valueOf(CommonNumConstants.NUM_ZERO);
+        for (Map.Entry<String, Object> entry : result.entrySet()) {
+            totalPrice = CalculationUtil.add(CommonNumConstants.NUM_TWO, entry.getValue().toString(), totalPrice);
+        }
+        result.put("totalCost", totalPrice);
+        outputObject.setBean(result);
+    }
+
+    @Override
+    public CostAccount selectById(String id) {
+        CostAccount costAccount = super.selectById(id);
+        proProjectService.setDataMation(costAccount, CostAccount::getProjectId);
+        iAuthUserService.setDataMation(costAccount, CostAccount::getCreateId);
+        return costAccount;
     }
 }

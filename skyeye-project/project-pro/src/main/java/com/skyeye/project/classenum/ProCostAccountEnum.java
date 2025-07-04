@@ -18,15 +18,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum ProCostAccountEnum implements SkyeyeEnumClass {
 
-    HUMAN(0, "人力成本", true, true),
-    MATERIAL(1, "材料成本", true, false),
-    EQUIPMENT(2, "设备成本", true, false),
-    OUTSOURCING(3, "外包成本", true, false),
-    OTHER(4, "其他成本", true, false);
+    HUMAN(0, "人力成本","humanCost", true, true),
+    MATERIAL(1, "材料成本","materialCost", true, false),
+    EQUIPMENT(2, "设备成本","equipmentCost", true, false),
+    OUTSOURCING(3, "外包成本","outSourcingCost" ,true, false),
+    OTHER(4, "其他成本","otherCost", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String code;
 
     private Boolean show;
 

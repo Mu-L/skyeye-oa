@@ -17,4 +17,6 @@ public interface ProCostAccountService extends SkyeyeBusinessService<CostAccount
     void writeCostAccountRecord(String tenantId);
 
     void queryProCostAccountList(InputObject inputObject, OutputObject outputObject);
+
+    void queryCostAccountViews(InputObject inputObject, OutputObject outputObject);
 }

@@ -28,7 +28,7 @@ public class ProCostAccountController {
     @Autowired
     private ProCostAccountService proCostAccountService;
 
-    @ApiOperation(id = "queryProCostAccountList", value = "根据成本类型type获取成本核算列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryProCostAccountList", value = "根据成本类型type，项目objectId获取成本核算列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ProCostAccountController/queryProCostAccountList")
     public void queryProCostAccountList(InputObject inputObject, OutputObject outputObject) {
@@ -58,5 +58,15 @@ public class ProCostAccountController {
     @RequestMapping("/post/ProCostAccountController/deleteProCostAccountById")
     public void deleteProCostAccountById(InputObject inputObject, OutputObject outputObject) {
         proCostAccountService.deleteById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryCostAccountViews", value = "成本概览", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "startTime",name = "startTime", value = "开始日期",required = "required"),
+            @ApiImplicitParam(id = "endTime",name = "endTime", value = "结束日期",required = "required")
+    })
+    @RequestMapping("/post/ProCostAccountController/queryCostAccountViews")
+    public void queryCostView(InputObject inputObject, OutputObject outputObject) {
+        proCostAccountService.queryCostAccountViews(inputObject, outputObject);
     }
 }

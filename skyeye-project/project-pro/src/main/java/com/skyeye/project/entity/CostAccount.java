@@ -28,22 +28,6 @@ public class CostAccount extends OperatorUserInfo {
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("object_id")
-    @ApiModelProperty(value = "业务逻辑id")
-    private String objectId;
-
-    @TableField("object_key")
-    @ApiModelProperty(value = "业务逻辑key")
-    private String objectKey;
-
-    @TableField("from_id")
-    @ApiModelProperty(value = "来源id")
-    private String fromId;
-
-    @TableField("from_key")
-    @ApiModelProperty(value = "来源key")
-    private String fromKey;
-
     @TableField("project_id")
     @ApiModelProperty(value = "项目id", required = "required")
     private String projectId;
