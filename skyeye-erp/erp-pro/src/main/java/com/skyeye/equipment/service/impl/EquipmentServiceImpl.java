@@ -87,7 +87,7 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
         QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
         //获取上个月日期
         String lastMonth = DateUtil.getLastMonthDate();
-        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(Equipment::getBuyTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(Equipment::getBuyTime)+", '%Y-%m') = {0}",lastMonth);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(Equipment::getProjectId));
         List<Equipment> bean = list(queryWrapper);
 

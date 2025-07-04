@@ -52,14 +52,14 @@ public class ArticlesPurchaseController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "assetarticles025", value = "获取用品采购申请信息列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "assetarticles025", value = "获取用品采购申请信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ArticlesPurchaseController/queryArticlesPurchaseList")
     public void queryArticlesPurchaseList(InputObject inputObject, OutputObject outputObject) {
         articlesPurchaseService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryLastMonthAssetArticleCost", value = "获取上个月个项目用品采购申请成本", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryLastMonthAssetArticleCost", value = "获取上个月个项目用品采购申请成本", method = "POST", allUse = "2")
     @RequestMapping("/post/ArticlesPurchaseController/queryLastMonthAssetArticleCost")
     public void queryLastMonthAssetArticleCost(InputObject inputObject, OutputObject outputObject) {
         articlesPurchaseService.queryLastMonthAssetArticleCost(inputObject, outputObject);

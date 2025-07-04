@@ -1,4 +1,4 @@
-package com.skyeye.rest.scheduling;
+package com.skyeye.rest.checkwork.scheduling;
 
 import com.skyeye.base.rest.service.IService;
 import com.skyeye.common.object.ResultEntity;

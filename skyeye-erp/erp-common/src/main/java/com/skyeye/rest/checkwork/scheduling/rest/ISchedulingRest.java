@@ -1,4 +1,4 @@
-package com.skyeye.rest.scheduling.rest;
+package com.skyeye.rest.checkwork.scheduling.rest;
 
 import com.skyeye.common.client.ClientConfiguration;
 import org.springframework.cloud.openfeign.FeignClient;

@@ -46,6 +46,7 @@ import com.skyeye.purchase.classenum.*;
 import com.skyeye.purchase.dao.PurchaseOrderDao;
 import com.skyeye.purchase.entity.*;
 import com.skyeye.purchase.service.*;
+import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.util.ErpOrderUtil;
 import com.skyeye.whole.entity.WholeOrderOut;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,9 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
     @Autowired
     private ProductionPlanService productionPlanService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
     @Override
     public QueryWrapper<PurchaseOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<PurchaseOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -97,7 +101,7 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         }
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
             String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
             queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId), commonPageInfo.getObjectId());
             queryWrapper.and(w -> {
                 w.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getState), FlowableStateEnum.PASS.getKey())
@@ -131,6 +135,7 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         supplierContractService.setContractMationByFromId(beans, "fromId", "fromMation");
         productionPlanService.setOrderMationByFromId(beans, "fromId", "fromMation");
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
 
@@ -268,6 +273,7 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
             // 到货计划
             productionPlanService.setDataMation(purchaseOrder, PurchaseOrder::getFromId);
         }
+        iProProjectService.setDataMation(purchaseOrder, PurchaseOrder::getProjectId);
         purchaseOrder.getErpOrderItemList().forEach(erpOrderItem -> {
             erpOrderItem.setQualityInspectionMation(OrderItemQualityInspectionType.getMation(erpOrderItem.getQualityInspection()));
         });
@@ -369,8 +375,9 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
         QueryWrapper<PurchaseOrder> queryWrapper = new QueryWrapper<>();
         //获取上个月日期
         String lastMonth = DateUtil.getLastMonthDate();
-        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId));
+        queryWrapper.ne(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId), StrUtil.EMPTY);
         List<PurchaseOrder> bean = list(queryWrapper);
 
         if(CollectionUtil.isEmpty(bean)){

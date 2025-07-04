@@ -1,10 +1,9 @@
-package com.skyeye.rest.scheduling.service;
+package com.skyeye.rest.checkwork.scheduling.service;
 
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
-import com.skyeye.common.object.ResultEntity;
-import com.skyeye.rest.scheduling.ISchedulingService;
-import com.skyeye.rest.scheduling.rest.ISchedulingRest;
+import com.skyeye.rest.checkwork.scheduling.rest.ISchedulingRest;
+import com.skyeye.rest.checkwork.scheduling.ISchedulingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

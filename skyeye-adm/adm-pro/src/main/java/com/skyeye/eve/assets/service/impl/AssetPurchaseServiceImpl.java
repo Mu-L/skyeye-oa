@@ -75,7 +75,7 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId), commonPageInfo.getObjectId());
             String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime) + ", '%Y-%m') = ?", lastMonth);
+            queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime) + ", '%Y-%m') = {0}", lastMonth);
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime));
             queryWrapper.and(w -> {
                 w.eq(MybatisPlusUtil.toColumns(AssetPurchase::getState), FlowableStateEnum.PASS.getKey())
@@ -273,7 +273,7 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         QueryWrapper<AssetPurchase> queryWrapper = new QueryWrapper<>();
         //获取上个月日期
         String lastMonth = DateUtil.getLastMonthDate();
-        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId));
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getIdKey), getServiceClassName());
         List<AssetPurchase> bean = list(queryWrapper);

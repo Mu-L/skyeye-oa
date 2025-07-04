@@ -60,16 +60,24 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
     @Override
     protected QueryWrapper<ArticlesPurchase> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ArticlesPurchase> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateId), userId);
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
             String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
             queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId), commonPageInfo.getObjectId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime));
+        }else {
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateId), userId);
         }
         return queryWrapper;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iProProjectService.setMationForMap(beans,"projectId","projectMation");
+        return beans;
     }
 
     @Override
@@ -166,7 +174,7 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
         QueryWrapper<ArticlesPurchase> queryWrapper = new QueryWrapper<>();
         //获取上个月日期
         String lastMonth = DateUtil.getLastMonthDate();
-        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = ?",lastMonth);
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId));
         queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
         List<ArticlesPurchase> bean = list(queryWrapper);

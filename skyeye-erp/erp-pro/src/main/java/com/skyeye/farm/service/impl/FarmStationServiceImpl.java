@@ -10,7 +10,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.farm.dao.FarmStationDao;
 import com.skyeye.farm.entity.FarmStation;
 import com.skyeye.farm.service.FarmStationService;
-import com.skyeye.rest.scheduling.ISchedulingService;
+import com.skyeye.rest.checkwork.scheduling.ISchedulingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
