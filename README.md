@@ -6,7 +6,7 @@
 
 **1. 星球用户（只有星球用户才能获取完整源代码，扫描下方知识星球二维码加入星球）拿到源码后可进行学习、毕设、企业等使用。**
 
-**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)      [常见问题](https://gitee.com/dromara/skyeye/blob/company_server/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)**
+**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)**
 
 **3. 基础功能包括但不限于：低代码、动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
 
