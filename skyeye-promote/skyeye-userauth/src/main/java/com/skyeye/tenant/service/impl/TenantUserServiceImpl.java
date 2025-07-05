@@ -209,6 +209,16 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     }
 
     @Override
+    @IgnoreTenant
+    public TenantUser queryTenantUserByStaffId(String staffId, String tenantId) {
+        QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        return tenantUser;
+    }
+
+    @Override
     public void editUserStaffActMoneyByStaffId(String staffId, String actMoney) {
         // 开启多租户模式时，默认加上租户id
         UpdateWrapper<TenantUser> updateWrapper = new UpdateWrapper<>();
