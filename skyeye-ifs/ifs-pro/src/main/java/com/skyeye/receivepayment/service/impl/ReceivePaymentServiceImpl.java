@@ -75,7 +75,12 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Override
     public QueryWrapper<ReceivePayment> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ReceivePayment> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getObjectId), commonPageInfo.getObjectId());
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getObjectId), commonPageInfo.getObjectId());
+        }
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectKey())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getObjectKey), commonPageInfo.getObjectKey());
+        }
         return queryWrapper;
     }
 
