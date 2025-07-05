@@ -109,7 +109,12 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         String userStaffId = sysEveUserStaffService.queryUserStaffByPhone(tenantUserInvite.getPhone());
         String userId = inputObject.getLogParams().get("id").toString();
         if (StrUtil.isNotEmpty(userStaffId)) {
-            // 手机号已存在，则直接加入租户
+            // 手机号已存在
+            // 判断该员工是否已经加入该租户
+            TenantUser checkTenantUser = tenantUserService.queryTenantUserByStaffId(userStaffId, tenantId);
+            if (checkTenantUser != null) {
+                throw new CustomException("该员工已加入该租户");
+            }
             tenantUserInvite.setIsUsed(IsUsedEnum.IN_USE.getKey());
             tenantUserInvite.setJoinType(TenantUserJoinType.AUTO.getKey());
             String id = createEntity(tenantUserInvite, userId);
