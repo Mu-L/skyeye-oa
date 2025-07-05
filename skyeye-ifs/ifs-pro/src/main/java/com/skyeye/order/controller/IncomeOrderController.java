@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @RestController
-@Api(value = "明细账管理", tags = "明细账管理", modelName = "明细账管理")
+@Api(value = "财务凭证管理", tags = "财务凭证管理", modelName = "财务凭证管理")
 public class IncomeOrderController {
 
     @Autowired

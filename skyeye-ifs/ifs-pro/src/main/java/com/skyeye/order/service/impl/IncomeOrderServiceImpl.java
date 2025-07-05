@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "明细账管理", groupName = "明细账管理", flowable = true)
+@SkyeyeService(name = "财务凭证管理", groupName = "财务凭证管理", flowable = true)
 public class IncomeOrderServiceImpl extends SkyeyeFlowableServiceImpl<IncomeOrderDao, IncomeOrder> implements IncomeOrderService {
 
     @Autowired
