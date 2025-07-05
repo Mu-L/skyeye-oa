@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopMaterialStoreServiceImpl
- * @Description: 商城商品上线的门店服务层
+ * @Description: 商城商品上线的门店服务层--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/18 14:10
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -227,6 +227,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialByIds(InputObject inputObject, OutputObject outputObject) {
         String ids = inputObject.getParams().get("ids").toString();
         List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK))
