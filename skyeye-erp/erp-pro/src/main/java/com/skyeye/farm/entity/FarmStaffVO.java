@@ -27,6 +27,6 @@ public class FarmStaffVO implements Serializable {
     @ApiModelProperty(value = "车间ID", required = "required")
     private String farmId;
 
-    @ApiModelProperty(value = "员工ID和工位ID,[{'staffId':'', 'farmStationId':''},{'staffId':'', 'farmStationId':''}.....]", required = "required,json")
+    @ApiModelProperty(value = "员工ID和工位ID,[{'staffId':'', 'farmStationId':'','pieceWorkPrice':'20'},{'staffId':'', 'farmStationId':''}.....]", required = "required,json")
     private List<Map<String,Object>> staffIdAndStationIdList;
 }
