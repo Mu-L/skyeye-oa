@@ -6,10 +6,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.lectures.entity.LecturesAttenanceRecoredChild;
 
 import java.util.List;
+import java.util.Map;
 
 public interface LecturesAttenanceRecoredChildService extends SkyeyeBusinessService<LecturesAttenanceRecoredChild> {
 
-    List<LecturesAttenanceRecoredChild> queryChildByAttenanceRecordId(String id);
+     Map<String, List<LecturesAttenanceRecoredChild>> queryChildByAttenanceRecordId(List<String> attenanceRecordIds) ;
 
-    void deleteChildByAttenanceRecordId(String id);
+     void deleteChildByAttenanceRecordId(String attenanceRecordId);
 }

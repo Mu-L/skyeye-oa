@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -13,11 +14,19 @@ import java.util.List;
 @Data
 @TableName(value = "school_lectures_attenance_recored_child")
 @ApiModel(value = "授课成绩表")
-public class LecturesAttenanceRecoredChild  extends OperatorUserInfo {
+public class LecturesAttenanceRecoredChild extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键ID。为空时新增，不为空时编辑")
     private String id;
+
+    @TableField(exist = false)
+    @Property(value = "新的id")
+    private String newId;
+
+    @TableField(exist = false)
+    @Property(value = "新的父节点id")
+    private String newParentId;
 
     @TableField("attenance_recored_id")
     @ApiModelProperty("听课记录表ID")
@@ -46,5 +55,9 @@ public class LecturesAttenanceRecoredChild  extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty("子节点")
     private List<LecturesAttenanceRecoredChild> children;
+
+    @TableField(exist = false)
+    @Property(value = "树节点是否展开")
+    private boolean open;
 
 }
