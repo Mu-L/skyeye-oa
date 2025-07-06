@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName: LessonReviewModelController
- * @Description: 听评课模型管理控制层
+ * @Description: 质评-听课记录表控制层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/8 14:55
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -60,5 +60,12 @@ public class LecturesAttenanceRecoredController {
         lecturesAttenanceRecoredService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "publishAttenanceRecoredVersionById", value = "根据id发布AttenanceRecored", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})
+    @RequestMapping("/post/LecturesAttenanceRecoredChildCotroller/publishAttenanceRecoredVersionById")
+    public void publishBomVersionById(InputObject inputObject, OutputObject outputObject) {
+        lecturesAttenanceRecoredService.publishVersionById(inputObject, outputObject);
+    }
 
 }

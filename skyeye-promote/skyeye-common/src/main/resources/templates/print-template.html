@@ -197,8 +197,8 @@
 <body>
     <div class="print-container" th:style="${'width:' + template.width + ';height:' + template.height}">
         <!-- 遍历渲染所有元素 -->
-        <div th:each="element : ${elements}" class="print-element" 
-            th:classappend="${element.type + '-element' + 
+        <div th:each="element : ${elements}" class="print-element"
+            th:classappend="${element.type + '-element' +
                 (element.animation?.type == 'fade' ? ' fade-in' : 
                 (element.animation?.type == 'slide' && element.animation.direction == 'left' ? ' slide-in-left' : 
                 (element.animation?.type == 'slide' && element.animation.direction == 'right' ? ' slide-in-right' : 
@@ -215,19 +215,24 @@
                      (element.animation?.type != 'none' ? 'animation-duration:' + element.animation.duration + 'ms;animation-delay:' + element.animation.delay + 'ms;' : '')}">
 
             <!-- 文本元素 -->
-            <div th:if="${element.type == 'text'}" 
+            <div th:if="${element.type == 'text'}"
                 th:style="${'font-size:' + (element.fontSize ?: 12) + 'px;' +
                          'font-weight:' + (element.bold ? 'bold' : 'normal') + ';' +
                          'font-style:' + (element.italic ? 'italic' : 'normal') + ';' +
                          'text-decoration:' + (element.underline ? 'underline' : 'none') + ';' +
-                         'text-align:' + (element.align ?: 'left') + ';'}"
+                         'text-align:' + (element.align ?: 'left') + ';' +
+                         'height: 100%;' +
+                         'width: 100%;' +
+                         'display: flex;' +
+                         'padding: 4px;' +
+                         'align-items: center;'}"
                 th:utext="${#strings.replace(element.content, '\\n', '<br>')}">
             </div>
 
             <!-- 图片元素 -->
             <div th:if="${element.type == 'image'}" class="image-element">
-                <img th:if="${element.src != null}" 
-                    th:src="${element.src}" 
+                <img th:if="${element.src != null}"
+                    th:src="${element.src}"
                     th:alt="${element.alt ?: ''}"
                     th:style="${'object-fit:' + (element.fit ?: 'contain') + ';' +
                              'width:' + (element.fit == 'contain' ? 'auto' : '100%') + ';' +
@@ -237,14 +242,19 @@
             <!-- 表格元素 -->
             <div th:if="${element.type == 'table'}" style="width:100%;height:100%;">
                 <table th:class="${'table-element' + ((element.zebra != null && element.zebra) ? ' zebra' : '')}"
-                    th:style="${'border-collapse:collapse;width:100%;' + (element.rowHeight != null ? 'line-height:' + element.rowHeight + 'px;' : '')}">
+                    th:style="${'border-collapse:collapse;width:100%;table-layout:fixed;' +
+                    (element.rowHeight != null ? 'line-height:' + element.rowHeight + 'px;' : '')}">
                     <thead th:if="${element.showHeader}">
                         <tr>
-                            <th th:each="col : ${element.columns}" 
-                                th:style="${'width:' + (col.width != null ? col.width + 'px' : 'auto') + ';' +
-                                         'text-align:' + (col.align != null ? col.align : 'left') + ';' +
-                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'pt;' +
-                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';'}"
+                            <th th:each="col : ${element.columns}"
+                                th:style="${'width:' + (col.width != null ? col.width - 16 + 'px' : 'auto') + ';' +
+                                         'text-align:' + (col.align == 'flex-start' ? 'left' : (col.align == 'flex-end' ? 'right' : 'center')) + ';' +
+                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'px;' +
+                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';' +
+                                         'background-color: #f2f2f2;' +
+                                         'font-weight: 500;' +
+                                         'padding: 8px;' +
+                                         'word-break: break-all;'}"
                                 th:text="${col.title}">
                             </th>
                         </tr>
@@ -252,9 +262,11 @@
                     <tbody>
                         <tr th:each="row : ${element.rows}">
                             <td th:each="col : ${element.columns}"
-                                th:style="${'text-align:' + (col.align != null ? col.align : 'left') + ';' +
-                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'pt;' +
-                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';'}"
+                                th:style="${'text-align:' + (col.align == 'flex-start' ? 'left' : (col.align == 'flex-end' ? 'right' : 'center')) + ';' +
+                                         'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'px;' +
+                                         'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';' +
+                                         'padding: 8px;' +
+                                         'word-break: break-all;'}"
                                 th:text="${row[col.field]}">
                             </td>
                         </tr>
@@ -263,12 +275,12 @@
             </div>
 
             <!-- 条码元素 -->
-            <div th:if="${element.type == 'barcode'}" 
+            <div th:if="${element.type == 'barcode'}"
                 th:class="${'barcode-element' + (element.textPosition == 'top' ? ' top-text' : '')}"
                 th:style="${'background-color:' + (element.background ?: '#ffffff')}">
                 <!-- 一维码 -->
                 <div th:if="${element.barcodeType == 'barcode'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-                    <img th:if="${element.value != null}" 
+                    <img th:if="${element.value != null}"
                         th:src="${element.value}"
                         th:style="${'max-width:100%;max-height:' + (element.height != null ? (element.height - (element.showLabel ? 20 : 0)) : '100') + 'px;' +
                                  'object-fit:contain;' +
@@ -276,7 +288,7 @@
                 </div>
                 <!-- 二维码 -->
                 <div th:if="${element.barcodeType == 'qrcode'}" class="qrcode-wrapper">
-                    <img th:if="${element.value != null}" 
+                    <img th:if="${element.value != null}"
                         th:src="${element.value}"
                         style="max-width:100%;max-height:100%;object-fit:contain;" />
                 </div>

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName: LessonReviewModelController
- * @Description: 听评课模型管理控制层
+ * @Description: 授课成绩表控制层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/8 14:55
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
