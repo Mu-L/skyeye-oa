@@ -135,4 +135,12 @@ public class CheckWorkController {
         checkWorkService.getUserOtherDayMation(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryInfoByStaffIdsAndDates", value = "根据日期以及员工ids批量查询考勤信息，用于erp工序核算", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "staffIds", name = "staffIds", value = "员工id集合,逗号隔开", required = "required"),
+        @ApiImplicitParam(id = "dates", name = "dates", value = "日期列表，逗号隔开", required = "required")})
+        @RequestMapping("/post/CheckWorkController/queryInfoByStaffIdsAndDates")
+    public void queryInfoByStaffIdsAndDates(InputObject inputObject, OutputObject outputObject) {
+        checkWorkService.queryInfoByStaffIdsAndDates(inputObject,outputObject);
+    }
 }

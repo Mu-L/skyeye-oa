@@ -7,6 +7,8 @@ package com.skyeye.checkwork.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
@@ -21,6 +23,7 @@ import com.skyeye.checkwork.dao.CheckWorkDao;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CheckDayType;
@@ -31,8 +34,10 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.CheckWorkConstants;
 import com.skyeye.eve.centerrest.entity.checkwork.DayWork;
 import com.skyeye.eve.centerrest.entity.checkwork.UserOtherDayMation;
@@ -821,6 +826,23 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     public void insertCheckWorkBySystem(List<Map<String, Object>> beans) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         checkWorkDao.insertCheckWorkBySystem(beans, tenantId);
+    }
+
+    @Override
+    public void queryInfoByStaffIdsAndDates(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        // 取出所有员工id
+        List<String> staffIds = Arrays.asList(params.get("staffIds").toString().split(CommonCharConstants.COMMA_MARK));
+        // 取出所有日期
+        List<String> dates = Arrays.asList(params.get("dates").toString().split(CommonCharConstants.COMMA_MARK));
+        // 查出所有考勤信息
+        QueryWrapper<CheckWork> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCreateId), staffIds);
+        queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCheckDate), dates);
+        List<CheckWork> allCheckWork = list(queryWrapper);
+        List<Map<String,Object>> beans = JSONUtil.toBean(JSONUtil.toJsonStr(allCheckWork), null);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 
 }

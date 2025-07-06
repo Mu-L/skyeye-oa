@@ -70,4 +70,5 @@ public interface CheckWorkService extends SkyeyeBusinessService<CheckWork> {
 
     void insertCheckWorkBySystem(List<Map<String, Object>> beans);
 
+    void queryInfoByStaffIdsAndDates(InputObject inputObject, OutputObject outputObject);
 }
