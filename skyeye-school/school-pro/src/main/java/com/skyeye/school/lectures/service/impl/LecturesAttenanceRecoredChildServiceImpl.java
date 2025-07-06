@@ -50,31 +50,28 @@ public class LecturesAttenanceRecoredChildServiceImpl extends SkyeyeBusinessServ
     }
 
     @Override
-    public List<LecturesAttenanceRecoredChild> queryChildByAttenanceRecordId(String id) {
-        QueryWrapper<LecturesAttenanceRecoredChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId), id);
-        List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = list(queryWrapper);
-        List<LecturesAttenanceRecoredChild> NoRecordChildNodes = new ArrayList<>();
-        if (ObjectUtil.isNotEmpty(lecturesAttenanceRecoredChildList)) {
-            NoRecordChildNodes = lecturesAttenanceRecoredChildList.stream().filter(
-                    lecturesAttenanceRecoredChild -> StrUtil.isEmpty(lecturesAttenanceRecoredChild.getAttenanceRecordId())
-            ).collect(Collectors.toList());
-            List<LecturesAttenanceRecoredChild> ChildRecordChildNodes = lecturesAttenanceRecoredChildList.stream().filter(
-                    lessonReviewType -> StrUtil.isNotEmpty(lessonReviewType.getAttenanceRecordId())
-            ).collect(Collectors.toList());
-            Map<String, List<LecturesAttenanceRecoredChild>> collected =
-                    ChildRecordChildNodes.stream().collect(Collectors.groupingBy(LecturesAttenanceRecoredChild::getAttenanceRecordId));
-            NoRecordChildNodes.forEach(
-                    lecturesAttenanceRecoredChild -> lecturesAttenanceRecoredChild.setChildren(collected.get(lecturesAttenanceRecoredChild.getId()))
-            );
-        }
-        return NoRecordChildNodes;
+    protected void createPrepose(List<LecturesAttenanceRecoredChild> entity) {
+        LecturesAttenanceRecoredChild recoredChild = entity.stream().findFirst().orElse(new LecturesAttenanceRecoredChild());
+        deleteChildByAttenanceRecordId(recoredChild.getAttenanceRecordId());
     }
 
     @Override
-    public void deleteChildByAttenanceRecordId(String id) {
+    public Map<String, List<LecturesAttenanceRecoredChild>> queryChildByAttenanceRecordId(List<String> attenanceRecordIds) {
         QueryWrapper<LecturesAttenanceRecoredChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId), id);
+        queryWrapper.in(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId), attenanceRecordIds);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getOrder));
+        List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = list(queryWrapper);
+        Map<String, List<LecturesAttenanceRecoredChild>> listMap = lecturesAttenanceRecoredChildList.stream().collect(Collectors.groupingBy(LecturesAttenanceRecoredChild::getAttenanceRecordId));
+        return listMap;
+    }
+
+    @Override
+    public void deleteChildByAttenanceRecordId(String attenanceRecordId) {
+        if (StrUtil.isEmpty(attenanceRecordId)) {
+            return;
+        }
+        QueryWrapper<LecturesAttenanceRecoredChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId), attenanceRecordId);
         remove(queryWrapper);
     }
 }

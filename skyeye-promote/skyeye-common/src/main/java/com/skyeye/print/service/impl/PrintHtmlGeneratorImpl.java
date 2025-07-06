@@ -9,7 +9,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.skyeye.common.util.BarCodeUtil;
-import com.skyeye.common.util.ImagesUtil;
 import com.skyeye.common.util.qrcode.QRCodeLogoUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.print.entity.PrintElement;
@@ -278,9 +277,8 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             }
         }
 
-        if (StrUtil.isBlank(element.getSrc())) {
-            String base64 = ImagesUtil.urlToBase64(webRootfileBath + element.getUrl());
-            element.setSrc(base64);
+        if (StrUtil.isNotEmpty(element.getSrc())) {
+            element.setSrc(webRootfileBath + element.getUrl());
         }
 
         // 设置图片填充方式

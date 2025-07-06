@@ -7,6 +7,8 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.lectures.dao.LecturesAttenanceRecoredDao;
@@ -14,12 +16,13 @@ import com.skyeye.school.lectures.entity.LecturesAttenanceRecored;
 import com.skyeye.school.lectures.entity.LecturesAttenanceRecoredChild;
 import com.skyeye.school.lectures.service.LecturesAttenanceRecoredChildService;
 import com.skyeye.school.lectures.service.LecturesAttenanceRecoredService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-
+@Slf4j
 @Service
 @SkyeyeService(name = "质评-听课记录表", groupName = "质评-听课记录表")
 public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceImpl<LecturesAttenanceRecoredDao, LecturesAttenanceRecored> implements LecturesAttenanceRecoredService {
@@ -35,6 +38,54 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
         validateNumber(entity.getActualNum(), "实到人数");
         validateNumber(entity.getLateNum(), "迟到人数");
         validateNumber(entity.getLeaveEarlyNum(), "早退人数");
+        initVersionByFromId(entity);
+    }
+
+    private void initVersionByFromId(LecturesAttenanceRecored entity) {
+        if (entity.getFromId() == null) {
+            // 新增记录，初始化所有版本号
+            entity.setVersionNo("1");
+            // 大版本从0开始
+            entity.setLargeVersion(0);
+            // 小版本从0开始
+            entity.setSmallVersion(0);
+        } else {
+            //更新
+            try {
+                int currentVersion = entity.getVersionNo() != null
+                        ? Integer.parseInt(entity.getVersionNo())
+                        : 0;
+                entity.setVersionNo(String.valueOf(currentVersion + 1));
+
+                // 处理大版本号和小版本号
+                if (entity.getStartSmallVersion()) {
+                    // 小版本升级
+                    entity.setSmallVersion(
+                            (entity.getSmallVersion() != null ? entity.getSmallVersion() : 0) + 1
+                    );
+                } else {
+                    // 大版本升级
+                    entity.setLargeVersion(
+                            (entity.getLargeVersion() != null ? entity.getLargeVersion() : 0) + 1
+                    );
+                    // 大版本升级时重置小版本
+                    entity.setSmallVersion(0);
+                }
+
+            } catch (CustomException e) {
+                log.error("版本号格式错误", e);
+                entity.setVersionNo("1");
+                entity.setLargeVersion(0);
+                entity.setSmallVersion(0);
+            }
+        }
+    }
+
+    @Override
+    public QueryWrapper<LecturesAttenanceRecored> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<LecturesAttenanceRecored> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LecturesAttenanceRecored::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
+        return queryWrapper;
     }
 
     private void validateNumber(Integer value, String fieldName) {
@@ -47,11 +98,31 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     @Override
+    protected void writePostpose(LecturesAttenanceRecored entity, String userId) {
+        super.writePostpose(entity, userId);
+
+        entity.getLecturesAttenanceRecoredChildList().forEach(attenanceRecoredChild -> attenanceRecoredChild.setAttenanceRecordId(entity.getId()));
+        lecturesAttenanceRecoredChildService.createEntity(entity.getLecturesAttenanceRecoredChildList(), userId);
+    }
+
+    @Override
     protected void updatePostpose(LecturesAttenanceRecored entity, String userId) {
         List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = entity.getLecturesAttenanceRecoredChildList();
         if (ObjectUtil.isNotEmpty(lecturesAttenanceRecoredChildList)) {
             lecturesAttenanceRecoredChildService.updateEntity(lecturesAttenanceRecoredChildList, userId);
         }
+    }
+
+    @Override
+    public String createEntity(LecturesAttenanceRecored entity, String userId) {
+        entity.setStartSmallVersion(false);
+        return super.createEntity(entity, userId);
+    }
+
+    @Override
+    public String updateEntity(LecturesAttenanceRecored entity, String userId) {
+        entity.setStartSmallVersion(false);
+        return super.updateEntity(entity, userId);
     }
 
     private void noScoreName(LecturesAttenanceRecored entity) {
@@ -72,16 +143,28 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     @Override
-    public LecturesAttenanceRecored selectById(String id) {
-        List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = lecturesAttenanceRecoredChildService.queryChildByAttenanceRecordId(id);
-        LecturesAttenanceRecored lecturesAttenanceRecored = super.selectById(id);
-        lecturesAttenanceRecored.setLecturesAttenanceRecoredChildList(lecturesAttenanceRecoredChildList);
-        return lecturesAttenanceRecored;
-    }
-
-    @Override
     protected void deletePreExecution(String id) {
         lecturesAttenanceRecoredChildService.deleteChildByAttenanceRecordId(id);
     }
+
+    @Override
+    public LecturesAttenanceRecored selectById(String id) {
+        LecturesAttenanceRecored lecturesAttenanceRecored = super.selectById(id);
+        if (lecturesAttenanceRecored == null) {
+            throw new CustomException("未找到该ID的听课记录");
+        }
+
+        // 查询质评-听课记录表
+        if (lecturesAttenanceRecored.getLecturesAttenanceRecoredChildList() != null) {
+            lecturesAttenanceRecoredChildService.setDataMation(lecturesAttenanceRecored.getLecturesAttenanceRecoredChildList(), LecturesAttenanceRecoredChild::getAttenanceRecordId);
+
+            lecturesAttenanceRecored.getLecturesAttenanceRecoredChildList().forEach(lecturesAttenanceRecoredChild -> {
+                lecturesAttenanceRecoredChild.setOpen(true);
+            });
+        }
+        lecturesAttenanceRecoredChildService.setDataMation(lecturesAttenanceRecored, LecturesAttenanceRecored::getAttendLectureTeacherId);
+        return lecturesAttenanceRecored;
+    }
+
 
 }

@@ -75,13 +75,13 @@ public class FileShareServiceImpl extends SkyeyeBusinessServiceImpl<FileShareDao
     public void createPrepose(FileShare entity) {
         FileCatalog fileCatalog = fileCatalogService.selectById(entity.getFileId());
         if (ObjectUtil.isNotEmpty(fileCatalog) && StrUtil.isNotEmpty(fileCatalog.getId())) {
-            entity.setFileType(String.valueOf(CommonNumConstants.NUM_ONE));
+            entity.setFileType(DickCloudType.FOLDER.getKey());
             entity.setShareName(fileCatalog.getName());
         }
 
         FileConsole fileConsole = fileConsoleService.selectById(entity.getFileId());
         if (ObjectUtil.isNotEmpty(fileConsole) && StrUtil.isNotEmpty(fileConsole.getId())) {
-            entity.setFileType(String.valueOf(CommonNumConstants.NUM_ONE));
+            entity.setFileType(DickCloudType.FILE.getKey());
             entity.setShareName(fileConsole.getName());
         }
         if (ShareType.PRIVATE.getKey().equals(entity.getShareType())) {

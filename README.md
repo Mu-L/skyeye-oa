@@ -1,6 +1,6 @@
 #  :tw-1f308:  erp-pro
 
-> Skyeye云源代码，采用Springboot(微服务) + Layui + UNI-APP + Ant Design Vue的低代码平台开发模式。包含50多种电子流程，CRM、PM、ERP、MES、ADM、OA、EHR、AI、项目、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、问卷、报表设计、工作流、Saas等功能。打造全网首套低代码、功能最全、价格最优惠的智能制造行业供应链一体化管理软件。
+> Skyeye云源代码，采用Springboot(微服务) + UNI-APP + Ant Design Vue的低代码平台开发模式。包含50多种电子流程，CRM、PM、ERP、MES、ADM、OA、EHR、AI、项目、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、问卷、报表设计、工作流、Saas等功能。打造全网首套低代码、功能最全、价格最优惠的智能制造行业供应链一体化管理软件。
 
 **郑重声明：** 
 
@@ -77,8 +77,7 @@
 
 | 框架 | 技术 | 版本 | 学习指南 |
 |---|---|---|---|
-|[layui](https://layui.uimaker.com/)|模块化前端UI，已经开发完成。**（持续更新中）**| 2.6.7 | [文档](https://layui.uimaker.com/doc/index.html) |
-|Vue 3 + JavaScript + Vite 5.0.0 + Ant Design Vue 4.2.6| **第一版已发布，富含80%以上功能** | - | - |
+|Vue 3 + JavaScript + Vite 5.0.0 + Ant Design Vue 4.2.6| **已发布** | - | - |
 |[uni-app](https://uniapp.dcloud.net.cn/)|一个使用Vue.js开发所有前端应用的框架，开发者编写一套代码，可发布到iOS、Android、Web（响应式）、以及各种小程序、快应用等多个平台。| VUE3 |[文档](https://uniapp.dcloud.net.cn/component/)|
 
 ##  :tw-1f30f:  PC端效果图
