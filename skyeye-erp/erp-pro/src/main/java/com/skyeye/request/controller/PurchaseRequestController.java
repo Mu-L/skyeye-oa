@@ -34,12 +34,6 @@ public class PurchaseRequestController {
     @Autowired
     private PurchaseRequestService purchaseRequestService;
 
-    /**
-     * 获取采购申请信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPurchaseRequestList", value = "获取采购申请信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PurchaseRequestController/queryPurchaseRequestList")
@@ -47,12 +41,6 @@ public class PurchaseRequestController {
         purchaseRequestService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑采购申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writePurchaseRequest", value = "新增/编辑采购申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseRequest.class)
     @RequestMapping("/post/PurchaseRequestController/writePurchaseRequest")
@@ -60,12 +48,6 @@ public class PurchaseRequestController {
         purchaseRequestService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 采购申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitPurchaseRequestToApproval", value = "采购申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/PurchaseRequestController/submitToApproval")
@@ -73,12 +55,6 @@ public class PurchaseRequestController {
         purchaseRequestService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 删除采购申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deletePurchaseRequest", value = "删除采购申请", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class PurchaseRequestController {
         purchaseRequestService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销采购申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokePurchaseRequest", value = "撤销采购申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -101,12 +71,6 @@ public class PurchaseRequestController {
         purchaseRequestService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 采购申请询价
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "inquiryPurchaseRequest", value = "采购申请询价", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -116,12 +80,6 @@ public class PurchaseRequestController {
         purchaseRequestService.inquiryPurchaseRequest(inputObject, outputObject);
     }
 
-    /**
-     * 采购申请定价
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fixedPricePurchaseRequest", value = "采购申请定价", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -132,12 +90,6 @@ public class PurchaseRequestController {
         purchaseRequestService.fixedPricePurchaseRequest(inputObject, outputObject);
     }
 
-    /**
-     * 采购申请转合同时获取的详情
-     *
-     * @param inputObject
-     * @param outputObject
-     */
     @ApiOperation(id = "queryPurchaseRequestTransferContract", value = "采购申请转合同时获取的详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -146,12 +98,6 @@ public class PurchaseRequestController {
         purchaseRequestService.queryPurchaseRequestTransferContract(inputObject, outputObject);
     }
 
-    /**
-     * 采购申请单转采购合同
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "purchaseRequestToContract", value = "采购申请单转采购合同", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SupplierContract.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
