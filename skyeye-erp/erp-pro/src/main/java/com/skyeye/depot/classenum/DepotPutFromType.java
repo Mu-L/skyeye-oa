@@ -12,6 +12,7 @@ import com.skyeye.pick.service.impl.ReturnPutServiceImpl;
 import com.skyeye.pickconfirm.service.impl.ConfirmReturnServiceImpl;
 import com.skyeye.purchase.service.impl.PurchasePutServiceImpl;
 import com.skyeye.retail.service.impl.RetailReturnsServiceImpl;
+import com.skyeye.seal.service.impl.SalesExchangesServiceImpl;
 import com.skyeye.seal.service.impl.SalesReturnsServiceImpl;
 import com.skyeye.shop.service.impl.ShopConfirmReturnServiceImpl;
 import com.skyeye.shop.service.impl.ShopReturnsServiceImpl;
@@ -45,7 +46,7 @@ public enum DepotPutFromType implements SkyeyeEnumClass {
     MACHIN_PUT(7, "加工入库单", MachinPutServiceImpl.class.getName(), true, false),
     SHOP_RETURNS(8, "门店退货单", ShopReturnsServiceImpl.class.getName(), true, false),
     SHOP_CONFIRM_RETURNS(9, "门店物料退货单", ShopConfirmReturnServiceImpl.class.getName(), true, false),
-    SALES_EXCHANGES(10, "销售换货单", null, false, false);
+    SALES_EXCHANGES(10, "销售换货单", SalesExchangesServiceImpl.class.getName(), false, false);
 
 
     private Integer key;

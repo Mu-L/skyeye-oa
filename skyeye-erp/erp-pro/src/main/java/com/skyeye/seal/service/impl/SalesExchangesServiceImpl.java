@@ -3,6 +3,7 @@ package com.skyeye.seal.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -219,7 +220,7 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
 
     @Override
     public void insertSalesExchangesToSalesOutLet(InputObject inputObject, OutputObject outputObject) {
-        SalesOutLet salesOutLet = inputObject.getParams(DepotPut.class);
+        DepotPut salesOutLet = inputObject.getParams(DepotPut.class);
         // 获取销售退货单状态
         SalesExchanges salesExchanges = selectById(salesOutLet.getId());
         if (ObjectUtil.isEmpty(salesExchanges)) {
@@ -231,7 +232,9 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
             salesOutLet.setFromId(salesOutLet.getId());
             salesOutLet.setFromTypeId(SealOutLetFromType.SALE_EXCHANGES.getKey());
             salesOutLet.setId(StrUtil.EMPTY);
-            salesOutLetService.createEntity(salesOutLet, userId);
+            // 使用 JSON 序列化和反序列化进行转换
+            SalesOutLet salesOutLetConverted = JSONUtil.toBean(JSONUtil.toJsonStr(salesOutLet), SalesOutLet.class);
+            salesOutLetService.createEntity(salesOutLetConverted, userId);
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库入库单.");
         }
