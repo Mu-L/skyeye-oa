@@ -48,7 +48,7 @@ public class ReceivePaymentController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentList")
     public void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.queryReceivePaymentList(inputObject, outputObject);
+        receivePaymentService.queryPageList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteReceivePaymentById", value = "删除收付款信息", method = "DELETE", allUse = "2")
