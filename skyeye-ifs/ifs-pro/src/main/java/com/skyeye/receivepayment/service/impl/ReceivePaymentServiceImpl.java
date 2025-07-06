@@ -3,8 +3,6 @@ package com.skyeye.receivepayment.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -85,15 +83,55 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     }
 
     @Override
-    public void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ReceivePayment> queryWrapper = getQueryWrapper(commonPageInfo);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
-        List<ReceivePayment> list = list(queryWrapper);
-        List<ReceivePayment> beans = setInfo(list);
-        outputObject.settotal(page.getTotal());
-        outputObject.setBeans(beans);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        // 根据fromKey分组，值为List<String> fromId
+        Map<String, List<String>> fromKeyMap = beans.stream()
+                .collect(Collectors.groupingBy(m -> (String) m.get("fromKey"),
+                        Collectors.mapping(m -> (String) m.get("fromId"), Collectors.toList())));
+        // 回款fromId
+        List<String> crmPaymentFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey(), new ArrayList<>());
+        // 应收fromId
+        List<String> crmReceivableFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_KEY.getKey(), new ArrayList<>());
+        // 付款fromId
+        List<String> erpPaymentOutFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey(), new ArrayList<>());
+        // 应付fromId
+        List<String> erpReceivableFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PURCHASE_ORDER_KEY.getKey(), new ArrayList<>());
+
+        if (CollectionUtil.isNotEmpty(crmPaymentFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, crmPaymentFromIds);
+            List<Map<String, Object>> mapList = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
+            beans = setInfoMap(mapList, beans);
+        }
+        if (CollectionUtil.isNotEmpty(crmReceivableFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, crmReceivableFromIds);
+            List<Map<String, Object>> mapList = iCrmReceivableService.queryReceivableByIds(fromIds);
+            beans = setInfoMap(mapList, beans);
+        }
+        if (CollectionUtil.isNotEmpty(erpPaymentOutFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, erpPaymentOutFromIds);
+            List<Map<String, Object>> mapList = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
+            beans = setInfoMap(mapList, beans);
+        }
+        if (CollectionUtil.isNotEmpty(erpReceivableFromIds)) {
+            String fromIds = String.join(StrUtil.COMMA, erpReceivableFromIds);
+            List<Map<String, Object>> mapList = iErpPayableService.queryPayableByIds(fromIds);
+            beans = setInfoMap(mapList, beans);
+        }
+        return beans;
+    }
+
+    private List<Map<String, Object>> setInfoMap(List<Map<String, Object>> mapList, List<Map<String, Object>> beans) {
+        Map<String, Map<String, Object>> paymentMap = mapList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+        for (Map<String, Object> bean : beans) {
+            String fromId = bean.get("fromId").toString();
+            if (paymentMap.containsKey(fromId)) {
+                Map<String, Object> payment = paymentMap.get(fromId);
+                bean.put("fromMation",payment);
+                bean.put("name",payment.get("oddNumber"));
+            }
+        }
+        return beans;
     }
 
     @Override

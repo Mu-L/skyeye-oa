@@ -18,7 +18,5 @@ import java.util.List;
 public interface ReceivePaymentService extends SkyeyeFlowableService<ReceivePayment> {
     void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject);
 
-    void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject);
-
     List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId);
 }
