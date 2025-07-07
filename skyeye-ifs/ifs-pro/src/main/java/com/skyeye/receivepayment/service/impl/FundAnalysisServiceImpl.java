@@ -12,18 +12,12 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.receivepayment.classenum.ReceivePaymentKeyEnum;
 import com.skyeye.receivepayment.dao.FundAnalysisDao;
 import com.skyeye.receivepayment.entity.FundAnalysis;
 import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.FundAnalysisService;
 import com.skyeye.receivepayment.service.ReceivePaymentService;
-import com.skyeye.rest.crm.payment.service.ICrmPaymentCollectionService;
-import com.skyeye.rest.crm.receivable.service.ICrmReceivableService;
-import com.skyeye.rest.erp.payable.service.IErpPayableService;
-import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
