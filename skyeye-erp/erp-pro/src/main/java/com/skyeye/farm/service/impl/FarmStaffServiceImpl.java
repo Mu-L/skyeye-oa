@@ -9,15 +9,16 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.farm.dao.FarmStaffDao;
 import com.skyeye.farm.entity.Farm;
 import com.skyeye.farm.entity.FarmStaff;
 import com.skyeye.farm.entity.FarmStaffVO;
-import com.skyeye.farm.entity.FarmStation;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.farm.service.FarmStaffService;
 import com.skyeye.farm.service.FarmStationService;
@@ -93,14 +94,35 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         if (CollectionUtil.isEmpty(notExitList)) {
             return;
         }
+        List<String> staffIdList = notExitList.stream().map(m -> m.get("staffId").toString()).collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMatin = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
         for (Map<String, Object> map : notExitList) {
+            String staffId = map.get("staffId").toString();
             FarmStaff item = new FarmStaff();
+            if (checkPieceWorkPrice(staffMatin.get(staffId), map)) {
+                item.setPieceWorkPrice(map.get("pieceWorkPrice").toString());
+            }
             item.setFarmId(farmStaffVO.getFarmId());
-            item.setStaffId(map.get("staffId").toString());
+            item.setStaffId(staffId);
             item.setFarmStationId(map.get("farmStationId").toString());
             beans.add(item);
         }
         createEntity(beans, userId);
+    }
+
+    /**
+     * 校验计件工价
+     */
+    private Boolean checkPieceWorkPrice(Map<String, Object> staffMatin, Map<String, Object> insertMap) {
+        if (!staffMatin.get("workstationType").toString().equals("3")) {
+            // 不是计件工
+            return false;
+        }
+        String pieceWorkPrice = insertMap.get("pieceWorkPrice").toString();
+        if (StrUtil.isEmpty(pieceWorkPrice) || Double.parseDouble(pieceWorkPrice) <= CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("计件工一单价不能为空或者小于0");
+        }
+        return true;
     }
 
     @Override

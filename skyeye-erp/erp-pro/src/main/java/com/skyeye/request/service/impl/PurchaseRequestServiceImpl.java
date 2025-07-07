@@ -100,6 +100,10 @@ public class PurchaseRequestServiceImpl extends SkyeyeFlowableServiceImpl<Purcha
             }
         }
         entity.setInquiryState(inquiryState);
+        // 设置商品为使用中
+        entity.getPurchaseRequestChildList().forEach(purchaseRequestChild -> {
+            materialService.setUsed(purchaseRequestChild.getMaterialId());
+        });
         getTotalPrice(entity);
     }
 

@@ -158,6 +158,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         String fromTypeIdKey;
         if (StrUtil.isNotEmpty(entity.getId())) {
             DepotPut depotPut = selectById(entity.getId());
+            entity.setFromTypeId(depotPut.getFromTypeId());
+            entity.setFromId(depotPut.getFromId());
             fromTypeIdKey = DepotPutFromType.getItemIdKey(depotPut.getFromTypeId());
         } else {
             fromTypeIdKey = DepotPutFromType.getItemIdKey(entity.getFromTypeId());

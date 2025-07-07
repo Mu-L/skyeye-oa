@@ -16,6 +16,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.machinprocedure.classenum.MachinProcedureFarmState;
@@ -76,6 +77,9 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
 
     @Autowired
     private MachinProcedureAcceptProductNumService machinProcedureAcceptProductNumService;
+
+    @Autowired
+    private FarmService farmService;
 
     @Override
     public void validatorEntity(MachinProcedureAccept entity) {
@@ -256,7 +260,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentId(id);
         machinProcedureAccept.setMachinProcedureAcceptProductNumList(productNumList);
         iAuthUserService.setDataMation(machinProcedureAccept, MachinProcedureAccept::getAcceptUserId);
-
+        machinProcedureAccept.setFarmMation(farmService.selectById(machinProcedureAccept.getFarmId()));
         return machinProcedureAccept;
     }
 

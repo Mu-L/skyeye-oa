@@ -52,4 +52,8 @@ public class FarmStaff extends OperatorUserInfo {
     @Property(value = "员工所在岗位信息")
     private Map<String, Object> farmStationMation;
 
+    @TableField(value = "piece_work_price")
+    @ApiModelProperty(value = "计件工一件的价格")
+    private String pieceWorkPrice;
+
 }
