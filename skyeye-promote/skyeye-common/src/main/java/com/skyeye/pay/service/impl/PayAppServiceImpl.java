@@ -8,11 +8,14 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -26,14 +29,14 @@ import java.util.Map;
 
 /**
  * @ClassName: PayAppServiceImpl
- * @Description: 支付应用服务层
+ * @Description: 支付应用服务层--平台隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "支付应用管理", groupName = "支付应用管理")
+@SkyeyeService(name = "支付应用管理", groupName = "支付应用管理", tenant = TenantEnum.PLATE)
 public class PayAppServiceImpl extends SkyeyeBusinessServiceImpl<PayAppDao, PayApp> implements PayAppService {
 
     @Override
@@ -67,5 +70,11 @@ public class PayAppServiceImpl extends SkyeyeBusinessServiceImpl<PayAppDao, PayA
         queryWrapper.eq(MybatisPlusUtil.toColumns(PayApp::getEnabled), CommonNumConstants.NUM_ONE);
         List<PayApp> list = list(queryWrapper);
         return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(M bean, SFunction<M, ?> sFunction) {
+        super.setDataMation(bean, sFunction);
     }
 }

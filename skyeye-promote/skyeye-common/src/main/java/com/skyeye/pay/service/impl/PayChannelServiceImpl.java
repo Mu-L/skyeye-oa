@@ -10,9 +10,11 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -34,14 +36,14 @@ import java.util.Map;
 
 /**
  * @ClassName: PayChannelServiceImpl
- * @Description: 支付渠道服务层
+ * @Description: 支付渠道服务层--平台隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/3/9 14:31
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "支付渠道", groupName = "支付渠道")
+@SkyeyeService(name = "支付渠道", groupName = "支付渠道", tenant = TenantEnum.PLATE)
 public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelDao, PayChannel> implements PayChannelService {
 
     @Autowired
@@ -61,6 +63,7 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
     }
 
     @Override
+    @IgnoreTenant
     public PayChannel selectById(String id) {
         PayChannel payChannel = super.selectById(id);
         payAppService.setDataMation(payChannel, PayChannel::getAppId);
@@ -102,6 +105,7 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
     }
 
     @Override
+    @IgnoreTenant
     public PayClient getPayClient(String id) {
         PayChannel payChannel = selectById(id);
         if (ObjectUtil.isEmpty(payChannel)) {
@@ -112,6 +116,7 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
     }
 
     @Override
+    @IgnoreTenant
     public PayChannel getPayChannelByCode(String codeNum) {
         MPJLambdaWrapper<PayChannel> queryWrapper = new MPJLambdaWrapper<PayChannel>()
             .innerJoin(PayApp.class, PayApp::getId, PayChannel::getAppId)
