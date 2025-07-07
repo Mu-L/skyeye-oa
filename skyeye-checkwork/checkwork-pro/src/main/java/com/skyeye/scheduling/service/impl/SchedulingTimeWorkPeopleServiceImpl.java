@@ -1,5 +1,6 @@
 package com.skyeye.scheduling.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -14,6 +15,7 @@ import com.skyeye.scheduling.service.SchedulingTimeWorkPeopleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,11 +83,13 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     @Override
-    public List<SchedulingTimeWorkPeople> querySchedulingByschedulingIdsAndStaffId
-        (List<String> schedulingIds, String staffId) {
+    public List<SchedulingTimeWorkPeople> querySchedulingByschedulingIdsAndStaffId(List<String> schedulingIds, String staffId) {
+        if (CollectionUtil.isEmpty(schedulingIds)) {
+            return Collections.emptyList();
+        }
         QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingId), schedulingIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getEmployeeId), staffId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingId), schedulingIds);
         return list(queryWrapper);
     }
 

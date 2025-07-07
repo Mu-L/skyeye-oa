@@ -24,7 +24,6 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
-import com.skyeye.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.scheduling.dao.SchedulingDao;
 import com.skyeye.scheduling.entity.*;
 import com.skyeye.scheduling.service.*;
@@ -36,8 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,14 +79,67 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Autowired
     private SchedulingShiftsService schedulingShiftsService;
 
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     protected void createPrepose(Scheduling entity) {
         String startTime = entity.getStartTime();
         String endTime = entity.getEndTime();
+
         boolean compareTime = DateUtil.compareTime(startTime, endTime, "yyyy-MM-dd");
         if (!compareTime) {
             throw new CustomException("开始时间不能大于结束时间");
         }
+        //TODO 重复排班问题，还没有解决
+        // 检查开始时间是否大于结束时间
+//        List<SchedulingTime> schedulingTimeMation = entity.getSchedulingTimeMation();
+//        if (CollectionUtil.isEmpty(schedulingTimeMation)) {
+//            throw new CustomException("请选择排班时间段");
+//        }
+//
+//        Map<String, Map<String, String>> scheduledEmployees = new HashMap<>();
+//        for (SchedulingTime schedulingTime : schedulingTimeMation) {
+//            String timePeriodId = schedulingTime.getId();
+//
+//            List<SchedulingTimeWork> schedulingTimeWorks = schedulingTime.getSchedulingTimeWorkMation();
+//            if (CollectionUtil.isEmpty(schedulingTimeWorks)) {
+//                throw new CustomException("时间段[" + timePeriodId + "]中没有工位信息");
+//            }
+//            for (SchedulingTimeWork schedulingTimeWork : schedulingTimeWorks) {
+//                String workStationId = schedulingTimeWork.getId();
+//
+//                List<SchedulingTimeWorkPeople> schedulingTimeWorkPeople = schedulingTimeWork.getSchedulingTimeWorkPeopleMation();
+//                if (CollectionUtil.isEmpty(schedulingTimeWorkPeople)) {
+//                    throw new CustomException("工位[" + workStationId + "]中没有员工信息");
+//                }
+//                for (SchedulingTimeWorkPeople people : schedulingTimeWorkPeople) {
+//                    String employeeId = people.getEmployeeId();
+//                    String schedulePath = String.format("时间段[%s]->工位[%s]->员工[%s]",
+//                        timePeriodId, workStationId, employeeId);
+//
+//                    if (scheduledEmployees.containsKey(employeeId)) {
+//                        // 检查该员工是否已经在同一时间段排班
+//                        if (scheduledEmployees.get(employeeId).containsKey(timePeriodId)) {
+//                            // 获取已存在的排班路径信息
+//                            String existingSchedulePath = scheduledEmployees.get(employeeId).get(timePeriodId);
+//                            throw new CustomException(String.format(
+//                                "员工[%s]在时间段[%s]中重复排班。\n" +
+//                                    "当前排班路径: %s\n" +
+//                                    "已存在的排班路径: %s",
+//                                employeeId, timePeriodId,
+//                                schedulePath,
+//                                existingSchedulePath));
+//                        }
+//                        scheduledEmployees.get(employeeId).put(timePeriodId, schedulePath);
+//                    } else {
+//                        Map<String, String> timePeriodMap = new HashMap<>();
+//                        timePeriodMap.put(timePeriodId, schedulePath);
+//                        scheduledEmployees.put(employeeId, timePeriodMap);
+//                    }
+//                }
+//            }
+//        }
     }
 
     @Override
@@ -394,13 +448,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
-        getStaffMation(timeWorkPeople);
-        iAuthUserService.setName(timeWorkPeople, "createId", "createName");
-        iAuthUserService.setName(timeWorkPeople, "lastUpdateId", "lastUpdateName");
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
             throw new CustomException("未查询到排班信息");
         }
-
+        getStaffMation(timeWorkPeople);
+        iAuthUserService.setName(timeWorkPeople, "createId", "createName");
+        iAuthUserService.setName(timeWorkPeople, "lastUpdateId", "lastUpdateName");
         // 获取所有相关的ID
         List<String> workIds = timeWorkPeople.stream()
             .map(SchedulingTimeWorkPeople::getSchedulingTimeWorkId).collect(Collectors.toList());
@@ -441,6 +494,98 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         outputObject.setBean(resultList);
         outputObject.settotal(resultList.size());
     }
+
+    @Override
+    public void querySchedulingByStaffIdAndMouths(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String staffId = map.get("staffId").toString();
+        String mouths = inputObject.getParams().get("mouths").toString();
+        List<String> mouthList = Arrays.asList(mouths.split(CommonCharConstants.COMMA_MARK));
+        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+        mouthList.forEach(month -> {
+            String monthPattern = month + "%";
+            schedulingWrapper.or(wrap -> wrap
+                .like(MybatisPlusUtil.toColumns(Scheduling::getStartTime), monthPattern)
+                .or()
+                .like(MybatisPlusUtil.toColumns(Scheduling::getEndTime), monthPattern)
+            );
+        });
+        List<Scheduling> schedulingList = list(schedulingWrapper);
+
+        List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+        List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+
+        if (CollectionUtil.isEmpty(timeWorkPeople)) {
+            throw new CustomException("未查询到排班信息");
+        }
+
+        List<Scheduling> filteredSchedulingList = schedulingList.stream()
+            .filter(scheduling -> timeWorkPeople.stream()
+                .anyMatch(people -> people.getSchedulingId().equals(scheduling.getId()) && people.getEmployeeId().equals(staffId)))
+            .collect(Collectors.toList());
+        Set<LocalDate> allDates = new HashSet<>();
+        for (Scheduling scheduling : filteredSchedulingList) {
+            LocalDateTime startDateTime = parseDateTime(scheduling.getStartTime());
+            LocalDateTime endDateTime = parseDateTime(scheduling.getEndTime());
+            LocalDate startDate = startDateTime.toLocalDate();
+            LocalDate endDate = endDateTime.toLocalDate();
+            while (!startDate.isAfter(endDate)) {
+                allDates.add(startDate);
+                startDate = startDate.plusDays(1);
+            }
+        }
+        List<String> sortedDates = allDates.stream().sorted()
+            .map(LocalDate::toString)
+            .collect(Collectors.toList());
+        outputObject.setBeans(sortedDates);
+        outputObject.settotal(sortedDates.size());
+    }
+
+    @Override
+    public void querySchedulingByStaffIdAndOneDay(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String staffId = map.get("staffId").toString();
+        // 格式为 "yyyy-MM-dd"
+        String day = map.get("day").toString();
+        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+        schedulingWrapper
+            .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
+            .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
+        List<Scheduling> schedulingList = list(schedulingWrapper);
+        List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+        List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+        if (CollectionUtil.isEmpty(timeWorkPeople)) {
+            throw new CustomException("未查询到排班信息");
+        }
+        List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+        List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
+        Map<String, List<SchedulingTime>> stringListMap = schedulingTimes.stream()
+            .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
+        Set<String> timeSegments = new HashSet<>();
+        for (Scheduling scheduling : schedulingList) {
+            List<SchedulingTime> schedulingTimes1 = stringListMap.getOrDefault(scheduling.getId(), Collections.emptyList());
+            for (SchedulingTime time : schedulingTimes1) {
+                if (timeWorkPeople.stream().anyMatch(people -> people.getSchedulingTimeId().equals(time.getId()))) {
+                    timeSegments.add(time.getStartTime() + " - " + time.getEndTime());
+                }
+            }
+        }
+        outputObject.setBean(new ArrayList<>(timeSegments));
+        outputObject.settotal(timeSegments.size());
+    }
+
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        try {
+            return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDateTime.parse(dateTimeStr + ":00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            } catch (DateTimeParseException e2) {
+                return LocalDateTime.parse(dateTimeStr + " 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            }
+        }
+    }
+
 
     private void getStaffMation(List<SchedulingTimeWorkPeople> timeWorkPeople) {
         List<String> employIdList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList());
@@ -689,9 +834,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> idList = Arrays.asList(ids.split(CommonCharConstants.COMMA_MARK));
         deleteById(idList);
     }
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
 
     @Override
     public void querySchedulingList(InputObject inputObject, OutputObject outputObject) {
