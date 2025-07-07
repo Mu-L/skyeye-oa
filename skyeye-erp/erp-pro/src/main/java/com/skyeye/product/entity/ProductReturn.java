@@ -30,6 +30,10 @@ public class ProductReturn extends SkyeyeFlowable {
     @ApiModelProperty(value = "总价钱")
     private String totalPrice;
 
+    @TableField("remark")
+    @ApiModelProperty(value = "备注")
+    private String remark;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "归还申请明细信息", required = "required,json")
     private List<ProductReturnChild> erpOrderItemList;
