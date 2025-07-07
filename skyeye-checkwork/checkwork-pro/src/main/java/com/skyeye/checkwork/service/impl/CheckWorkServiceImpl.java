@@ -23,7 +23,6 @@ import com.skyeye.checkwork.dao.CheckWorkDao;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CheckDayType;
@@ -34,7 +33,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.tenant.context.TenantContext;
-import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -451,7 +449,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String yearMonth = map.get("monthMation").toString();
         String timeId = map.get("timeId").toString();
         String userId = inputObject.getLogParams().get("id").toString();
-        List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
+        List<String> months = DateUtil.getPointMonthBeforeAfterMonth(yearMonth);
         LOGGER.info("需要查询的月份信息：{}", months);
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
@@ -840,7 +838,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCreateId), staffIds);
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCheckDate), dates);
         List<CheckWork> allCheckWork = list(queryWrapper);
-        List<Map<String,Object>> beans = JSONUtil.toBean(JSONUtil.toJsonStr(allCheckWork), null);
+        List<Map<String, Object>> beans = JSONUtil.toBean(JSONUtil.toJsonStr(allCheckWork), null);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
