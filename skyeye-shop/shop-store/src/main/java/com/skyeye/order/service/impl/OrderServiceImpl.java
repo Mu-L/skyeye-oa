@@ -16,6 +16,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -465,6 +466,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     @Override
+    @IgnoreTenant
     public Order selectById(String id) {
         Order order = super.selectById(id);
         Map<String, List<OrderItem>> orderItemList = orderItemService.queryListByParentId(Collections.singletonList(id));
