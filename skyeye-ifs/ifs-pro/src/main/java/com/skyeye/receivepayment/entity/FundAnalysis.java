@@ -41,17 +41,9 @@ public class FundAnalysis extends CommonInfo {
     @ApiModelProperty(value = "回付款金额", required = "double", defaultValue = "0")
     private String price;
 
-    @TableField("from_id")
-    @ApiModelProperty(value = "来源ID（付款id、回款id、应付id、应收id）")
-    private String fromId;
-
-    @TableField(exist = false)
-    @Property(value = "来源信息")
-    private Map<String, Object> fromMation;
-
-    @TableField("from_key")
-    @ApiModelProperty(value = "来源key（付款、回款）")
-    private String fromKey;
+    @TableField("type_id")
+    @ApiModelProperty(value = "支付类型")
+    private String typeId;
 
     @TableField(value = "create_time")
     @ApiModelProperty(value = "创建时间", required = "required")

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
+import org.checkerframework.checker.units.qual.A;
 
 import java.util.Map;
 
@@ -31,6 +32,10 @@ public class ReceivePayment extends SkyeyeFlowable {
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据id(客户/供应商)", required = "required")
     private String objectId;
+
+    @TableField(exist = false)
+    @Property("客户/供应商信息")
+    private Map<String,Object> objectMation;
 
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据的key", required = "required")
@@ -57,7 +62,7 @@ public class ReceivePayment extends SkyeyeFlowable {
     private String remark;
 
     @TableField("from_id")
-    @ApiModelProperty(value = "来源ID（付款id、回款id、应付id、应收id）")
+    @ApiModelProperty(value = "来源ID（付款id,回款id）")
     private String fromId;
 
     @TableField(exist = false)

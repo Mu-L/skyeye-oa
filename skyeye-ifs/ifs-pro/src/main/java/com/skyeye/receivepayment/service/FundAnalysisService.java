@@ -16,5 +16,9 @@ import com.skyeye.receivepayment.entity.FundAnalysis;
 public interface FundAnalysisService extends SkyeyeBusinessService<FundAnalysis> {
     void writeFundAnalysisRecord(String tenantId);
 
-    void queryFundAnalysis(InputObject inputObject, OutputObject outputObject);
+    void queryFundPercentage(InputObject inputObject, OutputObject outputObject);
+
+    void queryFundTypePercentage(InputObject inputObject, OutputObject outputObject);
+
+    void queryFundMetrics(InputObject inputObject, OutputObject outputObject);
 }

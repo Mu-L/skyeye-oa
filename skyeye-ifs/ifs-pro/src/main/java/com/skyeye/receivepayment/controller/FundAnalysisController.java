@@ -1,9 +1,13 @@
 package com.skyeye.receivepayment.controller;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.FundAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,9 +28,36 @@ public class FundAnalysisController {
     @Autowired
     private FundAnalysisService fundAnalysisService;
 
-    @ApiOperation(id = "queryFundAnalysis", value = "获取每月的资金分析", method = "POST", allUse = "2")
-    @RequestMapping("/post/FundAnalysisController/queryFundAnalysis")
-    public void queryFundAnalysis(InputObject inputObject, OutputObject outputObject) {
-        fundAnalysisService.queryFundAnalysis(inputObject, outputObject);
+    @ApiOperation(id = "queryFundPercentage", value = "客户和供应商资金占比", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id="year", name = "year", value = "年份", required = "required"),
+            @ApiImplicitParam(id="month", name = "month", value = "月份")
+    })
+    @RequestMapping("/post/FundAnalysisController/queryFundPercentage")
+    public void queryFundPercentage(InputObject inputObject, OutputObject outputObject) {
+        fundAnalysisService.queryFundPercentage(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryFundTypePercentage", value = "客户和供应商付款方式占比", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id="year", name = "year", value = "年份", required = "required"),
+            @ApiImplicitParam(id="month", name = "month", value = "月份")
+    })
+    @RequestMapping("/post/FundAnalysisController/queryFundTypePercentage")
+    public void queryFundTypePercentage(InputObject inputObject, OutputObject outputObject) {
+        fundAnalysisService.queryFundTypePercentage(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryFundMetrics", value = "客户/供应商,回款/付款关键指标", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id="year", name = "year", value = "年份", required = "required"),
+            @ApiImplicitParam(id="objectKey", name = "objectKey", value = "客户/供应商serviceClassName", required = "required"),
+            @ApiImplicitParam(id="month", name = "month", value = "月份")
+    })
+    @RequestMapping("/post/FundAnalysisController/queryFundMetrics")
+    public void queryFundMetrics(InputObject inputObject, OutputObject outputObject) {
+        fundAnalysisService.queryFundMetrics(inputObject, outputObject);
+    }
+
+
 }

@@ -44,7 +44,7 @@ public class ReceivePaymentController {
         receivePaymentService.createEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryReceivePaymentList", value = "根据objectId/objectKey(客户/供应商id)获取应收事项列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryReceivePaymentList", value = "根据objectKey(客户/供应商ServiceClassName)获取应收事项列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentList")
     public void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject) {
