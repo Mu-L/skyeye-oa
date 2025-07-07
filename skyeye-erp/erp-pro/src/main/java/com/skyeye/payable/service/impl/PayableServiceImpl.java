@@ -66,7 +66,9 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     @Override
     public QueryWrapper<Payable> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Payable> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Payable::getObjectId), commonPageInfo.getObjectId());
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Payable::getObjectId), commonPageInfo.getObjectId());
+        }
         return queryWrapper;
     }
 

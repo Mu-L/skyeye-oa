@@ -20,10 +20,12 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.CrmContractService;
 import com.skyeye.eve.flowable.classenum.FormSubType;
+import com.skyeye.exception.CustomException;
 import com.skyeye.payment.classenum.CrmPaymentCollectionAuthEnum;
 import com.skyeye.payment.dao.PaymentCollectionDao;
 import com.skyeye.payment.entity.PaymentCollection;
 import com.skyeye.payment.service.PaymentCollectionService;
+import com.skyeye.receivable.entity.Receivable;
 import com.skyeye.receivable.service.ReceivableService;
 import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.slf4j.Logger;
@@ -75,6 +77,16 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         QueryWrapper<PaymentCollection> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(PaymentCollection::getObjectId), commonPageInfo.getObjectId());
         return queryWrapper;
+    }
+
+    @Override
+    protected void validatorEntity(PaymentCollection entity) {
+        super.validatorEntity(entity);
+        Receivable receivable = receivableService.selectById(entity.getReceivableId());
+        double price = Double.parseDouble(receivable.getAmountPrice()) - Double.parseDouble(entity.getPrice()) - Double.parseDouble(receivable.getPaidPrice());
+        if (price < CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("收款金额不能大于需收金额");
+        }
     }
 
     @Override
@@ -135,7 +147,7 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         // 远程调用新增收付款信息
         entity.setFormSubType(FormSubType.DRAFT.getKey());
         Map<String, Object> map = BeanUtil.beanToMap(entity);
-        map.put("fromKey",getServiceClassName());
+        map.put("fromKey", getServiceClassName());
         ifsReceivePaymentService.addIFsReceivePayment(map);
     }
 
