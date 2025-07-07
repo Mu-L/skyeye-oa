@@ -13,4 +13,6 @@ public interface SchedulingTimeService extends SkyeyeBusinessService<SchedulingT
     List<SchedulingTime> querySchedulingTimeByTimeIds(List<String> timeIds);
 
     void deleteBySchedulingIds(List<String> ids);
+
+    List<SchedulingTime> querySchedulingTimeByIds(List<String> schedulingTimeIds);
 }

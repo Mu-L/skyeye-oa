@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.scheduling.dao.SchedulingTimeDao;
 import com.skyeye.scheduling.entity.SchedulingTime;
@@ -151,6 +150,16 @@ public class SchedulingTimeServiceImpl extends SkyeyeBusinessServiceImpl<Schedul
         QueryWrapper<SchedulingTime> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTime::getSchedulingId), ids);
         remove(queryWrapper);
+    }
+
+    @Override
+    public List<SchedulingTime> querySchedulingTimeByIds(List<String> schedulingTimeIds) {
+        if (CollectionUtil.isEmpty(schedulingTimeIds)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<SchedulingTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, schedulingTimeIds);
+        return list(queryWrapper);
     }
 
 }
