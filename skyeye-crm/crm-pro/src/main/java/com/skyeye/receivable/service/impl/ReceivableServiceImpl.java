@@ -68,7 +68,9 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
     @Override
     public QueryWrapper<Receivable> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Receivable> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Receivable::getObjectId), commonPageInfo.getObjectId());
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Receivable::getObjectId), commonPageInfo.getObjectId());
+        }
         return queryWrapper;
     }
 

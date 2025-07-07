@@ -20,6 +20,8 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.SupplierContractService;
 import com.skyeye.eve.flowable.classenum.FormSubType;
+import com.skyeye.exception.CustomException;
+import com.skyeye.payable.entity.Payable;
 import com.skyeye.payable.service.PayableService;
 import com.skyeye.payment.classenum.ErpPaymentAuthEnum;
 import com.skyeye.payment.dao.PaymentDao;
@@ -83,6 +85,16 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
     }
 
     @Override
+    public void validatorEntity(Payment entity) {
+        super.validatorEntity(entity);
+        Payable payable = payableService.selectById(entity.getPayableId());
+        double price = Double.parseDouble(payable.getAmountPrice()) - Double.parseDouble(entity.getPrice()) - Double.parseDouble(payable.getPaidPrice());
+        if (price < CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("支付金额不能大于需付金额");
+        }
+    }
+
+    @Override
     public Payment selectById(String id) {
         Payment paymentCollection = super.selectById(id);
         paymentCollection.setName(paymentCollection.getOddNumber());
@@ -132,7 +144,7 @@ public class PaymentServiceImpl extends SkyeyeFlowableServiceImpl<PaymentDao, Pa
         // 远程调用财政管理--新增收付款管理
         entity.setFormSubType(FormSubType.DRAFT.getKey());
         Map<String, Object> map = BeanUtil.beanToMap(entity);
-        map.put("fromKey",getServiceClassName());
+        map.put("fromKey", getServiceClassName());
         ifsReceivePaymentService.addIFsReceivePayment(map);
     }
 

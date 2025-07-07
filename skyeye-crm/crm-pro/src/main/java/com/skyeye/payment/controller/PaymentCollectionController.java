@@ -128,7 +128,7 @@ public class PaymentCollectionController {
         paymentCollectionService.queryPaymentCollectionByContractId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryPaymentCollectionByIds", value = "根据ids批量获取回款信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryPaymentCollectionByIds", value = "根据ids批量获取回款信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
     @RequestMapping("/post/PaymentCollectionController/queryPaymentCollectionByIds")
