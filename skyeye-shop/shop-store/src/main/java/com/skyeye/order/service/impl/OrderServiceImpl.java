@@ -566,7 +566,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         if (!Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey())) {
             throw new CustomException("该订单不可支付。");
         }
-        Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, "", channelExtras, payProperties.getOrderNotifyUrl()).getBean();
+        Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, StrUtil.EMPTY, channelExtras, payProperties.getOrderNotifyUrl()).getBean();
         Map<String, Object> payChannel = JSONUtil.toBean(payRresult.get("payChannel").toString(), null);
         Map<String, Object> payOrderRespDTO = JSONUtil.toBean(payRresult.get("payOrderRespDTO").toString(), null);
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();

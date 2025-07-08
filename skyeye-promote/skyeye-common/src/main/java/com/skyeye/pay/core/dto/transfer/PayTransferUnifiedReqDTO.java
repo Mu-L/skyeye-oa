@@ -32,7 +32,7 @@ public class PayTransferUnifiedReqDTO {
     private String outTransferNo;
 
     @ApiModelProperty(value = "转账金额，单位：分", required = "required")
-    private Integer price;
+    private String price;
 
     @ApiModelProperty(value = "转账标题，长度不能超过 128", required = "required")
     private String subject;

@@ -128,7 +128,7 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
             .outTradeNo(reqDTO.getOutTradeNo())
             .body(reqDTO.getSubject())
             .detail(reqDTO.getBody())
-            .totalFee(reqDTO.getPrice()) // 单位分
+            .totalFee(Integer.parseInt(reqDTO.getPrice())) // 单位分
             .timeExpire(formatDateV2(reqDTO.getExpireTime()))
             .spbillCreateIp(reqDTO.getUserIp())
             .notifyUrl(reqDTO.getNotifyUrl())
@@ -145,7 +145,7 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         WxPayUnifiedOrderV3Request request = new WxPayUnifiedOrderV3Request();
         request.setOutTradeNo(reqDTO.getOutTradeNo());
         request.setDescription(reqDTO.getSubject());
-        request.setAmount(new WxPayUnifiedOrderV3Request.Amount().setTotal(reqDTO.getPrice())); // 单位分
+        request.setAmount(new WxPayUnifiedOrderV3Request.Amount().setTotal(Integer.parseInt(reqDTO.getPrice()))); // 单位分
         request.setTimeExpire(formatDateV3(reqDTO.getExpireTime()));
         request.setSceneInfo(new WxPayUnifiedOrderV3Request.SceneInfo().setPayerClientIp(reqDTO.getUserIp()));
         request.setNotifyUrl(reqDTO.getNotifyUrl());
@@ -276,9 +276,9 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         WxPayRefundRequest request = new WxPayRefundRequest()
             .setOutTradeNo(reqDTO.getOutTradeNo())
             .setOutRefundNo(reqDTO.getOutRefundNo())
-            .setRefundFee(reqDTO.getRefundPrice())
+            .setRefundFee(Integer.parseInt(reqDTO.getRefundPrice()))
             .setRefundDesc(reqDTO.getReason())
-            .setTotalFee(reqDTO.getPayPrice())
+            .setTotalFee(Integer.parseInt(reqDTO.getPayPrice()))
             .setNotifyUrl(reqDTO.getNotifyUrl());
         // 2.1 执行请求
         WxPayRefundResult response = client.refundV2(request);
@@ -295,8 +295,8 @@ public abstract class AbstractWxPayClient extends AbstractPayClient<WxPayClientC
         WxPayRefundV3Request request = new WxPayRefundV3Request()
             .setOutTradeNo(reqDTO.getOutTradeNo())
             .setOutRefundNo(reqDTO.getOutRefundNo())
-            .setAmount(new WxPayRefundV3Request.Amount().setRefund(reqDTO.getRefundPrice())
-                .setTotal(reqDTO.getPayPrice()).setCurrency("CNY"))
+            .setAmount(new WxPayRefundV3Request.Amount().setRefund(Integer.parseInt(reqDTO.getRefundPrice()))
+                .setTotal(Integer.parseInt(reqDTO.getPayPrice())).setCurrency("CNY"))
             .setReason(reqDTO.getReason())
             .setNotifyUrl(reqDTO.getNotifyUrl());
         // 2.1 执行请求

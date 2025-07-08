@@ -30,10 +30,10 @@ public class PayRefundUnifiedReqDTO {
     private String reason;
 
     @ApiModelProperty(value = "支付金额，单位：分", required = "required")
-    private Integer payPrice;
+    private String payPrice;
 
     @ApiModelProperty(value = "退款金额，单位：分", required = "required")
-    private Integer refundPrice;
+    private String refundPrice;
 
     @ApiModelProperty(value = "支付结果的 notify 回调地址", required = "required")
     private String notifyUrl;

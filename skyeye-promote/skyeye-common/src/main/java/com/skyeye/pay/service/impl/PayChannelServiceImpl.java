@@ -111,8 +111,7 @@ public class PayChannelServiceImpl extends SkyeyeBusinessServiceImpl<PayChannelD
         if (ObjectUtil.isEmpty(payChannel)) {
             throw new CustomException("该支付渠道不存在");
         }
-        payClientFactory.createOrUpdatePayClient(id, payChannel.getCodeNum(), payChannel.getConfigMation());
-        return null;
+        return payClientFactory.createOrUpdatePayClient(id, payChannel.getCodeNum(), payChannel.getConfigMation());
     }
 
     @Override
