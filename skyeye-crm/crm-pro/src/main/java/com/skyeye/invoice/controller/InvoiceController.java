@@ -121,8 +121,19 @@ public class InvoiceController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryInvoiceStatistics", value = "发票统计", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id="year", name = "year", value = "年份", required = "required"),
+            @ApiImplicitParam(id="month", name = "month", value = "月份")
+    })
     @RequestMapping("/post/InvoiceController/queryInvoiceStatistics")
     public void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject) {
         invoiceService.queryInvoiceStatistics(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAllInvoicesLists", value = "获取所有的发票列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/InvoiceController/queryAllInvoicesLists")
+    public void queryAllInvoicesLists(InputObject inputObject, OutputObject outputObject) {
+        invoiceService.queryAllInvoicesLists(inputObject, outputObject);
     }
 }

@@ -20,6 +20,7 @@ import com.skyeye.payable.classenum.ErpSupplierPayableAuthEnum;
 import com.skyeye.payable.dao.PayableDao;
 import com.skyeye.payable.entity.Payable;
 import com.skyeye.payable.service.PayableService;
+import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,9 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
 
     @Autowired
     private IContactsService iContactsService;
+
+    @Autowired
+    private SupplierService supplierService;
 
     @Override
     public Class getAuthEnumClass() {
@@ -77,6 +81,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         supplierContractService.setMationForMap(beans, "contractId", "contractMation");
         iContactsService.setMationForMap(beans, "contactId", "contactMation");
+        supplierService.setMationForMap(beans,"objectId","objectMation");
         return beans;
     }
 
@@ -84,6 +89,7 @@ public class PayableServiceImpl extends SkyeyeFlowableServiceImpl<PayableDao, Pa
     public Payable selectById(String id) {
         Payable payable = super.selectById(id);
         payable.setName(payable.getOddNumber());
+        supplierService.setDataMation(payable, Payable::getObjectId);
         supplierContractService.setDataMation(payable, Payable::getContractId);
         iContactsService.setDataMation(payable, Payable::getContactId);
         return payable;

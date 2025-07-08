@@ -174,8 +174,8 @@ public class FundAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FundAnaly
         List<Map<String, Object>> beans;
         // 如果传入了月份，则计算该月的本期和上期
         if (StrUtil.isNotEmpty(month)) {
-            String startPeriod = year + "-" + month; // 本期开始时间
-            String endPeriod = year + "-" + month;  // 本期结束时间
+            String startPeriod = year + StrUtil.DASHED + month; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + month;  // 本期结束时间
             // 计算上期时间
             int yearInt = Integer.parseInt(year);
             int monthInt = Integer.parseInt(month);
@@ -184,22 +184,22 @@ public class FundAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FundAnaly
 
             if (monthInt == CommonNumConstants.NUM_ONE) {
                 // 如果是1月，则上期是去年12月
-                startPreviousPeriod = (yearInt - CommonNumConstants.NUM_ONE) + "-12";
-                endPreviousPeriod = (yearInt - CommonNumConstants.NUM_ONE) + "-12";
+                startPreviousPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPreviousPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
             } else {
                 // 如果不是1月，则上期是上个月
-                startPreviousPeriod = yearInt + "-" + String.format("%02d", monthInt - 1);
-                endPreviousPeriod = yearInt + "-" + String.format("%02d", monthInt - 1);
+                startPreviousPeriod = yearInt + StrUtil.DASHED + String.format("%02d", monthInt - 1);
+                endPreviousPeriod = yearInt + StrUtil.DASHED + String.format("%02d", monthInt - 1);
             }
             beans = extracted(startPeriod, endPeriod, startPreviousPeriod, endPreviousPeriod, objectKey);
 
         } else {
             // 如果没有传入月份，则计算全年的本期和上期
-            String startPeriod = year + "-01"; // 本期开始时间
-            String endPeriod = year + "-12";  // 本期结束时间
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
 
-            String startPreviousPeriod = (Integer.parseInt(year) - 1) + "-01"; // 上期开始时间
-            String endPreviousPeriod = (Integer.parseInt(year) - 1) + "-12";  // 上期结束时间
+            String startPreviousPeriod = (Integer.parseInt(year) - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 上期开始时间
+            String endPreviousPeriod = (Integer.parseInt(year) - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 上期结束时间
             beans = extracted(startPeriod, endPeriod, startPreviousPeriod, endPreviousPeriod, objectKey);
         }
         outputObject.setBeans(beans);

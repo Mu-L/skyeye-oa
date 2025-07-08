@@ -22,4 +22,6 @@ public interface SupplierInvoiceService extends SkyeyeFlowableService<SupplierIn
     void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject);
 
     void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject);
+
+    void queryAllInvoicesLists(InputObject inputObject, OutputObject outputObject);
 }

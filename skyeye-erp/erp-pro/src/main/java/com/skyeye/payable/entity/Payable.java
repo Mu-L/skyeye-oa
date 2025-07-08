@@ -45,6 +45,10 @@ public class Payable extends SkyeyeFlowable {
     @ApiModelProperty(value = "所属第三方业务数据id(供应商id)", required = "required")
     private String objectId;
 
+    @TableField(exist = false)
+    @Property(value = "供应商")
+    private Map<String, Object> objectMation;
+
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据的key", required = "required")
     private String objectKey;

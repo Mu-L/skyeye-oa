@@ -45,6 +45,10 @@ public class Receivable extends SkyeyeFlowable {
     @ApiModelProperty(value = "所属第三方业务数据id(客户id)", required = "required")
     private String objectId;
 
+    @TableField(exist = false)
+    @Property(value = "客户")
+    private Map<String, Object> objectMation;
+
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据的key", required = "required")
     private String objectKey;

@@ -6,6 +6,7 @@ package com.skyeye.invoice.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -25,6 +26,7 @@ import com.skyeye.invoice.entity.Invoice;
 import com.skyeye.invoice.service.InvoiceHeaderService;
 import com.skyeye.invoice.service.InvoiceService;
 import com.skyeye.payment.service.PaymentCollectionService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -125,27 +127,72 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
 
     @Override
     public void queryInvoiceStatistics(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String year = (String) params.get("year");
+        String month = (String) params.get("month");
+        if (StrUtil.isNotEmpty(month)) {
+            int yearInt = Integer.parseInt(year);
+            int monthInt = Integer.parseInt(month);
+            String startPeriod=year + StrUtil.DASHED + month;
+            String endPeriod = year + StrUtil.DASHED + month;
+            if (monthInt == CommonNumConstants.NUM_ONE) {
+                // 如果是1月，则上期是去年12月
+                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+            }
+            List<Map<String, Object>> beans = getBeans(startPeriod, endPeriod);
+            outputObject.setBeans(beans);
+
+        } else {
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
+            List<Map<String, Object>> beans = getBeans(startPeriod, endPeriod);
+            outputObject.setBeans(beans);
+        }
+    }
+
+    private List<Map<String, Object>> getBeans(String startPeriod, String endPeriod) {
         QueryWrapper<Invoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Invoice::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        List<Invoice> bean = list(queryWrapper);
+        List<Map<String, Object>> beans = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(bean)) {
+            Map<String, List<Invoice>> map = bean.stream().collect(Collectors.groupingBy(Invoice::getTypeId));
+            for (Map.Entry<String, List<Invoice>> entry : map.entrySet()) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("typeId", entry.getKey());
+                result.put("count", entry.getValue().size());
+                String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+                for (Invoice invoice : entry.getValue()) {
+                    price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                            StrUtil.isEmpty(invoice.getPrice()) ? "0" : invoice.getPrice(),
+                            price);
+                }
+                result.put("price", price);
+                beans.add(result);
+            }
+        }
+        return beans;
+    }
+
+    @Override
+    public void queryAllInvoicesLists(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Invoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Invoice::getCreateTime));
         List<Invoice> bean = list(queryWrapper);
-        // 按typeId分组
-        Map<String, List<Invoice>> map = bean.stream().collect(Collectors.groupingBy(Invoice::getTypeId));
-        List<Map<String, Object>> beans = new ArrayList<>();
-        for (Map.Entry<String, List<Invoice>> entry : map.entrySet()) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("typeId", entry.getKey());
-            result.put("count", entry.getValue().size());
-            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
-            for (Invoice invoice : entry.getValue()) {
-                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                        StrUtil.isEmpty(invoice.getPrice()) ? "0" : invoice.getPrice(),
-                        price);
-            }
-            result.put("price", price);
-            beans.add(result);
-        }
-        outputObject.setBeans(beans);
-        outputObject.settotal(beans.size());
+        // 合同信息
+        crmContractService.setDataMation(bean, Invoice::getContractId);
+        // 回款信息
+        paymentCollectionService.setDataMation(bean, Invoice::getPaymentCollectionId);
+        // 发票抬头
+        invoiceHeaderService.setDataMation(bean, Invoice::getInvoiceHeaderId);
+        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
+        iAuthUserService.setName(bean,"createId","createName");
+        outputObject.setBeans(bean);
+        outputObject.settotal(page.getTotal());
     }
 }

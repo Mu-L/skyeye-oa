@@ -15,12 +15,14 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.CrmContractService;
+import com.skyeye.customer.service.CustomerService;
 import com.skyeye.eve.contacts.service.IContactsService;
 import com.skyeye.receivable.classenum.CrmPayStateEnum;
 import com.skyeye.receivable.classenum.CrmReceivableAuthEnum;
 import com.skyeye.receivable.dao.ReceivableDao;
 import com.skyeye.receivable.entity.Receivable;
 import com.skyeye.receivable.service.ReceivableService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,9 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
 
     @Autowired
     private IContactsService iContactsService;
+
+    @Autowired
+    private CustomerService customerService;
 
 
     @Override
@@ -79,6 +84,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         crmContractService.setMationForMap(beans, "contractId", "contractMation");
         iContactsService.setMationForMap(beans, "contactId", "contactMation");
+        customerService.setMationForMap(beans,"objectId","objectMation");
         return beans;
     }
 
@@ -88,6 +94,7 @@ public class ReceivableServiceImpl extends SkyeyeFlowableServiceImpl<ReceivableD
         receivable.setName(receivable.getOddNumber());
         crmContractService.setDataMation(receivable, Receivable::getContractId);
         iContactsService.setDataMation(receivable, Receivable::getContactId);
+        customerService.setDataMation(receivable, Receivable::getObjectId);
         return receivable;
     }
 
