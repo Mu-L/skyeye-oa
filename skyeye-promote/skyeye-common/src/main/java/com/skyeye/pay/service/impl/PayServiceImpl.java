@@ -10,8 +10,10 @@ import com.google.common.collect.Maps;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.LocalDateTimeUtils;
 import com.skyeye.exception.CustomException;
 import com.skyeye.pay.core.PayClient;
 import com.skyeye.pay.core.dto.order.PayOrderRespDTO;
@@ -27,20 +29,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 /**
  * @ClassName: PayServiceImpl
- * @Description: 统一支付接口实现类
+ * @Description: 统一支付接口实现类--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2024/11/21 8:46
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "统一支付", groupName = "统一支付")
+@SkyeyeService(name = "统一支付", groupName = "统一支付", tenant = TenantEnum.NO_ISOLATION)
 public class PayServiceImpl implements PayService {
 
     private static Logger log = LoggerFactory.getLogger(PayServiceImpl.class);
@@ -78,7 +81,8 @@ public class PayServiceImpl implements PayService {
         unifiedReqDTO.setBody("购买商品信息");
         unifiedReqDTO.setNotifyUrl(notifyUrl);
         unifiedReqDTO.setReturnUrl(returnUrl);
-        unifiedReqDTO.setPrice(Integer.parseInt(data.get("payPrice").toString()));
+        unifiedReqDTO.setPrice(data.get("payPrice").toString());
+        unifiedReqDTO.setExpireTime(LocalDateTimeUtils.addTime(Duration.ofHours(24L)));
         PayOrderRespDTO payOrderRespDTO = client.unifiedOrder(unifiedReqDTO);
 
         // 3. 如果调用直接支付成功，则直接更新支付单状态为成功。例如说：付款码支付，免密支付时，就直接验证支付成功

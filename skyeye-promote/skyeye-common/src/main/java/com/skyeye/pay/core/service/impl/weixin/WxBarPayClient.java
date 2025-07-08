@@ -61,7 +61,7 @@ public class WxBarPayClient extends AbstractWxPayClient {
             .outTradeNo(reqDTO.getOutTradeNo())
             .body(reqDTO.getSubject())
             .detail(reqDTO.getBody())
-            .totalFee(reqDTO.getPrice()) // 单位分
+            .totalFee(Integer.parseInt(reqDTO.getPrice())) // 单位分
             .timeExpire(formatDateV2(expireTime))
             .spbillCreateIp(reqDTO.getUserIp())
             .authCode(getAuthCode(reqDTO))

@@ -46,7 +46,7 @@ public class PayOrderUnifiedReqDTO {
     // ========== 订单相关字段 ==========
 
     @ApiModelProperty(value = "支付金额，单位：分", required = "required")
-    private Integer price;
+    private String price;
 
     @ApiModelProperty(value = "支付过期时间", required = "required")
     private LocalDateTime expireTime;

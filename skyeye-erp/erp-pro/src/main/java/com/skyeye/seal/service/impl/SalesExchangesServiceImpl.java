@@ -150,7 +150,7 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
         if (FlowableConstants.APPROVAL_PASS.equalsIgnoreCase(result)) {
             approvalEndIsSuccess(entity);
             // 换货单审批通过后修改状态为待出库
-            editStateById(entity.getId(), String.valueOf(DepotOutState.NEED_OUT.getKey()));
+            editStateById(entity.getId(), ErpOrderStateEnum.NEED_Out.getKey());
         } else {
             approvalEndIsFailed(entity);
             editStateById(entity.getId(), FlowableStateEnum.REJECT.getKey());

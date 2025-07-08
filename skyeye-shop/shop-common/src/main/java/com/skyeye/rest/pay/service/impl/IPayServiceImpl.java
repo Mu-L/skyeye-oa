@@ -7,6 +7,7 @@ package com.skyeye.rest.pay.service.impl;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.base.rest.service.impl.IServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.ResultEntity;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.rest.pay.rest.IPayRest;
@@ -35,7 +36,7 @@ public class IPayServiceImpl extends IServiceImpl implements IPayService {
     public ResultEntity payment(Map<String, Object> data, String channelCode, String returnUrl, String channelExtras, String notifyUrl) {
         // 支付金额单位转换为分
         String payPrice = data.get("payPrice").toString();
-        payPrice = CalculationUtil.multiply(payPrice, "100");
+        payPrice = CalculationUtil.multiply(payPrice, CommonNumConstants.ONE_HUNDRED.toString(), CommonNumConstants.NUM_ZERO);
         data.put("payPrice", payPrice);
         Map<String, Object> params = new HashMap<>();
         params.put("data", JSONUtil.toJsonStr(data));

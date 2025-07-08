@@ -45,6 +45,10 @@ public class MealOrderChild extends CommonInfo {
     @Property(value = "套餐信息")
     private ShopMeal mealMation;
 
+    @TableField(exist = false)
+    @Property(value = "套餐名称")
+    private String name;
+
     @TableField("meal_price")
     @Property(value = "套餐金额")
     private String mealPrice;

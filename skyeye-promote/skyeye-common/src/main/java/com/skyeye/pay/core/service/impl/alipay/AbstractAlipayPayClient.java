@@ -19,6 +19,8 @@ import com.alipay.api.domain.*;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.*;
 import com.alipay.api.response.*;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.pay.core.dto.order.PayOrderRespDTO;
 import com.skyeye.pay.core.dto.order.PayOrderUnifiedReqDTO;
@@ -330,8 +332,8 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
 
     // ========== 各种工具方法 ==========
 
-    protected String formatAmount(Integer amount) {
-        return String.valueOf(amount / 100.0);
+    protected String formatAmount(String amount) {
+        return CalculationUtil.divide(amount, CommonNumConstants.ONE_HUNDRED.toString(), CommonNumConstants.NUM_TWO);
     }
 
     protected String formatTime(LocalDateTime time) {
