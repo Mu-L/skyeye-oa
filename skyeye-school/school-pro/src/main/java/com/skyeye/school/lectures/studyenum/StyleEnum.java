@@ -25,7 +25,6 @@ public enum StyleEnum implements SkyeyeEnumClass {
     MEDIUM("3", "中等", true, false),
     POOR("4", "较差", true, false);
 
-
     private String key;
 
     private String value;

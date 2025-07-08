@@ -19,14 +19,14 @@ import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadOutStockDao;
-import com.skyeye.product.entity.ProductLead;
-import com.skyeye.product.entity.ProductLeadChild;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
+import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +60,12 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Autowired
     private MaterialService materialService;
 
+    @Autowired
+    private ProductLeadService productLeadService;
+
+    @Autowired
+    private FarmService farmService;
+
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -74,10 +80,12 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> maps = super.queryPageData(inputObject);
-        iCustomerService.setMationForMap(maps, "holderId", "holderMation");
-        iProProjectService.setMationForMap(maps, "projectId", "projectMation");
-        return maps;
+        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+        productLeadService.setMationForMap(beans, "fromId", "fromMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
+        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        return beans;
     }
 
     @Override
@@ -145,6 +153,9 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         // 过滤掉数量为0的商品信息
         productLeadOutStock.setErpOrderItemList(productLeadOutStock.getErpOrderItemList().stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+        productLeadService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFromId);
+        farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
+        iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);
         iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
         materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
