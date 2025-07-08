@@ -155,9 +155,9 @@ public class SalesOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOutLe
             // 如果该销售换货订单的商品已经全部生成了销售出库单，那说明已经完成销售换货订单的内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 // 和退货不一样，换货同时需要出库和入库，state-> 出库状态， otherState-> 入库状态
-                salesExchangesService.editStateById(salesExchanges.getId(), String.valueOf(DepotOutState.COMPLATE_OUT.getKey()));
+                salesExchangesService.editStateById(salesExchanges.getId(), ErpOrderStateEnum.All_Out.getKey());
             } else {
-                salesExchangesService.editStateById(salesExchanges.getId(), String.valueOf(DepotOutState.PARTIAL_OUT.getKey()));
+                salesExchangesService.editStateById(salesExchanges.getId(), ErpOrderStateEnum.PARTIAL_Out.getKey());
             }
         }
     }

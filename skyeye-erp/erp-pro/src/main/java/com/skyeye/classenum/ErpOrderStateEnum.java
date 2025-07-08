@@ -27,7 +27,10 @@ import java.util.List;
 public enum ErpOrderStateEnum implements SkyeyeEnumClass {
 
     PARTIALLY_COMPLETED("partiallyCompleted", "部分完成", "orange", true, false),
-    COMPLETED("completed", "已完成", "green", true, false);
+    COMPLETED("completed", "已完成", "green", true, false),
+    NEED_Out("waitOutDepot", "待出库", "blue", true, false),
+    PARTIAL_Out("partOutDepot", "部分出库", "orange", true, false),
+    All_Out("allOutDepot", "全部出库", "green", true, false);
 
     private String key;
 
