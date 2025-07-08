@@ -5,6 +5,8 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.school.lesson.dao.LecturesRoleDao;
 import com.skyeye.school.lesson.entity.LecturesRole;
 import com.skyeye.school.lesson.service.LecturesRoleService;
+import com.skyeye.school.lesson.service.LecturesUserRoleService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,4 +20,15 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "听评课角色管理", groupName = "听评课角色管理")
 public class LecturesRoleServiceImpl extends SkyeyeBusinessServiceImpl<LecturesRoleDao, LecturesRole> implements LecturesRoleService {
+
+    @Autowired
+    private LecturesUserRoleService lecturesUserRoleService;
+
+
+    @Override
+    public void deletePostpose(LecturesRole entity) {
+        super.deletePostpose(entity);
+        // 删除与角色关联的用户记录
+        lecturesUserRoleService.deleteByRoleId(entity.getId());
+    }
 }

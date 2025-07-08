@@ -13,16 +13,13 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotPutState;
-import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductReturnInStockDao;
-import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.util.ErpOrderUtil;
@@ -119,6 +116,9 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         super.setOrCheckOperNumber(productReturnInStock.getErpOrderItemList(), true, stringIntegerMap);
         productReturnInStock.setErpOrderItemList(productReturnInStock.getErpOrderItemList().stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+        iCustomerService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
+        materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
+        materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         outputObject.setBean(productReturnInStock);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

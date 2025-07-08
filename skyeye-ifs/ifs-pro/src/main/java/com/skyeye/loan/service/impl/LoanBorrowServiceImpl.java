@@ -75,6 +75,7 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
+        iAuthUserService.setMationForMap(beans, "applicantId", "applicantMation");
         return beans;
     }
 
@@ -83,6 +84,7 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         LoanBorrow loanBorrow = super.selectById(id);
         iSysDictDataService.setDataMation(loanBorrow, LoanBorrow::getPayTypeId);
         iDepmentService.setDataMation(loanBorrow, LoanBorrow::getDepartmentId);
+        iAuthUserService.setDataMation(loanBorrow, LoanBorrow::getApplicantId);
         return loanBorrow;
     }
 

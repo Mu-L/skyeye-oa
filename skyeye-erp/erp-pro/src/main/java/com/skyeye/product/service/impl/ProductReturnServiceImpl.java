@@ -5,8 +5,11 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.service.MaterialNormsService;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductReturnDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
@@ -41,10 +44,20 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     @Autowired
     private ProductReturnInStockService productReturnInStockService;
 
+    @Autowired
+    private ICustomerService iCustomerService;
+
+    @Autowired
+    private MaterialNormsService materialNormsService;
+
+    @Autowired
+    private MaterialService materialService;
+
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        iCustomerService.setMationForMap(beans, "holderId", "customerMation");
         return beans;
     }
 
@@ -115,6 +128,9 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         ProductReturn productReturn = super.selectById(id);
         List<ProductReturnChild> productLeadChildren = productReturnChildService.selectProductLeadChildById(id);
         productReturn.setErpOrderItemList(productLeadChildren);
+        iCustomerService.setDataMation(productReturn, ProductReturn::getHolderId);
+        materialNormsService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getNormsId);
+        materialService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getMaterialId);
         return productReturn;
     }
 
