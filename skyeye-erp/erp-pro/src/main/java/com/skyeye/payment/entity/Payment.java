@@ -69,7 +69,7 @@ public class Payment extends SkyeyeFlowable {
     private String invoicePrice;
 
     @TableField(value = "payable_id")
-    @ApiModelProperty(value = "应付id", required = "required")
+    @ApiModelProperty(value = "应付id")
     private String payableId;
 
     @TableField(exist = false)

@@ -82,10 +82,12 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
     @Override
     protected void validatorEntity(PaymentCollection entity) {
         super.validatorEntity(entity);
-        Receivable receivable = receivableService.selectById(entity.getReceivableId());
-        double price = Double.parseDouble(receivable.getAmountPrice()) - Double.parseDouble(entity.getPrice()) - Double.parseDouble(receivable.getPaidPrice());
-        if (price < CommonNumConstants.NUM_ZERO) {
-            throw new CustomException("收款金额不能大于需收金额");
+        if(StrUtil.isNotEmpty(entity.getReceivableId())){
+            Receivable receivable = receivableService.selectById(entity.getReceivableId());
+            double price = Double.parseDouble(receivable.getAmountPrice()) - Double.parseDouble(entity.getPrice()) - Double.parseDouble(receivable.getPaidPrice());
+            if (price < CommonNumConstants.NUM_ZERO) {
+                throw new CustomException("收款金额不能大于需收金额");
+            }
         }
     }
 
@@ -143,7 +145,9 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         // 修改合同的回款金额
         crmContractService.updatePaymentPrice(entity.getContractId(), entity.getPrice());
         // 修改应收事项的已支付金额
-        receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
+        if(StrUtil.isNotEmpty(entity.getReceivableId())){
+            receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
+        }
         // 远程调用新增收付款信息
         entity.setFormSubType(FormSubType.DRAFT.getKey());
         Map<String, Object> map = BeanUtil.beanToMap(entity);
