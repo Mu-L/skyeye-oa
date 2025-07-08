@@ -5,6 +5,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadDao;
 import com.skyeye.product.entity.ProductLead;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "借出申请", groupName = "借出申请", flowable = true)
@@ -33,9 +35,13 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Autowired
     private ProductLeadOutStockService productLeadOutStockService;
 
+    @Autowired
+    private ICustomerService iCustomerService;
+
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
+        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
