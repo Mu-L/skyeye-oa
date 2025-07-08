@@ -38,7 +38,7 @@ public class ProductLeadChildServiceImpl extends SkyeyeBusinessServiceImpl<Produ
             for (ProductLeadChild productLeadChild : productLeadChildList) {
                 productLeadChild.setParentId(parentId);
             }
-            createEntity(productLeadChildList, StrUtil.EMPTY);
+            super.createEntity(productLeadChildList, StrUtil.EMPTY);
         }
     }
 
