@@ -24,6 +24,7 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
+import com.skyeye.rest.erp.service.IFarmStationService;
 import com.skyeye.scheduling.dao.SchedulingDao;
 import com.skyeye.scheduling.entity.*;
 import com.skyeye.scheduling.service.*;
@@ -82,64 +83,19 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Autowired
     private IAuthUserService iAuthUserService;
 
+    @Autowired
+    private IFarmStationService iFarmStationService;
+
     @Override
     protected void createPrepose(Scheduling entity) {
+        // 排班开始时间（yyyy-MM-dd）
         String startTime = entity.getStartTime();
+        // 排班结束时间（yyyy-MM-dd）
         String endTime = entity.getEndTime();
-
         boolean compareTime = DateUtil.compareTime(startTime, endTime, "yyyy-MM-dd");
         if (!compareTime) {
             throw new CustomException("开始时间不能大于结束时间");
         }
-        //TODO 重复排班问题，还没有解决
-        // 检查开始时间是否大于结束时间
-//        List<SchedulingTime> schedulingTimeMation = entity.getSchedulingTimeMation();
-//        if (CollectionUtil.isEmpty(schedulingTimeMation)) {
-//            throw new CustomException("请选择排班时间段");
-//        }
-//
-//        Map<String, Map<String, String>> scheduledEmployees = new HashMap<>();
-//        for (SchedulingTime schedulingTime : schedulingTimeMation) {
-//            String timePeriodId = schedulingTime.getId();
-//
-//            List<SchedulingTimeWork> schedulingTimeWorks = schedulingTime.getSchedulingTimeWorkMation();
-//            if (CollectionUtil.isEmpty(schedulingTimeWorks)) {
-//                throw new CustomException("时间段[" + timePeriodId + "]中没有工位信息");
-//            }
-//            for (SchedulingTimeWork schedulingTimeWork : schedulingTimeWorks) {
-//                String workStationId = schedulingTimeWork.getId();
-//
-//                List<SchedulingTimeWorkPeople> schedulingTimeWorkPeople = schedulingTimeWork.getSchedulingTimeWorkPeopleMation();
-//                if (CollectionUtil.isEmpty(schedulingTimeWorkPeople)) {
-//                    throw new CustomException("工位[" + workStationId + "]中没有员工信息");
-//                }
-//                for (SchedulingTimeWorkPeople people : schedulingTimeWorkPeople) {
-//                    String employeeId = people.getEmployeeId();
-//                    String schedulePath = String.format("时间段[%s]->工位[%s]->员工[%s]",
-//                        timePeriodId, workStationId, employeeId);
-//
-//                    if (scheduledEmployees.containsKey(employeeId)) {
-//                        // 检查该员工是否已经在同一时间段排班
-//                        if (scheduledEmployees.get(employeeId).containsKey(timePeriodId)) {
-//                            // 获取已存在的排班路径信息
-//                            String existingSchedulePath = scheduledEmployees.get(employeeId).get(timePeriodId);
-//                            throw new CustomException(String.format(
-//                                "员工[%s]在时间段[%s]中重复排班。\n" +
-//                                    "当前排班路径: %s\n" +
-//                                    "已存在的排班路径: %s",
-//                                employeeId, timePeriodId,
-//                                schedulePath,
-//                                existingSchedulePath));
-//                        }
-//                        scheduledEmployees.get(employeeId).put(timePeriodId, schedulePath);
-//                    } else {
-//                        Map<String, String> timePeriodMap = new HashMap<>();
-//                        timePeriodMap.put(timePeriodId, schedulePath);
-//                        scheduledEmployees.put(employeeId, timePeriodMap);
-//                    }
-//                }
-//            }
-//        }
     }
 
     @Override

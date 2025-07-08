@@ -36,8 +36,8 @@ public class FarmStationController {
      */
     @ApiOperation(id = "queryFarmStationList", value = "获取车间工位列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class,
-            value = {
-                    @ApiImplicitParam(id = "objectId", name = "objectId", value = "工序信息的主键id")})
+        value = {
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "工序信息的主键id")})
     @RequestMapping("/post/FarmStationController/queryFarmStationList")
     public void queryFarmStationList(InputObject inputObject, OutputObject outputObject) {
         farmStationService.queryPageList(inputObject, outputObject);
@@ -58,7 +58,6 @@ public class FarmStationController {
         farmStationService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-
     /**
      * 根据id获取车间工位信息
      *
@@ -67,7 +66,7 @@ public class FarmStationController {
      */
     @ApiOperation(id = "queryFarmStationById", value = "根据id获取车间工位信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/FarmStationController/queryFarmStationById")
     public void queryFarmStationById(InputObject inputObject, OutputObject outputObject) {
         farmStationService.selectById(inputObject, outputObject);
@@ -81,7 +80,7 @@ public class FarmStationController {
      */
     @ApiOperation(id = "deleteFarmStationById", value = "根据ID删除车间工位信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/FarmStationController/deleteFarmStationById")
     public void deleteFarmStationById(InputObject inputObject, OutputObject outputObject) {
         farmStationService.deleteById(inputObject, outputObject);
