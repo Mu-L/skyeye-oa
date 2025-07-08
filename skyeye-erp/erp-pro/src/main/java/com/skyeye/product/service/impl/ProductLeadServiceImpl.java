@@ -43,27 +43,13 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Override
     public void createPrepose(ProductLead entity) {
         super.createPrepose(entity);
-        depotYesOrNo(entity);
         getTotalPrice(entity);
     }
 
     @Override
     protected void updatePrepose(ProductLead entity) {
         super.updatePrepose(entity);
-        depotYesOrNo(entity);
         getTotalPrice(entity);
-    }
-
-    private static void depotYesOrNo(ProductLead entity) {
-        List<ProductLeadChild> erpOrderItemList = entity.getErpOrderItemList();
-        erpOrderItemList.forEach(
-            e -> {
-                String depotId = e.getDepotId();
-                if (StrUtil.isEmpty(depotId)) {
-                    throw new RuntimeException("请选择仓库");
-                }
-            }
-        );
     }
 
     private void getTotalPrice(ProductLead entity) {

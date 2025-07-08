@@ -17,7 +17,7 @@ public class IFarmStationServiceImpl extends IServiceImpl implements IFarmStatio
     private IFarmStationRest iFarmStationRest;
 
     @Override
-    public List<Map<String, Object>> queryAllFarmStationList() {
-        return ExecuteFeignClient.get(() -> iFarmStationRest.queryAllFarmStationList()).getRows();
+    public List<Map<String, Object>> queryFarmStationById(String workId) {
+        return ExecuteFeignClient.get(() -> iFarmStationRest.queryFarmStationById(workId)).getRows();
     }
 }
