@@ -35,7 +35,7 @@ public class LecturesRoleController {
         lecturesRoleService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeLecturesRole", value = "编辑/更新角色信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeLecturesRole", value = "新增/编辑角色信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = LecturesRole.class)
     @RequestMapping("/post/LecturesRoleController/writeLecturesRole")
     public void writeLecturesRole(InputObject inputObject, OutputObject outputObject) {
@@ -51,7 +51,7 @@ public class LecturesRoleController {
         lecturesRoleService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteLecturesRoleById", value = "根据id获取角色信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteLecturesRoleById", value = "根据id删除角色信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "角色id", required = "required")
     })

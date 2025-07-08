@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@SkyeyeService(name = "听评课角色管理", groupName = "听评课角色管理")
+@SkyeyeService(name = "质评角色听课量管理", groupName = "质评角色听课量管理")
 public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<LessonReviewTypeDao, LessonReviewType> implements LessonReviewTypeService {
 
     @Autowired
