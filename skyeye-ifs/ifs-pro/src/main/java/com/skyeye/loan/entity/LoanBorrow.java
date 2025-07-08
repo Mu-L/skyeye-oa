@@ -82,4 +82,12 @@ public class LoanBorrow extends SkyeyeFlowable {
     @ApiModelProperty(value = "已还款金额",defaultValue = "0")
     private String paidPrice;
 
+    @TableField("applicant_id")
+    @ApiModelProperty(value = "申请人id", required = "required")
+    private String applicantId;
+
+    @TableField(exist = false)
+    @Property(value = "申请人信息")
+    private Map<String, Object> applicantMation;
+
 }
