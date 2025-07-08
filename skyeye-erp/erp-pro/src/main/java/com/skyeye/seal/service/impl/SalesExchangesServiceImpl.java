@@ -4,21 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.constants.FlowableConstants;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -40,9 +34,7 @@ import com.skyeye.seal.service.SalesOutLetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -156,12 +148,14 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
             editStateById(entity.getId(), FlowableStateEnum.REJECT.getKey());
         }
     }
+
     @Override
     public void approvalEndIsSuccess(SalesExchanges entity) {
         entity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
     }
+
     @Override
     public void querySalesExchangesToDepotPutById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
@@ -188,8 +182,9 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
         if (ObjectUtil.isEmpty(salesExchanges)) {
             throw new CustomException("该数据不存在.");
         }
-        // 审核通过的可以转到仓库入库单
-        if (FlowableStateEnum.PASS.getKey().equals(salesExchanges.getState())) {
+        // 当状态为待出库、部分出库、全部出库时，表示已经审核通过     并且该单据需要入库时，则可以进行转入库
+        if (Arrays.asList(ErpOrderStateEnum.NEED_Out.getKey(), ErpOrderStateEnum.PARTIAL_Out.getKey(), ErpOrderStateEnum.All_Out.getKey())
+                .contains(salesExchanges.getState()) && Objects.equals(salesExchanges.getNeedDepot(), WhetherEnum.ENABLE_USING.getKey())) {
             String userId = inputObject.getLogParams().get("id").toString();
             depotPut.setFromId(depotPut.getId());
             depotPut.setFromTypeId(DepotPutFromType.SALES_EXCHANGES.getKey());
@@ -226,8 +221,9 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
         if (ObjectUtil.isEmpty(salesExchanges)) {
             throw new CustomException("该数据不存在.");
         }
-        // 审核通过的可以转到仓库入库单
-        if (FlowableStateEnum.PASS.getKey().equals(salesExchanges.getState())) {
+        // 当状态为待出库、部分出库、全部出库时，表示已经审核通过   此时可以进行出库操作
+        if (Arrays.asList(ErpOrderStateEnum.NEED_Out.getKey(), ErpOrderStateEnum.PARTIAL_Out.getKey(), ErpOrderStateEnum.All_Out.getKey())
+                .contains(salesExchanges.getState())) {
             String userId = inputObject.getLogParams().get("id").toString();
             salesOutLet.setFromId(salesOutLet.getId());
             salesOutLet.setFromTypeId(SealOutLetFromType.SALE_EXCHANGES.getKey());
