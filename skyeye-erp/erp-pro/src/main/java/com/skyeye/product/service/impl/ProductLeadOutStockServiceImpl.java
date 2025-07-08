@@ -13,16 +13,21 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.DepotOutFromType;
+import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.service.MaterialNormsService;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadOutStockDao;
+import com.skyeye.product.entity.ProductLead;
+import com.skyeye.product.entity.ProductLeadChild;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
+import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +48,18 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Autowired
     private DepotOutService depotOutService;
 
+    @Autowired
+    private ICustomerService iCustomerService;
+
+    @Autowired
+    private IProProjectService iProProjectService;
+
+    @Autowired
+    private MaterialNormsService materialNormsService;
+
+    @Autowired
+    private MaterialService materialService;
+
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -53,6 +70,14 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
             queryWrapper.eq(MybatisPlusUtil.toColumns(ProductLeadOutStock::getFromId), commonPageInfo.getFromId());
         }
         return queryWrapper;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+        List<Map<String, Object>> maps = super.queryPageData(inputObject);
+        iCustomerService.setMationForMap(maps, "holderId", "holderMation");
+        iProProjectService.setMationForMap(maps, "projectId", "projectMation");
+        return maps;
     }
 
     @Override
@@ -112,7 +137,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Override
     public void queryProductLeadOutStockById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
-        ProductLeadOutStock productLeadOutStock = selectById(id);
+        ProductLeadOutStock productLeadOutStock = super.selectById(id);
         // 该出库单下的已经下达仓库出库单(审核通过)的数量
         Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(productLeadOutStock.getId());
         // 设置未下达商品数量-----补料出库单数量 - 已出库数量
@@ -120,6 +145,9 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         // 过滤掉数量为0的商品信息
         productLeadOutStock.setErpOrderItemList(productLeadOutStock.getErpOrderItemList().stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+        iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
+        materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
+        materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         outputObject.setBean(productLeadOutStock);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
