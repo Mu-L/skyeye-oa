@@ -30,6 +30,7 @@ public class JobCodeController {
 	@Resource
 	private XxlJobLogGlueDao xxlJobLogGlueDao;
 
+
 	@RequestMapping
 	public String index(HttpServletRequest request, Model model, int jobId) {
 		XxlJobInfo jobInfo = xxlJobInfoDao.loadById(jobId);

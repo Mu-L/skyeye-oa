@@ -4,6 +4,7 @@
 
 package com.skyeye.mq.job.impl;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.tenant.context.TenantContext;
@@ -15,6 +16,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -29,9 +31,9 @@ import java.util.Map;
  */
 @Component
 @RocketMQMessageListener(
-    topic = "${topic.sms-send-service}",
-    consumerGroup = "${topic.sms-send-service}",
-    selectorExpression = "${spring.profiles.active}")
+        topic = "${topic.sms-send-service}",
+        consumerGroup = "${topic.sms-send-service}",
+        selectorExpression = "${spring.profiles.active}")
 public class SmsSendConsumer implements RocketMQListener<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SmsSendConsumer.class);
@@ -42,12 +44,20 @@ public class SmsSendConsumer implements RocketMQListener<String> {
     @Autowired
     private SmsSendService smsSendService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Override
     public void onMessage(String data) {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         String content = map.get("content").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             TenantContext.setTenantId(map.get("tenantId").toString());
             // 任务开始
             jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");

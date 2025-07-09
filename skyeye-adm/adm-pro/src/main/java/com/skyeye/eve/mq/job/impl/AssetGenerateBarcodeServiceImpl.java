@@ -10,6 +10,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.FileConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.eve.assets.entity.Asset;
 import com.skyeye.eve.assets.entity.AssetReport;
@@ -65,6 +66,9 @@ public class AssetGenerateBarcodeServiceImpl implements RocketMQListener<String>
     @Autowired
     private ICodeRuleService iCodeRuleService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     private static final Integer FILE_SAVE_PATH = FileConstants.FileUploadPath.ASSET_PURCHASE_GENERATE_BARCODE.getType()[0];
 
     @Override
@@ -74,6 +78,12 @@ public class AssetGenerateBarcodeServiceImpl implements RocketMQListener<String>
         List<Map<String, Object>> list = JSONUtil.toList(map.get("list").toString(), null);
         String className = map.get("className").toString();
         String userId = map.get("userId").toString();
+        String tenantId = StrUtil.EMPTY;
+        if (tenantEnable) {
+            tenantId = map.get("tenantId").toString();
+            TenantContext.setTenantId(tenantId);
+        }
+
 
         List<String> assetIdList = list.stream().map(bean -> bean.get("assetId").toString()).distinct().collect(Collectors.toList());
         Map<String, Asset> assetMap = assetService.selectMapByIds(assetIdList);

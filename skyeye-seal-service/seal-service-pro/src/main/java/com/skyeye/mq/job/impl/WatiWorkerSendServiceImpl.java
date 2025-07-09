@@ -44,9 +44,9 @@ import java.util.Map;
  */
 @Component
 @RocketMQMessageListener(
-    topic = "${topic.wati-worker-send-service}",
-    consumerGroup = "${topic.wati-worker-send-service}",
-    selectorExpression = "${spring.profiles.active}")
+        topic = "${topic.wati-worker-send-service}",
+        consumerGroup = "${topic.wati-worker-send-service}",
+        selectorExpression = "${spring.profiles.active}")
 public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatiWorkerSendServiceImpl.class);
@@ -63,11 +63,19 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
     @Autowired
     private IUserNoticeService iUserNoticeService;
 
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
+
     @Override
     public void onMessage(String data) {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
+            String tenantId = StrUtil.EMPTY;
+            if (tenantEnable) {
+                tenantId = map.get("tenantId").toString();
+                TenantContext.setTenantId(tenantId);
+            }
             // 任务开始
             updateJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             // 工单id
@@ -98,7 +106,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                 if (CollectionUtil.isNotEmpty(afterSeal.getCooperationUserId())) {
                     // 获取协助人
                     List<Map<String, Object>> cooperationUser = iAuthUserService
-                        .queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(afterSeal.getCooperationUserId()));
+                            .queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(afterSeal.getCooperationUserId()));
 
                     for (Map<String, Object> user : cooperationUser) {
                         // 2.1内部消息
