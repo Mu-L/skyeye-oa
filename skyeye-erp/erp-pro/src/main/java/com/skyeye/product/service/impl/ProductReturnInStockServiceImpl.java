@@ -23,9 +23,7 @@ import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.dao.ProductReturnInStockDao;
-import com.skyeye.product.entity.ProductReturn;
 import com.skyeye.product.entity.ProductReturnInStock;
-import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
 import com.skyeye.rest.project.service.IProProjectService;
@@ -59,10 +57,10 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     private MaterialService materialService;
 
     @Autowired
-    private ProductLeadService productLeadService;
+    private FarmService farmService;
 
     @Autowired
-    private FarmService farmService;
+    private ProductReturnService productReturnService;
 
     @Override
     public QueryWrapper<ProductReturnInStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -79,7 +77,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
-        productLeadService.setMationForMap(beans, "fromId", "fromMation");
+        productReturnService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
@@ -131,9 +129,6 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
             }
         );
     }
-
-    @Autowired
-    private ProductReturnService productReturnService;
 
     @Override
     public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {

@@ -1,10 +1,14 @@
 package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.MapUtil;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
@@ -24,10 +28,12 @@ import com.skyeye.product.service.ProductReturnService;
 import com.skyeye.rest.project.service.IProProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
