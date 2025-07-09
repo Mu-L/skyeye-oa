@@ -30,9 +30,9 @@ public class FeeAnalysis extends CommonInfo {
     @ApiModelProperty("费用金额")
     private String price;
 
-    @TableField("year_month")
+    @TableField("period_time")
     @ApiModelProperty("年月")
-    private String yearMonth;
+    private String periodTime;
 
     @TableField("create_time")
     @ApiModelProperty("创建时间")

@@ -15,13 +15,9 @@ import com.skyeye.feeapplication.entity.FeeAnalysis;
 import com.skyeye.feeapplication.entity.FeeApplication;
 import com.skyeye.feeapplication.service.FeeAnalysisService;
 import com.skyeye.feeapplication.service.FeeApplicationService;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +52,7 @@ public class FeeAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FeeAnalysi
         for (int i = 1; i <= 12; i++) {
             String key = year + StrUtil.DASHED + (i < 10 ? "0" + i : i);
             FeeAnalysis feeAnalysis = new FeeAnalysis();
-            feeAnalysis.setYearMonth(key);
+            feeAnalysis.setPeriodTime(key);
             String price = "0";
             feeAnalysis.setPrice(price);
             if (feeAnalysisMap.containsKey(key)) {
@@ -81,8 +77,8 @@ public class FeeAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FeeAnalysi
         String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE;
         String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
         QueryWrapper<FeeAnalysis> queryWrapper = new QueryWrapper<>();
-        queryWrapper.between(MybatisPlusUtil.toColumns(FeeAnalysis::getYearMonth),startPeriod,endPeriod);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FeeAnalysis::getYearMonth));
+        queryWrapper.between(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime),startPeriod,endPeriod);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime));
         List<FeeAnalysis> beans = list(queryWrapper);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
