@@ -449,6 +449,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, orderId);
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
+            update(updateWrapper);
             refreshCache(orderId);
         }else {
             throw new CustomException("当前订单状态不为待支付或支付失败状态，不可修改");
