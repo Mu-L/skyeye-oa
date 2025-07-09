@@ -18,10 +18,15 @@ import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.service.FarmService;
+import com.skyeye.material.service.MaterialNormsService;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductReturnInStockDao;
 import com.skyeye.product.entity.ProductReturnInStock;
+import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
+import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,6 +47,21 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     @Autowired
     private DepotPutService depotPutService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
+    @Autowired
+    private MaterialNormsService materialNormsService;
+
+    @Autowired
+    private MaterialService materialService;
+
+    @Autowired
+    private ProductLeadService productLeadService;
+
+    @Autowired
+    private FarmService farmService;
+
     @Override
     public QueryWrapper<ProductReturnInStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductReturnInStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -55,19 +75,21 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     }
 
     @Override
+    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+        productLeadService.setMationForMap(beans, "fromId", "fromMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
+        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        return beans;
+    }
+
+    @Override
     public void validatorEntity(ProductReturnInStock entity) {
         List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
         if (CollectionUtil.isEmpty(erpOrderItemList)) {
             throw new CustomException("该归还入库订单没有商品信息");
         }
-        erpOrderItemList.forEach(
-            e -> {
-                String depotId = e.getDepotId();
-                if (StrUtil.isEmpty(depotId)) {
-                    throw new CustomException("商品[" + e.getMaterialMation().getName() + "]没有选择仓库");
-                }
-            }
-        );
         entity.setOtherState(DepotPutState.NEED_PUT.getKey());
         checkMaterialNorms(entity, false);
     }
