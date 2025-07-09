@@ -43,21 +43,21 @@ public class LecturesUserRoleController {
         lecturesUserRoleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryLecturesRoleById", value = "根据id获取角色信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryLecturesUserRoleById", value = "根据id获用户角色信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
-    @RequestMapping("/post/LecturesUserRoleController/queryLecturesRoleById")
-    public void queryLecturesRoleById(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/LecturesUserRoleController/queryLecturesUserRoleById")
+    public void queryLecturesUserRoleById(InputObject inputObject, OutputObject outputObject) {
         lecturesUserRoleService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteLecturesRoleById", value = "根据id删除用户角色关联信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteLecturesUserRoleById", value = "根据id删除用户角色关联信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
-    @RequestMapping("/post/LecturesUserRoleController/deleteLecturesRoleById")
-    public void deleteLecturesRoleById(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/LecturesUserRoleController/deleteLecturesUserRoleById")
+    public void deleteLecturesUserRoleById(InputObject inputObject, OutputObject outputObject) {
         lecturesUserRoleService.deleteById(inputObject, outputObject);
     }
 }
