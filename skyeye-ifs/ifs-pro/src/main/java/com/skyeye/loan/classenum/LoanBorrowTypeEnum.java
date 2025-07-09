@@ -1,6 +1,7 @@
 package com.skyeye.loan.classenum;
 
 
+import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum LoanBorrowTypeEnum {
+public enum LoanBorrowTypeEnum implements SkyeyeEnumClass {
 
     PERSONAL(0 ,"个人借款", true, true),
     DEPARTMENT(1, "部门借款", true, false);

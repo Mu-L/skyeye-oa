@@ -1,6 +1,7 @@
 package com.skyeye.loan.classenum;
 
 
+import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,16 +17,18 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum LoanPaidStateEnum {
+public enum LoanPaidStateEnum implements SkyeyeEnumClass {
 
-    NOT_PAID(0, "未还款", true, false),
-    PART_PAID(1, "部分还款", true, false),
-    PAID(2, "已还款", true, false);
+    NOT_PAID(0, "未还款","red" ,true, false),
+    PART_PAID(1, "部分还款","yellow", true, false),
+    PAID(2, "已还款", "green",true, false);
 
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

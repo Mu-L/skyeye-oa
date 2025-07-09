@@ -41,34 +41,23 @@ public class FeeAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FeeAnalysi
 
     @Override
     public void writeFeeAnalysisRecord() {
-        // 每年执行一次
-        //获取今年所有审批通过的费用申请单
-        int year = Integer.parseInt(DateUtil.getPointTime(DateUtil.YYYY)) - CommonNumConstants.NUM_ONE;
-        List<FeeApplication> feeApplicationsList = feeApplicationService.queryFeeApplicationListByYear(year);
-        // 按格式化createTime字段分组，格式为YYYY-MM
-        Map<String, List<FeeApplication>> feeAnalysisMap = feeApplicationsList.stream().collect(Collectors.groupingBy(feeApplication -> feeApplication.getCreateTime().substring(0, 7)));
-        // 循环12个月
-        List<FeeAnalysis> feeAnalysisList = new ArrayList<>();
-        for (int i = 1; i <= 12; i++) {
-            String key = year + StrUtil.DASHED + (i < 10 ? "0" + i : i);
-            FeeAnalysis feeAnalysis = new FeeAnalysis();
-            feeAnalysis.setPeriodTime(key);
-            String price = "0";
-            feeAnalysis.setPrice(price);
-            if (feeAnalysisMap.containsKey(key)) {
-                List<FeeApplication> feeApplicationList = feeAnalysisMap.get(key);
-                // 计算费用总和
-                for (FeeApplication feeApplication : feeApplicationList) {
-                    price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                            StrUtil.isEmpty(feeApplication.getPrice()) ? "0" : feeApplication.getPrice(),
-                            price);
-                }
-                feeAnalysis.setPrice(price);
-            }
-            feeAnalysis.setCreateTime(DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH_MM_SS));
-            feeAnalysisList.add(feeAnalysis);
+        // 每月执行一次
+        //获取上个月所有审批通过的费用申请单
+        String month = DateUtil.getLastMonthDate();
+        List<FeeApplication> feeApplicationsList = feeApplicationService.queryFeeApplicationList(month);
+        FeeAnalysis feeAnalysis = new FeeAnalysis();
+        feeAnalysis.setPeriodTime(month);
+        String price = "0";
+        feeAnalysis.setPrice(price);
+        // 计算费用总和
+        for (FeeApplication feeApplication : feeApplicationsList) {
+            price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                    StrUtil.isEmpty(feeApplication.getPrice()) ? "0" : feeApplication.getPrice(),
+                    price);
         }
-        createEntity(feeAnalysisList,null);
+        feeAnalysis.setPrice(price);
+        feeAnalysis.setCreateTime(DateUtil.getPointTime(DateUtil.YYYY_MM_DD_HH_MM_SS));
+        createEntity(feeAnalysis, null);
     }
 
     @Override
@@ -77,9 +66,25 @@ public class FeeAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<FeeAnalysi
         String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE;
         String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
         QueryWrapper<FeeAnalysis> queryWrapper = new QueryWrapper<>();
-        queryWrapper.between(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime),startPeriod,endPeriod);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime));
-        List<FeeAnalysis> beans = list(queryWrapper);
+        queryWrapper.between(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime), startPeriod, endPeriod);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FeeAnalysis::getPeriodTime));
+        List<FeeAnalysis> bean = list(queryWrapper);
+        // 按periodTime分组
+        Map<String, List<FeeAnalysis>> map = bean.stream().collect(Collectors.groupingBy(FeeAnalysis::getPeriodTime));
+        // 循环12个月
+        List<FeeAnalysis> beans = new ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            String time = year + StrUtil.DASHED + (i < 10 ? "0" + i : i);
+            if (map.containsKey(time)) {
+                List<FeeAnalysis> list = map.get(time);
+                beans.add(list.get(CommonNumConstants.NUM_ZERO));
+            } else {
+                FeeAnalysis feeAnalysis = new FeeAnalysis();
+                feeAnalysis.setPeriodTime(time);
+                feeAnalysis.setPrice("0");
+                beans.add(feeAnalysis);
+            }
+        }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

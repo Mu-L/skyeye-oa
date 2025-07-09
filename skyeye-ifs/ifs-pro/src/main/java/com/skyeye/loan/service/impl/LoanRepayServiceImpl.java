@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.loan.dao.LoanRepayDao;
@@ -52,7 +53,7 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 借款单信息
-        loanBorrowService.setMationForMap(beans, "loanBorrowId","loanBorrowMation");
+        loanBorrowService.setMationForMap(beans, "loanBorrowId", "loanBorrowMation");
         return beans;
     }
 
@@ -60,17 +61,24 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
     public LoanRepay selectById(String id) {
         LoanRepay loanRepay = super.selectById(id);
         iSysDictDataService.setDataMation(loanRepay, LoanRepay::getPayTypeId);
-        loanBorrowService.setDataMation(loanRepay,LoanRepay::getLoanBorrowId);
+        loanBorrowService.setDataMation(loanRepay, LoanRepay::getLoanBorrowId);
         return loanRepay;
     }
 
     @Override
     public void approvalEndIsSuccess(LoanRepay entity) {
         userLoanService.calcUserLoanPrice(entity.getCreateId(), entity.getPrice(), false);
-        if(StrUtil.isNotEmpty(entity.getLoanBorrowId())){
+        if (StrUtil.isNotEmpty(entity.getLoanBorrowId())) {
             // 更新借款单状态
             loanBorrowService.updateLoanBorrowStatePrice(entity.getLoanBorrowId(), entity.getPrice());
         }
     }
 
+    @Override
+    public List<LoanRepay> queryLoanRepayList(String time) {
+        QueryWrapper<LoanRepay> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanRepay::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanRepay::getCreateTime) + ", '%Y-%m') = {0}", time);
+        return list(queryWrapper);
+    }
 }

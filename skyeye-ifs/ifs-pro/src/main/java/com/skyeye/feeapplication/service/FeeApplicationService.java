@@ -1,10 +1,8 @@
 package com.skyeye.feeapplication.service;
 
-import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.base.business.service.SkyeyeFlowableService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.feeapplication.entity.FeeAnalysis;
 import com.skyeye.feeapplication.entity.FeeApplication;
 
 import java.util.List;
@@ -20,7 +18,7 @@ import java.util.List;
 public interface FeeApplicationService extends SkyeyeFlowableService<FeeApplication> {
     void queryFeeApplicationAnalysis(InputObject inputObject, OutputObject outputObject);
 
-    List<FeeApplication> queryFeeApplicationListByYear(int year);
+    List<FeeApplication> queryFeeApplicationList(String time);
 
     void queryDepartmentFeeAnalysis(InputObject inputObject, OutputObject outputObject);
 }

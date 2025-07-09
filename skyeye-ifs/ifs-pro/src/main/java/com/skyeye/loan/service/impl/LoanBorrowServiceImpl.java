@@ -13,6 +13,7 @@ import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -159,5 +160,16 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         }
 
         outputObject.setBeans(result);
+    }
+
+    /**
+     * 时间格式 YYYY-MM
+     * */
+    @Override
+    public List<LoanBorrow> queryLoanBorrowList(String time) {
+        QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') = {0}", time);
+        return list(queryWrapper);
     }
 }

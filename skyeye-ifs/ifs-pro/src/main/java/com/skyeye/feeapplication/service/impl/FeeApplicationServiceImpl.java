@@ -79,14 +79,14 @@ public class FeeApplicationServiceImpl extends SkyeyeFlowableServiceImpl<FeeAppl
         }
     }
 
+    /**
+     * 时间格式 YYYY-MM
+     * */
     @Override
-    public List<FeeApplication> queryFeeApplicationListByYear(int year) {
-        String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE;
-        String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+    public List<FeeApplication> queryFeeApplicationList(String  time) {
         QueryWrapper<FeeApplication> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FeeApplication::getState), FlowableStateEnum.PASS.getKey());
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(FeeApplication::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(FeeApplication::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(FeeApplication::getCreateTime) + ", '%Y-%m') = {0}", time);
         return list(queryWrapper);
     }
 

@@ -1,5 +1,6 @@
 package com.skyeye.receivepayment.classenum;
 
+import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum ReceivePaymentKeyEnum {
+public enum ReceivePaymentKeyEnum implements SkyeyeEnumClass {
 
     ERP_PURCHASE_ORDER_KEY("com.skyeye.payable.service.impl.PayableServiceImpl","应付事项",true,false),
     ERP_PAYMENT_KEY("com.skyeye.payment.service.impl.PaymentServiceImpl","付款",true,false),

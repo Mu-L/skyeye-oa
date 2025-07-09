@@ -7,6 +7,8 @@ package com.skyeye.loan.service;
 import com.skyeye.base.business.service.SkyeyeFlowableService;
 import com.skyeye.loan.entity.LoanRepay;
 
+import java.util.List;
+
 /**
  * @ClassName: LoanRepayService
  * @Description: 还款单服务接口层
@@ -17,4 +19,5 @@ import com.skyeye.loan.entity.LoanRepay;
  */
 public interface LoanRepayService extends SkyeyeFlowableService<LoanRepay> {
 
+    List<LoanRepay> queryLoanRepayList(String  month);
 }

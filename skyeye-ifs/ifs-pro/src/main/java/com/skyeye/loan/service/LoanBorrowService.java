@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.loan.entity.LoanBorrow;
 
+import java.util.List;
+
 /**
  * @ClassName: LoanBorrowService
  * @Description: 借款单服务接口层
@@ -24,4 +26,6 @@ public interface LoanBorrowService extends SkyeyeFlowableService<LoanBorrow> {
     void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject);
 
     void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject);
+
+    List<LoanBorrow> queryLoanBorrowList(String time);
 }
