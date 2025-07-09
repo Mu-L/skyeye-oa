@@ -1,16 +1,14 @@
 package com.skyeye.product.service.impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.crm.service.ICustomerService;
-import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
+import com.skyeye.product.classenum.ProductLeadFromType;
 import com.skyeye.product.dao.ProductLeadDao;
 import com.skyeye.product.entity.ProductLead;
 import com.skyeye.product.entity.ProductLeadChild;
@@ -18,13 +16,11 @@ import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadChildService;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
-import com.skyeye.rest.project.service.IProProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "借出申请", groupName = "借出申请", flowable = true)
@@ -95,7 +91,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductLeadOutStock productLeadOutStock = inputObject.getParams(ProductLeadOutStock.class);
         productLeadOutStock.setFromId(productLeadOutStock.getId());
-        productLeadOutStock.setFromTypeId(ProductLeadOrReturnFromType.LOANAPPLICATIONFORM.getKey());
+        productLeadOutStock.setFromTypeId(ProductLeadFromType.LOANAPPLICATIONFORM.getKey());
         productLeadOutStock.setId(StrUtil.EMPTY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);

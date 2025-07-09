@@ -44,9 +44,7 @@ public class SchedulingController {
     }
 
     @ApiOperation(id = "querySchedulingByStaffId", value = "查询当前账户的排班记录", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "startTime", name = "startTime", value = "开始时间(格式 yyyy-MM-dd)", required = "required"),
-        @ApiImplicitParam(id = "endTime", name = "endTime", value = "结束时间(格式 yyyy-MM-dd)", required = "required")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SchedulingController/querySchedulingByStaffId")
     public void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject) {
         schedulingService.querySchedulingByStaffId(inputObject, outputObject);

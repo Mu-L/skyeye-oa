@@ -14,6 +14,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
+import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
@@ -22,7 +23,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadOutStockDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
@@ -116,7 +116,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         // 获取已经下达借出出库订单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
-        if (entity.getFromTypeId() == ProductLeadOrReturnFromType.LOANOUT.getKey()) {
+        if (entity.getFromTypeId() == DepotOutFromType.LOANOUT.getKey()) {
             // 借出出库单
             checkAndUpdateFromState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
         }
@@ -176,7 +176,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         if (FlowableStateEnum.PASS.getKey().equals(productLeadOutStock.getState())) {
             String userId = inputObject.getLogParams().get("id").toString();
             depotOut.setFromId(depotOut.getId());
-            depotOut.setFromTypeId(ProductLeadOrReturnFromType.LOANOUT.getKey());
+            depotOut.setFromTypeId(DepotOutFromType.LOANOUT.getKey());
             depotOut.setId(StrUtil.EMPTY);
             depotOutService.createEntity(depotOut, userId);
         } else {

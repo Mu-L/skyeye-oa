@@ -13,6 +13,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutState;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotPutService;
@@ -21,7 +22,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductReturnInStockDao;
 import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductLeadService;
@@ -104,7 +104,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         // 获取已经下达归还入库订单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
-        if (entity.getFromTypeId() == ProductLeadOrReturnFromType.LOANIN.getKey()) {
+        if (entity.getFromTypeId() == DepotPutFromType.LOANIN.getKey()) {
             // 归还入库单
             checkAndUpdateFromState(entity, setData, orderNormsNum, executeNum, inSqlNormsId);
         }
@@ -162,7 +162,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         if (FlowableStateEnum.PASS.getKey().equals(productReturnInStock.getState())) {
             String userId = inputObject.getLogParams().get("id").toString();
             depotPut.setFromId(depotPut.getId());
-            depotPut.setFromTypeId(ProductLeadOrReturnFromType.LOANIN.getKey());
+            depotPut.setFromTypeId(DepotPutFromType.LOANIN.getKey());
             depotPut.setId(StrUtil.EMPTY);
             depotPutService.createEntity(depotPut, userId);
         } else {

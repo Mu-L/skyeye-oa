@@ -159,6 +159,19 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
     }
 
     @Override
+    public List<SchedulingShifts> querySchedulingShiftsByIdName(List<String> shiftIdList, String keyword) {
+        if (CollectionUtil.isEmpty(shiftIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<SchedulingShifts> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, shiftIdList);
+        if (StrUtil.isNotEmpty(keyword)) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(SchedulingShifts::getName), keyword);
+        }
+        return list(queryWrapper);
+    }
+
+    @Override
     public SchedulingShifts selectById(String id) {
         SchedulingShifts schedulingShifts = super.selectById(id);
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryTimeByShiftId(id);

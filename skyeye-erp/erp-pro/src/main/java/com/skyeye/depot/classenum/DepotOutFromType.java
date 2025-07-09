@@ -9,6 +9,7 @@ import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import com.skyeye.other.service.impl.OtherOutLetsServiceImpl;
 import com.skyeye.pick.service.impl.PatchOutLetServiceImpl;
 import com.skyeye.pick.service.impl.RequisitionOutLetServiceImpl;
+import com.skyeye.product.service.impl.ProductLeadOutStockServiceImpl;
 import com.skyeye.purchase.service.impl.PurchaseExchangesServiceImpl;
 import com.skyeye.purchase.service.impl.PurchaseReturnsServiceImpl;
 import com.skyeye.retail.service.impl.RetailOutLetServiceImpl;
@@ -43,7 +44,8 @@ public enum DepotOutFromType implements SkyeyeEnumClass {
     PATCH_OUTLET(6, "补料出库单", PatchOutLetServiceImpl.class.getName(), true, false),
     SEAL_APPLY(7, "配件申领单", "com.skyeye.accessory.service.impl.SealApplyServiceImpl", true, false),
     SHOP_OUTLET(8, "门店申领单", ShopOutLetsServiceImpl.class.getName(), true, false),
-    PURCHASE_EXCHANGE(9, "采购换货单", PurchaseExchangesServiceImpl.class.getName(), true, false);
+    PURCHASE_EXCHANGE(9, "采购换货单", PurchaseExchangesServiceImpl.class.getName(), true, false),
+    LOANOUT(10, "借出出库单", ProductLeadOutStockServiceImpl.class.getName(), true, false);
 
     private Integer key;
 
