@@ -76,7 +76,7 @@ public class FeeApplicationController {
         feeApplicationService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryFeeApplicationAnalysis", value = "费用分析", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFeeApplicationAnalysis", value = "费用申请分析", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
             @ApiImplicitParam(id = "month", name = "month", value = "月")
@@ -84,5 +84,15 @@ public class FeeApplicationController {
     @RequestMapping("/post/FeeApplicationController/queryFeeApplicationAnalysis")
     public void queryFeeApplicationAnalysis(InputObject inputObject, OutputObject outputObject) {
         feeApplicationService.queryFeeApplicationAnalysis(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryDepartmentFeeAnalysis", value = "获取部门费用申请分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
+            @ApiImplicitParam(id = "month", name = "month", value = "月")
+    })
+    @RequestMapping("/post/FeeApplicationController/queryDepartmentFeeAnalysis")
+    public void queryDepartmentFeeAnalysis(InputObject inputObject, OutputObject outputObject) {
+        feeApplicationService.queryDepartmentFeeAnalysis(inputObject, outputObject);
     }
 }

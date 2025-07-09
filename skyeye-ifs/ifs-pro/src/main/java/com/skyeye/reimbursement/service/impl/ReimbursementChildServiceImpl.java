@@ -85,10 +85,15 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
         //求占比
         for (Map.Entry<String, List<ReimbursementChild>> entry : map.entrySet()) {
             String reimburseProName = entry.getValue().get(CommonNumConstants.NUM_ZERO).getReimburseProMation().get("dictName").toString();
-            BigDecimal percent = new BigDecimal(entry.getValue().size()).divide(new BigDecimal(bean.size()), 2, RoundingMode.HALF_UP);
+            String price = "0";
+            for (ReimbursementChild reimbursementChild : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(reimbursementChild.getPrice()) ? "0" : reimbursementChild.getPrice(),
+                        price);
+            }
             Map<String, Object> deptInfo = new HashMap<>();
             deptInfo.put("name", reimburseProName);
-            deptInfo.put("pie", percent.multiply(new BigDecimal(100)) + "%");
+            deptInfo.put("price", price);
             result.add(deptInfo);
         }
         return result;
