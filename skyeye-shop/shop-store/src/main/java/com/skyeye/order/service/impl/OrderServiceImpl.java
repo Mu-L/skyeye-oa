@@ -429,8 +429,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         int adjustPrice = Integer.parseInt(params.get("adjustPrice").toString());
-        if (adjustPrice < CommonNumConstants.NUM_ZERO) {
-            throw new CustomException("所调价格不可为负数");
+        if (adjustPrice <= CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("所调价格不可为负数或零");
         }
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, params.get("id").toString());
@@ -451,7 +451,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
             update(updateWrapper);
             refreshCache(orderId);
-        }else {
+        } else {
             throw new CustomException("当前订单状态不为待支付或支付失败状态，不可修改");
         }
     }
@@ -561,6 +561,10 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
         if (!Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey())) {
             throw new CustomException("该订单不可支付。");
+        }
+        if (!StrUtil.equals(CommonNumConstants.NUM_ZERO.toString(), one.getAdjustPrice())) {
+            // 订单调整价格后，重新计算实际支付价格
+            one.setPayPrice(CalculationUtil.multiply(one.getAdjustPrice(), CommonNumConstants.ONE_HUNDRED.toString()));
         }
         Map<String, Object> payRresult = iPayService.payment(BeanUtil.beanToMap(one), channelCode, StrUtil.EMPTY, channelExtras, payProperties.getOrderNotifyUrl()).getBean();
         Map<String, Object> payChannel = JSONUtil.toBean(payRresult.get("payChannel").toString(), null);

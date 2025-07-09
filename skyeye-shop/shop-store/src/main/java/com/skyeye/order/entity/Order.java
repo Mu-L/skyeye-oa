@@ -100,7 +100,7 @@ public class Order extends AreaInfo {
     private String deliveryPrice;
 
     @TableField("adjust_price")
-    @ApiModelProperty(value = "订单调价，单位：分，正数，加价；负数，减价")
+    @ApiModelProperty(value = "订单调价，单位：元")
     private String adjustPrice;
 
     @TableField("pay_price")
