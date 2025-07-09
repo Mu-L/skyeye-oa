@@ -23,9 +23,11 @@ import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.dao.ProductReturnInStockDao;
+import com.skyeye.product.entity.ProductReturn;
 import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
+import com.skyeye.product.service.ProductReturnService;
 import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,6 +132,9 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         );
     }
 
+    @Autowired
+    private ProductReturnService productReturnService;
+
     @Override
     public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
@@ -141,6 +146,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         iCustomerService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
         materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
+        productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
         outputObject.setBean(productReturnInStock);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

@@ -387,7 +387,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Override
     public void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 班次名称
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         // 1. 查询指定时间范围内的排班记录
@@ -455,7 +455,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             resultList.add(scheduling);
         }
         outputObject.setBean(resultList);
-        outputObject.settotal(resultList.size());
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
