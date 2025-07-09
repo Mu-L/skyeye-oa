@@ -2,6 +2,7 @@ package com.skyeye.school.lectures.service.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -42,34 +44,34 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     private void initVersionByFromId(LecturesAttenanceRecored entity) {
-        if (entity.getFromId() == null) {
+        if (StrUtil.isEmpty(entity.getFromId())) {
             // 新增记录，初始化所有版本号
-            entity.setVersionNo("1");
+            entity.setVersionNo(String.valueOf(CommonNumConstants.NUM_ONE));
             // 大版本从0开始
-            entity.setLargeVersion(0);
+            entity.setLargeVersion(CommonNumConstants.NUM_ZERO);
             // 小版本从0开始
-            entity.setSmallVersion(0);
+            entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
         } else {
             //更新
             try {
-                int currentVersion = entity.getVersionNo() != null
+                int currentVersion = StrUtil.isEmpty(entity.getVersionNo())
                         ? Integer.parseInt(entity.getVersionNo())
-                        : 0;
-                entity.setVersionNo(String.valueOf(currentVersion + 1));
+                        : CommonNumConstants.NUM_ZERO;
+                entity.setVersionNo(String.valueOf(currentVersion + CommonNumConstants.NUM_ONE));
 
                 // 处理大版本号和小版本号
                 if (entity.getStartSmallVersion()) {
                     // 小版本升级
                     entity.setSmallVersion(
-                            (entity.getSmallVersion() != null ? entity.getSmallVersion() : 0) + 1
+                            (ObjectUtil.isEmpty(entity.getSmallVersion()) ? entity.getSmallVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
                     );
                 } else {
                     // 大版本升级
                     entity.setLargeVersion(
-                            (entity.getLargeVersion() != null ? entity.getLargeVersion() : 0) + 1
+                            (ObjectUtil.isEmpty(entity.getLargeVersion()) ? entity.getLargeVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
                     );
                     // 大版本升级时重置小版本
-                    entity.setSmallVersion(0);
+                    entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
                 }
 
             } catch (CustomException e) {
@@ -89,7 +91,7 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     private void validateNumber(Integer value, String fieldName) {
-        if (value == null) {
+        if (Objects.isNull(value)) {
             throw new CustomException(fieldName + "不能为空");
         }
         if (value < CommonNumConstants.NUM_ZERO) {
@@ -100,7 +102,6 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     @Override
     protected void writePostpose(LecturesAttenanceRecored entity, String userId) {
         super.writePostpose(entity, userId);
-
         entity.getLecturesAttenanceRecoredChildList().forEach(attenanceRecoredChild -> attenanceRecoredChild.setAttenanceRecordId(entity.getId()));
         lecturesAttenanceRecoredChildService.createEntity(entity.getLecturesAttenanceRecoredChildList(), userId);
     }
@@ -150,7 +151,7 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     @Override
     public LecturesAttenanceRecored selectById(String id) {
         LecturesAttenanceRecored lecturesAttenanceRecored = super.selectById(id);
-        if (lecturesAttenanceRecored == null) {
+        if (ObjectUtil.isEmpty(lecturesAttenanceRecored)) {
             throw new CustomException("未找到该ID的听课记录");
         }
 

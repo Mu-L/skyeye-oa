@@ -99,7 +99,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
      */
     @Override
     @Transactional(value = "transactionManager", rollbackFor = Exception.class)
-    public void  sendMQProducer(String jsonStr, String userId) {
+    public void sendMQProducer(String jsonStr, String userId) {
         Map<String, Object> jobBody = JSONUtil.toBean(jsonStr, null);
         String topic;
         SendResult sendResult;
@@ -108,7 +108,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
             topic = jobBody.get("topic").toString();
             // 同步发送
             sendResult = rocketMQTemplate.syncSend(topic + ":" + tag,
-                MessageBuilder.withPayload(jsonStr).build());
+                    MessageBuilder.withPayload(jsonStr).build());
         } else {
             // 父任务
             Map<String, Object> parentJob;
@@ -131,7 +131,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
             topic = MqConstants.JobMateMationJobType.getTopicByJobType(jobType);
             // 同步发送
             sendResult = rocketMQTemplate.syncSend(topic + ":" + tag,
-                MessageBuilder.withPayload(parentJob.get("requestBody").toString()).build());
+                    MessageBuilder.withPayload(parentJob.get("requestBody").toString()).build());
         }
         LOGGER.info("mq send topic is [{}], send result: [{}]", topic, sendResult);
     }
@@ -229,7 +229,7 @@ public class JobMateMationServiceImpl implements JobMateMationService {
         String userId = jobMation.get("createId").toString();
         LOGGER.info("job is success, jobId is {}", jobId);
         if (MqConstants.JOB_TYPE_IS_SUCCESS.equals(status) || MqConstants.JOB_TYPE_IS_FAIL.equals(status)
-            || MqConstants.JOB_TYPE_IS_PARTIAL_SUCCESS.equals(status)) {
+                || MqConstants.JOB_TYPE_IS_PARTIAL_SUCCESS.equals(status)) {
             // 成功/失败/部分成功
             String jobType = jobMation.get("jobType").toString();
             // 所属大类

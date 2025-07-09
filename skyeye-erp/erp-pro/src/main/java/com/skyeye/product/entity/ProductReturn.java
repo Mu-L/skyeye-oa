@@ -8,6 +8,7 @@ import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @TableName(value = "erp_product_return")
@@ -25,6 +26,10 @@ public class ProductReturn extends SkyeyeFlowable {
     @TableField("holder_id")
     @ApiModelProperty(value = "关联的客户/供应商/会员id")
     private String holderId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "关联的客户/供应商/会员信息")
+    private Map<String, Object> holderMation;
 
     @TableField("total_price")
     @ApiModelProperty(value = "总价钱")
