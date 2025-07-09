@@ -138,7 +138,7 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductReturnInStock productReturnInStock = inputObject.getParams(ProductReturnInStock.class);
         productReturnInStock.setFromId(productReturnInStock.getId());
-        productReturnInStock.setFromTypeId(ProductLeadOrReturnFromType.LOANIN.getKey());
+        productReturnInStock.setFromTypeId(ProductLeadOrReturnFromType.RETURNAPPLICATIONFORM.getKey());
         productReturnInStock.setId(null);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productReturnInStockService.createEntity(productReturnInStock, userId);

@@ -386,14 +386,17 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
     @Override
     public void querySchedulingByStaffId(InputObject inputObject, OutputObject outputObject) {
+
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         String startTime = inputObject.getParams().get("startTime").toString();
         String endTime = inputObject.getParams().get("endTime").toString();
 
         // 1. 查询指定时间范围内的排班记录
         QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
-        schedulingWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), startTime)
-            .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), endTime);
+        schedulingWrapper
+            .or(wrapper -> wrapper.ge(MybatisPlusUtil.toColumns(Scheduling::getStartTime), startTime).le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), endTime))
+            .or(wrapper -> wrapper.ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), startTime).le(MybatisPlusUtil.toColumns(Scheduling::getEndTime), endTime))
+            .or(wrapper -> wrapper.le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), startTime).ge(MybatisPlusUtil.toColumns(Scheduling::getStartTime), endTime));
         List<Scheduling> schedulingList = list(schedulingWrapper);
 
         if (CollectionUtil.isEmpty(schedulingList)) {

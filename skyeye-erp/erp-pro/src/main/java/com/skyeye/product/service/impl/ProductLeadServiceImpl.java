@@ -31,9 +31,6 @@ import java.util.stream.Collectors;
 public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLeadDao, ProductLead> implements ProductLeadService {
 
     @Autowired
-    private IProProjectService iProProjectService;
-
-    @Autowired
     private ProductLeadChildService productLeadChildService;
 
     @Autowired
@@ -98,8 +95,8 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductLeadOutStock productLeadOutStock = inputObject.getParams(ProductLeadOutStock.class);
         productLeadOutStock.setFromId(productLeadOutStock.getId());
-        productLeadOutStock.setFromTypeId(ProductLeadOrReturnFromType.LOANOUT.getKey());
-        productLeadOutStock.setId(null);
+        productLeadOutStock.setFromTypeId(ProductLeadOrReturnFromType.LOANAPPLICATIONFORM.getKey());
+        productLeadOutStock.setId(StrUtil.EMPTY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
     }
