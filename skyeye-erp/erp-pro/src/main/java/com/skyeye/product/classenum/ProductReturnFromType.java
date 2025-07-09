@@ -8,11 +8,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum ProductLeadOrReturnFromType implements SkyeyeEnumClass {
+public enum ProductReturnFromType implements SkyeyeEnumClass {
 
-    LOANAPPLICATIONFORM(0, "借出申请单", true, false),
-    RETURNAPPLICATIONFORM(3, "归还申请单", true, false);
-
+    RETURNAPPLICATIONFORM(1, "归还申请单", true, false);
 
     private Integer key;
 

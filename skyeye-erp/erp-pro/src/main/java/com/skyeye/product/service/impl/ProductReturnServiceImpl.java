@@ -10,7 +10,8 @@ import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
+import com.skyeye.product.classenum.ProductLeadFromType;
+import com.skyeye.product.classenum.ProductReturnFromType;
 import com.skyeye.product.dao.ProductReturnDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.entity.ProductReturn;
@@ -138,7 +139,7 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductReturnInStock productReturnInStock = inputObject.getParams(ProductReturnInStock.class);
         productReturnInStock.setFromId(productReturnInStock.getId());
-        productReturnInStock.setFromTypeId(ProductLeadOrReturnFromType.RETURNAPPLICATIONFORM.getKey());
+        productReturnInStock.setFromTypeId(ProductReturnFromType.RETURNAPPLICATIONFORM.getKey());
         productReturnInStock.setId(null);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productReturnInStockService.createEntity(productReturnInStock, userId);

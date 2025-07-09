@@ -23,7 +23,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadOrReturnFromType;
 import com.skyeye.product.dao.ProductLeadOutStockDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
