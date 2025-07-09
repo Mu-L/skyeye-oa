@@ -445,19 +445,15 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         //获取订单当前状态
         Order order = selectById(orderId);
         Integer state = order.getState();
-        if (ShopOrderState.UNSUBMIT.getKey() == state ||
-            ShopOrderState.SUBMIT.getKey() == state ||
-            ShopOrderState.UNPAID.getKey() == state ||
-            ShopOrderState.FAIRPAID.getKey() == state ||
-            ShopOrderState.CANCELED.getKey() == state
-        ) {
-            throw new CustomException("不可修改");
+        if (ShopOrderState.UNPAID.getKey() == state || ShopOrderState.FAIRPAID.getKey() == state) {
+            UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, orderId);
+            updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
+            update(updateWrapper);
+            refreshCache(orderId);
+        }else {
+            throw new CustomException("当前订单状态不为待支付或支付失败状态，不可修改");
         }
-
-        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, orderId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
-        refreshCache(orderId);
     }
 
     @Override
