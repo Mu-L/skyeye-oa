@@ -106,10 +106,14 @@ public class LoanBorrowController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryLoanBorrowTypePie", value = "借款单类型占比图", method = "POST", allUse = "1")
-    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowTypePie")
-    public void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject) {
-        loanBorrowService.queryLoanBorrowTypePie(inputObject, outputObject);
+    @ApiOperation(id = "queryLoanBorrowTypeAnalysis", value = "借款单类型分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
+            @ApiImplicitParam(id = "month", name = "month", value = "月")
+    })
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowTypeAnalysis")
+    public void queryLoanBorrowTypeAnalysis(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowTypeAnalysis(inputObject, outputObject);
     }
 
     /**
@@ -118,10 +122,14 @@ public class LoanBorrowController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryLoanBorrowDeptPie", value = "部门类型占比图", method = "POST", allUse = "1")
-    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowDeptPie")
-    public void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject) {
-        loanBorrowService.queryLoanBorrowDeptPie(inputObject, outputObject);
+    @ApiOperation(id = "queryLoanBorrowDeptAnalysis", value = "部门类型借款单分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
+            @ApiImplicitParam(id = "month", name = "month", value = "月")
+    })
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowDeptAnalysis")
+    public void queryLoanBorrowDeptAnalysis(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowDeptAnalysis(inputObject, outputObject);
     }
 
 }

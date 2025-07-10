@@ -30,8 +30,6 @@ import com.xingyuv.http.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,56 +113,115 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
     }
 
     @Override
-    public void queryLoanBorrowTypePie(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime));
-        List<LoanBorrow> bean = list(queryWrapper);
-        List<Map<String ,Object>>result = new ArrayList<>();
-        if(CollectionUtil.isEmpty(bean)){
-            return;
+    public void queryLoanBorrowTypeAnalysis(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String year = params.get("year").toString();
+        String month = (String) params.get("month");
+        if (StrUtil.isNotEmpty(month)) {
+            int yearInt = Integer.parseInt(year);
+            int monthInt = Integer.parseInt(month);
+            String startPeriod = year + StrUtil.DASHED + month;
+            String endPeriod = year + StrUtil.DASHED + month;
+            if (monthInt == CommonNumConstants.NUM_ONE) {
+                // 如果是1月，则上期是去年12月
+                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+            }
+            List<Map<String, Object>> result = getLoanBorrowTypeAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        } else {
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
+            List<Map<String, Object>> result = getLoanBorrowTypeAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
         }
-        // 按借款类型分组求出对应数量
+    }
+
+    private List<Map<String, Object>> getLoanBorrowTypeAnalysis(String startPeriod, String endPeriod) {
+        QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
+        List<LoanBorrow> bean = list(queryWrapper);
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (CollectionUtil.isEmpty(bean)) {
+            return result;
+        }
         Map<Integer, Long> map = bean.stream().collect(Collectors.groupingBy(LoanBorrow::getBorrowType, Collectors.counting()));
         LoanBorrowTypeEnum[] types = LoanBorrowTypeEnum.values();
         for (LoanBorrowTypeEnum type : types) {
             Long count = map.getOrDefault(type.getKey(), 0L);
-            Map<String,Object> resultItem = new HashMap<>();
-            BigDecimal percent = new BigDecimal(count).divide(new BigDecimal(bean.size()), 2, RoundingMode.HALF_UP);
-            resultItem.put("name", type.getValue());
-            resultItem.put("value", percent.multiply(new BigDecimal(100)) + "%");
+            Map<String, Object> resultItem = new HashMap<>();
+            resultItem.put(type.name(), count);
             result.add(resultItem);
         }
-        outputObject.setBeans(result);
+        return result;
     }
 
     @Override
-    public void queryLoanBorrowDeptPie(InputObject inputObject, OutputObject outputObject) {
+    public void queryLoanBorrowDeptAnalysis(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String year = params.get("year").toString();
+        String month = (String) params.get("month");
+        if (StrUtil.isNotEmpty(month)) {
+            int yearInt = Integer.parseInt(year);
+            int monthInt = Integer.parseInt(month);
+            String startPeriod = year + StrUtil.DASHED + month;
+            String endPeriod = year + StrUtil.DASHED + month;
+            if (monthInt == CommonNumConstants.NUM_ONE) {
+                // 如果是1月，则上期是去年12月
+                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+            }
+            List<Map<String, Object>> result = getLoanBorrowDeptAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        } else {
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
+            List<Map<String, Object>> result = getLoanBorrowDeptAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        }
+    }
+
+    private List<Map<String, Object>> getLoanBorrowDeptAnalysis(String startPeriod, String endPeriod) {
         QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getBorrowType), LoanBorrowTypeEnum.DEPARTMENT.getKey());
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime));
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
         List<LoanBorrow> bean = list(queryWrapper);
-        if(CollectionUtil.isEmpty(bean)){
-            return;
-        }
-        iDepmentService.setDataMation(bean,LoanBorrow::getDepartmentId);
-        // 根据部门id分组
-        Map<String,List<LoanBorrow>> map = bean.stream().collect(Collectors.groupingBy(LoanBorrow::getDepartmentId));
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, List<LoanBorrow>> entry : map.entrySet()) {
-            String departmentName = entry.getValue().get(CommonNumConstants.NUM_ZERO).getDepartmentMation().get("name").toString();
-            BigDecimal percent = new BigDecimal(entry.getValue().size()).divide(new BigDecimal(bean.size()), 2, RoundingMode.HALF_UP);
-            Map<String, Object> deptInfo = new HashMap<>();
-            deptInfo.put("name", departmentName);
-            deptInfo.put("pie", percent.multiply(new BigDecimal(100)) + "%");
-            result.add(deptInfo);
+        if (CollectionUtil.isEmpty(bean)) {
+            return result;
         }
-
-        outputObject.setBeans(result);
+        // 根据部门id分组
+        Map<String, List<LoanBorrow>> map = bean.stream().collect(Collectors.groupingBy(LoanBorrow::getDepartmentId));
+        for (Map.Entry<String, List<LoanBorrow>> entry : map.entrySet()) {
+            Map<String, Object> tempMap = new HashMap<>();
+            tempMap.put("departmentId", entry.getKey());
+            // 总借款单数
+            tempMap.put("borrowTotalCount", entry.getValue().size());
+            // 计算已经还单数量根据状态
+            int paidCount = entry.getValue().stream().filter(e -> e.getPaidState() == LoanPaidStateEnum.PAID.getKey()).collect(Collectors.toList()).size();
+            tempMap.put("paidCount", paidCount);
+            // 计算未还款单数据量
+            int notPaidCount = entry.getValue().stream().filter(e -> e.getPaidState() != LoanPaidStateEnum.PAID.getKey()).collect(Collectors.toList()).size();
+            tempMap.put("notPaidCount", notPaidCount);
+            // 计算借款总金额
+            double borrowTotalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getPrice())).sum();
+            tempMap.put("borrowTotalPrice", borrowTotalPrice);
+            // 计算还款总金额
+            double repayTotalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getPaidPrice())).sum();
+            tempMap.put("repayTotalPrice", repayTotalPrice);
+            result.add(tempMap);
+        }
+        iDepmentService.setMationForMap(result, "departmentId", "departmentMation");
+        return result;
     }
 
     /**
      * 时间格式 YYYY-MM
-     * */
+     */
     @Override
     public List<LoanBorrow> queryLoanBorrowList(String time) {
         QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
