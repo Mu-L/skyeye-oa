@@ -838,7 +838,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCreateId), staffIds);
         queryWrapper.in(MybatisPlusUtil.toColumns(CheckWork::getCheckDate), dates);
         List<CheckWork> allCheckWork = list(queryWrapper);
-        List<Map<String, Object>> beans = JSONUtil.toBean(JSONUtil.toJsonStr(allCheckWork), null);
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(allCheckWork), null);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

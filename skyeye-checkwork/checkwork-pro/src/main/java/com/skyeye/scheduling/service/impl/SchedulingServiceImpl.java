@@ -454,7 +454,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             scheduling.setSchedulingTimeMation(filteredTimeList);
             resultList.add(scheduling);
         }
-        outputObject.setBean(resultList);
+        List<String> shiftIdList = resultList.stream().map(Scheduling::getShiftId).collect(Collectors.toList());
+        Map<String, List<SchedulingShifts>> stringListMap = schedulingShiftsService.querySchedulingShiftsByIds(shiftIdList).stream().collect(Collectors.groupingBy(SchedulingShifts::getId));
+        resultList.forEach(scheduling -> {
+            scheduling.setShiftMation(stringListMap.get(scheduling.getShiftId()).get(CommonNumConstants.NUM_ZERO));
+        });
+        outputObject.setBeans(resultList);
         outputObject.settotal(page.getTotal());
     }
 
