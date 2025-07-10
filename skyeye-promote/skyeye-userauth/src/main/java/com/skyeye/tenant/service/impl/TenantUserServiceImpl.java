@@ -160,7 +160,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         tenantUser.setStaffMation(staffMap.get(tenantUser.getStaffId()));
 
         // 员工考勤时间段信息--一已适配多租户
-        List<Map<String, Object>> staffTimeMation = sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(id);
+        List<Map<String, Object>> staffTimeMation = sysEveUserStaffTimeService.getStaffCheckWorkTimeByStaffId(tenantUser.getStaffId());
         tenantUser.setTimeList(staffTimeMation);
 
         // 设置组织信息
