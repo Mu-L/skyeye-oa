@@ -129,8 +129,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Override
     protected void updatePostpose(TenantUser entity, String userId) {
-        // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方保存
-        sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
+        sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getStaffId());
     }
 
     @Override
