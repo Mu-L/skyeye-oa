@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
-package com.skyeye.eve.question.dao;
+package com.skyeye.eve.servey.dao;
 
 
 /**
@@ -14,7 +14,7 @@ package com.skyeye.eve.question.dao;
  */
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.eve.question.entity.DwSurveyDirectory;
+import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

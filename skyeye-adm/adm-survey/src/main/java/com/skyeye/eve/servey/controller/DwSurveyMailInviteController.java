@@ -1,4 +1,4 @@
-package com.skyeye.eve.question.controller;
+package com.skyeye.eve.servey.controller;
 
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
@@ -7,8 +7,8 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.question.entity.DwSurveyMailInvite;
-import com.skyeye.eve.question.service.DwSurveyMailInviteService;
+import com.skyeye.eve.servey.entity.DwSurveyMailInvite;
+import com.skyeye.eve.servey.service.DwSurveyMailInviteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

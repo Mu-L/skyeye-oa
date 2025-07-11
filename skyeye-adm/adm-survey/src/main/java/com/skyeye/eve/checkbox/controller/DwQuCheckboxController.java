@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date: 2025/2/21
  */
 @RestController
-@Api(value = "多选题选项表管理", tags = "多选题选项表管理", modelName = "多选题选项表管理")
+@Api(value = "多选题选项管理", tags = "多选题选项管理", modelName = "多选题选项管理")
 public class DwQuCheckboxController {
 
     @Autowired

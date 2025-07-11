@@ -155,6 +155,16 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
         }
 
     }
+
+    @Override
+    public List<DwQuestionLogic> selectByDwQuestionIdList(List<String> dwQuestionIdList) {
+        if (CollectionUtil.isEmpty(dwQuestionIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), dwQuestionIdList);
+        return list(queryWrapper);
+    }
 }
 
 

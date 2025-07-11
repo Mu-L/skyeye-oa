@@ -1,4 +1,4 @@
-package com.skyeye.eve.question.service.impl;
+package com.skyeye.eve.servey.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -39,15 +39,10 @@ import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
-import com.skyeye.eve.question.dao.DwSurveyDirectoryDao;
 import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.question.entity.DwQuestionLogic;
-import com.skyeye.eve.question.entity.DwSurveyAnswer;
-import com.skyeye.eve.question.entity.DwSurveyDirectory;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwQuestionService;
-import com.skyeye.eve.question.service.DwSurveyAnswerService;
-import com.skyeye.eve.question.service.DwSurveyDirectoryService;
 import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwAnRadioService;
@@ -56,6 +51,11 @@ import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.score.entity.DwQuScore;
 import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.score.service.DwQuScoreService;
+import com.skyeye.eve.servey.dao.DwSurveyDirectoryDao;
+import com.skyeye.eve.servey.entity.DwSurveyAnswer;
+import com.skyeye.eve.servey.entity.DwSurveyDirectory;
+import com.skyeye.eve.servey.service.DwSurveyAnswerService;
+import com.skyeye.eve.servey.service.DwSurveyDirectoryService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -460,15 +460,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 
     @Override
     public void queryDwurveyMationById(InputObject inputObject, OutputObject outputObject) {
+        //问卷Id
         String id = inputObject.getParams().get("id").toString();
+        // 获取试卷信息
         DwSurveyDirectory dwSurveyDirectory = selectById(id);
         if (ObjUtil.isNotEmpty(dwSurveyDirectory)) {
-            List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(dwSurveyDirectory.getId());
+            // 获取试卷下的题目
+            List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(id);
+            // 转换题目成List<Map<String, Onject>>类型
             List<Map<String, Object>> list = JSONUtil.toList(JSONUtil.toJsonStr(questionList), null);
             for (int i = 0; i < list.size(); i++) {
+                // 获取每一道题目
                 Map<String, Object> question = list.get(i);
-                question.put("quTypeName ", QuType.getCName(Integer.parseInt(question.get("quType").toString())));
-
+//                question.put("quTypeName ", QuType.getCName(Integer.parseInt(question.get("quType").toString())));
                 // 接收返回值并更新列表中的对象
                 question = getQuestionOptionReportListMation(question);
                 list.set(i, question);
@@ -511,15 +515,22 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     public Map<String, Object> getQuestionOptionReportListMation(Map<String, Object> question) {
+        // 获取题目的类型枚举
         Integer quType = Integer.parseInt(question.get("quType").toString());
+        // 获取题目的id
         String id = question.get("id").toString();
+        // 如果是单选题
         if (quType.equals(QuType.RADIO.getIndex())) {
+            // 单选题的答案
             List<DwAnRadio> dwAnRadioList = dwAnRadioService.selectRadioByQuId(id);
-            List<Map<String, Object>> radios = Optional.ofNullable(question.get("radioAn"))
+            // 单选题的选项
+            List<Map<String, Object>> radios = Optional.ofNullable(question.get("radioTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
+            // 进行答案过滤
             List<DwAnRadio> safeDwAnRadioList = Optional.ofNullable(dwAnRadioList).orElseGet(Collections::emptyList);
+            // 统计所有答案中的所有选项id出现的次数
             Map<String, Long> countMap = safeDwAnRadioList.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(
@@ -527,25 +538,27 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     Collectors.counting()
                 ));
             int count = 0;
+            // 遍历每个选项
             for (Map<String, Object> radio : radios) {
-                radio.put("anCount", 0);
+                // 选项Id
                 String radioId = radio.get("id").toString();
-                for (DwAnRadio dwAnRadio : dwAnRadioList) {
-                    if (dwAnRadio != null &&
-                        Objects.toString(dwAnRadio.getQuItemId(), "").equals(radio.get("id"))) {
+                // 遍历单选题目下的每个答案
+                for (DwAnRadio dwAnRadio : safeDwAnRadioList) {
+                    if (dwAnRadio.getQuItemId().equals(radioId)) {
                         Long count1 = countMap.get(radioId);
+                        // 设置每个选项出现了多少次
                         radio.put("anCount", count1 != null ? count1 : 0);
                     }
                 }
+                // 统计所有选项的总次数
                 count += Integer.parseInt(radio.get("anCount").toString());
-                for (Map<String, Object> map : radios) {
-                    map.put("anAllCount", count);
-                }
+                radio.put("anAllCount", count);
             }
         }
+        // 如果是多项填空题
         if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
             List<DwAnDfillblank> dwAnDfillblankList = dwAnDfillblankService.selectAnDfillblankQuId(id);
-            List<Map<String, Object>> checkBoxs = Optional.ofNullable(question.get("dfillblankAn"))
+            List<Map<String, Object>> checkBoxs = Optional.ofNullable(question.get("multifillblankTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
@@ -555,18 +568,18 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 checkBox.put("anCount", 0);
                 String checkBoxId = checkBox.get("id").toString();
                 for (DwAnDfillblank dwAnDfillblank : dwAnDfillblankList) {
-                    if (dwAnDfillblank.getQuItemId().equals(checkBox.get("id").toString())) {
+                    if (dwAnDfillblank.getQuItemId().equals(checkBoxId)) {
                         Long count1 = countMap.get(checkBoxId);
                         checkBox.put("anCount", count1 != null ? count1 : 0);
                     }
                 }
                 count += Integer.parseInt(checkBox.get("anCount").toString());
-                for (Map<String, Object> map : checkBoxs) {
-                    map.put("anAllCount", count);
-                }
+                checkBox.put("anAllCount", count);
             }
         }
+        // 如果是填空题
         if (quType.equals(QuType.FILLBLANK.getIndex())) {
+            // 答案
             List<DwAnFillblank> dwAnFillblankList = dwAnFillblankService.selectAnFillblankQuId(id);
             long emptyCount = 0;
             long blankCount = 0;
@@ -607,8 +620,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             }
         }
         if (quType.equals(QuType.CHENRADIO.getIndex())) {
+            // 矩阵单选题答案
             List<DwAnChenRadio> beans = dwAnChenRadioService.selectByQuId(id);
-            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenRadioAn"))
+            // 获取行选项
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("rowTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList)
@@ -617,13 +632,17 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .peek(map -> map.putIfAbsent("id", ""))
                 .collect(Collectors.toList());
             int count = 0;
+            // 每个行选项中列选项的数量
             Map<String, Map<String, Integer>> statMap = new HashMap<>();
+            // 遍历矩阵单选题答案
             for (DwAnChenRadio bean : beans) {
-                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
+                if (bean.getVisibility() != null && bean.getVisibility().equals(CommonNumConstants.NUM_ONE)) {
+                    // 答案中行选项id
                     String quRowId = bean.getQuRowId();
+                    // 答案中列选项id
                     String quColId = bean.getQuColId();
                     statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
-                        .merge(quColId, 1, Integer::sum);
+                        .merge(quColId, CommonNumConstants.NUM_ONE, Integer::sum);
                 }
             }
             List<Map<String, Object>> statBeans = new ArrayList<>();
@@ -636,53 +655,66 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     statBeans.add(statBean);
                 })
             );
+            // 遍历行选项
             for (Map<String, Object> row : rows) {
                 row.put("anCount", 0);
+                // 行选项id
                 String rowId = Optional.ofNullable(row.get("id"))
                     .map(Object::toString)
-                    .orElse("");
+                .orElse("");
+                // 遍历每个答案行选项和列选项的数量  row:cloumn:count
                 for (Map<String, Object> statBean : statBeans) {
                     Object quRowIdObject = statBean.get("quRowId");
                     if (quRowIdObject == null) {
                         continue;
                     }
+                    // 拿到答案中行选项id
                     String quRowId = quRowIdObject.toString();
-
+                    // 如果行选项id等于答案中行选项Id
                     if (rowId.equals(quRowId)) {
-                        Integer currentCount = (Integer) row.get("anCount");
+                        Integer currentCount = 0;
+                        // 每个行选项中列选项的数量
                         Object countObject = statBean.get("count");
                         if (countObject instanceof Integer) {
                             currentCount += (Integer) countObject;
                         } else {
-                            currentCount += 0; // 如果 count 不是 Integer 类型，跳过
+                            currentCount += 0;
                         }
+                        // 行选项被选择的总次数
                         row.put("anCount", currentCount);
                     }
                 }
                 Integer anCount = (Integer) row.get("anCount");
                 if (anCount != null) {
+                    // 行选项被选择的总数量
                     count += anCount;
                 }
             }
+            // 遍历矩阵单选题答案
             for (Map<String, Object> statBean : statBeans) {
-                statBean.put("anAllCount", count); // 全局总答案数
+                // 是行选项被选择的总次数
+                statBean.put("anAllCount", count);
                 Object quRowIdObject = statBean.get("quRowId");
                 if (quRowIdObject == null) {
-                    continue; // 如果 quRowId 为 null，跳过当前 statBean
+                    continue;
                 }
+                // 行选项id
                 String quRowId = quRowIdObject.toString();
 
-                // 匹配行并设置当前行的总答案数
+                // 遍历选项
                 for (Map<String, Object> row : rows) {
                     Object rowIdObject = row.get("id");
                     if (rowIdObject == null) {
-                        continue; // 如果 id 为 null，跳过当前行
+                        continue;
                     }
+                    // 选项中行选项Id
                     String rowId = rowIdObject.toString();
 
                     if (quRowId.equals(rowId)) {
+                        // 每个行选项被选择次数
                         Object anCountObject = row.get("anCount");
                         if (anCountObject instanceof Integer) {
+                            // 答案中行选项id对应的数量
                             statBean.put("anCount", anCountObject.toString());
                         } else {
                             statBean.put("anCount", "0");
@@ -694,8 +726,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             question.put("anChenRadios", statBeans);
         }
         if (quType.equals(QuType.CHENFBK.getIndex())) {
+            // 矩阵填空题答案
             List<DwAnChenFbk> beans = dwAnChenFbkService.selectByQuId(id);
-            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenFbkAn"))
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("rowTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
@@ -746,7 +779,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
             List<DwAnChenCheckbox> beans = dwAnChenCheckboxService.selectByQuId(id);
-            List<Map<String, Object>> rows = Optional.ofNullable(question.get("chenCheckboxAn"))
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("rowTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
@@ -865,22 +898,22 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     public DwSurveyDirectory selectById(String id) {
         DwSurveyDirectory bean = super.selectById(id);
         List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(id);
+        List<String> dwQuestionIdList = questionList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuestionLogic>> map = dwQuestionLogicService.selectByDwQuestionIdList(dwQuestionIdList)
+            .stream().collect(Collectors.groupingBy(DwQuestionLogic::getCkQuId));
+        questionList.forEach(
+            question ->
+            {
+                List<DwQuestionLogic> dwQuestionLogicList = map.get(question.getId());
+                if (CollectionUtil.isNotEmpty(dwQuestionLogicList)) {
+                    question.setQuestionLogic(dwQuestionLogicList);
+                }
+            }
+        );
         if (CollectionUtil.isNotEmpty(questionList)) {
             bean.setDwQuestionMation(questionList);
         }
         return bean;
-    }
-
-    @Override
-    public void selectById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        DwSurveyDirectory bean = super.selectById(id);
-        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongId(bean.getId());
-        if (CollectionUtil.isNotEmpty(questionList)) {
-            outputObject.setBeans(questionList);
-        }
-        outputObject.setBean(bean);
-        outputObject.settotal(questionList.size());
     }
 
     @Override

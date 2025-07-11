@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@SkyeyeService(name = "填空题保存表", groupName = "填空题保存表")
+@SkyeyeService(name = "答卷填空题保存表", groupName = "答卷填空题保存表")
 public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFillblankDao, DwAnFillblank> implements DwAnFillblankService {
 
     @Override
