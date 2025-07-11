@@ -63,12 +63,12 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
                 if (entity.getStartSmallVersion()) {
                     // 小版本升级
                     entity.setSmallVersion(
-                            (ObjectUtil.isEmpty(entity.getSmallVersion()) ? entity.getSmallVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
+                            (Objects.isNull(entity.getSmallVersion()) ? entity.getSmallVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
                     );
                 } else {
                     // 大版本升级
                     entity.setLargeVersion(
-                            (ObjectUtil.isEmpty(entity.getLargeVersion()) ? entity.getLargeVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
+                            (Objects.isNull(entity.getLargeVersion()) ? entity.getLargeVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
                     );
                     // 大版本升级时重置小版本
                     entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
@@ -76,9 +76,9 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
 
             } catch (CustomException e) {
                 log.error("版本号格式错误", e);
-                entity.setVersionNo("1");
-                entity.setLargeVersion(0);
-                entity.setSmallVersion(0);
+                entity.setVersionNo(String.valueOf(CommonNumConstants.NUM_ONE));
+                entity.setLargeVersion(CommonNumConstants.NUM_ZERO);
+                entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
             }
         }
     }
