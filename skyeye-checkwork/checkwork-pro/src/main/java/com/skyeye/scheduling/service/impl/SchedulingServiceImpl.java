@@ -533,18 +533,19 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         }
         List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
         List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
-        Map<String, List<SchedulingTime>> stringListMap = schedulingTimes.stream()
+        Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
             .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
-        Set<String> timeSegments = new HashSet<>();
+        Set<SchedulingTime> timeSegments = new HashSet<>();
         for (Scheduling scheduling : schedulingList) {
-            List<SchedulingTime> schedulingTimes1 = stringListMap.getOrDefault(scheduling.getId(), Collections.emptyList());
-            for (SchedulingTime time : schedulingTimes1) {
-                if (timeWorkPeople.stream().anyMatch(people -> people.getSchedulingTimeId().equals(time.getId()))) {
-                    timeSegments.add(time.getStartTime() + " - " + time.getEndTime());
+            List<SchedulingTime> times = timeMap.getOrDefault(scheduling.getId(), Collections.emptyList());
+            for (SchedulingTime time : times) {
+                if (timeWorkPeople.stream()
+                    .anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
+                    timeSegments.add(time);
                 }
             }
         }
-        outputObject.setBean(new ArrayList<>(timeSegments));
+        outputObject.setBeans(new ArrayList<>(timeSegments));
         outputObject.settotal(timeSegments.size());
     }
 
