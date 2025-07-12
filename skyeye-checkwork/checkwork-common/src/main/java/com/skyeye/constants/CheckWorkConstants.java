@@ -48,7 +48,7 @@ public class CheckWorkConstants {
      */
     public static Map<String, Object> structureScheduleWorkMation(String day) {
         Map<String, Object> mation = structureWorkMation(day);
-        mation.put("isScheduleWorkDay", true);
+        mation.put("isSchedulingWorkDay", true);
         return mation;
     }
 

@@ -6,7 +6,7 @@ package com.skyeye.eve.centerrest.entity.checkwork;
 
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.checkwork.classenum.CheckWorkShiftType;
+import com.skyeye.common.enumeration.CheckWorkShiftType;
 import lombok.Data;
 
 import java.io.Serializable;

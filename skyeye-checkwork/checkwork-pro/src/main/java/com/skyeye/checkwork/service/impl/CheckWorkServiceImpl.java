@@ -22,10 +22,7 @@ import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.CheckDayType;
-import com.skyeye.common.enumeration.FlowableChildStateEnum;
-import com.skyeye.common.enumeration.FlowableStateEnum;
-import com.skyeye.common.enumeration.WeekTypeEnum;
+import com.skyeye.common.enumeration.*;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
@@ -44,7 +41,9 @@ import com.skyeye.organization.service.ICompanyService;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.overtime.dao.OvertimeDao;
 import com.skyeye.overtime.service.OvertimeService;
+import com.skyeye.scheduling.entity.SchedulingTime;
 import com.skyeye.scheduling.service.SchedulingService;
+import com.skyeye.scheduling.service.SchedulingTimeService;
 import com.skyeye.trip.service.BusinessTripService;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -107,6 +106,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     @Autowired
     private SchedulingService schedulingService;
 
+    @Autowired
+    private SchedulingTimeService schedulingTimeService;
+
     /**
      * 上班打卡
      *
@@ -119,11 +121,12 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Object> map = inputObject.getParams();
         Map<String, Object> user = inputObject.getLogParams();
         String timeId = map.get("timeId").toString();
+        String shiftType = map.get("shiftType").toString();
         String staffId = user.get("staffId").toString();
         String userId = user.get("id").toString();
         String todayYMD = DateUtil.getYmdTimeAndToString();
         // 1.获取当前用户的考勤班次信息
-        Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId);
+        Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId, shiftType);
         // 2.获取今天的打卡记录
         String checkInTime = DateUtil.getHmsTimeAndToString();
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
@@ -167,21 +170,35 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     /**
      * 获取指定员工指定班次的考勤信息
      *
-     * @param timeId  班次id
-     * @param staffId 员工id
+     * @param timeId    班次id
+     * @param staffId   员工id
+     * @param shiftType 班次类型 {@link com.skyeye.common.enumeration.CheckWorkShiftType}
      * @return 该班次的上下班时间，时间格式为HH:mm:ss
      */
-    private Map<String, Object> getWorkTimeByUserMation(String timeId, String staffId) {
+    private Map<String, Object> getWorkTimeByUserMation(String timeId, String staffId, String shiftType) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
-        // 1.获取指定班次的上下班时间
-        Map<String, Object> bean = checkWorkDao.queryStartWorkTime(timeId, staffId, tenantId);
-        if (CollectionUtil.isEmpty(bean)) {
-            // 您不具备该班次的考勤权限
-            throw new CustomException("You do not have the attendance authority for this shift.");
+        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey())) {
+            // 1.获取指定班次的上下班时间
+            Map<String, Object> bean = checkWorkDao.queryStartWorkTime(timeId, staffId, tenantId);
+            if (CollectionUtil.isEmpty(bean)) {
+                // 您不具备该班次的考勤权限
+                throw new CustomException("You do not have the attendance authority for this shift.");
+            }
+            bean.put("clockIn", bean.get("clockIn").toString() + ":00");
+            bean.put("clockOut", bean.get("clockOut").toString() + ":00");
+            return bean;
+        } else {
+            SchedulingTime schedulingTime = schedulingTimeService.selectById(timeId);
+            if (ObjectUtil.isEmpty(schedulingTime)) {
+                // 排班时间不存在
+                throw new CustomException("The scheduling time does not exist.");
+            }
+            Map<String, Object> bean = new HashMap<>();
+            bean.put("clockIn", schedulingTime.getStartTime());
+            bean.put("clockOut", schedulingTime.getEndTime());
+            bean.put("isNextDay", schedulingTime.getIsNextDay());
+            return bean;
         }
-        bean.put("clockIn", bean.get("clockIn").toString() + ":00");
-        bean.put("clockOut", bean.get("clockOut").toString() + ":00");
-        return bean;
     }
 
     /**
@@ -197,10 +214,11 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Object> user = inputObject.getLogParams();
         String timeId = map.get("timeId").toString();
         String staffId = user.get("staffId").toString();
+        String shiftType = map.get("shiftType").toString();
         String userId = user.get("id").toString();
         String todayYMD = DateUtil.getYmdTimeAndToString();
         // 1.获取当前用户的考勤班次信息
-        Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId);
+        Map<String, Object> workTime = getWorkTime(userId, todayYMD, timeId, staffId, shiftType);
         // 2.获取今天的打卡记录
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         CheckWork todayCheckWork = checkWorkDao.queryisAlreadyCheck(DateUtil.getYmdTimeAndToString(), userId, timeId, tenantId);
@@ -338,10 +356,11 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String today = DateUtil.getYmdTimeAndToString();
         String userId = user.get("id").toString();
         String timeId = map.get("timeId").toString();
+        String shiftType = map.get("shiftType").toString();
         String staffId = user.get("staffId").toString();
         String nowTimeHMS = DateUtil.getHmsTimeAndToString();
         // 1.获取当前用户的考勤班次信息
-        Map<String, Object> workTime = getWorkTime(userId, today, timeId, staffId);
+        Map<String, Object> workTime = getWorkTime(userId, today, timeId, staffId, shiftType);
         if (Integer.parseInt(workTime.get("type").toString()) == CheckTypeFrom.CHECT_BTN_FROM_OVERTIME.getKey()) {
             timeId = "-";
         }
@@ -353,13 +372,14 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     /**
      * 获取当前用户的考勤班次信息
      *
-     * @param userId  用户id
-     * @param today   指定日期，格式为yyyy-MM-dd(一般为今天的日期)
-     * @param timeId  班次id
-     * @param staffId 员工id
+     * @param userId    用户id
+     * @param today     指定日期，格式为yyyy-MM-dd(一般为今天的日期)
+     * @param timeId    班次id
+     * @param staffId   员工id
+     * @param shiftType {@link com.skyeye.common.enumeration.CheckWorkShiftType}
      * @return
      */
-    private Map<String, Object> getWorkTime(String userId, String today, String timeId, String staffId) {
+    private Map<String, Object> getWorkTime(String userId, String today, String timeId, String staffId, String shiftType) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         Map<String, Object> workTime;
         // 判断今天是否是加班日
@@ -373,7 +393,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             workTime.put("type", CheckTypeFrom.CHECT_BTN_FROM_OVERTIME.getKey());
         } else {
             // 根据考勤班次判断显示打上班卡或者下班卡
-            workTime = getWorkTimeByUserMation(timeId, staffId);
+            workTime = getWorkTimeByUserMation(timeId, staffId, shiftType);
             workTime.put("type", CheckTypeFrom.CHECT_BTN_FROM_TIMEID.getKey());
         }
         return workTime;
