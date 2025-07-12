@@ -200,6 +200,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             bean.put("clockIn", schedulingTime.getStartTime());
             bean.put("clockOut", schedulingTime.getEndTime());
             bean.put("isNextDay", schedulingTime.getIsNextDay());
+            // 是否是排班班次
+            bean.put("isSchedulingWorkDay", true);
             return bean;
         }
     }
@@ -439,11 +441,15 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     private Integer getCheckState(CheckWork todayCheckWork, String nowTimeHMS, Map<String, Object> workTime, String today) {
         Integer checkState = null;
         if (Integer.parseInt(workTime.get("type").toString()) == CheckTypeFrom.CHECT_BTN_FROM_TIMEID.getKey()) {
-            boolean result = iScheduleDayService.judgeISHoliday(today);
-            if (result) {
-                // 今天不是加班日，但是是节假日，则不显示按钮
-                checkState = 5;
-                return checkState;
+            Boolean isSchedulingWorkDay = (Boolean) workTime.getOrDefault("isSchedulingWorkDay", false);
+            // 排班班次，不做节假日判断
+            if (!isSchedulingWorkDay) {
+                boolean result = iScheduleDayService.judgeISHoliday(today);
+                if (result) {
+                    // 今天不是加班日，但是是节假日，则不显示按钮
+                    checkState = 5;
+                    return checkState;
+                }
             }
         }
         if (ObjectUtil.isEmpty(todayCheckWork) && DateUtil.compareTimeHMS(nowTimeHMS, workTime.get("clockOut").toString())) {
