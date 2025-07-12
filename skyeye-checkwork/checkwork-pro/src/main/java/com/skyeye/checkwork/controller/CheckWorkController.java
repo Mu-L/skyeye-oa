@@ -82,7 +82,7 @@ public class CheckWorkController {
 
     @ApiOperation(id = "checkwork014", value = "根据月份查询当月的考勤信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required"),
+        @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id"),
         @ApiImplicitParam(id = "monthMation", name = "monthMation", value = "当前月上个年月", required = "required"),
         @ApiImplicitParam(id = "shiftType", name = "shiftType", value = "班次类型", enumClass = CheckWorkShiftType.class, defaultValue = "fixed")})
     @RequestMapping("/post/CheckWorkController/queryCheckWorkMationByMonth")

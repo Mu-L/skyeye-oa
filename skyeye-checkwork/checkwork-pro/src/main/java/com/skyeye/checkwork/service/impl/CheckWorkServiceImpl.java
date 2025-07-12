@@ -485,14 +485,18 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         List<String> months = DateUtil.getPointMonthBeforeAfterMonth(yearMonth);
         LOGGER.info("需要查询的月份信息：{}", months);
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
-        // 获取当前用户的考勤打卡信息
-        List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
-        beans.forEach(bean -> {
-            if ("-".equals(bean.get("timeId").toString())) {
-                // 加班日的打卡信息
-                bean.put("title", String.format(Locale.ROOT, "(%s) %s", "加班", bean.get("title").toString()));
-            }
-        });
+        List<Map<String, Object>> beans = new ArrayList<>();
+        if (StrUtil.isNotBlank(timeId)) {
+            // 获取当前用户的考勤打卡信息
+            List<Map<String, Object>> rows = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
+            rows.forEach(bean -> {
+                if ("-".equals(bean.get("timeId").toString())) {
+                    // 加班日的打卡信息
+                    bean.put("title", String.format(Locale.ROOT, "(%s) %s", "加班", bean.get("title").toString()));
+                }
+            });
+            beans.addAll(rows);
+        }
         // 1.判断节假日信息
         queryDayWorkMation(beans, months, timeId, shiftType, staffId);
         // 2.获取用户指定班次在指定月份的其他日期信息[审核通过的](例如：请假，出差，加班等)
