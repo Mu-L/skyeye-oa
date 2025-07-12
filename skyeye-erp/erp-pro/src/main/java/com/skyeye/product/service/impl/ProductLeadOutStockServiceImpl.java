@@ -192,6 +192,9 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProductLeadOutStock::getCreateTime));
         List<ProductLeadOutStock> list = list(queryWrapper);
         List<String> productLeadOutStockIds = list.stream().map(ProductLeadOutStock::getId).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(productLeadOutStockIds)) {
+            return list;
+        }
         List<ErpOrderItem> erpOrderItems = skyeyeErpOrderItemService.queryErpOrderItemByPIds(productLeadOutStockIds);
         Map<String, List<ErpOrderItem>> stringListMap = erpOrderItems.stream().collect(Collectors.groupingBy(ErpOrderItem::getParentId));
         list.forEach(productLeadOutStock ->
