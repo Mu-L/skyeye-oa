@@ -46,6 +46,12 @@ public class LoanBorrowController {
         loanBorrowService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryUserLoanBorrowList", value = "获取用户申请借款单列表信息", method = "POST", allUse = "2")
+    @RequestMapping("/post/LoanBorrowController/queryUserLoanBorrowList")
+    public void queryUserLoanBorrowList(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryUserLoanBorrowList(inputObject, outputObject);
+    }
+
     /**
      * 新增/编辑借款单
      *

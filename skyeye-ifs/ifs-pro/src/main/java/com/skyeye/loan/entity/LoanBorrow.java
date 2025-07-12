@@ -90,4 +90,8 @@ public class LoanBorrow extends SkyeyeFlowable {
     @Property(value = "申请人信息")
     private Map<String, Object> applicantMation;
 
+    @TableField("application_time")
+    @ApiModelProperty(value = "申请时间", required = "required")
+    private String applicationTime;
+
 }

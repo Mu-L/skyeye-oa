@@ -11,8 +11,10 @@ import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.loan.dao.LoanRepayDao;
+import com.skyeye.loan.entity.LoanBorrow;
 import com.skyeye.loan.entity.LoanRepay;
 import com.skyeye.loan.service.LoanBorrowService;
 import com.skyeye.loan.service.LoanRepayService;
@@ -40,6 +42,12 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
 
     @Autowired
     private LoanBorrowService loanBorrowService;
+
+    @Override
+    public void validatorEntity(LoanRepay entity) {
+        super.validatorEntity(entity);
+        entity.setRepayTime(entity.getRepayTime().substring(0, 10));
+    }
 
     @Override
     public QueryWrapper<LoanRepay> getQueryWrapper(CommonPageInfo commonPageInfo) {
