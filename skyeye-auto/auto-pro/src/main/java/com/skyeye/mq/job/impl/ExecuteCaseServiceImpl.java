@@ -7,6 +7,7 @@ package com.skyeye.mq.job.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.rest.mq.JobMateUpdateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.history.entity.AutoHistoryCase;
@@ -15,6 +16,7 @@ import com.skyeye.usercase.service.AutoCaseService;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
