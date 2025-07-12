@@ -412,7 +412,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            throw new CustomException("未查询到排班信息");
+            return;
         }
         getStaffMation(timeWorkPeople);
         iAuthUserService.setName(timeWorkPeople, "createId", "createName");
