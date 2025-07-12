@@ -550,7 +550,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months, tenantId);
         beans.addAll(holiday);
         // 开始计算上班日期
-        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey()) && StrUtil.isBlank(timeId)) {
+        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey()) && StrUtil.isNotBlank(timeId)) {
             // 固定班次
             calcWorkTime(beans, months, timeId);
         }
