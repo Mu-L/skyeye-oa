@@ -26,7 +26,7 @@ public class LoanRepayAnalysisController {
     @Autowired
     private LoanRepayAnalysisService loanRepayAnalysisService;
 
-    @ApiOperation(id = "queryLoanRepayAnalysis", value = "借款单趋势图", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryLoanRepayAnalysis", value = "借款单趋势图", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
     })

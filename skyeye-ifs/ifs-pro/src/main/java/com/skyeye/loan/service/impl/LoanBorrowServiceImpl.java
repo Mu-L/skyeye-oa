@@ -17,6 +17,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.loan.classenum.LoanBorrowTypeEnum;
@@ -30,10 +31,8 @@ import com.xingyuv.http.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +59,9 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         if (entity.getBorrowType() == LoanBorrowTypeEnum.DEPARTMENT.getKey() && StringUtil.isEmpty(entity.getDepartmentId())) {
             throw new CustomException("请选择借款部门");
         }
+        // 申请日期设置日期格式YYYY-MM-dd--字符串截取
+        entity.setApplicationTime(entity.getApplicationTime().substring(0, 10));
+
     }
 
     @Override
@@ -213,6 +215,17 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
             // 计算还款总金额
             double repayTotalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getPaidPrice())).sum();
             tempMap.put("repayTotalPrice", repayTotalPrice);
+            // 计算未还款金额
+            double notRepayTotalPrice = borrowTotalPrice - repayTotalPrice;
+            tempMap.put("notRepayTotalPrice", notRepayTotalPrice);
+            if (borrowTotalPrice == repayTotalPrice) {
+                tempMap.put("state", LoanPaidStateEnum.PAID.getKey());
+            } else if (repayTotalPrice > 0) {
+                tempMap.put("state", LoanPaidStateEnum.PART_PAID.getKey());
+            } else {
+                tempMap.put("state", LoanPaidStateEnum.NOT_PAID.getKey());
+            }
+
             result.add(tempMap);
         }
         iDepmentService.setMationForMap(result, "departmentId", "departmentMation");
@@ -228,5 +241,17 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
         queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') = {0}", time);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryUserLoanBorrowList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getApplicantId), userId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
+        queryWrapper.ne(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PAID.getKey());
+        List<LoanBorrow> bean = list(queryWrapper);
+        outputObject.setBeans(bean);
+        outputObject.settotal(bean.size());
     }
 }
