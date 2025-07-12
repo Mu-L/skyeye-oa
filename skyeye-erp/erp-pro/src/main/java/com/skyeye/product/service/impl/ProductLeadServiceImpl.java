@@ -10,9 +10,7 @@ import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadFromType;
 import com.skyeye.product.dao.ProductLeadDao;
-import com.skyeye.product.entity.ProductLead;
-import com.skyeye.product.entity.ProductLeadChild;
-import com.skyeye.product.entity.ProductLeadOutStock;
+import com.skyeye.product.entity.*;
 import com.skyeye.product.service.ProductLeadChildService;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
@@ -81,9 +79,9 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         ProductLead productLead = super.selectById(id);
         List<ProductLeadChild> productLeadChildren = productLeadChildService.selectProductLeadChildById(id);
         productLead.setErpOrderItemList(productLeadChildren);
-        iCustomerService.setDataMation(productLead,ProductLead::getHolderId);
         materialNormsService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getNormsId);
         materialService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getMaterialId);
+        iCustomerService.setDataMation(productLead, ProductLead::getHolderId);
         return productLead;
     }
 

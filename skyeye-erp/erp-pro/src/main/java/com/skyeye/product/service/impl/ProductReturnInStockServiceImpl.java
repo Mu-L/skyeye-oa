@@ -131,9 +131,8 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     }
 
     @Override
-    public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        ProductReturnInStock productReturnInStock = selectById(id);
+    public ProductReturnInStock selectById(String id) {
+        ProductReturnInStock productReturnInStock = super.selectById(id);
         Map<String, Integer> stringIntegerMap = depotPutService.calcMaterialNormsNumByFromId(productReturnInStock.getId());
         super.setOrCheckOperNumber(productReturnInStock.getErpOrderItemList(), true, stringIntegerMap);
         productReturnInStock.setErpOrderItemList(productReturnInStock.getErpOrderItemList().stream()
@@ -142,8 +141,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
-        outputObject.setBean(productReturnInStock);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        return productReturnInStock;
     }
 
     @Override
