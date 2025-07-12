@@ -25,7 +25,7 @@ import lombok.Data;
  */
 @Data
 @TableName(value = "dw_qu_score")
-@ApiModel(value = "评分题行选项实体类")
+@ApiModel(value = "评分题选项实体类")
 public class DwQuScore extends OperatorUserInfo {
 
     @TableId("id")

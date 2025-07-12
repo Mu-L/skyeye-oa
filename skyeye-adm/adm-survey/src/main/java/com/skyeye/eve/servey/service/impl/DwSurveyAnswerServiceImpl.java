@@ -1,4 +1,4 @@
-package com.skyeye.eve.question.service.impl;
+package com.skyeye.eve.servey.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,10 +20,10 @@ import com.skyeye.eve.enumqu.service.DwAnEnumquService;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import com.skyeye.eve.order.service.DwAnOrderService;
-import com.skyeye.eve.question.dao.DwSurveyAnswerDao;
-import com.skyeye.eve.question.entity.DwSurveyAnswer;
-import com.skyeye.eve.question.entity.DwSurveyDirectory;
-import com.skyeye.eve.question.service.DwSurveyAnswerService;
+import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
+import com.skyeye.eve.servey.entity.DwSurveyAnswer;
+import com.skyeye.eve.servey.entity.DwSurveyDirectory;
+import com.skyeye.eve.servey.service.DwSurveyAnswerService;
 import com.skyeye.eve.radio.service.DwAnRadioService;
 import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;

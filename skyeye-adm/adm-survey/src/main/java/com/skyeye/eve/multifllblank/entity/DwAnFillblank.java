@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 @TableName(value = "dw_an_fillblank")
-@ApiModel(value = "答卷多选题保存表实体类")
+@ApiModel(value = "答卷填空题保存表实体类")
 public class DwAnFillblank extends CommonInfo {
 
     @TableId("id")

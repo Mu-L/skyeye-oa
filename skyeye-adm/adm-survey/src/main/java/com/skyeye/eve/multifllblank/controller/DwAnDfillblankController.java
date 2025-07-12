@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "答卷 多行填空题保存表", tags = "答卷 多行填空题保存表", modelName = "答卷 多行填空题保存表")
+@Api(value = "答卷多行填空题保存表", tags = "答卷多行填空题保存表", modelName = "答卷多行填空题保存表")
 public class DwAnDfillblankController {
 
     @Autowired

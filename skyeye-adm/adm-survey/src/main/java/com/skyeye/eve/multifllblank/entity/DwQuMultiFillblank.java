@@ -23,7 +23,7 @@ import lombok.Data;
  */
 @Data
 @TableName(value = "dw_qu_multi_fillblank")
-@ApiModel(value = "多行填空题实体类")
+@ApiModel(value = "多行填空题选项实体类")
 public class DwQuMultiFillblank extends OperatorUserInfo {
 
     @TableId("id")

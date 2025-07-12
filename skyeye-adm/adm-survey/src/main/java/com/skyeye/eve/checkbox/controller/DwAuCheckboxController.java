@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "多选题答卷管理", tags = "多选题答卷管理", modelName = "多选题答卷管理")
+@Api(value = "答卷多选题管理", tags = "答卷多选题管理", modelName = "答卷多选题管理")
 public class DwAuCheckboxController {
 
     @Autowired

@@ -6,7 +6,7 @@
 //
 //import cn.hutool.json.JSONUtil;
 //import com.skyeye.common.util.DateUtil;
-//import com.skyeye.eve.question.dao.DwSurveyDirectoryDao;
+//import com.skyeye.eve.servey.dao.DwSurveyDirectoryDao;
 //import com.skyeye.eve.service.IQuartzService;
 //import com.xxl.job.core.context.XxlJobHelper;
 //import com.xxl.job.core.handler.annotation.XxlJob;

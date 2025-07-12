@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Api(value = "多行填空题管理", tags = "多行填空题管理", modelName = "多行填空题管理")
+@Api(value = "多行填空题选项管理", tags = "多行填空题选项管理", modelName = "多行填空题选项管理")
 public class DwQuMultiFillblackController {
 
     @Autowired

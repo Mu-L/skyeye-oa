@@ -179,4 +179,14 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         return false;
     }
 
+    @Override
+    public List<MachinProcedure> queryMachinProcedureByIds(List<String> machinProcedureIdList) {
+        if (CollectionUtil.isEmpty(machinProcedureIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, machinProcedureIdList);
+        return list(queryWrapper);
+    }
+
 }

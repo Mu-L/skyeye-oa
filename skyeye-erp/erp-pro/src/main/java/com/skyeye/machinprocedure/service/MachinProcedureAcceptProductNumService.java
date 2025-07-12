@@ -11,4 +11,7 @@ public interface MachinProcedureAcceptProductNumService extends SkyeyeBusinessSe
     List<MachinProcedureAcceptProductNum> queryListByParentId(String parentId);
 
     void deleteByParentId(String parentId);
+
+    List<MachinProcedureAcceptProductNum> queryMachinProcedureAcceptProductNumByStaffId(String staffId);
+
 }

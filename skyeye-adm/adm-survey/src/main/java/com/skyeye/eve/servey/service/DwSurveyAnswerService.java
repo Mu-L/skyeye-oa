@@ -1,9 +1,9 @@
-package com.skyeye.eve.question.service;
+package com.skyeye.eve.servey.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.eve.question.entity.DwSurveyAnswer;
+import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 
 import java.util.List;
 

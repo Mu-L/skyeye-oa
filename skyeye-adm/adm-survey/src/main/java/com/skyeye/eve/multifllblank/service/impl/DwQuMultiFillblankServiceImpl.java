@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@SkyeyeService(name = "多行填空题管理", groupName = "多行填空题管理")
+@SkyeyeService(name = "多行填空题选项管理", groupName = "多行填空题选项管理")
 public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQuMultiFillblankDao, DwQuMultiFillblank> implements DwQuMultiFillblankService {
 
     @Override

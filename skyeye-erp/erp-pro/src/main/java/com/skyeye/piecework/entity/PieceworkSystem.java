@@ -7,6 +7,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @TableName(value = "erp_piecework_system")
 @ApiModel("计件数量或工时统计实体类")
@@ -28,17 +30,21 @@ public class PieceworkSystem extends BaseGeneralInfo {
     @ApiModelProperty("车间工位id")
     private String farmStationId;
 
+    @TableField("day_mouth")
+    @ApiModelProperty("年月（yyyy-MM）")
+    private String dayMouth;
+
     @TableField("is_num_time")
     @ApiModelProperty("1 按照计件数量 2 按照工时")
     private Integer isNumTime;
 
     @TableField("total_num_price")
     @ApiModelProperty("计件工一件的价格")
-    private String totalNumPrice;
+    private BigDecimal totalNumPrice;
 
     @TableField("all_num")
     @ApiModelProperty("总数量")
-    private Integer allNum;
+    private BigDecimal allNum;
 
     @TableField("total_time_price")
     @ApiModelProperty("小时工一小时价钱")
