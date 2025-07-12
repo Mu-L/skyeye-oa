@@ -7,7 +7,5 @@ import com.skyeye.product.entity.ProductReturnInStock;
 
 public interface ProductReturnInStockService extends SkyeyeErpOrderService<ProductReturnInStock>{
 
-    void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject);
-
     void insertProductReturnInStockToInDepot(InputObject inputObject, OutputObject outputObject);
 }

@@ -12,7 +12,6 @@ public enum ProductLeadFromType implements SkyeyeEnumClass {
 
     LOANAPPLICATIONFORM(0, "借出申请单", true, false);
 
-
     private Integer key;
 
     private String value;

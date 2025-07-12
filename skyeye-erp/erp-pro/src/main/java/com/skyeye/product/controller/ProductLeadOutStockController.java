@@ -59,7 +59,7 @@ public class ProductLeadOutStockController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProductLeadOutStockController/queryProductLeadOutStockById")
     public void queryProductLeadOutStockById(InputObject inputObject, OutputObject outputObject) {
-        productLeadOutStockService.queryProductLeadOutStockById(inputObject, outputObject);
+        productLeadOutStockService.selectById(inputObject, outputObject);
     }
 
     /**

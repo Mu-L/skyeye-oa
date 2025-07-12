@@ -143,8 +143,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     }
 
     @Override
-    public void queryProductLeadOutStockById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
+    public ProductLeadOutStock selectById(String id) {
         ProductLeadOutStock productLeadOutStock = super.selectById(id);
         // 该出库单下的已经下达仓库出库单(审核通过)的数量
         Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(productLeadOutStock.getId());
@@ -159,8 +158,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
         materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
-        outputObject.setBean(productLeadOutStock);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        return productLeadOutStock;
     }
 
     @Override

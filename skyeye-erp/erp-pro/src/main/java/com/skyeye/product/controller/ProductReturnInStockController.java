@@ -63,7 +63,7 @@ public class ProductReturnInStockController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProductReturnInStockController/queryProductReturnInStockById")
     public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {
-        productReturnInStockService.queryProductReturnInStockById(inputObject, outputObject);
+        productReturnInStockService.selectById(inputObject, outputObject);
     }
 
     /**

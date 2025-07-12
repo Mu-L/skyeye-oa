@@ -28,7 +28,7 @@ public class ProductLead extends SkyeyeFlowable {
     private String holderId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "关联的客户/供应商/会员id")
+    @ApiModelProperty(value = "关联的客户/供应商/会员信息")
     private Map<String, Object> holderMation;
 
     @TableField("total_price")
