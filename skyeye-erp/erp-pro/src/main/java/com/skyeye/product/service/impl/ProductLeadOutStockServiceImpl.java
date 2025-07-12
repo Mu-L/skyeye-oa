@@ -7,13 +7,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.entity.DepotOut;
@@ -28,7 +27,6 @@ import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.rest.project.service.IProProjectService;
-import com.skyeye.supplier.service.SupplierService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,10 +79,18 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         productLeadService.setMationForMap(beans, "fromId", "fromMation");
-        farmService.setMationForMap(beans, "farmId", "farmMation");
-        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
-        supplierService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
+        beans.forEach(
+            bean -> {
+                String holderKey = bean.get("holderKey").toString();
+                if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
+                    iCustomerService.setMationForMap(bean, "holderId", "holderMation");
+                } else {
+                    supplierService.setMationForMap(bean, "holderId", "holderMation");
+                }
+            }
+        );
         return beans;
     }
 
@@ -155,10 +161,13 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         productLeadService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFromId);
         farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
         iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);
-        iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
-        supplierService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
         materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
+        if (productLeadOutStock.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
+            iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
+        } else {
+            supplierService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
+        }
         return productLeadOutStock;
     }
 

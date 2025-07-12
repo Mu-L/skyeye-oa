@@ -1,20 +1,17 @@
 package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.MapUtil;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.product.classenum.ProductLeadFromType;
 import com.skyeye.product.classenum.ProductReturnFromType;
 import com.skyeye.product.dao.ProductReturnDao;
 import com.skyeye.product.entity.ProductLeadOutStock;
@@ -29,12 +26,10 @@ import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
@@ -68,8 +63,16 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
-        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
-        supplierService.setMationForMap(beans, "holderId", "holderMation");
+        beans.forEach(
+            bean -> {
+                String holderKey = bean.get("holderKey").toString();
+                if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
+                    iCustomerService.setMationForMap(bean, "holderId", "holderMation");
+                } else {
+                    supplierService.setMationForMap(bean, "holderId", "holderMation");
+                }
+            }
+        );
         return beans;
     }
 
@@ -140,10 +143,13 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         ProductReturn productReturn = super.selectById(id);
         List<ProductReturnChild> productLeadChildren = productReturnChildService.selectProductLeadChildById(id);
         productReturn.setErpOrderItemList(productLeadChildren);
-        iCustomerService.setDataMation(productReturn, ProductReturn::getHolderId);
         materialNormsService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getNormsId);
         materialService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getMaterialId);
-        supplierService.setDataMation(productReturn, ProductReturn::getHolderId);
+        if (productReturn.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
+            iCustomerService.setDataMation(productReturn, ProductReturn::getHolderId);
+        } else {
+            supplierService.setDataMation(productReturn, ProductReturn::getHolderId);
+        }
         return productReturn;
     }
 
