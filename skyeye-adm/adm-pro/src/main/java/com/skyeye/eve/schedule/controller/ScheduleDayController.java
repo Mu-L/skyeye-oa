@@ -54,7 +54,7 @@ public class ScheduleDayController {
     @ApiOperation(id = "syseveschedule002", value = "获取当前用户的日程信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "yearMonth", name = "yearMonth", value = "指定年月：YYYY-MM", required = "required"),
-        @ApiImplicitParam(id = "checkWorkId", name = "checkWorkId", value = "班次id", required = "required"),
+        @ApiImplicitParam(id = "checkWorkId", name = "checkWorkId", value = "班次id"),
         @ApiImplicitParam(id = "shiftType", name = "shiftType", value = "班次类型", enumClass = CheckWorkShiftType.class, defaultValue = "fixed")})
     @RequestMapping("/post/ScheduleDayController/queryScheduleDayByUserId")
     public void queryScheduleDayByUserId(InputObject inputObject, OutputObject outputObject) {

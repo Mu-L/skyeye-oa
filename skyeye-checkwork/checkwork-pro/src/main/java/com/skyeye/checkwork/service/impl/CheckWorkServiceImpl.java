@@ -15,7 +15,10 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.checkwork.classenum.*;
+import com.skyeye.checkwork.classenum.CheckTypeFrom;
+import com.skyeye.checkwork.classenum.ClockInTime;
+import com.skyeye.checkwork.classenum.ClockOutTime;
+import com.skyeye.checkwork.classenum.ClockState;
 import com.skyeye.checkwork.dao.CheckWorkDao;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.checkwork.service.CheckWorkService;
@@ -517,15 +520,17 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     @Override
     public List<Map<String, Object>> getUserOtherDayMation(String userId, String timeId, List<String> months) {
         List<Map<String, Object>> beans = new ArrayList<>();
-        // 1.获取审核通过的出差信息
-        List<Map<String, Object>> businessTripDay = checkWorkBusinessTripService.queryStateIsSuccessBusinessTripDayByUserIdAndMonths(userId, timeId, months);
-        beans.addAll(businessTripDay);
-        // 2.获取审核通过的加班信息
+        if (StrUtil.isNotBlank(timeId)) {
+            // 1.获取审核通过的出差信息
+            List<Map<String, Object>> businessTripDay = checkWorkBusinessTripService.queryStateIsSuccessBusinessTripDayByUserIdAndMonths(userId, timeId, months);
+            beans.addAll(businessTripDay);
+            // 2.获取审核通过的请假信息
+            List<Map<String, Object>> leaveDay = checkWorkLeaveService.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months);
+            beans.addAll(leaveDay);
+        }
+        // 3.获取审核通过的加班信息
         List<Map<String, Object>> workOvertimeDay = checkWorkOvertimeService.queryStateIsSuccessWorkOvertimeDayByUserIdAndMonths(userId, months);
         beans.addAll(workOvertimeDay);
-        // 3.获取审核通过的请假信息
-        List<Map<String, Object>> leaveDay = checkWorkLeaveService.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months);
-        beans.addAll(leaveDay);
         return beans;
     }
 
@@ -533,7 +538,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     public void queryDayWorkMation(InputObject inputObject, OutputObject outputObject) {
         DayWork dayWorkMation = inputObject.getParams(DayWork.class);
         List<Map<String, Object>> beans = dayWorkMation.getBeans();
-        this.queryDayWorkMation(beans, dayWorkMation.getMonths(), dayWorkMation.getTimeId(), dayWorkMation.getShiftType(), StrUtil.EMPTY);
+        this.queryDayWorkMation(beans, dayWorkMation.getMonths(), dayWorkMation.getTimeId(), dayWorkMation.getShiftType(), dayWorkMation.getStaffId());
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
@@ -545,7 +550,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months, tenantId);
         beans.addAll(holiday);
         // 开始计算上班日期
-        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey())) {
+        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey()) && StrUtil.isBlank(timeId)) {
             // 固定班次
             calcWorkTime(beans, months, timeId);
         }
