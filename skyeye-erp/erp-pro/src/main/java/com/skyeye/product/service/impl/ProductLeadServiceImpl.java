@@ -14,6 +14,7 @@ import com.skyeye.product.entity.*;
 import com.skyeye.product.service.ProductLeadChildService;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
+import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,10 +40,14 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Autowired
     private MaterialService materialService;
 
+    @Autowired
+    private SupplierService supplierService;
+
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        supplierService.setMationForMap(beans, "holderId", "holderMation");
         return beans;
     }
 
@@ -82,6 +87,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         materialNormsService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getNormsId);
         materialService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getMaterialId);
         iCustomerService.setDataMation(productLead, ProductLead::getHolderId);
+        supplierService.setDataMation(productLead, ProductLead::getHolderId);
         return productLead;
     }
 

@@ -80,6 +80,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         productReturnService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        supplierService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
@@ -141,6 +142,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
+        supplierService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
         return productReturnInStock;
     }
 

@@ -26,6 +26,7 @@ import com.skyeye.product.service.ProductReturnChildService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
 import com.skyeye.rest.project.service.IProProjectService;
+import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -60,11 +61,15 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     @Autowired
     private MaterialService materialService;
 
+    @Autowired
+    private SupplierService supplierService;
+
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
-        iCustomerService.setMationForMap(beans, "holderId", "customerMation");
+        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        supplierService.setMationForMap(beans, "holderId", "holderMation");
         return beans;
     }
 
@@ -138,6 +143,7 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         iCustomerService.setDataMation(productReturn, ProductReturn::getHolderId);
         materialNormsService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getNormsId);
         materialService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getMaterialId);
+        supplierService.setDataMation(productReturn, ProductReturn::getHolderId);
         return productReturn;
     }
 

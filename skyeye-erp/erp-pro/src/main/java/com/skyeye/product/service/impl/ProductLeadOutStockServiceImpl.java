@@ -28,6 +28,7 @@ import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.rest.project.service.IProProjectService;
+import com.skyeye.supplier.service.SupplierService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,9 +50,6 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     private DepotOutService depotOutService;
 
     @Autowired
-    private ICustomerService iCustomerService;
-
-    @Autowired
     private IProProjectService iProProjectService;
 
     @Autowired
@@ -65,6 +63,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
 
     @Autowired
     private FarmService farmService;
+
 
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -84,6 +83,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         productLeadService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        supplierService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
@@ -156,6 +156,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
         iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);
         iCustomerService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
+        supplierService.setDataMation(productLeadOutStock, ProductLeadOutStock::getHolderId);
         materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         return productLeadOutStock;

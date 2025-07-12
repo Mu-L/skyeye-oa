@@ -301,6 +301,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
     public void editSysUserStaffState(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("id").toString();
+        tenantEnable = false;
         if (!tenantEnable) {
             // 单租户模式，设置离职信息
             UpdateWrapper<SysEveUserStaff> updateWrapper = new UpdateWrapper<>();
