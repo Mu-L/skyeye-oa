@@ -8,6 +8,7 @@ import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.product.entity.ProductLeadOutStock;
@@ -49,6 +50,7 @@ public class ProductReturnInStockController {
     public void writeProductReturnInStock(InputObject inputObject, OutputObject outputObject) {
         productReturnInStockService.saveOrUpdateEntity(inputObject, outputObject);
     }
+
 
     /**
      * 转仓库入库单时，根据id查询归还入库单信息
