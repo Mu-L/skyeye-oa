@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.checkwork.classenum.CheckWorkShiftType;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -79,7 +80,8 @@ public class CheckWorkController {
     @ApiOperation(id = "checkwork014", value = "根据月份查询当月的考勤信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "timeId", name = "timeId", value = "班次id", required = "required"),
-        @ApiImplicitParam(id = "monthMation", name = "monthMation", value = "当前月上个年月", required = "required")})
+        @ApiImplicitParam(id = "monthMation", name = "monthMation", value = "当前月上个年月", required = "required"),
+        @ApiImplicitParam(id = "shiftType", name = "shiftType", value = "班次类型", enumClass = CheckWorkShiftType.class, defaultValue = "fixed")})
     @RequestMapping("/post/CheckWorkController/queryCheckWorkMationByMonth")
     public void queryCheckWorkMationByMonth(InputObject inputObject, OutputObject outputObject) {
         checkWorkService.queryCheckWorkMationByMonth(inputObject, outputObject);
@@ -139,8 +141,8 @@ public class CheckWorkController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "staffIds", name = "staffIds", value = "员工id集合,逗号隔开", required = "required"),
         @ApiImplicitParam(id = "dates", name = "dates", value = "日期列表，逗号隔开", required = "required")})
-        @RequestMapping("/post/CheckWorkController/queryInfoByStaffIdsAndDates")
+    @RequestMapping("/post/CheckWorkController/queryInfoByStaffIdsAndDates")
     public void queryInfoByStaffIdsAndDates(InputObject inputObject, OutputObject outputObject) {
-        checkWorkService.queryInfoByStaffIdsAndDates(inputObject,outputObject);
+        checkWorkService.queryInfoByStaffIdsAndDates(inputObject, outputObject);
     }
 }

@@ -228,6 +228,8 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         List<String> materialIds = shopMaterialList.stream().map(ShopMaterial::getMaterialId).distinct().collect(Collectors.toList());
         Map<String, ShopMaterialStore> stringShopMaterialStoreMap = shopMaterialStoreService.queryShopMaterialStoreByMaterialIds(materialIds.toArray(new String[]{}));
         shopMaterialList = selectByIds(idList.toArray(new String[]{}));
+        // 过滤掉没有商品信息的商品
+        shopMaterialList = shopMaterialList.stream().filter(bean -> ObjectUtil.isNotEmpty(bean.getMaterialMation())).collect(Collectors.toList());
         shopMaterialList.forEach(shopMaterial -> {
             shopMaterial.getMaterialMation().setMaterialNorms(null);
             shopMaterial.getMaterialMation().setUnitGroupMation(null);
