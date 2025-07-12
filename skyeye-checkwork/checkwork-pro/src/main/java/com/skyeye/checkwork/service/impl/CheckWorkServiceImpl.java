@@ -15,10 +15,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.checkwork.classenum.CheckTypeFrom;
-import com.skyeye.checkwork.classenum.ClockInTime;
-import com.skyeye.checkwork.classenum.ClockOutTime;
-import com.skyeye.checkwork.classenum.ClockState;
+import com.skyeye.checkwork.classenum.*;
 import com.skyeye.checkwork.dao.CheckWorkDao;
 import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.checkwork.service.CheckWorkService;
@@ -47,6 +44,7 @@ import com.skyeye.organization.service.ICompanyService;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.overtime.dao.OvertimeDao;
 import com.skyeye.overtime.service.OvertimeService;
+import com.skyeye.scheduling.service.SchedulingService;
 import com.skyeye.trip.service.BusinessTripService;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -64,6 +62,7 @@ import java.util.stream.Collectors;
 /**
  * @ClassName: CheckWorkServiceImpl
  * @Description: 考勤打卡管理服务接口层
+ * 班次优先级：排版班次 > 节假日 > 固定班次
  * @author: skyeye云系列--卫志强
  * @date: 2021/4/24 11:11
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -104,6 +103,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
 
     @Autowired
     private CheckWorkTimeService checkWorkTimeService;
+
+    @Autowired
+    private SchedulingService schedulingService;
 
     /**
      * 上班打卡
@@ -448,10 +450,13 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Object> map = inputObject.getParams();
         String yearMonth = map.get("monthMation").toString();
         String timeId = map.get("timeId").toString();
+        String shiftType = map.get("shiftType").toString();
         String userId = inputObject.getLogParams().get("id").toString();
+        String staffId = inputObject.getLogParams().get("staffId").toString();
         List<String> months = DateUtil.getPointMonthBeforeAfterMonth(yearMonth);
         LOGGER.info("需要查询的月份信息：{}", months);
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        // 获取当前用户的考勤打卡信息
         List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkMationByMonth(userId, timeId, months, tenantId);
         beans.forEach(bean -> {
             if ("-".equals(bean.get("timeId").toString())) {
@@ -460,7 +465,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             }
         });
         // 1.判断节假日信息
-        queryDayWorkMation(beans, months, timeId);
+        queryDayWorkMation(beans, months, timeId, shiftType, staffId);
         // 2.获取用户指定班次在指定月份的其他日期信息[审核通过的](例如：请假，出差，加班等)
         beans.addAll(getUserOtherDayMation(userId, timeId, months));
         outputObject.setBeans(beans);
@@ -508,21 +513,38 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     public void queryDayWorkMation(InputObject inputObject, OutputObject outputObject) {
         DayWork dayWorkMation = inputObject.getParams(DayWork.class);
         List<Map<String, Object>> beans = dayWorkMation.getBeans();
-        this.queryDayWorkMation(beans, dayWorkMation.getMonths(), dayWorkMation.getTimeId());
+        this.queryDayWorkMation(beans, dayWorkMation.getMonths(), dayWorkMation.getTimeId(), dayWorkMation.getShiftType(), StrUtil.EMPTY);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
 
     @Override
-    public void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId) {
+    public void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId, String shiftType, String staffId) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取指定月份的节假日(type=3)
         List<Map<String, Object>> holiday = checkWorkDao.queryHolidayScheduleDayMation(months, tenantId);
         beans.addAll(holiday);
         // 开始计算上班日期
-        calcWorkTime(beans, months, timeId);
+        if (StrUtil.equals(shiftType, CheckWorkShiftType.FIXED.getKey())) {
+            // 固定班次
+            calcWorkTime(beans, months, timeId);
+        }
+        if (StrUtil.isNotBlank(staffId)) {
+            // 计算排版班次信息
+            calcScheduleShiftType(beans, months, staffId);
+        }
         // 将节假日时间段转化为每一天
         calcHolidayPartToDay(beans);
+    }
+
+    private void calcScheduleShiftType(List<Map<String, Object>> beans, List<String> months, String staffId) {
+        List<String> workDay = schedulingService.querySchedulingByStaffIdAndMouths(staffId, months);
+        if (CollectionUtil.isEmpty(workDay)) {
+            return;
+        }
+        for (String day : workDay) {
+            beans.add(CheckWorkConstants.structureScheduleWorkMation(day));
+        }
     }
 
     /**
@@ -579,7 +601,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
                     beans.add(CheckWorkConstants.structureWorkMation(day));
                     continue;
                 }
-                beans.add(CheckWorkConstants.structureRestMation(day, ""));
+                beans.add(CheckWorkConstants.structureRestMation(day, StrUtil.EMPTY));
             }
         }
     }

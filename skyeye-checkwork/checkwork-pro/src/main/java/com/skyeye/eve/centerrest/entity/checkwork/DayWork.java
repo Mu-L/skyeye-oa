@@ -6,6 +6,7 @@ package com.skyeye.eve.centerrest.entity.checkwork;
 
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.checkwork.classenum.CheckWorkShiftType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,5 +33,8 @@ public class DayWork implements Serializable {
 
     @ApiModelProperty(value = "考勤班次id", required = "required")
     private String timeId;
+
+    @ApiModelProperty(value = "班次类型", enumClass = CheckWorkShiftType.class, defaultValue = "fixed")
+    private String shiftType;
 
 }

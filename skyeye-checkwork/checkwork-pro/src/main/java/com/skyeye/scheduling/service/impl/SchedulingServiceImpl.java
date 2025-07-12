@@ -469,6 +469,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         String staffId = map.get("staffId").toString();
         String mouths = inputObject.getParams().get("mouths").toString();
         List<String> mouthList = Arrays.asList(mouths.split(CommonCharConstants.COMMA_MARK));
+        List<String> sortedDates = querySchedulingByStaffIdAndMouths(staffId, mouthList);
+        outputObject.setBeans(sortedDates);
+        outputObject.settotal(sortedDates.size());
+    }
+
+    @Override
+    public List<String> querySchedulingByStaffIdAndMouths(String staffId, List<String> mouthList) {
         QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
         mouthList.forEach(month -> {
             String monthPattern = month + "%";
@@ -484,7 +491,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
 
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            return;
+            return new ArrayList<>();
         }
 
         List<Scheduling> filteredSchedulingList = schedulingList.stream()
@@ -505,8 +512,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> sortedDates = allDates.stream().sorted()
             .map(LocalDate::toString)
             .collect(Collectors.toList());
-        outputObject.setBeans(sortedDates);
-        outputObject.settotal(sortedDates.size());
+        return sortedDates;
     }
 
     @Override
