@@ -58,7 +58,7 @@ public interface CheckWorkService extends SkyeyeBusinessService<CheckWork> {
 
     void queryReportDetail(InputObject inputObject, OutputObject outputObject);
 
-    void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId);
+    void queryDayWorkMation(List<Map<String, Object>> beans, List<String> months, String timeId, String shiftType, String staffId);
 
     List<Map<String, Object>> queryNotCheckMember(String timeId, String yesterdayTime);
 

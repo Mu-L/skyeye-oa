@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.Scheduling;
 
+import java.util.List;
+
 public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
 
     void autoComputeScheduling(InputObject inputObject, OutputObject outputObject);
@@ -16,6 +18,8 @@ public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
     void querySchedulingList(InputObject inputObject, OutputObject outputObject);
 
     void querySchedulingByStaffIdAndMouths(InputObject inputObject, OutputObject outputObject);
+
+    List<String> querySchedulingByStaffIdAndMouths(String staffId, List<String> mouthList);
 
     void querySchedulingByStaffIdAndOneDay(InputObject inputObject, OutputObject outputObject);
 }

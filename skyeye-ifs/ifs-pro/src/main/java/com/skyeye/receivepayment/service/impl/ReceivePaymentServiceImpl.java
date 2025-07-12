@@ -70,6 +70,10 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
             entity.setFromId(entity.getId());
             entity.setId(StrUtil.EMPTY);
         }
+        if(StrUtil.isNotEmpty(entity.getPaidTime())){
+            // YYYY-MM-DD
+            entity.setPaidTime(entity.getPaidTime().substring(0,10));
+        }
     }
 
     @Override

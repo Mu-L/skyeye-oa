@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface CheckWorkService {
 
     /**
-     * 获取节假日信息
+     * 获取指定天中的工作日
      *
      * @param dayWorkMationRest 入参信息
      */

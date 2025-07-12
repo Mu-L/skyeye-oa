@@ -41,6 +41,18 @@ public class CheckWorkConstants {
     }
 
     /**
+     * 构造排版班次上班日的对象数据
+     *
+     * @param day 指定日期
+     * @return
+     */
+    public static Map<String, Object> structureScheduleWorkMation(String day) {
+        Map<String, Object> mation = structureWorkMation(day);
+        mation.put("isSchedulingWorkDay", true);
+        return mation;
+    }
+
+    /**
      * 构造星期天休息日的对象数据
      *
      * @param day   指定日期

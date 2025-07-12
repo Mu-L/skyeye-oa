@@ -26,7 +26,7 @@ public class UserOtherDayMationRest implements Serializable {
     @ApiModelProperty(value = "用户id", required = "required")
     private String userId;
 
-    @ApiModelProperty(value = "考勤班次id", required = "required")
+    @ApiModelProperty(value = "考勤班次id")
     private String timeId;
 
     @ApiModelProperty(value = "月份", required = "required")
