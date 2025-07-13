@@ -446,6 +446,27 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
     }
 
     @Override
+    public List<MachinProcedureAccept> queryListByMachinProcedureId(String machinProcedureId) {
+        if (StrUtil.isEmpty(machinProcedureId)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureId), machinProcedureId);
+        List<MachinProcedureAccept> machinList = list(queryWrapper);
+        return machinList;
+    }
+
+    @Override
+    public List<MachinProcedureAccept> queryListByMachinProcedureIdList(List<String> machinProcedureIdList) {
+        if (CollectionUtil.isEmpty(machinProcedureIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureId), machinProcedureIdList);
+        List<MachinProcedureAccept> machinList = list(queryWrapper);
+        return machinList;
+    }
+    @Override
     public List<MachinProcedureAccept> queryProcedureAcceptByIds(List<String> procedureAcceptIdList) {
         if (CollectionUtil.isEmpty(procedureAcceptIdList)) {
             return new ArrayList<>();

@@ -11,6 +11,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAcceptProductNum;
 import com.skyeye.machinprocedure.service.MachinProcedureAcceptProductNumService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,6 +56,16 @@ public class MachinProcedureAcceptProductNumServiceImpl extends SkyeyeBusinessSe
         QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getParentId), parentId);
         remove(queryWrapper);
+    }
+
+    @Override
+    public List<MachinProcedureAcceptProductNum> queryListByParentIds(List<String> acceptIdList) {
+        if (CollectionUtil.isEmpty(acceptIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getParentId), acceptIdList);
+        return list(queryWrapper);
     }
 
     @Override
