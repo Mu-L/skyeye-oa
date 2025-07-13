@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "评分题行选项管理", groupName = "评分题行选项管理")
+@SkyeyeService(name = "评分题选项管理", groupName = "评分题选项管理")
 public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao, DwQuScore> implements DwQuScoreService {
 
     @Override

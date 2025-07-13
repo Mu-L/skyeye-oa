@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -79,8 +79,17 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
         productReturnService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
-        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
+        beans.forEach(
+            bean -> {
+                String holderKey = bean.get("holderKey").toString();
+                if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
+                    iCustomerService.setMationForMap(bean, "holderId", "holderMation");
+                } else {
+                    supplierService.setMationForMap(bean, "holderId", "holderMation");
+                }
+            }
+        );
         return beans;
     }
 
@@ -131,19 +140,21 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
     }
 
     @Override
-    public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
-        ProductReturnInStock productReturnInStock = selectById(id);
+    public ProductReturnInStock selectById(String id) {
+        ProductReturnInStock productReturnInStock = super.selectById(id);
         Map<String, Integer> stringIntegerMap = depotPutService.calcMaterialNormsNumByFromId(productReturnInStock.getId());
         super.setOrCheckOperNumber(productReturnInStock.getErpOrderItemList(), true, stringIntegerMap);
         productReturnInStock.setErpOrderItemList(productReturnInStock.getErpOrderItemList().stream()
             .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
-        iCustomerService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
         materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
-        outputObject.setBean(productReturnInStock);
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
+        if (productReturnInStock.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
+            iCustomerService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
+        } else {
+            supplierService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
+        }
+        return productReturnInStock;
     }
 
     @Override

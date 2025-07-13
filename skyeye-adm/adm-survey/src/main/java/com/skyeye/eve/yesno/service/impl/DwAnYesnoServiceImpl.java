@@ -2,6 +2,7 @@ package com.skyeye.eve.yesno.service.impl;
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@SkyeyeService(name = "判断题答卷管理", groupName = "判断题答卷管理")
 public class DwAnYesnoServiceImpl extends SkyeyeBusinessServiceImpl<DwAnYesnoDao, DwAnYesno> implements DwAnYesnoService {
     @Override
     public void queryDwAnYesnoListById(InputObject inputObject, OutputObject outputObject) {

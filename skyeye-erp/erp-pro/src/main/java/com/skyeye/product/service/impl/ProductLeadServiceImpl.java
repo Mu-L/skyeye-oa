@@ -3,6 +3,7 @@ package com.skyeye.product.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.crm.service.ICustomerService;
@@ -16,6 +17,7 @@ import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadChildService;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
+import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,10 +43,22 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Autowired
     private MaterialService materialService;
 
+    @Autowired
+    private SupplierService supplierService;
+
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
-        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
+        beans.forEach(
+            bean -> {
+                String holderKey = bean.get("holderKey").toString();
+                if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
+                    iCustomerService.setMationForMap(bean, "holderId", "holderMation");
+                } else {
+                    supplierService.setMationForMap(bean, "holderId", "holderMation");
+                }
+            }
+        );
         return beans;
     }
 
@@ -81,9 +95,13 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         ProductLead productLead = super.selectById(id);
         List<ProductLeadChild> productLeadChildren = productLeadChildService.selectProductLeadChildById(id);
         productLead.setErpOrderItemList(productLeadChildren);
-        iCustomerService.setDataMation(productLead,ProductLead::getHolderId);
         materialNormsService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getNormsId);
         materialService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getMaterialId);
+        if (productLead.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
+            iCustomerService.setDataMation(productLead, ProductLead::getHolderId);
+        } else {
+            supplierService.setDataMation(productLead, ProductLead::getHolderId);
+        }
         return productLead;
     }
 

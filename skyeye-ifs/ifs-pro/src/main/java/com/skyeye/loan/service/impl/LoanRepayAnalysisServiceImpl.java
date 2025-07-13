@@ -50,6 +50,7 @@ public class LoanRepayAnalysisServiceImpl extends SkyeyeBusinessServiceImpl<Loan
         LoanRepayAnalysis loanRepayAnalysis = new LoanRepayAnalysis();
         String price = "0";
         loanRepayAnalysis.setPrice(price);
+        loanRepayAnalysis.setPeriodTime(month);
         // 计算费用总和
         for (LoanRepay loanRepay : loanRepayList) {
             price = CalculationUtil.add(CommonNumConstants.NUM_TWO,

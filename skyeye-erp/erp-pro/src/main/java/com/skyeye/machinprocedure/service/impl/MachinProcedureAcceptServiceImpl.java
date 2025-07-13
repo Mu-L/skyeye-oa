@@ -12,6 +12,7 @@ import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
@@ -133,7 +134,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             scrapNumLast = scrapNumLast + ProductNum.getScrapNum();
         }
         if (entity.getAcceptNum() != allNumLast || entity.getQualifiedNum() != qualifiedNumLast
-                || entity.getReworkNum() != reworkNumLast || entity.getScrapNum() != scrapNumLast) {
+            || entity.getReworkNum() != reworkNumLast || entity.getScrapNum() != scrapNumLast) {
             throw new CustomException("员工生产数量需要与验收数量一致");
         }
     }
@@ -157,9 +158,9 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
 
     private void saveErpOrderItemCode(MachinProcedureAccept entity) {
         List<String> materialIdList = entity.getMachinProcedureAcceptChildList().stream()
-                .map(MachinProcedureAcceptChild::getMaterialId).distinct().collect(Collectors.toList());
+            .map(MachinProcedureAcceptChild::getMaterialId).distinct().collect(Collectors.toList());
         List<String> scrapMaterialIdList = entity.getMachinScrapProcedureAcceptChildList().stream()
-                .map(MachinProcedureAcceptChild::getMaterialId).distinct().collect(Collectors.toList());
+            .map(MachinProcedureAcceptChild::getMaterialId).distinct().collect(Collectors.toList());
         materialIdList.addAll(scrapMaterialIdList);
         materialIdList = materialIdList.stream().distinct().collect(Collectors.toList());
         Map<String, Material> materialMap = materialService.selectMapByIds(materialIdList);
@@ -172,10 +173,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
                 // 一物一码
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(machinProcedureAcceptChild.getNormsCode().split("\n")).stream()
-                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                    .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                 if (machinProcedureAcceptChild.getOperNumber() != normsCodeList.size()) {
                     throw new CustomException(
-                            String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
+                        String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
                 }
                 normsCodeList.forEach(normsCode -> {
                     MachinProcedureAcceptChildCode erpOrderItemCode = new MachinProcedureAcceptChildCode();
@@ -194,10 +195,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
                 // 一物一码
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(machinProcedureAcceptChild.getNormsCode().split("\n")).stream()
-                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                    .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                 if (machinProcedureAcceptChild.getOperNumber() != normsCodeList.size()) {
                     throw new CustomException(
-                            String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
+                        String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
                 }
                 normsCodeList.forEach(normsCode -> {
                     MachinProcedureAcceptChildCode erpOrderItemCode = new MachinProcedureAcceptChildCode();
@@ -229,7 +230,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         });
 
         Map<Integer, List<MachinProcedureAcceptChild>> childMap = machinProcedureAcceptChildList.stream()
-                .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getType));
+            .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getType));
         machinProcedureAccept.setMachinProcedureAcceptChildList(childMap.get(MachinProcedureAcceptChildType.NORMAL.getKey()));
         machinProcedureAccept.setMachinScrapProcedureAcceptChildList(childMap.get(MachinProcedureAcceptChildType.SCRAP.getKey()));
         return machinProcedureAccept;
@@ -320,39 +321,39 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             // 1. 校验数量
             Map<String, Integer> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList);
             Map<String, Integer> collect = childList.stream()
-                    .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId, Collectors.summingInt(MachinProcedureAcceptChild::getOperNumber)));
+                .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId, Collectors.summingInt(MachinProcedureAcceptChild::getOperNumber)));
             collect.forEach((normsId, changeNum) -> {
                 Integer departmentFarmStock = stock.containsKey(normsId) ? stock.get(normsId) : 0;
                 if (changeNum > departmentFarmStock) {
                     throw new CustomException(
-                            String.format(Locale.ROOT, "商品【%s】超出当前仓库的库存，请确认", normsMap.get(normsId).getName()));
+                        String.format(Locale.ROOT, "商品【%s】超出当前仓库的库存，请确认", normsMap.get(normsId).getName()));
                 }
             });
             // 2. 校验条形码
             //  2.1 从数据库查询出库状态的条形码信息，
             //  2.2 只有部门信息不为空的说明已经领料，才可以进行工序耗材。
             List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, allNormsCodeList,
-                    MaterialNormsCodeInDepot.OUTBOUND.getKey());
+                MaterialNormsCodeInDepot.OUTBOUND.getKey());
             materialNormsCodeList = materialNormsCodeList.stream()
-                    .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(entity.getDepartmentId(), bean.getDepartmentId()))
-                    .collect(Collectors.toList());
+                .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(entity.getDepartmentId(), bean.getDepartmentId()))
+                .collect(Collectors.toList());
             //  2.3 如果车间不为空，则需要获取过滤出当前车间的库存
             if (StrUtil.isNotEmpty(entity.getFarmId())) {
                 materialNormsCodeList = materialNormsCodeList.stream()
-                        .filter(bean -> StrUtil.isNotEmpty(bean.getFarmId()) && StrUtil.equals(entity.getFarmId(), bean.getFarmId()))
-                        .collect(Collectors.toList());
+                    .filter(bean -> StrUtil.isNotEmpty(bean.getFarmId()) && StrUtil.equals(entity.getFarmId(), bean.getFarmId()))
+                    .collect(Collectors.toList());
             }
             //  1.4 只有未使用的可以进行工序耗材
             materialNormsCodeList = materialNormsCodeList.stream()
-                    .filter(bean -> PickNormsCodeUseState.WAIT_USE.getKey() == bean.getPickUseState())
-                    .collect(Collectors.toList());
+                .filter(bean -> PickNormsCodeUseState.WAIT_USE.getKey() == bean.getPickUseState())
+                .collect(Collectors.toList());
             List<String> inSqlNormsCodeList = materialNormsCodeList.stream().map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
             // 获取所有前端传递过来的条形码信息，求差集(在入参中有，但是在数据库中不包含的条形码信息)
             List<String> diffList = allNormsCodeList.stream()
-                    .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
+                .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(diffList)) {
                 throw new CustomException(
-                        String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
+                    String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
             }
             if (!onlyCheck) {
                 // 批量修改条形码信息
@@ -367,7 +368,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             // 修改部门/车间的库存
             childList.forEach(acceptChild -> {
                 departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), acceptChild.getMaterialId(),
-                        acceptChild.getNormsId(), acceptChild.getOperNumber(), DepotPutOutType.OUT.getKey());
+                    acceptChild.getNormsId(), acceptChild.getOperNumber(), DepotPutOutType.OUT.getKey());
             });
         }
         return allNormsCodeList;
@@ -382,16 +383,16 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             MaterialNorms norms = normsMap.get(acceptChild.getNormsId());
             if (acceptChild.getOperNumber() == 0) {
                 throw new CustomException(
-                        String.format(Locale.ROOT, "商品【%s】【%s】的数量不能为0，请确认", material.getName(), norms.getName()));
+                    String.format(Locale.ROOT, "商品【%s】【%s】的数量不能为0，请确认", material.getName(), norms.getName()));
             }
             if (material.getItemCode() == MaterialItemCode.ONE_ITEM_CODE.getKey()) {
                 // 一物一码
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(acceptChild.getNormsCode().split("\n")).stream()
-                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                    .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                 if (acceptChild.getOperNumber() != normsCodeList.size()) {
                     throw new CustomException(
-                            String.format(Locale.ROOT, "商品【%s】【%s】的条形码数量与明细数量不一致，请确认", material.getName(), norms.getName()));
+                        String.format(Locale.ROOT, "商品【%s】【%s】的条形码数量与明细数量不一致，请确认", material.getName(), norms.getName()));
                 }
                 allCodeNum += normsCodeList.size();
                 acceptChild.setNormsCodeList(normsCodeList);
@@ -426,7 +427,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getState), FlowableStateEnum.PASS.getKey());
         List<MachinProcedureAccept> machinList = list(queryWrapper);
         Integer allNum = machinList.stream()
-                .collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
+            .collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
         return allNum;
     }
 
@@ -440,7 +441,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureFarmId), machinProcedureFarmIdList);
         List<MachinProcedureAccept> machinList = list(queryWrapper);
         Map<String, List<MachinProcedureAccept>> map = machinList.stream()
-                .collect(Collectors.groupingBy(MachinProcedureAccept::getMachinProcedureFarmId));
+            .collect(Collectors.groupingBy(MachinProcedureAccept::getMachinProcedureFarmId));
         return map;
     }
 
@@ -464,5 +465,14 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureId), machinProcedureIdList);
         List<MachinProcedureAccept> machinList = list(queryWrapper);
         return machinList;
+    }
+    @Override
+    public List<MachinProcedureAccept> queryProcedureAcceptByIds(List<String> procedureAcceptIdList) {
+        if (CollectionUtil.isEmpty(procedureAcceptIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, procedureAcceptIdList);
+        return list(queryWrapper);
     }
 }

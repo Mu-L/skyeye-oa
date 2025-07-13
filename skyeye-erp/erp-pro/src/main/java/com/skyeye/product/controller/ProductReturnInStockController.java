@@ -8,6 +8,7 @@ import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.product.entity.ProductLeadOutStock;
@@ -50,6 +51,7 @@ public class ProductReturnInStockController {
         productReturnInStockService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+
     /**
      * 转仓库入库单时，根据id查询归还入库单信息
      *
@@ -61,7 +63,7 @@ public class ProductReturnInStockController {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProductReturnInStockController/queryProductReturnInStockById")
     public void queryProductReturnInStockById(InputObject inputObject, OutputObject outputObject) {
-        productReturnInStockService.queryProductReturnInStockById(inputObject, outputObject);
+        productReturnInStockService.selectById(inputObject, outputObject);
     }
 
     /**

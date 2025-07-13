@@ -262,7 +262,7 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         super.writePostpose(entity, userId);
         // 员工考勤时间段
         if (!tenantEnable) {
-            // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方保存
+            // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方调用
             sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
         }
     }

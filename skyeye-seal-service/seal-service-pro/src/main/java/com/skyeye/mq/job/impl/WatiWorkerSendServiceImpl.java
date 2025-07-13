@@ -15,6 +15,7 @@ import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.constants.SealConstants;
@@ -28,6 +29,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

@@ -27,6 +27,10 @@ public class ProductReturn extends SkyeyeFlowable {
     @ApiModelProperty(value = "关联的客户/供应商/会员id")
     private String holderId;
 
+    @TableField("holder_key")
+    @ApiModelProperty(value = "关联的客户/供应商/会员的className")
+    private String holderKey;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "关联的客户/供应商/会员信息")
     private Map<String, Object> holderMation;

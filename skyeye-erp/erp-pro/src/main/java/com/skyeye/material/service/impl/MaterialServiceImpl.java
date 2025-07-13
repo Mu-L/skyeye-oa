@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: MaterialServiceImpl
- * @Description: 商品信息管理服务类
+ * @Description: 商品信息管理服务类--强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/7/6 22:44
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

@@ -1,4 +1,4 @@
-package com.skyeye.eve.question.service.impl;
+package com.skyeye.eve.servey.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -12,10 +12,10 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.question.classenum.SendingStatus;
-import com.skyeye.eve.question.dao.DwSurveyMailInviteDao;
 import com.skyeye.eve.question.entity.DwQuestionBank;
-import com.skyeye.eve.question.entity.DwSurveyMailInvite;
-import com.skyeye.eve.question.service.DwSurveyMailInviteService;
+import com.skyeye.eve.servey.dao.DwSurveyMailInviteDao;
+import com.skyeye.eve.servey.entity.DwSurveyMailInvite;
+import com.skyeye.eve.servey.service.DwSurveyMailInviteService;
 import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 

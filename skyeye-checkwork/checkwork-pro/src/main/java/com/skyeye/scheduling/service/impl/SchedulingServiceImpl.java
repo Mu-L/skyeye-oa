@@ -412,7 +412,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            throw new CustomException("未查询到排班信息");
+            return;
         }
         getStaffMation(timeWorkPeople);
         iAuthUserService.setName(timeWorkPeople, "createId", "createName");
@@ -469,6 +469,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         String staffId = map.get("staffId").toString();
         String mouths = inputObject.getParams().get("mouths").toString();
         List<String> mouthList = Arrays.asList(mouths.split(CommonCharConstants.COMMA_MARK));
+        List<String> sortedDates = querySchedulingByStaffIdAndMouths(staffId, mouthList);
+        outputObject.setBeans(sortedDates);
+        outputObject.settotal(sortedDates.size());
+    }
+
+    @Override
+    public List<String> querySchedulingByStaffIdAndMouths(String staffId, List<String> mouthList) {
         QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
         mouthList.forEach(month -> {
             String monthPattern = month + "%";
@@ -484,7 +491,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
 
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            throw new CustomException("未查询到排班信息");
+            return new ArrayList<>();
         }
 
         List<Scheduling> filteredSchedulingList = schedulingList.stream()
@@ -505,8 +512,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> sortedDates = allDates.stream().sorted()
             .map(LocalDate::toString)
             .collect(Collectors.toList());
-        outputObject.setBeans(sortedDates);
-        outputObject.settotal(sortedDates.size());
+        return sortedDates;
     }
 
     @Override
@@ -523,23 +529,29 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
         if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            throw new CustomException("未查询到排班信息");
+            return;
         }
         List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
         List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
-        Map<String, List<SchedulingTime>> stringListMap = schedulingTimes.stream()
+        Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
             .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
-        Set<String> timeSegments = new HashSet<>();
+        Set<SchedulingTime> timeSegments = new HashSet<>();
         for (Scheduling scheduling : schedulingList) {
-            List<SchedulingTime> schedulingTimes1 = stringListMap.getOrDefault(scheduling.getId(), Collections.emptyList());
-            for (SchedulingTime time : schedulingTimes1) {
-                if (timeWorkPeople.stream().anyMatch(people -> people.getSchedulingTimeId().equals(time.getId()))) {
-                    timeSegments.add(time.getStartTime() + " - " + time.getEndTime());
+            List<SchedulingTime> times = timeMap.getOrDefault(scheduling.getId(), Collections.emptyList());
+            for (SchedulingTime time : times) {
+                if (timeWorkPeople.stream()
+                    .anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
+                    timeSegments.add(time);
                 }
             }
         }
-        outputObject.setBean(new ArrayList<>(timeSegments));
+        outputObject.setBeans(new ArrayList<>(timeSegments));
         outputObject.settotal(timeSegments.size());
+    }
+
+    @Override
+    public void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject) {
+        
     }
 
     private LocalDateTime parseDateTime(String dateTimeStr) {

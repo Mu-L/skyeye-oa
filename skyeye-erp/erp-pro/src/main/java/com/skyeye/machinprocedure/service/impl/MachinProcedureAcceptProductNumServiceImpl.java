@@ -68,6 +68,13 @@ public class MachinProcedureAcceptProductNumServiceImpl extends SkyeyeBusinessSe
         return list(queryWrapper);
     }
 
+    @Override
+    public List<MachinProcedureAcceptProductNum> queryMachinProcedureAcceptProductNumByStaffId(String staffId) {
+        QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getStaffId), staffId);
+        return list(queryWrapper);
+    }
+
     public List<MachinProcedureAcceptProductNum> queryListByParentIdOnly(String parentId) {
         QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getParentId), parentId);

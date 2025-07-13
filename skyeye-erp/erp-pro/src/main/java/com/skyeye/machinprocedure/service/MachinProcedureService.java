@@ -43,4 +43,5 @@ public interface MachinProcedureService extends SkyeyeBusinessService<MachinProc
     List<MachinProcedure> queryListByMachinId(String machinId);
 
     List<MachinProcedure> querySameListById(String machinProcedureId);
+    List<MachinProcedure> queryMachinProcedureByIds(List<String> machinProcedureIdList);
 }

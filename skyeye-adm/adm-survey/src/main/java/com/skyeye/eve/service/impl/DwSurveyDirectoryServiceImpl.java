@@ -836,7 +836,9 @@
 //        // 获取问卷信息
 //        Map<String, Object> surveyMation = dwSurveyDirectoryDao.querySurveyMationById(id);
 //        if (surveyMation != null && !surveyMation.isEmpty()) {
+//            //获取问卷中所有题目
 //            List<Map<String, Object>> questions = dwSurveyDirectoryDao.queryQuestionListByBelongId(map);//获取问卷中的题
+//            // 遍历每个题目
 //            for (Map<String, Object> question : questions) {
 //                question.put("quTypeName", QuType.getCName(Integer.parseInt(question.get("quType").toString())));
 //                getQuestionOptionListMation(question);
@@ -859,9 +861,12 @@
 //    public Map<String, Object> getQuestionOptionReportListMation(Map<String, Object> question) {
 //        String quType = QuType.getActionName(Integer.parseInt(question.get("quType").toString()));//获取题目类型
 //        if (quType.equals(QuType.RADIO.getActionName()) || quType.equals(QuType.COMPRADIO.getActionName())) {//单选  复合单选
+//            // 所有答案
 //            List<Map<String, Object>> beans = dwSurveyDirectoryDao.queryRadioGroupStat(question);
+//            // 所有选项
 //            List<Map<String, Object>> radios = (List<Map<String, Object>>) question.get("questionRadio");
 //            int count = 0;
+//            //遍历选项
 //            for (Map<String, Object> radio : radios) {
 //                radio.put("anCount", 0);
 //                for (Map<String, Object> bean : beans) {
@@ -924,13 +929,19 @@
 //                question.put("anCount", beans.size());
 //            }
 //        } else if (quType.equals(QuType.CHENRADIO.getActionName())) {//矩阵单选题
+//            // 矩阵单选题答案
 //            List<Map<String, Object>> beans = dwSurveyDirectoryDao.queryChenRadioGroupStat(question);
+//            // 行选项
 //            List<Map<String, Object>> rows = (List<Map<String, Object>>) question.get("questionChenRow");
 //            int count = 0;
+//            // 遍历行选项
 //            for (Map<String, Object> row : rows) {
 //                row.put("anCount", 0);
+//                // 遍历矩阵单选题答案
 //                for (Map<String, Object> bean : beans) {
+//                    // 答案行选项id与行选项id是否相等
 //                    if (bean.get("quRowId").toString().equals(row.get("id").toString())) {
+//                        //
 //                        row.put("anCount", Integer.parseInt(row.get("anCount").toString()) + Integer.parseInt(bean.get("count").toString()));
 //                    }
 //                }

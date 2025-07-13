@@ -143,6 +143,7 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
         String userId = inputObject.getLogParams().get("id").toString();
         String yearMonth = map.get("yearMonth").toString();
         String timeId = map.get("checkWorkId").toString();
+        String shiftType = map.get("shiftType").toString();
         List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取当前登录人指定月份的日程信息
@@ -150,10 +151,14 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
         beans.forEach(bean -> {
             bean.put("backgroundColor", CheckDayType.getColor(Integer.parseInt(bean.get("type").toString())));
         });
+
+        String staffId = inputObject.getLogParams().get("staffId").toString();
         DayWorkMationRest dayWorkMationParams = new DayWorkMationRest();
         dayWorkMationParams.setBeans(beans);
         dayWorkMationParams.setMonths(months);
         dayWorkMationParams.setTimeId(timeId);
+        dayWorkMationParams.setShiftType(shiftType);
+        dayWorkMationParams.setStaffId(staffId);
         beans = ExecuteFeignClient.get(() -> checkWorkService.queryDayWorkMation(dayWorkMationParams)).getRows();
         // 2.获取用户指定班次在指定月份的其他日期信息[审核通过的](例如：请假，出差，加班等)
         UserOtherDayMationRest userOtherDayMationParams = new UserOtherDayMationRest();

@@ -21,4 +21,6 @@ public interface DwQuestionLogicService extends SkyeyeBusinessService<DwQuestion
     void queryMyDwQuestionLogicList(InputObject inputObject, OutputObject outputObject);
 
     void createLogics(List<DwQuestion> dwQuestionList, String userId);
+
+    List<DwQuestionLogic> selectByDwQuestionIdList(List<String> dwQuestionIdList);
 }
