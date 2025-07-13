@@ -5,6 +5,7 @@
 package com.skyeye.shop.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -38,7 +39,8 @@ public class ShopConfirmPutController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryShopConfirmPutList", value = "获取物料接收单列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class,value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopConfirmPutController/queryShopConfirmPutList")
     public void queryShopConfirmPutList(InputObject inputObject, OutputObject outputObject) {
         shopConfirmPutService.queryPageList(inputObject, outputObject);
