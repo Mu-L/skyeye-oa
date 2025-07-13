@@ -549,6 +549,11 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         outputObject.settotal(timeSegments.size());
     }
 
+    @Override
+    public void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject) {
+        
+    }
+
     private LocalDateTime parseDateTime(String dateTimeStr) {
         try {
             return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

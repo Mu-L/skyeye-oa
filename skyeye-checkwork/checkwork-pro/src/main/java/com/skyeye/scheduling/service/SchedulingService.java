@@ -22,4 +22,6 @@ public interface SchedulingService extends SkyeyeBusinessService<Scheduling> {
     List<String> querySchedulingByStaffIdAndMouths(String staffId, List<String> mouthList);
 
     void querySchedulingByStaffIdAndOneDay(InputObject inputObject, OutputObject outputObject);
+
+    void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject);
 }
