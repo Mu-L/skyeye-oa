@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
+import com.skyeye.business.classenum.OrderQualityInspectionType;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonConstants;
@@ -23,6 +24,8 @@ import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.entity.QualityInspectionItem;
 import com.skyeye.inspection.service.QualityInspectionService;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.purchase.classenum.DeliveryPutState;
+import com.skyeye.purchase.classenum.OrderArrivalState;
 import com.skyeye.purchase.classenum.PurchaseDeliveryFromType;
 import com.skyeye.purchase.classenum.PurchaseExchangesFromType;
 import com.skyeye.purchase.dao.PurchaseExchangesDao;
@@ -78,17 +81,28 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
 
     @Override
     public void validatorEntity(PurchaseExchange entity) {
-        entity.setOtherState(DepotOutState.NOT_NEED_OUT.getKey());
+        entity.setOtherState(OrderArrivalState.NEED_ARRIVAL.getKey());
         checkMaterialNorms(entity, false);
     }
 
     @Override
     public void createPrepose(PurchaseExchange entity) {
         super.createPrepose(entity);
-        entity.setType(DepotPutOutType.OUT.getKey());
+        entity.setType(DepotPutOutType.PUT.getKey());
         entity.getErpOrderItemList().forEach(erpOrderItem -> {
             erpOrderItem.setMType(MaterialInOrderType.GENERAL.getKey());
         });
+        setOtherMation(entity);
+    }
+
+    private static void setOtherMation(PurchaseExchange entity) {
+        // 设置质检类型
+        Integer qualityInspection = OrderQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey();
+        for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
+            qualityInspection = setQualityInspection(erpOrderItem, qualityInspection);
+            erpOrderItem.setMType(MaterialInOrderType.GENERAL.getKey());
+        }
+        entity.setQualityInspection(qualityInspection);
     }
 
     @Override

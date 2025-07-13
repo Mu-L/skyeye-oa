@@ -15,6 +15,7 @@ import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -27,6 +28,7 @@ import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.depot.service.DepotPutService;
+import com.skyeye.entity.ErpOrderHead;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.entity.ErpOrderItemCode;
 import com.skyeye.exception.CustomException;
@@ -39,6 +41,7 @@ import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.rest.shop.service.IShopStoreService;
 import com.skyeye.shop.classenum.ShopConfirmFromType;
 import com.skyeye.shop.dao.ShopConfirmReturnDao;
+import com.skyeye.shop.entity.ShopConfirmPut;
 import com.skyeye.shop.entity.ShopConfirmReturn;
 import com.skyeye.shop.service.ShopConfirmPutService;
 import com.skyeye.shop.service.ShopConfirmReturnService;
@@ -75,6 +78,16 @@ public class ShopConfirmReturnServiceImpl extends SkyeyeErpOrderServiceImpl<Shop
 
     @Autowired
     private IShopStoreService iShopStoreService;
+
+    @Override
+    public QueryWrapper<ShopConfirmReturn> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ShopConfirmReturn> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
+            commonPageInfo.setObjectId("-");
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderHead::getStoreId), commonPageInfo.getObjectId());
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
