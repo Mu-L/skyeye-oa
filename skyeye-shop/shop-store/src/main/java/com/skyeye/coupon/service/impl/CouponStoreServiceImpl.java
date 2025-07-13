@@ -20,7 +20,8 @@ public class CouponStoreServiceImpl extends SkyeyeBusinessServiceImpl<CouponStor
 
     @Override
     public void createEntity(String couponId, List<String> storeIdList) {
-        List<CouponStore> list = super.queryAllData();
+        QueryWrapper<CouponStore> queryWrapper = new QueryWrapper<>();
+        List<CouponStore> list = list(queryWrapper);
         for (String s : storeIdList) {
             CouponStore couponStore = new CouponStore();
             couponStore.setStoreId(s);
