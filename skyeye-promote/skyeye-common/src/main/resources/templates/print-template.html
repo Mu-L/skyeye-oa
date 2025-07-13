@@ -116,45 +116,6 @@
             object-fit: contain;
         }
 
-        /* 动画效果 */
-        @media screen {
-            .fade-in {
-                animation: fadeIn 0.5s ease-in;
-            }
-
-            .slide-in-left {
-                animation: slideInLeft 0.5s ease-in;
-            }
-
-            .slide-in-right {
-                animation: slideInRight 0.5s ease-in;
-            }
-
-            .scale-in {
-                animation: scaleIn 0.5s ease-in;
-            }
-
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-
-            @keyframes slideInLeft {
-                from { transform: translateX(-100%); }
-                to { transform: translateX(0); }
-            }
-
-            @keyframes slideInRight {
-                from { transform: translateX(100%); }
-                to { transform: translateX(0); }
-            }
-
-            @keyframes scaleIn {
-                from { transform: scale(0); }
-                to { transform: scale(1); }
-            }
-        }
-
         /* 打印相关样式 */
         @page {
             margin: 0;
