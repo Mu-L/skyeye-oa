@@ -53,7 +53,7 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
             if (StrUtil.isNotEmpty(object.getIsDefaultAnswer())) {
                 bean.setIsDefaultAnswer(object.getIsDefaultAnswer());
             }
-            if (ToolUtil.isBlank(object.getOptionId())) {
+            if (ToolUtil.isBlank(object.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
@@ -61,7 +61,7 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 quMultiFillblank.add(bean);
             } else {
-                bean.setId(object.getOptionId());
+                bean.setId(object.getId());
                 editquMultiFillblank.add(bean);
             }
         }
@@ -110,14 +110,14 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
                 if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
                     bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
                 }
-                if (ToolUtil.isBlank(radio.getOptionId())) {
+                if (ToolUtil.isBlank(radio.getId())) {
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
                     insertList.add(bean);
                 } else {
-                    bean.setId(bean.getOptionId());
+                    bean.setId(bean.getId());
                     updateList.add(bean);
                 }
             }
@@ -177,7 +177,7 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                .map(DwQuMultiFillblank::getOptionId)
+                .map(DwQuMultiFillblank::getId)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toSet());
 
@@ -231,14 +231,14 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
                 bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
             }
 
-            if (ToolUtil.isBlank(radio.getOptionId())) {
+            if (ToolUtil.isBlank(radio.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
-                bean.setId(bean.getOptionId());
+                bean.setId(bean.getId());
                 updateList.add(bean);
             }
         }

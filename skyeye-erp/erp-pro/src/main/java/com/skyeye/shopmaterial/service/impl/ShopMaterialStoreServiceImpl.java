@@ -251,9 +251,11 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             shopMaterial.getMaterialMation().setUnitGroupMation(null);
             shopMaterial.getMaterialMation().setMaterialProcedure(null);
             shopMaterial.getMaterialMation().setNormsSpec(null);
-            shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
-                shopMaterialNorms.setEstimatePurchasePrice(null);
-            });
+            if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())){
+                shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
+                    shopMaterialNorms.setEstimatePurchasePrice(null);
+                });
+            }
             // 门店商品数据
             ShopMaterialStore shopMaterialStore = storeMap.get(shopMaterial.getMaterialId());
             shopMaterial.setShopMaterialStore(shopMaterialStore);

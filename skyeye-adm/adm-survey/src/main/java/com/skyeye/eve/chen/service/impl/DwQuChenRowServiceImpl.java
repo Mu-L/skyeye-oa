@@ -122,14 +122,14 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
             for (DwQuChenRow radio : radios) {
                 DwQuChenRow bean = new DwQuChenRow();
                 BeanUtil.copyProperties(radio, bean);
-                if (ToolUtil.isBlank(radio.getOptionId())) {
+                if (ToolUtil.isBlank(radio.getId())) {
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
                     insertList.add(bean);
                 } else {
-                    bean.setId(bean.getOptionId());
+                    bean.setId(bean.getId());
                     updateList.add(bean);
                 }
             }
@@ -161,7 +161,7 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                .map(DwQuChenRow::getOptionId)
+                .map(DwQuChenRow::getId)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toSet());
 
@@ -210,14 +210,14 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
             DwQuChenRow bean = new DwQuChenRow();
             BeanUtil.copyProperties(radio, bean);
 
-            if (ToolUtil.isBlank(radio.getOptionId())) {
+            if (ToolUtil.isBlank(radio.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
-                bean.setId(bean.getOptionId());
+                bean.setId(bean.getId());
                 updateList.add(bean);
             }
         }

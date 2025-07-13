@@ -57,7 +57,7 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
             bean.setOrderById(object.getOrderById());
             bean.setOptionName(object.getOptionName());
             bean.setOptionTitle(object.getOptionTitle());
-            if (ToolUtil.isBlank(object.getOptionId())) {
+            if (ToolUtil.isBlank(object.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
@@ -65,7 +65,7 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 quScore.add(bean);
             } else {
-                bean.setId(object.getOptionId());
+                bean.setId(object.getId());
                 editquScore.add(bean);
             }
         }
@@ -134,14 +134,14 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
             for (DwQuScore radio : scores) {
                 DwQuScore bean = new DwQuScore();
                 BeanUtil.copyProperties(radio, bean);
-                if (ToolUtil.isBlank(radio.getOptionId())) {
+                if (ToolUtil.isBlank(radio.getId())) {
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
                     insertList.add(bean);
                 } else {
-                    bean.setId(bean.getOptionId());
+                    bean.setId(bean.getId());
                     updateList.add(bean);
                 }
             }
@@ -167,7 +167,7 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         List<DwQuScore> insertList = new ArrayList<>();
         List<DwQuScore> updateList = new ArrayList<>();
         Set<String> needDeleteIds = new HashSet<>();
-        // 问题Id和选项的映射
+        // 数据库中问题Id和选项的映射
         Map<String, List<DwQuScore>> existingRadiosMap = loadExistingRadios(dwQuestionList);
 
         for (DwQuestion dwQuestion : dwQuestionList) {
@@ -176,11 +176,12 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
                 continue;
             }
             String quId = dwQuestion.getId();
+            // 数据库中对应的问题id下的评分题
             List<DwQuScore> existingRadios = existingRadiosMap.getOrDefault(quId, Collections.emptyList());
 
-            // 收集需要删除的ID
+            // 现在传进来的评分提选项id集合
             Set<String> newIds = radios.stream()
-                .map(DwQuScore::getOptionId)
+                .map(DwQuScore::getId)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toSet());
 
@@ -235,14 +236,14 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         for (DwQuScore radio : radios) {
             DwQuScore bean = new DwQuScore();
             BeanUtil.copyProperties(radio, bean);
-            if (ToolUtil.isBlank(radio.getOptionId())) {
+            if (ToolUtil.isBlank(radio.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
-                bean.setId(bean.getOptionId());
+                bean.setId(bean.getId());
                 updateList.add(bean);
             }
         }

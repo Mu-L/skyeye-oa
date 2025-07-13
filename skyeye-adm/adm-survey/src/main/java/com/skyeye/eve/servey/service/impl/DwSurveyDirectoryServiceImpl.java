@@ -539,20 +539,24 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     Collectors.counting()
                 ));
             int count = 0;
-            // 遍历每个选项
+            // 先给每个radio设置anCount，并累加总数
             for (Map<String, Object> radio : radios) {
-                // 选项Id
                 String radioId = radio.get("id").toString();
-                // 遍历单选题目下的每个答案
-                for (DwAnRadio dwAnRadio : safeDwAnRadioList) {
-                    if (dwAnRadio.getQuItemId().equals(radioId)) {
-                        Long count1 = countMap.get(radioId);
-                        // 设置每个选项出现了多少次
-                        radio.put("anCount", count1 != null ? count1 : 0);
+                long count1 = 0;
+                if (safeDwAnRadioList != null) {
+                    for (DwAnRadio dwAnRadio : safeDwAnRadioList) {
+                        if (dwAnRadio != null && radioId.equals(dwAnRadio.getQuItemId())) {
+                            count1 = countMap.getOrDefault(radioId, 0L);
+                            break;
+                        }
                     }
                 }
-                // 统计所有选项的总次数
-                count += Integer.parseInt(radio.get("anCount").toString());
+
+                radio.put("anCount", count1);
+                count += (int) count1;
+            }
+            // 最后统一设置总次数
+            for (Map<String, Object> radio : radios) {
                 radio.put("anAllCount", count);
             }
         }
@@ -564,18 +568,25 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
             Map<String, Long> countMap = dwAnDfillblankList.stream().collect(Collectors.groupingBy(DwAnDfillblank::getQuItemId, Collectors.counting()));
-            int count = 0;
+            int totalCount = 0;
             for (Map<String, Object> checkBox : checkBoxs) {
-                checkBox.put("anCount", 0);
                 String checkBoxId = checkBox.get("id").toString();
-                for (DwAnDfillblank dwAnDfillblank : dwAnDfillblankList) {
-                    if (dwAnDfillblank.getQuItemId().equals(checkBoxId)) {
-                        Long count1 = countMap.get(checkBoxId);
-                        checkBox.put("anCount", count1 != null ? count1 : 0);
+                long count1 = 0;
+
+                if (dwAnDfillblankList != null) {
+                    for (DwAnDfillblank dwAnDfillblank : dwAnDfillblankList) {
+                        if (dwAnDfillblank != null && checkBoxId.equals(dwAnDfillblank.getQuItemId())) {
+                            count1 = countMap.getOrDefault(checkBoxId, 0L);
+                            break;
+                        }
                     }
                 }
-                count += Integer.parseInt(checkBox.get("anCount").toString());
-                checkBox.put("anAllCount", count);
+
+                checkBox.put("anCount", count1);
+                totalCount += (int) count1;
+            }
+            for (Map<String, Object> checkBox : checkBoxs) {
+                checkBox.put("anAllCount", totalCount);
             }
         }
         // 如果是填空题
@@ -632,98 +643,45 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .filter(Objects::nonNull)
                 .peek(map -> map.putIfAbsent("id", ""))
                 .collect(Collectors.toList());
-            int count = 0;
-            // 每个行选项中列选项的数量
-            Map<String, Map<String, Integer>> statMap = new HashMap<>();
-            // 遍历矩阵单选题答案
-            for (DwAnChenRadio bean : beans) {
-                if (bean.getVisibility() != null && bean.getVisibility().equals(CommonNumConstants.NUM_ONE)) {
-                    // 答案中行选项id
-                    String quRowId = bean.getQuRowId();
-                    // 答案中列选项id
-                    String quColId = bean.getQuColId();
-                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
-                        .merge(quColId, CommonNumConstants.NUM_ONE, Integer::sum);
-                }
+            // 防御空集合
+            if (beans == null) beans = Collections.emptyList();
+            if (rows == null) rows = Collections.emptyList();
+
+            Map<String, Integer> rowTotal = new HashMap<>();
+            Map<String, Map<String, Integer>> detail = new LinkedHashMap<>();
+            beans.stream()
+                .filter(b -> b != null
+                    && CommonNumConstants.NUM_ONE.equals(b.getVisibility()))
+                .forEach(b -> {
+                    String rowId = b.getQuRowId();
+                    String colId = b.getQuColId();
+                    detail.computeIfAbsent(rowId, k -> new LinkedHashMap<>())
+                        .merge(colId, 1, Integer::sum);
+                    rowTotal.merge(rowId, 1, Integer::sum);
+                });
+
+            int allCount = 0;
+            for (Map<String, Object> row : rows) {
+                String rowId = String.valueOf(row.getOrDefault("id", ""));
+                int cnt = rowTotal.getOrDefault(rowId, 0);
+                row.put("anCount", cnt);
+                allCount += cnt;
             }
+            final int total = allCount;   // lambda 里要用 final
             List<Map<String, Object>> statBeans = new ArrayList<>();
-            statMap.forEach((quRowId, colCounts) ->
-                colCounts.forEach((quColId, cnt) -> {
-                    Map<String, Object> statBean = new HashMap<>();
-                    statBean.put("quRowId", quRowId);
-                    statBean.put("quColId", quColId);
-                    statBean.put("count", cnt);
-                    statBeans.add(statBean);
+
+            detail.forEach((rowId, colMap) ->
+                colMap.forEach((colId, cnt) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("quRowId", rowId);
+                    m.put("quColId", colId);
+                    m.put("count", cnt);
+                    m.put("anCount", rowTotal.getOrDefault(rowId, 0)); // 行总次数
+                    m.put("anAllCount", total);                         // 整题总次数
+                    statBeans.add(m);
                 })
             );
-            // 遍历行选项
-            for (Map<String, Object> row : rows) {
-                row.put("anCount", 0);
-                // 行选项id
-                String rowId = Optional.ofNullable(row.get("id"))
-                    .map(Object::toString)
-                .orElse("");
-                // 遍历每个答案行选项和列选项的数量  row:cloumn:count
-                for (Map<String, Object> statBean : statBeans) {
-                    Object quRowIdObject = statBean.get("quRowId");
-                    if (quRowIdObject == null) {
-                        continue;
-                    }
-                    // 拿到答案中行选项id
-                    String quRowId = quRowIdObject.toString();
-                    // 如果行选项id等于答案中行选项Id
-                    if (rowId.equals(quRowId)) {
-                        Integer currentCount = 0;
-                        // 每个行选项中列选项的数量
-                        Object countObject = statBean.get("count");
-                        if (countObject instanceof Integer) {
-                            currentCount += (Integer) countObject;
-                        } else {
-                            currentCount += 0;
-                        }
-                        // 行选项被选择的总次数
-                        row.put("anCount", currentCount);
-                    }
-                }
-                Integer anCount = (Integer) row.get("anCount");
-                if (anCount != null) {
-                    // 行选项被选择的总数量
-                    count += anCount;
-                }
-            }
-            // 遍历矩阵单选题答案
-            for (Map<String, Object> statBean : statBeans) {
-                // 是行选项被选择的总次数
-                statBean.put("anAllCount", count);
-                Object quRowIdObject = statBean.get("quRowId");
-                if (quRowIdObject == null) {
-                    continue;
-                }
-                // 行选项id
-                String quRowId = quRowIdObject.toString();
 
-                // 遍历选项
-                for (Map<String, Object> row : rows) {
-                    Object rowIdObject = row.get("id");
-                    if (rowIdObject == null) {
-                        continue;
-                    }
-                    // 选项中行选项Id
-                    String rowId = rowIdObject.toString();
-
-                    if (quRowId.equals(rowId)) {
-                        // 每个行选项被选择次数
-                        Object anCountObject = row.get("anCount");
-                        if (anCountObject instanceof Integer) {
-                            // 答案中行选项id对应的数量
-                            statBean.put("anCount", anCountObject.toString());
-                        } else {
-                            statBean.put("anCount", "0");
-                        }
-                        break;
-                    }
-                }
-            }
             question.put("anChenRadios", statBeans);
         }
         if (quType.equals(QuType.CHENFBK.getIndex())) {
@@ -733,49 +691,42 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
-            int count = 0;
-            Map<String, Map<String, Integer>> statMap = new HashMap<>();
-            for (DwAnChenFbk bean : beans) {
-                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
-                    String quRowId = bean.getQuRowId();
-                    String quColId = bean.getQuColId();
-                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
-                        .merge(quColId, 1, Integer::sum);
+            // ---------- 0. 防御式空集合 ----------
+            if (beans == null) beans = Collections.emptyList();
+            if (rows == null) rows = Collections.emptyList();
+            Map<String, Map<String, Integer>> detail = new LinkedHashMap<>();
+            Map<String, Integer> rowTotal = new LinkedHashMap<>();
+
+            for (DwAnChenFbk b : beans) {
+                if (b == null || !Objects.equals(b.getVisibility(), 1)) {
+                    continue;
                 }
+                String rowId = b.getQuRowId();
+                String colId = b.getQuColId();
+
+                detail.computeIfAbsent(rowId, k -> new LinkedHashMap<>())
+                    .merge(colId, 1, Integer::sum);
+                rowTotal.merge(rowId, 1, Integer::sum);
             }
+
+            rows.forEach(r -> r.put("anCount",
+                rowTotal.getOrDefault(String.valueOf(r.get("id")), 0)));
+            int allCount = rowTotal.values().stream().mapToInt(Integer::intValue).sum();
+            final int total = allCount;  // lambda 需要 final
             List<Map<String, Object>> statBeans = new ArrayList<>();
-            statMap.forEach((quRowId, colCounts) ->
-                colCounts.forEach((quColId, cnt) -> {
-                    Map<String, Object> statBean = new HashMap<>();
-                    statBean.put("quRowId", quRowId);
-                    statBean.put("quColId", quColId);
-                    statBean.put("count", cnt);
-                    statBeans.add(statBean);
+
+            detail.forEach((rowId, colMap) ->
+                colMap.forEach((colId, cnt) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("quRowId", rowId);
+                    m.put("quColId", colId);
+                    m.put("count", cnt);
+                    m.put("anCount", rowTotal.get(rowId)); // 行总次数
+                    m.put("anAllCount", total);              // 题目总次数
+                    statBeans.add(m);
                 })
             );
-            for (Map<String, Object> row : rows) {
-                row.put("anCount", 0);
-                String rowId = row.get("id").toString();
-                for (Map<String, Object> statBean : statBeans) {
-                    if (rowId.equals(statBean.get("quRowId").toString())) {
-                        int currentCount = (int) row.get("anCount");
-                        currentCount += (int) statBean.get("count");
-                        row.put("anCount", currentCount);
-                    }
-                }
-                count += (int) row.get("anCount");
-            }
-            for (Map<String, Object> statBean : statBeans) {
-                statBean.put("anAllCount", count); // 全局总答案数
-                String quRowId = statBean.get("quRowId").toString();
-                // 匹配行并设置当前行的总答案数
-                for (Map<String, Object> row : rows) {
-                    if (quRowId.equals(row.get("id").toString())) {
-                        statBean.put("anCount", row.get("anCount").toString());
-                        break;
-                    }
-                }
-            }
+
             question.put("anChenFbks", statBeans);
         }
         if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
@@ -784,49 +735,40 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
-            int count = 0;
-            Map<String, Map<String, Integer>> statMap = new HashMap<>();
-            for (DwAnChenCheckbox bean : beans) {
-                if (bean.getVisibility() != null && bean.getVisibility() == 1) {
-                    String quRowId = bean.getQuRowId();
-                    String quColId = bean.getQuColId();
-                    statMap.computeIfAbsent(quRowId, k -> new HashMap<>())
-                        .merge(quColId, 1, Integer::sum);
-                }
-            }
+            if (beans == null) beans = Collections.emptyList();
+            if (rows == null) rows = Collections.emptyList();
+
+            Map<String, Map<String, Integer>> detail = new LinkedHashMap<>();
+            Map<String, Integer> rowTotal = new LinkedHashMap<>();
+
+            beans.stream()
+                .filter(b -> b != null && Objects.equals(b.getVisibility(), 1))
+                .forEach(b -> {
+                    String rowId = b.getQuRowId();
+                    String colId = b.getQuColId();
+                    detail.computeIfAbsent(rowId, k -> new LinkedHashMap<>())
+                        .merge(colId, 1, Integer::sum);
+                    rowTotal.merge(rowId, 1, Integer::sum);
+                });
+
+            rows.forEach(r -> r.put("anCount",
+                rowTotal.getOrDefault(String.valueOf(r.get("id")), 0)));
+
+            int allCount = rowTotal.values().stream().mapToInt(Integer::intValue).sum();
+            final int total = allCount;
             List<Map<String, Object>> statBeans = new ArrayList<>();
-            statMap.forEach((quRowId, colCounts) ->
-                colCounts.forEach((quColId, cnt) -> {
-                    Map<String, Object> statBean = new HashMap<>();
-                    statBean.put("quRowId", quRowId);
-                    statBean.put("quColId", quColId);
-                    statBean.put("count", cnt);
-                    statBeans.add(statBean);
+
+            detail.forEach((rowId, colMap) ->
+                colMap.forEach((colId, cnt) -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("quRowId", rowId);
+                    m.put("quColId", colId);
+                    m.put("count", cnt);
+                    m.put("anCount", rowTotal.get(rowId)); // 行总次数
+                    m.put("anAllCount", total);              // 题目总次数
+                    statBeans.add(m);
                 })
             );
-            for (Map<String, Object> row : rows) {
-                row.put("anCount", 0);
-                String rowId = row.get("id").toString();
-                for (Map<String, Object> statBean : statBeans) {
-                    if (rowId.equals(statBean.get("quRowId").toString())) {
-                        int currentCount = (int) row.get("anCount");
-                        currentCount += (int) statBean.get("count");
-                        row.put("anCount", currentCount);
-                    }
-                }
-                count += (int) row.get("anCount");
-            }
-            for (Map<String, Object> statBean : statBeans) {
-                statBean.put("anAllCount", count); // 全局总答案数
-                String quRowId = statBean.get("quRowId").toString();
-                // 匹配行并设置当前行的总答案数
-                for (Map<String, Object> row : rows) {
-                    if (quRowId.equals(row.get("id").toString())) {
-                        statBean.put("anCount", row.get("anCount").toString());
-                        break;
-                    }
-                }
-            }
             question.put("anChenFbks", statBeans);
         }
         if (quType.equals(QuType.CHENSCORE.getIndex())) {
@@ -840,20 +782,20 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
             Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getQuRowId, Collectors.counting()));
-            int count = 0;
+            // 0. 防御空集合
+            if (dwAnScoreList == null) dwAnScoreList = Collections.emptyList();
+
+            int totalCount = 0;
             for (Map<String, Object> score : scores) {
-                score.put("anCount", CommonNumConstants.NUM_ZERO);
-                String quRowId = score.get("id").toString();
-                for (DwAnScore dwAnScore : dwAnScoreList) {
-                    if (dwAnScore.getQuRowId().equals(score.get("id").toString())) {
-                        Long count1 = collectMap.get(quRowId);
-                        score.put("anCount", count1 != null ? count1 : CommonNumConstants.NUM_ZERO);
-                    }
-                }
-                count += Integer.valueOf(score.get("anCount").toString());
-                for (Map<String, Object> map : scores) {
-                    map.put("anAllCount", count);
-                }
+                String quRowId = String.valueOf(score.get("id"));
+                // 从 collectMap 里取次数，没有就 0
+                long cnt = collectMap.getOrDefault(quRowId, 0L);
+                score.put("anCount", cnt);
+                totalCount += cnt;
+            }
+
+            for (Map<String, Object> score : scores) {
+                score.put("anAllCount", totalCount);
             }
         }
         if (quType.equals(QuType.ORDERQU.getIndex())) {
