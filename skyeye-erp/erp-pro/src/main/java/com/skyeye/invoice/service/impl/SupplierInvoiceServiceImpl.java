@@ -194,6 +194,9 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime));
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            queryWrapper.like(MybatisPlusUtil.toColumns(SupplierInvoice::getOddNumber), commonPageInfo.getKeyword());
+        }
         List<SupplierInvoice> bean = list(queryWrapper);
         // 合同信息
         supplierContractService.setDataMation(bean, SupplierInvoice::getContractId);

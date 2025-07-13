@@ -104,11 +104,11 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         updateWrapper.eq(CommonConstants.ID, loanBorrowId);
         updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidPrice), price);
         if (Double.parseDouble(price) >= Double.parseDouble(loanBorrow.getPrice())) {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PAID.getKey());
         } else if (Double.parseDouble(price) > CommonNumConstants.NUM_ZERO) {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.PART_PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PART_PAID.getKey());
         } else {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.NOT_PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.NOT_PAID.getKey());
         }
         update(updateWrapper);
         refreshCache(loanBorrowId);

@@ -39,7 +39,7 @@ public class CancelLeaveController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "checkworkcancelleave001", value = "获取我的销假申请列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "checkworkcancelleave001", value = "获取我的销假申请列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CancelLeaveController/queryCancelLeaveList")
     public void queryCancelLeaveList(InputObject inputObject, OutputObject outputObject) {
