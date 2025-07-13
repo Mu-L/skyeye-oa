@@ -180,6 +180,34 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
     }
 
     @Override
+    public List<MachinProcedure> queryListByMachinId(String machinId) {
+        if (StrUtil.isEmpty(machinId)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getParentId), machinId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(MachinProcedure::getOrderBy));
+        return list(queryWrapper);
+    }
+
+    /**
+     * 根据加工单子单据工序信息id查询同一加工单子单据工序信息
+     * @param machinProcedureId 加工单子单据工序信息id
+     * @return 同一加工单子单据工序信息
+     */
+    @Override
+    public List<MachinProcedure> querySameListById(String machinProcedureId) {
+        if (StrUtil.isEmpty(machinProcedureId)) {
+            return new ArrayList<>();
+        }
+        MachinProcedure procedure = getById(machinProcedureId);
+        QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getChildId), procedure.getChildId());
+        List<MachinProcedure> list = list(queryWrapper);
+        return list;
+    }
+
+    @Override
     public List<MachinProcedure> queryMachinProcedureByIds(List<String> machinProcedureIdList) {
         if (CollectionUtil.isEmpty(machinProcedureIdList)) {
             return new ArrayList<>();
@@ -188,5 +216,4 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         queryWrapper.in(CommonConstants.ID, machinProcedureIdList);
         return list(queryWrapper);
     }
-
 }
