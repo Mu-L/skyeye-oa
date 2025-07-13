@@ -23,10 +23,6 @@ public class ProductReturn extends SkyeyeFlowable {
     @ApiModelProperty(value = "单据日期", required = "required")
     private String operTime;
 
-    @TableField("type")
-    @ApiModelProperty(value = "转入库后的状态", defaultValue = "2")
-    private Integer type;
-
     @TableField("holder_id")
     @ApiModelProperty(value = "关联的客户/供应商/会员id")
     private String holderId;

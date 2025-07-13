@@ -203,6 +203,13 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     }
 
     @Override
+    protected void approvalEndIsSuccess(ProductLeadOutStock entity) {
+        super.approvalEndIsSuccess(entity);
+        productLeadService.updateLeadType(entity.getFarmId());
+    }
+
+
+    @Override
     public List<ProductLeadOutStock> queryLeadByHolderId(String holderId) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProductLeadOutStock::getHolderId), holderId);

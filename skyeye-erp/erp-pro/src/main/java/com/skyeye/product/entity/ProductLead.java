@@ -27,6 +27,10 @@ public class ProductLead extends SkyeyeFlowable {
     @ApiModelProperty(value = "关联的客户/供应商/会员id")
     private String holderId;
 
+    @TableField("type")
+    @ApiModelProperty(value = "转入库后的状态", defaultValue = "2")
+    private Integer type;
+
     @TableField("holder_key")
     @ApiModelProperty(value = "关联的客户/供应商/会员的className")
     private String holderKey;

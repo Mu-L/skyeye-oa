@@ -1,11 +1,15 @@
 package com.skyeye.product.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.material.service.MaterialNormsService;
@@ -110,6 +114,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         return productLead;
     }
 
+
     @Override
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductLeadOutStock productLeadOutStock = inputObject.getParams(ProductLeadOutStock.class);
@@ -118,6 +123,14 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLeadOutStock.setId(StrUtil.EMPTY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
+    }
+
+    @Override
+    public void updateLeadType(String farmId) {
+        UpdateWrapper<ProductLead> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, farmId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductLead::getType), IsDefaultEnum.IS_DEFAULT.getKey());
+        update(updateWrapper);
     }
 
 }
