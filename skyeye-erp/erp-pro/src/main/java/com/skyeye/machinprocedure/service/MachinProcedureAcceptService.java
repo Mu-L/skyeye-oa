@@ -24,4 +24,7 @@ public interface MachinProcedureAcceptService extends SkyeyeFlowableService<Mach
 
     Map<String, List<MachinProcedureAccept>> queryMachinProcedureAcceptByMachinProcedureFarmId(String... machinProcedureFarmId);
 
+    List<MachinProcedureAccept> queryListByMachinProcedureId(String machinProcedureId);
+
+    List<MachinProcedureAccept> queryListByMachinProcedureIdList(List<String> machinProcedureIdList);
 }

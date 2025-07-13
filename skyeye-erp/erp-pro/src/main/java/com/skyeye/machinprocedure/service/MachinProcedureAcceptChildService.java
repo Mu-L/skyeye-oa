@@ -25,4 +25,5 @@ public interface MachinProcedureAcceptChildService extends SkyeyeBusinessService
 
     void saveList(String parentId, List<MachinProcedureAcceptChild> machinProcedureAcceptChildList);
 
+    List<MachinProcedureAcceptChild> queryListByParentId(List<String> acceptIdList);
 }

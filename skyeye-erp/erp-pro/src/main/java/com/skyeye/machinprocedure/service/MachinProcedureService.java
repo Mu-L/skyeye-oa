@@ -40,4 +40,7 @@ public interface MachinProcedureService extends SkyeyeBusinessService<MachinProc
      */
     boolean checkPrevMachinProcedureIsCompleted(String machinProcedureId);
 
+    List<MachinProcedure> queryListByMachinId(String machinId);
+
+    List<MachinProcedure> querySameListById(String machinProcedureId);
 }

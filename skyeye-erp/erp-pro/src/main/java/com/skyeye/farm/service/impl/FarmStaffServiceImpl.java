@@ -174,4 +174,22 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
+
+    /**
+     * 根据车间id列表和员工id列表查询
+     * @param farmIds  车间id列表
+     * @param staffIds 员工id列表
+     * @return FarmStaff列表
+     */
+    @Override
+    public List<FarmStaff> queryListByFarmIdsAndStaffIds(List<String> farmIds, List<String> staffIds) {
+        QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
+        if (CollectionUtil.isNotEmpty(farmIds)){
+            queryWrapper.in(MybatisPlusUtil.toColumns(FarmStaff::getFarmId), farmIds);
+        }
+        if (CollectionUtil.isNotEmpty(staffIds)){
+            queryWrapper.in(MybatisPlusUtil.toColumns(FarmStaff::getStaffId), staffIds);
+        }
+        return list(queryWrapper);
+    }
 }
