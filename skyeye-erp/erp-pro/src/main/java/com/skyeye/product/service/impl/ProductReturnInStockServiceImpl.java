@@ -119,6 +119,12 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         }
     }
 
+    @Override
+    protected void approvalEndIsSuccess(ProductReturnInStock entity) {
+        super.approvalEndIsSuccess(entity);
+        productReturnService.updateType();
+    }
+
     private void checkAndUpdateFromState(
         ProductReturnInStock entity,
         boolean setData,

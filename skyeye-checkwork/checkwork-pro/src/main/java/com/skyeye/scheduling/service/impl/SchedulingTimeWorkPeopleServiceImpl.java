@@ -99,4 +99,15 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingId), ids);
         remove(queryWrapper);
     }
+
+    @Override
+    public List<SchedulingTimeWorkPeople> findSchedulingTimeByEmployeeIdList(List<String> employeeIdList) {
+        if (CollectionUtil.isEmpty(employeeIdList)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getEmployeeId), employeeIdList);
+        return list(queryWrapper);
+    }
+
 }

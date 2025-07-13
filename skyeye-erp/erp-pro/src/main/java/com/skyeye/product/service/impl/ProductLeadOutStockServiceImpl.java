@@ -62,7 +62,6 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
     @Autowired
     private FarmService farmService;
 
-
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -190,6 +189,13 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库出库单.");
         }
+    }
+
+    @Override
+    protected void approvalEndIsFailed(ProductLeadOutStock entity) {
+        super.approvalEndIsFailed(entity);
+        entity.setState(FlowableStateEnum.REJECT.getKey());
+        updateEntity(entity, InputObject.getLogParamsStatic().get("id").toString());
     }
 
     @Override

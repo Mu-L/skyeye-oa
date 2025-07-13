@@ -12,6 +12,7 @@ import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -86,7 +87,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     protected void createPrepose(Scheduling entity) {
         // 排班开始时间（yyyy-MM-dd）
         String startDateStr = entity.getStartTime();
-        // 排班结束时间（yyyy-MM-dd）
         String endDateStr = entity.getEndTime();
         boolean compareTime = DateUtil.compareTime(startDateStr, endDateStr, "yyyy-MM-dd");
         if (!compareTime) {
@@ -98,54 +98,87 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         if (CollectionUtil.isEmpty(timeList)) {
             return;
         }
-
-        // 按时间段分组记录员工排班次数
-        Map<String, Map<String, Integer>> timeSlotEmployeeMap = new HashMap<>();
+        // 收集所有员工ID和时间段信息
+        Set<String> allEmployeeIds = new HashSet<>();
+        // key: schedulingTimeId(时分秒), value: 该时间段下所有员工id
+        Map<String, Set<String>> timeSlotToEmployeeSet = new HashMap<>();
+        // key: employeeId, value: 该员工在本次排班下所有时分秒时间段id
+        Map<String, Set<String>> employeeToTimeSlotSet = new HashMap<>();
 
         for (SchedulingTime schedulingTime : timeList) {
-            String timeId = schedulingTime.getId();
-            if (StrUtil.isEmpty(timeId)) {
-                // 新增时ID为空，使用时间内容作为临时标识
-                timeId = schedulingTime.getStartTime() + "-" + schedulingTime.getEndTime();
-            }
-            Map<String, Integer> employeeCountMap = timeSlotEmployeeMap.computeIfAbsent(
-                timeId, k -> new HashMap<>()
-            );
-
-            // 遍历当前时间段下的所有工位
+            String timeKey = schedulingTime.getStartTime() + "-" + schedulingTime.getEndTime();
             List<SchedulingTimeWork> timeWorkList = schedulingTime.getSchedulingTimeWorkMation();
             if (CollectionUtil.isEmpty(timeWorkList)) {
                 continue;
             }
-
             for (SchedulingTimeWork timeWork : timeWorkList) {
-                // 遍历工位下的所有员工
                 List<SchedulingTimeWorkPeople> workPeopleList = timeWork.getSchedulingTimeWorkPeopleMation();
                 if (CollectionUtil.isEmpty(workPeopleList)) {
                     continue;
                 }
-
                 for (SchedulingTimeWorkPeople people : workPeopleList) {
                     String employeeId = people.getEmployeeId();
                     if (StrUtil.isEmpty(employeeId)) {
                         continue;
                     }
-                    // 更新员工在当前时间段的计数
-                    int count = employeeCountMap.getOrDefault(employeeId, CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE;
-                    employeeCountMap.put(employeeId, count);
-
-                    // 检查是否重复排班（同一员工在同一时间段出现>1次）
-                    if (count > CommonNumConstants.NUM_ONE) {
-                        Map<String, Object> map = iAuthUserService.queryDataMationById(employeeId);
-                        throw new CustomException(
-                            "员工ID: " + map.get("name") + " 在时间段 [" + schedulingTime.getName() + "] 内被重复排班，请检查！"
-                        );
+                    allEmployeeIds.add(employeeId);
+                    // 统计本次新增的员工-时间段
+                    timeSlotToEmployeeSet.computeIfAbsent(timeKey, k -> new HashSet<>()).add(employeeId);
+                    employeeToTimeSlotSet.computeIfAbsent(employeeId, k -> new HashSet<>()).add(timeKey);
+                }
+            }
+        }
+        // 1. 校验本次新增数据内部：同一员工不能在同一年月日下的同一时分秒被多次排班
+        for (Map.Entry<String, Set<String>> entry : timeSlotToEmployeeSet.entrySet()) {
+            Set<String> employees = entry.getValue();
+            if (employees.size() != new HashSet<>(employees).size()) {
+                throw new CustomException("同一员工不能在同一时间段被多次排班");
+            }
+        }
+        // 2. 校验数据库中是否有冲突
+        if (!allEmployeeIds.isEmpty()) {
+            List<SchedulingTimeWorkPeople> existingSchedules = schedulingTimeWorkPeopleService.findSchedulingTimeByEmployeeIdList(new ArrayList<>(allEmployeeIds));
+            if (CollectionUtil.isNotEmpty(existingSchedules)) {
+                // 查询这些排班的Scheduling，过滤出年月日范围重叠的
+                List<String> schedulingIds = existingSchedules.stream().map(SchedulingTimeWorkPeople::getSchedulingId).collect(Collectors.toList());
+                List<Scheduling> schedulingList = querySchedulingByIds(schedulingIds);
+                Map<String, Scheduling> schedulingIdToEntity = schedulingList.stream().collect(Collectors.toMap(Scheduling::getId, s -> s));
+                // 查询这些排班的SchedulingTime，获取时分秒段
+                List<String> schedulingTimeIds = existingSchedules.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+                List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeIds);
+                Map<String, SchedulingTime> schedulingTimeIdToEntity = schedulingTimes.stream().collect(Collectors.toMap(SchedulingTime::getId, t -> t));
+                for (SchedulingTimeWorkPeople exist : existingSchedules) {
+                    String employeeId = exist.getEmployeeId();
+                    Scheduling scheduling = schedulingIdToEntity.get(exist.getSchedulingId());
+                    SchedulingTime schedulingTime = schedulingTimeIdToEntity.get(exist.getSchedulingTimeId());
+                    if (scheduling == null || schedulingTime == null) continue;
+                    // 校验年月日是否有重叠
+                    boolean dateOverlap = !(endDateStr.compareTo(scheduling.getStartTime()) < 0 || startDateStr.compareTo(scheduling.getEndTime()) > 0);
+                    if (!dateOverlap) continue;
+                    // 校验时分秒是否有重叠
+                    for (String timeKey : employeeToTimeSlotSet.getOrDefault(employeeId, Collections.emptySet())) {
+                        String[] arr = timeKey.split("-");
+                        String newStart = arr[0];
+                        String newEnd = arr[1];
+                        String existStart = schedulingTime.getStartTime();
+                        String existEnd = schedulingTime.getEndTime();
+                        boolean timeOverlap = isTimeOverlap(newStart, newEnd, existStart, existEnd);
+                        if (timeOverlap) {
+                            throw new CustomException("员工 " + employeeId + " 在排班日期[" + scheduling.getStartTime() + "," + scheduling.getEndTime() + "]的时间段[" + existStart + "-" + existEnd + "]已被排班，请勿重复安排！");
+                        }
                     }
                 }
             }
         }
+    }
 
-
+    private List<Scheduling> querySchedulingByIds(List<String> schedulingIds) {
+        if (CollectionUtil.isEmpty(schedulingIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<Scheduling> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, schedulingIds);
+        return list(queryWrapper);
     }
 
     @Override
