@@ -24,7 +24,6 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
-import com.skyeye.rest.erp.service.IFarmStationService;
 import com.skyeye.scheduling.dao.SchedulingDao;
 import com.skyeye.scheduling.entity.*;
 import com.skyeye.scheduling.service.*;
@@ -83,19 +82,70 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Autowired
     private IAuthUserService iAuthUserService;
 
-    @Autowired
-    private IFarmStationService iFarmStationService;
-
     @Override
     protected void createPrepose(Scheduling entity) {
         // 排班开始时间（yyyy-MM-dd）
-        String startTime = entity.getStartTime();
+        String startDateStr = entity.getStartTime();
         // 排班结束时间（yyyy-MM-dd）
-        String endTime = entity.getEndTime();
-        boolean compareTime = DateUtil.compareTime(startTime, endTime, "yyyy-MM-dd");
+        String endDateStr = entity.getEndTime();
+        boolean compareTime = DateUtil.compareTime(startDateStr, endDateStr, "yyyy-MM-dd");
         if (!compareTime) {
             throw new CustomException("开始时间不能大于结束时间");
         }
+
+        // 拿出本次排班所有时间段（时分秒）
+        List<SchedulingTime> timeList = entity.getSchedulingTimeMation();
+        if (CollectionUtil.isEmpty(timeList)) {
+            return;
+        }
+
+        // 按时间段分组记录员工排班次数
+        Map<String, Map<String, Integer>> timeSlotEmployeeMap = new HashMap<>();
+
+        for (SchedulingTime schedulingTime : timeList) {
+            String timeId = schedulingTime.getId();
+            if (StrUtil.isEmpty(timeId)) {
+                // 新增时ID为空，使用时间内容作为临时标识
+                timeId = schedulingTime.getStartTime() + "-" + schedulingTime.getEndTime();
+            }
+            Map<String, Integer> employeeCountMap = timeSlotEmployeeMap.computeIfAbsent(
+                timeId, k -> new HashMap<>()
+            );
+
+            // 遍历当前时间段下的所有工位
+            List<SchedulingTimeWork> timeWorkList = schedulingTime.getSchedulingTimeWorkMation();
+            if (CollectionUtil.isEmpty(timeWorkList)) {
+                continue;
+            }
+
+            for (SchedulingTimeWork timeWork : timeWorkList) {
+                // 遍历工位下的所有员工
+                List<SchedulingTimeWorkPeople> workPeopleList = timeWork.getSchedulingTimeWorkPeopleMation();
+                if (CollectionUtil.isEmpty(workPeopleList)) {
+                    continue;
+                }
+
+                for (SchedulingTimeWorkPeople people : workPeopleList) {
+                    String employeeId = people.getEmployeeId();
+                    if (StrUtil.isEmpty(employeeId)) {
+                        continue;
+                    }
+                    // 更新员工在当前时间段的计数
+                    int count = employeeCountMap.getOrDefault(employeeId, CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE;
+                    employeeCountMap.put(employeeId, count);
+
+                    // 检查是否重复排班（同一员工在同一时间段出现>1次）
+                    if (count > CommonNumConstants.NUM_ONE) {
+                        Map<String, Object> map = iAuthUserService.queryDataMationById(employeeId);
+                        throw new CustomException(
+                            "员工ID: " + map.get("name") + " 在时间段 [" + schedulingTime.getName() + "] 内被重复排班，请检查！"
+                        );
+                    }
+                }
+            }
+        }
+
+
     }
 
     @Override
@@ -551,7 +601,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
     @Override
     public void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject) {
-        
+
     }
 
     private LocalDateTime parseDateTime(String dateTimeStr) {
