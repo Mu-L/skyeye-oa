@@ -476,6 +476,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     }
 
     @Override
+    @IgnoreTenant
     public long getTenantUserCountByTenantId(String tenantId) {
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getTenantId), tenantId);
