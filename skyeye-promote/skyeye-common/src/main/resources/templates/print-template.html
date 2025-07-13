@@ -186,7 +186,9 @@
                          'width: 100%;' +
                          'display: flex;' +
                          'padding: 4px;' +
-                         'align-items: center;'}"
+                         'align-items: center;' +
+                         'max-width:' + (element.width != null ? element.width + 'px' : 'none') + ';' +
+                         'max-height:' + (element.height != null ? element.height + 'px' : 'none') + ';'}"
                 th:utext="${#strings.replace(element.content, '\\n', '<br>')}">
             </div>
 
@@ -197,7 +199,9 @@
                     th:alt="${element.alt ?: ''}"
                     th:style="${'object-fit:' + (element.fit ?: 'contain') + ';' +
                              'width:' + (element.fit == 'contain' ? 'auto' : '100%') + ';' +
-                             'height:' + (element.fit == 'contain' ? 'auto' : '100%') + ';'}">
+                             'height:' + (element.fit == 'contain' ? 'auto' : '100%') + ';' +
+                             'max-width:' + (element.width != null ? element.width + 'px' : 'none') + ';' +
+                             'max-height:' + (element.height != null ? element.height + 'px' : 'none') + ';'}">
             </div>
 
             <!-- 表格元素 -->
