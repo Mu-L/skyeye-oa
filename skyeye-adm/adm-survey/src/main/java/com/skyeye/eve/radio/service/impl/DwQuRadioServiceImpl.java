@@ -71,7 +71,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 }
             }
             bean.setIsRequiredFill(object.getIsRequiredFill());
-            if (ToolUtil.isBlank(object.getOptionId())) {
+            if (ToolUtil.isBlank(object.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setId(ToolUtil.getSurFaceId());
@@ -79,7 +79,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 quRadio.add(bean);
             } else {
-                bean.setId(object.getOptionId());
+                bean.setId(object.getId());
                 editquRadio.add(bean);
             }
         }
@@ -127,14 +127,14 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
                     bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
                 }
-                if (ToolUtil.isBlank(radio.getOptionId())) {
+                if (ToolUtil.isBlank(radio.getId())) {
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
                     insertList.add(bean);
                 } else {
-                    bean.setId(bean.getOptionId());
+                    bean.setId(bean.getId());
                     updateList.add(bean);
                 }
             }
@@ -194,7 +194,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                .map(DwQuRadio::getOptionId)
+                .map(DwQuRadio::getId)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toSet());
 
@@ -248,14 +248,14 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
             }
 
-            if (ToolUtil.isBlank(radio.getOptionId())) {
+            if (ToolUtil.isBlank(radio.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
-                bean.setId(bean.getOptionId());
+                bean.setId(bean.getId());
                 updateList.add(bean);
             }
         }

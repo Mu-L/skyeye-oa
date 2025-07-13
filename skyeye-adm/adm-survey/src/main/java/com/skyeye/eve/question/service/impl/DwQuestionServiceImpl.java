@@ -194,13 +194,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         if (CollectionUtil.isNotEmpty(idNotEmptyList)) {
             dwQuestionLogicService.updateEntity(idNotEmptyList, userId);
         }
-        // 过滤出 id 为空的数据
-        List<List<DwQuestionLogic>> emptyIdList = dwQuestionList.stream()
-            .map(DwQuestion::getQuestionLogic)
-            .map(logics -> logics.stream()
-                .filter(logic -> logic.getId() == null || logic.getId().isEmpty())
-                .collect(Collectors.toList()))
-            .collect(Collectors.toList());
         // 批量更新各题型数据
         dwQuRadioService.updateRadios(dwQuestionList, userId);
         dwQuScoreService.updateScores(dwQuestionList, userId);

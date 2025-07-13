@@ -83,8 +83,6 @@ public class AssetGenerateBarcodeServiceImpl implements RocketMQListener<String>
             tenantId = map.get("tenantId").toString();
             TenantContext.setTenantId(tenantId);
         }
-
-
         List<String> assetIdList = list.stream().map(bean -> bean.get("assetId").toString()).distinct().collect(Collectors.toList());
         Map<String, Asset> assetMap = assetService.selectMapByIds(assetIdList);
         List<BarCodeMation> barCodeMationList = new ArrayList<>();

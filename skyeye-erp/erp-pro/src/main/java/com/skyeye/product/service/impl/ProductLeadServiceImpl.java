@@ -47,8 +47,6 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     @Autowired
     private SupplierService supplierService;
 
-    @Autowired
-
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageData(inputObject);
