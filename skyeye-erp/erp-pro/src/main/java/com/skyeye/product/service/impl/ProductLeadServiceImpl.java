@@ -7,6 +7,7 @@ import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.crm.service.ICustomerService;
+import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductLeadFromType;
@@ -45,6 +46,8 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
@@ -90,6 +93,9 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLeadChildService.deleteByParentId(id);
     }
 
+    @Autowired
+    private ErpDepotService erpDepotService;
+
     @Override
     public ProductLead selectById(String id) {
         ProductLead productLead = super.selectById(id);
@@ -97,6 +103,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLead.setErpOrderItemList(productLeadChildren);
         materialNormsService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getNormsId);
         materialService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getMaterialId);
+        erpDepotService.setDataMation(productLead.getErpOrderItemList(), ProductLeadChild::getDepotId);
         if (productLead.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
             iCustomerService.setDataMation(productLead, ProductLead::getHolderId);
         } else {

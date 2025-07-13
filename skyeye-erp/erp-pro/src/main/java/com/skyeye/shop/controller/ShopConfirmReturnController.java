@@ -40,7 +40,8 @@ public class ShopConfirmReturnController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryShopConfirmReturnList", value = "获取物料退货单列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class,value = {
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopConfirmReturnController/queryShopConfirmReturnList")
     public void queryShopConfirmReturnList(InputObject inputObject, OutputObject outputObject) {
         shopConfirmReturnService.queryPageList(inputObject, outputObject);

@@ -2,11 +2,15 @@ package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
@@ -161,5 +165,12 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         productReturnInStock.setId(null);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productReturnInStockService.createEntity(productReturnInStock, userId);
+    }
+
+    @Override
+    public void updateType() {
+        UpdateWrapper<ProductReturn> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturn::getType), IsDefaultEnum.IS_DEFAULT.getKey());
+        update(updateWrapper);
     }
 }

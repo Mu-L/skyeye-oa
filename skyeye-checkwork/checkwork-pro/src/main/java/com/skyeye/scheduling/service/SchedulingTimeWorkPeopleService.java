@@ -20,4 +20,7 @@ public interface SchedulingTimeWorkPeopleService extends SkyeyeBusinessService<S
     List<SchedulingTimeWorkPeople> querySchedulingByschedulingIdsAndStaffId(List<String> schedulingIds, String staffId);
 
     void deleteBySchedulingIds(List<String> ids);
+
+    List<SchedulingTimeWorkPeople> findSchedulingTimeByEmployeeIdList(List<String> employeeIdList);
+
 }
