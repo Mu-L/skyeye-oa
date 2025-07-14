@@ -86,6 +86,7 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         iSysDictDataService.setDataMation(loanBorrow, LoanBorrow::getPayTypeId);
         iDepmentService.setDataMation(loanBorrow, LoanBorrow::getDepartmentId);
         iAuthUserService.setDataMation(loanBorrow, LoanBorrow::getApplicantId);
+        loanBorrow.setName(loanBorrow.getOddNumber());
         return loanBorrow;
     }
 
