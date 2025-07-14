@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.schedule.classenum.ScheduleImported;
 import lombok.Data;
 
 /**
@@ -76,7 +77,7 @@ public class ScheduleDay extends OperatorUserInfo {
     private String stateName;
 
     @TableField(value = "imported")
-    @ApiModelProperty(value = "日程重要性，参考#ScheduleImported", required = "required,num")
+    @ApiModelProperty(value = "日程重要性", enumClass = ScheduleImported.class, required = "required,num")
     private Integer imported;
 
     @TableField(exist = false)
