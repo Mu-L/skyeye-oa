@@ -5,9 +5,9 @@
 package com.skyeye.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.alipay.api.domain.ItemPackageInfo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -27,6 +27,8 @@ import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.OrderCommentType;
+import com.skyeye.order.enums.ShopOrderItemOtherState;
+import com.skyeye.order.enums.ShopOrderState;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
@@ -35,7 +37,6 @@ import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.interfaces.DHKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,30 +97,35 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         if (CollectionUtil.isEmpty(mapList)) {
             return new HashMap<>();
         }
-        List<String> orderItemIds = mapList.stream().map(OrderItem::getId).collect(Collectors.toList());
+        List<OrderItem> orderItemList = setDateForItemLIst(mapList);
+        Map<String, List<OrderItem>> result = orderItemList.stream().collect(Collectors.groupingBy(OrderItem::getParentId));
+        return result;
+    }
+
+    private List<OrderItem> setDateForItemLIst(List<OrderItem> list) {
+        List<String> orderItemIds = list.stream().map(OrderItem::getId).collect(Collectors.toList());
         List<OrderComment> orderCommentList = orderCommentService.queryListByOrderItemIdAndType(orderItemIds, OrderCommentType.CUSTOMERLATER.getKey());
         List<String> commentIdList = orderCommentList.stream().map(OrderComment::getOrderItemId).collect(Collectors.toList());
-        for (OrderItem map : mapList) {
+        for (OrderItem map : list) {
             if (commentIdList.contains(map.getId())) {
                 map.setIsAdditionalReview(true);
             } else {
                 map.setIsAdditionalReview(false);
             }
         }
-        shopStoreService.setDataMation(mapList, OrderItem::getStoreId);
-        iMaterialNormsService.setDataMation(mapList, OrderItem::getNormsId);
-        List<String> materialStoreIds = mapList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
+        shopStoreService.setDataMation(list, OrderItem::getStoreId);
+        iMaterialNormsService.setDataMation(list, OrderItem::getNormsId);
+        List<String> materialStoreIds = list.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
         List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material 拿价钱logo
         Map<String, Map<String, Object>> materialStoreMap = materialByIds.stream()
-            .distinct().collect(Collectors.toMap(map -> {
-                Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
-                return shopMaterialStore.get("id").toString();
-            }, map -> map));
-        mapList.forEach(map -> {
+                .distinct().collect(Collectors.toMap(map -> {
+                    Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
+                    return shopMaterialStore.get("id").toString();
+                }, map -> map));
+        list.forEach(map -> {
             map.setShopMaterial(materialStoreMap.containsKey(map.getMaterialStoreId()) ? materialStoreMap.get(map.getMaterialStoreId()) : new HashMap<>());
         });
-        Map<String, List<OrderItem>> result = mapList.stream().collect(Collectors.groupingBy(OrderItem::getParentId));
-        return result;
+        return list;
     }
 
     @Override
@@ -128,15 +134,16 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         // shopMaterial -> shopMaterialStore -> storeId
         List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material
         Map<String, String> materialStoreMap = materialByIds.stream()
-            .distinct().collect(Collectors.toMap(map -> {
-                Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
-                return shopMaterialStore.get("id").toString();
-            }, map -> {
-                Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
-                return shopMaterialStore.get("storeId").toString();
-            }));
+                .distinct().collect(Collectors.toMap(map -> {
+                    Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
+                    return shopMaterialStore.get("id").toString();
+                }, map -> {
+                    Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
+                    return shopMaterialStore.get("storeId").toString();
+                }));
         for (OrderItem orderItem : order.getOrderItemList()) {
             orderItem.setCommentState(WhetherEnum.DISABLE_USING.getKey());
+            orderItem.setState(ShopOrderItemOtherState.WAIT_PAY.getKey());
             orderItem.setParentId(order.getId());
             orderItem.setStoreId(materialStoreMap.containsKey(orderItem.getMaterialStoreId()) ? materialStoreMap.get(orderItem.getMaterialStoreId()) : "");
         }
@@ -147,7 +154,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     public void updateCommentStateById(String id) {
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id)
-            .set(MybatisPlusUtil.toColumns(OrderItem::getCommentState), WhetherEnum.ENABLE_USING.getKey());
+                .set(MybatisPlusUtil.toColumns(OrderItem::getCommentState), WhetherEnum.ENABLE_USING.getKey());
         update(updateWrapper);
     }
 
@@ -171,10 +178,72 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        List<OrderItem> list = JSONUtil.toList(JSONUtil.toJsonStr(beans), OrderItem.class);
+        // 设置规格、商品等信息
+        List<OrderItem> orderItemList = setDateForItemLIst(list);
+        List<Map<String, Object>> result = JSONUtil.toList(JSONUtil.toJsonStr(orderItemList), null);
+        return result;
+    }
+
+    @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<OrderItem> wrapper) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             wrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getStoreId), commonPageInfo.getObjectId());
         }
+    }
+
+    @Override
+    public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        Integer num = (Integer) params.get("num");
+        if (num <= CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("发货数量不可为负数或零");
+        }
+        OrderItem item = getById(id);
+        if (ObjectUtil.isEmpty(item)) {
+            throw new CustomException("该订单子单不存在");
+        }
+        if (item.getState() != ShopOrderItemOtherState.WAIT_DELIVER.getKey() ||
+        item.getState() != ShopOrderItemOtherState.PART_DELIVERED.getKey()){
+            throw new CustomException("该订单未支付或已全部发货");
+        }
+        int remainingNum = item.getCount() - item.getDeliverNum() - num;
+        if (remainingNum < CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("该订单子单可发货数量不足");
+        }
+        // 更新数据
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getDeliverNum), item.getDeliverNum() + num);
+        if (remainingNum > CommonNumConstants.NUM_ZERO) {
+            // 还剩
+            updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), ShopOrderItemOtherState.PART_DELIVERED.getKey());
+            remainingNum = ShopOrderState.PART_DELIVERY.getKey();
+        } else {
+            // 剩余为0
+            updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), ShopOrderItemOtherState.ALL_DELIVERED.getKey());
+            remainingNum = ShopOrderState.DELIVERED.getKey();
+        }
+        update(updateWrapper);
+        refreshCache(id);
+        // 修改总单状态
+        orderService.updateOrderItemDeliverState(item.getParentId(), remainingNum);
+    }
+
+    @Override
+    public void updateDeliverStateByParentId(String parentId, Integer state) {
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), parentId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getState), state);
+        List<OrderItem> list = list(updateWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        update(updateWrapper);
+        List<String> itemIdList = list.stream().map(OrderItem::getId).collect(Collectors.toList());
+        refreshCache(itemIdList);
     }
 }

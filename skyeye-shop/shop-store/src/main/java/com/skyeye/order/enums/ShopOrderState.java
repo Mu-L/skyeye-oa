@@ -28,7 +28,7 @@ public enum ShopOrderState implements SkyeyeEnumClass {
     FAIRPAID(3, "支付失败", true, false),
     CANCELED(4, "已取消", true, false),
     UNDELIVERED(5, "待发货", true, false),
-    DELIVERED(6, "已发货", true, false),
+    DELIVERED(6, "全部发货", true, false),
     TRANSPORTING(7, "运输中", true, false),
     SIGN(8, "已签收", true, false),
     COMPLETED(9, "已完成", true, false),
@@ -41,7 +41,8 @@ public enum ShopOrderState implements SkyeyeEnumClass {
     EXCHANGEING(16, "换货中", true, false),
     EXCHANGED(17, "已换货", true, false),
     PARTIALLYDONE(18,"部分完成",true,false),
-    PARTIALEVALUATION(19,"部分评价",true,false);
+    PARTIALEVALUATION(19,"部分评价",true,false),
+    PART_DELIVERY(20,"部分发货",true,false),;
 
     private Integer key;
 

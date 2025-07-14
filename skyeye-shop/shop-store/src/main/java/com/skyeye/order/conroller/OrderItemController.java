@@ -18,12 +18,21 @@ public class OrderItemController {
     @Autowired
     private OrderItemService orderItemService;
 
-    @ApiOperation(id = "queryOrderItemByStoreId", value = "根据门店Id分页查询", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryOrderItemByStoreId", value = "根据门店Id分页查询订单子单信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
-            @ApiImplicitParam(id = "objectId",  name = "objectId", value = "门店id")})
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/OrderItemController/queryOrderItemByStoreId")
     public void queryOrderByStoreId(InputObject inputObject, OutputObject outputObject) {
         orderItemService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deliverGoodsById", value = "商品订单子单发货", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "num", name = "num", value = "发货数量", required = "required,num")})
+    @RequestMapping("/post/OrderItemController/deliverGoodsById")
+    public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
+        orderItemService.deliverGoodsById(inputObject, outputObject);
     }
 
 }

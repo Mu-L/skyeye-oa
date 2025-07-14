@@ -451,6 +451,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.UNDELIVERED.getKey());
             update(updateWrapper);
             refreshCache(orderId);
+            // 修改订单子单信息为待发货状态
+            orderItemService.updateDeliverStateByParentId(orderId, ShopOrderItemOtherState.WAIT_DELIVER.getKey());
         } else {
             throw new CustomException("当前订单状态不为待支付或支付失败状态，不可修改");
         }
@@ -581,6 +583,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
         update(updateWrapper);
         refreshCache(id);
+        // 修改订单子单信息为待发货状态
+        orderItemService.updateDeliverStateByParentId(id, ShopOrderItemOtherState.WAIT_DELIVER.getKey());
         log.info("订单id" + one.getId() + "支付成功--删除定时任务-- 开始");
         iQuartzService.stopAndDeleteTaskQuartz(id);// 删除定时任务
         log.info("订单id" + one.getId() + "支付成功--删除定时任务-- 结束");
@@ -709,5 +713,14 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         super.updateEntity(order, inputObject.getLogParams().get("id").toString());
         outputObject.setBean(order);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void updateOrderItemDeliverState(String id, int remainingNum) {
+        UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), remainingNum);
+        update(updateWrapper);
+        refreshCache(id);
     }
 }

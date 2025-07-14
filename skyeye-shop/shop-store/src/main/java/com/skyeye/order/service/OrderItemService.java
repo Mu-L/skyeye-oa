@@ -36,4 +36,8 @@ public interface OrderItemService extends SkyeyeBusinessService<OrderItem> {
     List<OrderItem> queryOrderItemByParentId(String orderId);
 
     void UpdateOrderItemState(String orderItemId);
+
+    void deliverGoodsById(InputObject inputObject, OutputObject outputObject);
+
+    void updateDeliverStateByParentId(String parentId, Integer state);
 }

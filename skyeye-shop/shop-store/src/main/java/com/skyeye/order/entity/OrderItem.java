@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.order.enums.ShopOrderItemOtherState;
 import com.skyeye.order.enums.ShopOrderItemState;
 import lombok.Data;
 
@@ -74,6 +75,14 @@ public class OrderItem extends OperatorUserInfo {
     @ApiModelProperty(value = "购买数量", required = "required")
     private Integer count;
 
+    @TableField("deliver_num")
+    @ApiModelProperty(value = "已经发货的数量")
+    private Integer deliverNum;
+
+    @TableField("state")
+    @Property(value = "发货状态", enumClass = ShopOrderItemOtherState.class)
+    private Integer state;
+
     @TableField("comment_state")
     @Property(value = "是否评价", enumClass = WhetherEnum.class)
     private Integer commentState;
@@ -127,7 +136,7 @@ public class OrderItem extends OperatorUserInfo {
     private String vipPrice;
 
     @TableField("order_item_state")
-    @ApiModelProperty(value = "订单子单状态",enumClass= ShopOrderItemState.class)
+    @ApiModelProperty(value = "订单子单状态", enumClass = ShopOrderItemState.class)
     private Integer orderItemState;
 
     @TableField(exist = false)
