@@ -1,6 +1,7 @@
 package com.skyeye.eve.question.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -167,30 +168,32 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         if (CollectionUtils.isNotEmpty(columnTd) && CollectionUtils.isNotEmpty(rowTd)) {
             dwQuChenColumnService.saveList(columnTd, rowTd, quId, userId);
         }
+        List<DwQuestionLogic> questionLogic = entity.getQuestionLogic();
+        if (CollectionUtils.isNotEmpty(questionLogic)) {
+            dwQuestionLogicService.createEntity(questionLogic, userId);
+        }
     }
 
     @Override
     protected void updatePostpose(List<DwQuestion> dwQuestionList, String userId) {
         deleteNoBelongDwQuestions(dwQuestionList);
-        List<List<DwQuestionLogic>> questionLogicList = dwQuestionList.stream().map(DwQuestion::getQuestionLogic).collect(Collectors.toList());
-        // 过滤出 id 不为空的数据
-        List<List<DwQuestionLogic>> nonEmptyIdList = dwQuestionList.stream()
-            .map(DwQuestion::getQuestionLogic)
-            .map(logics -> logics.stream()
-                .filter(logic -> logic.getId() != null && !logic.getId().isEmpty())
-                .collect(Collectors.toList()))
+        // id 为空的 DwQuestionLogic 列表
+        List<DwQuestionLogic> idEmptyList = dwQuestionList.stream()
+            .flatMap(q -> q.getQuestionLogic().stream())     // 扁平化所有 DwQuestionLogic
+            .filter(l -> l.getId() == null || l.getId().isEmpty())
             .collect(Collectors.toList());
-        for (List<DwQuestionLogic> dwQuestionLogics : nonEmptyIdList) {
-            dwQuestionLogicService.updateEntity(dwQuestionLogics, userId);
-        }
 
-        // 过滤出 id 为空的数据
-        List<List<DwQuestionLogic>> emptyIdList = dwQuestionList.stream()
-            .map(DwQuestion::getQuestionLogic)
-            .map(logics -> logics.stream()
-                .filter(logic -> logic.getId() == null || logic.getId().isEmpty())
-                .collect(Collectors.toList()))
+      // id 不为空的 DwQuestionLogic 列表
+        List<DwQuestionLogic> idNotEmptyList = dwQuestionList.stream()
+            .flatMap(q -> q.getQuestionLogic().stream())
+            .filter(l -> l.getId() != null && !l.getId().isEmpty())
             .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(idEmptyList)) {
+            dwQuestionLogicService.createEntity(idEmptyList, userId);
+        }
+        if (CollectionUtil.isNotEmpty(idNotEmptyList)) {
+            dwQuestionLogicService.updateEntity(idNotEmptyList, userId);
+        }
         // 批量更新各题型数据
         dwQuRadioService.updateRadios(dwQuestionList, userId);
         dwQuScoreService.updateScores(dwQuestionList, userId);
@@ -216,7 +219,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     }
 
     /**
-     * 更新题目前的前置处理
+     * 更新题目前的后置处理
      *
      * @param entity 题目实体对象
      */
@@ -232,6 +235,22 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             dwQuMultiFillblankService.removeByQuId(entityId);
             dwQuOrderbyService.removeByQuId(entityId);
             dwQuChenColumnService.removeByQuId(entityId);
+        }
+        List<DwQuestionLogic> questionLogic = entity.getQuestionLogic();
+        // 过滤 id 为空的
+        List<DwQuestionLogic> idIsEmpty = questionLogic.stream()
+            .filter(logic -> logic.getId() == null || logic.getId().trim().isEmpty())
+            .collect(Collectors.toList());
+
+        // 过滤 id 不为空的
+        List<DwQuestionLogic> idIsNotEmpty = questionLogic.stream()
+            .filter(logic -> logic.getId() != null && !logic.getId().trim().isEmpty())
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(idIsEmpty)) {
+            dwQuestionLogicService.createEntity(idIsEmpty, userId);
+        }
+        if (CollectionUtils.isNotEmpty(idIsNotEmpty)) {
+            dwQuestionLogicService.updateEntity(idIsNotEmpty, userId);
         }
         List<DwQuRadio> radioTd = entity.getRadioTd();
         String quId = entity.getId();
@@ -309,6 +328,10 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     @Override
     public DwQuestion selectById(String id) {
         DwQuestion question = super.selectById(id);
+        DwQuestionLogic dwQuestionLogics = dwQuestionLogicService.selectLogicByIdByQuId(id);
+        if (ObjectUtil.isNotEmpty(dwQuestionLogics)) {
+            question.setQuestionOneLogic(dwQuestionLogics);
+        }
         List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectQuRadio(id);
         question.setRadioTd(dwQuRadioList);
         List<DwQuScore> dwQuScoreList = dwQuScoreService.selectQuScore(id);

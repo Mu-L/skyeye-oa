@@ -149,6 +149,13 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
     }
 
     @Override
+    public void updatePrepose(Machin entity) {
+        super.updatePrepose(entity);
+        Machin machin = selectById(entity.getId());
+        entity.setFromId(machin.getFromId());
+    }
+
+    @Override
     public Machin getDataFromDb(String id) {
         Machin machin = super.getDataFromDb(id);
         // 查询子单据信息

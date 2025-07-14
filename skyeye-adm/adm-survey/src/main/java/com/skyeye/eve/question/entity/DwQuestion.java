@@ -231,4 +231,8 @@ public class DwQuestion extends OperatorUserInfo {
     @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
     private List<DwQuestionLogic> questionLogic;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "问题逻辑设置信息", required = "json")
+    private DwQuestionLogic questionOneLogic;
+
 }

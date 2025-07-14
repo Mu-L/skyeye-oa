@@ -74,7 +74,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
                 bean.setCheckType(null);
             }
             bean.setIsRequiredFill(object.getIsRequiredFill());
-            if (ToolUtil.isBlank(object.getOptionId())) {
+            if (ToolUtil.isBlank(object.getId())) {
                 bean.setQuId(object.getQuId());
                 bean.setQuId(quId);
                 bean.setVisibility(1);
@@ -83,7 +83,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 quCheckbox.add(bean);
             } else {
-                bean.setId(object.getOptionId());
+                bean.setId(object.getId());
                 editquCheck.add(bean);
             }
         }
@@ -161,14 +161,14 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
                 if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
                     bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
                 }
-                if (ToolUtil.isBlank(radio.getOptionId())) {
+                if (ToolUtil.isBlank(radio.getId())) {
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
                     insertList.add(bean);
                 } else {
-                    bean.setId(bean.getOptionId());
+                    bean.setId(bean.getId());
                     updateList.add(bean);
                 }
             }
@@ -201,7 +201,7 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
 
             // 收集需要删除的ID
             Set<String> newIds = radios.stream()
-                .map(DwQuCheckbox::getOptionId)
+                .map(DwQuCheckbox::getId)
                 .filter(StrUtil::isNotBlank)
                 .collect(Collectors.toSet());
 
@@ -255,14 +255,14 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
                 bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
             }
 
-            if (ToolUtil.isBlank(radio.getOptionId())) {
+            if (ToolUtil.isBlank(radio.getId())) {
                 bean.setQuId(quId);
                 bean.setVisibility(1);
                 bean.setCreateId(userId);
                 bean.setCreateTime(DateUtil.getTimeAndToString());
                 insertList.add(bean);
             } else {
-                bean.setId(bean.getOptionId());
+                bean.setId(bean.getId());
                 updateList.add(bean);
             }
         }

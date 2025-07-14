@@ -15,6 +15,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAcceptChild;
 import com.skyeye.machinprocedure.service.MachinProcedureAcceptChildService;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,5 +54,15 @@ public class MachinProcedureAcceptChildServiceImpl extends SkyeyeBusinessService
             }
             createEntity(machinProcedureAcceptChildList, StrUtil.EMPTY);
         }
+    }
+
+    @Override
+    public List<MachinProcedureAcceptChild> queryListByParentId(List<String> acceptIdList) {
+        if (CollectionUtil.isEmpty(acceptIdList)){
+            return new ArrayList<>();
+        }
+        QueryWrapper<MachinProcedureAcceptChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAcceptChild::getParentId), acceptIdList);
+        return list(queryWrapper);
     }
 }

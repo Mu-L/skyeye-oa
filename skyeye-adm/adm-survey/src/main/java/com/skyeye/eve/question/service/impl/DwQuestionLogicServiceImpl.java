@@ -165,6 +165,14 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), dwQuestionIdList);
         return list(queryWrapper);
     }
+
+    @Override
+    public DwQuestionLogic selectLogicByIdByQuId(String id) {
+        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), id);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getVisibility), 1);
+        return getOne(queryWrapper);
+    }
 }
 
 

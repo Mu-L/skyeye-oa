@@ -26,10 +26,13 @@ import com.skyeye.print.enumclass.PaperSize;
 import com.skyeye.print.service.PrintHtmlGenerator;
 import com.skyeye.print.service.PrintTemplateService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +53,9 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
 
     @Autowired
     private PrintHtmlGenerator htmlGenerator;
+
+    @Value("${webroot.fileBath}")
+    private String webRootfileBath;
 
     @Override
     protected void validatorEntity(PrintTemplate entity) {
@@ -170,7 +176,7 @@ public class PrintTemplateServiceImpl extends SkyeyeBusinessServiceImpl<PrintTem
             String html = htmlGenerator.generateHtml(template, printData);
 
             // 生成PDF
-            byte[] pdfBytes = HtmlToPdfUtil.convertHtmlToPdfBytes(html, template.getPaperSize(), template.getOrientation(),
+            byte[] pdfBytes = HtmlToPdfUtil.convertHtmlToPdfBytes(html, webRootfileBath, template.getPaperSize(), template.getOrientation(),
                 template.getWidth(), template.getHeight());
 
             // 设置响应头信息

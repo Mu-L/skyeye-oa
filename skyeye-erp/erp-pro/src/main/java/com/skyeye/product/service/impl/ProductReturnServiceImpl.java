@@ -162,4 +162,5 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productReturnInStockService.createEntity(productReturnInStock, userId);
     }
+
 }

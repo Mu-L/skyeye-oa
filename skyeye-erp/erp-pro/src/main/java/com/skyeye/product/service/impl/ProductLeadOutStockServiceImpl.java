@@ -4,9 +4,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -61,7 +63,6 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
 
     @Autowired
     private FarmService farmService;
-
 
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -191,6 +192,22 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
             outputObject.setreturnMessage("状态错误，无法下达仓库出库单.");
         }
     }
+
+    @Override
+    protected void approvalEndIsFailed(ProductLeadOutStock entity) {
+        super.approvalEndIsFailed(entity);
+        UpdateWrapper<ProductLeadOutStock> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, entity.getId());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductLeadOutStock::getState), FlowableStateEnum.REJECT.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    protected void approvalEndIsSuccess(ProductLeadOutStock entity) {
+        super.approvalEndIsSuccess(entity);
+        productLeadService.updateLeadType(entity.getFarmId());
+    }
+
 
     @Override
     public List<ProductLeadOutStock> queryLeadByHolderId(String holderId) {

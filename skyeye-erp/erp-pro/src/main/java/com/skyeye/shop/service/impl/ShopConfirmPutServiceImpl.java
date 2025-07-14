@@ -13,6 +13,7 @@ import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -20,6 +21,7 @@ import com.skyeye.depot.classenum.DepotOutOtherState;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
+import com.skyeye.entity.ErpOrderHead;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.entity.ErpOrderItemCode;
 import com.skyeye.exception.CustomException;
@@ -35,6 +37,7 @@ import com.skyeye.shop.classenum.ShopConfirmFromType;
 import com.skyeye.shop.classenum.StoreNormsCodeUseState;
 import com.skyeye.shop.dao.ShopConfirmPutDao;
 import com.skyeye.shop.entity.ShopConfirmPut;
+import com.skyeye.shop.entity.ShopReturns;
 import com.skyeye.shop.service.ShopConfirmPutService;
 import com.skyeye.shop.service.ShopConfirmReturnService;
 import com.skyeye.shop.service.ShopStockService;
@@ -71,6 +74,17 @@ public class ShopConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ShopCon
 
     @Autowired
     private IShopStoreService iShopStoreService;
+
+
+    @Override
+    public QueryWrapper<ShopConfirmPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ShopConfirmPut> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
+            commonPageInfo.setObjectId("-");
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderHead::getStoreId), commonPageInfo.getObjectId());
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

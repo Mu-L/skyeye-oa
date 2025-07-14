@@ -104,11 +104,11 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         updateWrapper.eq(CommonConstants.ID, loanBorrowId);
         updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidPrice), price);
         if (Double.parseDouble(price) >= Double.parseDouble(loanBorrow.getPrice())) {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PAID.getKey());
         } else if (Double.parseDouble(price) > CommonNumConstants.NUM_ZERO) {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.PART_PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PART_PAID.getKey());
         } else {
-            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getState), LoanPaidStateEnum.NOT_PAID.getKey());
+            updateWrapper.set(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.NOT_PAID.getKey());
         }
         update(updateWrapper);
         refreshCache(loanBorrowId);
@@ -251,7 +251,15 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
         queryWrapper.ne(MybatisPlusUtil.toColumns(LoanBorrow::getPaidState), LoanPaidStateEnum.PAID.getKey());
         List<LoanBorrow> bean = list(queryWrapper);
-        outputObject.setBeans(bean);
-        outputObject.settotal(bean.size());
+        // 转成List<Map<String, Object>> 只有id和name
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (LoanBorrow loanBorrow : bean) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", loanBorrow.getId());
+            map.put("name", loanBorrow.getOddNumber());
+            list.add(map);
+        }
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 }
