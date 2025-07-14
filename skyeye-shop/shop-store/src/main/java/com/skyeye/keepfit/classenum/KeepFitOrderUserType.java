@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum KeepFitOrderUserType implements SkyeyeEnumClass {
 
-    ANONYMOUS_USER(1, "匿名用户", true, false),
-    MEMBER(2, "会员", true, true);
+    ANONYMOUS_USER(1, "匿名用户","cyan", true, false),
+    MEMBER(2, "会员","gold" ,true, true);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

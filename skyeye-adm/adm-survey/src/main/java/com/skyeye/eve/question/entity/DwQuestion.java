@@ -80,7 +80,7 @@ public class DwQuestion extends OperatorUserInfo {
     private Integer hv;
 
     @TableField("is_required")
-    @ApiModelProperty(value = "是否必答 0非必答 1必答", required = "required")
+    @ApiModelProperty(value = "是否必答 0非必答 1必答")
     private Integer isRequired;
 
     @TableField("keywords")

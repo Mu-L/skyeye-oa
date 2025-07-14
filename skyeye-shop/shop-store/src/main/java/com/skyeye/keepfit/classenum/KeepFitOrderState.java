@@ -24,14 +24,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum KeepFitOrderState implements SkyeyeEnumClass {
 
-    NO_PAYING(1, "待支付", true, false),
-    PAY(2, "已支付", true, false),
-    FIT_COMPLATE(3, "保养完成(待核销)", true, false),
-    PAY_VERIFICATION(4, "已核销", true, false);
+    NO_PAYING(1, "待支付","orange", true, false),
+    PAY(2, "已支付", "green",true, false),
+    FIT_COMPLATE(3, "保养完成(待核销)","blue", true, false),
+    PAY_VERIFICATION(4, "已核销","gray", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String coler;
 
     private Boolean show;
 
