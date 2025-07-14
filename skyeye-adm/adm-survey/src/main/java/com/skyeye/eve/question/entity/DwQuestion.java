@@ -76,7 +76,7 @@ public class DwQuestion extends OperatorUserInfo {
     private String copyFromId;
 
     @TableField("hv")
-    @ApiModelProperty(value = "1水平显示 2垂直显示", required = "required")
+    @ApiModelProperty(value = "1水平显示 2垂直显示 3 按列显示", required = "required")
     private Integer hv;
 
     @TableField("is_required")
