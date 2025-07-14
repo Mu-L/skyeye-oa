@@ -5,15 +5,20 @@
 package com.skyeye.order.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.alipay.api.domain.ItemPackageInfo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
@@ -30,6 +35,7 @@ import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.interfaces.DHKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -162,5 +168,13 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         updateWrapper.eq(CommonConstants.ID, orderItemId);
         updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), CommonNumConstants.NUM_TWO);
         update(updateWrapper);
+    }
+
+    @Override
+    public void getQueryWrapper(InputObject inputObject, QueryWrapper<OrderItem> wrapper) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            wrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getStoreId), commonPageInfo.getObjectId());
+        }
     }
 }

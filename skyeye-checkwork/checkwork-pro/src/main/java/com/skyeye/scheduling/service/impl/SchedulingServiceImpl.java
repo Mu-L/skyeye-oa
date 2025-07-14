@@ -1,5 +1,6 @@
 package com.skyeye.scheduling.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -118,20 +119,20 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         }
         // 入参现在的排班时间段
         List<SchedulingTime> nonEmptyIdSchedulingTimes = schedulingTimeMation.stream()
-            .filter(time -> time.getId() != null && !time.getId().isEmpty()).collect(Collectors.toList());
+                .filter(time -> time.getId() != null && !time.getId().isEmpty()).collect(Collectors.toList());
         List<String> schedulingTimeIds = nonEmptyIdSchedulingTimes.stream().map(SchedulingTime::getId).collect(Collectors.toList());
         // 查询数据库中的排班时间
         List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeBySchedulingId(entity.getId());
         List<String> schedulingTimeIdList = schedulingTimes.stream().map(SchedulingTime::getId).collect(Collectors.toList());
         // 拿到数据库中不在入参中的时间段id
         List<String> deleteSchedulingTimeIds = schedulingTimeIdList.stream().filter(
-            time -> !schedulingTimeIds.contains(time)).collect(Collectors.toList());
+                time -> !schedulingTimeIds.contains(time)).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(deleteSchedulingTimeIds)) {
             schedulingTimeService.deleteBySchedulingTimeIds(deleteSchedulingTimeIds);
         }
         // 将列表分为 id 不为空和 id 为空的两组
         Map<Boolean, List<SchedulingTime>> partitioned = schedulingTimeMation.stream()
-            .collect(Collectors.partitioningBy(time -> time.getId() != null && !time.getId().isEmpty()));
+                .collect(Collectors.partitioningBy(time -> time.getId() != null && !time.getId().isEmpty()));
 
         // id不为空的数据
         List<SchedulingTime> nonEmptyIdSchedulingTime = partitioned.get(true);
@@ -221,8 +222,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         Map<String, List<SchedulingShiftsTimeWork>> timeSlotToWorkMap = new HashMap<>();
         for (SchedulingShiftsTime shiftsTime : shiftsTimeList) {
             List<SchedulingShiftsTimeWork> timeSlotWorks = allShiftsTimeWorks.stream()
-                .filter(work -> shiftsTime.getId().equals(work.getShiftsTimeId()))
-                .collect(Collectors.toList());
+                    .filter(work -> shiftsTime.getId().equals(work.getShiftsTimeId()))
+                    .collect(Collectors.toList());
             timeSlotToWorkMap.put(shiftsTime.getId(), timeSlotWorks);
         }
 
@@ -270,13 +271,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
                 // 获取当前时间段的所有可用员工
                 List<Map<String, Object>> availableStaff = getAvailableStaffForTimeSlot(
-                    allStaffList,
-                    dateRange,
-                    shiftsTime,
-                    formalLeaveMap,
-                    tripMap,
-                    informalLeaveMap,
-                    employeeIdWeightMap
+                        allStaffList,
+                        dateRange,
+                        shiftsTime,
+                        formalLeaveMap,
+                        tripMap,
+                        informalLeaveMap,
+                        employeeIdWeightMap
                 );
 
                 // 按权重排序可用员工
@@ -399,8 +400,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             List<SchedulingShifts> schedulingShifts = schedulingShiftsService.querySchedulingShiftsByIdName(shiftIdList, keyword);
             List<String> schedulingShiftIdList = schedulingShifts.stream().map(SchedulingShifts::getId).collect(Collectors.toList());
             schedulingList = schedulingList.stream()
-                .filter(scheduling -> schedulingShiftIdList.contains(scheduling.getShiftId()))
-                .collect(Collectors.toList());
+                    .filter(scheduling -> schedulingShiftIdList.contains(scheduling.getShiftId()))
+                    .collect(Collectors.toList());
         }
 
         if (CollectionUtil.isEmpty(schedulingList)) {
@@ -419,9 +420,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         iAuthUserService.setName(timeWorkPeople, "lastUpdateId", "lastUpdateName");
         // 获取所有相关的ID
         List<String> workIds = timeWorkPeople.stream()
-            .map(SchedulingTimeWorkPeople::getSchedulingTimeWorkId).collect(Collectors.toList());
+                .map(SchedulingTimeWorkPeople::getSchedulingTimeWorkId).collect(Collectors.toList());
         List<String> timeIds = timeWorkPeople.stream()
-            .map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+                .map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
         List<SchedulingTimeWork> workList = schedulingTimeWorkService.querySchedulingTimeByIds(workIds);
         List<SchedulingTime> timeList = schedulingTimeService.querySchedulingTimeByTimeIds(timeIds);
 
@@ -433,20 +434,19 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             }
             // 获取当前排班下的时间段
             List<SchedulingTime> filteredTimeList = timeList.stream()
-                .filter(time -> time.getSchedulingId().equals(scheduling.getId()))
-                .collect(Collectors.toList());
-
+                    .filter(time -> time.getSchedulingId().equals(scheduling.getId()))
+                    .collect(Collectors.toList());
             for (SchedulingTime time : filteredTimeList) {
                 // 获取当前时间段下的工位
                 List<SchedulingTimeWork> filteredWorkList = workList.stream()
-                    .filter(work -> work.getSchedulingTimeId().equals(time.getId()))
-                    .collect(Collectors.toList());
+                        .filter(work -> work.getSchedulingTimeId().equals(time.getId()))
+                        .collect(Collectors.toList());
 
                 for (SchedulingTimeWork work : filteredWorkList) {
                     // 获取当前工位下的员工
                     List<SchedulingTimeWorkPeople> filteredPeopleList = timeWorkPeople.stream()
-                        .filter(people -> people.getSchedulingTimeWorkId().equals(work.getId()))
-                        .collect(Collectors.toList());
+                            .filter(people -> people.getSchedulingTimeWorkId().equals(work.getId()))
+                            .collect(Collectors.toList());
                     work.setSchedulingTimeWorkPeopleMation(filteredPeopleList);
                 }
                 time.setSchedulingTimeWorkMation(filteredWorkList);
@@ -480,9 +480,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         mouthList.forEach(month -> {
             String monthPattern = month + "%";
             schedulingWrapper.or(wrap -> wrap
-                .like(MybatisPlusUtil.toColumns(Scheduling::getStartTime), monthPattern)
-                .or()
-                .like(MybatisPlusUtil.toColumns(Scheduling::getEndTime), monthPattern)
+                    .like(MybatisPlusUtil.toColumns(Scheduling::getStartTime), monthPattern)
+                    .or()
+                    .like(MybatisPlusUtil.toColumns(Scheduling::getEndTime), monthPattern)
             );
         });
         List<Scheduling> schedulingList = list(schedulingWrapper);
@@ -495,9 +495,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         }
 
         List<Scheduling> filteredSchedulingList = schedulingList.stream()
-            .filter(scheduling -> timeWorkPeople.stream()
-                .anyMatch(people -> people.getSchedulingId().equals(scheduling.getId()) && people.getEmployeeId().equals(staffId)))
-            .collect(Collectors.toList());
+                .filter(scheduling -> timeWorkPeople.stream()
+                        .anyMatch(people -> people.getSchedulingId().equals(scheduling.getId()) && people.getEmployeeId().equals(staffId)))
+                .collect(Collectors.toList());
         Set<LocalDate> allDates = new HashSet<>();
         for (Scheduling scheduling : filteredSchedulingList) {
             LocalDateTime startDateTime = parseDateTime(scheduling.getStartTime());
@@ -510,8 +510,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             }
         }
         List<String> sortedDates = allDates.stream().sorted()
-            .map(LocalDate::toString)
-            .collect(Collectors.toList());
+                .map(LocalDate::toString)
+                .collect(Collectors.toList());
         return sortedDates;
     }
 
@@ -523,8 +523,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         String day = map.get("day").toString();
         QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
         schedulingWrapper
-            .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
-            .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
+                .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
+                .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
         List<Scheduling> schedulingList = list(schedulingWrapper);
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
@@ -534,13 +534,13 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
         List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
         Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
-            .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
+                .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
         Set<SchedulingTime> timeSegments = new HashSet<>();
         for (Scheduling scheduling : schedulingList) {
             List<SchedulingTime> times = timeMap.getOrDefault(scheduling.getId(), Collections.emptyList());
             for (SchedulingTime time : times) {
                 if (timeWorkPeople.stream()
-                    .anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
+                        .anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
                     timeSegments.add(time);
                 }
             }
@@ -551,8 +551,91 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
     @Override
     public void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject) {
-        
+        Map<String, Object> map = inputObject.getParams();
+        String staffId = map.get("staffId").toString();
+        // 格式为 "yyyy-MM-dd",逗号分隔
+        String daysStr = map.get("days").toString();
+        List<String> specificDays = Arrays.asList(daysStr.split(CommonCharConstants.COMMA_MARK));
+        Map<String, List<SchedulingTime>> resultMap = new LinkedHashMap<>();
+        for (String day : specificDays) {
+            resultMap.put(day, new ArrayList<>());
+        }
+        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+        schedulingWrapper.and(wrapper -> {
+            for (String day : specificDays) {
+                wrapper.or(w -> w
+                        .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
+                        .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day)
+                );
+            }
+        });
+        List<Scheduling> schedulingList = list(schedulingWrapper);
+        // 提取排班ID
+        List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+        //查询员工在这些排班中的分配
+        List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+        if (CollectionUtil.isEmpty(schedulingList)) {
+            return;
+        }
+        if (CollectionUtil.isEmpty(timeWorkPeople)) {
+            return;
+        }
+        //获取所有相关的时间段ID
+        List<String> schedulingTimeIds = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeIds);
+        Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
+                .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
+        //创建排班ID到排班对象的映射
+        Map<String, List<Scheduling>> schedulingMap = schedulingList.stream()
+                .collect(Collectors.groupingBy(Scheduling::getId));
+        //遍历员工分配记录，关联日期和时间段
+        for (SchedulingTimeWorkPeople assignment : timeWorkPeople) {
+            String timeId = assignment.getSchedulingTimeId();
+            String schedulingId = assignment.getSchedulingId();
+
+            List<SchedulingTime> time = timeMap.get(timeId);
+            Scheduling scheduling = (Scheduling) schedulingMap.get(schedulingId);
+            if (time != null && scheduling != null) {
+                // 获取排班包含的所有日期
+                List<String> scheduleDays = getDaysBetween(
+                        scheduling.getStartTime(),
+                        scheduling.getEndTime()
+                );
+
+                // 筛选出既在排班期间又在查询日期列表中的日期
+                List<String> validDays = scheduleDays.stream()
+                        .filter(specificDays::contains)
+                        .collect(Collectors.toList());
+
+                // 为每个有效日期添加时间段
+                for (String day : validDays) {
+                    // 克隆时间段对象（避免重复引用）
+                    SchedulingTime timeCopy = BeanUtil.copyProperties(time, SchedulingTime.class);
+                    resultMap.get(day).add(timeCopy);
+                }
+            }
+        }
+
+        // 11. 设置返回结果
+        outputObject.setBean(resultMap);
+        outputObject.settotal(resultMap.values().stream().mapToInt(List::size).sum());
     }
+
+    // 获取两个日期之间的所有日期（包含边界）
+    private List<String> getDaysBetween(String startDate, String endDate) {
+        List<String> days = new ArrayList<>();
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        while (!start.isAfter(end)) {
+            days.add(start.toString());
+            start = start.plusDays(CommonNumConstants.NUM_ONE);
+        }
+        return days;
+    }
+
 
     private LocalDateTime parseDateTime(String dateTimeStr) {
         try {
@@ -572,24 +655,24 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         String employIds = String.join(CommonCharConstants.COMMA_MARK, employIdList);
         List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employIds);
         timeWorkPeople.forEach(
-            staff -> {
-                String employeeId = staff.getEmployeeId();
-                Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
-                if (ObjectUtil.isNotEmpty(staffMap)) {
-                    staff.setStaffMation(staffMap);
+                staff -> {
+                    String employeeId = staff.getEmployeeId();
+                    Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
+                    if (ObjectUtil.isNotEmpty(staffMap)) {
+                        staff.setStaffMation(staffMap);
+                    }
                 }
-            }
         );
     }
 
     private List<Map<String, Object>> getAvailableStaffForTimeSlot(
-        List<Map<String, Object>> staffList,
-        List<LocalDate> dateRange,
-        SchedulingShiftsTime shiftTime,
-        Map<String, List<LeaveTimeSlot>> formalLeaveMap,
-        Map<String, List<BusinessTripTimeSlot>> tripMap,
-        Map<String, List<SchedulingLeave>> informalLeaveMap,
-        Map<String, Integer> employeeIdWeightMap) {
+            List<Map<String, Object>> staffList,
+            List<LocalDate> dateRange,
+            SchedulingShiftsTime shiftTime,
+            Map<String, List<LeaveTimeSlot>> formalLeaveMap,
+            Map<String, List<BusinessTripTimeSlot>> tripMap,
+            Map<String, List<SchedulingLeave>> informalLeaveMap,
+            Map<String, Integer> employeeIdWeightMap) {
 
         // 1. 分离正式员工和非正式员工
         List<Map<String, Object>> formalStaff = new ArrayList<>();
@@ -608,9 +691,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 2. 获取可用员工
         List<Map<String, Object>> availableFormalStaff = getAvailableFormalStaffForTimeSlot(
-            formalStaff, dateRange, shiftTime, formalLeaveMap, tripMap);
+                formalStaff, dateRange, shiftTime, formalLeaveMap, tripMap);
         List<Map<String, Object>> availableInformalStaff = getAvailableTempStaffForTimeSlot(
-            informalStaff, dateRange, informalLeaveMap);
+                informalStaff, dateRange, informalLeaveMap);
 
         // 3. 合并并排序员工列表
         List<Map<String, Object>> allAvailableStaff = new ArrayList<>();
@@ -633,48 +716,48 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
      * 获取指定时间段可用的正式员工
      */
     private List<Map<String, Object>> getAvailableFormalStaffForTimeSlot(
-        List<Map<String, Object>> staffList,
-        List<LocalDate> dateRange,
-        SchedulingShiftsTime shiftTime,
-        Map<String, List<LeaveTimeSlot>> leaveMap,
-        Map<String, List<BusinessTripTimeSlot>> tripMap) {
+            List<Map<String, Object>> staffList,
+            List<LocalDate> dateRange,
+            SchedulingShiftsTime shiftTime,
+            Map<String, List<LeaveTimeSlot>> leaveMap,
+            Map<String, List<BusinessTripTimeSlot>> tripMap) {
 
         return staffList.stream()
-            .filter(staff -> {
-                String staffId = staff.get("id").toString();
-                String shiftStartTime = shiftTime.getStartTime();
-                String shiftEndTime = shiftTime.getEndTime();
+                .filter(staff -> {
+                    String staffId = staff.get("id").toString();
+                    String shiftStartTime = shiftTime.getStartTime();
+                    String shiftEndTime = shiftTime.getEndTime();
 
-                // 检查是否请假
-                if (leaveMap.containsKey(staffId)) {
-                    for (LeaveTimeSlot leave : leaveMap.get(staffId)) {
-                        if (dateRange.contains(LocalDate.parse(leave.getLeaveDay()))) {
-                            // 检查时间段是否冲突
-                            String leaveStartTime = leave.getLeaveStartTime();
-                            String leaveEndTime = leave.getLeaveEndTime();
-                            if (isTimeOverlap(shiftStartTime, shiftEndTime, leaveStartTime, leaveEndTime)) {
-                                return false;
+                    // 检查是否请假
+                    if (leaveMap.containsKey(staffId)) {
+                        for (LeaveTimeSlot leave : leaveMap.get(staffId)) {
+                            if (dateRange.contains(LocalDate.parse(leave.getLeaveDay()))) {
+                                // 检查时间段是否冲突
+                                String leaveStartTime = leave.getLeaveStartTime();
+                                String leaveEndTime = leave.getLeaveEndTime();
+                                if (isTimeOverlap(shiftStartTime, shiftEndTime, leaveStartTime, leaveEndTime)) {
+                                    return false;
+                                }
                             }
                         }
                     }
-                }
 
-                // 检查是否出差
-                if (tripMap.containsKey(staffId)) {
-                    for (BusinessTripTimeSlot trip : tripMap.get(staffId)) {
-                        if (dateRange.contains(LocalDate.parse(trip.getTravelDay()))) {
-                            // 检查时间段是否冲突
-                            String tripStartTime = trip.getStartTime();
-                            String tripEndTime = trip.getEndTime();
-                            if (isTimeOverlap(shiftStartTime, shiftEndTime, tripStartTime, tripEndTime)) {
-                                return false;
+                    // 检查是否出差
+                    if (tripMap.containsKey(staffId)) {
+                        for (BusinessTripTimeSlot trip : tripMap.get(staffId)) {
+                            if (dateRange.contains(LocalDate.parse(trip.getTravelDay()))) {
+                                // 检查时间段是否冲突
+                                String tripStartTime = trip.getStartTime();
+                                String tripEndTime = trip.getEndTime();
+                                if (isTimeOverlap(shiftStartTime, shiftEndTime, tripStartTime, tripEndTime)) {
+                                    return false;
+                                }
                             }
                         }
                     }
-                }
-                return true;
-            })
-            .collect(Collectors.toList());
+                    return true;
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -689,8 +772,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 如果时间包含秒，则使用 HH:mm:ss 格式，否则使用 HH:mm 格式
         DateTimeFormatter formatter = start1.length() > 5 ?
-            DateTimeFormatter.ofPattern("HH:mm:ss") :
-            DateTimeFormatter.ofPattern("HH:mm");
+                DateTimeFormatter.ofPattern("HH:mm:ss") :
+                DateTimeFormatter.ofPattern("HH:mm");
 
         LocalTime s1 = LocalTime.parse(start1, formatter);
         LocalTime e1 = LocalTime.parse(end1, formatter);
@@ -712,8 +795,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<Leave> leaveList = leaveService.queryLeaveByFormalUserIds(formalUserIds);
         // 2. 获取所有请假ID
         List<String> leaveIds = leaveList.stream()
-            .map(Leave::getId)
-            .collect(Collectors.toList());
+                .map(Leave::getId)
+                .collect(Collectors.toList());
 
         if (CollectionUtil.isEmpty(leaveIds)) {
             return result;
@@ -722,7 +805,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         List<LeaveTimeSlot> timeSlotList = leaveTimeSlotService.queryTimeAndIds(leaveIds, startTime, endTime);
         // 4. 建立请假ID到员工ID的映射
         Map<String, String> leaveIdToEmployeeIdMap = leaveList.stream()
-            .collect(Collectors.toMap(Leave::getId, Leave::getCreateId));
+                .collect(Collectors.toMap(Leave::getId, Leave::getCreateId));
 
         // 5. 按员工ID分组
         for (LeaveTimeSlot timeSlot : timeSlotList) {
@@ -747,8 +830,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 2. 获取所有出差ID
         List<String> tripIds = tripList.stream()
-            .map(BusinessTrip::getId)
-            .collect(Collectors.toList());
+                .map(BusinessTrip::getId)
+                .collect(Collectors.toList());
 
         if (CollectionUtil.isEmpty(tripIds)) {
             return result;
@@ -757,7 +840,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 4. 建立出差ID到员工ID的映射
         Map<String, String> tripIdToEmployeeIdMap = tripList.stream()
-            .collect(Collectors.toMap(BusinessTrip::getId, BusinessTrip::getCreateId));
+                .collect(Collectors.toMap(BusinessTrip::getId, BusinessTrip::getCreateId));
 
         // 5. 按员工ID分组
         for (BusinessTripTimeSlot timeSlot : timeSlotList) {
@@ -774,26 +857,26 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
      * 获取指定时间段可用的临时员工
      */
     private List<Map<String, Object>> getAvailableTempStaffForTimeSlot(
-        List<Map<String, Object>> staffList,
-        List<LocalDate> dateRange,
-        Map<String, List<SchedulingLeave>> leaveMap) {
+            List<Map<String, Object>> staffList,
+            List<LocalDate> dateRange,
+            Map<String, List<SchedulingLeave>> leaveMap) {
 
         return staffList.stream()
-            .filter(staff -> {
-                String staffId = staff.get("id").toString();
-                // 检查是否请假
-                if (leaveMap.containsKey(staffId)) {
-                    for (SchedulingLeave leave : leaveMap.get(staffId)) {
-                        LocalDate leaveStartDate = LocalDate.parse(leave.getStartTime().split(" ")[0]);
-                        LocalDate leaveEndDate = LocalDate.parse(leave.getEndTime().split(" ")[0]);
-                        if (!dateRange.contains(leaveStartDate) && !dateRange.contains(leaveEndDate)) {
-                            return false;
+                .filter(staff -> {
+                    String staffId = staff.get("id").toString();
+                    // 检查是否请假
+                    if (leaveMap.containsKey(staffId)) {
+                        for (SchedulingLeave leave : leaveMap.get(staffId)) {
+                            LocalDate leaveStartDate = LocalDate.parse(leave.getStartTime().split(" ")[0]);
+                            LocalDate leaveEndDate = LocalDate.parse(leave.getEndTime().split(" ")[0]);
+                            if (!dateRange.contains(leaveStartDate) && !dateRange.contains(leaveEndDate)) {
+                                return false;
+                            }
                         }
                     }
-                }
-                return true;
-            })
-            .collect(Collectors.toList());
+                    return true;
+                })
+                .collect(Collectors.toList());
     }
 
     private List<LocalDate> generateDateRange(String startTime, String endTime) {
