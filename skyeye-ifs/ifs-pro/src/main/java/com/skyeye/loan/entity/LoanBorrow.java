@@ -34,6 +34,10 @@ public class LoanBorrow extends SkyeyeFlowable {
     @ApiModelProperty(value = "借款用途", required = "required")
     private String purpose;
 
+    @TableField(exist = false)
+    @Property("用来展示")
+    private String name;
+
     @TableField(value = "collection_name")
     @ApiModelProperty(value = "收款人全称", required = "required")
     private String collectionName;
