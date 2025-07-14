@@ -13,6 +13,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.loan.dao.LoanRepayDao;
 import com.skyeye.loan.entity.LoanBorrow;
 import com.skyeye.loan.entity.LoanRepay;
@@ -47,6 +48,13 @@ public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao
     public void validatorEntity(LoanRepay entity) {
         super.validatorEntity(entity);
         entity.setRepayTime(entity.getRepayTime().substring(0, 10));
+        if(StrUtil.isNotEmpty(entity.getLoanBorrowId())){
+            LoanBorrow loanBorrow = loanBorrowService.selectById(entity.getLoanBorrowId());
+            double notPrice = Double.parseDouble(loanBorrow.getPrice())-Double.parseDouble(loanBorrow.getPaidPrice());
+            if (Double.parseDouble(entity.getPrice())>notPrice){
+                throw new CustomException("还款金额不能大于未还金额");
+            }
+        }
     }
 
     @Override

@@ -124,13 +124,9 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLeadOutStock.setId(StrUtil.EMPTY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
+        updateLeadType(productLeadOutStock.getId());
     }
 
-    @Override
-    protected void approvalEndIsFailed(ProductLead entity) {
-        super.approvalEndIsFailed(entity);
-        entity.setState(FlowableStateEnum.REJECT.getKey());
-    }
 
     @Override
     public void updateLeadType(String farmId) {

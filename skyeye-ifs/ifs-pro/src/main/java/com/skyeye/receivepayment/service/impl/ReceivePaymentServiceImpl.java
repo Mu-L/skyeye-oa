@@ -19,8 +19,10 @@ import com.skyeye.receivepayment.classenum.ReceivePaymentKeyEnum;
 import com.skyeye.receivepayment.dao.ReceivePaymentDao;
 import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.ReceivePaymentService;
+import com.skyeye.rest.crm.contract.service.ICrmContractService;
 import com.skyeye.rest.crm.customer.service.ICrmCustomerService;
 import com.skyeye.rest.crm.payment.service.ICrmPaymentCollectionService;
+import com.skyeye.rest.erp.contract.service.IErpContractService;
 import com.skyeye.rest.erp.payment.service.IErpPaymentCollectionService;
 import com.skyeye.rest.erp.supplier.service.IErpSupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,13 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
 
     @Autowired
     private IErpSupplierService iErpSupplierService;
+
+    @Autowired
+    private ICrmContractService iCrmContractService;
+
+    @Autowired
+    private IErpContractService iErpContractService;
+
 
 
     @Value("${skyeye.tenant.enable}")
@@ -254,10 +263,14 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
 
         if (CorrespondentEnterEnum.CUSTOM.getKey().equals(receivePayment.getObjectKey())) {
             List<Map<String, Object>> objectMation = iCrmCustomerService.queryCustomerListByIds(receivePayment.getObjectId());
+            List<Map<String, Object>> contractMation = iCrmContractService.queryCrmContractByIds(receivePayment.getContractId());
             receivePayment.setObjectMation(objectMation.get(CommonNumConstants.NUM_ZERO));
+            receivePayment.setContractMation(contractMation.get(CommonNumConstants.NUM_ZERO));
         } else {
             List<Map<String, Object>> objectMation = iErpSupplierService.querySupplierListByIds(receivePayment.getObjectId());
+            List<Map<String, Object>> contractMation = iErpContractService.querySupplierContractByIds(receivePayment.getContractId());
             receivePayment.setObjectMation(objectMation.get(CommonNumConstants.NUM_ZERO));
+            receivePayment.setContractMation(contractMation.get(CommonNumConstants.NUM_ZERO));
         }
         receivePayment.setFromMation(CollectionUtil.isEmpty(paymentCollection) ? new HashMap<>() : paymentCollection.get(CommonNumConstants.NUM_ZERO));
         return receivePayment;
