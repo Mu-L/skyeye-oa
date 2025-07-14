@@ -639,69 +639,40 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         // 格式为 "yyyy-MM-dd",逗号分隔
         String daysStr = map.get("days").toString();
         List<String> specificDays = Arrays.asList(daysStr.split(CommonCharConstants.COMMA_MARK));
+        // 每天对应的排班时间段
         Map<String, List<SchedulingTime>> resultMap = new LinkedHashMap<>();
+        // 循环每天
         for (String day : specificDays) {
-            resultMap.put(day, new ArrayList<>());
-        }
-        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
-        schedulingWrapper.and(wrapper -> {
-            for (String day : specificDays) {
-                wrapper.or(w -> w
-                        .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
-                        .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day)
-                );
+            // 查询该天的排班
+            QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+            schedulingWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
+                             .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
+            List<Scheduling> schedulingList = list(schedulingWrapper);
+            if (CollectionUtil.isEmpty(schedulingList)) {
+                resultMap.put(day, new ArrayList<>());
+                continue;
             }
-        });
-        List<Scheduling> schedulingList = list(schedulingWrapper);
-        // 提取排班ID
-        List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
-        //查询员工在这些排班中的分配
-        List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
-        if (CollectionUtil.isEmpty(schedulingList)) {
-            return;
-        }
-        if (CollectionUtil.isEmpty(timeWorkPeople)) {
-            return;
-        }
-        //获取所有相关的时间段ID
-        List<String> schedulingTimeIds = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeIds);
-        Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
-                .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
-        //创建排班ID到排班对象的映射
-        Map<String, List<Scheduling>> schedulingMap = schedulingList.stream()
-                .collect(Collectors.groupingBy(Scheduling::getId));
-        //遍历员工分配记录，关联日期和时间段
-        for (SchedulingTimeWorkPeople assignment : timeWorkPeople) {
-            String timeId = assignment.getSchedulingTimeId();
-            String schedulingId = assignment.getSchedulingId();
-
-            List<SchedulingTime> time = timeMap.get(timeId);
-            Scheduling scheduling = (Scheduling) schedulingMap.get(schedulingId);
-            if (time != null && scheduling != null) {
-                // 获取排班包含的所有日期
-                List<String> scheduleDays = getDaysBetween(
-                        scheduling.getStartTime(),
-                        scheduling.getEndTime()
-                );
-
-                // 筛选出既在排班期间又在查询日期列表中的日期
-                List<String> validDays = scheduleDays.stream()
-                        .filter(specificDays::contains)
-                        .collect(Collectors.toList());
-
-                // 为每个有效日期添加时间段
-                for (String day : validDays) {
-                    // 克隆时间段对象（避免重复引用）
-                    SchedulingTime timeCopy = BeanUtil.copyProperties(time, SchedulingTime.class);
-                    resultMap.get(day).add(timeCopy);
+            List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+            List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+            if (CollectionUtil.isEmpty(timeWorkPeople)) {
+                resultMap.put(day, new ArrayList<>());
+                continue;
+            }
+            List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+            List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
+            Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
+                    .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
+            Set<SchedulingTime> timeSegments = new HashSet<>();
+            for (Scheduling scheduling : schedulingList) {
+                List<SchedulingTime> times = timeMap.getOrDefault(scheduling.getId(), Collections.emptyList());
+                for (SchedulingTime time : times) {
+                    if (timeWorkPeople.stream().anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
+                        timeSegments.add(time);
+                    }
                 }
             }
+            resultMap.put(day, new ArrayList<>(timeSegments));
         }
-
-        // 11. 设置返回结果
         outputObject.setBean(resultMap);
         outputObject.settotal(resultMap.values().stream().mapToInt(List::size).sum());
     }

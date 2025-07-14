@@ -20,12 +20,12 @@ import com.skyeye.eve.enumqu.service.DwAnEnumquService;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import com.skyeye.eve.order.service.DwAnOrderService;
+import com.skyeye.eve.radio.service.DwAnRadioService;
+import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 import com.skyeye.eve.servey.service.DwSurveyAnswerService;
-import com.skyeye.eve.radio.service.DwAnRadioService;
-import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,13 +84,9 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         }
     }
 
-
     @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
-
-
         //  将时间差转换为总小时数（浮点数）
-
         String surveyId = entity.getSurveyId();
         Integer size = dwAnRadioService.selectRadioBySurveyId(surveyId).size();
         Integer size1 = dwAnScoreService.selectBySurveyId(surveyId).size();
