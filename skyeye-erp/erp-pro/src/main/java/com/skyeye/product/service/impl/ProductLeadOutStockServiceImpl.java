@@ -198,7 +198,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         super.approvalEndIsFailed(entity);
         UpdateWrapper<ProductLeadOutStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, entity.getId());
-        updateWrapper.set(CommonConstants.STATE, FlowableStateEnum.REJECT.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductLeadOutStock::getState), FlowableStateEnum.REJECT.getKey());
         update(updateWrapper);
     }
 
