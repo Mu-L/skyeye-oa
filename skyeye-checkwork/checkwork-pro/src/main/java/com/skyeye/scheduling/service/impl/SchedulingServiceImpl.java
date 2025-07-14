@@ -518,7 +518,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             List<SchedulingTime> filteredTimeList = timeList.stream()
                 .filter(time -> time.getSchedulingId().equals(scheduling.getId()))
                 .collect(Collectors.toList());
-
             for (SchedulingTime time : filteredTimeList) {
                 // 获取当前时间段下的工位
                 List<SchedulingTimeWork> filteredWorkList = workList.stream()
@@ -634,7 +633,47 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
     @Override
     public void querySchedulingByStaffIdAndDays(InputObject inputObject, OutputObject outputObject) {
-
+        Map<String, Object> map = inputObject.getParams();
+        String staffId = map.get("staffId").toString();
+        // 格式为 "yyyy-MM-dd",逗号分隔
+        String daysStr = map.get("days").toString();
+        List<String> specificDays = Arrays.asList(daysStr.split(CommonCharConstants.COMMA_MARK));
+        // 每天对应的排班时间段
+        Map<String, List<SchedulingTime>> resultMap = new LinkedHashMap<>();
+        // 循环每天
+        for (String day : specificDays) {
+            // 查询该天的排班
+            QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+            schedulingWrapper.le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
+                .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
+            List<Scheduling> schedulingList = list(schedulingWrapper);
+            if (CollectionUtil.isEmpty(schedulingList)) {
+                resultMap.put(day, new ArrayList<>());
+                continue;
+            }
+            List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
+            List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);
+            if (CollectionUtil.isEmpty(timeWorkPeople)) {
+                resultMap.put(day, new ArrayList<>());
+                continue;
+            }
+            List<String> schedulingTimeList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getSchedulingTimeId).collect(Collectors.toList());
+            List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(schedulingTimeList);
+            Map<String, List<SchedulingTime>> timeMap = schedulingTimes.stream()
+                .collect(Collectors.groupingBy(SchedulingTime::getSchedulingId));
+            Set<SchedulingTime> timeSegments = new HashSet<>();
+            for (Scheduling scheduling : schedulingList) {
+                List<SchedulingTime> times = timeMap.getOrDefault(scheduling.getId(), Collections.emptyList());
+                for (SchedulingTime time : times) {
+                    if (timeWorkPeople.stream().anyMatch(p -> p.getSchedulingTimeId().equals(time.getId()))) {
+                        timeSegments.add(time);
+                    }
+                }
+            }
+            resultMap.put(day, new ArrayList<>(timeSegments));
+        }
+        outputObject.setBean(resultMap);
+        outputObject.settotal(resultMap.values().stream().mapToInt(List::size).sum());
     }
 
     private LocalDateTime parseDateTime(String dateTimeStr) {
@@ -648,7 +687,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
             }
         }
     }
-
 
     private void getStaffMation(List<SchedulingTimeWorkPeople> timeWorkPeople) {
         List<String> employIdList = timeWorkPeople.stream().map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList());

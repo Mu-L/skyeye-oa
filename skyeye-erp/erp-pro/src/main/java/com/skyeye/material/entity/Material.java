@@ -16,6 +16,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.brand.entity.Brand;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.material.classenum.MaterialItemCode;
 import com.skyeye.material.entity.unit.MaterialUnit;
 import com.skyeye.material.entity.unit.MaterialUnitGroup;
 import lombok.Data;
@@ -106,7 +107,7 @@ public class Material extends BaseGeneralInfo {
     private Integer type;
 
     @TableField(value = "item_code", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "条形码开启类型，参考#MaterialItemCode")
+    @ApiModelProperty(value = "条形码开启类型", enumClass = MaterialItemCode.class)
     private Integer itemCode;
 
     @TableField(exist = false)
