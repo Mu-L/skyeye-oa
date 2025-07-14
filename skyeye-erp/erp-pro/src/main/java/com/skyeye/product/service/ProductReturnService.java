@@ -10,4 +10,6 @@ import java.util.Map;
 
 public interface ProductReturnService extends SkyeyeFlowableService<ProductReturn> {
     void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject);
+
+    void updateOtherState(String fromId);
 }

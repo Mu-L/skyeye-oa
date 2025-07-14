@@ -43,6 +43,10 @@ public class ProductReturn extends SkyeyeFlowable {
     @ApiModelProperty(value = "备注")
     private String remark;
 
+    @TableField("other_state")
+    @ApiModelProperty(value = "1 已审批完成 2 审批未完成",defaultValue = "2")
+    private Integer otherState;
+
     @TableField(exist = false)
     @ApiModelProperty(value = "归还申请明细信息", required = "required,json")
     private List<ProductReturnChild> erpOrderItemList;

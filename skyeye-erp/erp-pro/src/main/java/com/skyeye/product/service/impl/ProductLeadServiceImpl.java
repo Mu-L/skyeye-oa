@@ -115,7 +115,6 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         return productLead;
     }
 
-
     @Override
     public void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject) {
         ProductLeadOutStock productLeadOutStock = inputObject.getParams(ProductLeadOutStock.class);
@@ -124,15 +123,13 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLeadOutStock.setId(StrUtil.EMPTY);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
-        updateLeadType(productLeadOutStock.getId());
     }
-
 
     @Override
     public void updateLeadType(String farmId) {
         UpdateWrapper<ProductLead> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, farmId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ProductLead::getType), IsDefaultEnum.IS_DEFAULT.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductLead::getOtherState), IsDefaultEnum.IS_DEFAULT.getKey());
         update(updateWrapper);
     }
 
