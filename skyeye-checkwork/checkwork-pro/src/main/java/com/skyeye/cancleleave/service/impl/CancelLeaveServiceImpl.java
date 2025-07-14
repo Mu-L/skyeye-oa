@@ -5,6 +5,8 @@
 package com.skyeye.cancleleave.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.cancleleave.dao.CancelLeaveDao;
@@ -18,8 +20,10 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.entity.checkwork.UserStaffHolidayRest;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
@@ -60,11 +64,10 @@ public class CancelLeaveServiceImpl extends SkyeyeFlowableServiceImpl<CancelLeav
     private SysEveUserService sysEveUserService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyCheckWorkCancelLeaveList(pageInfo);
-        return beans;
+    protected QueryWrapper<CancelLeave> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<CancelLeave> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CancelLeave::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override
@@ -154,13 +157,14 @@ public class CancelLeaveServiceImpl extends SkyeyeFlowableServiceImpl<CancelLeav
         String retiredHolidayNumber = user.get("retiredHolidayNumber").toString();
         // 获取销假天数信息
         List<CancelLeaveTimeSlot> cancelLeaveTimeSlotList = cancelLeaveTimeSlotService.selectByPId(cancelLeaveId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         for (CancelLeaveTimeSlot day : cancelLeaveTimeSlotList) {
             String cancelLeaveTimeId = day.getId();
             String cancelDay = day.getCancelDay();
             String timeId = day.getTimeId();
             String cancelHour = day.getCancelHour();
             // 判断该员工在这一天是否有销假成功的记录，如果有，则审核失败，如果没有，则继续操作
-            Map<String, Object> mation = skyeyeBaseMapper.queryCheckWorkCancelLeaveByMation(createId, cancelDay, FlowableChildStateEnum.ADEQUATE.getKey());
+            Map<String, Object> mation = skyeyeBaseMapper.queryCheckWorkCancelLeaveByMation(createId, cancelDay, FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
             if (CollectionUtil.isEmpty(mation)) {
                 // 判断该员工在这一天是否有请假记录，如果没有，则审核失败，如果有，则继续操作
                 Map<String, Object> leaveDayMation = leaveService.queryCheckWorkLeaveByMation(createId, timeId, cancelDay);

@@ -5,11 +5,9 @@
 package com.skyeye.cancleleave.dao;
 
 import com.skyeye.cancleleave.entity.CancelLeave;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,8 +20,6 @@ import java.util.Map;
  */
 public interface CancelLeaveDao extends SkyeyeBaseMapper<CancelLeave> {
 
-    List<Map<String, Object>> queryMyCheckWorkCancelLeaveList(CommonPageInfo pageInfo);
-
     /**
      * 获取指定日期已经审核通过的信息
      *
@@ -34,5 +30,6 @@ public interface CancelLeaveDao extends SkyeyeBaseMapper<CancelLeave> {
      */
     Map<String, Object> queryCheckWorkCancelLeaveByMation(@Param("createId") String createId,
                                                           @Param("cancelDay") String cancelDay,
-                                                          @Param("childState") String childState);
+                                                          @Param("childState") String childState,
+                                                          @Param("tenantId") String tenantId);
 }

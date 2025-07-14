@@ -2,31 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.cancleleave.dao.CancelLeaveDao">
 
-    <select id="queryMyCheckWorkCancelLeaveList" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.`name`,
-            a.odd_number oddNumber,
-            IFNULL(a.process_instance_id, '') processInstanceId,
-            a.state,
-            a.create_id createId,
-            CONVERT(a.create_time, char) createTime,
-            a.last_update_id lastUpdateId,
-            CONVERT(a.last_update_time, char) lastUpdateTime
-        FROM
-            check_work_cancel_leave a
-        <where>
-            a.create_id = #{createId}
-            <if test="sqlExtract != '' and sqlExtract != null">
-                ${sqlExtract}
-            </if>
-            <if test="keyword != null and keyword != ''">
-                AND a.`odd_number` like '%${keyword}%'
-            </if>
-        </where>
-        ORDER BY a.create_time DESC
-    </select>
-
     <select id="queryCheckWorkCancelLeaveByMation" resultType="java.util.Map">
         SELECT
             b.id
@@ -37,6 +12,9 @@
         AND a.id = b.parent_id
         AND b.state = #{childState}
         AND b.cancel_day = #{cancelDay}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
     </select>
 
 </mapper>
