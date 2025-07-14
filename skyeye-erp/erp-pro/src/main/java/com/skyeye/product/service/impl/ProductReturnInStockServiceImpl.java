@@ -4,12 +4,15 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -23,6 +26,7 @@ import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.dao.ProductReturnInStockDao;
+import com.skyeye.product.entity.ProductReturnChild;
 import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
@@ -149,12 +153,19 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         materialNormsService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
+        erpDepotService.setDataMation(productReturnInStock.getErpOrderItemList(), ErpOrderItem::getDepotId);
         if (productReturnInStock.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
             iCustomerService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
         } else {
             supplierService.setDataMation(productReturnInStock, ProductReturnInStock::getHolderId);
         }
         return productReturnInStock;
+    }
+
+    @Override
+    protected void approvalEndIsSuccess(ProductReturnInStock entity) {
+        super.approvalEndIsSuccess(entity);
+        productReturnService.updateOtherState(entity.getFromId());
     }
 
     @Override
@@ -180,5 +191,13 @@ public class ProductReturnInStockServiceImpl extends SkyeyeErpOrderServiceImpl<P
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库入库单.");
         }
+    }
+
+    @Override
+    public void updateOtherState(String fromId) {
+        UpdateWrapper<ProductReturnInStock> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID,fromId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturnInStock::getOtherState), IsDefaultEnum.IS_DEFAULT.getKey());
+        update(updateWrapper);
     }
 }

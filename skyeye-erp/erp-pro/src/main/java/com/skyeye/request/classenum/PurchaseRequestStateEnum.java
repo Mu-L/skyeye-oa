@@ -26,12 +26,14 @@ import java.util.List;
 @AllArgsConstructor
 public enum PurchaseRequestStateEnum implements SkyeyeEnumClass {
 
-    PARTIAL_PROCUREMENT("partialProcurement", "部分采购合同", true, false),
-    PROCUREMENT_COMPLETED("procurementCompleted", "采购合同完毕", true, false);
+    PARTIAL_PROCUREMENT("partialProcurement", "部分采购合同", "#FFA500", true, false),
+    PROCUREMENT_COMPLETED("procurementCompleted", "采购合同完毕", "#008000", true, false);
 
     private String key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

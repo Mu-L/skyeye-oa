@@ -42,6 +42,7 @@ import com.skyeye.material.entity.MaterialNormsCode;
 import com.skyeye.other.service.OtherWareHousService;
 import com.skyeye.pick.service.ReturnPutService;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
+import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.purchase.service.PurchasePutService;
 import com.skyeye.retail.service.RetailReturnsService;
 import com.skyeye.seal.service.SalesReturnsService;
@@ -96,6 +97,9 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
 
     @Autowired
     private ShopConfirmReturnService shopConfirmReturnService;
+
+    @Autowired
+    private ProductReturnInStockService productReturnInStockService;
 
     @Override
     public QueryWrapper<DepotPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -255,6 +259,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         if (StrUtil.isEmpty(entity.getFromId())) {
             return;
         }
+        // 修改归还入库单的状态
+        productReturnInStockService.updateOtherState(entity.getFromId());
         String fromTypeIdKey = DepotPutFromType.getItemIdKey(entity.getFromTypeId());
         // 修改来源单据信息
         checkMaterialNorms(entity, fromTypeIdKey, true);

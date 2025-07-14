@@ -4,11 +4,9 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -209,6 +207,12 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         list.forEach(productLeadOutStock ->
             productLeadOutStock.setErpOrderItemList(stringListMap.get(productLeadOutStock.getId())));
         return list(queryWrapper);
+    }
+
+    @Override
+    protected void approvalEndIsSuccess(ProductLeadOutStock entity) {
+        super.approvalEndIsSuccess(entity);
+        productLeadService.updateLeadType(entity.getFromId());
     }
 
     @Override

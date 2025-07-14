@@ -2,22 +2,24 @@ package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
+import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductReturnFromType;
 import com.skyeye.product.dao.ProductReturnDao;
-import com.skyeye.product.entity.ProductLeadOutStock;
-import com.skyeye.product.entity.ProductReturn;
-import com.skyeye.product.entity.ProductReturnChild;
-import com.skyeye.product.entity.ProductReturnInStock;
+import com.skyeye.product.entity.*;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductReturnChildService;
 import com.skyeye.product.service.ProductReturnInStockService;
@@ -58,6 +60,9 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private ErpDepotService erpDepotService;
 
     @Override
     public List<Map<String, Object>> queryPageData(InputObject inputObject) {
@@ -145,6 +150,7 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         productReturn.setErpOrderItemList(productLeadChildren);
         materialNormsService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getNormsId);
         materialService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getMaterialId);
+        erpDepotService.setDataMation(productReturn.getErpOrderItemList(), ProductReturnChild::getDepotId);
         if (productReturn.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
             iCustomerService.setDataMation(productReturn, ProductReturn::getHolderId);
         } else {
@@ -161,6 +167,14 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         productReturnInStock.setId(null);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productReturnInStockService.createEntity(productReturnInStock, userId);
+    }
+
+    @Override
+    public void updateOtherState(String fromId) {
+        UpdateWrapper<ProductReturn> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID,fromId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturn::getOtherState), IsDefaultEnum.IS_DEFAULT.getKey());
+        update(updateWrapper);
     }
 
 }
