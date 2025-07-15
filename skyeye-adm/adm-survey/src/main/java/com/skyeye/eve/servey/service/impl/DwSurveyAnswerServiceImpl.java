@@ -26,6 +26,7 @@ import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 import com.skyeye.eve.servey.service.DwSurveyAnswerService;
+import com.skyeye.eve.servey.service.DwSurveyDirectoryService;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +69,10 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     private DwAnEnumquService dwAnEnumquService;
     @Autowired
     private DwAnFillblankService dwAnFillblankService;
-
     @Autowired
     private DwSurveyAnswerService dwSurveyAnswerService;
+    @Autowired
+    private DwSurveyDirectoryService dwSurveyDirectoryService;
 
     @Override
     protected void createPrepose(DwSurveyAnswer entity) {
@@ -104,19 +106,24 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         Integer size13 = dwAnOrderService.selectBySurveyId(surveyId).size();
         Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
         entity.setCompleteNum(total);
-        Integer quNum = entity.getQuNum();
-        if (quNum == null) {// 如果quNum为空，则跳过后续校验
-            return;
-        }
-        if (total.equals(quNum)) { // 此时 quNum 已非 null
+        String endAnDate = entity.getEndAnDate();
+        if (StrUtil.isNotEmpty(endAnDate)) {
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
-        } else if (total < quNum) {
-            throw new CustomException("未完成所有题目");
         }
         if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-            Integer fraction = dwSurveyAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+            Integer fraction = selectFractionBySurveyId(entity.getSurveyId());
             entity.setMarkFraction(fraction);
         }
+    }
+
+    @Override
+    public DwSurveyAnswer selectById(String id) {
+        DwSurveyAnswer dwSurveyAnswer = super.selectById(id);
+        String surveyId = dwSurveyAnswer.getSurveyId();
+        String createId = dwSurveyAnswer.getCreateId();
+        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectBySurAndStuIds(surveyId, createId, id);
+        dwSurveyAnswer.setSurveyMation(dwSurveyDirectory);
+        return dwSurveyAnswer;
     }
 
     @Override

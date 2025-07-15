@@ -10,6 +10,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnChenCheckboxService
@@ -28,4 +29,7 @@ public interface DwAnChenCheckboxService extends SkyeyeBusinessService<DwAnChenC
     void queryDwAnChenCheckboxListById(InputObject inputObject, OutputObject outputObject);
 
     List<DwAnChenCheckbox> selectByQuId(String id);
+
+    Map<String, List<DwAnChenCheckbox>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
+
 }

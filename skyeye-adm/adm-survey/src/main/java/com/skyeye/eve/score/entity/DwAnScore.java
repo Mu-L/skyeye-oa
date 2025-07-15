@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -24,7 +25,7 @@ import lombok.Data;
 @Data
 @TableName(value = "dw_an_score")
 @ApiModel(value = "答卷评分题实体类")
-public class DwAnScore extends CommonInfo {
+public class DwAnScore extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

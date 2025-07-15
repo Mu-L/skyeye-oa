@@ -16,4 +16,5 @@ public interface DwQuestionService extends SkyeyeBusinessService<DwQuestion> {
 
     void queryPageDwQuestionList(InputObject inputObject, OutputObject outputObject);
 
+    List<DwQuestion> QueryQuestionByBelongIdAndStuId(String surveyId, String createId);
 }

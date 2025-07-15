@@ -11,6 +11,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenScore;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnChenScoreService
@@ -28,4 +29,5 @@ public interface DwAnChenScoreService extends SkyeyeBusinessService<DwAnChenScor
 
     List<DwAnChenScore> slectByQuId(String id);
 
+    Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
 }

@@ -6,10 +6,11 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.order.entity.DwAnOrder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ExamAnOrderService
- * @Description: 答卷 评分题接口层
+ * @Description: 答卷 排序题接口层
  * @author: skyeye云系列--lyj
  * @date: 2024/7/16 11:01
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -22,4 +23,6 @@ public interface DwAnOrderService extends SkyeyeBusinessService<DwAnOrder> {
     List<DwAnOrder> selectBySurveyId(String surveyId);
 
     List<DwAnOrder> selectAnOrderByQuId(String id);
+
+    Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId);
 }

@@ -11,6 +11,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnChenFbk;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnChenFbkService
@@ -27,6 +28,8 @@ public interface DwAnChenFbkService extends SkyeyeBusinessService<DwAnChenFbk> {
     List<DwAnChenFbk> selectBySurveyId(String surveyId);
 
     List<DwAnChenFbk> selectByQuId(String id);
+
+    Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
 }
 
 

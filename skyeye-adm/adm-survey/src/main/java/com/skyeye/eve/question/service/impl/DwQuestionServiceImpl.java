@@ -14,14 +14,20 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
+import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
+import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
-import com.skyeye.eve.chen.entity.DwQuChenColumn;
-import com.skyeye.eve.chen.entity.DwQuChenRow;
-import com.skyeye.eve.chen.service.DwQuChenColumnService;
-import com.skyeye.eve.chen.service.DwQuChenRowService;
+import com.skyeye.eve.chen.entity.*;
+import com.skyeye.eve.chen.service.*;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
+import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
+import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
+import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import com.skyeye.eve.multifllblank.service.DwQuMultiFillblankService;
+import com.skyeye.eve.order.entity.DwAnOrder;
+import com.skyeye.eve.order.service.DwAnOrderService;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
 import com.skyeye.eve.question.dao.DwQuestionDao;
@@ -29,9 +35,13 @@ import com.skyeye.eve.question.entity.DwQuestion;
 import com.skyeye.eve.question.entity.DwQuestionLogic;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.question.service.DwQuestionService;
+import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.entity.DwQuRadio;
+import com.skyeye.eve.radio.service.DwAnRadioService;
 import com.skyeye.eve.radio.service.DwQuRadioService;
+import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.score.entity.DwQuScore;
+import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.score.service.DwQuScoreService;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
@@ -63,6 +73,28 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     private DwQuChenColumnService dwQuChenColumnService;
     @Autowired
     private DwQuChenRowService dwQuChenRowService;
+    @Autowired
+    private DwAnRadioService dwAnRadioService;
+    @Autowired
+    private DwAnCheckboxService dwAnCheckboxService;
+    @Autowired
+    private DwAnScoreService dwAnScoreService;
+    @Autowired
+    private DwAnOrderService dwAnOrderService;
+    @Autowired
+    private DwAnDfillblankService dwAnDfillblankService;
+    @Autowired
+    private DwAnFillblankService dwAnFillblankService;
+    @Autowired
+    private DwAnChenRadioService dwAnChenRadioService;
+    @Autowired
+    private DwAnChenCheckboxService dwAnChenCheckboxService;
+    @Autowired
+    private DwAnChenScoreService dwAnChenScoreService;
+    @Autowired
+    private DwAnChenFbkService dwAnChenFbkService;
+    @Autowired
+    private DwAnCompChenRadioService dwAnCompChenRadioService;
 
     @Override
     public void createPrepose(List<DwQuestion> entity) {
@@ -183,7 +215,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             .filter(l -> l.getId() == null || l.getId().isEmpty())
             .collect(Collectors.toList());
 
-      // id 不为空的 DwQuestionLogic 列表
+        // id 不为空的 DwQuestionLogic 列表
         List<DwQuestionLogic> idNotEmptyList = dwQuestionList.stream()
             .flatMap(q -> q.getQuestionLogic().stream())
             .filter(l -> l.getId() != null && !l.getId().isEmpty())
@@ -501,5 +533,100 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         List<DwQuestion> questionList = list(queryWrapper);
         outputObject.setBeans(questionList);
         outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    public List<DwQuestion> QueryQuestionByBelongIdAndStuId(String surveyId, String createId) {
+        QueryWrapper<DwQuestion> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestion::getBelongId), surveyId);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getOrderById));
+        List<DwQuestion> questionList = list(queryWrapper);
+        return getQuestionOptionAndAnswer(createId, questionList);
+    }
+
+    private List<DwQuestion> getQuestionOptionAndAnswer(String studentId, List<DwQuestion> questionList) {
+        List<DwQuestion> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex())).collect(Collectors.toList());
+        List<String> radioIds = radioList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuRadio>> radioQuMapList = dwQuRadioService.selectByBelongId(radioIds);
+        Map<String, List<DwAnRadio>> radioAnMapList = dwAnRadioService.selectByQuIdAndStuId(radioIds, studentId);
+
+        List<DwQuestion> cheankboxList = questionList.stream().filter(question -> question.getQuType().equals(QuType.CHECKBOX.getIndex())).collect(Collectors.toList());
+        List<String> cheankboxIds = cheankboxList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuCheckbox>> chaeckBoxQuMapList = dwQuCheckboxService.selectByBelongId(cheankboxIds);
+        Map<String, List<DwAnCheckbox>> chaeckBoxAnMapList = dwAnCheckboxService.selectByQuIdAndStuId(cheankboxIds, studentId);
+
+        List<DwQuestion> scoreList = questionList.stream().filter(question -> question.getQuType().equals(QuType.SCORE.getIndex())).collect(Collectors.toList());
+        List<String> scoreIds = scoreList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuScore>> scoreMapList = dwQuScoreService.selectByBelongId(scoreIds);
+        Map<String, List<DwAnScore>> scoreAnMapList = dwAnScoreService.selectByQuIdAndStuId(scoreIds, studentId);
+
+        List<DwQuestion> orderQuList = questionList.stream().filter(question -> question.getQuType().equals(QuType.ORDERQU.getIndex())).collect(Collectors.toList());
+        List<String> orderQuIds = orderQuList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuOrderby>> orderQuMapList = dwQuOrderbyService.selectByBelongId(orderQuIds);
+        Map<String, List<DwAnOrder>> orderAnMapList = dwAnOrderService.selectByQuIdAndStuId(orderQuIds, studentId);
+
+        List<DwQuestion> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex()) ||
+            question.getQuType().equals(QuType.FILLBLANK.getIndex())).collect(Collectors.toList());
+        List<String> multifillblankIds = multifillblankList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuMultiFillblank>> multifillblankMapList = dwQuMultiFillblankService.selectByBelongId(multifillblankIds);
+        Map<String, List<DwAnDfillblank>> multifillblankAnMapList = dwAnDfillblankService.selectByQuIdAndStuId(multifillblankIds, studentId);
+        Map<String, List<DwAnFillblank>> fillblankAnMapList = dwAnFillblankService.selectByQuIdAndStuId(multifillblankIds, studentId);
+        List<DwQuestion> chenList = questionList.stream().filter(question ->
+            question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
+                question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
+                question.getQuType().equals(QuType.CHENCHECKBOX.getIndex()) ||
+                question.getQuType().equals(QuType.CHENSCORE.getIndex())
+        ).collect(Collectors.toList());
+        List<String> chenIds = chenList.stream().map(DwQuestion::getId).collect(Collectors.toList());
+        Map<String, List<DwQuChenColumn>> chenColumnMapList = dwQuChenColumnService.selectByBelongId(chenIds);
+        Map<String, List<DwQuChenRow>> chenRowMapList = dwQuChenRowService.selectByBelongId(chenIds);
+        Map<String, List<DwAnChenRadio>> chenAnRadio = dwAnChenRadioService.selectByQuIdAndStuId(chenIds, studentId);
+        Map<String, List<DwAnChenFbk>> chenAnFbk = dwAnChenFbkService.selectByQuIdAndStuId(chenIds, studentId);
+        Map<String, List<DwAnChenScore>> chenAnScore = dwAnChenScoreService.selectByQuIdAndStuId(chenIds, studentId);
+        Map<String, List<DwAnCompChenRadio>> compChenAnRadio = dwAnCompChenRadioService.selectByQuIdAndStuId(chenIds, studentId);
+        Map<String, List<DwAnChenCheckbox>> chenAnCheckbox = dwAnChenCheckboxService.selectByQuIdAndStuId(chenIds, studentId);
+        questionList.forEach(question -> {
+            String qid = question.getId();
+            int quType = question.getQuType();
+
+            switch (quType) {
+                case 1: // 单选题
+                    question.setRadioTd(radioQuMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setRadioAn(radioAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 2: // 多选题
+                    question.setCheckboxTd(chaeckBoxQuMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setCheckboxAn(chaeckBoxAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 8: // 评分题
+                    question.setScoreTd(scoreMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setScoreAn(scoreAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 9: // 排序题
+                    question.setOrderByTd(orderQuMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setOrderbyAn(orderAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 3: //填空题
+                case 4: // 多行填空题
+                    question.setMultifillblankTd(multifillblankMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setDfillblankAn(multifillblankAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setFillblankAn(fillblankAnMapList.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                case 11:
+                case 12:
+                case 13:
+                case 18:
+                    question.setColumnTd(chenColumnMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setRowTd(chenRowMapList.getOrDefault(qid, Collections.emptyList()));
+                    question.setChenRadioAn(chenAnRadio.getOrDefault(qid, Collections.emptyList()));
+                    question.setChenFbkAn(chenAnFbk.getOrDefault(qid, Collections.emptyList()));
+                    question.setChenScoreAn(chenAnScore.getOrDefault(qid, Collections.emptyList()));
+                    question.setCompChenRadioAn(compChenAnRadio.getOrDefault(qid, Collections.emptyList()));
+                    question.setChenCheckboxAn(chenAnCheckbox.getOrDefault(qid, Collections.emptyList()));
+                    break;
+                default:
+            }
+        });
+        return questionList;
     }
 }

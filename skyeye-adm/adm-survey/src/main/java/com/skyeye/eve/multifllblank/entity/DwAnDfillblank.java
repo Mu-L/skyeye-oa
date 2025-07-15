@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -23,7 +24,7 @@ import lombok.Data;
 @Data
 @TableName(value = "dw_an_dfillblank")
 @ApiModel(value = "答卷多行填空题保存表实体类")
-public class DwAnDfillblank extends CommonInfo {
+public class DwAnDfillblank extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

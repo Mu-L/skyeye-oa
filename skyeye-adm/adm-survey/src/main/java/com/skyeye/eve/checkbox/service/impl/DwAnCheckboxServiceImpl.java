@@ -92,4 +92,16 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
         return cheneckBoxMap;
     }
 
+    @Override
+    public Map<String, List<DwAnCheckbox>> selectByQuIdAndStuId(List<String> cheankboxIds, String studentId) {
+        if (CollectionUtil.isEmpty(cheankboxIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), cheankboxIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getCreateId), studentId);
+        Map<String, List<DwAnCheckbox>> cheneckBoxMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnCheckbox::getQuId));
+        return cheneckBoxMap;
+    }
+
 }

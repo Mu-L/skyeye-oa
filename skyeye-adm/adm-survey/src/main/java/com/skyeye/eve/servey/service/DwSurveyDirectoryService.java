@@ -30,4 +30,5 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
     Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds);
 
 
+    DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id);
 }

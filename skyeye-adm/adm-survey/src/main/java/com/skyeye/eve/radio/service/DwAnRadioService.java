@@ -7,6 +7,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.radio.entity.DwAnRadio;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnRadioService
@@ -23,4 +24,6 @@ public interface DwAnRadioService extends SkyeyeBusinessService<DwAnRadio> {
     List<DwAnRadio> selectRadioBySurveyId(String surveyId);
 
     List<DwAnRadio> selectRadioByQuId(String id);
+
+    Map<String, List<DwAnRadio>> selectByQuIdAndStuId(List<String> radioIds, String studentId);
 }

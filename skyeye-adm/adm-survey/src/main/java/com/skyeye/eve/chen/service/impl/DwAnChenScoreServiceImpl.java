@@ -14,6 +14,7 @@ import com.skyeye.eve.chen.entity.DwAnChenScore;
 import com.skyeye.eve.chen.service.DwAnChenScoreService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,6 +108,18 @@ public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+        if (CollectionUtil.isEmpty(chenIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), chenIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnChenScore::getCreateId), studentId);
+        Map<String, List<DwAnChenScore>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenScore::getQuId));
+        return stringListMap;
     }
 
 }

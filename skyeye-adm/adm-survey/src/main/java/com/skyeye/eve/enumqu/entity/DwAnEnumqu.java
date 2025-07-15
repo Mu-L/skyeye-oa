@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -20,7 +21,7 @@ import lombok.Data;
 //@RedisCacheField(name = "Exam:enumqu")
 @TableName(value = "dw_an_enumqu")
 @ApiModel("答卷 枚举题答案实体类")
-public class DwAnEnumqu extends CommonInfo {
+public class DwAnEnumqu extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

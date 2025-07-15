@@ -228,8 +228,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             throw new CustomException("该试卷不存在");
         }
         if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
-            DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
-            if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
+            DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
+            if (ObjUtil.isNotEmpty(examSurveyAnswer) && StrUtil.isNotEmpty(examSurveyAnswer.getEndAnDate())) {
                 throw new CustomException("您已参加过该问卷");
             } else {
                 yesOrNo = true;
@@ -888,6 +888,14 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
 //            dwSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
 //        }
         return dwSurveyDirectoryList.stream().collect(Collectors.toMap(DwSurveyDirectory::getId, dwSurveyDirectory -> dwSurveyDirectory));
+    }
+
+    @Override
+    public DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id) {
+        DwSurveyDirectory bean = super.selectById(surveyId);
+        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, createId);
+        bean.setDwQuestionMation(questionList);
+        return bean;
     }
 
 

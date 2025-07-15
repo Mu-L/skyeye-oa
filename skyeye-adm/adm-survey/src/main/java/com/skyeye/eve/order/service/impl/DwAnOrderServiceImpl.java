@@ -1,5 +1,6 @@
 package com.skyeye.eve.order.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,8 +13,10 @@ import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ExamAnOrderServiceImpl
@@ -50,6 +53,18 @@ public class DwAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<DwAnOrderDao
         QueryWrapper<DwAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnOrder::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId) {
+        if (CollectionUtil.isEmpty(orderQuIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnOrder::getQuId), orderQuIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnOrder::getCreateId), studentId);
+        Map<String, List<DwAnOrder>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnOrder::getQuId));
+        return stringListMap;
     }
 
 }

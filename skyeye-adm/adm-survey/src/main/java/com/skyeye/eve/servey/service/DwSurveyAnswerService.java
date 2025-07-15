@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DwSurveyAnswerService extends SkyeyeBusinessService<DwSurveyAnswer> {
     void queryMySurveyAnswerList(InputObject inputObject, OutputObject outputObject);
@@ -25,4 +26,5 @@ public interface DwSurveyAnswerService extends SkyeyeBusinessService<DwSurveyAns
     List<DwSurveyAnswer> querySurveyAnswerByBelongId(String dwDirectoryId);
 
     Integer selectFractionBySurveyId(String surveyId);
+
 }

@@ -15,6 +15,7 @@ import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.chen.entity.*;
 import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
+import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.entity.DwQuMultiFillblank;
 import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
@@ -218,6 +219,10 @@ public class DwQuestion extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "多行填空题选项信息答案")
     private List<DwAnDfillblank> dfillblankAn;
+
+    @TableField(exist = false)
+    @Property(value = "填空题选项信息答案")
+    private List<DwAnFillblank> fillblankAn;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "排序题选项信息", required = "json")
