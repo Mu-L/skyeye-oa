@@ -200,39 +200,41 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
+        String orderId = params.get("orderId").toString();
         Integer num = Integer.parseInt(params.get("num").toString());
         if (num <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("发货数量不可为负数或零");
         }
-        OrderItem item = getById(id);
-        if (ObjectUtil.isEmpty(item)) {
+        List<OrderItem> orderItemList = queryOrderItemByParentId(orderId);
+        if (CollectionUtil.isEmpty(orderItemList)) {
+            throw new CustomException("该订单不存在");
+        }
+        OrderItem targetItem = orderItemList.stream().filter(item -> item.getId().equals(id)).findFirst().orElseGet(null);
+        if (ObjectUtil.isEmpty(targetItem)) {
             throw new CustomException("该订单子单不存在");
         }
-        if (item.getState() == ShopOrderItemOtherState.WAIT_PAY.getKey() ||
-                item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey()) {
+        if (targetItem.getState() == ShopOrderItemOtherState.WAIT_PAY.getKey() ||
+                targetItem.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey()) {
             throw new CustomException("该订单未支付或已全部发货");
         }
-        int remainingNum = item.getCount() - item.getDeliverNum() - num;
+        int remainingNum = targetItem.getCount() - targetItem.getDeliverNum() - num;
         if (remainingNum < CommonNumConstants.NUM_ZERO) {
             throw new CustomException("该订单子单可发货数量不足");
         }
-        // 更新数据
-        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getDeliverNum), item.getDeliverNum() + num);
+        // 设置数据
+        targetItem.setDeliverNum(targetItem.getDeliverNum() + num);
         if (remainingNum > CommonNumConstants.NUM_ZERO) {
             // 还剩
-            updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), ShopOrderItemOtherState.PART_DELIVERED.getKey());
-            remainingNum = ShopOrderState.PART_DELIVERY.getKey();
+            targetItem.setState(ShopOrderItemOtherState.PART_DELIVERED.getKey());
         } else {
             // 剩余为0
-            updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), ShopOrderItemOtherState.ALL_DELIVERED.getKey());
-            remainingNum = ShopOrderState.DELIVERED.getKey();
+            targetItem.setState(ShopOrderItemOtherState.ALL_DELIVERED.getKey());
         }
-        update(updateWrapper);
-        refreshCache(id);
+        // 更新数据
+        super.updateEntity(targetItem, inputObject.getLogParams().get("id").toString());
         // 修改总单状态
-        orderService.updateOrderItemDeliverState(item.getParentId(), remainingNum);
+        boolean allMatch = orderItemList.stream().allMatch(item -> item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey());
+        orderService.updateOrderItemDeliverState(targetItem.getParentId(), allMatch ? ShopOrderState.DELIVERED.getKey() : ShopOrderState.PART_DELIVERY.getKey());
     }
 
     @Override

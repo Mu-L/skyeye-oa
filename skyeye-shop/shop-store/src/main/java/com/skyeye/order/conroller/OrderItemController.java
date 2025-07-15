@@ -29,6 +29,7 @@ public class OrderItemController {
     @ApiOperation(id = "deliverGoodsById", value = "商品订单子单发货", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单id", required = "required"),
             @ApiImplicitParam(id = "num", name = "num", value = "发货数量", required = "required,num")})
     @RequestMapping("/post/OrderItemController/deliverGoodsById")
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
