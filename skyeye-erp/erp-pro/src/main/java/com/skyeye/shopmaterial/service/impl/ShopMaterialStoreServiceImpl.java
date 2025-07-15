@@ -313,6 +313,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public void queryShopMaterialMapByMaterialIdAndStoreId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         List<String> materialIdList = JSONUtil.toList(params.get("materialId").toString(), null);

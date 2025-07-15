@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
@@ -178,6 +179,8 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         }
     }
 
+    @Override
+    @IgnoreTenant
     public Coupon selectById(String id) {
         Coupon coupon = super.selectById(id);
         if (ObjectUtil.isNotEmpty(coupon)) {
@@ -237,6 +240,7 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     }
 
     @Override
+    @IgnoreTenant
     public void updateTakeCount(String couponId, Integer takeCount) {
         UpdateWrapper<Coupon> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, couponId);
@@ -295,5 +299,23 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         updateWrapper.eq(CommonConstants.ID, surveyId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.DISABLE_USING.getKey());
         update(updateWrapper);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(M bean, SFunction<M, ?> sFunction) {
+        super.setDataMation(bean, sFunction);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(List<M> beans, SFunction<M, ?> sFunction) {
+        super.setDataMation(beans, sFunction);
+    }
+
+    @Override
+    @IgnoreTenant
+    public void setMationForMap(List<Map<String, Object>> beans, String idKey, String nameKey) {
+        super.setMationForMap(beans, idKey, nameKey);
     }
 }

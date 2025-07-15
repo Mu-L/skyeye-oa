@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -166,8 +167,9 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         // 根据id批量查询详细的商品信息
         List<String> idList = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
         List<ShopMaterial> shopMaterials = selectByIds(idList.toArray(new String[]{}));
+        // 如果遇到materialId相同的商品，则只保留一个
         Map<String, ShopMaterial> materialMap = shopMaterials.stream().collect(
-            Collectors.toMap(ShopMaterial::getMaterialId, shopMaterial -> shopMaterial));
+            Collectors.toMap(ShopMaterial::getMaterialId, Function.identity(), (v1, v2) -> v1));
         shopMaterialStoreList.forEach(shopMaterialStore -> {
             ShopMaterial shopMaterial = materialMap.get(shopMaterialStore.getMaterialId());
             shopMaterial.getMaterialMation().setMaterialNorms(null);
@@ -293,7 +295,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         }
         List<String> ids = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
         List<ShopMaterial> shopMaterials = selectByIds(ids.toArray(new String[]{}));
-        return shopMaterials.stream().collect(Collectors.toMap(ShopMaterial::getMaterialId, shopMaterial -> shopMaterial));
+        return shopMaterials.stream().collect(Collectors.toMap(ShopMaterial::getMaterialId, Function.identity(), (v1, v2) -> v1));
     }
 
     @Override
