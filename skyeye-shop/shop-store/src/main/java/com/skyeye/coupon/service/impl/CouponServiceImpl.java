@@ -272,12 +272,14 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
             .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
         List<Coupon> list = skyeyeBaseMapper.selectJoinList(Coupon.class, wrapper);
         setDrawState(list);// 设置是否可以领取状态
-        outputObject.setBean(list);
+        outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
 
     private void setDrawState(List<Coupon> list) {
-        if (CollectionUtil.isEmpty(list)) return;
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
         List<String> couponIdList = list.stream().map(Coupon::getId).collect(Collectors.toList());
         Map<String, Integer> map = couponUseService.queryIdTotalMapByCouponId(couponIdList);
         for (Coupon coupon : list) {

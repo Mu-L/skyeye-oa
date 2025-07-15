@@ -7,6 +7,7 @@ package com.skyeye.material.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -341,4 +342,15 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
         outputObject.settotal(materialNormsList.size());
     }
 
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(M bean, SFunction<M, ?> sFunction) {
+        super.setDataMation(bean, sFunction);
+    }
+
+    @Override
+    @IgnoreTenant
+    public <M> void setDataMation(List<M> beans, SFunction<M, ?> sFunction) {
+        super.setDataMation(beans, sFunction);
+    }
 }
