@@ -208,8 +208,8 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         if (ObjectUtil.isEmpty(item)) {
             throw new CustomException("该订单子单不存在");
         }
-        if (item.getState() != ShopOrderItemOtherState.WAIT_DELIVER.getKey() ||
-                item.getState() != ShopOrderItemOtherState.PART_DELIVERED.getKey()) {
+        if (item.getState() == ShopOrderItemOtherState.WAIT_PAY.getKey() ||
+                item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey()) {
             throw new CustomException("该订单未支付或已全部发货");
         }
         int remainingNum = item.getCount() - item.getDeliverNum() - num;
@@ -218,6 +218,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         }
         // 更新数据
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getDeliverNum), item.getDeliverNum() + num);
         if (remainingNum > CommonNumConstants.NUM_ZERO) {
             // 还剩
