@@ -19,13 +19,19 @@ public class ShopAddressHistoryController {
     @Autowired
     private ShopAddressHistoryService shopAddressHistoryService;
 
-    @ApiOperation(id = "queryShopAddressHistoryPageList", value = "批量删除收件地址信息", method = "DELETE", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class,
-            value = {
-                    @ApiImplicitParam(id = "orderId", name = "typeId", value = "订单id")
-            })
+    @ApiOperation(id = "queryShopAddressHistoryPageList", value = "分页获取历史收件地址信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "typeId", name = "typeId", value = "订单id")})
     @RequestMapping("/post/ShopAddressHistoryController/queryShopAddressHistoryPageList")
-    private void queryPageList(InputObject inputObject, OutputObject outputObject) {
+    public void queryShopAddressHistoryPageList(InputObject inputObject, OutputObject outputObject) {
         shopAddressHistoryService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryMyShopAddressHistoryPageList", value = "分页获取我的历史收件地址信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "typeId", name = "typeId", value = "订单id")})
+    @RequestMapping("/post/ShopAddressHistoryController/queryMyShopAddressHistoryPageList")
+    public void queryMyShopAddressHistoryPageList(InputObject inputObject, OutputObject outputObject) {
+        shopAddressHistoryService.queryMyShopAddressHistoryPageList(inputObject, outputObject);
     }
 }

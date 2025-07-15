@@ -4,13 +4,18 @@
 
 package com.skyeye.store.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAreaService;
 import com.skyeye.store.dao.ShopAddressHistoryDao;
@@ -62,5 +67,22 @@ public class ShopAddressHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Sho
         Map<String, Map<String, Object>> result = list.stream().collect(
             Collectors.toMap(ShopAddressHistory::getId, shopAddress -> JSONUtil.toBean(JSONUtil.toJsonStr(shopAddress), null), (key1, key2) -> key2));
         return result;
+    }
+
+    @Override
+    public void queryMyShopAddressHistoryPageList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String currentUserId = inputObject.getLogParams().get("id").toString();
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<ShopAddressHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopAddressHistory::getCreateId), currentUserId)
+            .orderByDesc(MybatisPlusUtil.toColumns(ShopAddressHistory::getCreateTime));
+        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopAddressHistory::getOrderId), commonPageInfo.getTypeId());
+        }
+        List<ShopAddressHistory> beans = list(queryWrapper);
+        shopAddressLabelService.setDataMation(beans, ShopAddressHistory::getLabelId);
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 }
