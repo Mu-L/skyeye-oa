@@ -137,11 +137,11 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     }
 
     @Override
-    public DwSurveyAnswer queryWhetherExamIngByStuId(String userId, String id) {
+    public List<DwSurveyAnswer> queryWhetherExamIngByStuId(String userId, String id) {
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
-        return getOne(queryWrapper);
+        return list(queryWrapper);
     }
 
     @Override
@@ -211,6 +211,49 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
         Integer sum = dwSurveyAnswerList.stream().mapToInt(DwSurveyAnswer::getMarkFraction).sum();
         return sum;
+    }
+
+    @Override
+    public void querySurveyAnswerByDirectoryIdAndUserId(InputObject inputObject, OutputObject outputObject) {
+        // 试卷Id
+        String SurveyId = inputObject.getParams().get("id").toString();
+        // 用户Id
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), SurveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateId), userId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateTime));
+        List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
+        // 获取最新一条记录
+        DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerList.get(CommonNumConstants.NUM_ZERO);
+        String surveyId = dwSurveyAnswer.getSurveyId();
+        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectDirectoryAndAnswerById(surveyId, userId);
+        dwSurveyAnswer.setSurveyMation(dwSurveyDirectory);
+        outputObject.setBean(dwSurveyAnswer);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public DwSurveyAnswer querySurveyAnswerByRuleCode(String machineCode, String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getMachineCode), machineCode);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public DwSurveyAnswer querySurveyAnswerByIp(String ip, String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getIp), ip);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public List<DwSurveyAnswer> querySurveyAnswerNumById(String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return list(queryWrapper);
     }
 
     private void extracted(OutputObject outputObject, QueryWrapper<DwSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {

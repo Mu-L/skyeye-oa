@@ -51,6 +51,14 @@ public class DwSurveyAnswer extends OperatorUserInfo {
     @ApiModelProperty(value = "回答的题项目数 ---- 表示有些题下面会有多重回答")
     private Integer completeItemNum;
 
+    @TableField("machine_code")
+    @ApiModelProperty(value = " 机器码")
+    private String machineCode;
+
+    @TableField("ip")
+    @ApiModelProperty(value = " Ip地址")
+    private String ip;
+
     @TableField("data_source")
     @ApiModelProperty(value = "数据来源  0网调  1录入数据 2移动数据 3导入数据")
     private Integer dataSource;

@@ -69,13 +69,25 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @ApiModelProperty(value = "可以回答的最多选项数目")
     private Integer anItemMostNum;
 
+    @TableField("is_effective")
+    @ApiModelProperty(value = " 是否有问卷限制 1是 0否")
+    private Integer isEffective;
+
     @TableField("effective")
-    @ApiModelProperty(value = "问卷有效性限制 ---1不限制,2使用Cookie技术,3使用来源IP检测,4 每台电脑或手机只能答一次 ")
+    @ApiModelProperty(value = " 每台电脑或手机只能答一次 1是 0否")
     private Integer effective;
 
     @TableField("effective_ip")
     @ApiModelProperty(value = "每个IP只能答一次 1是 0否")
     private Integer effectiveIp;
+
+    @TableField("rule")
+    @ApiModelProperty(value = "调查规则 1公开, 2私有, 3令牌(表示启用访问密码)")
+    private Integer rule;
+
+    @TableField("rule_code")
+    @ApiModelProperty(value = "rule为3时的令牌密码")
+    private String ruleCode;
 
     @TableField("effective_time")
     @ApiModelProperty(value = "如果每个IP能答多次，每隔多长时间可以答一次(分钟)")
@@ -84,6 +96,10 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @TableField("yn_end_num")
     @ApiModelProperty(value = "是否依据收到的份数结束   1是   0否")
     private Integer ynEndNum;
+
+    @TableField("mail_only")
+    @ApiModelProperty(value = "只有邮件邀请唯一链接的受访者可回答  1启用 0不启用")
+    private Integer mailOnly;
 
     @TableField("end_num")
     @ApiModelProperty(value = "收到的份数")
@@ -96,14 +112,6 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @TableField("end_time")
     @ApiModelProperty(value = "手动设置的结束时间")
     private String endTime;
-
-    @TableField("rule")
-    @ApiModelProperty(value = "调查规则 1公开, 2私有, 3令牌(表示启用访问密码)")
-    private Integer rule;
-
-    @TableField("rule_code")
-    @ApiModelProperty(value = "rule为3时的令牌密码")
-    private String ruleCode;
 
     @TableField("answer_num")
     @ApiModelProperty(value = "回答次数")
@@ -136,10 +144,6 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @TableField("end_type")
     @ApiModelProperty(value = "结束方式   1手动结束,2依据结束时间,3依据收到的份数")
     private Integer endType;
-
-    @TableField("mail_only")
-    @ApiModelProperty(value = "只有邮件邀请唯一链接的受访者可回答  1启用 0不启用")
-    private Integer mailOnly;
 
     @TableField("survey_tag")
     @ApiModelProperty(value = "问卷标识 默认 0待审核  1审核通过  2审核未通过  3审核中")

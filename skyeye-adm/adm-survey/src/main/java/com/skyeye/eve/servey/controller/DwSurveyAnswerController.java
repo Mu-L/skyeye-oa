@@ -126,4 +126,18 @@ public class DwSurveyAnswerController {
     public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.queryFilterToBeReviewedSurveys(inputObject, outputObject);
     }
+
+    /**
+     * 根据试卷ID和用户Id获取问卷回答信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "querySurveyAnswerByDirectoryIdAndUserId", value = "根据试卷ID和用户Id获取问卷回答信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/DwSurveyAnswerController/querySurveyAnswerByDirectoryIdAndUserId")
+    public void querySurveyAnswerByDirectoryIdAndUserId(InputObject inputObject, OutputObject outputObject) {
+        dwSurveyAnswerService.querySurveyAnswerByDirectoryIdAndUserId(inputObject, outputObject);//仅用了方法
+    }
 }
