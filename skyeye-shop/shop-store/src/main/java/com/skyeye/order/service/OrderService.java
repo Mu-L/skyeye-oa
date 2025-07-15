@@ -27,15 +27,11 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
 
     void payOrder(InputObject inputObject, OutputObject outputObject);
 
-    void deliverGoodsByOrderId(InputObject inputObject, OutputObject outputObject);
-
     void updateCommonState(String id, Integer state);
 
     void queryOrderPageList(InputObject inputObject, OutputObject outputObject);
 
     void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject);
-
-    void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject);
 
     void updateOrderToPayState(InputObject inputObject, OutputObject outputObject);
 
@@ -52,4 +48,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void changeOrderAddress(InputObject inputObject, OutputObject outputObject);
 
     void updateOrderItemDeliverState(String id, int remainingNum);
+
+    void changeAdjustPriceById(String id, String interpolation);
 }

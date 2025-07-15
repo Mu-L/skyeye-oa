@@ -19,6 +19,7 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
@@ -199,7 +200,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
-        Integer num = (Integer) params.get("num");
+        Integer num = Integer.parseInt(params.get("num").toString());
         if (num <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("发货数量不可为负数或零");
         }
@@ -208,7 +209,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             throw new CustomException("该订单子单不存在");
         }
         if (item.getState() != ShopOrderItemOtherState.WAIT_DELIVER.getKey() ||
-        item.getState() != ShopOrderItemOtherState.PART_DELIVERED.getKey()){
+                item.getState() != ShopOrderItemOtherState.PART_DELIVERED.getKey()) {
             throw new CustomException("该订单未支付或已全部发货");
         }
         int remainingNum = item.getCount() - item.getDeliverNum() - num;
@@ -245,5 +246,37 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         update(updateWrapper);
         List<String> itemIdList = list.stream().map(OrderItem::getId).collect(Collectors.toList());
         refreshCache(itemIdList);
+    }
+
+    @Override
+    public void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String adjustPrice = params.get("adjustPrice").toString();
+        if (Double.parseDouble(adjustPrice) < CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("所调价格不可为负数和得等于0");
+        }
+        // 元 -> 分
+        adjustPrice = CalculationUtil.multiply(adjustPrice, "100", CommonNumConstants.NUM_SIX);
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id)
+                .set(MybatisPlusUtil.toColumns(OrderItem::getAdjustPrice), adjustPrice);
+        OrderItem oldItem = getOne(updateWrapper);
+        if (oldItem.getState() != ShopOrderItemOtherState.WAIT_PAY.getKey()) {
+            throw new CustomException("该不处于待发货状态，不可修改调价.");
+        }
+        // 更新数据
+        update(updateWrapper);
+        refreshCache(id);
+        // 计算前后得价格差值
+        String interpolation;
+        if (StrUtil.isEmpty(oldItem.getAdjustPrice()) || Double.parseDouble(oldItem.getAdjustPrice()) <= CommonNumConstants.NUM_ZERO) {
+            // 第一次调价   新的调价 -价格旧价格
+            interpolation = CalculationUtil.subtract(adjustPrice, oldItem.getPayPrice(), CommonNumConstants.NUM_SIX);
+        } else {
+            // 不是第一次调价 新的调价 -价格旧价格
+            interpolation = CalculationUtil.subtract(adjustPrice, oldItem.getAdjustPrice(), CommonNumConstants.NUM_SIX);
+        }
+        orderService.changeAdjustPriceById(oldItem.getParentId(), interpolation);
     }
 }
