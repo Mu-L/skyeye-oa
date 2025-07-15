@@ -160,7 +160,7 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
         List<ShopAddressHistory> shopAddressHistories = new ArrayList<>();
         for (ShopAddress shopAddress : shopAddresses) {
             ShopAddressHistory shopAddressHistory = new ShopAddressHistory();
-            BeanUtil.copyProperties(shopAddressHistory, shopAddress);
+            BeanUtil.copyProperties(shopAddress, shopAddressHistory);
             shopAddressHistory.setId(null);
             shopAddressHistory.setParentId(shopAddress.getId());
             shopAddressHistories.add(shopAddressHistory);
