@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveUserServiceImpl
- * @Description: 用户管理服务类
+ * @Description: 用户管理服务类--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/13 9:50
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

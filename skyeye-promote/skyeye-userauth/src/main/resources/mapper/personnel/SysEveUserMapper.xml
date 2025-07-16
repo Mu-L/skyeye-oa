@@ -240,24 +240,39 @@
 	<select id="queryUserStaffToTree" resultType="java.util.Map">
 		SELECT
 			a.user_id id,
-			CONCAT_WS('_', a.job_number, a.user_name) `name`,
-			a.job_id pId,
+			<choose>
+				<when test="tenantId != null and tenantId != ''">
+					CONCAT_WS('_', b.job_number, a.user_name) `name`,
+					b.job_id pId,
+					b.department_id departmentId,
+				</when>
+				<otherwise>
+					CONCAT_WS('_', a.job_number, a.user_name) `name`,
+					a.job_id pId,
+					a.department_id departmentId,
+				</otherwise>
+			</choose>
 			'isPeople' folderType,
 			0 isParent,
 			'../../assets/images/people-icon.png' `icon`,
 			a.email `email`,
-			a.phone,
-			a.department_id departmentId
+			a.phone
 		FROM
 			sys_eve_user_staff a
 			<if test="tenantId != null and tenantId != ''">
 				,tenant_user b
 			</if>
 		<where>
-			a.state = '1'
-			AND LENGTH(a.user_id) > 0 AND a.user_id != ''
+			LENGTH(a.user_id) > 0 AND a.user_id != ''
 			<if test="companyId != null and companyId != ''">
-				AND a.company_id = #{companyId}
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND b.company_id = #{companyId}
+					</when>
+					<otherwise>
+						AND a.company_id = #{companyId}
+					</otherwise>
+				</choose>
 			</if>
 			<if test="userId != null and userId != ''">
 				AND a.user_id != #{userId}
@@ -269,34 +284,56 @@
 				AND b.tenant_id = #{tenantId}
 				AND b.staff_id = a.id
 			</if>
-			AND (LENGTH(a.company_id) > 0 AND a.company_id != '' AND a.company_id != '-')
 		</where>
 	</select>
 
 	<select id="queryUserStaffDepToTree" resultType="java.util.Map">
 		SELECT
 			a.user_id id,
-			CONCAT_WS('_', a.job_number, a.user_name) `name`,
-			a.department_id pId,
+			<choose>
+				<when test="tenantId != null and tenantId != ''">
+					CONCAT_WS('_', b.job_number, a.user_name) `name`,
+					b.department_id pId,
+					b.department_id departmentId,
+				</when>
+				<otherwise>
+					CONCAT_WS('_', a.job_number, a.user_name) `name`,
+					a.department_id pId,
+					a.department_id departmentId,
+				</otherwise>
+			</choose>
 			'isPeople' folderType,
 			0 isParent,
 			'../../assets/images/people-icon.png' `icon`,
 			a.email `email`,
-			a.phone,
-			a.department_id departmentId
+			a.phone
+
 		FROM
 			sys_eve_user_staff a
 			<if test="tenantId != null and tenantId != ''">
 				,tenant_user b
 			</if>
 		<where>
-			a.state = '1'
-			AND LENGTH(a.user_id) > 0 AND a.user_id != ''
+			LENGTH(a.user_id) > 0 AND a.user_id != ''
 			<if test="companyId != null and companyId != ''">
-				AND a.company_id = #{companyId}
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND b.company_id = #{companyId}
+					</when>
+					<otherwise>
+						AND a.company_id = #{companyId}
+					</otherwise>
+				</choose>
 			</if>
 			<if test="departmentId != null and departmentId != ''">
-				AND a.department_id = #{departmentId}
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND b.department_id = #{departmentId}
+					</when>
+					<otherwise>
+						AND a.department_id = #{departmentId}
+					</otherwise>
+				</choose>
 			</if>
 			<if test="userId != null and userId != ''">
 				AND a.user_id != #{userId}
@@ -330,14 +367,22 @@
 		UNION ALL
 			SELECT
 				a.user_id id,
-				CONCAT_WS('_', a.job_number, a.user_name) `name`,
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						CONCAT_WS('_', b.job_number, a.user_name) `name`,
+						b.department_id departmentId,
+					</when>
+					<otherwise>
+						CONCAT_WS('_', a.job_number, a.user_name) `name`,
+						a.department_id departmentId,
+					</otherwise>
+				</choose>
 				c.group_id pId,
 				'isPeople' folderType,
 				0 isParent,
 				'../../assets/images/people-icon.png' `icon`,
 				a.email `email`,
-				a.phone,
-				a.department_id departmentId
+				a.phone
 			FROM
 				sys_eve_user_staff a,
 				sys_talk_group_user b,
@@ -345,8 +390,7 @@
 				<if test="tenantId != null and tenantId != ''">
 					,tenant_user d
 				</if>
-			WHERE a.state = '1'
-			AND a.user_id = c.user_id
+			WHERE a.user_id = c.user_id
 			AND b.user_id = #{userId}
 			AND c.group_id = b.group_id
 			AND LENGTH(a.user_id) > 0 AND a.user_id != ''
