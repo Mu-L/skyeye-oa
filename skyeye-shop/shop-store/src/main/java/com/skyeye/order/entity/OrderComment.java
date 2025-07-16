@@ -76,7 +76,7 @@ public class OrderComment extends OperatorUserInfo {
     private String orderItemId;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "类型",enumClass = OrderCommentType.class)
+    @ApiModelProperty(value = "类型", enumClass = OrderCommentType.class)
     private Integer type;
 
     @TableField(value = "start")
@@ -84,7 +84,7 @@ public class OrderComment extends OperatorUserInfo {
     private Integer start;
 
     @TableField(value = "is_comment")
-    @ApiModelProperty(value = "是否评价",enumClass = WhetherEnum.class)
+    @ApiModelProperty(value = "是否评价", enumClass = WhetherEnum.class)
     private Integer isComment;
 
     @TableField(value = "context")
@@ -93,7 +93,7 @@ public class OrderComment extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "客户追评")
-    private Map<String,Object> additionalReview;
+    private Map<String, Object> additionalReview;
 
     @TableField(exist = false)
     @Property(value = "商家回复")

@@ -144,7 +144,7 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
         String yearMonth = map.get("yearMonth").toString();
         String timeId = map.get("checkWorkId").toString();
         String shiftType = map.get("shiftType").toString();
-        List<String> months = DateUtil.getPointMonthAfterMonthList(yearMonth, 2);
+        List<String> months = DateUtil.getPointMonthBeforeAfterMonth(yearMonth);
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 1.获取当前登录人指定月份的日程信息
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryScheduleDayMationByUserId(userId, months, tenantId);
