@@ -18,6 +18,7 @@ import com.skyeye.eve.chen.entity.DwAnChenRadio;
 import com.skyeye.eve.chen.service.DwAnChenRadioService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,6 +111,18 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+        if (CollectionUtil.isEmpty(chenIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), chenIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getCreateId), studentId);
+        Map<String, List<DwAnChenRadio>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenRadio::getQuId));
+        return stringListMap;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.skyeye.eve.multifllblank.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -8,12 +9,15 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.multifllblank.dao.DwAnFillblankDao;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "答卷填空题保存表", groupName = "答卷填空题保存表")
@@ -43,5 +47,17 @@ public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFill
         QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnFillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId) {
+        if (CollectionUtil.isEmpty(multifillblankIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnFillblank::getQuId), multifillblankIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnFillblank::getCreateId), studentId);
+        Map<String, List<DwAnFillblank>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnFillblank::getQuId));
+        return stringListMap;
     }
 }

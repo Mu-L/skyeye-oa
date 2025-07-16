@@ -5,10 +5,10 @@
 package com.skyeye.eve.checkbox.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -36,7 +36,7 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
     @Override
     protected void createPrepose(DwAnCheckbox entity) {
         String quItemId = entity.getQuItemId();
-        String[] splitArray = quItemId.split(",");
+        String[] splitArray = quItemId.split(CommonCharConstants.COMMA_MARK);
         List<String> resultList = Arrays.asList(splitArray);
         List<DwAnCheckbox> dwAnCheckboxList = new ArrayList<>();
         for (String quAnswerId : resultList) {
@@ -44,7 +44,7 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
             dwAnCheckbox.setQuItemId(quAnswerId);
             dwAnCheckboxList.add(dwAnCheckbox);
         }
-        super.createEntity(dwAnCheckboxList, StrUtil.EMPTY);
+        super.createEntity(dwAnCheckboxList, InputObject.getLogParamsStatic().get("id").toString());
     }
 
     @Override
@@ -88,6 +88,18 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
         }
         QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), id);
+        Map<String, List<DwAnCheckbox>> cheneckBoxMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnCheckbox::getQuId));
+        return cheneckBoxMap;
+    }
+
+    @Override
+    public Map<String, List<DwAnCheckbox>> selectByQuIdAndStuId(List<String> cheankboxIds, String studentId) {
+        if (CollectionUtil.isEmpty(cheankboxIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), cheankboxIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getCreateId), studentId);
         Map<String, List<DwAnCheckbox>> cheneckBoxMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnCheckbox::getQuId));
         return cheneckBoxMap;
     }

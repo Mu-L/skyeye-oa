@@ -17,7 +17,7 @@ import lombok.Data;
 import java.util.Map;
 
 /**
- * @ClassName: ShopMaterialNorms
+ * @ClassName: ShopMaterialStore
  * @Description: 商城商品上线的门店实体类
  * @author: skyeye云系列--卫志强
  * @date: 2024/9/4 16:29

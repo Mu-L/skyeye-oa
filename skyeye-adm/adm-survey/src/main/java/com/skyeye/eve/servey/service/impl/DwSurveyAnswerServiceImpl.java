@@ -26,6 +26,7 @@ import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 import com.skyeye.eve.servey.service.DwSurveyAnswerService;
+import com.skyeye.eve.servey.service.DwSurveyDirectoryService;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +69,10 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     private DwAnEnumquService dwAnEnumquService;
     @Autowired
     private DwAnFillblankService dwAnFillblankService;
-
     @Autowired
     private DwSurveyAnswerService dwSurveyAnswerService;
+    @Autowired
+    private DwSurveyDirectoryService dwSurveyDirectoryService;
 
     @Override
     protected void createPrepose(DwSurveyAnswer entity) {
@@ -104,19 +106,24 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         Integer size13 = dwAnOrderService.selectBySurveyId(surveyId).size();
         Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
         entity.setCompleteNum(total);
-        Integer quNum = entity.getQuNum();
-        if (quNum == null) {// 如果quNum为空，则跳过后续校验
-            return;
-        }
-        if (total.equals(quNum)) { // 此时 quNum 已非 null
+        String endAnDate = entity.getEndAnDate();
+        if (StrUtil.isNotEmpty(endAnDate)) {
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
-        } else if (total < quNum) {
-            throw new CustomException("未完成所有题目");
         }
         if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-            Integer fraction = dwSurveyAnswerService.selectFractionBySurveyId(entity.getSurveyId());
+            Integer fraction = selectFractionBySurveyId(entity.getSurveyId());
             entity.setMarkFraction(fraction);
         }
+    }
+
+    @Override
+    public DwSurveyAnswer selectById(String id) {
+        DwSurveyAnswer dwSurveyAnswer = super.selectById(id);
+        String surveyId = dwSurveyAnswer.getSurveyId();
+        String createId = dwSurveyAnswer.getCreateId();
+        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectBySurAndStuIds(surveyId, createId, id);
+        dwSurveyAnswer.setSurveyMation(dwSurveyDirectory);
+        return dwSurveyAnswer;
     }
 
     @Override
@@ -130,11 +137,11 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     }
 
     @Override
-    public DwSurveyAnswer queryWhetherExamIngByStuId(String userId, String id) {
+    public List<DwSurveyAnswer> queryWhetherExamIngByStuId(String userId, String id) {
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateId), userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
-        return getOne(queryWrapper);
+        return list(queryWrapper);
     }
 
     @Override
@@ -204,6 +211,49 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
         Integer sum = dwSurveyAnswerList.stream().mapToInt(DwSurveyAnswer::getMarkFraction).sum();
         return sum;
+    }
+
+    @Override
+    public void querySurveyAnswerByDirectoryIdAndUserId(InputObject inputObject, OutputObject outputObject) {
+        // 试卷Id
+        String SurveyId = inputObject.getParams().get("id").toString();
+        // 用户Id
+        String userId = inputObject.getLogParams().get("id").toString();
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), SurveyId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateId), userId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(DwSurveyAnswer::getCreateTime));
+        List<DwSurveyAnswer> dwSurveyAnswerList = list(queryWrapper);
+        // 获取最新一条记录
+        DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerList.get(CommonNumConstants.NUM_ZERO);
+        String surveyId = dwSurveyAnswer.getSurveyId();
+        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectDirectoryAndAnswerById(surveyId, userId);
+        dwSurveyAnswer.setSurveyMation(dwSurveyDirectory);
+        outputObject.setBean(dwSurveyAnswer);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public DwSurveyAnswer querySurveyAnswerByRuleCode(String machineCode, String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getMachineCode), machineCode);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public DwSurveyAnswer querySurveyAnswerByIp(String ip, String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getIp), ip);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    public List<DwSurveyAnswer> querySurveyAnswerNumById(String id) {
+        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
+        return list(queryWrapper);
     }
 
     private void extracted(OutputObject outputObject, QueryWrapper<DwSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {

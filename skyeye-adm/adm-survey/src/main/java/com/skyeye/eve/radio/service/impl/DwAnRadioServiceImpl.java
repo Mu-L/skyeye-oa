@@ -1,5 +1,6 @@
 package com.skyeye.eve.radio.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,7 +13,10 @@ import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.service.DwAnRadioService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DwAnRadioServiceImpl
@@ -48,5 +52,17 @@ public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao
         QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnRadio>> selectByQuIdAndStuId(List<String> radioIds, String studentId) {
+        if (CollectionUtil.isEmpty(radioIds)){
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnRadio::getQuId), radioIds)
+            .eq(MybatisPlusUtil.toColumns(DwAnRadio::getCreateId), studentId);
+        Map<String, List<DwAnRadio>> radioMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnRadio::getQuId));
+        return radioMap;
     }
 }

@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -24,7 +25,7 @@ import lombok.Data;
 @Data
 @TableName(value = "dw_survey_answer")
 @ApiModel(value = "问卷回答信息表实体类")
-public class DwSurveyAnswer extends CommonInfo {
+public class DwSurveyAnswer extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -50,6 +51,14 @@ public class DwSurveyAnswer extends CommonInfo {
     @ApiModelProperty(value = "回答的题项目数 ---- 表示有些题下面会有多重回答")
     private Integer completeItemNum;
 
+    @TableField("machine_code")
+    @ApiModelProperty(value = " 机器码")
+    private String machineCode;
+
+    @TableField("ip")
+    @ApiModelProperty(value = " Ip地址")
+    private String ip;
+
     @TableField("data_source")
     @ApiModelProperty(value = "数据来源  0网调  1录入数据 2移动数据 3导入数据")
     private Integer dataSource;
@@ -63,11 +72,11 @@ public class DwSurveyAnswer extends CommonInfo {
     private String ipAddr;
 
     @TableField("addr")
-    @ApiModelProperty(value = "回答者是详细地址")
+    @ApiModelProperty(value = "回答者的详细地址")
     private String addr;
 
     @TableField("city")
-    @ApiModelProperty(value = "回答者城市 ")
+    @ApiModelProperty(value = "回答者城市")
     private String city;
 
     @TableField("is_complete")
@@ -83,16 +92,12 @@ public class DwSurveyAnswer extends CommonInfo {
     private String pcMac;
 
     @TableField("qu_num")
-    @ApiModelProperty(value = "回答的题数")
+    @ApiModelProperty(value = "总题数")
     private Integer quNum;
 
     @TableField("total_time")
     @ApiModelProperty(value = "用时")
     private Float totalTime;
-
-    @TableField("create_id")
-    @ApiModelProperty(value = "回答者ID")
-    private String createId;
 
     @TableField("state")
     @ApiModelProperty(value = "教师是否阅卷  1.否  2.是")

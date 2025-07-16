@@ -6,6 +6,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.score.entity.DwAnScore;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DwAnScoreService extends SkyeyeBusinessService<DwAnScore> {
     List<DwAnScore> selectAnScoreByQuId(String id);
@@ -13,4 +14,6 @@ public interface DwAnScoreService extends SkyeyeBusinessService<DwAnScore> {
     List<DwAnScore> selectBySurveyId(String surveyId);
 
     void queryDwAnScoreListById(InputObject inputObject, OutputObject outputObject);
+
+    Map<String, List<DwAnScore>> selectByQuIdAndStuId(List<String> scoreIds, String studentId);
 }

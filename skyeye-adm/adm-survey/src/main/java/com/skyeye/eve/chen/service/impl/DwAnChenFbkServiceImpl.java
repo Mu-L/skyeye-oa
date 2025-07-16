@@ -18,6 +18,7 @@ import com.skyeye.eve.chen.entity.DwAnChenFbk;
 import com.skyeye.eve.chen.service.DwAnChenFbkService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,6 +95,18 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
         QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+        if (CollectionUtil.isEmpty(chenIds)){
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), chenIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getCreateId), studentId);
+        Map<String, List<DwAnChenFbk>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenFbk::getQuId));
+        return stringListMap;
     }
 
     @Override

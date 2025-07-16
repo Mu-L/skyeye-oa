@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ExamAnOrder
@@ -20,7 +22,7 @@ import lombok.Data;
 //@RedisCacheField(name = "Dw:order")
 @TableName(value = "dw_an_order")
 @ApiModel("答卷 排序题实体类")
-public class DwAnOrder extends CommonInfo {
+public class DwAnOrder extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
@@ -49,4 +51,8 @@ public class DwAnOrder extends CommonInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "排序题答案信息")
+    private List<DwAnOrder> orderByAn;
 }

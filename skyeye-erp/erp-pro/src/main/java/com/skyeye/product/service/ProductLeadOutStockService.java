@@ -12,4 +12,6 @@ public interface ProductLeadOutStockService extends SkyeyeErpOrderService<Produc
 
     List<ProductLeadOutStock> queryLeadByHolderId(String holderId);
 
+    List<ProductLeadOutStock> queryByIds(List<String> framIds);
+
 }

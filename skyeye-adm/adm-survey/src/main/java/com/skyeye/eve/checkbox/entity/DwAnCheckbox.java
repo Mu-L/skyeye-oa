@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 /**
@@ -22,7 +23,7 @@ import lombok.Data;
 @Data
 @TableName(value = "dw_an_checkbox")
 @ApiModel(value = "答卷多选题保存实体类")
-public class DwAnCheckbox extends CommonInfo {
+public class DwAnCheckbox extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -37,7 +38,7 @@ public class DwAnCheckbox extends CommonInfo {
     private String belongId;
 
     @TableField("other_text")
-    @ApiModelProperty(value = "otherText")
+    @ApiModelProperty(value = "其他文本")
     private String otherText;
 
     @TableField("qu_id")
@@ -45,7 +46,7 @@ public class DwAnCheckbox extends CommonInfo {
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "quItemId")
+    @ApiModelProperty(value = "多选题答案id")
     private String quItemId;
 
     @TableField("visibility")

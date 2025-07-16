@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.UnknownHostException;
+
 @RestController
 @Api(value = "问卷管理", tags = "问卷管理", modelName = "问卷管理")
 public class DwSurveyDirectoryController {

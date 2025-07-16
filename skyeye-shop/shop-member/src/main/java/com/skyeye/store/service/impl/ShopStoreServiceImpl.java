@@ -105,12 +105,6 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
     }
 
     @Override
-    public void createPostpose(ShopStore entity, String userId) {
-        // 新增门店时，新增门店商品
-        ExecuteFeignClient.get(() -> iShopMaterialNormsRest.saveShopMaterialStore(entity.getId()));
-    }
-
-    @Override
     public void updatePrepose(ShopStore entity) {
         ShopStore oldShopStore = selectById(entity.getId());
         entity.setStartTime(oldShopStore.getStartTime());
@@ -119,6 +113,18 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
         entity.setOnlineBookRadix(oldShopStore.getOnlineBookRadix());
         entity.setOnlineBookType(oldShopStore.getOnlineBookType());
         entity.setOnlineBookJson(oldShopStore.getOnlineBookJson());
+    }
+
+    @Override
+    protected void writePostpose(ShopStore entity, String userId) {
+        super.writePostpose(entity, userId);
+        if (WhetherEnum.DISABLE_USING.getKey().equals(entity.getEnabled())) {
+            // 禁用状态 则删除门店商品
+            ExecuteFeignClient.get(() -> iShopMaterialNormsRest.deleteShopMaterialStoreByStoreIds(entity.getId()));
+        } else if (WhetherEnum.ENABLE_USING.getKey().equals(entity.getEnabled())) {
+            // 启用状态，新增门店商品
+            ExecuteFeignClient.get(() -> iShopMaterialNormsRest.saveShopMaterialStore(entity.getId()));
+        }
     }
 
     @Override

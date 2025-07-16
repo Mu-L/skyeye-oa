@@ -29,10 +29,20 @@ public class OrderItemController {
     @ApiOperation(id = "deliverGoodsById", value = "商品订单子单发货", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单id", required = "required"),
             @ApiImplicitParam(id = "num", name = "num", value = "发货数量", required = "required,num")})
     @RequestMapping("/post/OrderItemController/deliverGoodsById")
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
         orderItemService.deliverGoodsById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "changeOrderItemAdjustPrice", value = "订单子单调价", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "adjustPrice", name = "adjustPrice", value = "调整的价格，不可为负数(单位 元)", required = "required,num")})
+    @RequestMapping("/post/OrderItemController/changeOrderItemAdjustPrice")
+    public void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject) {
+        orderItemService.changeOrderItemAdjustPrice(inputObject, outputObject);
     }
 
 }

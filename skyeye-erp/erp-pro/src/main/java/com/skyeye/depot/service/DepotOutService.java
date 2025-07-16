@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.depot.entity.DepotOut;
 
+import java.util.List;
+
 /**
  * @ClassName: DepotOutService
  * @Description: 仓库出库单服务接口层
@@ -34,4 +36,7 @@ public interface DepotOutService extends SkyeyeErpOrderService<DepotOut> {
     void insertDepotOutToTurnStorePut(InputObject inputObject, OutputObject outputObject);
 
     void insertDepotOutToStoreSealsReturns(InputObject inputObject, OutputObject outputObject);
+
+    List<DepotOut> queryLeadByHolderId(String holderId);
+
 }

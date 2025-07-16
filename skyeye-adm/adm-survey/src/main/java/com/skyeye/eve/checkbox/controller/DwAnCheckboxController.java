@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Api(value = "答卷多选题管理", tags = "答卷多选题管理", modelName = "答卷多选题管理")
-public class DwAuCheckboxController {
+public class DwAnCheckboxController {
 
     @Autowired
     private DwAnCheckboxService dwAnCheckboxService;
@@ -28,7 +28,7 @@ public class DwAuCheckboxController {
      */
     @ApiOperation(id = "writeDwAnCheckbox", value = "新增/编辑多选题保存表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DwAnCheckbox.class)
-    @RequestMapping("/post/DwAuCheckboxController/writeDwAnCheckbox")
+    @RequestMapping("/post/DwAnCheckboxController/writeDwAnCheckbox")
     public void writeDwAnCheckbox(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.saveOrUpdateEntity(inputObject, outputObject);
     }
@@ -41,7 +41,7 @@ public class DwAuCheckboxController {
      */
     @ApiOperation(id = "queryDwAnCheckboxList", value = "获取多选题保存表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwAuCheckboxController/queryDwAnCheckboxList")
+    @RequestMapping("/post/DwAnCheckboxController/queryDwAnCheckboxList")
     public void queryDwAnCheckboxList(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.queryPageList(inputObject, outputObject);
     }
@@ -55,7 +55,7 @@ public class DwAuCheckboxController {
     @ApiOperation(id = "deleteDwAnCheckboxById", value = "删除多选题保存表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/DwAuCheckboxController/deleteDwAnCheckboxById")
+    @RequestMapping("/post/DwAnCheckboxController/deleteDwAnCheckboxById")
     public void deleteDwAnCheckboxById(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.deleteById(inputObject, outputObject);
     }
@@ -69,7 +69,7 @@ public class DwAuCheckboxController {
     @ApiOperation(id = "queryDwAnCheckboxListById", value = "根据id获取多选题保存表列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/DwAuCheckboxController/queryDwAnCheckboxListById")
+    @RequestMapping("/post/DwAnCheckboxController/queryDwAnCheckboxListById")
     public void queryDwAnCheckboxListById(InputObject inputObject, OutputObject outputObject) {
         dwAnCheckboxService.queryDwAnCheckboxListById(inputObject, outputObject);
     }

@@ -60,6 +60,8 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -207,7 +209,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     /**
-     * 参加问卷的方法
+     * 是否可以参加问卷
      *
      * @param inputObject  输入对象，包含请求参数
      * @param outputObject 输出对象，用于返回响应数据
@@ -215,33 +217,93 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
      */
     @Override
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        // 是否可以参加问卷，true：可以；false：不可以
-        boolean yesOrNo = false;
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        String id = map.get("id").toString();
-        DwSurveyDirectory dwSurveyDirectory = selectById(id);
-        if (StrUtil.isEmpty(dwSurveyDirectory.getId())) {
-            throw new CustomException("该问卷不存在");
+        try {
+            Map<String, Object> map = inputObject.getParams();
+            // 是否可以参加问卷，true：可以；false：不可以
+            boolean yesOrNo = false;
+            String id = map.get("id").toString();
+            DwSurveyDirectory dwSurveyDirectory = selectById(id);
+            if (ObjUtil.isEmpty(dwSurveyDirectory) && StrUtil.isEmpty(dwSurveyDirectory.getId())) {
+                throw new CustomException("该问卷不存在");
+            }
+            if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
+                if (dwSurveyDirectory.getIsEffective().equals(CommonNumConstants.NUM_ONE)) {
+                    if (dwSurveyDirectory.getEffective().equals(CommonNumConstants.NUM_ONE)) {
+                        // 获取前端传进来的机器码
+                        String machineCode = map.get("machineCode").toString();
+                        DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerService.querySurveyAnswerByRuleCode(machineCode, id);
+                        if (ObjUtil.isNotEmpty(dwSurveyAnswer)) {
+                            throw new CustomException("此问卷只能答一次，您已参加过该问卷");
+                        }
+                        // 密码访问是否正确
+                        yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
+                    }
+                    if (dwSurveyDirectory.getEffectiveIp().equals(CommonNumConstants.NUM_ONE)) {
+                        // 获取IP地址
+                        String Ip = InetAddress.getLocalHost().getHostAddress();
+                        DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerService.querySurveyAnswerByIp(Ip, id);
+                        if (ObjUtil.isNotEmpty(dwSurveyAnswer)) {
+                            throw new CustomException("此IP只能答一次，您已参加过该问卷");
+                        } else {
+                            yesOrNo = true;
+                        }
+                        // 密码访问是否正确
+                        yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
+                    }
+                    yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
+                }
+                if (dwSurveyDirectory.getYnEndTime().equals(CommonNumConstants.NUM_ONE)) {
+                    // 获取截止时间
+                    String endTime = dwSurveyDirectory.getEndTime();
+                    // 获取当前时间
+                    String nowTime = DateUtil.formatDate2Str(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS);
+                    // 当前时间是否在截止时间之前
+                    boolean compare = DateUtil.compare(nowTime, endTime);
+                    if (!compare) {
+                        throw new CustomException("该问卷已截止");
+                    } else {
+                        yesOrNo = true;
+                    }
+                    yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
+                }
+                yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
+            } else {
+                throw new CustomException("该问卷未发布");
+            }
+            if (yesOrNo) {
+                outputObject.setBean(dwSurveyDirectory);
+            } else {
+                throw new CustomException("您不具备该问卷权限");
+            }
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
         }
-        if (ObjUtil.isEmpty(dwSurveyDirectory)) {
-            throw new CustomException("该试卷不存在");
-        }
-        if (dwSurveyDirectory.getSurveyState().equals(CommonNumConstants.NUM_ONE)) {
-            DwSurveyAnswer examSurveyAnswer = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id); // 查询用户是否已经参加过该问卷
-            if (ObjUtil.isNotEmpty(examSurveyAnswer)) {
-                throw new CustomException("您已参加过该问卷");
+    }
+
+    private boolean IsYesOrNoEndNum(DwSurveyDirectory dwSurveyDirectory, String id, boolean yesOrNo) {
+        if (dwSurveyDirectory.getYnEndNum().equals(CommonNumConstants.NUM_ONE)) {
+            // 查询是否达到最大人数
+            List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.querySurveyAnswerNumById(id);
+            if (dwSurveyAnswers.size() == dwSurveyDirectory.getEndNum()) {
+                throw new CustomException("该问卷回答人数已达到最大人数");
             } else {
                 yesOrNo = true;
             }
-        } else {
-            throw new CustomException("该问卷未发布");
         }
-        if (yesOrNo) {
-            outputObject.setBean(dwSurveyDirectory);
-        } else {
-            throw new CustomException("您不具备该问卷权限");
+        return yesOrNo;
+    }
+
+    private static boolean isYesOrNoRuleCode(DwSurveyDirectory dwSurveyDirectory, Map<String, Object> map, boolean yesOrNo) {
+        if (dwSurveyDirectory.getRule().equals(CommonNumConstants.NUM_THREE)) {
+            // 获取访问密码
+            String ruleCode = map.get("ruleCode").toString();
+            if (dwSurveyDirectory.getRuleCode().equals(ruleCode)) {
+                yesOrNo = true;
+            } else {
+                throw new CustomException("访问密码错误");
+            }
         }
+        return yesOrNo;
     }
 
     /**
@@ -860,6 +922,14 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
+    public DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId) {
+        DwSurveyDirectory dwSurveyDirectory = super.selectById(surveyId);
+        List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, userId);
+        dwSurveyDirectory.setDwQuestionMation(dwQuestions);
+        return dwSurveyDirectory;
+    }
+
+    @Override
     public Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds) {
         if (CollectionUtil.isEmpty(dwSurveyIds)) {
             return new HashMap<>();
@@ -890,5 +960,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         return dwSurveyDirectoryList.stream().collect(Collectors.toMap(DwSurveyDirectory::getId, dwSurveyDirectory -> dwSurveyDirectory));
     }
 
+    @Override
+    public DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id) {
+        DwSurveyDirectory bean = super.selectById(surveyId);
+        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, createId);
+        bean.setDwQuestionMation(questionList);
+        return bean;
+    }
 
 }

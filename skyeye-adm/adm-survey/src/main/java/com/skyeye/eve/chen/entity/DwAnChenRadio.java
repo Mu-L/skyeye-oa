@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+import org.apache.rocketmq.common.filter.impl.Op;
 
 import java.util.List;
 
@@ -25,7 +27,7 @@ import java.util.List;
 @Data
 @TableName(value = "dw_an_chen_radio")
 @ApiModel(value = "答卷矩阵单选题实体类")
-public class DwAnChenRadio extends CommonInfo {
+public class DwAnChenRadio extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

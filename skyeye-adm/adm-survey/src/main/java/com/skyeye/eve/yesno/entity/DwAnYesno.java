@@ -9,7 +9,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.CipherSpi;
 
 /**
  * @ClassName: DwAnYesno
@@ -23,7 +25,7 @@ import lombok.Data;
 @Data
 @TableName(value = "dw_an_yesno")
 @ApiModel(value = "答卷判断题实体类")
-public class DwAnYesno extends CommonInfo {
+public class DwAnYesno extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

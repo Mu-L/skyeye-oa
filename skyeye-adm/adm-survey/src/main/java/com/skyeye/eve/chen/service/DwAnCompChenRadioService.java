@@ -11,6 +11,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.entity.DwAnCompChenRadio;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DwAnCompChenRadioService
@@ -26,4 +27,6 @@ public interface DwAnCompChenRadioService extends SkyeyeBusinessService<DwAnComp
     List<DwAnCompChenRadio> selectBySurveyId(String surveyId);
 
     List<DwAnCompChenRadio> selectByQuId(String id);
+
+    Map<String, List<DwAnCompChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
 }

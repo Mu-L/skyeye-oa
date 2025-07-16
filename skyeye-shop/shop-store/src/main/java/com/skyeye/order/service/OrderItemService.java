@@ -40,4 +40,6 @@ public interface OrderItemService extends SkyeyeBusinessService<OrderItem> {
     void deliverGoodsById(InputObject inputObject, OutputObject outputObject);
 
     void updateDeliverStateByParentId(String parentId, Integer state);
+
+    void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject);
 }

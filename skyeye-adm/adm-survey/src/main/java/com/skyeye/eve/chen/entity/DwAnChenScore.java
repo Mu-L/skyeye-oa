@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.List;
 @Data
 @TableName(value = "dw_an_chen_score")
 @ApiModel(value = "答卷矩阵评分题实体类")
-public class DwAnChenScore extends CommonInfo {
+public class DwAnChenScore extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")

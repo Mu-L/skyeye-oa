@@ -18,6 +18,7 @@ import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
 import com.skyeye.eve.chen.service.DwAnChenCheckboxService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,5 +118,17 @@ public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnC
         QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), id);
         return list(queryWrapper);
+    }
+
+    @Override
+    public Map<String, List<DwAnChenCheckbox>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+        if (CollectionUtil.isEmpty(chenIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), chenIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getCreateId), studentId);
+        Map<String, List<DwAnChenCheckbox>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenCheckbox::getQuId));
+        return stringListMap;
     }
 }

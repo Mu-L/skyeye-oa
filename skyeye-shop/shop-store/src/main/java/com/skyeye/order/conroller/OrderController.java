@@ -54,15 +54,6 @@ public class OrderController {
         orderService.changeOrderAddress(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "changeOrderAdjustPrice", value = "订单调价", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "adjustPrice", name = "adjustPrice", value = "调整的价格，不可为负数", required = "required")})
-    @RequestMapping("/post/OrderController/changeOrderAdjustPrice")
-    public void changeOrderAdjustPrice(InputObject inputObject, OutputObject outputObject) {
-        orderService.changeOrderAdjustPrice(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "queryOrderPageList", value = "分页获取商品订单信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderController/queryOrderPageList")
@@ -86,8 +77,8 @@ public class OrderController {
 
     @ApiOperation(id = "cancelOrder", value = "商品订单取消", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "cancelType", name = "cancelType", value = "取消类型", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "cancelType", name = "cancelType", value = "取消类型", required = "required")})
     @RequestMapping("/post/OrderController/cancelOrder")
     public void cancelOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.cancelOrder(inputObject, outputObject);
@@ -95,7 +86,7 @@ public class OrderController {
 
     @ApiOperation(id = "finishOrder", value = "商品订单完成", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/finishOrder")
     public void finishOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.finishOrder(inputObject, outputObject);
@@ -103,26 +94,18 @@ public class OrderController {
 
     @ApiOperation(id = "payOrder", value = "商品订单支付", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required"),
-        @ApiImplicitParam(id = "channelExtras", name = "channelExtras", value = "支付渠道的额外参数，例如说，微信公众号需要传递 openid 参数", required = "json")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required"),
+            @ApiImplicitParam(id = "channelExtras", name = "channelExtras", value = "支付渠道的额外参数，例如说，微信公众号需要传递 openid 参数", required = "json")})
     @RequestMapping("/post/OrderController/payOrder")
     public void payOrder(InputObject inputObject, OutputObject outputObject) {
         orderService.payOrder(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deliverGoodsByOrderId", value = "商品订单发货", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/OrderController/deliverGoodsByOrderId")
-    public void deliverGoodsByOrderId(InputObject inputObject, OutputObject outputObject) {
-        orderService.deliverGoodsByOrderId(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "generatePayOrderRrCode", value = "生成支付订单的二维码", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "channelCode", name = "channelCode", value = "支付渠道编码", required = "required")})
     @RequestMapping("/post/OrderController/generatePayOrderRrCode")
     public void generatePayOrderRrCode(InputObject inputObject, OutputObject outputObject) {
         orderService.generatePayOrderRrCode(inputObject, outputObject);
@@ -130,7 +113,7 @@ public class OrderController {
 
     @ApiOperation(id = "updateOrderToPayState", value = "完成支付", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/updateOrderToPayState")
     public void updateOrderToPayState(InputObject inputObject, OutputObject outputObject) {
         orderService.updateOrderToPayState(inputObject, outputObject);
@@ -138,8 +121,8 @@ public class OrderController {
 
     @ApiOperation(id = "updateOrderItemState", value = "修改订单签收状态", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "orderItemId", name = "orderItemId", value = "子单Id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "orderItemId", name = "orderItemId", value = "子单Id", required = "required")})
     @RequestMapping("/post/OrderController/updateOrderItemState")
     public void updateOrderItemState(InputObject inputObject, OutputObject outputObject) {
         orderService.updateOrderItemState(inputObject, outputObject);

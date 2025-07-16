@@ -12,6 +12,7 @@ import com.skyeye.product.service.ProductReturnChildService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -53,6 +54,16 @@ public class ProductReturnChildServiceImpl extends SkyeyeBusinessServiceImpl<Pro
     public List<ProductReturnChild> selectProductLeadChildById(String id) {
         QueryWrapper<ProductReturnChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturnChild::getParentId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ProductReturnChild> selectProductLeadChildByIdList(List<String> returnIds) {
+        if (CollectionUtil.isEmpty(returnIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<ProductReturnChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ProductReturnChild::getParentId), returnIds);
         return list(queryWrapper);
     }
 }

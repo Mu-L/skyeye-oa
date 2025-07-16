@@ -32,6 +32,8 @@ public interface DwAnCheckboxService extends SkyeyeBusinessService<DwAnCheckbox>
     void deleteBySurveyId(String surveyId);
 
     Map<String, List<DwAnCheckbox>> selectByQuId(List<String> id);
+
+    Map<String, List<DwAnCheckbox>> selectByQuIdAndStuId(List<String> cheankboxIds, String studentId);
 }
 
 
