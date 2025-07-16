@@ -11,7 +11,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-@TableName(value = "school_lesson review_type")
+@TableName(value = "school_lesson_review_type")
 @ApiModel(value = "听评表角色管理实体类")
 public class LessonReviewType extends OperatorUserInfo {
 

@@ -60,12 +60,4 @@ public class LecturesAttenanceRecoredController {
         lecturesAttenanceRecoredService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "publishAttenanceRecoredVersionById", value = "根据id发布AttenanceRecored", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})
-    @RequestMapping("/post/LecturesAttenanceRecoredChildCotroller/publishAttenanceRecoredVersionById")
-    public void publishBomVersionById(InputObject inputObject, OutputObject outputObject) {
-        lecturesAttenanceRecoredService.publishVersionById(inputObject, outputObject);
-    }
-
 }

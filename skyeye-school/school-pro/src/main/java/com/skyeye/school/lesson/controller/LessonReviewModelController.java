@@ -8,6 +8,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.lesson.entity.LessonReviewModel;
+import com.skyeye.school.lesson.entity.LessonReviewType;
 import com.skyeye.school.lesson.service.LessonReviewModelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,17 +45,26 @@ public class LessonReviewModelController {
 
     @ApiOperation(id = "queryLessonReviewModelById", value = "根据id查询听评课模型信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/LessonReviewModelController/queryLessonReviewModelById")
     public void queryLessonReviewModelById(InputObject inputObject, OutputObject outputObject) {
         lessonReviewModelService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteLessonReviewModelById", value = "根据ID删除听评课模型信息", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteLessonReviewModelById", value = "根据id删除听评课模型信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/LessonReviewModelController/deleteLessonReviewModelById")
     public void deleteLessonReviewModelById(InputObject inputObject, OutputObject outputObject) {
         lessonReviewModelService.deleteById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "publishReviewModelVersionById", value = "根据id发布听评课模型版本号", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})
+    @RequestMapping("/post/LessonReviewModelController/publishReviewModelVersionById")
+    public void publishBomVersionById(InputObject inputObject, OutputObject outputObject) {
+        lessonReviewModelService.publishVersionById(inputObject, outputObject);
+    }
+
 }

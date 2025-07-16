@@ -10,7 +10,12 @@ import java.util.Map;
 
 public interface LecturesAttenanceRecoredChildService extends SkyeyeBusinessService<LecturesAttenanceRecoredChild> {
 
-     Map<String, List<LecturesAttenanceRecoredChild>> queryChildByAttenanceRecordId(List<String> attenanceRecordIds) ;
+//     Map<String, List<LecturesAttenanceRecoredChild>> queryChildByAttenanceRecordId(List<String> attenanceRecordIds) ;
 
-     void deleteChildByAttenanceRecordId(String attenanceRecordId);
+     List<LecturesAttenanceRecoredChild> queryChildByAttenanceRecordId(String attenanceRecordId);
+
+     void deleteChildByAttenanceRecordId(String id);
+
+     void deleteChildByAttenanceRecordIdList(List<String> idList);
+
 }

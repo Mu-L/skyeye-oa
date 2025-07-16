@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.entity.features.Version;
 import lombok.Data;
@@ -15,7 +16,7 @@ import java.util.List;
 @Data
 @TableName(value = "school_lectures_attenance_recored")
 @ApiModel(value = "质评-听课记录表实体类")
-public class LecturesAttenanceRecored extends Version {
+public class LecturesAttenanceRecored extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -126,7 +127,7 @@ public class LecturesAttenanceRecored extends Version {
     private String attendLectureTeacherMation; // 类型根据实际需要调整
 
     @TableField(exist = false)
-    @ApiModelProperty("听课记录表管理")
+    @ApiModelProperty(value = "听课记录表管理",required = "json")
     private List<LecturesAttenanceRecoredChild> LecturesAttenanceRecoredChildList;
 
 }
