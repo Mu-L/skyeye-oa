@@ -10,4 +10,5 @@ public interface ProductLeadService extends SkyeyeFlowableService<ProductLead> {
     void productLeadToContractOutStock(InputObject inputObject, OutputObject outputObject);
 
     void updateLeadType(String farmId);
+
 }
