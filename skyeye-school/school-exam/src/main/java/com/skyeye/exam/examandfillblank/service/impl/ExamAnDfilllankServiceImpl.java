@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "答卷 多行填空题保存表", groupName = "答卷 多行填空题保存表")
 public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAnDfilllankDao, ExamAnDfillblank> implements ExamAnDfilllankService {
 
-
     @Override
     protected void createPostpose(ExamAnDfillblank entity, String userId) {
         List<ExamAnDfillblank> dFillblankAn = entity.getDFillblankAn();
@@ -115,7 +114,7 @@ public class ExamAnDfilllankServiceImpl extends SkyeyeBusinessServiceImpl<ExamAn
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongAnswerId), belongAnswerId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getBelongId), belongId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamAnDfillblank::getQuId), quId);
-        queryWrapper.ne(CommonConstants.ID,id);
+        queryWrapper.ne(CommonConstants.ID, id);
         examAnDfillblank.setDFillblankAn(list(queryWrapper));
         return examAnDfillblank;
     }

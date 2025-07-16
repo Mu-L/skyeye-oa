@@ -12,6 +12,8 @@ import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnDfillblank
  * @Description: 答卷多行填空题保存实体类
@@ -54,5 +56,7 @@ public class DwAnDfillblank extends OperatorUserInfo {
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
-
+    @TableField(exist = false)
+    @ApiModelProperty(value = "矩阵题-行选项信息答案")
+    private List<DwAnDfillblank> dFillblankAn;
 }

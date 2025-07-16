@@ -38,7 +38,7 @@ public class DwAnCheckbox extends OperatorUserInfo {
     private String belongId;
 
     @TableField("other_text")
-    @ApiModelProperty(value = "otherText")
+    @ApiModelProperty(value = "其他文本")
     private String otherText;
 
     @TableField("qu_id")
@@ -46,7 +46,7 @@ public class DwAnCheckbox extends OperatorUserInfo {
     private String quId;
 
     @TableField("qu_item_id")
-    @ApiModelProperty(value = "quItemId")
+    @ApiModelProperty(value = "多选题答案id")
     private String quItemId;
 
     @TableField("visibility")

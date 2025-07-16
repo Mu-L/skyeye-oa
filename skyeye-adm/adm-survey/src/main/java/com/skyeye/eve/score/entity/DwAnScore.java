@@ -13,6 +13,8 @@ import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: DwAnScore
  * @Description: 答卷评分题实体类
@@ -59,5 +61,8 @@ public class DwAnScore extends OperatorUserInfo {
     @ApiModelProperty(value = "1 是 0非")//是否为空
     private Integer visibility;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "评分题答案信息")
+    private List<DwAnScore> scoreAn;
 }
 

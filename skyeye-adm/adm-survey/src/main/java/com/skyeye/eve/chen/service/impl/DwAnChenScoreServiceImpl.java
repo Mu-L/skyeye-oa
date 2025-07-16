@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "答卷矩阵评分题", groupName = "答卷矩阵评分题", manageShow = false)
 public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenScoreDao, DwAnChenScore> implements DwAnChenScoreService {
 
-
     @Override
     protected void createPostpose(DwAnChenScore entity, String userId) {
         List<DwAnChenScore> dFillblankAn = entity.getDwChenScoreAn();

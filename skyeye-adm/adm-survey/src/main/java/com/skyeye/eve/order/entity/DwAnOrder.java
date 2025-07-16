@@ -8,6 +8,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: ExamAnOrder
  * @Description: 答卷 评分题实体类
@@ -49,4 +51,8 @@ public class DwAnOrder extends OperatorUserInfo {
     @TableField("visibility")
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "排序题答案信息")
+    private List<DwAnOrder> orderByAn;
 }
