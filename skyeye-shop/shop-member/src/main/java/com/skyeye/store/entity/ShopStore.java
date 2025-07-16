@@ -15,6 +15,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -64,7 +65,7 @@ public class ShopStore extends AreaInfo {
     private String remark;
 
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "启用状态，参考#EnableEnum", required = "num")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
     @TableField(value = "longitude")
