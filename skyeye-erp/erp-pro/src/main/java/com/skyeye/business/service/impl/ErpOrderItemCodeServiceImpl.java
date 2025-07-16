@@ -57,4 +57,16 @@ public class ErpOrderItemCodeServiceImpl extends SkyeyeBusinessServiceImpl<ErpOr
         List<ErpOrderItemCode> list = list(queryWrapper);
         return list;
     }
+
+    @Override
+    public List<ErpOrderItemCode> selectByNormsCode(String... normsCodes) {
+        List<String> normsCodeList = Arrays.asList(normsCodes);
+        if (CollectionUtil.isEmpty(normsCodeList)) {
+            return CollectionUtil.newArrayList();
+        }
+        QueryWrapper<ErpOrderItemCode> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ErpOrderItemCode::getParentId), normsCodeList);
+        List<ErpOrderItemCode> list = list(queryWrapper);
+        return list;
+    }
 }

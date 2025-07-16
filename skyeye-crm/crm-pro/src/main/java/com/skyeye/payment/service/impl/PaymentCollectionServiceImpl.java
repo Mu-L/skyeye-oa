@@ -151,7 +151,8 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
         // 远程调用新增收付款信息
         entity.setFormSubType(FormSubType.DRAFT.getKey());
         Map<String, Object> map = BeanUtil.beanToMap(entity);
-        map.put("fromKey", getServiceClassName());
+        map.put("fromId",entity.getId());
+        map.put("fromChildId",entity.getReceivableId());
         ifsReceivePaymentService.addIFsReceivePayment(map);
     }
 

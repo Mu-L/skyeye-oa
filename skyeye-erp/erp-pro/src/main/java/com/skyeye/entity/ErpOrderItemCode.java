@@ -12,6 +12,8 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: ErpOrderItemCode
  * @Description: 单据子表关联的条形码编号
@@ -36,9 +38,17 @@ public class ErpOrderItemCode extends CommonInfo {
     @Property(value = "产品id")
     private String materialId;
 
+    @TableField(exist = false)
+    @Property(value = "产品信息")
+    private Map<String,Object> materialMation;
+
     @TableField("norms_id")
     @Property(value = "规格id")
     private String normsId;
+
+    @TableField(exist = false)
+    @Property(value = "规格信息")
+    private Map<String,Object> normsMation;
 
     @TableField("norms_code")
     @Property(value = "条形码编号")

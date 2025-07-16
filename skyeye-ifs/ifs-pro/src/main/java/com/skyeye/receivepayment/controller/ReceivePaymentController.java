@@ -30,13 +30,6 @@ public class ReceivePaymentController {
     @Autowired
     private ReceivePaymentService receivePaymentService;
 
-    @ApiOperation(id = "writeReceivePayment", value = "新增/编辑收付款", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = ReceivePayment.class)
-    @RequestMapping("/post/ReceivePaymentController/writeReceivePayment")
-    public void writeReceivePayment(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.saveOrUpdateEntity(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "addReceivePayment", value = "新增收付款", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ReceivePayment.class)
     @RequestMapping("/post/ReceivePaymentController/addReceivePayment")
@@ -49,29 +42,6 @@ public class ReceivePaymentController {
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentList")
     public void queryReceivePaymentList(InputObject inputObject, OutputObject outputObject) {
         receivePaymentService.queryPageList(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "deleteReceivePaymentById", value = "删除收付款信息", method = "DELETE", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/ReceivePaymentController/deleteReceivePaymentById")
-    public void deleteReceivePaymentById(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.deleteById(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "submitReceivePaymentToApproval", value = "收付款申请提交审批", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
-    @RequestMapping("/post/ReceivePaymentController/submitReceivePaymentToApproval")
-    public void submitReceivePaymentToApproval(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.submitToApproval(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "revokeReceivePayment", value = "撤销收付款", method = "PUT", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
-    @RequestMapping("/post/ReceivePaymentController/revokeReceivePayment")
-    public void revokeReceivePayment(InputObject inputObject, OutputObject outputObject) {
-        receivePaymentService.revoke(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryReceivePaymentById", value = "根据id获取收付款详情", method = "POST", allUse = "2")

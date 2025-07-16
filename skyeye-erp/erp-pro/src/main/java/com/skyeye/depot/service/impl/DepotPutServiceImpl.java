@@ -6,28 +6,41 @@ package com.skyeye.depot.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.query.MPJQueryWrapper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.toolkit.MPJWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
+import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.SkyeyeErpOrderService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.DepotPutFromType;
-import com.skyeye.depot.classenum.DepotPutOutType;
-import com.skyeye.depot.classenum.DepotPutState;
+import com.skyeye.depot.classenum.*;
 import com.skyeye.depot.dao.DepotPutDao;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderHead;
 import com.skyeye.entity.ErpOrderItem;
+import com.skyeye.entity.ErpOrderItemCode;
+import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.holder.classenum.HolderNormsChildState;
 import com.skyeye.holder.service.HolderNormsChildService;
@@ -39,6 +52,7 @@ import com.skyeye.material.classenum.MaterialNormsCodeType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.other.service.OtherWareHousService;
 import com.skyeye.pick.service.ReturnPutService;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
@@ -101,6 +115,15 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
     @Autowired
     private ProductReturnInStockService productReturnInStockService;
 
+    @Autowired
+    private MaterialService materialService;
+
+    @Autowired
+    private IMaterialNormsService iMaterialNormsService;
+
+    @Autowired
+    private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
+
     @Override
     public QueryWrapper<DepotPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
         if (StrUtil.isEmpty(commonPageInfo.getType())) {
@@ -115,7 +138,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             queryWrapper.in(MybatisPlusUtil.toColumns(ErpOrderCommon::getOtherState), otherStateList);
             // 只查询审批通过，部分完成，已完成的
             List<String> stateList = Arrays.asList(new String[]{FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey(),
-                ErpOrderStateEnum.COMPLETED.getKey()});
+                    ErpOrderStateEnum.COMPLETED.getKey()});
             queryWrapper.in(MybatisPlusUtil.toColumns(ErpOrderCommon::getState), stateList);
         } else if (StrUtil.equals(commonPageInfo.getType(), "AllComplate")) {
             // 所有已入库的单据信息
@@ -192,7 +215,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             entity.setDepartmentId(oldDepotPut.getDepartmentId());
             entity.setSalesman(oldDepotPut.getSalesman());
         } else if (oldDepotPut.getFromTypeId() == DepotPutFromType.SHOP_RETURNS.getKey()
-            || oldDepotPut.getFromTypeId() == DepotPutFromType.SHOP_CONFIRM_RETURNS.getKey()) {
+                || oldDepotPut.getFromTypeId() == DepotPutFromType.SHOP_CONFIRM_RETURNS.getKey()) {
             // 门店退货单/门店物料退货单
             entity.setStoreId(oldDepotPut.getStoreId());
         }
@@ -268,13 +291,13 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         // 校验并修改条形码信息
         List<String> normsCodeList = checkNormsCodeAndWarehousing(entity, false);
         if (entity.getFromTypeId() == DepotPutFromType.SEAL_RETURNS.getKey()
-            || entity.getFromTypeId() == DepotPutFromType.RETAIL_RETURNS.getKey()) {
+                || entity.getFromTypeId() == DepotPutFromType.RETAIL_RETURNS.getKey()) {
             // 修改销售退货/零售退货单据的商品状态为退货状态
             holderNormsChildService.editHolderNormsChildState(entity.getHolderId(), normsCodeList, HolderNormsChildState.RETURN_OF_GOODS.getKey());
         }
         // 修改库存信息以及记录客户/供应商/会员关联的商品
         super.depotOutOrPutSuccess(entity.getHolderId(), entity.getHolderKey(), entity.getErpOrderItemList(), DepotPutOutType.PUT.getKey(),
-            entity.getFromId(), fromTypeIdKey);
+                entity.getFromId(), fromTypeIdKey);
     }
 
     private void checkMaterialNorms(DepotPut entity, String fromTypeIdKey, boolean setData) {
@@ -289,7 +312,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         ErpOrderHead fromMation = (ErpOrderHead) skyeyeErpOrderService.selectById(entity.getFromId());
         // 当前入库单的商品数量
         Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-            .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+                .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达入库单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
@@ -299,7 +322,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = fromMation.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
             // 该来源单据的商品数量已经全部入库
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 skyeyeErpOrderService.editOtherState(entity.getFromId(), DepotPutState.COMPLATE_PUT.getKey());
@@ -331,18 +354,18 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             }
             // 从数据库查询未入库/已经出库的条形码信息
             List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, allNormsCodeList,
-                MaterialNormsCodeInDepot.NOT_IN_STOCK.getKey(), MaterialNormsCodeInDepot.OUTBOUND.getKey());
+                    MaterialNormsCodeInDepot.NOT_IN_STOCK.getKey(), MaterialNormsCodeInDepot.OUTBOUND.getKey());
             List<String> inSqlNormsCodeList = materialNormsCodeList.stream().map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
             // 获取所有前端传递过来的条形码信息，求差集(在入参中有，但是在数据库中不包含的条形码信息)
             List<String> diffList = allNormsCodeList.stream()
-                .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(diffList)) {
                 throw new CustomException(
-                    String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
+                        String.format(Locale.ROOT, "编码【%s】不存在或已被使用，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
             }
             // 判断条形码是否符合规范
             Map<String, MaterialNormsCode> materialNormsCodeMap = materialNormsCodeList.stream()
-                .collect(Collectors.toMap(MaterialNormsCode::getCodeNum, bean -> bean));
+                    .collect(Collectors.toMap(MaterialNormsCode::getCodeNum, bean -> bean));
             for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
                 Material material = materialMap.get(erpOrderItem.getMaterialId());
                 if (material.getItemCode() == MaterialItemCode.ONE_ITEM_CODE.getKey()) {
@@ -358,7 +381,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             if (!onlyCheck) {
                 // 批量修改条形码信息
                 Map<String, ErpOrderItem> erpOrderItemMap = entity.getErpOrderItemList().stream()
-                    .collect(Collectors.toMap(bean -> String.format("%s-%s", bean.getMaterialId(), bean.getNormsId()), bean -> bean));
+                        .collect(Collectors.toMap(bean -> String.format("%s-%s", bean.getMaterialId(), bean.getNormsId()), bean -> bean));
                 String warehousingTime = DateUtil.getTimeAndToString();
                 String serviceClassName = getServiceClassName();
                 materialNormsCodeList.forEach(materialNormsCode -> {
@@ -371,7 +394,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
                     materialNormsCode.setFromObjectKey(serviceClassName);
                     materialNormsCode.setType(MaterialNormsCodeType.AUTHENTIC.getKey());
                     if (DepotPutFromType.SEAL_RETURNS.getKey() == entity.getFromTypeId()
-                        || DepotPutFromType.RETAIL_RETURNS.getKey() == entity.getFromTypeId()) {
+                            || DepotPutFromType.RETAIL_RETURNS.getKey() == entity.getFromTypeId()) {
                         // 来源单据类型是零售退货/销售退货，则将商品规格类型修改为二手商品
                         materialNormsCode.setType(MaterialNormsCodeType.SECOND_HAND_GOODS.getKey());
                     }
@@ -382,4 +405,54 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         return allNormsCodeList;
     }
 
+    @Override
+    @IgnoreTenant
+    public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
+            throw new CustomException("holderKey不能为空");
+        }
+        if(StrUtil.isEmpty(commonPageInfo.getType())) {
+            throw new CustomException("type不能为空");
+        }
+        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType());
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
+                .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));
+        for (Map.Entry<String, List<ErpOrderItem>> entry : groupByMaterialId.entrySet()) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("objectId", entry.getValue().get(CommonNumConstants.NUM_ZERO).getParentId());
+            map.put("normsId", entry.getValue().get(CommonNumConstants.NUM_ZERO).getNormsId());
+            map.put("materialId", entry.getKey());
+            int totalNum = entry.getValue().stream().mapToInt(ErpOrderItem::getOperNumber).sum();
+            double totalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getAllPrice())).sum();
+            map.put("totalNum", totalNum);
+            map.put("totalPrice", totalPrice);
+            result.add(map);
+        }
+        // 设置商品信息
+        materialService.setMationForMap(result, "materialId", "materialMation");
+        iMaterialNormsService.setMationForMap(result, "normsId", "normsMation");
+        outputObject.settotal(page.getTotal());
+        outputObject.setBeans(result);
+    }
+
+    @Override
+    public void queryOutPutDetailsList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
+            throw new CustomException("单据objectId不能为空");
+        }
+        if(StrUtil.isEmpty(commonPageInfo.getType())){
+            throw new CustomException("单据类型type不能为空");
+        }
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<ErpOrderItemCode> beans = erpOrderItemCodeService.selectByParentId(commonPageInfo.getObjectId());
+        if(CollectionUtil.isEmpty(beans)){
+            return;
+        }
+        outputObject.settotal(page.getTotal());
+        outputObject.setBeans(beans);
+    }
 }

@@ -1,11 +1,10 @@
 package com.skyeye.receivepayment.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldStrategy;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
 import org.checkerframework.checker.units.qual.A;
@@ -23,11 +22,19 @@ import java.util.Map;
 @Data
 @TableName(value = "ifs_receive_payment", autoResultMap = true)
 @ApiModel("收付款实体类")
-public class ReceivePayment extends SkyeyeFlowable {
+public class ReceivePayment extends CommonInfo {
+
+    @TableId("id")
+    @ApiModelProperty("主键id。为空时新增，不为空时编辑")
+    private String id;
 
     @TableField(exist = false)
     @Property(value = "单号，仅用于展示使用")
     private String name;
+
+    @TableField("odd_number")
+    @Property("单据编号")
+    private String oddNumber;
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据id(客户/供应商)", required = "required")
@@ -69,27 +76,51 @@ public class ReceivePayment extends SkyeyeFlowable {
     @Property(value = "来源信息")
     private Map<String, Object> fromMation;
 
-    @TableField("from_key")
-    @ApiModelProperty(value = "来源key（付款、回款）")
-    private String fromKey;
+    @TableField("from_child_id")
+    @ApiModelProperty(value = "来源子ID（付款子id,回款子id）")
+    private String fromChildId;
+
+    @TableField(exist = false)
+    @Property(value = "来源子信息")
+    private Map<String, Object> fromChildMation;
 
     @TableField(value = "state")
     @Property(value = "状态，参考#FlowableStateEnum")
     private String state;
 
-    @TableField(value = "invoice_date")
-    @ApiModelProperty(value = "单据日期")
-    private String invoiceDate;
+    @TableField("collection_time")
+    @ApiModelProperty(value = "回/付款日期")
+    private String collectionTime;
 
-    @TableField(value = "contact_id")
-    @ApiModelProperty(value = "联系人id(如果不选合同，联系人id必填，选了合同可以不填联系人id)")
-    private String contactId;
+    @Property("创建人id")
+    @TableField(value = "create_id")
+    private String createId;
+
+    @Property("创建人姓名")
+    @TableField(exist = false)
+    private String createName;
 
     @TableField(exist = false)
-    @Property(value = "联系人信息")
-    private Map<String,Object> contactMation;
+    @Property(value = "创建人信息")
+    private Map<String, Object> createMation;
 
-    @TableField("paid_time")
-    @ApiModelProperty(value = "收付款日期")
-    private String paidTime;
+    @Property("创建时间")
+    @TableField(value = "create_time")
+    private String createTime;
+
+    @Property("最后更新人id")
+    @TableField(value = "last_update_id")
+    private String lastUpdateId;
+
+    @Property("最后更新人姓名")
+    @TableField(exist = false)
+    private String lastUpdateName;
+
+    @TableField(exist = false)
+    @Property(value = "最后更新人信息")
+    private Map<String, Object> lastUpdateMation;
+
+    @Property("最后更新日期")
+    @TableField(value = "last_update_time")
+    private String lastUpdateTime;
 }

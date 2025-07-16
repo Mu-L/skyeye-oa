@@ -25,4 +25,5 @@ public interface ErpOrderItemCodeService extends SkyeyeBusinessService<ErpOrderI
 
     List<ErpOrderItemCode> selectByParentId(String... parentId);
 
+    List<ErpOrderItemCode> selectByNormsCode(String ...normsCodes);
 }

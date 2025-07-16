@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -42,8 +43,8 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "收付款管理", groupName = "收付款管理", flowable = true)
-public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<ReceivePaymentDao, ReceivePayment> implements ReceivePaymentService {
+@SkyeyeService(name = "收付款管理", groupName = "收付款管理")
+public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<ReceivePaymentDao, ReceivePayment> implements ReceivePaymentService {
 
 
     @Autowired
@@ -67,22 +68,13 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Autowired
     private IErpContractService iErpContractService;
 
-
-
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
     @Override
     public void createPrepose(ReceivePayment entity) {
         super.createPrepose(entity);
-        if (StrUtil.isNotEmpty(entity.getId())) {
-            entity.setFromId(entity.getId());
-            entity.setId(StrUtil.EMPTY);
-        }
-        if(StrUtil.isNotEmpty(entity.getPaidTime())){
-            // YYYY-MM-DD
-            entity.setPaidTime(entity.getPaidTime().substring(0,10));
-        }
+        entity.setId(StrUtil.EMPTY);
     }
 
     @Override
@@ -97,62 +89,6 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        // 根据fromKey分组，值为List<String> fromId
-        Map<String, List<String>> fromKeyMap = beans.stream()
-                .collect(Collectors.groupingBy(m -> (String) m.get("fromKey"),
-                        Collectors.mapping(m -> (String) m.get("fromId"), Collectors.toList())));
-        // 根据objectKey分组，值为List<String> objectId
-        Map<String, List<String>> objectKeyMap = beans.stream()
-                .collect(Collectors.groupingBy(m -> (String) m.get("objectKey"),
-                        Collectors.mapping(m -> (String) m.get("objectId"), Collectors.toList())));
-
-
-        if (CorrespondentEnterEnum.CUSTOM.getKey().equals(commonPageInfo.getObjectKey())) {
-            // 回款fromId
-            List<String> crmPaymentFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey(), new ArrayList<>());
-            List<String> customerIdList = objectKeyMap.getOrDefault(CorrespondentEnterEnum.CUSTOM.getKey(), new ArrayList<>());
-            String customerIds = String.join(StrUtil.COMMA, customerIdList);
-            if (StrUtil.isNotEmpty(customerIds)) {
-                List<Map<String, Object>> customerList = iCrmCustomerService.queryCustomerListByIds(customerIds);
-                // 根据id分组
-                Map<String, Map<String, Object>> customerMap = customerList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-                beans.forEach(bean -> {
-                    Map<String, Object> customer = customerMap.getOrDefault(bean.get("objectId").toString(), new HashMap<>());
-                    bean.put("objectMation", customer);
-                });
-            }
-
-
-            if (CollectionUtil.isNotEmpty(crmPaymentFromIds)) {
-                String fromIds = String.join(StrUtil.COMMA, crmPaymentFromIds);
-                List<Map<String, Object>> mapList = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
-                beans = setInfoMap(mapList, beans);
-            }
-        } else {
-            // 付款fromId
-            List<String> erpPaymentOutFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey(), new ArrayList<>());
-
-            List<String> supplierIdList = objectKeyMap.getOrDefault(CorrespondentEnterEnum.SUPPLIER.getKey(), new ArrayList<>());
-            String supplierIds = String.join(StrUtil.COMMA, supplierIdList);
-            if (StrUtil.isNotEmpty(supplierIds)) {
-                List<Map<String, Object>> supplierList = iErpSupplierService.querySupplierListByIds(supplierIds);
-                // 根据id分组
-                Map<String, Map<String, Object>> customerMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-                beans.forEach(bean -> {
-                    Map<String, Object> customer = customerMap.getOrDefault(bean.get("objectId").toString(), new HashMap<>());
-                    bean.put("objectMation", customer);
-                });
-            }
-
-            if (CollectionUtil.isNotEmpty(erpPaymentOutFromIds)) {
-                String fromIds = String.join(StrUtil.COMMA, erpPaymentOutFromIds);
-                List<Map<String, Object>> mapList = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
-                beans = setInfoMap(mapList, beans);
-            }
-        }
-
-        iContactsService.setMationForMap(beans, "contactId", "contactMation");
         return beans;
     }
 
@@ -195,29 +131,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     }
 
     private List<ReceivePayment> setInfo(List<ReceivePayment> list) {
-        if (CollectionUtil.isEmpty(list)) {
-            return list;
-        }
-        // 根据fromKey分组，值为List<String> fromId
-        Map<String, List<String>> fromKeyMap = list.stream().
-                collect(Collectors.groupingBy(ReceivePayment::getFromKey, Collectors.mapping(ReceivePayment::getFromId, Collectors.toList())));
-        // 回款fromId
-        List<String> crmPaymentFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey(), new ArrayList<>());
-        // 付款fromId
-        List<String> erpPaymentOutFromIds = fromKeyMap.getOrDefault(ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey(), new ArrayList<>());
-        List<ReceivePayment> beans = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(crmPaymentFromIds)) {
-            String fromIds = String.join(StrUtil.COMMA, crmPaymentFromIds);
-            List<Map<String, Object>> mapList = iCrmPaymentCollectionService.queryPaymentCollectionById(fromIds);
-            beans = setInfo(mapList, list);
-        }
-        if (CollectionUtil.isNotEmpty(erpPaymentOutFromIds)) {
-            String fromIds = String.join(StrUtil.COMMA, erpPaymentOutFromIds);
-            List<Map<String, Object>> mapList = iErpPaymentCollectionService.queryPaymentCollectionById(fromIds);
-            beans = setInfo(mapList, list);
-        }
-        iContactsService.setDataMation(beans, ReceivePayment::getContactId);
-        return beans;
+        return list;
     }
 
     private List<ReceivePayment> setInfo(List<Map<String, Object>> map, List<ReceivePayment> list) {
@@ -249,21 +163,13 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
     @Override
     public ReceivePayment selectById(String id) {
         ReceivePayment receivePayment = super.selectById(id);
-        iContactsService.setDataMation(receivePayment, ReceivePayment::getContactId);
         // 回付款信息
         List<Map<String, Object>> paymentCollection = new ArrayList<>();
-
-        if (ReceivePaymentKeyEnum.ERP_PAYMENT_KEY.getKey().equals(receivePayment.getFromKey())) {
-            // 付款信息
-            paymentCollection = iErpPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
-        } else if(ReceivePaymentKeyEnum.CRM_RECEIVE_PAYMENT_KEY.getKey().equals(receivePayment.getFromKey())) {
-            // 回款
-            paymentCollection = iCrmPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
-        }
 
         if (CorrespondentEnterEnum.CUSTOM.getKey().equals(receivePayment.getObjectKey())) {
             List<Map<String, Object>> objectMation = iCrmCustomerService.queryCustomerListByIds(receivePayment.getObjectId());
             List<Map<String, Object>> contractMation = iCrmContractService.queryCrmContractByIds(receivePayment.getContractId());
+            paymentCollection = iErpPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
             receivePayment.setObjectMation(objectMation.get(CommonNumConstants.NUM_ZERO));
             receivePayment.setContractMation(contractMation.get(CommonNumConstants.NUM_ZERO));
         } else {
@@ -271,6 +177,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeFlowableServiceImpl<Receive
             List<Map<String, Object>> contractMation = iErpContractService.querySupplierContractByIds(receivePayment.getContractId());
             receivePayment.setObjectMation(objectMation.get(CommonNumConstants.NUM_ZERO));
             receivePayment.setContractMation(contractMation.get(CommonNumConstants.NUM_ZERO));
+            paymentCollection = iCrmPaymentCollectionService.queryPaymentCollectionById(receivePayment.getFromId());
         }
         receivePayment.setFromMation(CollectionUtil.isEmpty(paymentCollection) ? new HashMap<>() : paymentCollection.get(CommonNumConstants.NUM_ZERO));
         return receivePayment;

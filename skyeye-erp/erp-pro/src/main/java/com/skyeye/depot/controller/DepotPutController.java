@@ -72,4 +72,18 @@ public class DepotPutController {
         depotPutService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryHolderOutPutNormsList", value = "获取(holderKey)供应商/客户的借出出库/归还入库单", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/DepotPutController/queryHolderOutPutNormsList")
+    public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
+        depotPutService.queryHolderOutPutNormsList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryOutPutDetailsList", value = "获取(objectId单据id)出库/入库明细", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/DepotPutController/queryOutPutDetailsList")
+    public void queryOutPutDetailsList(InputObject inputObject, OutputObject outputObject) {
+        depotPutService.queryOutPutDetailsList(inputObject, outputObject);
+    }
+
 }
