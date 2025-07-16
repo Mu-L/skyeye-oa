@@ -57,6 +57,8 @@ import com.skyeye.pickconfirm.entity.ConfirmPut;
 import com.skyeye.pickconfirm.entity.ConfirmReturn;
 import com.skyeye.pickconfirm.service.ConfirmPutService;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
+import com.skyeye.product.entity.ProductLeadOutStock;
+import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.purchase.service.PurchaseReturnsService;
 import com.skyeye.rest.sealservice.rest.IServiceApplyRest;
 import com.skyeye.rest.shop.service.IShopStoreService;
@@ -138,6 +140,9 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
 
     @Autowired
     private IShopStoreService iShopStoreService;
+
+    @Autowired
+    private ProductLeadOutStockService productLeadOutStockService;
 
     @Override
     public QueryWrapper<DepotOut> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -712,6 +717,29 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         } else {
             outputObject.setreturnMessage("状态错误，无法转物料退货单.");
         }
+    }
+
+    @Override
+    public List<DepotOut> queryLeadByHolderId(String holderId) {
+        QueryWrapper<DepotOut> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOut::getHolderId), holderId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOut::getState), FlowableStateEnum.PASS.getKey());
+        List<DepotOut> depotOutList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(depotOutList)) {
+            return null;
+        }
+        List<String> framIds = depotOutList.stream().map(DepotOut::getFromId).collect(Collectors.toList());
+        List<String> Ids = productLeadOutStockService.queryByIds(framIds).stream().map(ProductLeadOutStock::getId).collect(Collectors.toList());
+        List<DepotOut> depotOuts = depotOutList.stream().filter(depotOut -> Ids.contains(depotOut.getFromId())).collect(Collectors.toList());
+        List<String> collect = depotOuts.stream().map(DepotOut::getId).collect(Collectors.toList());
+        List<DepotOut> depot = new ArrayList<>();
+        collect.forEach(
+            id -> {
+                DepotOut depotOut = super.selectById(id);
+                depot.add(depotOut);
+            }
+        );
+        return depot;
     }
 
 }

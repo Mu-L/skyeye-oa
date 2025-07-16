@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -206,6 +207,16 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeErpOrderServiceImpl<Pr
         Map<String, List<ErpOrderItem>> stringListMap = erpOrderItems.stream().collect(Collectors.groupingBy(ErpOrderItem::getParentId));
         list.forEach(productLeadOutStock ->
             productLeadOutStock.setErpOrderItemList(stringListMap.get(productLeadOutStock.getId())));
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ProductLeadOutStock> queryByIds(List<String> framIds) {
+        if (CollectionUtil.isEmpty(framIds)) {
+            return null;
+        }
+        QueryWrapper<ProductLeadOutStock> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, framIds);
         return list(queryWrapper);
     }
 

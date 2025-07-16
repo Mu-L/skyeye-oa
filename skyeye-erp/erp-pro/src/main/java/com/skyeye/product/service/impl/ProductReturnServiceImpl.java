@@ -2,16 +2,20 @@ package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
+import com.skyeye.depot.entity.DepotOut;
+import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
@@ -19,7 +23,9 @@ import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.classenum.ProductReturnFromType;
 import com.skyeye.product.dao.ProductReturnDao;
-import com.skyeye.product.entity.*;
+import com.skyeye.product.entity.ProductReturn;
+import com.skyeye.product.entity.ProductReturnChild;
+import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductReturnChildService;
 import com.skyeye.product.service.ProductReturnInStockService;
@@ -32,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
@@ -95,36 +102,77 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         checkForLentOutItems(entity);
     }
 
+    @Autowired
+    private DepotOutService depotOutService;
+
     private void checkForLentOutItems(ProductReturn entity) {
         String holderId = entity.getHolderId();
-        List<ProductLeadOutStock> productLeadOutStocks = productLeadOutStockService.queryLeadByHolderId(holderId);
-        if (CollectionUtil.isEmpty(productLeadOutStocks)) {
+        // 获取客户/供应商借出商品记录
+        List<DepotOut> depotOutList = depotOutService.queryLeadByHolderId(holderId);
+        if (CollectionUtil.isEmpty(depotOutList)) {
             throw new CustomException("该客户/供应商没有借出记录，无法归还.");
         }
-        // 借出客户/供应商的商品
-        List<ErpOrderItem> erpOrderItemAllList = new ArrayList<>();
-        for (ProductLeadOutStock productLeadOutStock : productLeadOutStocks) {
-            List<ErpOrderItem> erpOrderItemList = productLeadOutStock.getErpOrderItemList();
-            erpOrderItemAllList.addAll(erpOrderItemList);
+
+        // 获取客户/供应商之前申请归还的商品消息
+        List<ProductReturn> alreadyReturnedList = selectByHolderId(holderId);
+
+        // 将借出记录中的商品信息提取出来
+        List<ErpOrderItem> depotOutErpOrderItemList = new ArrayList<>();
+        for (DepotOut depotOut : depotOutList) {
+            depotOutErpOrderItemList.addAll(depotOut.getErpOrderItemList());
         }
-        // 现在客户/供应商归还的商品
-        List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
-        // 检查是否存在匹配
-        for (ProductReturnChild productReturnChild : erpOrderItemList) {
+
+        // 将已归还记录中的商品信息提取出来
+        List<ProductReturnChild> alreadyReturnedErpOrderItemList = new ArrayList<>();
+        for (ProductReturn productReturn : alreadyReturnedList) {
+            alreadyReturnedErpOrderItemList.addAll(productReturn.getErpOrderItemList());
+        }
+        List<ProductReturnChild> currentReturnItemList = entity.getErpOrderItemList();
+        for (ProductReturnChild currentReturnItem : currentReturnItemList) {
             boolean isMatched = false;
-            for (ErpOrderItem erpOrderItem : erpOrderItemAllList) {
-                if (productReturnChild.getMaterialId().equals(erpOrderItem.getMaterialId()) &&
-                    productReturnChild.getNormsId().equals(erpOrderItem.getNormsId()) &&
-                    productReturnChild.getOperNumber() <= erpOrderItem.getOperNumber() &&
-                    productReturnChild.getUnitPrice().equals(erpOrderItem.getUnitPrice())) {
-                    isMatched = true;
-                    break;
+
+            // 遍历借出记录中的商品
+            for (ErpOrderItem depotOutItem : depotOutErpOrderItemList) {
+                // 检查商品是否匹配
+                if (currentReturnItem.getMaterialId().equals(depotOutItem.getMaterialId()) &&
+                    currentReturnItem.getNormsId().equals(depotOutItem.getNormsId()) &&
+                    currentReturnItem.getOperNumber() <= depotOutItem.getOperNumber() &&
+                    currentReturnItem.getUnitPrice().equals(depotOutItem.getUnitPrice())) {
+                    boolean isAlreadyReturned = false;
+                    for (ProductReturnChild alreadyReturnedItem : alreadyReturnedErpOrderItemList) {
+                        if (currentReturnItem.getMaterialId().equals(alreadyReturnedItem.getMaterialId()) &&
+                            currentReturnItem.getNormsId().equals(alreadyReturnedItem.getNormsId()) &&
+                            currentReturnItem.getUnitPrice().equals(alreadyReturnedItem.getUnitPrice())) {
+                            isAlreadyReturned = true;
+                            break;
+                        }
+                    }
+                    if (!isAlreadyReturned) {
+                        isMatched = true;
+                        break;
+                    }
                 }
             }
             if (!isMatched) {
                 throw new CustomException("归还的商品与借出商品不匹配，请检查归还的商品信息.");
             }
         }
+    }
+
+    private List<ProductReturn> selectByHolderId(String holderId) {
+        QueryWrapper<ProductReturn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturn::getHolderId), holderId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturn::getState), FlowableStateEnum.REJECT.getKey());
+        List<ProductReturn> list = list(queryWrapper);
+        List<String> returnIds = list.stream().map(ProductReturn::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(returnIds)) {
+            Map<String, List<ProductReturnChild>> stringListMap = productReturnChildService.selectProductLeadChildByIdList(returnIds)
+                .stream().collect(Collectors.groupingBy(ProductReturnChild::getParentId));
+            list.forEach(
+                productReturn -> productReturn.setErpOrderItemList(stringListMap.get(productReturn.getId()))
+            );
+        }
+        return list;
     }
 
     private void getTotalPrice(ProductReturn entity) {
@@ -172,7 +220,7 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     @Override
     public void updateOtherState(String fromId) {
         UpdateWrapper<ProductReturn> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID,fromId);
+        updateWrapper.eq(CommonConstants.ID, fromId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturn::getOtherState), IsDefaultEnum.IS_DEFAULT.getKey());
         update(updateWrapper);
     }

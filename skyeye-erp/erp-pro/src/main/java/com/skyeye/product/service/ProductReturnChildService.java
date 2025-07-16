@@ -14,4 +14,6 @@ public interface ProductReturnChildService extends SkyeyeBusinessService<Product
     void deleteByParentId(String id);
 
     List<ProductReturnChild> selectProductLeadChildById(String id);
+
+    List<ProductReturnChild> selectProductLeadChildByIdList(List<String> returnIds);
 }

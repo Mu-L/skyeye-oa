@@ -121,6 +121,7 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
         productLeadOutStock.setFromId(productLeadOutStock.getId());
         productLeadOutStock.setFromTypeId(ProductLeadFromType.LOANAPPLICATIONFORM.getKey());
         productLeadOutStock.setId(StrUtil.EMPTY);
+        productLeadOutStock.setTotalPrice(productLeadOutStock.getTotalPrice());
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         productLeadOutStockService.createEntity(productLeadOutStock, userId);
     }
