@@ -2,6 +2,7 @@ package com.skyeye.receivepayment.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -75,6 +76,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
     public void createPrepose(ReceivePayment entity) {
         super.createPrepose(entity);
         entity.setId(StrUtil.EMPTY);
+        entity.setState(FlowableStateEnum.PASS.getKey());
     }
 
     @Override
@@ -89,21 +91,67 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        // 根据objectKey分组
+        setMationForMaps(beans);
         return beans;
     }
 
-    private List<Map<String, Object>> setInfoMap(List<Map<String, Object>> mapList, List<Map<String, Object>> beans) {
-        Map<String, Map<String, Object>> paymentMap = mapList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-        for (Map<String, Object> bean : beans) {
-            String fromId = bean.get("fromId").toString();
-            if (paymentMap.containsKey(fromId)) {
-                Map<String, Object> payment = paymentMap.get(fromId);
-                bean.put("fromMation", payment);
-                bean.put("name", payment.get("oddNumber"));
+    private void setMationForMaps(List<Map<String, Object>> beans) {
+        Map<String, List<Map<String, Object>>> map = beans.stream().collect(Collectors.groupingBy(m -> m.get("objectKey").toString()));
+        List<Map<String, Object>> erpBeans = map.getOrDefault(CorrespondentEnterEnum.SUPPLIER.getKey(), new ArrayList<>());
+        List<Map<String, Object>> customerBeans = map.getOrDefault(CorrespondentEnterEnum.CUSTOM.getKey(), new ArrayList<>());
+        if(CollectionUtil.isNotEmpty(erpBeans)){
+            // 供应商信息
+            List<String> supplierIdList = erpBeans.stream().map(m -> m.get("objectId").toString()).distinct().collect(Collectors.toList());
+            String supplierIds = String.join(StrUtil.COMMA, supplierIdList);
+            List<Map<String, Object>> supplierList = iErpSupplierService.querySupplierListByIds(supplierIds);
+            Map<String,Map<String, Object>> supplierMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // erp合同信息
+            List<String> contractIdList = erpBeans.stream().map(m -> m.get("contractId").toString()).distinct().collect(Collectors.toList());
+            String contractIds = String.join(StrUtil.COMMA, contractIdList);
+            List<Map<String, Object>> erpContractMations = iErpContractService.querySupplierContractByIds(contractIds);
+            Map<String,Map<String, Object>> erpContractMap = erpContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // 付款信息
+            List<String> erpPayIdList = erpBeans.stream().map(m -> m.get("fromId").toString()).distinct().collect(Collectors.toList());
+            String erpPayIds = String.join(StrUtil.COMMA, erpPayIdList);
+            List<Map<String, Object>> erpPayMations = iErpPaymentCollectionService.queryPaymentCollectionById(erpPayIds);
+            Map<String,Map<String, Object>> erpPayMap = erpPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // 设置信息
+            for (Map<String, Object> item : beans) {
+                if(CorrespondentEnterEnum.SUPPLIER.getKey().equals(item.get("objectKey").toString())){
+                    item.put("objectMation", supplierMap.get(item.get("objectId").toString()));
+                    item.put("contractMation", erpContractMap.get(item.get("contractId").toString()));
+                    item.put("fromMation", erpPayMap.get(item.get("fromId").toString()));
+                }
             }
         }
-        return beans;
+        if(CollectionUtil.isNotEmpty(customerBeans)){
+           // 客户信息
+            List<String> customerIdList = customerBeans.stream().map(m -> m.get("objectId").toString()).distinct().collect(Collectors.toList());
+            String customerIds = String.join(StrUtil.COMMA, customerIdList);
+            List<Map<String, Object>> supplierList = iCrmCustomerService.queryCustomerListByIds(customerIds);
+            Map<String,Map<String, Object>> customerMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // crm合同信息
+            List<String> contractIdList = customerBeans.stream().map(m -> m.get("contractId").toString()).distinct().collect(Collectors.toList());
+            String contractIds = String.join(StrUtil.COMMA, contractIdList);
+            List<Map<String, Object>> crmContractMations = iCrmContractService.queryCrmContractByIds(contractIds);
+            Map<String,Map<String, Object>> crmContractMap = crmContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // 回款款信息
+            List<String> crmPayIdList = customerBeans.stream().map(m -> m.get("fromId").toString()).distinct().collect(Collectors.toList());
+            String crmPayIds = String.join(StrUtil.COMMA, crmPayIdList);
+            List<Map<String, Object>> crmPayMations = iCrmPaymentCollectionService.queryPaymentCollectionById(crmPayIds);
+            Map<String,Map<String, Object>> crmPayMap = crmPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            // 设置信息
+            for (Map<String, Object> item : beans) {
+                if(CorrespondentEnterEnum.CUSTOM.getKey().equals(item.get("objectKey").toString())){
+                    item.put("objectMation", customerMap.get(item.get("objectId").toString()));
+                    item.put("contractMation", crmContractMap.get(item.get("contractId").toString()));
+                    item.put("fromMation", crmPayMap.get(item.get("fromId").toString()));
+                }
+            }
+        }
     }
+
 
     @Override
     public List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId) {
@@ -130,19 +178,6 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         return format.format(m);
     }
 
-    private List<ReceivePayment> setInfo(List<ReceivePayment> list) {
-        return list;
-    }
-
-    private List<ReceivePayment> setInfo(List<Map<String, Object>> map, List<ReceivePayment> list) {
-        Map<String, Map<String, Object>> paymentMap = map.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
-        List<ReceivePayment> beans = list.stream().map(item -> {
-            item.setFromMation(paymentMap.getOrDefault(item.getFromId(), new HashMap<>()));
-            item.setName(item.getOddNumber());
-            return item;
-        }).collect(Collectors.toList());
-        return beans;
-    }
 
     @Override
     public void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject) {
@@ -155,7 +190,9 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getContractId), contractId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getState), FlowableStateEnum.PASS.getKey());
         List<ReceivePayment> list = list(queryWrapper);
-        List<ReceivePayment> beans = setInfo(list);
+        // 转为List<Map<String, Object>>
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list),null);
+        setMationForMaps(beans);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }

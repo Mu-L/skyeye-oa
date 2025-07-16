@@ -6,21 +6,24 @@ package com.skyeye.reimbursement.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.feeapplication.entity.FeeApplication;
+import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.reimbursement.dao.ReimbursementChildDao;
+import com.skyeye.reimbursement.entity.Reimbursement;
 import com.skyeye.reimbursement.entity.ReimbursementChild;
 import com.skyeye.reimbursement.service.ReimbursementChildService;
-import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,9 @@ import java.util.stream.Collectors;
 @Service
 public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<ReimbursementChildDao, ReimbursementChild> implements ReimbursementChildService {
 
+    @Autowired
+    private IDepmentService iDepmentService;
+
     @Override
     public String calcOrderAllTotalPrice(List<ReimbursementChild> orderItemList) {
         String totalPrice = "0";
@@ -46,56 +52,51 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
     }
 
     @Override
-    public void queryReimbursementAnalysis(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String year = params.get("year").toString();
-        String month = (String) params.get("month");
-        if (StrUtil.isNotEmpty(month)){
-            int yearInt = Integer.parseInt(year);
-            int monthInt = Integer.parseInt(month);
-            String startPeriod=year + StrUtil.DASHED + month;
-            String endPeriod = year + StrUtil.DASHED + month;
-            if (monthInt == CommonNumConstants.NUM_ONE) {
-                // 如果是1月，则上期是去年12月
-                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
-                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
-            }
-            List<Map<String, Object>> result = getBeans(startPeriod, endPeriod);
-            outputObject.setBeans(result);
-        }else {
-            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
-            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
-            List<Map<String, Object>> result = getBeans(startPeriod, endPeriod);
-            outputObject.setBeans(result);
-        }
-    }
+    @IgnoreTenant
+    public List<Map<String, Object>> queryReimbursementAnalysis(String startPeriod, String endPeriod) {
+        MPJLambdaWrapper<ReimbursementChild> wrapper = JoinWrappers.lambda("t",ReimbursementChild.class)
+                .innerJoin(Reimbursement.class, "i", Reimbursement::getId, ReimbursementChild::getParentId)
+                .selectAs(Reimbursement::getDepartmentId,ReimbursementChild::getDepartmentId)
+                .selectAll(ReimbursementChild.class);
+        wrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') >= {0}", startPeriod);
+        wrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') <= {0}", endPeriod);
 
-    private  List<Map<String, Object>> getBeans(String startPeriod, String endPeriod) {
-        QueryWrapper<ReimbursementChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') >= {0}", startPeriod)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') <= {0}", endPeriod);
-        List<ReimbursementChild> bean = list(queryWrapper);
+        if(tenantEnable){
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq("t." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("i." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        List<ReimbursementChild> bean = skyeyeBaseMapper.selectJoinList(ReimbursementChild.class,wrapper);
         List<Map<String, Object>> result = new ArrayList<>();
         if(CollectionUtil.isEmpty(bean)){
             return result;
         }
         iSysDictDataService.setDataMation(bean, ReimbursementChild::getReimburseProId);
-        // 按reimburseProId分组
-        Map<String, List<ReimbursementChild>> map = bean.stream().collect(Collectors.groupingBy(ReimbursementChild::getReimburseProId));
-        //求占比
-        for (Map.Entry<String, List<ReimbursementChild>> entry : map.entrySet()) {
-            String reimburseProName = entry.getValue().get(CommonNumConstants.NUM_ZERO).getReimburseProMation().get("dictName").toString();
-            String price = "0";
-            for (ReimbursementChild reimbursementChild : entry.getValue()) {
-                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                        StrUtil.isEmpty(reimbursementChild.getPrice()) ? "0" : reimbursementChild.getPrice(),
-                        price);
+        //根据部门id分组
+        Map<String, List<ReimbursementChild>> departMap = bean.stream().collect(Collectors.groupingBy(ReimbursementChild::getDepartmentId));
+        for (Map.Entry<String, List<ReimbursementChild>> entry : departMap.entrySet()) {
+            //根据报销项目id分组
+            Map<String, List<ReimbursementChild>> map = entry.getValue().stream().collect(Collectors.groupingBy(ReimbursementChild::getReimburseProId));
+            Map<String,Object> tempMap = new HashMap<>();
+            List<Map<String, Object>> temp = new ArrayList<>();
+            for (Map.Entry<String, List<ReimbursementChild>> childEntry : map.entrySet()) {
+                String reimburseProName = childEntry.getValue().get(CommonNumConstants.NUM_ZERO).getReimburseProMation().get("dictName").toString();
+                String price = "0";
+                for (ReimbursementChild reimbursementChild : childEntry.getValue()) {
+                    price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                            StrUtil.isEmpty(reimbursementChild.getPrice()) ? "0" : reimbursementChild.getPrice(),
+                            price);
+                }
+                Map<String, Object> deptInfo = new HashMap<>();
+                deptInfo.put("name", reimburseProName);
+                deptInfo.put("price", price);
+                temp.add(deptInfo);
             }
-            Map<String, Object> deptInfo = new HashMap<>();
-            deptInfo.put("name", reimburseProName);
-            deptInfo.put("price", price);
-            result.add(deptInfo);
+            tempMap.put("departmentId", entry.getKey());
+            tempMap.put("childList", temp);
+            result.add(tempMap);
         }
+        iDepmentService.setMationForMap(result,"departmentId","departmentMation");
         return result;
     }
 

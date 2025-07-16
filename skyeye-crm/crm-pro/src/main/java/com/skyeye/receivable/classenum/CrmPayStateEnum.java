@@ -18,13 +18,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum CrmPayStateEnum implements SkyeyeEnumClass {
 
-    PAY_STATE(0, "未回款", true, true),
-    PART_PAY_STATE(1, "部分回款", true, false),
-    PAID_STATE(2, "已回款", true, false);
+    PAY_STATE(0, "未回款", "red",true, true),
+    PART_PAY_STATE(1, "部分回款", "blue",true, false),
+    PAID_STATE(2, "已回款","green", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

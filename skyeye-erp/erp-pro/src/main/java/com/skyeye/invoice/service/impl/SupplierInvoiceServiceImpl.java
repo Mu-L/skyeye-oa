@@ -132,6 +132,9 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         paymentService.setDataMation(bean, SupplierInvoice::getPaymentCollectionId);
         // 发票抬头
         supplierInvoiceHeaderService.setDataMation(bean, SupplierInvoice::getInvoiceHeaderId);
+        bean.forEach(item -> {
+            item.setServiceClassName(getServiceClassName());
+        });
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }

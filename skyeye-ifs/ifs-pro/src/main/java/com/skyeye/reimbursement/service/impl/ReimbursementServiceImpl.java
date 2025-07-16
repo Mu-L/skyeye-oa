@@ -8,20 +8,24 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.reimbursement.dao.ReimbursementDao;
 import com.skyeye.reimbursement.entity.Reimbursement;
 import com.skyeye.reimbursement.entity.ReimbursementChild;
 import com.skyeye.reimbursement.service.ReimbursementChildService;
 import com.skyeye.reimbursement.service.ReimbursementService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ReimbursementServiceImpl
@@ -38,6 +42,8 @@ public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<Reimburs
     @Autowired
     private ReimbursementChildService reimbursementChildService;
 
+    @Autowired
+    private IDepmentService iDepmentService;
     @Override
     public QueryWrapper<Reimbursement> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Reimbursement> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -46,6 +52,13 @@ public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<Reimburs
             queryWrapper.eq(MybatisPlusUtil.toColumns(Reimbursement::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         }
         return queryWrapper;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
+        return beans;
     }
 
     @Override
@@ -105,6 +118,26 @@ public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<Reimburs
 
     @Override
     public void queryCostAnalysis(InputObject inputObject, OutputObject outputObject) {
-        reimbursementChildService.queryReimbursementAnalysis(inputObject, outputObject);
+        Map<String, Object> params = inputObject.getParams();
+        String year = params.get("year").toString();
+        String month = (String) params.get("month");
+        if (StrUtil.isNotEmpty(month)){
+            int yearInt = Integer.parseInt(year);
+            int monthInt = Integer.parseInt(month);
+            String startPeriod=year + StrUtil.DASHED + month;
+            String endPeriod = year + StrUtil.DASHED + month;
+            if (monthInt == CommonNumConstants.NUM_ONE) {
+                // 如果是1月，则上期是去年12月
+                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+            }
+            List<Map<String, Object>> result =reimbursementChildService.queryReimbursementAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        }else {
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
+            List<Map<String, Object>> result =reimbursementChildService.queryReimbursementAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        }
     }
 }

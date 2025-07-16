@@ -1,13 +1,14 @@
 package com.skyeye.receivepayment.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
-import com.skyeye.common.entity.features.SkyeyeFlowable;
 import lombok.Data;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.Map;
 
@@ -33,7 +34,7 @@ public class ReceivePayment extends CommonInfo {
     private String name;
 
     @TableField("odd_number")
-    @Property("单据编号")
+    @ApiModelProperty("单据编号")
     private String oddNumber;
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
@@ -42,7 +43,7 @@ public class ReceivePayment extends CommonInfo {
 
     @TableField(exist = false)
     @Property("客户/供应商信息")
-    private Map<String,Object> objectMation;
+    private Map<String, Object> objectMation;
 
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据的key", required = "required")
@@ -85,15 +86,15 @@ public class ReceivePayment extends CommonInfo {
     private Map<String, Object> fromChildMation;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#FlowableStateEnum")
+    @ApiModelProperty(value = "状态，参考#FlowableStateEnum")
     private String state;
 
     @TableField("collection_time")
     @ApiModelProperty(value = "回/付款日期")
     private String collectionTime;
 
-    @Property("创建人id")
     @TableField(value = "create_id")
+    @ApiModelProperty("创建人id")
     private String createId;
 
     @Property("创建人姓名")
@@ -104,12 +105,12 @@ public class ReceivePayment extends CommonInfo {
     @Property(value = "创建人信息")
     private Map<String, Object> createMation;
 
-    @Property("创建时间")
     @TableField(value = "create_time")
+    @ApiModelProperty("创建时间")
     private String createTime;
 
-    @Property("最后更新人id")
     @TableField(value = "last_update_id")
+    @ApiModelProperty("最后更新人id")
     private String lastUpdateId;
 
     @Property("最后更新人姓名")
@@ -120,7 +121,7 @@ public class ReceivePayment extends CommonInfo {
     @Property(value = "最后更新人信息")
     private Map<String, Object> lastUpdateMation;
 
-    @Property("最后更新日期")
     @TableField(value = "last_update_time")
+    @ApiModelProperty("最后更新日期")
     private String lastUpdateTime;
 }
