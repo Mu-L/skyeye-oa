@@ -12,7 +12,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.CheckDayType;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.eve.schedule.classenum.ScheduleImported;
+import com.skyeye.eve.schedule.classenum.ScheduleRemindType;
 import lombok.Data;
 
 /**
@@ -41,7 +44,7 @@ public class ScheduleDay extends OperatorUserInfo {
     private String remark;
 
     @TableField(value = "all_day", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "是否全天，参考#WhetherEnum", required = "required,num")
+    @ApiModelProperty(value = "是否全天", enumClass = WhetherEnum.class, required = "required,num")
     private Integer allDay;
 
     @TableField("start_time")
@@ -53,7 +56,7 @@ public class ScheduleDay extends OperatorUserInfo {
     private String endTime;
 
     @TableField(value = "remind_type")
-    @ApiModelProperty(value = "提醒时间所属类型，参考#ScheduleRemindType", required = "required,num")
+    @ApiModelProperty(value = "提醒时间所属类型", enumClass = ScheduleRemindType.class, required = "required,num")
     private Integer remindType;
 
     @TableField("remind_time")
@@ -61,7 +64,7 @@ public class ScheduleDay extends OperatorUserInfo {
     private String remindTime;
 
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "日程类型，参考#CheckDayType", required = "required,num")
+    @ApiModelProperty(value = "日程类型", enumClass = CheckDayType.class, required = "required,num")
     private Integer type;
 
     @TableField(exist = false)

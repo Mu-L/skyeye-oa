@@ -213,7 +213,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrap -> {
             wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getParentId), "")
+                .eq(MybatisPlusUtil.toColumns(OrderComment::getParentId), StrUtil.EMPTY)
                 .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
                 .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
         }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
