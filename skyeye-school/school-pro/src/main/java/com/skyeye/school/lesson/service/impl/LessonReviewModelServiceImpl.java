@@ -113,15 +113,13 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     }
 
     @Override
-    public void createPrepose(LessonReviewModel entity) {
-        // 新增之前&&校验之后的前置执行事件
-    }
-
-    @Override
     protected void createPostpose(LessonReviewModel entity, String userId) {
         // 1. 新增LessonReviewType
         List<LessonReviewType> reviewTypeList = entity.getLessonReviewTypeList();
         if (ObjectUtil.isNotEmpty(reviewTypeList)) {
+            for (LessonReviewType reviewType:reviewTypeList){
+                reviewType.setModelId(entity.getId());
+            }
             lessonReviewTypeService.createEntity(reviewTypeList, userId);
         }
 
@@ -133,14 +131,6 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
             }
             lecturesAttenanceRecoredService.createEntity(attenanceRecoredList, userId);
         }
-
-
-        // 3. 新增LecturesAttenanceRecoredChild
-//        List<LecturesAttenanceRecoredChild> attenanceRecoredChildList = entity.getLecturesAttenanceRecoredChildList();
-//        if (ObjectUtil.isNotEmpty(attenanceRecoredChildList)) {
-//            lecturesAttenanceRecoredChildService.createEntity(attenanceRecoredChildList, userId);
-//        }
-
     }
 
     @Override
