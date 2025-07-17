@@ -111,7 +111,7 @@ public class OrderController {
         orderService.generatePayOrderRrCode(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateOrderToPayState", value = "完成支付", method = "POST", allUse = "2")
+    @ApiOperation(id = "updateOrderToPayState", value = "完成支付", method = "POST", allUse = "1")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/OrderController/updateOrderToPayState")
