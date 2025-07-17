@@ -141,8 +141,8 @@ public class NoticeServiceImpl extends SkyeyeBusinessServiceImpl<NoticeDao, Noti
 
         if (entity.getSendType().equals(WhetherEnum.ENABLE_USING.getKey())) {
             // 群发所有人
-            List<String> userIds = userInfoList.stream().map(bean -> bean.get("userId").toString())
-                .collect(Collectors.toList());
+            List<String> userIds = userInfoList.stream().map(bean -> bean.getOrDefault("userId", StrUtil.EMPTY).toString())
+                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
             noticeUserService.saveNoticeUser(entity.getId(), userIds);
         } else {
             // 群发指定人
