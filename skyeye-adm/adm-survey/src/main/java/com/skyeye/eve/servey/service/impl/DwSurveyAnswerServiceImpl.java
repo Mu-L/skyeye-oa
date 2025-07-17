@@ -110,10 +110,6 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         if (StrUtil.isNotEmpty(endAnDate)) {
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
         }
-        if (entity.getHandleState().equals(CommonNumConstants.NUM_ONE) && entity.getState().equals(CommonNumConstants.NUM_TWO)) {
-            Integer fraction = selectFractionBySurveyId(entity.getSurveyId());
-            entity.setMarkFraction(fraction);
-        }
     }
 
     @Override

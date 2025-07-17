@@ -72,6 +72,9 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
     @Autowired
     protected SupplierService supplierService;
 
+    @Autowired
+    private ErpDepotService erpDepotService;
+
     @Override
     public QueryWrapper<ProductLeadOutStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductLeadOutStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -159,8 +162,6 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
         );
         entity.setOtherState(DepotOutState.NEED_OUT.getKey());
     }
-    @Autowired
-    private ErpDepotService erpDepotService;
 
     @Override
     public ProductLeadOutStock selectById(String id) {

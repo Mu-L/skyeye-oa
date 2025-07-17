@@ -20,6 +20,7 @@ import com.skyeye.machinprocedure.service.MachinProcedureService;
 import com.skyeye.piecework.dao.PieceworkSystemDao;
 import com.skyeye.piecework.entity.PieceworkSystem;
 import com.skyeye.piecework.service.PieceworkSystemService;
+import com.skyeye.rest.checkwork.checkwork.ICheckWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +29,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,12 +52,30 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
     @Autowired
     private MachinProcedureFarmService machinProcedureFarmService;
 
+    @Autowired
+    private ICheckWorkService iCheckWorkService;
+
     @Override
     public void writePieceworkSystem(InputObject inputObject, OutputObject outputObject) {
         // 获取用户Id
         String staffId = inputObject.getLogParams().get("staffId").toString();
         // 获取用户信息
         Map<String, Object> staffMation = iAuthUserService.queryDataMationById(staffId);
+        // 小时工
+        if (staffMation.get("workstationType").equals(CommonNumConstants.NUM_TWO)) {
+            // 获取小时工的一小时单价
+            String hourlyPrice = staffMation.get("hourlyPrice").toString();
+            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(Collections.singletonList(staffId));
+            // 获取当前月
+
+//            List<Map<String, Object>> checkWorkInfo = iCheckWorkService.queryInfoByStaffIdsAndDates(
+//                Joiner.on(CommonCharConstants.COMMA_MARK).join(Collections.singletonList(staffId)), Joiner.on(CommonCharConstants.COMMA_MARK).join(betweenDates));
+//            Map<String, List<String>> workHourListMap = checkWorkInfo.stream()
+//                .collect(Collectors.groupingBy(m -> m.get("createId").toString(), Collectors.mapping(m -> m.get("workHours").toString(), Collectors.toList())));
+
+
+        }
+
         // 计件工
         if (staffMation.get("workstationType").equals(CommonNumConstants.NUM_THREE)) {
             // 获取车间Id和计件价格
