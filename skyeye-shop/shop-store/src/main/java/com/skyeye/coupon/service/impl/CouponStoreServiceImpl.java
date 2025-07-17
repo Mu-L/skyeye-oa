@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "门店与优惠券关联表信息管理", groupName = "门店与优惠券关联表信息管理")
@@ -20,9 +21,12 @@ public class CouponStoreServiceImpl extends SkyeyeBusinessServiceImpl<CouponStor
 
     @Override
     public void createEntity(String couponId, List<String> storeIdList) {
-        QueryWrapper<CouponStore> queryWrapper = new QueryWrapper<>();
-        List<CouponStore> list = list(queryWrapper);
-        for (String s : storeIdList) {
+        List<String> insertList = storeIdList.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(insertList)) {
+            return;
+        }
+        List<CouponStore> list = new ArrayList<>();
+        for (String s : insertList) {
             CouponStore couponStore = new CouponStore();
             couponStore.setStoreId(s);
             couponStore.setCouponId(couponId);
