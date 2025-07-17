@@ -38,6 +38,7 @@ import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -90,9 +91,13 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
     @Override
     public void validatorEntity(SupplierInvoice entity) {
         super.validatorEntity(entity);
-        // 校验开票日期不能大于当前日期
-        String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
-        if (DateUtil.compareTime(pointTime, entity.getInvoicTime(), DateUtil.YYYY_MM_DD)) {
+        // 校验开票日期不能大于当前日期但是包含今天
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, CommonNumConstants.NUM_ONE); // 加一天
+        Date tomorrow = calendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.YYYY_MM_DD);
+        String tomorrowStr = sdf.format(tomorrow);
+        if (DateUtil.compareTime(tomorrowStr, entity.getInvoicTime(), DateUtil.YYYY_MM_DD)) {
             throw new CustomException("开票日期不能大于当前日期");
         }
     }

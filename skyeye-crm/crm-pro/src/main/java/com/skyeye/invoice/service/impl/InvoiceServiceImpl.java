@@ -17,9 +17,11 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.contract.service.CrmContractService;
 import com.skyeye.eve.service.IAreaService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.invoice.classenum.CrmInvoiceAuthEnum;
 import com.skyeye.invoice.dao.InvoiceDao;
 import com.skyeye.invoice.entity.Invoice;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,6 +70,19 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
         return Arrays.asList(CrmInvoiceAuthEnum.ADD.getKey(), CrmInvoiceAuthEnum.EDIT.getKey(), CrmInvoiceAuthEnum.DELETE.getKey(),
                 CrmInvoiceAuthEnum.REVOKE.getKey(), CrmInvoiceAuthEnum.SUBMIT_TO_APPROVAL.getKey(),
                 CrmInvoiceAuthEnum.LIST.getKey());
+    }
+
+    @Override
+    public void validatorEntity(Invoice entity) {
+        super.validatorEntity(entity);
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, CommonNumConstants.NUM_ONE); // 加一天
+        Date tomorrow = calendar.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat(DateUtil.YYYY_MM_DD);
+        String tomorrowStr = sdf.format(tomorrow);
+        if (DateUtil.compareTime(tomorrowStr, entity.getInvoicTime(), DateUtil.YYYY_MM_DD)) {
+            throw new CustomException("开票日期不能大于当前日期");
+        }
     }
 
     @Override
@@ -157,8 +173,8 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
     private List<Map<String, Object>> getBeans(String startPeriod, String endPeriod) {
         QueryWrapper<Invoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Invoice::getState), FlowableStateEnum.PASS.getKey());
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getInvoicTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(Invoice::getInvoicTime) + ", '%Y-%m') <= {0}", endPeriod);
         List<Invoice> bean = list(queryWrapper);
         List<Map<String, Object>> beans = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(bean)) {

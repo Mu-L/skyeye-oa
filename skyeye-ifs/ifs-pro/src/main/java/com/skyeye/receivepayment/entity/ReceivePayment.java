@@ -34,7 +34,7 @@ public class ReceivePayment extends CommonInfo {
     private String name;
 
     @TableField("odd_number")
-    @ApiModelProperty("单据编号")
+    @ApiModelProperty(value = "单据编号",fuzzyLike = true)
     private String oddNumber;
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)
