@@ -613,22 +613,6 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     }
 
     @Override
-    public void updateOrderItemState(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String orderId = map.get("id").toString();
-        String orderItemId = map.get("orderItemId").toString();
-        orderItemService.UpdateOrderItemState(orderItemId);
-        List<OrderItem> orderItemList = orderItemService.queryOrderItemByParentId(orderId);
-        boolean allTwo = orderItemList.stream().map(OrderItem::getOrderItemState)
-                .allMatch(orderItemState -> orderItemState == ShopOrderItemState.FINISHED.getKey());
-        if (allTwo) {
-            updateOrderState(orderId, ShopOrderState.COMPLETED.getKey());
-        } else {
-            updateOrderState(orderId, ShopOrderState.PARTIALLYDONE.getKey());
-        }
-    }
-
-    @Override
     public void updateOrderState(String orderId, Integer partiallydoneKey) {
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
@@ -706,6 +690,18 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         // 确保不为负数
         interpolation = Double.parseDouble(interpolation) < CommonNumConstants.NUM_ZERO ? "0" : interpolation;
         wrapper.set(MybatisPlusUtil.toColumns(Order::getAdjustPrice), interpolation);
+        update(wrapper);
+        refreshCache(id);
+    }
+
+    @Override
+    public void changeSignStateById(String id, Integer state) {
+        if (StrUtil.isEmpty(id)) {
+            return;
+        }
+        UpdateWrapper<Order> wrapper = new UpdateWrapper<>();
+        wrapper.eq(CommonConstants.ID, id);
+        wrapper.set(MybatisPlusUtil.toColumns(Order::getSignState), state);
         update(wrapper);
         refreshCache(id);
     }
