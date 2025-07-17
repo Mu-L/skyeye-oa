@@ -45,4 +45,14 @@ public class OrderItemController {
         orderItemService.changeOrderItemAdjustPrice(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "signOrderItem", value = "签收子单据", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单id", required = "required"),
+            @ApiImplicitParam(id = "num", name = "num", value = "签收数量", required = "required,num")})
+    @RequestMapping("/post/OrderItemController/signOrderItem")
+    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
+        orderItemService.signOrderItem(inputObject, outputObject);
+    }
+
 }

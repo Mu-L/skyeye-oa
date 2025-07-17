@@ -27,6 +27,7 @@ import com.skyeye.order.dao.OrderItemDao;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
+import com.skyeye.order.enums.ItemSignState;
 import com.skyeye.order.enums.OrderCommentType;
 import com.skyeye.order.enums.ShopOrderItemOtherState;
 import com.skyeye.order.enums.ShopOrderState;
@@ -167,18 +168,6 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
-    public void UpdateOrderItemState(String orderItemId) {
-        OrderItem orderItem = selectById(orderItemId);
-        if (orderItem.getOrderItemState() == CommonNumConstants.NUM_TWO) {
-            throw new CustomException("该订单已收货");
-        }
-        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, orderItemId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(OrderItem::getOrderItemState), CommonNumConstants.NUM_TWO);
-        update(updateWrapper);
-    }
-
-    @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<OrderItem> list = JSONUtil.toList(JSONUtil.toJsonStr(beans), OrderItem.class);
@@ -281,5 +270,57 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             interpolation = CalculationUtil.subtract(adjustPrice, oldItem.getAdjustPrice(), CommonNumConstants.NUM_SIX);
         }
         orderService.changeAdjustPriceById(oldItem.getParentId(), interpolation);
+    }
+
+    @Override
+    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String itemId = params.get("id").toString();
+        String orderId = params.get("orderId").toString();
+        Integer num = Integer.parseInt(params.get("num").toString());
+        if (num <= CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("签收数量不可为负数或零");
+        }
+        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), orderId);
+        List<OrderItem> orderItemList = list(updateWrapper);
+        if (CollectionUtil.isEmpty(orderItemList)) {
+            throw new CustomException("该订单不存在");
+        }
+        // 取出要签收的子单
+        OrderItem orderItem = orderItemList.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElse(null);
+        if (ObjectUtil.isEmpty(orderItem)) {
+            throw new CustomException("该订单子单不存在");
+        }
+        String currenUserId = inputObject.getLogParams().get("id").toString();
+        if (!orderItem.getCreateId().equals(currenUserId)) {
+            throw new CustomException("该订单子单不属于当前账号");
+        }
+        // 计算剩余可签收数
+        int remainingNum = orderItem.getDeliverNum() - orderItem.getSignNum() - num;
+        if (remainingNum < CommonNumConstants.NUM_ZERO) {
+            throw new CustomException("该订单子单可签收数量不足" + num);
+        }
+        // 能签收则说明已经有发货数量
+        if (orderItem.getCount() == orderItem.getDeliverNum() && remainingNum == CommonNumConstants.NUM_ZERO) {
+            // 此次签收后，就全部签收了
+            orderItem.setSignState(ItemSignState.ALL_SIGN.getKey());
+            orderItem.setSignNum(orderItem.getCount());
+        } else {
+            // 未全部发货
+            orderItem.setSignState(ItemSignState.PART_SIGN.getKey());
+            orderItem.setSignNum(orderItem.getSignNum() + num);
+        }
+        super.updateEntity(orderItem, currenUserId);
+        // 判断所有子单是否全部签收
+        boolean allMatch = orderItemList.stream().map(item -> {
+            // 如果是当前签收的子单，则返回当前签收状态
+            if (item.getId().equals(itemId)) {
+                return orderItem.getSignState();
+            }
+            return item.getSignState();
+        }).allMatch(signState -> signState == ItemSignState.ALL_SIGN.getKey());
+        // 修改总单签收状态
+        orderService.changeSignStateById(orderId, allMatch ? ItemSignState.ALL_SIGN.getKey() : ItemSignState.PART_SIGN.getKey());
     }
 }

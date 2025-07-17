@@ -109,13 +109,14 @@ public class DwAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<DwAnOrderDao
     }
 
     @Override
-    public Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId) {
+    public Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(orderQuIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnOrder::getQuId), orderQuIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnOrder::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnOrder::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnOrder::getBelongAnswerId), id);
         Map<String, List<DwAnOrder>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnOrder::getQuId));
         return stringListMap;
     }

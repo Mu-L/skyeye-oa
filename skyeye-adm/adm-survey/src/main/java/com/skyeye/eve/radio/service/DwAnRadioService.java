@@ -25,5 +25,5 @@ public interface DwAnRadioService extends SkyeyeBusinessService<DwAnRadio> {
 
     List<DwAnRadio> selectRadioByQuId(String id);
 
-    Map<String, List<DwAnRadio>> selectByQuIdAndStuId(List<String> radioIds, String studentId);
+    Map<String, List<DwAnRadio>> selectByQuIdAndStuId(List<String> radioIds, String studentId, String id);
 }

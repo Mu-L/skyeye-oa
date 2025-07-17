@@ -114,13 +114,14 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
     }
 
     @Override
-    public Map<String, List<DwAnChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+    public Map<String, List<DwAnChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(chenIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), chenIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getBelongAnswerId), id);
         Map<String, List<DwAnChenRadio>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenRadio::getQuId));
         return stringListMap;
     }

@@ -29,5 +29,5 @@ public interface DwAnChenScoreService extends SkyeyeBusinessService<DwAnChenScor
 
     List<DwAnChenScore> slectByQuId(String id);
 
-    Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
+    Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id);
 }

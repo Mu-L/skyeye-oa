@@ -119,13 +119,4 @@ public class OrderController {
         orderService.updateOrderToPayState(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateOrderItemState", value = "修改订单签收状态", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "orderItemId", name = "orderItemId", value = "子单Id", required = "required")})
-    @RequestMapping("/post/OrderController/updateOrderItemState")
-    public void updateOrderItemState(InputObject inputObject, OutputObject outputObject) {
-        orderService.updateOrderItemState(inputObject, outputObject);
-    }
-
 }

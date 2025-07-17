@@ -33,7 +33,7 @@ public interface DwAnCheckboxService extends SkyeyeBusinessService<DwAnCheckbox>
 
     Map<String, List<DwAnCheckbox>> selectByQuId(List<String> id);
 
-    Map<String, List<DwAnCheckbox>> selectByQuIdAndStuId(List<String> cheankboxIds, String studentId);
+    Map<String, List<DwAnCheckbox>> selectByQuIdAndStuId(List<String> cheankboxIds, String studentId, String id);
 }
 
 

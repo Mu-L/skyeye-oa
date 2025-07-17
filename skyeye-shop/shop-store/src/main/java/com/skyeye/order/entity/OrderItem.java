@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.order.enums.ItemSignState;
 import com.skyeye.order.enums.ShopOrderItemOtherState;
 import com.skyeye.order.enums.ShopOrderItemState;
 import lombok.Data;
@@ -82,6 +83,14 @@ public class OrderItem extends OperatorUserInfo {
     @TableField("state")
     @Property(value = "发货状态", enumClass = ShopOrderItemOtherState.class)
     private Integer state;
+
+    @TableField("sign_num")
+    @ApiModelProperty(value = "已经签收的数量")
+    private Integer signNum;
+
+    @TableField("sign_state")
+    @Property(value = "收货状态", enumClass = ItemSignState.class)
+    private Integer signState;
 
     @TableField("comment_state")
     @Property(value = "是否评价", enumClass = WhetherEnum.class)

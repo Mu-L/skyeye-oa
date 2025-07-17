@@ -37,8 +37,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
 
     void setOrderCancle(String orderId);
 
-    void updateOrderItemState(InputObject inputObject, OutputObject outputObject);
-
     void updateOrderState(String orderId, Integer partiallydoneKey);
 
     List<Order> queryOrderList(String orderId);
@@ -50,4 +48,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void updateOrderItemDeliverState(String id, int remainingNum);
 
     void changeAdjustPriceById(String id, String interpolation);
+
+    void changeSignStateById(String id, Integer state);
 }

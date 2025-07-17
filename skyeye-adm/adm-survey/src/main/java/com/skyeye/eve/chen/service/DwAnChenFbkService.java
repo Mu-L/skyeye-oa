@@ -29,7 +29,7 @@ public interface DwAnChenFbkService extends SkyeyeBusinessService<DwAnChenFbk> {
 
     List<DwAnChenFbk> selectByQuId(String id);
 
-    Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
+    Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id);
 }
 
 

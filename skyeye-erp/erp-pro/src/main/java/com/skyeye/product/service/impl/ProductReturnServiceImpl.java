@@ -2,13 +2,11 @@ package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
-import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -17,7 +15,6 @@ import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.depot.service.ErpDepotService;
-import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
@@ -35,10 +32,8 @@ import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
@@ -102,77 +97,15 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         checkForLentOutItems(entity);
     }
 
-    @Autowired
-    private DepotOutService depotOutService;
-
     private void checkForLentOutItems(ProductReturn entity) {
-        String holderId = entity.getHolderId();
-        // 获取客户/供应商借出商品记录
-        List<DepotOut> depotOutList = depotOutService.queryLeadByHolderId(holderId);
-        if (CollectionUtil.isEmpty(depotOutList)) {
-            throw new CustomException("该客户/供应商没有借出记录，无法归还.");
-        }
-
-        // 获取客户/供应商之前申请归还的商品消息
-        List<ProductReturn> alreadyReturnedList = selectByHolderId(holderId);
-
-        // 将借出记录中的商品信息提取出来
-        List<ErpOrderItem> depotOutErpOrderItemList = new ArrayList<>();
-        for (DepotOut depotOut : depotOutList) {
-            depotOutErpOrderItemList.addAll(depotOut.getErpOrderItemList());
-        }
-
-        // 将已归还记录中的商品信息提取出来
-        List<ProductReturnChild> alreadyReturnedErpOrderItemList = new ArrayList<>();
-        for (ProductReturn productReturn : alreadyReturnedList) {
-            alreadyReturnedErpOrderItemList.addAll(productReturn.getErpOrderItemList());
-        }
-        List<ProductReturnChild> currentReturnItemList = entity.getErpOrderItemList();
-        for (ProductReturnChild currentReturnItem : currentReturnItemList) {
-            boolean isMatched = false;
-
-            // 遍历借出记录中的商品
-            for (ErpOrderItem depotOutItem : depotOutErpOrderItemList) {
-                // 检查商品是否匹配
-                if (currentReturnItem.getMaterialId().equals(depotOutItem.getMaterialId()) &&
-                    currentReturnItem.getNormsId().equals(depotOutItem.getNormsId()) &&
-                    currentReturnItem.getOperNumber() <= depotOutItem.getOperNumber() &&
-                    currentReturnItem.getUnitPrice().equals(depotOutItem.getUnitPrice())) {
-                    boolean isAlreadyReturned = false;
-                    for (ProductReturnChild alreadyReturnedItem : alreadyReturnedErpOrderItemList) {
-                        if (currentReturnItem.getMaterialId().equals(alreadyReturnedItem.getMaterialId()) &&
-                            currentReturnItem.getNormsId().equals(alreadyReturnedItem.getNormsId()) &&
-                            currentReturnItem.getUnitPrice().equals(alreadyReturnedItem.getUnitPrice())) {
-                            isAlreadyReturned = true;
-                            break;
-                        }
-                    }
-                    if (!isAlreadyReturned) {
-                        isMatched = true;
-                        break;
-                    }
+        List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
+        erpOrderItemList.forEach(
+            item -> {
+                if (item.getOperNumber() <= 0) {
+                    throw new CustomException("归还数量不能小于等于0");
                 }
             }
-            if (!isMatched) {
-                throw new CustomException("归还的商品与借出商品不匹配，请检查归还的商品信息.");
-            }
-        }
-    }
-
-    private List<ProductReturn> selectByHolderId(String holderId) {
-        QueryWrapper<ProductReturn> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturn::getHolderId), holderId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturn::getState), FlowableStateEnum.REJECT.getKey());
-        List<ProductReturn> list = list(queryWrapper);
-        List<String> returnIds = list.stream().map(ProductReturn::getId).collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(returnIds)) {
-            Map<String, List<ProductReturnChild>> stringListMap = productReturnChildService.selectProductLeadChildByIdList(returnIds)
-                .stream().collect(Collectors.groupingBy(ProductReturnChild::getParentId));
-            list.forEach(
-                productReturn -> productReturn.setErpOrderItemList(stringListMap.get(productReturn.getId()))
-            );
-        }
-        return list;
+        );
     }
 
     private void getTotalPrice(ProductReturn entity) {

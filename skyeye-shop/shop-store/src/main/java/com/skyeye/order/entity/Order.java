@@ -55,6 +55,10 @@ public class Order extends AreaInfo {
     @Property(value = "状态", enumClass = ShopOrderState.class)
     private Integer state;
 
+    @TableField("sign_state")
+    @Property(value = "订单签收状态", enumClass = ShopOrderSignState.class)
+    private Integer signState;
+
     @TableField("count")
     @Property(value = "商品的总数量")
     private Integer count;

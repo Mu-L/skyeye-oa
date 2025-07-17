@@ -5,7 +5,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,5 +31,5 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
 
     DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id);
 
-    DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId);
+    DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId, String id);
 }

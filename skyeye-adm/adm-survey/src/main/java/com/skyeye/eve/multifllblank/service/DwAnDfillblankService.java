@@ -15,5 +15,5 @@ public interface DwAnDfillblankService extends SkyeyeBusinessService<DwAnDfillbl
 
     List<DwAnDfillblank> selectAnDfillblankQuId(String id);
 
-    Map<String, List<DwAnDfillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId);
+    Map<String, List<DwAnDfillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId, String id);
 }
