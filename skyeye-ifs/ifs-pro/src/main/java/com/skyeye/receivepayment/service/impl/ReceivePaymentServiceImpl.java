@@ -47,10 +47,6 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "收付款管理", groupName = "收付款管理")
 public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<ReceivePaymentDao, ReceivePayment> implements ReceivePaymentService {
 
-
-    @Autowired
-    private IContactsService iContactsService;
-
     @Autowired
     private ICrmPaymentCollectionService iCrmPaymentCollectionService;
 
@@ -85,6 +81,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getObjectKey), commonPageInfo.getObjectKey());
         }
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReceivePayment::getCreateTime));
         return queryWrapper;
     }
 

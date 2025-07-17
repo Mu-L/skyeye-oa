@@ -198,6 +198,9 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
         invoiceHeaderService.setDataMation(bean, Invoice::getInvoiceHeaderId);
         iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
         iAuthUserService.setName(bean,"createId","createName");
+        bean.forEach(item -> {
+            item.setServiceClassName(getServiceClassName());
+        });
         outputObject.setBeans(bean);
         outputObject.settotal(page.getTotal());
     }
