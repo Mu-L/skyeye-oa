@@ -15,7 +15,6 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
@@ -24,7 +23,6 @@ import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.entity.QualityInspectionItem;
 import com.skyeye.inspection.service.QualityInspectionService;
 import com.skyeye.material.classenum.MaterialInOrderType;
-import com.skyeye.purchase.classenum.DeliveryPutState;
 import com.skyeye.purchase.classenum.OrderArrivalState;
 import com.skyeye.purchase.classenum.PurchaseDeliveryFromType;
 import com.skyeye.purchase.classenum.PurchaseExchangesFromType;
@@ -95,6 +93,12 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         setOtherMation(entity);
     }
 
+    @Override
+    public void updatePrepose(PurchaseExchange entity) {
+        super.updatePrepose(entity);
+        setOtherMation(entity);
+    }
+
     private static void setOtherMation(PurchaseExchange entity) {
         // 设置质检类型
         Integer qualityInspection = OrderQualityInspectionType.NOT_NEED_QUALITYINS_INS.getKey();
@@ -130,7 +134,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         }
         // 当前采购换货单的商品数量
         Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-                .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+            .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达采购换货单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
@@ -161,7 +165,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = wholeOrderOut.getErpOrderItemList().stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
             // 如果该整单委外单的商品(免检)已经全部退货完成，那说明已经完成了整单委外单的入库内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 wholeOrderOutService.editStateById(wholeOrderOut.getId(), ErpOrderStateEnum.COMPLETED.getKey());
@@ -177,12 +181,12 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
             throw new CustomException("该质检单下未包含商品.");
         }
         List<String> fromNormsIds = qualityInspection.getQualityInspectionItemList().stream()
-                .map(QualityInspectionItem::getNormsId).collect(Collectors.toList());
+            .map(QualityInspectionItem::getNormsId).collect(Collectors.toList());
         super.checkIdFromOrderMaterialNorms(fromNormsIds, inSqlNormsId);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             // 验收换货的商品数量 - 当前单据的商品数量 - 已经换货的商品数量
             Integer surplusNum = ErpOrderUtil.checkOperNumber(qualityInspectionItem.getExchangesNumber(),
-                    qualityInspectionItem.getNormsId(), orderNormsNum, executeNum);
+                qualityInspectionItem.getNormsId(), orderNormsNum, executeNum);
             if (setData) {
                 qualityInspectionItem.setOperNumber(surplusNum);
             }
@@ -190,7 +194,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<QualityInspectionItem> qualityInspectionItemList = qualityInspection.getQualityInspectionItemList().stream()
-                    .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList());
             // 如果该质检单的商品已经退货完成，那说明已经完成了质检单的内容
             if (CollectionUtil.isEmpty(qualityInspectionItemList)) {
                 qualityInspectionService.editExchangesState(qualityInspection.getId(), QualityInspectionExchangesState.COMPLATE_EXCHANGES.getKey());
@@ -215,7 +219,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = purchaseOrder.getErpOrderItemList().stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
             // 如果该采购订单的商品已经退货完成，那说明已经完成了采购订单的内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 purchaseOrderService.editStateById(purchaseOrder.getId(), ErpOrderStateEnum.COMPLETED.getKey());
@@ -242,7 +246,7 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
         super.setOrCheckOperNumber(purchaseExchange.getErpOrderItemList(), true, deliveryNumMap);
         // 过滤掉数量为0的商品信息
         purchaseExchange.setErpOrderItemList(purchaseExchange.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
         outputObject.setBean(purchaseExchange);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

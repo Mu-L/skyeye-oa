@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.material.entity.Material;
@@ -104,7 +105,7 @@ public class ErpOrderItem extends SkyeyeLinkData {
     private Map<String, Object> mTypeMation;
 
     @TableField("quality_inspection")
-    @ApiModelProperty(value = "质检类型，参考#OrderItemQualityInspectionType", required = "num")
+    @ApiModelProperty(value = "质检类型", enumClass = OrderItemQualityInspectionType.class, required = "num")
     private Integer qualityInspection;
 
     @TableField(exist = false)
