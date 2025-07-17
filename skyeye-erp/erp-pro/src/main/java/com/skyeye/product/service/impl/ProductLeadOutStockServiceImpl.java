@@ -20,6 +20,7 @@ import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
+import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
@@ -158,7 +159,8 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
         );
         entity.setOtherState(DepotOutState.NEED_OUT.getKey());
     }
-
+    @Autowired
+    private ErpDepotService erpDepotService;
 
     @Override
     public ProductLeadOutStock selectById(String id) {
@@ -172,6 +174,7 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
         productLeadService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFromId);
         farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
         iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);
+        erpDepotService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getDepotId);
         materialNormsService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getNormsId);
         materialService.setDataMation(productLeadOutStock.getErpOrderItemList(), ErpOrderItem::getMaterialId);
         if (productLeadOutStock.getHolderKey().equals(CorrespondentEnterEnum.CUSTOM.getKey())) {
