@@ -17,11 +17,13 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 
 import com.skyeye.contract.service.SupplierContractService;
 import com.skyeye.eve.service.IAreaService;
 
+import com.skyeye.exception.CustomException;
 import com.skyeye.invoice.classenum.ErpInvoiceAuthEnum;
 import com.skyeye.invoice.dao.SupplierInvoiceDao;
 
@@ -86,9 +88,19 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
     }
 
     @Override
+    public void validatorEntity(SupplierInvoice entity) {
+        super.validatorEntity(entity);
+        // 校验开票日期不能大于当前日期
+        String pointTime = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
+        if (DateUtil.compareTime(pointTime, entity.getInvoicTime(), DateUtil.YYYY_MM_DD)) {
+            throw new CustomException("开票日期不能大于当前日期");
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        supplierService.setMationForMap(beans,"objectId","objectMation");
+        supplierService.setMationForMap(beans, "objectId", "objectMation");
         supplierContractService.setMationForMap(beans, "contractId", "contractMation");
         paymentService.setMationForMap(beans, "paymentCollectionId", "paymentCollectionMation");
         supplierInvoiceHeaderService.setMationForMap(beans, "invoiceHeaderId", "invoiceHeaderMation");
@@ -104,7 +116,7 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         paymentService.setDataMation(invoice, SupplierInvoice::getPaymentCollectionId);
         // 发票抬头
         supplierInvoiceHeaderService.setDataMation(invoice, SupplierInvoice::getInvoiceHeaderId);
-        supplierService.setDataMation(invoice,SupplierInvoice::getObjectId);
+        supplierService.setDataMation(invoice, SupplierInvoice::getObjectId);
         iAreaService.setDataMation(invoice, SupplierInvoice::getProvinceId);
         iAreaService.setDataMation(invoice, SupplierInvoice::getCityId);
         iAreaService.setDataMation(invoice, SupplierInvoice::getAreaId);
@@ -120,7 +132,7 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
 
     @Override
     public void queryAllInvoiceList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo =  inputObject.getParams(CommonPageInfo.class);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierInvoice::getState), FlowableStateEnum.PASS.getKey());
@@ -147,7 +159,7 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         if (StrUtil.isNotEmpty(month)) {
             int yearInt = Integer.parseInt(year);
             int monthInt = Integer.parseInt(month);
-            String startPeriod=year + StrUtil.DASHED + month;
+            String startPeriod = year + StrUtil.DASHED + month;
             String endPeriod = year + StrUtil.DASHED + month;
             if (monthInt == CommonNumConstants.NUM_ONE) {
                 // 如果是1月，则上期是去年12月
@@ -168,8 +180,8 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
     private List<Map<String, Object>> getBeans(String startPeriod, String endPeriod) {
         QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierInvoice::getState), FlowableStateEnum.PASS.getKey());
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(SupplierInvoice::getInvoicTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(SupplierInvoice::getInvoicTime) + ", '%Y-%m') <= {0}", endPeriod);
         List<SupplierInvoice> bean = list(queryWrapper);
         List<Map<String, Object>> beans = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(bean)) {
@@ -193,7 +205,7 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
 
     @Override
     public void queryAllInvoicesLists(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo =  inputObject.getParams(CommonPageInfo.class);
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<SupplierInvoice> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SupplierInvoice::getCreateTime));
@@ -207,8 +219,8 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
         paymentService.setDataMation(bean, SupplierInvoice::getPaymentCollectionId);
         // 发票抬头
         supplierInvoiceHeaderService.setDataMation(bean, SupplierInvoice::getInvoiceHeaderId);
-        iAuthUserService.setName(bean,"lastUpdateId","lastUpdateName");
-        iAuthUserService.setName(bean,"createId","createName");
+        iAuthUserService.setName(bean, "lastUpdateId", "lastUpdateName");
+        iAuthUserService.setName(bean, "createId", "createName");
         bean.forEach(item -> {
             item.setServiceClassName(getServiceClassName());
         });
