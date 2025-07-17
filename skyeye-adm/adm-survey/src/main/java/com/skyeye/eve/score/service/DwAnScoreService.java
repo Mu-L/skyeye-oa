@@ -15,5 +15,5 @@ public interface DwAnScoreService extends SkyeyeBusinessService<DwAnScore> {
 
     void queryDwAnScoreListById(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, List<DwAnScore>> selectByQuIdAndStuId(List<String> scoreIds, String studentId);
+    Map<String, List<DwAnScore>> selectByQuIdAndStuId(List<String> scoreIds, String studentId, String id);
 }

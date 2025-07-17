@@ -13,25 +13,17 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.answer.service.DwAnAnswerService;
-import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
-import com.skyeye.eve.chen.service.*;
-import com.skyeye.eve.enumqu.service.DwAnEnumquService;
-import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
-import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
-import com.skyeye.eve.order.service.DwAnOrderService;
-import com.skyeye.eve.radio.service.DwAnRadioService;
-import com.skyeye.eve.score.service.DwAnScoreService;
 import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
 import com.skyeye.eve.servey.entity.DwSurveyDirectory;
 import com.skyeye.eve.servey.service.DwSurveyAnswerService;
 import com.skyeye.eve.servey.service.DwSurveyDirectoryService;
-import com.skyeye.eve.yesno.service.DwAnYesnoService;
 import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,42 +34,19 @@ import java.util.stream.Collectors;
 public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurveyAnswerDao, DwSurveyAnswer> implements DwSurveyAnswerService {
 
     @Autowired
-    private DwAnRadioService dwAnRadioService;
-    @Autowired
-    private DwAnCheckboxService dwAnCheckboxService;
-    @Autowired
-    private DwAnScoreService dwAnScoreService;
-    @Autowired
-    private DwAnOrderService dwAnOrderService;
-    @Autowired
-    private DwAnChenRadioService dwAnChenRadioService;
-    @Autowired
-    private DwAnChenCheckboxService dwAnChenCheckboxService;
-    @Autowired
-    private DwAnYesnoService dwAnYesnoService;
-    @Autowired
-    private DwAnAnswerService dwAnAnswerService;
-    @Autowired
-    private DwAnChenFbkService dwAnChenFbkService;
-    @Autowired
-    private DwAnChenScoreService dwAnChenScoreService;
-    @Autowired
-    private DwAnCompChenRadioService dwAnCompChenRadioService;
-    @Autowired
-    private DwAnDfillblankService dwAnDfillblankService;
-    @Autowired
-    private DwAnEnumquService dwAnEnumquService;
-    @Autowired
-    private DwAnFillblankService dwAnFillblankService;
-    @Autowired
-    private DwSurveyAnswerService dwSurveyAnswerService;
-    @Autowired
     private DwSurveyDirectoryService dwSurveyDirectoryService;
 
     @Override
     protected void createPrepose(DwSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
+        try {
+            String Ip = InetAddress.getLocalHost().getHostAddress();
+            entity.setIp(Ip);
+        } catch (UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+
         if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
             boolean compare = DateUtil.compare(bgAnDate, endAnDate);
             if (!compare) {
@@ -89,23 +58,6 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
         //  将时间差转换为总小时数（浮点数）
-        String surveyId = entity.getSurveyId();
-        Integer size = dwAnRadioService.selectRadioBySurveyId(surveyId).size();
-        Integer size1 = dwAnScoreService.selectBySurveyId(surveyId).size();
-        Integer size2 = dwAnYesnoService.selectBySurveyId(surveyId).size();
-        Integer size3 = dwAnAnswerService.selectBySurveyId(surveyId).size();
-        Integer size4 = dwAnCheckboxService.slectBySurveyId(surveyId).size();
-        Integer size5 = dwAnChenCheckboxService.selectBySurveyId(surveyId).size();
-        Integer size6 = dwAnChenFbkService.selectBySurveyId(surveyId).size();
-        Integer size7 = dwAnChenRadioService.selectBySurveyId(surveyId).size();
-        Integer size8 = dwAnChenScoreService.selectBySurveyId(surveyId).size();
-        Integer size9 = dwAnCompChenRadioService.selectBySurveyId(surveyId).size();
-        Integer size10 = dwAnDfillblankService.selectBySurveyId(surveyId).size();
-        Integer size11 = dwAnEnumquService.selectBySurveyId(surveyId).size();
-        Integer size12 = dwAnFillblankService.selectBySurveyId(surveyId).size();
-        Integer size13 = dwAnOrderService.selectBySurveyId(surveyId).size();
-        Integer total = size + size1 + size2 + size3 + size4 + size5 + size6 + size7 + size8 + size9 + size10 + size11 + size12 + size13;
-        entity.setCompleteNum(total);
         String endAnDate = entity.getEndAnDate();
         if (StrUtil.isNotEmpty(endAnDate)) {
             entity.setIsComplete(CommonNumConstants.NUM_ONE);
@@ -223,7 +175,7 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         // 获取最新一条记录
         DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerList.get(CommonNumConstants.NUM_ZERO);
         String surveyId = dwSurveyAnswer.getSurveyId();
-        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectDirectoryAndAnswerById(surveyId, userId);
+        DwSurveyDirectory dwSurveyDirectory = dwSurveyDirectoryService.selectDirectoryAndAnswerById(surveyId, userId, dwSurveyAnswer.getId());
         dwSurveyAnswer.setSurveyMation(dwSurveyDirectory);
         outputObject.setBean(dwSurveyAnswer);
         outputObject.settotal(CommonNumConstants.NUM_ONE);

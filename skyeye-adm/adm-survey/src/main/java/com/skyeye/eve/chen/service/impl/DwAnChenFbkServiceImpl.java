@@ -98,13 +98,14 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
     }
 
     @Override
-    public Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+    public Map<String, List<DwAnChenFbk>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(chenIds)){
             return new HashMap<>();
         }
         QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), chenIds);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getCreateId), studentId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongAnswerId), id);
         Map<String, List<DwAnChenFbk>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenFbk::getQuId));
         return stringListMap;
     }

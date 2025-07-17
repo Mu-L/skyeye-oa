@@ -100,13 +100,14 @@ public class DwAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnScoreDao
     }
 
     @Override
-    public Map<String, List<DwAnScore>> selectByQuIdAndStuId(List<String> scoreIds, String studentId) {
+    public Map<String, List<DwAnScore>> selectByQuIdAndStuId(List<String> scoreIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(scoreIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnScore::getQuId), scoreIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnScore::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnScore::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnScore::getBelongAnswerId), id);
         Map<String, List<DwAnScore>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnScore::getQuId));
         return stringListMap;
     }

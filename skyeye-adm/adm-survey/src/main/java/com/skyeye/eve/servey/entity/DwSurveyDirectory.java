@@ -172,5 +172,9 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "分页数量")
     private int pageNo;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "是否回答过 1.是  0.否")
+    private Integer isAnswered;
 }
 

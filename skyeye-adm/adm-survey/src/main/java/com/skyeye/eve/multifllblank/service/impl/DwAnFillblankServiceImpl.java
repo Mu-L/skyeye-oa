@@ -9,7 +9,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.multifllblank.dao.DwAnFillblankDao;
-import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import org.springframework.stereotype.Service;
@@ -50,13 +49,14 @@ public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFill
     }
 
     @Override
-    public Map<String, List<DwAnFillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId) {
+    public Map<String, List<DwAnFillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(multifillblankIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnFillblank::getQuId), multifillblankIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnFillblank::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnFillblank::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnFillblank::getBelongAnswerId), id);
         Map<String, List<DwAnFillblank>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnFillblank::getQuId));
         return stringListMap;
     }

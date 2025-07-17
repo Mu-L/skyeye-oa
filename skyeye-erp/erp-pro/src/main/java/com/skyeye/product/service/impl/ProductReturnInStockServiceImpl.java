@@ -78,6 +78,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
     @Override
     public QueryWrapper<ProductReturnInStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductReturnInStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturnInStock::getIdKey), getServiceClassName());
         if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturnInStock::getHolderId), commonPageInfo.getHolderId());
         }
@@ -161,8 +162,6 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         String id1 = productReturnInStock.getId();
         List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.selectByPId(id1);
         productReturnInStock.setErpOrderItemList(erpOrderItemList);
-        productReturnInStock.setErpOrderItemList(productReturnInStock.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
         productReturnService.setDataMation(productReturnInStock, ProductReturnInStock::getFromId);
         farmService.setDataMation(productReturnInStock, ProductReturnInStock::getFarmId);
         iProProjectService.setDataMation(productReturnInStock, ProductReturnInStock::getProjectId);

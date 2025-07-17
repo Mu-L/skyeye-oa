@@ -24,5 +24,5 @@ public interface DwAnOrderService extends SkyeyeBusinessService<DwAnOrder> {
 
     List<DwAnOrder> selectAnOrderByQuId(String id);
 
-    Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId);
+    Map<String, List<DwAnOrder>> selectByQuIdAndStuId(List<String> orderQuIds, String studentId, String id);
 }

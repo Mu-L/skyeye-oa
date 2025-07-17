@@ -267,6 +267,13 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
                 }
                 yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
+                String userId = inputObject.getLogParams().get("id").toString();
+                List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
+                if (CollectionUtil.isNotEmpty(dwSurveyAnswers)) {
+                    dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ONE);
+                } else {
+                    dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ZERO);
+                }
             } else {
                 throw new CustomException("该问卷未发布");
             }
@@ -922,9 +929,9 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
-    public DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId) {
+    public DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId, String id) {
         DwSurveyDirectory dwSurveyDirectory = super.selectById(surveyId);
-        List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, userId);
+        List<DwQuestion> dwQuestions = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, userId, id);
         dwSurveyDirectory.setDwQuestionMation(dwQuestions);
         return dwSurveyDirectory;
     }
@@ -963,7 +970,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     @Override
     public DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id) {
         DwSurveyDirectory bean = super.selectById(surveyId);
-        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, createId);
+        List<DwQuestion> questionList = dwQuestionService.QueryQuestionByBelongIdAndStuId(surveyId, createId, id);
         bean.setDwQuestionMation(questionList);
         return bean;
     }

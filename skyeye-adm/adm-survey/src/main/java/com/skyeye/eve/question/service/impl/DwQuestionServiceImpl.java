@@ -536,41 +536,41 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
     }
 
     @Override
-    public List<DwQuestion> QueryQuestionByBelongIdAndStuId(String surveyId, String createId) {
+    public List<DwQuestion> QueryQuestionByBelongIdAndStuId(String surveyId, String createId, String id) {
         QueryWrapper<DwQuestion> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestion::getBelongId), surveyId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(DwQuestion::getOrderById));
         List<DwQuestion> questionList = list(queryWrapper);
-        return getQuestionOptionAndAnswer(createId, questionList);
+        return getQuestionOptionAndAnswer(createId, questionList, id);
     }
 
-    private List<DwQuestion> getQuestionOptionAndAnswer(String studentId, List<DwQuestion> questionList) {
+    private List<DwQuestion> getQuestionOptionAndAnswer(String studentId, List<DwQuestion> questionList, String id) {
         List<DwQuestion> radioList = questionList.stream().filter(question -> question.getQuType().equals(QuType.RADIO.getIndex())).collect(Collectors.toList());
         List<String> radioIds = radioList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuRadio>> radioQuMapList = dwQuRadioService.selectByBelongId(radioIds);
-        Map<String, List<DwAnRadio>> radioAnMapList = dwAnRadioService.selectByQuIdAndStuId(radioIds, studentId);
+        Map<String, List<DwAnRadio>> radioAnMapList = dwAnRadioService.selectByQuIdAndStuId(radioIds, studentId, id);
 
         List<DwQuestion> cheankboxList = questionList.stream().filter(question -> question.getQuType().equals(QuType.CHECKBOX.getIndex())).collect(Collectors.toList());
         List<String> cheankboxIds = cheankboxList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuCheckbox>> chaeckBoxQuMapList = dwQuCheckboxService.selectByBelongId(cheankboxIds);
-        Map<String, List<DwAnCheckbox>> chaeckBoxAnMapList = dwAnCheckboxService.selectByQuIdAndStuId(cheankboxIds, studentId);
+        Map<String, List<DwAnCheckbox>> chaeckBoxAnMapList = dwAnCheckboxService.selectByQuIdAndStuId(cheankboxIds, studentId, id);
 
         List<DwQuestion> scoreList = questionList.stream().filter(question -> question.getQuType().equals(QuType.SCORE.getIndex())).collect(Collectors.toList());
         List<String> scoreIds = scoreList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuScore>> scoreMapList = dwQuScoreService.selectByBelongId(scoreIds);
-        Map<String, List<DwAnScore>> scoreAnMapList = dwAnScoreService.selectByQuIdAndStuId(scoreIds, studentId);
+        Map<String, List<DwAnScore>> scoreAnMapList = dwAnScoreService.selectByQuIdAndStuId(scoreIds, studentId, id);
 
         List<DwQuestion> orderQuList = questionList.stream().filter(question -> question.getQuType().equals(QuType.ORDERQU.getIndex())).collect(Collectors.toList());
         List<String> orderQuIds = orderQuList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuOrderby>> orderQuMapList = dwQuOrderbyService.selectByBelongId(orderQuIds);
-        Map<String, List<DwAnOrder>> orderAnMapList = dwAnOrderService.selectByQuIdAndStuId(orderQuIds, studentId);
+        Map<String, List<DwAnOrder>> orderAnMapList = dwAnOrderService.selectByQuIdAndStuId(orderQuIds, studentId, id);
 
         List<DwQuestion> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex()) ||
             question.getQuType().equals(QuType.FILLBLANK.getIndex())).collect(Collectors.toList());
         List<String> multifillblankIds = multifillblankList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuMultiFillblank>> multifillblankMapList = dwQuMultiFillblankService.selectByBelongId(multifillblankIds);
-        Map<String, List<DwAnDfillblank>> multifillblankAnMapList = dwAnDfillblankService.selectByQuIdAndStuId(multifillblankIds, studentId);
-        Map<String, List<DwAnFillblank>> fillblankAnMapList = dwAnFillblankService.selectByQuIdAndStuId(multifillblankIds, studentId);
+        Map<String, List<DwAnDfillblank>> multifillblankAnMapList = dwAnDfillblankService.selectByQuIdAndStuId(multifillblankIds, studentId, id);
+        Map<String, List<DwAnFillblank>> fillblankAnMapList = dwAnFillblankService.selectByQuIdAndStuId(multifillblankIds, studentId, id);
         List<DwQuestion> chenList = questionList.stream().filter(question ->
             question.getQuType().equals(QuType.CHENRADIO.getIndex()) ||
                 question.getQuType().equals(QuType.CHENFBK.getIndex()) ||
@@ -580,11 +580,11 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
         List<String> chenIds = chenList.stream().map(DwQuestion::getId).collect(Collectors.toList());
         Map<String, List<DwQuChenColumn>> chenColumnMapList = dwQuChenColumnService.selectByBelongId(chenIds);
         Map<String, List<DwQuChenRow>> chenRowMapList = dwQuChenRowService.selectByBelongId(chenIds);
-        Map<String, List<DwAnChenRadio>> chenAnRadio = dwAnChenRadioService.selectByQuIdAndStuId(chenIds, studentId);
-        Map<String, List<DwAnChenFbk>> chenAnFbk = dwAnChenFbkService.selectByQuIdAndStuId(chenIds, studentId);
-        Map<String, List<DwAnChenScore>> chenAnScore = dwAnChenScoreService.selectByQuIdAndStuId(chenIds, studentId);
-        Map<String, List<DwAnCompChenRadio>> compChenAnRadio = dwAnCompChenRadioService.selectByQuIdAndStuId(chenIds, studentId);
-        Map<String, List<DwAnChenCheckbox>> chenAnCheckbox = dwAnChenCheckboxService.selectByQuIdAndStuId(chenIds, studentId);
+        Map<String, List<DwAnChenRadio>> chenAnRadio = dwAnChenRadioService.selectByQuIdAndStuId(chenIds, studentId, id);
+        Map<String, List<DwAnChenFbk>> chenAnFbk = dwAnChenFbkService.selectByQuIdAndStuId(chenIds, studentId, id);
+        Map<String, List<DwAnChenScore>> chenAnScore = dwAnChenScoreService.selectByQuIdAndStuId(chenIds, studentId, id);
+        Map<String, List<DwAnCompChenRadio>> compChenAnRadio = dwAnCompChenRadioService.selectByQuIdAndStuId(chenIds, studentId, id);
+        Map<String, List<DwAnChenCheckbox>> chenAnCheckbox = dwAnChenCheckboxService.selectByQuIdAndStuId(chenIds, studentId, id);
         questionList.forEach(question -> {
             String qid = question.getId();
             int quType = question.getQuType();

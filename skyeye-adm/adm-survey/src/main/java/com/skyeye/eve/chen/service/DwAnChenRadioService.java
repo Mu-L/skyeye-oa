@@ -29,7 +29,7 @@ public interface DwAnChenRadioService extends SkyeyeBusinessService<DwAnChenRadi
 
     List<DwAnChenRadio> selectByQuId(String id);
 
-    Map<String, List<DwAnChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId);
+    Map<String, List<DwAnChenRadio>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id);
 
 }
 

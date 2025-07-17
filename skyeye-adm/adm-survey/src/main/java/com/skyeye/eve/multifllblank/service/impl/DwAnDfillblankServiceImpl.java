@@ -102,13 +102,14 @@ public class DwAnDfillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnDfi
     }
 
     @Override
-    public Map<String, List<DwAnDfillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId) {
+    public Map<String, List<DwAnDfillblank>> selectByQuIdAndStuId(List<String> multifillblankIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(multifillblankIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnDfillblank> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnDfillblank::getQuId), multifillblankIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getBelongAnswerId), id);
         Map<String, List<DwAnDfillblank>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnDfillblank::getQuId));
         return stringListMap;
     }

@@ -110,13 +110,14 @@ public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
     }
 
     @Override
-    public Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId) {
+    public Map<String, List<DwAnChenScore>> selectByQuIdAndStuId(List<String> chenIds, String studentId, String id) {
         if (CollectionUtil.isEmpty(chenIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), chenIds)
-            .eq(MybatisPlusUtil.toColumns(DwAnChenScore::getCreateId), studentId);
+            .eq(MybatisPlusUtil.toColumns(DwAnChenScore::getCreateId), studentId)
+            .eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongAnswerId), id);
         Map<String, List<DwAnChenScore>> stringListMap = list(queryWrapper).stream().collect(Collectors.groupingBy(DwAnChenScore::getQuId));
         return stringListMap;
     }
