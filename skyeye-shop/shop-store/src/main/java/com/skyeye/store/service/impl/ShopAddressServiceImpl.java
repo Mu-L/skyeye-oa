@@ -11,6 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -94,6 +95,7 @@ public class ShopAddressServiceImpl extends SkyeyeBusinessServiceImpl<ShopAddres
     }
 
     @Override
+    @IgnoreTenant
     public ShopAddress selectById(String id) {
         ShopAddress shopAddress = super.selectById(id);
         iAreaService.setDataMation(shopAddress, ShopAddress::getProvinceId);
