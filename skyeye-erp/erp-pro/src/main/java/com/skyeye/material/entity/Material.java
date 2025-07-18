@@ -17,6 +17,7 @@ import com.skyeye.brand.entity.Brand;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.material.classenum.MaterialItemCode;
+import com.skyeye.material.classenum.MaterialShelvesState;
 import com.skyeye.material.entity.unit.MaterialUnit;
 import com.skyeye.material.entity.unit.MaterialUnitGroup;
 import lombok.Data;
@@ -119,7 +120,7 @@ public class Material extends BaseGeneralInfo {
     private Integer isUsed;
 
     @TableField(value = "shelves_state")
-    @Property(value = "上下架状态，参考#MaterialShelvesState")
+    @Property(value = "上下架状态", enumClass = MaterialShelvesState.class)
     private Integer shelvesState;
 
     @TableField(value = "brand_id")
