@@ -105,6 +105,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     private List<OrderItem> setDateForItemLIst(List<OrderItem> list) {
+        // 计算评价信息
         List<String> orderItemIds = list.stream().map(OrderItem::getId).collect(Collectors.toList());
         List<OrderComment> orderCommentList = orderCommentService.queryListByOrderItemIdAndType(orderItemIds, OrderCommentType.CUSTOMERLATER.getKey());
         List<String> commentIdList = orderCommentList.stream().map(OrderComment::getOrderItemId).collect(Collectors.toList());
@@ -115,6 +116,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
                 map.setIsAdditionalReview(false);
             }
         }
+        // 设置门店、规格
         shopStoreService.setDataMation(list, OrderItem::getStoreId);
         iMaterialNormsService.setDataMation(list, OrderItem::getNormsId);
         List<String> materialStoreIds = list.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
