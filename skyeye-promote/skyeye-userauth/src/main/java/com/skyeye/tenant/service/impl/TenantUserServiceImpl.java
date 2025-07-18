@@ -543,6 +543,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         List<Map<String, Object>> beans = tenantUserList.stream()
             .map(tenantUser -> BeanUtil.beanToMap(tenantUser)).collect(Collectors.toList());
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
+        TenantContext.setTenantId(commonPageInfo.getTenantId());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         beans.forEach(bean -> {
             String transferStaffId = bean.get("staffId").toString();

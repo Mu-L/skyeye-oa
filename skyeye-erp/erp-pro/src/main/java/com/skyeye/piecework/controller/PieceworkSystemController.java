@@ -22,7 +22,7 @@ public class PieceworkSystemController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "writePieceworkSystem", value = "新增计件数量或工时统计信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writePieceworkSystem", value = "新增计件数量或工时统计信息", method = "POST", allUse = "2")
     @RequestMapping("/post/PieceworkSystemController/writePieceworkSystem")
     public void writePieceworkSystem(InputObject inputObject, OutputObject outputObject) {
         pieceworkSystemService.writePieceworkSystem(inputObject, outputObject);

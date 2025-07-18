@@ -4,8 +4,10 @@
 
 package com.skyeye.shopmaterial.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -34,11 +36,7 @@ import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -99,10 +97,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             List<String> existStoreIdList = existShopMaterialStoreList.stream().map(ShopMaterialStore::getStoreId).collect(Collectors.toList());
             // 构造新的门店商品数据进行保存
             List<ShopMaterialStore> newList = shopMaterialStoreList.stream().filter(shopMaterialStore -> {
-                if (existStoreIdList.indexOf(shopMaterialStore.getStoreId()) > -1) {
-                    return false;
-                }
-                return true;
+                return !existStoreIdList.contains(shopMaterialStore.getStoreId());
             }).collect(Collectors.toList());
             if (CollectionUtil.isEmpty(newList)) {
                 return;
@@ -211,6 +206,9 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     public void queryShopMaterialById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ShopMaterialStore shopMaterialStore = selectById(id);
+        if (ObjectUtil.isNull(shopMaterialStore) || StrUtil.isBlank(shopMaterialStore.getId())) {
+            throw new CustomException("未查询到该商品信息");
+        }
         ShopMaterial shopMaterial = shopMaterialService.queryShopMaterialByMaterialId(shopMaterialStore.getMaterialId());
         shopMaterial.getMaterialMation().setMaterialNorms(null);
         shopMaterial.getMaterialMation().setUnitGroupMation(null);
@@ -222,6 +220,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         });
         shopMaterial.setShopMaterialStore(shopMaterialStore);
         shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
+        iShopStoreService.setDataMation(shopMaterial, ShopMaterial::getDefaultStoreId);
+
         outputObject.setBean(shopMaterial);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -239,27 +239,31 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
             return;
         }
-        Map<String, ShopMaterialStore> storeMap = shopMaterialStoreList.stream()
-            .collect(Collectors.toMap(ShopMaterialStore::getMaterialId, Function.identity(), (v1, v2) -> v1));
 
         List<String> materialIds = shopMaterialStoreList.stream()
             .map(ShopMaterialStore::getMaterialId).distinct().collect(Collectors.toList());
         Map<String, ShopMaterial> shopMaterialMap = shopMaterialService.queryShopMaterialByMaterialId(materialIds);
-        List<ShopMaterial> shopMaterialList = shopMaterialMap.values().stream().collect(Collectors.toList());
-        shopMaterialList.forEach(shopMaterial -> {
+        List<ShopMaterial> shopMaterialList = new ArrayList<>();
+        shopMaterialStoreList.forEach(shopMaterialStore -> {
+            ShopMaterial shopMaterialBean = shopMaterialMap.get(shopMaterialStore.getMaterialId());
+            if (ObjectUtil.isEmpty(shopMaterialBean)) {
+                return;
+            }
+            ShopMaterial shopMaterial = new ShopMaterial();
+            BeanUtil.copyProperties(shopMaterialBean, shopMaterial);
             shopMaterial.getMaterialMation().setMaterialNorms(null);
             shopMaterial.getMaterialMation().setUnitGroupMation(null);
             shopMaterial.getMaterialMation().setMaterialProcedure(null);
             shopMaterial.getMaterialMation().setNormsSpec(null);
-            if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())){
+            if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())) {
                 shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
                     shopMaterialNorms.setEstimatePurchasePrice(null);
                 });
             }
             // 门店商品数据
-            ShopMaterialStore shopMaterialStore = storeMap.get(shopMaterial.getMaterialId());
             shopMaterial.setShopMaterialStore(shopMaterialStore);
             shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
+            shopMaterialList.add(shopMaterial);
         });
         outputObject.setBeans(shopMaterialList);
         outputObject.settotal(shopMaterialList.size());

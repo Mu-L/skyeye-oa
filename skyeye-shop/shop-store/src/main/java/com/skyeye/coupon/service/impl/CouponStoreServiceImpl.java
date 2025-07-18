@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponStoreDao;
@@ -50,6 +51,7 @@ public class CouponStoreServiceImpl extends SkyeyeBusinessServiceImpl<CouponStor
     }
 
     @Override
+    @IgnoreTenant
     public List<CouponStore> queryListByCouponId(String couponId) {
         if (StrUtil.isEmpty(couponId)){
             return new ArrayList<>();

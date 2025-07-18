@@ -22,6 +22,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.answer.entity.DwAnAnswer;
 import com.skyeye.eve.answer.service.DwAnAnswerService;
+import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
@@ -244,8 +245,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                         DwSurveyAnswer dwSurveyAnswer = dwSurveyAnswerService.querySurveyAnswerByIp(Ip, id);
                         if (ObjUtil.isNotEmpty(dwSurveyAnswer)) {
                             throw new CustomException("此IP只能答一次，您已参加过该问卷");
-                        } else {
-                            yesOrNo = true;
                         }
                         // 密码访问是否正确
                         yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
@@ -261,22 +260,19 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     boolean compare = DateUtil.compare(nowTime, endTime);
                     if (!compare) {
                         throw new CustomException("该问卷已截止");
-                    } else {
-                        yesOrNo = true;
                     }
                     yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
                 }
                 yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
-                String userId = inputObject.getLogParams().get("id").toString();
-                List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
-                if (CollectionUtil.isNotEmpty(dwSurveyAnswers)) {
-                    dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ONE);
-                } else {
-                    dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ZERO);
-                }
-            } else {
-                throw new CustomException("该问卷未发布");
             }
+            String userId = inputObject.getLogParams().get("id").toString();
+            List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
+            if (CollectionUtil.isNotEmpty(dwSurveyAnswers)) {
+                dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ONE);
+            } else {
+                dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ZERO);
+            }
+            yesOrNo = true;
             if (yesOrNo) {
                 outputObject.setBean(dwSurveyDirectory);
             } else {
@@ -293,8 +289,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.querySurveyAnswerNumById(id);
             if (dwSurveyAnswers.size() == dwSurveyDirectory.getEndNum()) {
                 throw new CustomException("该问卷回答人数已达到最大人数");
-            } else {
-                yesOrNo = true;
             }
         }
         return yesOrNo;
@@ -304,9 +298,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (dwSurveyDirectory.getRule().equals(CommonNumConstants.NUM_THREE)) {
             // 获取访问密码
             String ruleCode = map.get("ruleCode").toString();
-            if (dwSurveyDirectory.getRuleCode().equals(ruleCode)) {
-                yesOrNo = true;
-            } else {
+            if (!dwSurveyDirectory.getRuleCode().equals(ruleCode)) {
                 throw new CustomException("访问密码错误");
             }
         }
@@ -585,11 +577,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     public Map<String, Object> getQuestionOptionReportListMation(Map<String, Object> question) {
-        // 获取题目的类型枚举
         Integer quType = Integer.parseInt(question.get("quType").toString());
-        // 获取题目的id
         String id = question.get("id").toString();
-        // 如果是单选题
         if (quType.equals(QuType.RADIO.getIndex())) {
             // 单选题的答案
             List<DwAnRadio> dwAnRadioList = dwAnRadioService.selectRadioByQuId(id);
@@ -629,7 +618,44 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 radio.put("anAllCount", count);
             }
         }
-        // 如果是多项填空题
+        if (quType.equals(QuType.CHECKBOX.getIndex())) {
+            // 多选题的答案
+            List<DwAnCheckbox> dwAnCheckboxes = dwAnCheckboxService.selectAnCheckBoxByQuId(id);
+            // 单选题的选项
+            List<Map<String, Object>> radios = Optional.ofNullable(question.get("checkboxTd"))
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
+            // 进行答案过滤
+            List<DwAnCheckbox> safeDwAnRadioList = Optional.ofNullable(dwAnCheckboxes).orElseGet(Collections::emptyList);
+            // 统计所有答案中的所有选项id出现的次数
+            Map<String, Long> countMap = safeDwAnRadioList.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(
+                    bean -> Objects.toString(bean.getQuItemId(), ""),
+                    Collectors.counting()
+                ));
+            int count = 0;
+            // 先给每个radio设置anCount，并累加总数
+            for (Map<String, Object> radio : radios) {
+                String radioId = radio.get("id").toString();
+                long count1 = 0;
+                if (safeDwAnRadioList != null) {
+                    for (DwAnCheckbox dwAnRadio : safeDwAnRadioList) {
+                        if (dwAnRadio != null && radioId.equals(dwAnRadio.getQuItemId())) {
+                            count1 = countMap.getOrDefault(radioId, 0L);
+                            break;
+                        }
+                    }
+                }
+                radio.put("anCount", count1);
+                count += (int) count1;
+            }
+            // 最后统一设置总次数
+            for (Map<String, Object> radio : radios) {
+                radio.put("anAllCount", count);
+            }
+        }
         if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
             List<DwAnDfillblank> dwAnDfillblankList = dwAnDfillblankService.selectAnDfillblankQuId(id);
             List<Map<String, Object>> checkBoxs = Optional.ofNullable(question.get("multifillblankTd"))
@@ -658,7 +684,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 checkBox.put("anAllCount", totalCount);
             }
         }
-        // 如果是填空题
         if (quType.equals(QuType.FILLBLANK.getIndex())) {
             // 答案
             List<DwAnFillblank> dwAnFillblankList = dwAnFillblankService.selectAnFillblankQuId(id);
@@ -846,7 +871,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
         if (quType.equals(QuType.SCORE.getIndex())) {
             List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
-            List<Map<String, Object>> scores = Optional.ofNullable(question.get("scoreAn"))
+            List<Map<String, Object>> scores = Optional.ofNullable(question.get("scoreTd"))
                 .filter(list -> list instanceof List)
                 .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
