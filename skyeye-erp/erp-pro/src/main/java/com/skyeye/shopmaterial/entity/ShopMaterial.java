@@ -18,6 +18,7 @@ import com.skyeye.material.entity.Material;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ShopMaterial
@@ -88,6 +89,10 @@ public class ShopMaterial extends OperatorUserInfo {
     @TableField(exist = false)
     @Property("默认门店id")
     private String defaultStoreId;
+
+    @TableField(exist = false)
+    @Property("默认门店信息")
+    private Map<String, Object> defaultStoreMation;
 
     @TableField(exist = false)
     @Property("该商品随机支持的门店信息")
