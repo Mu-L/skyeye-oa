@@ -30,6 +30,9 @@ public class OrderItemController {
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
             @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单id", required = "required"),
+            @ApiImplicitParam(id = "deliverNumber", name = "deliverNumber", value = "快递单号(唯一，不重复)", required = "required"),
+            @ApiImplicitParam(id = "deliveryTemplateChargeId", name = "deliveryTemplateChargeId", value = "快递运费模板计费配置表id", required = "required"),
+            @ApiImplicitParam(id = "deliveryCompanyId", name = "deliveryCompanyId", value = "快递公司信息id", required = "required"),
             @ApiImplicitParam(id = "num", name = "num", value = "发货数量", required = "required,num")})
     @RequestMapping("/post/OrderItemController/deliverGoodsById")
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
@@ -44,15 +47,4 @@ public class OrderItemController {
     public void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject) {
         orderItemService.changeOrderItemAdjustPrice(inputObject, outputObject);
     }
-
-    @ApiOperation(id = "signOrderItem", value = "签收子单据", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-            @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单id", required = "required"),
-            @ApiImplicitParam(id = "num", name = "num", value = "签收数量", required = "required,num")})
-    @RequestMapping("/post/OrderItemController/signOrderItem")
-    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
-        orderItemService.signOrderItem(inputObject, outputObject);
-    }
-
 }
