@@ -359,6 +359,9 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         if (entity.getFromTypeId() == DepotOutFromType.SEAL_APPLY.getKey()) {
             // 配件申领单
             fromMation = otherWiseOrderService.selectById(entity.getFromId());
+        } else if (entity.getFromTypeId() == DepotOutFromType.LOANOUT.getKey()) {
+            // 借出出库单
+            fromMation = productLeadOutStockService.selectById(entity.getFromId());
         } else {
             try {
                 Class<?> clazz = Class.forName(fromTypeIdKey);
@@ -371,10 +374,12 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         // 当前出库单的商品数量
         Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
             .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+
         // 获取已经下达出库单的商品信息
         Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         super.checkFromOrderMaterialNorms(fromMation.getErpOrderItemList(), inSqlNormsId);
+
         // 来源单据的商品数量 - 当前单据的商品数量 - 已经出库的商品数量
         super.setOrCheckOperNumber(fromMation.getErpOrderItemList(), setData, orderNormsNum, executeNum);
         if (setData) {
@@ -389,6 +394,14 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
                     return true;
                 } else {
                     otherWiseOrderService.editOtherState(entity.getFromId(), DepotOutState.PARTIAL_OUT.getKey());
+                }
+            } else if (entity.getFromTypeId() == DepotOutFromType.LOANOUT.getKey()) {
+                // 借出出库单
+                if (CollectionUtil.isEmpty(erpOrderItemList)) {
+                    productLeadOutStockService.editOtherState(entity.getFromId(), DepotOutState.COMPLATE_OUT.getKey());
+                    return true;
+                } else {
+                    productLeadOutStockService.editOtherState(entity.getFromId(), DepotOutState.PARTIAL_OUT.getKey());
                 }
             } else {
                 if (CollectionUtil.isEmpty(erpOrderItemList)) {

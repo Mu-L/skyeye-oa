@@ -879,7 +879,7 @@
 //            for (Map<String, Object> radio : radios) {
 //                radio.put("anAllCount", count);
 //            }
-//        } else if (quType.equals(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {//多选 复合多选
+//        } else if (quType.equals3(QuType.CHECKBOX.getActionName()) || quType.equals(QuType.COMPCHECKBOX.getActionName())) {//多选 复合多选
 //            List<Map<String, Object>> beans = dwSurveyDirectoryDao.queryCheckBoxGroupStat(question);
 //            List<Map<String, Object>> checkBoxs = (List<Map<String, Object>>) question.get("questionCheckBox");
 //            int count = 0;
