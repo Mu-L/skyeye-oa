@@ -6,6 +6,7 @@ package com.skyeye.shopmaterial.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -211,6 +212,9 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     public void queryShopMaterialById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         ShopMaterialStore shopMaterialStore = selectById(id);
+        if (ObjectUtil.isNull(shopMaterialStore) || StrUtil.isBlank(shopMaterialStore.getId())) {
+            throw new CustomException("未查询到该商品信息");
+        }
         ShopMaterial shopMaterial = shopMaterialService.queryShopMaterialByMaterialId(shopMaterialStore.getMaterialId());
         shopMaterial.getMaterialMation().setMaterialNorms(null);
         shopMaterial.getMaterialMation().setUnitGroupMation(null);
@@ -222,6 +226,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         });
         shopMaterial.setShopMaterialStore(shopMaterialStore);
         shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
+        iShopStoreService.setDataMation(shopMaterial, ShopMaterial::getDefaultStoreId);
+
         outputObject.setBean(shopMaterial);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -251,7 +257,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             shopMaterial.getMaterialMation().setUnitGroupMation(null);
             shopMaterial.getMaterialMation().setMaterialProcedure(null);
             shopMaterial.getMaterialMation().setNormsSpec(null);
-            if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())){
+            if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())) {
                 shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
                     shopMaterialNorms.setEstimatePurchasePrice(null);
                 });
