@@ -5,10 +5,12 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -19,15 +21,20 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutState;
+import com.skyeye.depot.entity.DepotOutPutRecord;
 import com.skyeye.depot.entity.DepotPut;
+import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
+import com.skyeye.material.classenum.MaterialItemCode;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.dao.ProductReturnInStockDao;
+import com.skyeye.product.entity.ProductReturnChild;
 import com.skyeye.product.entity.ProductReturnInStock;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
@@ -37,8 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,6 +81,9 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
     @Autowired
     private ErpDepotService erpDepotService;
 
+    @Autowired
+    private DepotOutPutRecordService depotOutPutRecordService;
+
     @Override
     public QueryWrapper<ProductReturnInStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProductReturnInStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -103,9 +112,9 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
     protected void createPostpose(ProductReturnInStock entity, String userId) {
         List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
         erpOrderItemList.forEach(
-            erpOrderItem -> {
-                erpOrderItem.setParentId(entity.getId());
-            }
+                erpOrderItem -> {
+                    erpOrderItem.setParentId(entity.getId());
+                }
         );
         if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
             skyeyeErpOrderItemService.createEntity(erpOrderItemList, userId);
@@ -135,14 +144,14 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         beans.forEach(
-            bean -> {
-                String holderKey = bean.get("holderKey").toString();
-                if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
-                    iCustomerService.setMationForMap(bean, "holderId", "holderMation");
-                } else {
-                    supplierService.setMationForMap(bean, "holderId", "holderMation");
+                bean -> {
+                    String holderKey = bean.get("holderKey").toString();
+                    if (StrUtil.equals(holderKey, CorrespondentEnterEnum.CUSTOM.getKey())) {
+                        iCustomerService.setMationForMap(bean, "holderId", "holderMation");
+                    } else {
+                        supplierService.setMationForMap(bean, "holderId", "holderMation");
+                    }
                 }
-            }
         );
         return beans;
     }
@@ -154,6 +163,8 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
             throw new CustomException("该归还入库订单没有商品信息");
         }
         entity.setOtherState(DepotPutState.NEED_PUT.getKey());
+        // 检验归还入库的商品是否被借出
+        depotOutPutRecordService.checkOutPutRecord(entity.getErpOrderItemList(),entity.getHolderId());
     }
 
     @Override

@@ -6,41 +6,29 @@ package com.skyeye.depot.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.github.yulichang.query.MPJQueryWrapper;
-import com.github.yulichang.toolkit.JoinWrappers;
-import com.github.yulichang.toolkit.MPJWrappers;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.annotation.tenant.IgnoreTenant;
-import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.business.service.SkyeyeErpOrderService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonCharConstants;
-import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.depot.classenum.*;
+import com.skyeye.depot.classenum.DepotPutFromType;
+import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.depot.classenum.DepotPutState;
 import com.skyeye.depot.dao.DepotPutDao;
 import com.skyeye.depot.entity.DepotPut;
+import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderHead;
 import com.skyeye.entity.ErpOrderItem;
-import com.skyeye.entity.ErpOrderItemCode;
-import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.holder.classenum.HolderNormsChildState;
 import com.skyeye.holder.service.HolderNormsChildService;
@@ -52,6 +40,7 @@ import com.skyeye.material.classenum.MaterialNormsCodeType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
+import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.other.service.OtherWareHousService;
 import com.skyeye.pick.service.ReturnPutService;
@@ -119,10 +108,10 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
     private MaterialService materialService;
 
     @Autowired
-    private IMaterialNormsService iMaterialNormsService;
+    private MaterialNormsService iMaterialNormsService;
 
     @Autowired
-    private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
+    private DepotOutPutRecordService depotOutPutRecordService;
 
     @Override
     public QueryWrapper<DepotPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -294,6 +283,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
                 || entity.getFromTypeId() == DepotPutFromType.RETAIL_RETURNS.getKey()) {
             // 修改销售退货/零售退货单据的商品状态为退货状态
             holderNormsChildService.editHolderNormsChildState(entity.getHolderId(), normsCodeList, HolderNormsChildState.RETURN_OF_GOODS.getKey());
+        } else if (entity.getFromTypeId() == DepotPutFromType.LOANIN.getKey()) {
+            depotOutPutRecordService.writeOutPutRecord(entity, entity.getFromTypeId());
         }
         // 修改库存信息以及记录客户/供应商/会员关联的商品
         super.depotOutOrPutSuccess(entity.getHolderId(), entity.getHolderKey(), entity.getErpOrderItemList(), DepotPutOutType.PUT.getKey(),
@@ -405,54 +396,4 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         return allNormsCodeList;
     }
 
-    @Override
-    @IgnoreTenant
-    public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
-            throw new CustomException("holderKey不能为空");
-        }
-        if(StrUtil.isEmpty(commonPageInfo.getType())) {
-            throw new CustomException("type不能为空");
-        }
-        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType());
-        List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
-                .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));
-        for (Map.Entry<String, List<ErpOrderItem>> entry : groupByMaterialId.entrySet()) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("objectId", entry.getValue().get(CommonNumConstants.NUM_ZERO).getParentId());
-            map.put("normsId", entry.getValue().get(CommonNumConstants.NUM_ZERO).getNormsId());
-            map.put("materialId", entry.getKey());
-            int totalNum = entry.getValue().stream().mapToInt(ErpOrderItem::getOperNumber).sum();
-            double totalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getAllPrice())).sum();
-            map.put("totalNum", totalNum);
-            map.put("totalPrice", totalPrice);
-            result.add(map);
-        }
-        // 设置商品信息
-        materialService.setMationForMap(result, "materialId", "materialMation");
-        iMaterialNormsService.setMationForMap(result, "normsId", "normsMation");
-        outputObject.settotal(page.getTotal());
-        outputObject.setBeans(result);
-    }
-
-    @Override
-    public void queryOutPutDetailsList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
-            throw new CustomException("单据objectId不能为空");
-        }
-        if(StrUtil.isEmpty(commonPageInfo.getType())){
-            throw new CustomException("单据类型type不能为空");
-        }
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<ErpOrderItemCode> beans = erpOrderItemCodeService.selectByParentId(commonPageInfo.getObjectId());
-        if(CollectionUtil.isEmpty(beans)){
-            return;
-        }
-        outputObject.settotal(page.getTotal());
-        outputObject.setBeans(beans);
-    }
 }
