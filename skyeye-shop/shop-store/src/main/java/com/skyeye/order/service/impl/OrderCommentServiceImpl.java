@@ -13,6 +13,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -28,6 +30,7 @@ import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.meal.entity.MealOrder;
 import com.skyeye.order.dao.OrderCommentDao;
+import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
 import com.skyeye.order.enums.OrderCommentType;
@@ -42,6 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -181,40 +185,6 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         return orderComment;
     }
 
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
-        iMaterialService.setMationForMap(mapList, "materialId", "materialMation");
-        iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
-        memberService.setMationForMap(mapList, "createId", "createMation");
-        shopStoreService.setMationForMap(mapList, "storeId", "storeMation");
-        List<String> orderIdList = mapList.stream().map(map -> map.get("orderId").toString())
-                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
-        Map<String,String> orderOddNumberMap = orderService.queryOrderOddNumber(orderIdList);
-        for (Map<String, Object> map : mapList) {
-            String orderId = map.get("orderId").toString();
-            if (orderOddNumberMap.containsKey(orderId)) {
-                map.put("oddNumber", orderOddNumberMap.get(orderId));
-            }
-        }
-        return mapList;
-    }
-
-    @Override
-    public QueryWrapper<OrderComment> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<OrderComment> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.and(wrap -> {
-            wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
-                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
-        });
-        if (StrUtil.equals(commonPageInfo.getType(), "Store")) {
-            // 门店下的订单
-            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), commonPageInfo.getHolderId());
-        } else if (StrUtil.equals(commonPageInfo.getType(), "All")) {
-            // 所有订单
-        }
-        return queryWrapper;
-    }
-
     @Override
     public void queryOrderCommentPageList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -297,6 +267,48 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         setValue(marchantList);
         setAdditionalReviewAndMerchantReply(listFirst, listLater, marchantList);
         outputObject.setBeans(listFirst);
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryOrderCommentPageListPC(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        MPJLambdaWrapper<OrderComment> mpjLambdaWrapper = JoinWrappers.lambda("oc", OrderComment.class);
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            // keyword作为订单编号的查询条件
+            mpjLambdaWrapper.innerJoin(Order.class, "o", Order::getId, OrderComment::getOrderId)
+                    .like(MybatisPlusUtil.toColumns(Order::getOddNumber), commonPageInfo.getKeyword())
+                    .select(Order::getOddNumber);
+        }
+        // 只查顾客的评价
+        mpjLambdaWrapper.and(wrap -> {
+            String type = "oc."+ MybatisPlusUtil.toColumns(OrderComment::getType);
+            wrap.eq(type, OrderCommentType.CUSTOMERFiRST.getKey())
+                    .or().eq(type, OrderCommentType.CUSTOMERLATER.getKey());
+        });
+        if (StrUtil.equals(commonPageInfo.getType(), "Store")) {
+            // 门店下的订单
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), commonPageInfo.getHolderId());
+        } else if (StrUtil.equals(commonPageInfo.getType(), "All")) {
+            // 所有订单
+        }
+        // 查询OrderComment中的字段
+        mpjLambdaWrapper.select(OrderComment::getId, OrderComment::getParentId
+                , OrderComment::getNormsId, OrderComment::getMaterialId
+                , OrderComment::getStoreId, OrderComment::getOrderId
+                , OrderComment::getOrderItemId, OrderComment::getType
+                , OrderComment::getStart, OrderComment::getIsComment
+                , OrderComment::getContext, OrderComment::getCreateId
+                , OrderComment::getCreateTime, OrderComment::getLastUpdateId, OrderComment::getLastUpdateTime);
+        List<Map<String, Object>> mapList = skyeyeBaseMapper.selectJoinMaps(mpjLambdaWrapper);
+        List<OrderComment> beans = BeanUtil.copyToList(mapList, OrderComment.class);
+        iMaterialService.setDataMation(beans, OrderComment::getMaterialId);
+        iMaterialNormsService.setDataMation(beans, OrderComment::getNormsId);
+        memberService.setDataMation(beans, OrderComment::getCreateId);
+        shopStoreService.setDataMation(beans, OrderComment::getStoreId);
+        outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
