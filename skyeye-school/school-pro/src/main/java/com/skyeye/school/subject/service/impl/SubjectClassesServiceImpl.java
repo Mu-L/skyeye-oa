@@ -7,6 +7,7 @@ package com.skyeye.school.subject.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -48,6 +49,7 @@ import com.skyeye.school.subject.service.SubjectClassesTopService;
 import com.skyeye.school.subject.service.SubjectService;
 import com.skyeye.school.topic.service.TopicService;
 import com.skyeye.school.topiccomment.service.TopicCommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +67,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "科目表与班级表的关系管理", groupName = "科目管理")
 public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<SubjectClassesDao, SubjectClasses> implements SubjectClassesService {
@@ -160,12 +163,16 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     @Override
     public void createPrepose(SubjectClasses entity) {
         Subject subject = subjectService.selectById(entity.getObjectId());
+        log.info("subject is {}", JSONUtil.toJsonStr(subject));
         String imgPath = tPath.replace("images", StrUtil.EMPTY) + subject.getImg();
+        log.info("imgPath is {}", imgPath);
         // 生成加课码编码
         String code = ToolUtil.getFourWord();
+        log.info("code is {}", code);
         entity.setSourceCode(code);
         // 生成二维码
         String content = QRCodeLinkType.getJsonStrByType(QRCodeLinkType.SUBJECT_CLASSES.getKey(), code);
+        log.info("content is {}", content);
         String sourceCodeLogo = QRCodeLogoUtil.encode(content, imgPath, tPath, true, FileConstants.FileUploadPath.SCHOOL_SUBJECT.getType()[0]);
         entity.setSourceCodeLogo(sourceCodeLogo);
         entity.setPeopleNum(CommonNumConstants.NUM_ZERO);
