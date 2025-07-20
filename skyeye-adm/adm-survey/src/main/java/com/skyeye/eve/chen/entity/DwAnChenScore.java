@@ -63,8 +63,6 @@ public class DwAnChenScore extends OperatorUserInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "矩阵题-矩阵多选题信息答案")
     private List<DwAnChenScore> dwChenScoreAn;
-
-
 }
 
 

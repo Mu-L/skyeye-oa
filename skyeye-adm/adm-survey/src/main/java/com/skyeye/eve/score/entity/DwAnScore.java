@@ -58,7 +58,7 @@ public class DwAnScore extends OperatorUserInfo {
     private String quRowId;
 
     @TableField("visibility")
-    @ApiModelProperty(value = "1 是 0非")//是否为空
+    @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
     @TableField(exist = false)

@@ -613,6 +613,14 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 radio.put("anCount", count1);
                 count += (int) count1;
             }
+            // 获取所有回答该题的答卷ID（去重）
+            Set<String> answerIds = safeDwAnRadioList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnRadio::getBelongAnswerId)
+                .collect(Collectors.toSet());
+            int answeredCount = answerIds.size();
+            // 总回答人数
+            question.put("answeredCount", answeredCount);
             // 最后统一设置总次数
             for (Map<String, Object> radio : radios) {
                 radio.put("anAllCount", count);
@@ -628,6 +636,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .orElseGet(Collections::emptyList);
             // 进行答案过滤
             List<DwAnCheckbox> safeDwAnRadioList = Optional.ofNullable(dwAnCheckboxes).orElseGet(Collections::emptyList);
+            long answeredCount = safeDwAnRadioList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnCheckbox::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
             // 统计所有答案中的所有选项id出现的次数
             Map<String, Long> countMap = safeDwAnRadioList.stream()
                 .filter(Objects::nonNull)
@@ -651,6 +665,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 radio.put("anCount", count1);
                 count += (int) count1;
             }
+
             // 最后统一设置总次数
             for (Map<String, Object> radio : radios) {
                 radio.put("anAllCount", count);
@@ -683,6 +698,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             for (Map<String, Object> checkBox : checkBoxs) {
                 checkBox.put("anAllCount", totalCount);
             }
+            long answeredCount = dwAnDfillblankList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnDfillblank::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
         }
         if (quType.equals(QuType.FILLBLANK.getIndex())) {
             // 答案
@@ -696,6 +717,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     blankCount++;
                 }
             }
+            long answeredCount = dwAnFillblankList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnFillblank::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
             question.put("rowContent", emptyCount);
             question.put("optionContent", blankCount);
             question.put("anCount", blankCount);
@@ -711,6 +738,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     blankCount++;
                 }
             }
+            long answeredCount = dwAnAnswerList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnAnswer::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
             question.put("rowContent", emptyCount);
             question.put("optionContent", blankCount);
             question.put("anCount", blankCount);
@@ -724,6 +757,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             } else {
                 question.put("anCount", answerCountMap.size());
             }
+            long answeredCount = dwAnEnumquList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnEnumqu::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
         }
         if (quType.equals(QuType.CHENRADIO.getIndex())) {
             // 矩阵单选题答案
@@ -775,7 +814,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     statBeans.add(m);
                 })
             );
-
+            long answeredCount = beans.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnChenRadio::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
             question.put("anChenRadios", statBeans);
         }
         if (quType.equals(QuType.CHENFBK.getIndex())) {
@@ -820,7 +864,12 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     statBeans.add(m);
                 })
             );
-
+            long answeredCount = beans.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnChenFbk::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
             question.put("anChenFbks", statBeans);
         }
         if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
@@ -863,57 +912,146 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     statBeans.add(m);
                 })
             );
-            question.put("anChenFbks", statBeans);
+            long answeredCount = beans.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnChenCheckbox::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
+            question.put("anChenCheckbox", statBeans);
         }
         if (quType.equals(QuType.CHENSCORE.getIndex())) {
+            /* 1. 取原始答卷数据 */
             List<DwAnChenScore> beans = dwAnChenScoreService.slectByQuId(id);
-            question.put("anChenScore", beans);
+            if (CollectionUtil.isEmpty(beans)) beans = Collections.emptyList();
+            List<Map<String, Object>> rows = Optional.ofNullable(question.get("rowTd"))
+                .filter(List.class::isInstance)
+                .map(List.class::cast)
+                .orElseGet(Collections::emptyList);
+
+            Map<String, Long> rowCountMap = beans.stream()
+                .filter(b -> ObjectUtil.isNotEmpty(b))
+                .collect(Collectors.groupingBy(DwAnChenScore::getQuRowId, Collectors.counting()));
+
+            /* 4. 统计每个 row 的平均分 */
+            Map<String, String> avgScoreMap = beans.stream()
+                .filter(b -> b != null && Objects.equals(b.getVisibility(), 1))
+                .collect(Collectors.groupingBy(
+                    DwAnChenScore::getQuRowId,
+                    Collectors.collectingAndThen(
+                        Collectors.averagingDouble(b -> Double.parseDouble(b.getAnswerScore())),
+                        avg -> String.format("%.2f", avg)
+                    )
+                ));
+            /* 5. 组装结果到 rows */
+            rows.forEach(r -> {
+                String rowId = String.valueOf(r.get("id"));
+                r.put("anCount", rowCountMap.getOrDefault(rowId, 0L));      // 选择人数
+                r.put("meanScore", avgScoreMap.getOrDefault(rowId, "0.00")); // 平均分
+            });
+            long answeredCount = beans.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnChenScore::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
+            question.put("anChenScore", rows);
         }
         if (quType.equals(QuType.SCORE.getIndex())) {
             List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
             List<Map<String, Object>> scores = Optional.ofNullable(question.get("scoreTd"))
-                .filter(list -> list instanceof List)
-                .map(list -> (List<Map<String, Object>>) list)
-                .orElseGet(Collections::emptyList);
-            Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getQuRowId, Collectors.counting()));
-            // 0. 防御空集合
+                .filter(list -> list instanceof List).map(list -> (List<Map<String, Object>>) list).orElseGet(Collections::emptyList);
             if (dwAnScoreList == null) dwAnScoreList = Collections.emptyList();
-
+            Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getId, Collectors.counting()));
+            Integer paramInt02 = Integer.valueOf((String) question.get("paramInt02"));
+            // 选项对应的平均分
+            Map<String, String> averageScoreMap = dwAnScoreList.stream()
+                .collect(Collectors.groupingBy(
+                    DwAnScore::getQuRowId,
+                    Collectors.collectingAndThen(
+                        Collectors.averagingDouble(item -> Double.parseDouble(item.getAnswerScore())),
+                        avg -> String.valueOf(avg)
+                    )
+                ));
             int totalCount = 0;
             for (Map<String, Object> score : scores) {
+                // 选项的id
                 String quRowId = String.valueOf(score.get("id"));
                 // 从 collectMap 里取次数，没有就 0
                 long cnt = collectMap.getOrDefault(quRowId, 0L);
+                // 有多少人选择这个选项
                 score.put("anCount", cnt);
+                String parseScore = averageScoreMap.get("quRowId");
+                // 选项的平均分
+                score.put("meanScore", parseScore);
+                score.put("fullScore", paramInt02);
                 totalCount += cnt;
             }
 
             for (Map<String, Object> score : scores) {
                 score.put("anAllCount", totalCount);
             }
+            long answeredCount = dwAnScoreList.stream()
+                .filter(Objects::nonNull)
+                .map(DwAnScore::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
         }
         if (quType.equals(QuType.ORDERQU.getIndex())) {
-            List<DwAnOrder> dwAnOrderList = dwAnOrderService.selectAnOrderByQuId(id);
-            List<Map<String, Object>> orders = Optional.ofNullable(question.get("orderByTd"))
-                .filter(list -> list instanceof List)
-                .map(list -> (List<Map<String, Object>>) list)
+            List<DwAnOrder> dwAnOrderList = Optional.ofNullable(
+                    dwAnOrderService.selectAnOrderByQuId(id))
                 .orElseGet(Collections::emptyList);
-            Map<String, Long> orderCountMap = dwAnOrderList.stream()
-                .filter(order ->
-                    order.getVisibility() == 1 &&
-                        order.getQuId().equals(id)
-                )
-                .collect(Collectors.groupingBy(
-                    DwAnOrder::getQuRowId,
-                    Collectors.counting()
-                ));
+
+            List<Map<String, Object>> orders = Optional.ofNullable(question.get("orderByTd"))
+                .filter(List.class::isInstance)
+                .map(List.class::cast)
+                .orElseGet(Collections::emptyList);
+
+            /* 1. 回答人数（答卷去重） */
+            long answeredCount = dwAnOrderList.stream()
+                .filter(o -> o != null && Objects.equals(o.getVisibility(), 1))
+                .map(DwAnOrder::getBelongAnswerId)
+                .distinct()
+                .count();
+            question.put("answeredCount", answeredCount);
+
+    /* 2. 计算每个选项：
+          - pickCount   被选次数
+          - rankSum     所有排名的总和
+          - avgRank     平均排名 = rankSum / pickCount
+          - anOrderSum  兼容旧字段：= pickCount（可改）
+     */
+            Map<String, Long> pickCountMap = new HashMap<>();
+            Map<String, Long> rankSumMap = new HashMap<>();
+
+            dwAnOrderList.stream()
+                .filter(o -> o != null && Objects.equals(o.getVisibility(), 1))
+                .forEach(o -> {
+                    String rowId = o.getQuRowId();
+                    long rank = Long.parseLong(o.getOrderyNum());
+                    pickCountMap.merge(rowId, 1L, Long::sum);
+                    rankSumMap.merge(rowId, rank, Long::sum);
+                });
+
             for (Map<String, Object> order : orders) {
-                String rowId = order.get("id").toString();
-                order.put("anOrderSum", orderCountMap.getOrDefault(rowId, 0L));
+                String rowId = String.valueOf(order.get("id"));
+
+                long pickCount = pickCountMap.getOrDefault(rowId, 0L);
+                long rankSum = rankSumMap.getOrDefault(rowId, 0L);
+                double avgRank = pickCount == 0 ? 0.0
+                    : (double) rankSum / pickCount;
+
+                order.put("pickCount", pickCount);               // 被选次数
+                order.put("avgRank", String.format("%.2f", avgRank)); // 平均排名
+                order.put("anOrderSum", pickCount);              // 兼容旧字段
             }
-            orders.sort(Comparator.comparingLong(
-                o -> (long) o.getOrDefault("anOrderSum", 0L)
-            ));
+            orders.sort(
+                Comparator.comparing(
+                    (Map<String, Object> o) -> Long.parseLong(o.getOrDefault("pickCount", "0").toString()),
+                    Comparator.reverseOrder()
+                )
+            );
         }
         return question;
     }

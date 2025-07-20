@@ -55,5 +55,4 @@ public class DwAnRadio extends OperatorUserInfo {
     @ApiModelProperty(value = "1 是 0非")
     private Integer visibility;
 
-
 }

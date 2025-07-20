@@ -112,7 +112,6 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         }
     }
 
-
     @Override
     protected void updatePostpose(ProductReturnInStock entity, String userId) {
         String parentId = entity.getId();
@@ -228,6 +227,14 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         UpdateWrapper<ProductReturnInStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, fromId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturnInStock::getOtherState), IsDefaultEnum.IS_DEFAULT.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void editOtherState(String fromId, Integer key) {
+        UpdateWrapper<ProductReturnInStock> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, fromId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ProductReturnInStock::getOtherState), key);
         update(updateWrapper);
     }
 }
