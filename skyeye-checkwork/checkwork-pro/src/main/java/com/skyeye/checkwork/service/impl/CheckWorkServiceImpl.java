@@ -705,7 +705,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
 
     private void setShouldTime(List<Map<String, Object>> beans, Map<String, Integer> timeWorkDay) {
         for (Map<String, Object> bean : beans) {
-            String[] timsIds = bean.get("timsIds").toString().split(",");
+            String[] timsIds = bean.getOrDefault("timsIds", StrUtil.EMPTY).toString().split(CommonCharConstants.COMMA_MARK);
             // 该员工在指定日期范围内应该上班的天数
             Integer shouldTime = 0;
             for (String timeId : timsIds) {
