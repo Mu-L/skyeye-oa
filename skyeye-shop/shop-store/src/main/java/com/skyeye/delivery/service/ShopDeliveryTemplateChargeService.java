@@ -11,7 +11,7 @@ import com.skyeye.delivery.entity.ShopDeliveryTemplateCharge;
 
 /**
  * @ClassName: StoreTypeController
- * @Description: 快递运费费用模板服务接口层
+ * @Description: 快递运费模板计费配置信息服务接口层
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

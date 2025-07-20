@@ -33,7 +33,7 @@ public class ShopDeliveryTemplateChargeController {
     private ShopDeliveryTemplateChargeService shopDeliveryTemplateChargeService;
 
     /**
-     * 新增/编辑快递运费费用模版信息
+     * 添加/修改快递运费模板计费配置
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -46,7 +46,7 @@ public class ShopDeliveryTemplateChargeController {
     }
 
     /**
-     * 批量删除快递运费费用模版信息
+     * 批量删除快递运费模板计费配置信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -60,7 +60,7 @@ public class ShopDeliveryTemplateChargeController {
     }
 
     /**
-     * 分页查询快递运费费用模版信息
+     * 分页查询快递运费模板计费配置信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -73,7 +73,7 @@ public class ShopDeliveryTemplateChargeController {
     }
 
     /**
-     * 获取已启用的快递运费费用模版信息
+     * 获取全部快递运费模板计费配置信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
@@ -85,7 +85,7 @@ public class ShopDeliveryTemplateChargeController {
     }
 
     /**
-     * 根据id获取快递运费模版信息
+     * 根据id获取快递运费模板计费配置信息
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象

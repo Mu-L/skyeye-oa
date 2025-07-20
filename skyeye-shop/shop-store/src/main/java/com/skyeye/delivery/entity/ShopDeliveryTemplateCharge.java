@@ -15,7 +15,7 @@ import lombok.Data;
 
 /**
  * @ClassName: ShopDeliveryTemplateCharge
- * @Description: 快递公司管理实体类
+ * @Description: 快递运费模板计费配置信息管理
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
