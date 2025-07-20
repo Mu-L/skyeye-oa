@@ -33,12 +33,6 @@ public class MachinProcedureAcceptController {
     @Autowired
     private MachinProcedureAcceptService machinProcedureAcceptService;
 
-    /**
-     * 查询工序验收列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinProcedureAcceptList", value = "查询工序验收列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MachinProcedureAcceptController/queryMachinProcedureAcceptList")
@@ -46,12 +40,6 @@ public class MachinProcedureAcceptController {
         machinProcedureAcceptService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑工序验收
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMachinProcedureAccept", value = "新增/编辑加工单子单据工序验收", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MachinProcedureAccept.class)
     @RequestMapping("/post/MachinProcedureAcceptController/writeMachinProcedureAccept")
@@ -59,12 +47,6 @@ public class MachinProcedureAcceptController {
         machinProcedureAcceptService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除工序验收
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMachinProcedureAcceptById", value = "根据id删除工序验收", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class MachinProcedureAcceptController {
         machinProcedureAcceptService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询工序验收
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinProcedureAcceptById", value = "根据id查询工序验收", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class MachinProcedureAcceptController {
         machinProcedureAcceptService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitMachinProcedureAcceptToApproval", value = "提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/MachinProcedureAcceptController/submitMachinProcedureAcceptToApproval")
@@ -100,12 +70,6 @@ public class MachinProcedureAcceptController {
         machinProcedureAcceptService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 撤销申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeMachinProcedureAccept", value = "撤销申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

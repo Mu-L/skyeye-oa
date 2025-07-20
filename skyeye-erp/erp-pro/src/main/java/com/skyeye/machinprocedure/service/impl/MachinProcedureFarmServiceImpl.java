@@ -185,6 +185,11 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         MachinProcedureFarm machinProcedureFarm = selectById(id);
         if (StrUtil.equals(machinProcedureFarm.getState(), MachinProcedureFarmState.WAIT_EXECUTED.getKey())) {
             // 待执行的车间任务可以进行反接收
+            // 先判断是否有下达过工序验收单
+            Integer num = machinProcedureAcceptService.calcAllNumByMachinProcedureFarmId(id);
+            if (num > 0) {
+                throw new CustomException("该车间任务已有工序验收单，不能进行反接收");
+            }
             editStateById(id, MachinProcedureFarmState.WAIT_RECEIVE.getKey());
         }
     }
