@@ -24,7 +24,7 @@ import lombok.Data;
 @Data
 //@UniqueField
 @TableName(value = "shop_delivery_template_charge")
-@ApiModel("快递公司管理")
+@ApiModel("快递运费模板计费配置信息管理")
 public class ShopDeliveryTemplateCharge extends OperatorUserInfo {
 
     @TableId("id")
