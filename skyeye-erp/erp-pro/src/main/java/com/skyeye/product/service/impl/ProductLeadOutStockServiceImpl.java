@@ -112,6 +112,21 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
         }
     }
 
+    @Override
+    protected void updatePostpose(ProductLeadOutStock entity, String userId) {
+        String parentId = entity.getId();
+        // 删除所有数据
+        skyeyeErpOrderItemService.deleteByPId(parentId);
+        // 拿到前端的数据
+        List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
+        erpOrderItemList.forEach(
+            erpOrderItem -> erpOrderItem.setParentId(parentId)
+        );
+        if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
+            skyeyeErpOrderItemService.createEntity(erpOrderItemList, userId);
+        }
+    }
+
     private void chectErpOrderItem(List<ErpOrderItem> erpOrderItemList) {
         if (CollectionUtil.isEmpty(erpOrderItemList)) {
             throw new CustomException("请最少选择一条产品信息");
@@ -167,12 +182,8 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
     @Override
     public ProductLeadOutStock selectById(String id) {
         ProductLeadOutStock productLeadOutStock = super.selectById(id);
-        String id1 = productLeadOutStock.getId();
-        List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.selectByPId(id1);
+        List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.selectByPId(id);
         productLeadOutStock.setErpOrderItemList(erpOrderItemList);
-        // 过滤掉数量为0的商品信息
-        productLeadOutStock.setErpOrderItemList(productLeadOutStock.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
         productLeadService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFromId);
         farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
         iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);

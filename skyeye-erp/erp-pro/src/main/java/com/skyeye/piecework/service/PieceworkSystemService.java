@@ -9,4 +9,5 @@ public interface PieceworkSystemService extends SkyeyeBusinessService<PieceworkS
 
     void writePieceworkSystem(InputObject inputObject, OutputObject outputObject);
 
+    void queryPieceworkSystemByUserId(InputObject inputObject, OutputObject outputObject);
 }

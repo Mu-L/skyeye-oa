@@ -7,6 +7,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.product.dao.ProductReturnChildDao;
+import com.skyeye.product.entity.ProductLeadChild;
 import com.skyeye.product.entity.ProductReturnChild;
 import com.skyeye.product.service.ProductReturnChildService;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,13 @@ public class ProductReturnChildServiceImpl extends SkyeyeBusinessServiceImpl<Pro
         }
         QueryWrapper<ProductReturnChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ProductReturnChild::getParentId), returnIds);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ProductReturnChild> selectByPId(String id) {
+        QueryWrapper<ProductReturnChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductReturnChild::getParentId), id);
         return list(queryWrapper);
     }
 }

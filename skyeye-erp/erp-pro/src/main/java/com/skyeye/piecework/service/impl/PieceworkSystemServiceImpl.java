@@ -266,6 +266,20 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         }
     }
 
+    @Override
+    public void queryPieceworkSystemByUserId(InputObject inputObject, OutputObject outputObject) {
+        String staffId = inputObject.getLogParams().get("staffId").toString();
+        // 获取用户信息
+        Map<String, Map<String, Object>> map = iAuthUserService.queryUserMationListByStaffIds(Collections.singletonList(staffId));
+        Map<String, Object> staffMation = map.get(staffId);
+        String jobNumber = staffMation.get("jobNumber").toString();
+        QueryWrapper<PieceworkSystem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(PieceworkSystem::getJobNumber), jobNumber);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(PieceworkSystem::getDayMouth));
+        outputObject.setBeans(list(queryWrapper));
+        outputObject.settotal(list(queryWrapper).size());
+    }
+
     private static final String[] DAY_FIELD_NAMES = {
         null, // 占位，使索引从1开始
         "oneDayNum", "twoDayNum", "threeDayNum", "fourDayNum", "fiveDayNum",

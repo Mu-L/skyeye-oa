@@ -14,4 +14,6 @@ public interface ProductLeadChildService extends SkyeyeBusinessService<ProductLe
     void deleteByParentId(String id);
 
     List<ProductLeadChild> selectProductLeadChildById(String id);
+
+    List<ProductLeadChild> selectByPId(String id);
 }
