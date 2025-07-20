@@ -4,7 +4,7 @@
 
 **郑重声明：** 
 
-**1. 星球用户（只有星球用户才能获取完整源代码，扫描下方知识星球二维码加入星球）拿到源码后可进行学习、毕设、企业等使用。**
+**1. Skyeye会员（只有 `Skyeye会员` 才能获取完整源代码，扫描下方付款码成为会员吧）拿到源码后可进行学习、毕设、企业等使用。**
 
 **2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)**
 
@@ -27,9 +27,9 @@
 
 ## 🐶 沟通交流
 
-|   知识星球   | 微信公众号(Skyeye智能制造云办公) | Skyeye云交流群 | 星球用户加我微信 |
+ | 微信公众号(Skyeye智能制造云办公) | Skyeye云交流群（咨询、解答等） | `Skyeye会员`加我微信 |  扫码支付899，您可以选择先支付再加微信好友，也可以选择先加微信好友再支付。但是微信不闲聊，咨询请进QQ群 |
 |:---------------------:|:--------------------------------:|:-------------------:|:-------------------:|
-| ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/知识星球.png) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | 
+| ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信公众号.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/Dromara-Skyeye云交流群群聊二维码.jpg) |  ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/微信.jpg) | ![](https://gitee.com/dromara/skyeye/raw/company_server/images/mindMap/wechatPay.jpg) |
 
 ## Skyeye云整体规划图
 

@@ -2,16 +2,15 @@ package com.skyeye.school.lesson.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.exception.CustomException;
 import com.skyeye.school.lectures.entity.LecturesAttenanceRecored;
 import com.skyeye.school.lectures.entity.LecturesAttenanceRecoredChild;
 import com.skyeye.school.lectures.service.LecturesAttenanceRecoredChildService;
@@ -25,9 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,50 +46,8 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     @Override
     protected void validatorEntity(LessonReviewModel entity) {
         super.validatorEntity(entity);
-        initVersionByFromId(entity);
-
     }
 
-
-    private void initVersionByFromId(LessonReviewModel entity) {
-        if (StrUtil.isEmpty(entity.getFromId())) {
-            // 新增记录，初始化所有版本号
-            entity.setVersionNo(String.valueOf(CommonNumConstants.NUM_ONE));
-            // 大版本从0开始
-            entity.setLargeVersion(CommonNumConstants.NUM_ZERO);
-            // 小版本从0开始
-            entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
-        } else {
-            //更新
-            try {
-                int currentVersion = StrUtil.isEmpty(entity.getVersionNo())
-                        ? Integer.parseInt(entity.getVersionNo())
-                        : CommonNumConstants.NUM_ZERO;
-                entity.setVersionNo(String.valueOf(currentVersion + CommonNumConstants.NUM_ONE));
-
-                // 处理大版本号和小版本号
-                if (entity.getStartSmallVersion()) {
-                    // 小版本升级
-                    entity.setSmallVersion(
-                            (Objects.isNull(entity.getSmallVersion()) ? entity.getSmallVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
-                    );
-                } else {
-                    // 大版本升级
-                    entity.setLargeVersion(
-                            (Objects.isNull(entity.getLargeVersion()) ? entity.getLargeVersion() : CommonNumConstants.NUM_ZERO) + CommonNumConstants.NUM_ONE
-                    );
-                    // 大版本升级时重置小版本
-                    entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
-                }
-
-            } catch (CustomException e) {
-                log.error("版本号格式错误", e);
-                entity.setVersionNo(String.valueOf(CommonNumConstants.NUM_ONE));
-                entity.setLargeVersion(CommonNumConstants.NUM_ZERO);
-                entity.setSmallVersion(CommonNumConstants.NUM_ZERO);
-            }
-        }
-    }
 
     @Override
     public String createEntity(LessonReviewModel entity, String userId) {
@@ -117,7 +73,7 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
         // 1. 新增LessonReviewType
         List<LessonReviewType> reviewTypeList = entity.getLessonReviewTypeList();
         if (ObjectUtil.isNotEmpty(reviewTypeList)) {
-            for (LessonReviewType reviewType:reviewTypeList){
+            for (LessonReviewType reviewType : reviewTypeList) {
                 reviewType.setModelId(entity.getId());
             }
             lessonReviewTypeService.createEntity(reviewTypeList, userId);
@@ -133,6 +89,7 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
         }
     }
 
+
     @Override
     protected void updatePostpose(LessonReviewModel entity, String userId) {
         //1.编辑LessonReviewType
@@ -140,18 +97,18 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
         if (ObjectUtil.isNotEmpty(lessonReviewTypeList)) {
             lessonReviewTypeService.updateEntity(lessonReviewTypeList, userId);
         }
-        // 2. 编辑LecturesAttenanceRecored
+        // 2. 编辑LecturesAttenanceRecored及其子表
         List<LecturesAttenanceRecored> lecturesAttenanceRecoredList = entity.getLecturesAttenanceRecoredList();
         if (ObjectUtil.isNotEmpty(lecturesAttenanceRecoredList)) {
             lecturesAttenanceRecoredService.updateEntity(lecturesAttenanceRecoredList, userId);
+            for (LecturesAttenanceRecored parent : lecturesAttenanceRecoredList) {
+                List<LecturesAttenanceRecoredChild> children = parent.getLecturesAttenanceRecoredChildList();
+                if (ObjectUtil.isNotEmpty(children)) {
+                    lecturesAttenanceRecoredChildService.updateEntity(children, userId);
+                }
+            }
         }
-//        // 3. 编辑LecturesAttenanceRecoredChild
-//        List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = entity.getLecturesAttenanceRecoredChildList();
-//        if (ObjectUtil.isNotEmpty(lecturesAttenanceRecoredChildList)) {
-//            lecturesAttenanceRecoredChildService.updateEntity(lecturesAttenanceRecoredChildList, userId);
-//        }
     }
-
 
     @Override
     public LessonReviewModel queryByModelId(String modelId) {
@@ -166,15 +123,26 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
         //查类型
         List<LessonReviewType> lessonReviewTypeList = lessonReviewTypeService.queryTypeByModelId(id);
         lessonReviewModel.setLessonReviewTypeList(lessonReviewTypeList);
-        //查听课记录
-        List<LecturesAttenanceRecored> lecturesAttenanceRecoredList = Collections.singletonList(lecturesAttenanceRecoredService.queryByAttenanceRecordId(id));
+        //查听课记录及其子表
+        List<LecturesAttenanceRecored> lecturesAttenanceRecoredList = lecturesAttenanceRecoredService.getByReviewModelId(id);
+        if (CollectionUtil.isNotEmpty(lecturesAttenanceRecoredList)) {
+            List<String> LecturesAttenanceRecoredIds = lecturesAttenanceRecoredList.stream().map(LecturesAttenanceRecored::getId).collect(Collectors.toList());
+            List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = lecturesAttenanceRecoredChildService.queryChildByAttenanceRecordIds(LecturesAttenanceRecoredIds);
+            Map<String, List<LecturesAttenanceRecoredChild>> map = lecturesAttenanceRecoredChildList.stream().collect(Collectors.groupingBy(LecturesAttenanceRecoredChild::getAttenanceRecordId));
+            lecturesAttenanceRecoredList.forEach(
+                    lecturesAttenanceRecored -> lecturesAttenanceRecored
+                            .setLecturesAttenanceRecoredChildList(map.get(lecturesAttenanceRecored.getId())));
+        }
         lessonReviewModel.setLecturesAttenanceRecoredList(lecturesAttenanceRecoredList);
-        //查授课成绩表
-//        List<LecturesAttenanceRecoredChild> lecturesAttenanceRecoredChildList = lecturesAttenanceRecoredChildService.queryChildByAttenanceRecordId(id);
-//        lessonReviewModel.setLecturesAttenanceRecoredChildList(lecturesAttenanceRecoredChildList);
         return lessonReviewModel;
     }
 
+    @Override
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+
+        super.queryPageList(inputObject, outputObject);
+
+    }
 
     @Override
     protected void deletePreExecution(String id) {

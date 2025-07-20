@@ -71,6 +71,10 @@ public class OrderComment extends OperatorUserInfo {
     @ApiModelProperty(value = "订单id", required = "required")
     private String orderId;
 
+    @TableField(exist = false)
+    @Property(value = "订单编号")
+    private String oddNumber;
+
     @TableField(value = "order_item_id")
     @ApiModelProperty(value = "订单子单id", required = "required")
     private String orderItemId;

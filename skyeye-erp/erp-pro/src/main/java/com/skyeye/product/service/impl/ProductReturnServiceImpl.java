@@ -12,8 +12,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
-import com.skyeye.depot.entity.DepotOut;
-import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
@@ -34,6 +32,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
@@ -95,6 +95,34 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
         super.updatePrepose(entity);
         getTotalPrice(entity);
         checkForLentOutItems(entity);
+    }
+
+    @Override
+    protected void updatePostpose(ProductReturn entity, String userId) {
+        List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
+        List<ProductReturnChild> productLeadChildren = productReturnChildService.selectByPId(entity.getId());
+        // id为空的数据为新增数据
+        List<ProductReturnChild> NoIdProductLeadChild = erpOrderItemList.stream().filter(
+            child -> StrUtil.isEmpty(child.getId())
+        ).collect(Collectors.toList());
+        // id不为空的数据为修改数据
+        List<ProductReturnChild> hasIdProductLeadChild = erpOrderItemList.stream().filter(
+            child -> StrUtil.isNotEmpty(child.getId())
+        ).collect(Collectors.toList());
+        Set<String> hasIdSet = hasIdProductLeadChild.stream().map(ProductReturnChild::getId).collect(Collectors.toSet());
+        List<String> idsToDelete = productLeadChildren.stream().map(ProductReturnChild::getId)
+            .filter(id -> !hasIdSet.contains(id))
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(idsToDelete)) {
+            productReturnChildService.deleteById(idsToDelete);
+        }
+        if (CollectionUtil.isNotEmpty(NoIdProductLeadChild)) {
+            productReturnChildService.createEntity(NoIdProductLeadChild, userId);
+        }
+        if (CollectionUtil.isNotEmpty(hasIdProductLeadChild)) {
+            productReturnChildService.updateEntity(hasIdProductLeadChild, userId);
+        }
+
     }
 
     private void checkForLentOutItems(ProductReturn entity) {

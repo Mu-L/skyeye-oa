@@ -15,4 +15,6 @@ public interface ProductLeadOutStockService extends SkyeyeFlowableService<Produc
 
     List<ProductLeadOutStock> queryByIds(List<String> framIds);
 
+    void editOtherState(String fromId, Integer key);
+
 }

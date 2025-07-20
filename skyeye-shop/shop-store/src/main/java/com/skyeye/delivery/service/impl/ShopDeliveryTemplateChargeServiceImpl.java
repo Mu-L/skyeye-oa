@@ -32,14 +32,14 @@ import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryTemplateChargeServiceImpl
- * @Description: 快递运费费用模版服务层
+ * @Description: 快递运费模板计费配置信息服务层
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "快递运费费用模版", groupName = "快递运费费用模版")
+@SkyeyeService(name = "快递运费模板计费配置信息管理", groupName = "快递运费模板计费配置信息管理")
 public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessServiceImpl<ShopDeliveryTemplateChargeDao, ShopDeliveryTemplateCharge> implements ShopDeliveryTemplateChargeService {
 
     @Autowired
@@ -48,11 +48,6 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
     @Autowired
     private ShopAreaService shopAreaService;
 
-    /**
-     * 分页查询-根据快递运费模版模板ID
-     * @param commonPageInfo
-     * @return
-     */
     @Override
     public QueryWrapper<ShopDeliveryTemplateCharge> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ShopDeliveryTemplateCharge> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -63,12 +58,6 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
         return queryWrapper;
     }
 
-    /**
-     * 获取全部快递运费费用模版信息
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     * @return
-     */
     @Override
     public List<Map<String, Object>> queryDataList(InputObject inputObject) {
         QueryWrapper<ShopDeliveryTemplateCharge> queryWrapper = new QueryWrapper<>();
@@ -76,9 +65,6 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
         return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
     }
 
-    /**
-     * 重写新增编辑前置条件快递运费费用模版信息
-     */
     @Override
     public void validatorEntity(ShopDeliveryTemplateCharge shopDeliveryTemplateCharge) {
         super.validatorEntity(shopDeliveryTemplateCharge);

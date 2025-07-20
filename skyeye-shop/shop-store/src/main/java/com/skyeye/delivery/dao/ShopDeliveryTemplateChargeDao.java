@@ -9,7 +9,7 @@ import com.skyeye.eve.dao.SkyeyeBaseMapper;
 
 /**
  * @ClassName: ShopDeliveryTemplateChargeDao
- * @Description: 快递运费费用模版数据接口层
+ * @Description: 快递运费费用计费模版数据接口层
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

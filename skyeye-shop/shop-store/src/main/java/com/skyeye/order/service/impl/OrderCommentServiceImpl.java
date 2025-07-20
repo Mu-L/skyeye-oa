@@ -26,6 +26,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.meal.entity.MealOrder;
 import com.skyeye.order.dao.OrderCommentDao;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
@@ -186,19 +187,30 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
         memberService.setMationForMap(mapList, "createId", "createMation");
         shopStoreService.setMationForMap(mapList, "storeId", "storeMation");
+        List<String> orderIdList = mapList.stream().map(map -> map.get("orderId").toString())
+                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String,String> orderOddNumberMap = orderService.queryOrderOddNumber(orderIdList);
+        for (Map<String, Object> map : mapList) {
+            String orderId = map.get("orderId").toString();
+            if (orderOddNumberMap.containsKey(orderId)) {
+                map.put("oddNumber", orderOddNumberMap.get(orderId));
+            }
+        }
         return mapList;
     }
 
     @Override
     public QueryWrapper<OrderComment> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        String typeId = commonPageInfo.getTypeId();
         QueryWrapper<OrderComment> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.and(wrap -> {
             wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
                 .or().eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey());
         });
-        if (StrUtil.isNotEmpty(typeId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), typeId);
+        if (StrUtil.equals(commonPageInfo.getType(), "Store")) {
+            // 门店下的订单
+            queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getStoreId), commonPageInfo.getHolderId());
+        } else if (StrUtil.equals(commonPageInfo.getType(), "All")) {
+            // 所有订单
         }
         return queryWrapper;
     }

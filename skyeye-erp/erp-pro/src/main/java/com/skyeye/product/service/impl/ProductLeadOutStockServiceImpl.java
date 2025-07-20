@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
@@ -20,6 +21,7 @@ import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.depot.service.ErpDepotService;
+import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
@@ -106,7 +108,22 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
             }
         );
         if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
-            skyeyeErpOrderItemService.createEntity(erpOrderItemList,userId);
+            skyeyeErpOrderItemService.createEntity(erpOrderItemList, userId);
+        }
+    }
+
+    @Override
+    protected void updatePostpose(ProductLeadOutStock entity, String userId) {
+        String parentId = entity.getId();
+        // 删除所有数据
+        skyeyeErpOrderItemService.deleteByPId(parentId);
+        // 拿到前端的数据
+        List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
+        erpOrderItemList.forEach(
+            erpOrderItem -> erpOrderItem.setParentId(parentId)
+        );
+        if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
+            skyeyeErpOrderItemService.createEntity(erpOrderItemList, userId);
         }
     }
 
@@ -165,12 +182,8 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
     @Override
     public ProductLeadOutStock selectById(String id) {
         ProductLeadOutStock productLeadOutStock = super.selectById(id);
-        String id1 = productLeadOutStock.getId();
-        List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.selectByPId(id1);
+        List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.selectByPId(id);
         productLeadOutStock.setErpOrderItemList(erpOrderItemList);
-        // 过滤掉数量为0的商品信息
-        productLeadOutStock.setErpOrderItemList(productLeadOutStock.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
         productLeadService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFromId);
         farmService.setDataMation(productLeadOutStock, ProductLeadOutStock::getFarmId);
         iProProjectService.setDataMation(productLeadOutStock, ProductLeadOutStock::getProjectId);
@@ -233,6 +246,15 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
         QueryWrapper<ProductLeadOutStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, framIds);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void editOtherState(String fromId, Integer key) {
+        UpdateWrapper<ProductLeadOutStock> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, fromId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ErpOrderCommon::getOtherState), key);
+        update(updateWrapper);
+        refreshCache(fromId);
     }
 
     @Override

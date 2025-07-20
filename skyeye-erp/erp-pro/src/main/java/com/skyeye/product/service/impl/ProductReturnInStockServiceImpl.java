@@ -121,6 +121,22 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         }
     }
 
+
+    @Override
+    protected void updatePostpose(ProductReturnInStock entity, String userId) {
+        String parentId = entity.getId();
+        // 删除所有数据
+        skyeyeErpOrderItemService.deleteByPId(parentId);
+        // 拿到前端的数据
+        List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
+        erpOrderItemList.forEach(
+            erpOrderItem -> erpOrderItem.setParentId(parentId)
+        );
+        if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
+            skyeyeErpOrderItemService.createEntity(erpOrderItemList, userId);
+        }
+    }
+
     private void chectErpOrderItem(List<ErpOrderItem> erpOrderItemList) {
         if (CollectionUtil.isEmpty(erpOrderItemList)) {
             throw new CustomException("请最少选择一条产品信息");

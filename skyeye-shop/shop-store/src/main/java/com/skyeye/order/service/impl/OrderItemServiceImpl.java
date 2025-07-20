@@ -31,6 +31,7 @@ import com.skyeye.order.enums.ItemSignState;
 import com.skyeye.order.enums.OrderCommentType;
 import com.skyeye.order.enums.ShopOrderItemOtherState;
 import com.skyeye.order.enums.ShopOrderState;
+import com.skyeye.order.service.ItemDeliverHistoryService;
 import com.skyeye.order.service.OrderCommentService;
 import com.skyeye.order.service.OrderItemService;
 import com.skyeye.order.service.OrderService;
@@ -38,6 +39,7 @@ import com.skyeye.rest.shopmaterialnorms.sevice.IShopMaterialNormsService;
 import com.skyeye.store.service.ShopStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +73,9 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private ItemDeliverHistoryService itemDeliverHistoryService;
 
     @Override
     public void deleteByPerentIds(List<String> ids) {
@@ -187,11 +192,21 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         }
     }
 
+    /**
+     * 快递计费方式有数量、重量、体积三种，当前只考虑数量
+     *
+     * @param inputObject
+     * @param outputObject
+     */
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deliverGoodsById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
         String orderId = params.get("orderId").toString();
+        String deliverNumber = params.get("deliverNumber").toString();
+        String deliveryTemplateChargeId = params.get("deliveryTemplateChargeId").toString();
+        String deliveryCompanyId = params.get("deliveryCompanyId").toString();
         Integer num = Integer.parseInt(params.get("num").toString());
         if (num <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("发货数量不可为负数或零");
@@ -226,6 +241,8 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         // 修改总单状态
         boolean allMatch = orderItemList.stream().allMatch(item -> item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey());
         orderService.updateOrderItemDeliverState(targetItem.getParentId(), allMatch ? ShopOrderState.DELIVERED.getKey() : ShopOrderState.PART_DELIVERY.getKey());
+        // 创建快递信息
+        itemDeliverHistoryService.insertEntity(targetItem, deliverNumber, deliveryTemplateChargeId, deliveryCompanyId, num);
     }
 
     @Override
@@ -275,12 +292,9 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
-    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String itemId = params.get("id").toString();
-        String orderId = params.get("orderId").toString();
-        Integer num = Integer.parseInt(params.get("num").toString());
-        if (num <= CommonNumConstants.NUM_ZERO) {
+    public void changeOrderItemSignState(String orderId, String orderItemId, String num) {
+        double numDouble = Double.parseDouble(num);
+        if (numDouble <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("签收数量不可为负数或零");
         }
         UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
@@ -290,16 +304,16 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             throw new CustomException("该订单不存在");
         }
         // 取出要签收的子单
-        OrderItem orderItem = orderItemList.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElse(null);
+        OrderItem orderItem = orderItemList.stream().filter(item -> item.getId().equals(orderItemId)).findFirst().orElse(null);
         if (ObjectUtil.isEmpty(orderItem)) {
             throw new CustomException("该订单子单不存在");
         }
-        String currenUserId = inputObject.getLogParams().get("id").toString();
+        String currenUserId = InputObject.getLogParamsStatic().get("id").toString();
         if (!orderItem.getCreateId().equals(currenUserId)) {
             throw new CustomException("该订单子单不属于当前账号");
         }
         // 计算剩余可签收数
-        int remainingNum = orderItem.getDeliverNum() - orderItem.getSignNum() - num;
+        int remainingNum = (int) (orderItem.getDeliverNum() - orderItem.getSignNum() - numDouble);
         if (remainingNum < CommonNumConstants.NUM_ZERO) {
             throw new CustomException("该订单子单可签收数量不足" + num);
         }
@@ -311,13 +325,13 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         } else {
             // 未全部发货
             orderItem.setSignState(ItemSignState.PART_SIGN.getKey());
-            orderItem.setSignNum(orderItem.getSignNum() + num);
+            orderItem.setSignNum((int) (orderItem.getSignNum() + numDouble));
         }
         super.updateEntity(orderItem, currenUserId);
         // 判断所有子单是否全部签收
         boolean allMatch = orderItemList.stream().map(item -> {
             // 如果是当前签收的子单，则返回当前签收状态
-            if (item.getId().equals(itemId)) {
+            if (item.getId().equals(orderItemId)) {
                 return orderItem.getSignState();
             }
             return item.getSignState();

@@ -56,4 +56,11 @@ public class ProductLeadChildServiceImpl extends SkyeyeBusinessServiceImpl<Produ
         return list(queryWrapper);
     }
 
+    @Override
+    public List<ProductLeadChild> selectByPId(String id) {
+        QueryWrapper<ProductLeadChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProductLeadChild::getParentId), id);
+        return list(queryWrapper);
+    }
+
 }

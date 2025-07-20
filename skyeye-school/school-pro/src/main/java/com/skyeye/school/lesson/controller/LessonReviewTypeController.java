@@ -22,13 +22,6 @@ public class LessonReviewTypeController {
     @Autowired
     private LessonReviewTypeService lessonReviewTypeService;
 
-    @ApiOperation(id = "writeLessonReviewType", value = "新增/编辑质评角色听课量", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = LessonReviewType.class)
-    @RequestMapping("/post/LessonReviewTypeController/writeLessonReviewType")
-    public void writeLessonReviewType(InputObject inputObject, OutputObject outputObject) {
-        lessonReviewTypeService.saveOrUpdateEntity(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "queryLessonReviewTypeList", value = "获取质评角色听课量管理信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LessonReviewTypeController/queryLessonReviewTypeList")

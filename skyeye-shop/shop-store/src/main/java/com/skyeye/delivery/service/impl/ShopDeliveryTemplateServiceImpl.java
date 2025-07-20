@@ -26,14 +26,14 @@ import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryTemplateServiceImpl
- * @Description: 快递运费模版服务层
+ * @Description: 快递运费模板计费配置服务层
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "快递运费模版", groupName = "快递运费模版")
+@SkyeyeService(name = "快递运费模板计费配置管理", groupName = "快递运费模板计费配置管理")
 public class ShopDeliveryTemplateServiceImpl extends SkyeyeBusinessServiceImpl<ShopDeliveryTemplateDao, ShopDeliveryTemplate> implements ShopDeliveryTemplateService {
 
     @Autowired

@@ -15,16 +15,16 @@ import lombok.Data;
 
 /**
  * @ClassName: ShopDeliveryTemplateCharge
- * @Description: 快递公司管理实体类
+ * @Description: 快递运费模板计费配置信息管理
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField
+//@UniqueField
 @TableName(value = "shop_delivery_template_charge")
-@ApiModel("快递公司管理")
+@ApiModel("快递运费模板计费配置信息管理")
 public class ShopDeliveryTemplateCharge extends OperatorUserInfo {
 
     @TableId("id")

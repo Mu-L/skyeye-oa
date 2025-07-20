@@ -432,6 +432,16 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
     }
 
     @Override
+    public Integer calcAllNumByMachinProcedureFarmId(String machinProcedureFarmId) {
+        QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureFarmId), machinProcedureFarmId);
+        List<MachinProcedureAccept> machinList = list(queryWrapper);
+        Integer allNum = machinList.stream()
+            .collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
+        return allNum;
+    }
+
+    @Override
     public Map<String, List<MachinProcedureAccept>> queryMachinProcedureAcceptByMachinProcedureFarmId(String... machinProcedureFarmId) {
         List<String> machinProcedureFarmIdList = Arrays.asList(machinProcedureFarmId);
         if (CollectionUtil.isEmpty(machinProcedureFarmIdList)) {
@@ -466,6 +476,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         List<MachinProcedureAccept> machinList = list(queryWrapper);
         return machinList;
     }
+
     @Override
     public List<MachinProcedureAccept> queryProcedureAcceptByIds(List<String> procedureAcceptIdList) {
         if (CollectionUtil.isEmpty(procedureAcceptIdList)) {
