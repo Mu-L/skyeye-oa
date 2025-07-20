@@ -183,6 +183,10 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
      */
     @Override
     public void insertEntity(OrderItem orderItem, String deliverNumber, String deliveryTemplateChargeId, String deliveryCompanyId, Integer num) {
+        ShopDeliveryTemplateCharge shopDeliveryTemplateCharge = shopDeliveryTemplateChargeService.selectById(deliveryTemplateChargeId);
+        if (StrUtil.isEmpty(shopDeliveryTemplateCharge.getId())) {
+            throw new CustomException("快递运费模板计费配置信息不存在: " + deliveryTemplateChargeId);
+        }
         ItemDeliverHistory itemDeliverHistory = new ItemDeliverHistory();
         itemDeliverHistory.setOrderId(orderItem.getParentId());
         itemDeliverHistory.setOrderItemId(orderItem.getId());
@@ -191,7 +195,6 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         itemDeliverHistory.setDeliverNumber(deliverNumber);
         itemDeliverHistory.setNum(String.valueOf(num));
         itemDeliverHistory.setState(ItemDeliverHistoryState.WAIT_DELIVER.getKey());
-        ShopDeliveryTemplateCharge shopDeliveryTemplateCharge = shopDeliveryTemplateChargeService.selectById(deliveryTemplateChargeId);
         itemDeliverHistory.setPrice(shopDeliveryTemplateCharge.getStartPrice());
         if (num > CommonNumConstants.NUM_ONE) {
             String extraPrice = CalculationUtil.multiply(shopDeliveryTemplateCharge.getExtraPrice(), String.valueOf(num - shopDeliveryTemplateCharge.getStartCount()), CommonNumConstants.NUM_SIX);
