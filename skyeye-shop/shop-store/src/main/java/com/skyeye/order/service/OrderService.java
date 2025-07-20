@@ -50,4 +50,6 @@ public interface OrderService extends SkyeyeBusinessService<Order> {
     void changeAdjustPriceById(String id, String interpolation);
 
     void changeSignStateById(String id, Integer state);
+
+    Map<String, String> queryOrderOddNumber(List<String> orderIdList);
 }

@@ -705,4 +705,16 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         update(wrapper);
         refreshCache(id);
     }
+
+    @Override
+    public Map<String, String> queryOrderOddNumber(List<String> orderIdList) {
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, orderIdList)
+                .select(MybatisPlusUtil.toColumns(Order::getOddNumber), CommonConstants.ID);
+        List<Order> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return new HashMap<>();
+        }
+        return list.stream().collect(Collectors.toMap(Order::getId, Order::getOddNumber));
+    }
 }

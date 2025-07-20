@@ -187,6 +187,15 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         iMaterialNormsService.setMationForMap(mapList, "normsId", "normsMation");
         memberService.setMationForMap(mapList, "createId", "createMation");
         shopStoreService.setMationForMap(mapList, "storeId", "storeMation");
+        List<String> orderIdList = mapList.stream().map(map -> map.get("orderId").toString())
+                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String,String> orderOddNumberMap = orderService.queryOrderOddNumber(orderIdList);
+        for (Map<String, Object> map : mapList) {
+            String orderId = map.get("orderId").toString();
+            if (orderOddNumberMap.containsKey(orderId)) {
+                map.put("oddNumber", orderOddNumberMap.get(orderId));
+            }
+        }
         return mapList;
     }
 
