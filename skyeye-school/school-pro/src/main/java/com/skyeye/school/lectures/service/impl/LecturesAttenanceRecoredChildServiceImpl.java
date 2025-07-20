@@ -2,7 +2,6 @@ package com.skyeye.school.lectures.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "授课成绩表", groupName = "授课成绩表")
@@ -52,8 +49,8 @@ public class LecturesAttenanceRecoredChildServiceImpl extends SkyeyeBusinessServ
 
     @Override
     protected void createPrepose(List<LecturesAttenanceRecoredChild> entity) {
-        LecturesAttenanceRecoredChild recoredChild = entity.stream().findFirst().orElse(new LecturesAttenanceRecoredChild());
-        deleteChildByAttenanceRecordId(recoredChild.getAttenanceRecordId());
+        LecturesAttenanceRecoredChild attenanceRecoredChild = entity.stream().findFirst().orElse(new LecturesAttenanceRecoredChild());
+        deleteChildByAttenanceRecordId(attenanceRecoredChild.getAttenanceRecordId());
     }
 
 
@@ -83,5 +80,15 @@ public class LecturesAttenanceRecoredChildServiceImpl extends SkyeyeBusinessServ
         QueryWrapper<LecturesAttenanceRecoredChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId), idList);
         remove(queryWrapper);
+    }
+
+    @Override
+    public List<LecturesAttenanceRecoredChild> queryChildByAttenanceRecordIds(List<String> lecturesAttenanceRecoredIds) {
+        if (CollectionUtil.isEmpty(lecturesAttenanceRecoredIds)) {
+            return null;
+        }
+        QueryWrapper<LecturesAttenanceRecoredChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(LecturesAttenanceRecoredChild::getAttenanceRecordId),lecturesAttenanceRecoredIds);
+        return list(queryWrapper);
     }
 }

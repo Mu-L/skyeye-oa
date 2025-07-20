@@ -35,6 +35,10 @@ public class LessonReviewType extends OperatorUserInfo {
     @ApiModelProperty(value = "模型id")
     private String modelId;
 
+    @TableField("model_name")
+    @ApiModelProperty("模型名称")
+    private String modelName;
+
     @TableField("lectures_role_id")
     @ApiModelProperty(value = "关联角色id")
     private String lecturesRoleId;

@@ -122,6 +122,10 @@ public class LecturesAttenanceRecored extends OperatorUserInfo {
     @ApiModelProperty("听课教师id(该字段有值则表示该教师已签名)")
     private String attendLectureTeacherId;
 
+    @TableField("model_name")
+    @ApiModelProperty("模型名称")
+    private String modelName;
+
     @TableField(exist = false) // 非数据库字段
     @ApiModelProperty("听课教师完整信息")
     private String attendLectureTeacherMation; // 类型根据实际需要调整
