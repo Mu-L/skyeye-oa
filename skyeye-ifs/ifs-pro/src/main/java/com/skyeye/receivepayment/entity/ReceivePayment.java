@@ -124,4 +124,8 @@ public class ReceivePayment extends CommonInfo {
     @TableField(value = "last_update_time")
     @ApiModelProperty("最后更新日期")
     private String lastUpdateTime;
+
+    @TableField(value = "invoice_price")
+    @ApiModelProperty(value = "已开票金额")
+    private String invoicePrice;
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface LecturesAttenanceRecoredService extends SkyeyeBusinessService<LecturesAttenanceRecored> {
 
-    LecturesAttenanceRecored queryByAttenanceRecordId(String attenanceRecordId);
+    List<LecturesAttenanceRecored> queryByAttenanceRecordId(String attenanceRecordId);
 
     void deleteAttenanceRecoredByReviewModelId(String id);
 

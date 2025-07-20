@@ -66,7 +66,7 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
     @Override
     public QueryWrapper<Bom> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Bom> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom:: getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
         return queryWrapper;
     }
 

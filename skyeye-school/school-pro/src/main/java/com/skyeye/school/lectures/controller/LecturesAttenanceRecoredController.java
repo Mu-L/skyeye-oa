@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.lectures.entity.LecturesAttenanceRecored;
 import com.skyeye.school.lectures.service.LecturesAttenanceRecoredService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,13 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class LecturesAttenanceRecoredController {
     @Autowired
     private LecturesAttenanceRecoredService lecturesAttenanceRecoredService;
-
-    @ApiOperation(id = "writeLecturesAttenanceRecored", value = "新增/编辑质评-听课记录表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = LecturesAttenanceRecored.class)
-    @RequestMapping("/post/LecturesAttenanceRecoredController/writeLecturesAttenanceRecored")
-    public void writeLecturesAttenanceRecored(InputObject inputObject, OutputObject outputObject) {
-        lecturesAttenanceRecoredService.saveOrUpdateEntity(inputObject, outputObject);
-    }
 
     @ApiOperation(id = "queryLecturesAttenanceRecoredList", value = "获取质评-听课记录表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)

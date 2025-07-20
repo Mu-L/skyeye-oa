@@ -12,4 +12,5 @@ public interface ProductReturnInStockService extends SkyeyeFlowableService<Produ
 
     void updateOtherState(String fromId);
 
+    void editOtherState(String fromId, Integer key);
 }

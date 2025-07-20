@@ -8,7 +8,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.lectures.dao.LecturesAttenanceRecoredDao;
@@ -54,13 +53,6 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
         }
     }
 
-//    @Override
-//    protected void writePostpose(LecturesAttenanceRecored entity, String userId) {
-//        super.writePostpose(entity, userId);
-//        entity.getLecturesAttenanceRecoredChildList().forEach(attenanceRecoredChild -> attenanceRecoredChild.setAttenanceRecordId(entity.getId()));
-//        lecturesAttenanceRecoredChildService.createEntity(entity.getLecturesAttenanceRecoredChildList(), userId);
-//    }
-
     @Override
     public void createPostpose(List<LecturesAttenanceRecored> entity, String userId) {
         List<LecturesAttenanceRecoredChild> insertList = new ArrayList<>();
@@ -93,10 +85,10 @@ public class LecturesAttenanceRecoredServiceImpl extends SkyeyeBusinessServiceIm
     }
 
     @Override
-    public LecturesAttenanceRecored queryByAttenanceRecordId(String attenanceRecordId) {
+    public List<LecturesAttenanceRecored> queryByAttenanceRecordId(String attenanceRecordId) {
         QueryWrapper<LecturesAttenanceRecored> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, attenanceRecordId);
-        return getOne(queryWrapper);
+        return list(queryWrapper);
     }
 
     @Override

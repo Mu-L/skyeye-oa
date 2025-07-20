@@ -5,8 +5,6 @@
 package com.skyeye.depot.service;
 
 import com.skyeye.business.service.SkyeyeErpOrderService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.depot.entity.DepotPut;
 
 /**
@@ -19,7 +17,4 @@ import com.skyeye.depot.entity.DepotPut;
  */
 public interface DepotPutService extends SkyeyeErpOrderService<DepotPut> {
 
-    void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject);
-
-    void queryOutPutDetailsList(InputObject inputObject, OutputObject outputObject);
 }
