@@ -47,4 +47,11 @@ public class OrderItemController {
     public void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject) {
         orderItemService.changeOrderItemAdjustPrice(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "selectOrderItemById", value = "根据id查询订单子单信息", method = "GET", allUse = "2")
+    @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/OrderItemController/selectOrderItemById")
+    public void selectOrderItemById(InputObject inputObject, OutputObject outputObject) {
+        orderItemService.selectById(inputObject, outputObject);
+    }
 }

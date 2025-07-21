@@ -72,6 +72,10 @@ public class OrderItem extends OperatorUserInfo {
     @Property(value = "商品与门店的关系信息")
     private Map<String, Object> shopMaterial;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "可发货数量")
+    private Integer canDeliverNum;
+
     @TableField("count")
     @ApiModelProperty(value = "购买数量", required = "required")
     private Integer count;

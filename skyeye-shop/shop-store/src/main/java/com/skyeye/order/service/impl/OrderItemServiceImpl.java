@@ -41,10 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -338,5 +335,16 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         }).allMatch(signState -> signState == ItemSignState.ALL_SIGN.getKey());
         // 修改总单签收状态
         orderService.changeSignStateById(orderId, allMatch ? ItemSignState.ALL_SIGN.getKey() : ItemSignState.PART_SIGN.getKey());
+    }
+
+    @Override
+    public OrderItem selectById(String id) {
+        OrderItem orderItem = super.selectById(id);
+        if (StrUtil.isEmpty(orderItem.getId())) {
+            throw new CustomException("该订单子单不存在");
+        }
+        OrderItem item = setDateForItemLIst(Arrays.asList(orderItem)).get(CommonNumConstants.NUM_ZERO);
+        item.setCanDeliverNum(item.getCount() - item.getDeliverNum());
+        return orderItem;
     }
 }
