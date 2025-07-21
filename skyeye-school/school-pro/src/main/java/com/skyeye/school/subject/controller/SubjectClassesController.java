@@ -137,4 +137,13 @@ public class SubjectClassesController {
         subjectClassesService.queryOneStudentAnalysis(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryClassBySemesterAndSubjectId", value = "科目结合学期查班级", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "subjectId", name = "subjectId", value = "科目id", required = "require"),
+        @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期Id", required = "require")})
+    @RequestMapping("/post/SubjectClassesController/queryClassBySemesterAndSubjectId")
+    public void queryClassBySemesterAndSubjectId(InputObject inputObject, OutputObject outputObject) {
+        subjectClassesService.queryClassBySemesterAndSubjectId(inputObject, outputObject);
+    }
+
 }

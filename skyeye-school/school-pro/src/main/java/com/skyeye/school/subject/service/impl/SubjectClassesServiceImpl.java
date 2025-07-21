@@ -36,6 +36,7 @@ import com.skyeye.school.courseware.service.CoursewareStudyService;
 import com.skyeye.school.datum.service.DatumService;
 import com.skyeye.school.exam.service.ExamDirectoryAnService;
 import com.skyeye.school.exam.service.ExamService;
+import com.skyeye.school.grade.entity.Classes;
 import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.score.service.ScoreTypeChildService;
 import com.skyeye.school.semester.service.SemesterService;
@@ -722,5 +723,19 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
             .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryClassBySemesterAndSubjectId(InputObject inputObject, OutputObject outputObject) {
+        String semesterId = inputObject.getParams().get("semesterId").toString();
+        String subjectId = inputObject.getParams().get("subjectId").toString();
+        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
+            .eq(MybatisPlusUtil.toColumns(SubjectClasses::getSemesterId), semesterId);
+        List<SubjectClasses> list = list(queryWrapper);
+        List<String> classIdList = list.stream().map(SubjectClasses::getClassesId).collect(Collectors.toList());
+        List<Classes> classesList = classesService.selectClssByIds(classIdList);
+        outputObject.setBeans(classesList);
+        outputObject.settotal(classesList.size());
     }
 }

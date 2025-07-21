@@ -963,13 +963,18 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .filter(list -> list instanceof List).map(list -> (List<Map<String, Object>>) list).orElseGet(Collections::emptyList);
             if (dwAnScoreList == null) dwAnScoreList = Collections.emptyList();
             Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getId, Collectors.counting()));
-            Integer paramInt02 = Integer.valueOf((String) question.get("paramInt02"));
+            Integer paramInt02 = (Integer) question.get("paramInt02");
             // 选项对应的平均分
             Map<String, String> averageScoreMap = dwAnScoreList.stream()
                 .collect(Collectors.groupingBy(
                     DwAnScore::getQuRowId,
                     Collectors.collectingAndThen(
-                        Collectors.averagingDouble(item -> Double.parseDouble(item.getAnswerScore())),
+                        Collectors.averagingDouble(item -> {
+                            String score = item.getAnswerScore();
+                            return score != null && !score.trim().isEmpty()
+                                ? Double.parseDouble(score.trim())
+                                : 0.0;
+                        }),
                         avg -> String.valueOf(avg)
                     )
                 ));
@@ -1029,7 +1034,16 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 .filter(o -> o != null && Objects.equals(o.getVisibility(), 1))
                 .forEach(o -> {
                     String rowId = o.getQuRowId();
-                    long rank = Long.parseLong(o.getOrderyNum());
+                    long rank = Optional.ofNullable(o.getOrderyNum())
+                        .filter(s -> !s.trim().isEmpty())
+                        .map(s -> {
+                            try {
+                                return Long.parseLong(s.trim());
+                            } catch (NumberFormatException e) {
+                                return 0L;
+                            }
+                        })
+                        .orElse(0L);
                     pickCountMap.merge(rowId, 1L, Long::sum);
                     rankSumMap.merge(rowId, rank, Long::sum);
                 });
