@@ -48,6 +48,7 @@ import com.skyeye.pickconfirm.service.ConfirmReturnService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.purchase.service.PurchasePutService;
 import com.skyeye.retail.service.RetailReturnsService;
+import com.skyeye.seal.service.SalesExchangesService;
 import com.skyeye.seal.service.SalesReturnsService;
 import com.skyeye.shop.service.ShopConfirmReturnService;
 import com.skyeye.shop.service.ShopReturnsService;
@@ -113,6 +114,9 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
     @Autowired
     private DepotOutPutRecordService depotOutPutRecordService;
 
+    @Autowired
+    private SalesExchangesService salesExchangesService;
+
     @Override
     public QueryWrapper<DepotPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
         if (StrUtil.isEmpty(commonPageInfo.getType())) {
@@ -165,6 +169,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             shopReturnsService.setOrderMationByFromId(beans, "fromId", "fromMation");
             // 门店物料退货单
             shopConfirmReturnService.setOrderMationByFromId(beans, "fromId", "fromMation");
+            // 销售换货单
+            salesExchangesService.setOrderMationByFromId(beans, "fromId", "fromMation");
         }
         return beans;
     }
@@ -261,6 +267,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         } else if (depotPut.getFromTypeId() == DepotPutFromType.SHOP_CONFIRM_RETURNS.getKey()) {
             // 门店物料退货单
             shopConfirmReturnService.setDataMation(depotPut, DepotPut::getFromId);
+        } else if (depotPut.getFromTypeId() == DepotPutFromType.SALES_EXCHANGES.getKey()) {
+            salesExchangesService.setDataMation(depotPut, DepotPut::getFromId);
         }
         return depotPut;
     }
