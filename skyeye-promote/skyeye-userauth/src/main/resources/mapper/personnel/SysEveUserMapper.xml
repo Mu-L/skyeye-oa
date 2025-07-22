@@ -245,17 +245,18 @@
 					CONCAT_WS('_', b.job_number, a.user_name) `name`,
 					b.job_id pId,
 					b.department_id departmentId,
+					b.email,
 				</when>
 				<otherwise>
 					CONCAT_WS('_', a.job_number, a.user_name) `name`,
 					a.job_id pId,
 					a.department_id departmentId,
+					a.email,
 				</otherwise>
 			</choose>
 			'isPeople' folderType,
 			0 isParent,
 			'../../assets/images/people-icon.png' `icon`,
-			a.email `email`,
 			a.phone
 		FROM
 			sys_eve_user_staff a
@@ -278,7 +279,14 @@
 				AND a.user_id != #{userId}
 			</if>
 			<if test="hasEmail != null and hasEmail != ''">
-				AND LENGTH(a.email) > 0 AND a.email != ''
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND LENGTH(b.email) > 0 AND b.email != ''
+					</when>
+					<otherwise>
+						AND LENGTH(a.email) > 0 AND a.email != ''
+					</otherwise>
+				</choose>
 			</if>
 			<if test="tenantId != null and tenantId != ''">
 				AND b.tenant_id = #{tenantId}
@@ -295,17 +303,18 @@
 					CONCAT_WS('_', b.job_number, a.user_name) `name`,
 					b.department_id pId,
 					b.department_id departmentId,
+					b.email,
 				</when>
 				<otherwise>
 					CONCAT_WS('_', a.job_number, a.user_name) `name`,
 					a.department_id pId,
 					a.department_id departmentId,
+					a.email,
 				</otherwise>
 			</choose>
 			'isPeople' folderType,
 			0 isParent,
 			'../../assets/images/people-icon.png' `icon`,
-			a.email `email`,
 			a.phone
 
 		FROM
@@ -339,7 +348,14 @@
 				AND a.user_id != #{userId}
 			</if>
 			<if test="hasEmail != null and hasEmail != ''">
-				AND LENGTH(a.email) > 0 AND a.email != ''
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND LENGTH(b.email) > 0 AND b.email != ''
+					</when>
+					<otherwise>
+						AND LENGTH(a.email) > 0 AND a.email != ''
+					</otherwise>
+				</choose>
 			</if>
 			<if test="tenantId != null and tenantId != ''">
 				AND b.tenant_id = #{tenantId}
@@ -371,17 +387,18 @@
 					<when test="tenantId != null and tenantId != ''">
 						CONCAT_WS('_', b.job_number, a.user_name) `name`,
 						b.department_id departmentId,
+						b.email,
 					</when>
 					<otherwise>
 						CONCAT_WS('_', a.job_number, a.user_name) `name`,
 						a.department_id departmentId,
+						a.email,
 					</otherwise>
 				</choose>
 				c.group_id pId,
 				'isPeople' folderType,
 				0 isParent,
 				'../../assets/images/people-icon.png' `icon`,
-				a.email `email`,
 				a.phone
 			FROM
 				sys_eve_user_staff a,
@@ -395,7 +412,14 @@
 			AND c.group_id = b.group_id
 			AND LENGTH(a.user_id) > 0 AND a.user_id != ''
 			<if test="hasEmail != null and hasEmail != ''">
-				AND LENGTH(a.email) > 0 AND a.email != ''
+				<choose>
+					<when test="tenantId != null and tenantId != ''">
+						AND LENGTH(b.email) > 0 AND b.email != ''
+					</when>
+					<otherwise>
+						AND LENGTH(a.email) > 0 AND a.email != ''
+					</otherwise>
+				</choose>
 			</if>
 			<if test="tenantId != null and tenantId != ''">
 				AND d.tenant_id = #{tenantId}

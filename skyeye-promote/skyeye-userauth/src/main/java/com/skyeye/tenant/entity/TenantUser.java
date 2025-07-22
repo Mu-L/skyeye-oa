@@ -61,8 +61,8 @@ public class TenantUser extends OperatorUserInfo {
     @Property(value = "用户id")
     private String userId;
 
-    @TableField(exist = false)
-    @Property(value = "邮箱")
+    @TableField(value = "email")
+    @ApiModelProperty(value = "邮箱")
     private String email;
 
     @TableField(value = "company_id")

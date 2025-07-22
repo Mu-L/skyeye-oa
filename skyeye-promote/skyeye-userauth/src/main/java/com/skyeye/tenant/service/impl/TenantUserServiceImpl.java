@@ -318,6 +318,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         sysEveUserStaff.setJobNumber(tenantUser.getJobNumber());
         sysEveUserStaff.setWorkstationType(tenantUser.getWorkstationType());
         sysEveUserStaff.setHourlyPrice(tenantUser.getHourlyPrice());
+        sysEveUserStaff.setEmail(tenantUser.getEmail());
     }
 
     private void setTenantUserMation(Map<String, Object> sysEveUserStaff, TenantUser tenantUser) {
@@ -327,6 +328,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         sysEveUserStaff.put("jobScoreId", tenantUser.getJobScoreId());
         sysEveUserStaff.put("workstationType", tenantUser.getWorkstationType());
         sysEveUserStaff.put("hourlyPrice", tenantUser.getHourlyPrice());
+        sysEveUserStaff.put("email", tenantUser.getEmail());
     }
 
     @Override
@@ -519,7 +521,6 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
             SysEveUserStaff user = staffId2UserMap.get(tenantUser.getStaffId());
             if (ObjectUtil.isNotEmpty(user)) {
                 tenantUser.setUserId(user.getUserId());
-                tenantUser.setEmail(user.getEmail());
             }
         });
         outputObject.setBeans(tenantUserList);
