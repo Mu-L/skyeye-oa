@@ -4,16 +4,20 @@
 
 package com.skyeye.xxljob;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.eve.service.IQuartzService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.order.service.OrderService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -41,12 +45,19 @@ public class ShopXxlJob {
     @Autowired
     private IQuartzService iQuartzService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     @XxlJob("setShopCouponStateService")
     public void setShopCouponStateService() {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         String couponId = paramMap.get("objectId");// 优惠券id
         try {
             log.info("优惠券id(couponId)" + couponId + "---修改优惠券的状态---开始");
@@ -68,6 +79,10 @@ public class ShopXxlJob {
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String userId = paramMap.get("userId");
         String couponUseId = paramMap.get("objectId");// 领取的优惠券id
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             log.info("领取优惠券的id(couponUseId)" + couponUseId + "---修改领取的优惠券的状态---开始");
             couponUseService.setCouponUseStateByTerm(userId, couponUseId);// 修改领取的优惠券的状态}
@@ -84,6 +99,10 @@ public class ShopXxlJob {
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
         String orderId = paramMap.get("objectId");// 订单的主键id
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             log.info("订单的主键id(orderId)" + orderId + "---修改订单的状态为取消---开始");
             orderService.setOrderCancle(orderId);// 修改订单的状态为取消

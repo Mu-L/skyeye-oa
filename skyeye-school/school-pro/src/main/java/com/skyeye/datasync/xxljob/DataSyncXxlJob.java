@@ -4,14 +4,22 @@
 
 package com.skyeye.datasync.xxljob;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.datasync.AbstractSyncClient;
 import com.skyeye.datasync.enums.SyncFromType;
 import com.skyeye.datasync.factory.SyncClientFactory;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
 
 /**
  * @ClassName: DataSyncXxlJob
@@ -29,12 +37,21 @@ public class DataSyncXxlJob {
     @Autowired
     private SyncClientFactory syncClientFactory;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 每天凌晨2点执行广西科技师范学院数据同步任务
      */
     @XxlJob("gksDataSyncJob")
     public void gksDataSync() {
         LOGGER.info("gksDataSync start.");
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             String syncType = SyncFromType.GKS.getKey();
             AbstractSyncClient client = syncClientFactory.getClient(syncType);

@@ -1,13 +1,14 @@
 package com.skyeye.exam.examsurveyclass.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exam.examsurveyclass.dao.ExamSurveyClassDao;
 import com.skyeye.exam.examsurveyclass.entity.ExamSurveyClass;
 import com.skyeye.exam.examsurveyclass.service.ExamSurveyClassService;
+import com.xxl.job.core.handler.annotation.XxlJob;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

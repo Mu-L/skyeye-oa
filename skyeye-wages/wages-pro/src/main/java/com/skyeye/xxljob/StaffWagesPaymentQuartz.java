@@ -4,18 +4,24 @@
 
 package com.skyeye.xxljob;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.payment.classenum.PaymentHistoryState;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
 import com.skyeye.jedis.util.RedisLock;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: StaffWagesPaymentQuartz
@@ -33,12 +39,21 @@ public class StaffWagesPaymentQuartz {
     @Autowired
     private WagesPaymentHistoryService wagesPaymentHistoryService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 定时发放薪资功能，每月15日上午10:15触发
      */
     @XxlJob("staffWagesPaymentQuartz")
     public void staffWagesPayment() {
         LOGGER.info("staff wagesPayment month is start");
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         // 获取上个月的年月
         String lastMonthDate = DateUtil.getLastMonthDate();
         String lockKey = String.format("inWagesPaymentStaffRedisKey:%s", lastMonthDate);

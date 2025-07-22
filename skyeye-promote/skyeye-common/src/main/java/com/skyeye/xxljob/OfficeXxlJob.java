@@ -1,12 +1,18 @@
 package com.skyeye.xxljob;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.office.service.DocumentOnlineUserService;
 import com.skyeye.office.websocket.WebSocketSessionManager;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,6 +32,10 @@ public class OfficeXxlJob {
     @Autowired
     private WebSocketSessionManager sessionManager;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
+
     /**
      * 清理不活跃用户任务
      * 通过XXL-JOB调度执行，任务名：documentOnlineUserCleanTask
@@ -35,6 +45,12 @@ public class OfficeXxlJob {
      */
     @XxlJob("deleteOfficeDocumentOnlineUserService")
     public void cleanInactiveUsers() {
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             log.info("开始清理不活跃用户...");
             // 清理超时的WebSocket会话（10分钟）

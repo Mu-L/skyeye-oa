@@ -1,6 +1,8 @@
 package com.skyeye.exam.xxljob;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.exam.examsurveydirectory.service.ExamSurveyDirectoryService;
 import com.xxl.job.core.context.XxlJobHelper;
@@ -8,6 +10,7 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -29,6 +32,9 @@ public class ExamXxlJob {
     @Autowired
     private IQuartzService iQuartzService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     private static Logger log = LoggerFactory.getLogger(ExamXxlJob.class);
 
     @XxlJob("createExam")
@@ -37,6 +43,10 @@ public class ExamXxlJob {
         Map<String, Object> paramMap = JSONUtil.toBean(JSONUtil.toJsonStr(param), null);
         String userId = paramMap.get("userId").toString();
         String examId = paramMap.get("objectId").toString();
+        String tenantId = tenantEnable ? paramMap.get("tenantId").toString() : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             examSurveyDirectoryService.createNotSubStudent(examId, userId);
         } finally {

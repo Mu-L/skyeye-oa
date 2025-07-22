@@ -4,9 +4,11 @@
 
 package com.skyeye.sys.quartz;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WinterVacationType;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
@@ -17,8 +19,10 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import com.xxl.job.core.context.XxlJobHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -43,12 +47,21 @@ public class AnnualLeaveStatisticsQuartz {
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
+    @Value("${skyeye.tenant.enable}")
+    private boolean tenantEnable;
+
     /**
      * 每个季度的第一天零点开始执行员工年假计算任务
      */
     @XxlJob("annualLeaveStatisticsQuartz")
     public void annualLeaveStatistics() {
         LOGGER.info("annualLeaveStatistics start.");
+        String param = XxlJobHelper.getJobParam();
+        Map<String, String> paramMap = JSONUtil.toBean(param, null);
+        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
+        if (tenantEnable) {
+            TenantContext.setTenantId(tenantId);
+        }
         try {
             // 1.获取年假信息
             List<Map<String, Object>> yearHolidaysMation = getSystemYearHolidaysMation();
@@ -93,8 +106,8 @@ public class AnnualLeaveStatisticsQuartz {
         for (WinterVacationType q : WinterVacationType.values()) {
             if (q.getMin() <= differYear && differYear < q.getMax()) {
                 List<Map<String, Object>> fillterMation = yearHolidaysMation.stream()
-                    .filter(bean -> bean.get("yearType").toString().equals(q.getKey().toString()))
-                    .collect(Collectors.toList());
+                        .filter(bean -> bean.get("yearType").toString().equals(q.getKey().toString()))
+                        .collect(Collectors.toList());
                 if (fillterMation == null || fillterMation.isEmpty()) {
                     return null;
                 }
