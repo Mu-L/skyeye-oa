@@ -88,9 +88,7 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         xxlJobInfo.setExecutorTimeout(0);
         xxlJobInfo.setExecutorFailRetryCount(0);
         xxlJobInfo.setGlueRemark("GLUE代码初始化");
-        if (tenantEnable) {
-            xxlJobInfo.setTenantId(TenantContext.getTenantId());
-        }
+
         return xxlJobInfo;
     }
 
@@ -98,6 +96,9 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         Map<String, String> executorParam = new HashMap<>();
         executorParam.put("objectId", objectId);
         executorParam.put("userId", userId);
+        if (tenantEnable) {
+            executorParam.put("tenantId", TenantContext.getTenantId());
+        }
         return JSON.toJSONString(executorParam);
     }
 
