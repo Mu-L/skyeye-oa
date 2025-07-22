@@ -107,6 +107,7 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
                     bean.put("companyId", tenantUser.get("companyId"));
                     bean.put("departmentId", tenantUser.get("departmentId"));
                     bean.put("jobId", tenantUser.get("jobId"));
+                    bean.put("email", tenantUser.get("email"));
                 }
             });
         }
