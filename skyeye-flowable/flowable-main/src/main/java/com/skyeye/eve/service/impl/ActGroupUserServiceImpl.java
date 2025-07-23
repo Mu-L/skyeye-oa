@@ -53,12 +53,6 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
     @Autowired
     private ICompanyJobService iCompanyJobService;
 
-    /**
-     * 给用户组新增用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void insertActGroupUser(InputObject inputObject, OutputObject outputObject) {

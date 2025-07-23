@@ -133,6 +133,20 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     }
 
     @Override
+    protected void writePostpose(TenantUser entity, String userId) {
+        super.writePostpose(entity, userId);
+        deleteUserCache(entity.getStaffId());
+    }
+
+    private void deleteUserCache(String staffId) {
+        String staff2UserId = sysEveUserStaffService.staffTransferToUserId(staffId);
+        if (StrUtil.isNotBlank(staff2UserId)) {
+            // 删除用户的缓存信息
+            jedisClientService.del(iAuthUserService.queryCacheKeyById(staff2UserId));
+        }
+    }
+
+    @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
@@ -177,6 +191,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         remove(queryWrapper);
+        deleteUserCache(staffId);
     }
 
     @Override
@@ -187,6 +202,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
         remove(queryWrapper);
+        deleteUserCache(staffId);
     }
 
     @Override

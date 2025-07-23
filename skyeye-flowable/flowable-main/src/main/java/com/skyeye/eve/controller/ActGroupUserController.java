@@ -31,12 +31,6 @@ public class ActGroupUserController {
     @Autowired
     private ActGroupUserService actGroupService;
 
-    /**
-     * 给用户组新增用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertActGroupUser", value = "给用户组新增用户", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "groupId", name = "groupId", value = "用户组id", required = "required"),
@@ -46,12 +40,6 @@ public class ActGroupUserController {
         actGroupService.insertActGroupUser(inputObject, outputObject);
     }
 
-    /**
-     * 移除用户组中的某个用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteActGroupUserById", value = "移除用户组中的某个用户", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -60,12 +48,6 @@ public class ActGroupUserController {
         actGroupService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 展示用户组的用户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryUserInfoOnActGroup", value = "展示用户组的用户信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ActGroupUserController/queryUserInfoOnActGroup")
@@ -73,12 +55,6 @@ public class ActGroupUserController {
         actGroupService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 一键移除指定用户组下的所有用户
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAllActGroupUserByGroupId", value = "一键移除指定用户组下的所有用户", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "groupId", name = "groupId", value = "用户组id", required = "required")})

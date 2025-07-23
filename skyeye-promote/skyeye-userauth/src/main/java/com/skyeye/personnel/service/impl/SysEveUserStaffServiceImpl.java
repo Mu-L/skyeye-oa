@@ -117,10 +117,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
                 // 员工类型，参考#UserStaffType
                 wrapper.eq(TenantUser::getType, sysEveUserStaffQuery.getType());
             }
-            if(StrUtil.isNotEmpty(sysEveUserStaffQuery.getKeyword())){
-                wrapper.and(item->{
-                    item.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName),sysEveUserStaffQuery.getKeyword())
-                            .or().like("tru.job_number ",sysEveUserStaffQuery.getKeyword());
+            if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getKeyword())) {
+                wrapper.and(item -> {
+                    item.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), sysEveUserStaffQuery.getKeyword())
+                        .or().like("tru.job_number ", sysEveUserStaffQuery.getKeyword());
                 });
             }
             wrapper.orderByDesc(MybatisPlusUtil.toColumns(SysEveUserStaff::getCreateTime));
@@ -264,6 +264,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         if (!tenantEnable) {
             // 单租户模式才去保存员工考勤时间段信息，多租户模式在其他地方调用
             sysEveUserStaffTimeService.saveUserStaffCheckWorkTime(entity.getTimeIdList(), entity.getId());
+            if (StrUtil.isNotBlank(entity.getUserId())) {
+                // 删除用户的缓存信息
+                jedisClientService.del(iAuthUserService.queryCacheKeyById(entity.getUserId()));
+            }
         }
     }
 
@@ -651,6 +655,17 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaff::getState), stateList);
         return list(queryWrapper);
+    }
+
+    @Override
+    public String staffTransferToUserId(String staffId) {
+        QueryWrapper<SysEveUserStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, staffId);
+        SysEveUserStaff sysEveUserStaff = getOne(queryWrapper, false);
+        if (sysEveUserStaff != null) {
+            return sysEveUserStaff.getUserId();
+        }
+        return StrUtil.EMPTY;
     }
 
 }
