@@ -24,11 +24,11 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.meal.entity.MealOrder;
 import com.skyeye.order.dao.OrderCommentDao;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -274,19 +273,24 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     @IgnoreTenant
     public void queryOrderCommentPageListPC(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         MPJLambdaWrapper<OrderComment> mpjLambdaWrapper = JoinWrappers.lambda("oc", OrderComment.class);
+        if (StrUtil.isNotEmpty(tenantId)) {
+            mpjLambdaWrapper.innerJoin("erp_material material ON oc.material_id = material.id")
+                .eq("material.tenant_id", tenantId);
+        }
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             // keyword作为订单编号的查询条件
             mpjLambdaWrapper.innerJoin(Order.class, "o", Order::getId, OrderComment::getOrderId)
-                    .like(MybatisPlusUtil.toColumns(Order::getOddNumber), commonPageInfo.getKeyword())
-                    .select(Order::getOddNumber);
+                .like(MybatisPlusUtil.toColumns(Order::getOddNumber), commonPageInfo.getKeyword())
+                .select(Order::getOddNumber);
         }
         // 只查顾客的评价
         mpjLambdaWrapper.and(wrap -> {
-            String type = "oc."+ MybatisPlusUtil.toColumns(OrderComment::getType);
+            String type = "oc." + MybatisPlusUtil.toColumns(OrderComment::getType);
             wrap.eq(type, OrderCommentType.CUSTOMERFiRST.getKey())
-                    .or().eq(type, OrderCommentType.CUSTOMERLATER.getKey());
+                .or().eq(type, OrderCommentType.CUSTOMERLATER.getKey());
         });
         if (StrUtil.equals(commonPageInfo.getType(), "Store")) {
             // 门店下的订单
@@ -296,12 +300,12 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         }
         // 查询OrderComment中的字段
         mpjLambdaWrapper.select(OrderComment::getId, OrderComment::getParentId
-                , OrderComment::getNormsId, OrderComment::getMaterialId
-                , OrderComment::getStoreId, OrderComment::getOrderId
-                , OrderComment::getOrderItemId, OrderComment::getType
-                , OrderComment::getStart, OrderComment::getIsComment
-                , OrderComment::getContext, OrderComment::getCreateId
-                , OrderComment::getCreateTime, OrderComment::getLastUpdateId, OrderComment::getLastUpdateTime);
+            , OrderComment::getNormsId, OrderComment::getMaterialId
+            , OrderComment::getStoreId, OrderComment::getOrderId
+            , OrderComment::getOrderItemId, OrderComment::getType
+            , OrderComment::getStart, OrderComment::getIsComment
+            , OrderComment::getContext, OrderComment::getCreateId
+            , OrderComment::getCreateTime, OrderComment::getLastUpdateId, OrderComment::getLastUpdateTime);
         List<Map<String, Object>> mapList = skyeyeBaseMapper.selectJoinMaps(mpjLambdaWrapper);
         List<OrderComment> beans = BeanUtil.copyToList(mapList, OrderComment.class);
         iMaterialService.setDataMation(beans, OrderComment::getMaterialId);
