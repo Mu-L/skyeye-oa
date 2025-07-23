@@ -65,7 +65,7 @@ public class OrderCommentController {
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
         @ApiImplicitParam(id = "type", name = "type", value = "查询类型，Store：门店；All：所有，", required = "required"),
         @ApiImplicitParam(id = "holderId", name = "holderId", value = "门店id,type为'All'时，传了holderId也不会生效"),
-        @ApiImplicitParam(id = "keyword", name = "keyword", value = "订单编号")})
+        @ApiImplicitParam(id = "keyword", name = "keyword", value = "订单子单编号")})
     @RequestMapping("/post/OrderCommentController/queryOrderCommentPageListPC")
     public void queryOrderCommentPageListPC(InputObject inputObject, OutputObject outputObject) {
         orderCommentService.queryOrderCommentPageListPC(inputObject, outputObject);

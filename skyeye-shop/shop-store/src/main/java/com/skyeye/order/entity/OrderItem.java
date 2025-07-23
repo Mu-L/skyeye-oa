@@ -64,6 +64,10 @@ public class OrderItem extends OperatorUserInfo {
     @Property(value = "规格信息")
     private Map<String, Object> normsMation;
 
+    @TableField("odd_number")
+    @Property(value = "订单子单编号")
+    private String oddNumber;
+
     @TableField("material_store_id")
     @ApiModelProperty(value = "商品与门店的关系id", required = "required")
     private String materialStoreId;

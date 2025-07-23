@@ -4,6 +4,7 @@
 
 package com.skyeye.order.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -136,7 +137,11 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
 
     @Override
     public void setValueAndCreateEntity(Order order, String userId) {
-        List<String> materialStoreIds = order.getOrderItemList().stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
+        List<OrderItem> orderItemList = order.getOrderItemList();
+        // 订单编号
+        List<String> oddNumber = iCodeRuleService.getNextCodeByClassName(getClass().getName(), BeanUtil.beanToMap(orderItemList.get(CommonNumConstants.NUM_ZERO)), orderItemList.size());
+
+        List<String> materialStoreIds = orderItemList.stream().map(OrderItem::getMaterialStoreId).distinct().collect(Collectors.toList());
         // shopMaterial -> shopMaterialStore -> storeId
         List<Map<String, Object>> materialByIds = iShopMaterialNormsService.queryShopMaterialByIds(materialStoreIds);// erp-shop-material
         Map<String, String> materialStoreMap = materialByIds.stream()
@@ -147,13 +152,14 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
                     Map<String, Object> shopMaterialStore = JSONUtil.toBean(map.get("shopMaterialStore").toString(), null);
                     return shopMaterialStore.get("storeId").toString();
                 }));
-        for (OrderItem orderItem : order.getOrderItemList()) {
-            orderItem.setCommentState(WhetherEnum.DISABLE_USING.getKey());
-            orderItem.setState(ShopOrderItemOtherState.WAIT_PAY.getKey());
-            orderItem.setParentId(order.getId());
-            orderItem.setStoreId(materialStoreMap.containsKey(orderItem.getMaterialStoreId()) ? materialStoreMap.get(orderItem.getMaterialStoreId()) : "");
+        for (int i = 0; i < orderItemList.size(); i++) {
+            orderItemList.get(i).setCommentState(WhetherEnum.DISABLE_USING.getKey());
+            orderItemList.get(i).setState(ShopOrderItemOtherState.WAIT_PAY.getKey());
+            orderItemList.get(i).setParentId(order.getId());
+            orderItemList.get(i).setStoreId(materialStoreMap.containsKey(orderItemList.get(i).getMaterialStoreId()) ? materialStoreMap.get(orderItemList.get(i).getMaterialStoreId()) : "");
+            orderItemList.get(i).setOddNumber(oddNumber.get(i));
         }
-        super.createEntity(order.getOrderItemList(), userId);
+        super.createEntity(orderItemList, userId);
     }
 
     @Override
