@@ -32,12 +32,6 @@ public class ShopAreaController {
     @Autowired
     private ShopAreaService shopAreaService;
 
-    /**
-     * 获取区域信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "area001", value = "获取区域信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AreaController/queryAreaList")
@@ -45,12 +39,6 @@ public class ShopAreaController {
         shopAreaService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑区域
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeShopArea", value = "添加/编辑区域", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopArea.class)
     @RequestMapping("/post/AreaController/writeShopArea")
@@ -58,12 +46,6 @@ public class ShopAreaController {
         shopAreaService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除区域信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAreaById", value = "根据id删除区域信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ShopAreaController {
         shopAreaService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取区域列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllEnabledAreaList", value = "获取区域列表信息", method = "GET", allUse = "2")
     @RequestMapping("/post/AreaController/queryAllEnabledAreaList")
     public void queryAllEnabledAreaList(InputObject inputObject, OutputObject outputObject) {
