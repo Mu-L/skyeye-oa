@@ -27,8 +27,6 @@ public interface ActGroupUserService extends SkyeyeBusinessService<ActGroupUser>
 
     void deleteAllActGroupUserByGroupId(InputObject inputObject, OutputObject outputObject);
 
-    List<ActGroupUser> queryAllActGroupUser();
-
     List<ActGroupUser> queryActGroupUser(List<String> groupIds);
 
     List<Map<String, Object>> queryPageDataList(CommonPageInfo commonPageInfo);

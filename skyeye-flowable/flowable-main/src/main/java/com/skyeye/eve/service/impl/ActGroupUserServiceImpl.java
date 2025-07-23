@@ -90,6 +90,7 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
     }
 
     @Override
+    @IgnoreTenant
     public List<Map<String, Object>> queryPageDataList(CommonPageInfo commonPageInfo) {
         if (tenantEnable) {
             commonPageInfo.setTenantId(TenantContext.getTenantId());
@@ -97,10 +98,10 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryUserInfoOnActGroup(commonPageInfo);
         if (tenantEnable) {
             // 如果开启多租户，则需要查询员工所在的租户下的员工信息
-            List<String> userIds = beans.stream().map(item -> item.get("userId").toString()).distinct().collect(Collectors.toList());
+            List<String> userIds = beans.stream().map(item -> item.get("id").toString()).distinct().collect(Collectors.toList());
             Map<String, Map<String, Object>> tenantUserMap = iAuthUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
             beans.forEach(bean -> {
-                String userId = bean.get("userId").toString();
+                String userId = bean.get("id").toString();
                 Map<String, Object> tenantUser = tenantUserMap.get(userId);
                 if (CollectionUtil.isNotEmpty(tenantUser)) {
                     bean.put("companyId", tenantUser.get("companyId"));
@@ -126,13 +127,6 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
         QueryWrapper<ActGroupUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ActGroupUser::getGroupId), groupId);
         remove(queryWrapper);
-    }
-
-    @Override
-    public List<ActGroupUser> queryAllActGroupUser() {
-        List<ActGroupUser> actGroupUsers = list();
-        iAuthUserService.setDataMation(actGroupUsers, ActGroupUser::getUserId);
-        return actGroupUsers;
     }
 
     @Override

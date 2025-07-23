@@ -4,20 +4,22 @@
 
     <select id="queryUserInfoOnActGroup" resultType="java.util.Map">
         SELECT
-            a.id,
+            a.id dataId,
+            b.user_id id,
             b.user_name userName,
             b.company_id companyId,
             b.department_id departmentId,
             b.job_id jobId,
-            b.user_id userId,
             b.email,
             b.job_number jobNumber
         FROM
             act_group_user a,
             sys_eve_user_staff b
         <where>
-            a.group_id = #{objectId}
-            AND a.user_id = b.user_id
+            a.user_id = b.user_id
+            <if test="objectId != '' and objectId != null">
+                AND a.group_id = #{objectId}
+            </if>
             <if test="keyword != '' and keyword != null">
                 AND b.user_name LIKE '%${keyword}%'
             </if>
@@ -25,6 +27,7 @@
                 AND a.tenant_id = #{tenantId}
             </if>
         </where>
+        group by b.id
     </select>
 
 </mapper>
