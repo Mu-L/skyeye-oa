@@ -46,10 +46,4 @@ public class ActivitiUserController {
         activitiUserService.queryUserGroupListToActiviti(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "activitimode015", value = "获取组人员选择", method = "POST", allUse = "1")
-    @RequestMapping("/post/ActivitiUserController/insertSyncUserListMationToAct")
-    public void insertSyncUserListMationToAct(InputObject inputObject, OutputObject outputObject) {
-        activitiUserService.insertSyncUserListMationToAct(inputObject, outputObject);
-    }
-
 }

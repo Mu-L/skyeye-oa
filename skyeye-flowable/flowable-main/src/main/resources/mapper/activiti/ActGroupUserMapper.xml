@@ -2,57 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.eve.dao.ActGroupUserDao">
 
-    <select id="queryUserListToActiviti" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.user_code firstName,
-            b.user_name lastName,
-            b.email
-        FROM
-            sys_eve_user a,
-            sys_eve_user_staff b,
-            act_group_user c
-        <where>
-            a.id = b.user_id
-            AND a.user_lock = '0'
-            AND b.state = '1'
-            AND c.user_id = a.id
-            <if test="name != '' and name != null">
-                AND a.user_code LIKE '${name}'
-            </if>
-            <if test="tenantId != '' and tenantId != null">
-                AND c.tenant_id = #{tenantId}
-            </if>
-        </where>
-        GROUP BY a.id
-    </select>
-
-    <select id="queryUserListToActivitiByGroup" parameterType="java.util.Map" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.user_code firstName,
-            b.user_name lastName,
-            b.email
-        FROM
-            sys_eve_user a,
-            sys_eve_user_staff b,
-            act_group_user c
-        <where>
-            a.id = b.user_id
-            AND a.user_lock = '0'
-            AND b.state = '1'
-            AND c.user_id = a.id
-            AND c.group_id = #{groupId}
-            <if test="name != '' and name != null">
-                AND a.user_code LIKE '${name}'
-            </if>
-            <if test="tenantId != '' and tenantId != null">
-                AND c.tenant_id = #{tenantId}
-            </if>
-        </where>
-        GROUP BY a.id
-    </select>
-
     <select id="queryUserInfoOnActGroup" resultType="java.util.Map">
         SELECT
             a.id,
@@ -61,7 +10,8 @@
             b.department_id departmentId,
             b.job_id jobId,
             b.user_id userId,
-            b.email
+            b.email,
+            b.job_number jobNumber
         FROM
             act_group_user a,
             sys_eve_user_staff b

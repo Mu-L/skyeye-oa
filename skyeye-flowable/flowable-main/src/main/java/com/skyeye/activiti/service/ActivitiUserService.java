@@ -21,6 +21,4 @@ public interface ActivitiUserService {
 
     void queryUserGroupListToActiviti(InputObject inputObject, OutputObject outputObject);
 
-    void insertSyncUserListMationToAct(InputObject inputObject, OutputObject outputObject);
-
 }

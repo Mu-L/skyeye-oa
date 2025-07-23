@@ -5,11 +5,13 @@
 package com.skyeye.eve.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.entity.ActGroupUser;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ActGroupService
@@ -29,4 +31,5 @@ public interface ActGroupUserService extends SkyeyeBusinessService<ActGroupUser>
 
     List<ActGroupUser> queryActGroupUser(List<String> groupIds);
 
+    List<Map<String, Object>> queryPageDataList(CommonPageInfo commonPageInfo);
 }

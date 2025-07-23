@@ -86,6 +86,11 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        return queryPageDataList(commonPageInfo);
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(CommonPageInfo commonPageInfo) {
         if (tenantEnable) {
             commonPageInfo.setTenantId(TenantContext.getTenantId());
         }
@@ -102,6 +107,7 @@ public class ActGroupUserServiceImpl extends SkyeyeBusinessServiceImpl<ActGroupU
                     bean.put("departmentId", tenantUser.get("departmentId"));
                     bean.put("jobId", tenantUser.get("jobId"));
                     bean.put("email", tenantUser.get("email"));
+                    bean.put("jobNumber", tenantUser.get("jobNumber"));
                 }
             });
         }

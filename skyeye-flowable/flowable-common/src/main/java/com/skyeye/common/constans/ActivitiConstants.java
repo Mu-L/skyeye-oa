@@ -98,10 +98,10 @@ public class ActivitiConstants {
         ID("id", null, "用户ID", "ro", "center", false, false,
             false, false, "eq", "100", "", false, true,
             "#rspan", true, true),
-        FIRST_NAME("firstName", null, "用户名", "ro", "center", false, false,
+        FIRST_NAME("jobNumber", null, "工号", "ro", "center", false, false,
             false, false, "eq", "120", "", false, true,
             "#rspan", true, true),
-        LAST_NAME("lastName", null, "登录名", "ro", "center", false, false,
+        LAST_NAME("userName", null, "姓名", "ro", "center", false, false,
             false, false, "eq", "120", "", false, true,
             "#rspan", true, true),
         EMAIL("email", null, "邮箱", "ro", "center", false, false,
@@ -177,7 +177,7 @@ public class ActivitiConstants {
     }
 
     public static List<Map<String, Object>> getActivitiUserColumnList() {
-        return getPointKeyList("rowIndex", "isSelected", "id", "firstName", "lastName", "email");
+        return getPointKeyList("rowIndex", "isSelected", "id", "jobNumber", "userName", "email");
     }
 
     public static Map<String, Object> getActivitiUserColumnMap() {
@@ -185,8 +185,8 @@ public class ActivitiConstants {
         bean.put("rowIndex", getMap2PointKey("rowIndex"));
         bean.put("isSelected", getMap2PointKey("isSelected"));
         bean.put("id", getMap2PointKey("id"));
-        bean.put("firstName", getMap2PointKey("firstName"));
-        bean.put("lastName", getMap2PointKey("lastName"));
+        bean.put("jobNumber", getMap2PointKey("jobNumber"));
+        bean.put("userName", getMap2PointKey("userName"));
         bean.put("email", getMap2PointKey("email"));
         return bean;
     }
@@ -205,14 +205,14 @@ public class ActivitiConstants {
     }
 
     public static List<Map<String, Object>> getActivitiUserColumnListByGroupId() {
-        return getPointKeyList("rowIndex", "firstName", "lastName", "email");
+        return getPointKeyList("rowIndex", "jobNumber", "userName", "email");
     }
 
     public static Map<String, Object> getActivitiUserColumnMapByGroupId() {
         Map<String, Object> bean = new HashMap<>();
         bean.put("rowIndex", getMap2PointKey("rowIndex"));
-        bean.put("firstName", getMap2PointKey("firstName"));
-        bean.put("lastName", getMap2PointKey("lastName"));
+        bean.put("jobNumber", getMap2PointKey("jobNumber"));
+        bean.put("userName", getMap2PointKey("userName"));
         bean.put("email", getMap2PointKey("email"));
         return bean;
     }
