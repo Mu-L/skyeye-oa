@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.eve.entity.talk.group.CompanyTalkGroup;
 import org.apache.ibatis.annotations.Param;
 
@@ -24,8 +25,10 @@ public interface CompanyTalkGroupDao extends SkyeyeBaseMapper<CompanyTalkGroup> 
 
     List<Map<String, Object>> queryGroupMemberByGroupIdAndNotThisUser(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryChatLogByPerToPer(Map<String, Object> map);
 
+    @IgnoreTenant
     List<Map<String, Object>> queryChatLogByPerToGroup(Map<String, Object> map);
 
 }

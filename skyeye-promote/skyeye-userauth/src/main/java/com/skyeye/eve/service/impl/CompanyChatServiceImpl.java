@@ -5,6 +5,7 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -68,6 +69,7 @@ public class CompanyChatServiceImpl implements CompanyChatService {
         Map<String, Object> user = inputObject.getLogParams();
         String userId = user.get("id").toString();
         map.put("userId", userId);
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取个人信息
         Map<String, Object> mine = companyChatDao.queryUserMineByUserId(map);
         if (tenantEnable) {
@@ -86,7 +88,7 @@ public class CompanyChatServiceImpl implements CompanyChatService {
         if (CollectionUtil.isNotEmpty(companyDepartment)) {
             List<String> departIds = companyDepartment.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
             List<String> notInUserIds = Arrays.asList(CommonConstants.ADMIN_USER_ID, userId);
-            List<Map<String, Object>> userList = companyChatDao.queryDepartmentUserByDepartId(departIds, notInUserIds);
+            List<Map<String, Object>> userList = companyChatDao.queryDepartmentUserByDepartId(departIds, notInUserIds, tenantId);
             if (tenantEnable) {
                 // 多租户模式下，获取当前租户下的用户信息
                 userList = tenantUserService.setThisTenantUserToDefault(userList, "staffId");

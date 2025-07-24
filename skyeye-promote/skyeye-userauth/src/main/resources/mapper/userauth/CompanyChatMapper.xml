@@ -67,12 +67,30 @@
 		FROM
 			sys_eve_user_staff a,
 			sys_eve_user b
+			<if test="tenantId != '' and tenantId != null">
+            ,tenant_user k
+            </if>
 		WHERE a.user_id = b.id
-		<if test="departIds != null and departIds.size() &gt; 0">
-			<foreach collection="departIds" item="departId" separator="," open=" AND a.department_id in(" close=")">
-				#{departId}
-			</foreach>
-		</if>
+		<choose>
+            <when test="tenantId != null and tenantId != ''">
+                 <if test="departIds != null and departIds.size() &gt; 0">
+					<foreach collection="departIds" item="departId" separator="," open=" AND k.department_id in(" close=")">
+						#{departId}
+					</foreach>
+				</if>
+            </when>
+            <otherwise>
+                <if test="departIds != null and departIds.size() &gt; 0">
+					<foreach collection="departIds" item="departId" separator="," open=" AND a.department_id in(" close=")">
+						#{departId}
+					</foreach>
+				</if>
+            </otherwise>
+        </choose>
+		<if test="tenantId != '' and tenantId != null">
+            AND a.id = k.staff_id
+            AND k.tenant_id = #{tenantId}
+        </if>
 		AND a.state = '1'
 		<if test="notInUserIds != null and notInUserIds.size() &gt; 0">
 			<foreach collection="notInUserIds" item="notInUserId" separator="," open=" AND a.id not in(" close=")">

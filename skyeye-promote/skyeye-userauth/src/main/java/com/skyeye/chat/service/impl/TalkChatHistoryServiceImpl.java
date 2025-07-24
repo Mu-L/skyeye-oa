@@ -17,6 +17,7 @@ import com.skyeye.chat.entity.TalkChatHistory;
 import com.skyeye.chat.enums.TalkChatType;
 import com.skyeye.chat.service.TalkChatHistoryService;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -37,14 +38,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: TalkChatHistoryServiceImpl
- * @Description: 聊天记录服务层实现类
+ * @Description: 聊天记录服务层实现类--不隔离
  * @author: skyeye云系列--卫志强
  * @date: 2025/1/12 14:25
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "聊天历史记录", groupName = "聊天历史记录")
+@SkyeyeService(name = "聊天历史记录", groupName = "聊天历史记录", tenant = TenantEnum.NO_ISOLATION)
 public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkChatHistoryDao, TalkChatHistory> implements TalkChatHistoryService {
 
     @Autowired

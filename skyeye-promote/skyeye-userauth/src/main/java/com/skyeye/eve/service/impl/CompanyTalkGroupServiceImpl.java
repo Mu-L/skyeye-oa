@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.chat.enums.TalkChatType;
@@ -171,6 +172,7 @@ public class CompanyTalkGroupServiceImpl extends SkyeyeBusinessServiceImpl<Compa
     }
 
     @Override
+    @IgnoreTenant
     public void queryChatLogByType(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String chatType = map.get("chatType").toString();

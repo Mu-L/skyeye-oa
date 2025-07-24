@@ -20,11 +20,13 @@ public interface CompanyChatDao {
 
     @IgnoreTenant
     List<Map<String, Object>> queryDepartmentUserByDepartId(@Param("departIds") List<String> departIds,
-                                                            @Param("notInUserIds") List<String> notInUserIds);
+                                                            @Param("notInUserIds") List<String> notInUserIds,
+                                                            @Param("tenantId") String tenantId);
 
     @IgnoreTenant
     List<Map<String, Object>> queryUserGroupByUserId(Map<String, Object> map);
 
+    @IgnoreTenant
     int editUserSignByUserId(Map<String, Object> map);
 
 }
