@@ -32,12 +32,6 @@ public class VehicleDriversController {
     @Autowired
     private VehicleDriversService vehicleDriversService;
 
-    /**
-     * 获取驾驶员信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryVehicleDriversList", value = "获取驾驶员信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/VehicleDriversController/queryVehicleDriversList")
@@ -45,12 +39,6 @@ public class VehicleDriversController {
         vehicleDriversService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑驾驶员资料信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeVehicleDrivers", value = "新增/编辑驾驶员资料信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = VehicleDrivers.class)
     @RequestMapping("/post/VehicleDriversController/writeVehicleDrivers")
@@ -58,12 +46,6 @@ public class VehicleDriversController {
         vehicleDriversService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除驾驶员资料信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteVehicleDriversById", value = "删除驾驶员资料信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class VehicleDriversController {
         vehicleDriversService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有驾驶员信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllVehicleDriversList", value = "获取所有驾驶员信息", method = "GET", allUse = "2")
     @RequestMapping("/post/VehicleDriversController/queryAllVehicleDriversList")
     public void queryAllVehicleDriversList(InputObject inputObject, OutputObject outputObject) {
