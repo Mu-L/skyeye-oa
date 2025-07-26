@@ -152,6 +152,7 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
     }
 
     @Override
+    @IgnoreTenant
     public List<Map<String, Object>> queryDepartmentList(List<String> companyIds, List<String> departmentIds) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         companyIds = companyIds.stream().filter(str -> !ToolUtil.isBlank(str)).collect(Collectors.toList());
