@@ -35,6 +35,8 @@ import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -97,11 +99,11 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
         queryWrapper.ne(MybatisPlusUtil.toColumns(DepotOutPutRecord::getState), DepotOutPutStateEnum.RETURNED.getKey());
         queryWrapper.in(MybatisPlusUtil.toColumns(DepotOutPutRecord::getMaterialId), materialIdList);
         queryWrapper.in(MybatisPlusUtil.toColumns(DepotOutPutRecord::getNormsId), normsIdList);
-        return Collections.emptyList();
+        List<DepotOutPutRecord> list = list(queryWrapper);
+        return list;
     }
 
     @Override
-
     public void writeOutPutRecord(Object o,Integer fromTypeId) {
         if(fromTypeId == DepotOutFromType.LOANOUT.getKey()){
             // 新增
@@ -114,12 +116,11 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
             // 获取子单数据
             List<ErpOrderItem> erpOrderItemList = entity.getErpOrderItemList();
             List<DepotOutPutRecord> depotOutPutRecordList = new ArrayList<>();
-
             for (ErpOrderItem erpOrderItem : erpOrderItemList) {
-                // 解析编码
-                List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
-                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (CollectionUtil.isNotEmpty(normsCode)) {
+                if (StrUtil.isNotEmpty(erpOrderItem.getNormsCode())) {
+                    // 解析编码
+                    List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
+                            .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                     for (String code : normsCode) {
                         DepotOutPutRecord depotOutPutRecord = new DepotOutPutRecord();
                         depotOutPutRecord.setOutCount(CommonNumConstants.NUM_ONE);
@@ -178,9 +179,9 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
             Map<String, Map<String, List<DepotOutPutRecord>>> outPutRecordMap = outPutRecords.stream().collect(Collectors.groupingBy(DepotOutPutRecord::getMaterialId, Collectors.groupingBy(DepotOutPutRecord::getNormsId)));
             List<DepotOutPutRecord> depotOutPutRecordArrayList = new ArrayList<>();
             for (ErpOrderItem erpOrderItem : erpOrderItemList) {
-                List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
-                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(normsCode)) {
+                if (StrUtil.isNotEmpty(erpOrderItem.getNormsCode())) {
+                    List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
+                            .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                     for (String code : normsCode) {
                         DepotOutPutRecord depotOutPutRecord = outPutCodeRecordMap.get(code).get(CommonNumConstants.NUM_ZERO);
                         depotOutPutRecord.setPutCount(CommonNumConstants.NUM_ONE);
