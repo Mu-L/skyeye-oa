@@ -130,6 +130,9 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         } else if (purchaseDelivery.getFromTypeId() == PurchaseDeliveryFromType.WHOLE_ORDER_OUT.getKey()) {
             // 整单委外单
             wholeOrderOutService.setDataMation(purchaseDelivery, PurchaseDelivery::getFromId);
+        } else if (purchaseDelivery.getFromTypeId() == PurchaseDeliveryFromType.PURCHASE_EXCHANGES.getKey()) {
+            // 换货单
+            purchaseExchangesService.setDataMation(purchaseDelivery, PurchaseDelivery::getFromId);
         }
         purchaseDelivery.getErpOrderItemList().forEach(erpOrderItem -> {
             erpOrderItem.setQualityInspectionMation(OrderItemQualityInspectionType.getMation(erpOrderItem.getQualityInspection()));
