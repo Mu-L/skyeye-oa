@@ -263,4 +263,76 @@ public class LoanBorrowServiceImpl extends SkyeyeFlowableServiceImpl<LoanBorrowD
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
     }
+
+    @Override
+    public void queryLoanBorrowPersonAnalysis(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String year = params.get("year").toString();
+        String month = (String) params.get("month");
+        if (StrUtil.isNotEmpty(month)) {
+            int yearInt = Integer.parseInt(year);
+            int monthInt = Integer.parseInt(month);
+            String startPeriod = year + StrUtil.DASHED + month;
+            String endPeriod = year + StrUtil.DASHED + month;
+            if (monthInt == CommonNumConstants.NUM_ONE) {
+                // 如果是1月，则上期是去年12月
+                startPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+                endPeriod = (yearInt - CommonNumConstants.NUM_ONE) + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;
+            }
+            List<Map<String, Object>> result = getLoanBorrowPersonAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        } else {
+            String startPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_ZERO + CommonNumConstants.NUM_ONE; // 本期开始时间
+            String endPeriod = year + StrUtil.DASHED + CommonNumConstants.NUM_TWELVE;  // 本期结束时间
+            List<Map<String, Object>> result = getLoanBorrowPersonAnalysis(startPeriod, endPeriod);
+            outputObject.setBeans(result);
+        }
+    }
+
+    private List<Map<String, Object>> getLoanBorrowPersonAnalysis(String startPeriod, String endPeriod) {
+        QueryWrapper<LoanBorrow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getBorrowType), LoanBorrowTypeEnum.PERSONAL.getKey());
+        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') >= {0}", startPeriod)
+                .apply("date_format(" + MybatisPlusUtil.toColumns(LoanBorrow::getCreateTime) + ", '%Y-%m') <= {0}", endPeriod);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LoanBorrow::getState), FlowableStateEnum.PASS.getKey());
+        List<LoanBorrow> bean = list(queryWrapper);
+        List<Map<String, Object>> result = new ArrayList<>();
+        if (CollectionUtil.isEmpty(bean)) {
+            return result;
+        }
+        // 根据借款人id分组
+        Map<String, List<LoanBorrow>> map = bean.stream().collect(Collectors.groupingBy(LoanBorrow::getApplicantId));
+        for (Map.Entry<String, List<LoanBorrow>> entry : map.entrySet()) {
+            Map<String, Object> tempMap = new HashMap<>();
+            tempMap.put("applicantId", entry.getKey());
+            // 总借款单数
+            tempMap.put("borrowTotalCount", entry.getValue().size());
+            // 计算已经还单数量根据状态
+            int paidCount = entry.getValue().stream().filter(e -> e.getPaidState() == LoanPaidStateEnum.PAID.getKey()).collect(Collectors.toList()).size();
+            tempMap.put("paidCount", paidCount);
+            // 计算未还款单数据量
+            int notPaidCount = entry.getValue().stream().filter(e -> e.getPaidState() != LoanPaidStateEnum.PAID.getKey()).collect(Collectors.toList()).size();
+            tempMap.put("notPaidCount", notPaidCount);
+            // 计算借款总金额
+            double borrowTotalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getPrice())).sum();
+            tempMap.put("borrowTotalPrice", borrowTotalPrice);
+            // 计算还款总金额
+            double repayTotalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getPaidPrice())).sum();
+            tempMap.put("repayTotalPrice", repayTotalPrice);
+            // 计算未还款金额
+            double notRepayTotalPrice = borrowTotalPrice - repayTotalPrice;
+            tempMap.put("notRepayTotalPrice", notRepayTotalPrice);
+            if (borrowTotalPrice == repayTotalPrice) {
+                tempMap.put("state", LoanPaidStateEnum.PAID.getKey());
+            } else if (repayTotalPrice > 0) {
+                tempMap.put("state", LoanPaidStateEnum.PART_PAID.getKey());
+            } else {
+                tempMap.put("state", LoanPaidStateEnum.NOT_PAID.getKey());
+            }
+
+            result.add(tempMap);
+        }
+        iAuthUserService.setMationForMap(result, "applicantId", "applicantMation");
+        return result;
+    }
 }

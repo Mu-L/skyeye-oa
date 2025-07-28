@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 public enum LoanPaidStateEnum implements SkyeyeEnumClass {
 
     NOT_PAID(0, "未还款","red" ,true, false),
-    PART_PAID(1, "部分还款","yellow", true, false),
+    PART_PAID(1, "部分还款","#FF7A45", true, false),
     PAID(2, "已还款", "green",true, false);
 
 
