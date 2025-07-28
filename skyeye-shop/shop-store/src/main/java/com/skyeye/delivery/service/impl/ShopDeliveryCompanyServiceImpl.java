@@ -4,6 +4,7 @@
 
 package com.skyeye.delivery.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -50,8 +51,22 @@ public class ShopDeliveryCompanyServiceImpl extends SkyeyeBusinessServiceImpl<Sh
     @Override
     public QueryWrapper<ShopDeliveryCompany> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ShopDeliveryCompany> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.like(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getStoreId), commonPageInfo.getObjectId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getStoreId), commonPageInfo.getObjectId());
+        }
+        if (commonPageInfo.getEnabled() != null) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getEnabled), commonPageInfo.getEnabled());
+        }
         return queryWrapper;
+    }
+
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            shopStoreService.setMationForMap(beans, "storeId", "storeMation");
+        }
+        // 分页查询时获取数据
+        return beans;
     }
 
     /**
@@ -91,5 +106,14 @@ public class ShopDeliveryCompanyServiceImpl extends SkyeyeBusinessServiceImpl<Sh
                 throw new CustomException("门店不存在: " + shopDeliveryCompany.getStoreId());
             }
         }
+    }
+
+    @Override
+    public ShopDeliveryCompany selectById(String id) {
+        ShopDeliveryCompany shopDeliveryCompany = super.selectById(id);
+        if (StrUtil.isNotEmpty(shopDeliveryCompany.getId()) && StrUtil.isNotEmpty(shopDeliveryCompany.getStoreId())) {
+            shopStoreService.setDataMation(shopDeliveryCompany, ShopDeliveryCompany::getStoreId);
+        }
+        return shopDeliveryCompany;
     }
 }

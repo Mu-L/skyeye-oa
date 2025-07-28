@@ -9,9 +9,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.delivery.enums.DeliveryExpressType;
 import lombok.Data;
+
+import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryTemplate
@@ -31,7 +34,7 @@ public class ShopDeliveryTemplate extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "模板名称",required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "模板名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "`remark`")
@@ -39,15 +42,18 @@ public class ShopDeliveryTemplate extends OperatorUserInfo {
     private String remark;
 
     @TableField(value = "`type`")
-    @ApiModelProperty(value = "配送计费方式，参考#DeliveryExpressType",required = "num")
+    @ApiModelProperty(value = "配送计费方式", required = "num", enumClass = DeliveryExpressType.class)
     private Integer type;
 
     @TableField(value = "`order_by`")
-    @ApiModelProperty(value = "排序",required = "num")
+    @ApiModelProperty(value = "排序", required = "num")
     private Integer orderBy;
 
     @TableField(value = "`store_id`")
-    @ApiModelProperty(value = "门店id",fuzzyLike = true)
+    @ApiModelProperty(value = "门店id")
     private String storeId;
 
+    @TableField(exist = false)
+    @Property(value = "门店信息")
+    private Map<String, Object> storeMation;
 }

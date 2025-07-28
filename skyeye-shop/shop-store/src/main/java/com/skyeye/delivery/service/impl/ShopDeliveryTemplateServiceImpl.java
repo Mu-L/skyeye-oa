@@ -4,6 +4,7 @@
 
 package com.skyeye.delivery.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -48,8 +49,19 @@ public class ShopDeliveryTemplateServiceImpl extends SkyeyeBusinessServiceImpl<S
     @Override
     public QueryWrapper<ShopDeliveryTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ShopDeliveryTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplate::getStoreId), commonPageInfo.getObjectId());
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplate::getStoreId), commonPageInfo.getObjectId());
+        }
         return queryWrapper;
+    }
+
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            shopStoreService.setMationForMap(beans, "storeId", "storeMation");
+        }
+        // 分页查询时获取数据
+        return beans;
     }
 
     /**
@@ -85,5 +97,14 @@ public class ShopDeliveryTemplateServiceImpl extends SkyeyeBusinessServiceImpl<S
                 throw new CustomException("门店不存在: " + shopStore.getId());
             }
         }
+    }
+
+    @Override
+    public ShopDeliveryTemplate selectById(String id) {
+        ShopDeliveryTemplate shopDeliveryTemplate = super.selectById(id);
+        if (StrUtil.isNotEmpty(shopDeliveryTemplate.getId()) && StrUtil.isNotEmpty(shopDeliveryTemplate.getStoreId())) {
+            shopStoreService.setDataMation(shopDeliveryTemplate, ShopDeliveryTemplate::getStoreId);
+        }
+        return shopDeliveryTemplate;
     }
 }

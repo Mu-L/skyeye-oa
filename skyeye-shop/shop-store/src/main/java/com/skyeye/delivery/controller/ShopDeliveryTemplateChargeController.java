@@ -66,7 +66,9 @@ public class ShopDeliveryTemplateChargeController {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "queryShopDeliveryTemplateChargeList", value = "分页查询快递运费模板计费配置信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "模板id"),
+            @ApiImplicitParam(id = "typeId", name = "typeId", value = "区域id")})
     @RequestMapping("/post/shopDeliveryTemplateChargeController/queryShopDeliveryTemplateChargeList")
     public void queryShopDeliveryTemplateChargeList(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateChargeService.queryPageList(inputObject, outputObject);

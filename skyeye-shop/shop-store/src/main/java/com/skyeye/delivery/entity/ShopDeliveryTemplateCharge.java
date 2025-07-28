@@ -9,9 +9,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.store.entity.ShopArea;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ShopDeliveryTemplateCharge
@@ -23,7 +28,7 @@ import lombok.Data;
  */
 @Data
 //@UniqueField
-@TableName(value = "shop_delivery_template_charge")
+@TableName(value = "shop_delivery_template_charge", autoResultMap = true)
 @ApiModel("快递运费模板计费配置信息管理")
 public class ShopDeliveryTemplateCharge extends OperatorUserInfo {
 
@@ -32,12 +37,20 @@ public class ShopDeliveryTemplateCharge extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "`template_id`")
-    @ApiModelProperty(value = "模板ID",required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "模板ID", required = "required")
     private String templateId;
 
-    @TableField(value = "`area_id`")
-    @ApiModelProperty(value = "区域id，集合",required = "required")
-    private String areaId;
+    @TableField(exist = false)
+    @Property(value = "模板信息")
+    private Map<String, Object> templateMation;
+
+    @TableField(value = "area_id", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "区域id，集合", required = "required,json")
+    private List<String> areaId;
+
+    @TableField(exist = false)
+    @Property(value = "区域列表")
+    private List<ShopArea> areaList;
 
     @TableField(value = "`start_count`")
     @ApiModelProperty(value = "首件数量(件数,重量，或体积)")
