@@ -40,7 +40,7 @@ public class LessonReviewModelController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LessonReviewModelController/queryLessonReviewModelList")
     public void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject) {
-        lessonReviewModelService.queryPageList(inputObject, outputObject);
+        lessonReviewModelService.queryLessonReviewModelList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryLessonReviewModelById", value = "根据id查询听评课模型信息", method = "GET", allUse = "2")
