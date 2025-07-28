@@ -178,8 +178,6 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
             throw new CustomException("该归还入库订单没有商品信息");
         }
         entity.setOtherState(DepotPutState.NEED_PUT.getKey());
-        // 检验归还入库的商品是否被借出
-        depotOutPutRecordService.checkOutPutRecord(entity.getErpOrderItemList(),entity.getHolderId());
     }
 
     @Override
@@ -221,6 +219,7 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
         if (ObjectUtil.isEmpty(productReturnInStock)) {
             throw new CustomException("该数据不存在.");
         }
+        depotOutPutRecordService.checkOutPutRecord(depotPut.getErpOrderItemList(), depotPut.getHolderId());
         // 审核通过的可以转到仓库出库单
         if (FlowableStateEnum.PASS.getKey().equals(productReturnInStock.getState())) {
             String userId = inputObject.getLogParams().get("id").toString();

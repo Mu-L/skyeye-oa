@@ -138,4 +138,14 @@ public class LoanBorrowController {
         loanBorrowService.queryLoanBorrowDeptAnalysis(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryLoanBorrowPersonAnalysis", value = "用户借款单分析", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "year", name = "year", value = "年", required = "required"),
+            @ApiImplicitParam(id = "month", name = "month", value = "月")
+    })
+    @RequestMapping("/post/LoanBorrowController/queryLoanBorrowPersonAnalysis")
+    public void queryLoanBorrowPersonAnalysis(InputObject inputObject, OutputObject outputObject) {
+        loanBorrowService.queryLoanBorrowPersonAnalysis(inputObject, outputObject);
+    }
+
 }

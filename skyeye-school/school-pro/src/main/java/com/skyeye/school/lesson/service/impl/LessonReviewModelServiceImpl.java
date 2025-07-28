@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -118,6 +119,37 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     }
 
     @Override
+    public void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<LessonReviewModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LessonReviewModel::getCreateTime));
+        LessonReviewModel lessonReviewModel = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(lessonReviewModel)) {
+            outputObject.setBean(null);
+            outputObject.settotal(CommonNumConstants.NUM_ZERO);
+            return;
+        }
+        String modelId = lessonReviewModel.getId();
+        List<LessonReviewType> typeList = lessonReviewTypeService.queryTypeByModelId(modelId);
+        lessonReviewModel.setLessonReviewTypeList(CollectionUtil.isEmpty(typeList) ? null : typeList);
+        List<LecturesAttenanceRecored> recordList = lecturesAttenanceRecoredService.getByReviewModelId(modelId);
+        if (CollectionUtil.isNotEmpty(recordList)) {
+            List<String> recordIds = recordList.stream()
+                    .map(LecturesAttenanceRecored::getId)
+                    .collect(Collectors.toList());
+            Map<String, List<LecturesAttenanceRecoredChild>> childMap = lecturesAttenanceRecoredChildService
+                    .queryChildByAttenanceRecordIds(recordIds)
+                    .stream()
+                    .collect(Collectors.groupingBy(LecturesAttenanceRecoredChild::getAttenanceRecordId));
+            recordList.forEach(record ->
+                    record.setLecturesAttenanceRecoredChildList(childMap.get(record.getId()))
+            );
+        }
+        lessonReviewModel.setLecturesAttenanceRecoredList(CollectionUtil.isEmpty(recordList) ? null : recordList);
+        outputObject.setBean(lessonReviewModel);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
     public LessonReviewModel selectById(String id) {
         LessonReviewModel lessonReviewModel = super.selectById(id);
         //查类型
@@ -135,13 +167,6 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
         }
         lessonReviewModel.setLecturesAttenanceRecoredList(lecturesAttenanceRecoredList);
         return lessonReviewModel;
-    }
-
-    @Override
-    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
-
-        super.queryPageList(inputObject, outputObject);
-
     }
 
     @Override

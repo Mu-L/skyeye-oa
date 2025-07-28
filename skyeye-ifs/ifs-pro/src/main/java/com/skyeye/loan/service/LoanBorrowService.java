@@ -30,4 +30,6 @@ public interface LoanBorrowService extends SkyeyeFlowableService<LoanBorrow> {
     List<LoanBorrow> queryLoanBorrowList(String time);
 
     void queryUserLoanBorrowList(InputObject inputObject, OutputObject outputObject);
+
+    void queryLoanBorrowPersonAnalysis(InputObject inputObject, OutputObject outputObject);
 }

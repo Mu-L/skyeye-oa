@@ -291,11 +291,11 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
             } else {
                 Map<String, List<DepotOutPutRecord>> normIdMap = outPutRecordMap.getOrDefault(erpOrderItem.getMaterialId(), new HashMap<>());
                 if (CollectionUtils.isEmpty(normIdMap)) {
-                    throw new CustomException("商品编码为" + erpOrderItem.getMaterialId() + "的出库记录不存在");
+                    throw new CustomException("该商品的出库记录不存在");
                 }
                 List<DepotOutPutRecord> list = normIdMap.getOrDefault(erpOrderItem.getNormsId(), new ArrayList<>());
                 if (CollectionUtils.isEmpty(list)) {
-                    throw new CustomException("商品编码为" + erpOrderItem.getMaterialId() + "的规格为" + erpOrderItem.getNormsId() + "的出库记录不存在");
+                    throw new CustomException("商品规格为的出库记录不存在");
                 }
                 DepotOutPutRecord depotOutPutRecord = list.get(CommonNumConstants.NUM_ZERO);
                 // 带归还入库单数量
