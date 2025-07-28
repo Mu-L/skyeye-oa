@@ -95,6 +95,8 @@ public class PurchaseDeliveryServiceImpl extends SkyeyeErpOrderServiceImpl<Purch
         purchaseOrderService.setOrderMationByFromId(beans, "fromId", "fromMation");
         // 设置整单委外单
         wholeOrderOutService.setOrderMationByFromId(beans, "fromId", "fromMation");
+        // 设置采购换货单
+        purchaseExchangesService.setOrderMationByFromId(beans, "fromId", "fromMation");
         return beans;
     }
 
