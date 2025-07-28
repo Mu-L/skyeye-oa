@@ -11,6 +11,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -207,11 +208,15 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FarmStaff::getFarmId), framId);
         List<FarmStaff> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
         List<String> staffId = list.stream().map(FarmStaff::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffId);
         List<Map<String, Object>> staffList = new ArrayList<>(stringMapMap.values());
         List<Map<String, Object>> staffMation = staffList.stream().filter(
-            staff -> staff.get("workstationType").equals(CommonNumConstants.NUM_ONE)).collect(Collectors.toList());
+                staff -> !Integer.valueOf(staff.get("workstationType").toString()).equals(UserStaffWorkstationType.CONTRACT_WORKER.getKey()))
+            .collect(Collectors.toList());
         outputObject.setBeans(staffMation);
         outputObject.settotal(staffMation.size());
     }
