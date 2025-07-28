@@ -12,7 +12,7 @@ public interface SchedulingLeaveService extends SkyeyeBusinessService<Scheduling
 
     void querySchedulingLeaveList(InputObject inputObject, OutputObject outputObject);
 
-//    void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject);
+    void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject);
 
     Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime);
 

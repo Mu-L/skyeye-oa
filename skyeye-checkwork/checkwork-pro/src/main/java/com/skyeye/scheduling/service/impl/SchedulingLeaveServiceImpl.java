@@ -7,7 +7,6 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -21,7 +20,6 @@ import com.skyeye.scheduling.service.SchedulingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,26 +62,21 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
         List<SchedulingLeave> schedulingLeaves = list(queryWrapper);
+        iAuthUserService.setName(schedulingLeaves, "createId", "createName");
+        iAuthUserService.setName(schedulingLeaves, "lastUpdateId", "lastUpdateName");
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(schedulingLeaves);
     }
 
-//    @Override
-//    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
-//        Map<String, Object> map = inputObject.getParams();
-//        String id = map.get("id").toString();
-//        String status = map.get("status").toString();
-//        SchedulingLeave schedulingLeave = selectById(id);
-//        schedulingLeave.setStatus(Integer.valueOf(status));
-//        super.updateEntity(schedulingLeave, schedulingLeave.getCreateId());
-//        if (Integer.valueOf(status).equals(CommonNumConstants.NUM_TWO)) {
-//            SchedulingLeave schedulingLeave1 = selectById(id);
-//            String employeeId = schedulingLeave1.getEmployeeId();
-//            String startTime = schedulingLeave1.getStartTime();
-//            String endTime = schedulingLeave1.getEndTime();
-//            schedulingService.updateEmployStateByLeave(employeeId,startTime,endTime);
-//        }
-//    }
+    @Override
+    public void updateSchedulingLeave(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        String status = map.get("status").toString();
+        SchedulingLeave schedulingLeave = selectById(id);
+        schedulingLeave.setStatus(Integer.valueOf(status));
+        super.updateEntity(schedulingLeave, inputObject.getLogParams().get("id").toString());
+    }
 
     @Override
     public Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime) {
@@ -97,7 +90,7 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         queryWrapper.ge(MybatisPlusUtil.toColumns(SchedulingLeave::getEndTime), startTime);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
         List<SchedulingLeave> leaveList = list(queryWrapper);
-        
+
         // 按员工ID分组
         return leaveList.stream()
             .collect(Collectors.groupingBy(SchedulingLeave::getEmployeeId));
