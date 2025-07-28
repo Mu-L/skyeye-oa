@@ -58,7 +58,7 @@ public class DwSurveyDirectory extends OperatorUserInfo {
     private String realEndTime;
 
     @TableField("survey_model")
-    @ApiModelProperty(value = "问卷所属的问卷模块   1问卷模块  2试题模块")
+    @ApiModelProperty(value = "问卷所属的问卷模块  1问卷模块  2试题模块")
     private Integer surveyModel;
 
     @TableField("an_item_least_num")

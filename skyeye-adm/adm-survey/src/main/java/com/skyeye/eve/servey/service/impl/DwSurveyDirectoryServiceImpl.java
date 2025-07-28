@@ -387,7 +387,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
     }
 
-
     @Override
     protected void createPostpose(DwSurveyDirectory entity, String userId) {
         List<DwQuestion> dwQuestionMation = entity.getDwQuestionMation();
@@ -399,7 +398,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         }
 
     }
-
 
     @Override
     public void updatePostpose(DwSurveyDirectory entity, String userId) {
@@ -921,50 +919,71 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             question.put("anChenCheckbox", statBeans);
         }
         if (quType.equals(QuType.CHENSCORE.getIndex())) {
-            /* 1. 取原始答卷数据 */
             List<DwAnChenScore> beans = dwAnChenScoreService.slectByQuId(id);
-            if (CollectionUtil.isEmpty(beans)) beans = Collections.emptyList();
             List<Map<String, Object>> rows = Optional.ofNullable(question.get("rowTd"))
-                .filter(List.class::isInstance)
-                .map(List.class::cast)
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
                 .orElseGet(Collections::emptyList);
+            if (beans == null) beans = Collections.emptyList();
+            if (rows == null) rows = Collections.emptyList();
 
-            Map<String, Long> rowCountMap = beans.stream()
-                .filter(b -> ObjectUtil.isNotEmpty(b))
-                .collect(Collectors.groupingBy(DwAnChenScore::getQuRowId, Collectors.counting()));
+// 1. 按行ID和列ID分组，计算总分和评分次数
+            Map<String, Map<String, Integer>> scoreSums = new HashMap<>();
+            Map<String, Map<String, Integer>> scoreCounts = new HashMap<>();
 
-            /* 4. 统计每个 row 的平均分 */
-            Map<String, String> avgScoreMap = beans.stream()
+            beans.stream()
                 .filter(b -> b != null && Objects.equals(b.getVisibility(), 1))
-                .collect(Collectors.groupingBy(
-                    DwAnChenScore::getQuRowId,
-                    Collectors.collectingAndThen(
-                        Collectors.averagingDouble(b -> Double.parseDouble(b.getAnswerScore())),
-                        avg -> String.format("%.2f", avg)
-                    )
-                ));
-            /* 5. 组装结果到 rows */
-            rows.forEach(r -> {
-                String rowId = String.valueOf(r.get("id"));
-                r.put("anCount", rowCountMap.getOrDefault(rowId, 0L));      // 选择人数
-                r.put("meanScore", avgScoreMap.getOrDefault(rowId, "0.00")); // 平均分
+                .forEach(b -> {
+                    String rowId = b.getQuRowId();
+                    String colId = b.getQuColId();
+                    int score;
+                    try {
+                        score = Integer.parseInt(b.getAnswerScore().trim());
+                    } catch (NumberFormatException e) {
+                        score = 0; // 无效分数视为0
+                    }
+
+                    // 累加总分
+                    scoreSums
+                        .computeIfAbsent(rowId, k -> new HashMap<>())
+                        .merge(colId, score, Integer::sum);
+
+                    // 累加评分次数
+                    scoreCounts
+                        .computeIfAbsent(rowId, k -> new HashMap<>())
+                        .merge(colId, 1, Integer::sum);
+                });
+
+// 2. 生成最终结果：仅包含行ID、列ID和平均分
+            List<Map<String, Object>> statBeans = new ArrayList<>();
+
+            scoreSums.forEach((rowId, colSums) -> {
+                colSums.forEach((colId, totalScore) -> {
+                    int count = scoreCounts.get(rowId).get(colId);
+                    double avgScore = (double) totalScore / count;
+
+                    Map<String, Object> cellStat = new HashMap<>();
+                    cellStat.put("quRowId", rowId);
+                    cellStat.put("quColId", colId);
+                    cellStat.put("avgScore", Math.round(avgScore * 100) / 100.0);
+                    statBeans.add(cellStat);
+                });
             });
-            long answeredCount = beans.stream()
-                .filter(Objects::nonNull)
-                .map(DwAnChenScore::getBelongAnswerId)
-                .distinct()
-                .count();
-            question.put("answeredCount", answeredCount);
-            question.put("anChenScore", rows);
+
+            question.put("anChenScore", statBeans);
         }
         if (quType.equals(QuType.SCORE.getIndex())) {
             List<DwAnScore> dwAnScoreList = dwAnScoreService.selectAnScoreByQuId(id);
             List<Map<String, Object>> scores = Optional.ofNullable(question.get("scoreTd"))
-                .filter(list -> list instanceof List).map(list -> (List<Map<String, Object>>) list).orElseGet(Collections::emptyList);
+                .filter(list -> list instanceof List)
+                .map(list -> (List<Map<String, Object>>) list)
+                .orElseGet(Collections::emptyList);
+
             if (dwAnScoreList == null) dwAnScoreList = Collections.emptyList();
-            Map<String, Long> collectMap = dwAnScoreList.stream().collect(Collectors.groupingBy(DwAnScore::getId, Collectors.counting()));
-            Integer paramInt02 = (Integer) question.get("paramInt02");
-            // 选项对应的平均分
+            Map<String, Long> collectMap = dwAnScoreList.stream()
+                .collect(Collectors.groupingBy(DwAnScore::getQuRowId, Collectors.counting()));
+
+            // 计算每个选项的平均分
             Map<String, String> averageScoreMap = dwAnScoreList.stream()
                 .collect(Collectors.groupingBy(
                     DwAnScore::getQuRowId,
@@ -975,27 +994,27 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                                 ? Double.parseDouble(score.trim())
                                 : 0.0;
                         }),
-                        avg -> String.valueOf(avg)
+                        avg -> String.format("%.2f", avg)  // 保留2位小数
                     )
                 ));
-            int totalCount = 0;
+
+            // 统计总评分次数
+            long totalCount = 0L;
             for (Map<String, Object> score : scores) {
-                // 选项的id
                 String quRowId = String.valueOf(score.get("id"));
-                // 从 collectMap 里取次数，没有就 0
                 long cnt = collectMap.getOrDefault(quRowId, 0L);
-                // 有多少人选择这个选项
                 score.put("anCount", cnt);
-                String parseScore = averageScoreMap.get("quRowId");
-                // 选项的平均分
-                score.put("meanScore", parseScore);
-                score.put("fullScore", paramInt02);
+                score.put("meanScore", averageScoreMap.getOrDefault(quRowId, "0.00"));
+                score.put("fullScore", question.get("paramInt02"));
                 totalCount += cnt;
             }
 
+            // 设置总次数
             for (Map<String, Object> score : scores) {
                 score.put("anAllCount", totalCount);
             }
+
+            // 统计回答人数
             long answeredCount = dwAnScoreList.stream()
                 .filter(Objects::nonNull)
                 .map(DwAnScore::getBelongAnswerId)
