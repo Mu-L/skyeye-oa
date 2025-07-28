@@ -79,7 +79,6 @@ public class PurchaseExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<Purc
 
     @Override
     public void validatorEntity(PurchaseExchange entity) {
-        entity.setOtherState(OrderArrivalState.NEED_ARRIVAL.getKey());
         checkMaterialNorms(entity, false);
     }
 
