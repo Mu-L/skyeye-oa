@@ -675,6 +675,16 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         outputObject.settotal(resultMap.values().stream().mapToInt(List::size).sum());
     }
 
+    @Override
+    public List<Scheduling> querySchedulingByIdList(List<String> schedulingIdList) {
+        if (CollectionUtil.isEmpty(schedulingIdList)) {
+            return null;
+        }
+        QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
+        schedulingWrapper.in(CommonConstants.ID, schedulingIdList);
+        return list(schedulingWrapper);
+    }
+
     private LocalDateTime parseDateTime(String dateTimeStr) {
         try {
             return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

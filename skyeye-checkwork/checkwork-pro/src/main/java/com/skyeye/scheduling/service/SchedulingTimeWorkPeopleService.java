@@ -1,6 +1,8 @@
 package com.skyeye.scheduling.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheduling.entity.SchedulingTimeWorkPeople;
 
 import java.util.List;
@@ -23,4 +25,5 @@ public interface SchedulingTimeWorkPeopleService extends SkyeyeBusinessService<S
 
     List<SchedulingTimeWorkPeople> findSchedulingTimeByEmployeeIdList(List<String> employeeIdList);
 
+    void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject);
 }

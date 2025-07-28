@@ -16,4 +16,6 @@ public interface SchedulingLeaveService extends SkyeyeBusinessService<Scheduling
 
     Map<String, List<SchedulingLeave>> queryLeaveByEmployeeIds(List<String> id, String startTime, String endTime);
 
+    List<SchedulingLeave> querySchedulingLeaveByEmployeeId(String employeeId);
+
 }
