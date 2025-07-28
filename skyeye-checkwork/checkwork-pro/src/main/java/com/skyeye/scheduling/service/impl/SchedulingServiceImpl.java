@@ -241,7 +241,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     @Override
     public void autoComputeScheduling(InputObject inputObject, OutputObject outputObject) {
         SchedulingAuto schedulingAuto = inputObject.getParams(SchedulingAuto.class);
-
         // 1. 获取基本参数
         String farmId = schedulingAuto.getFarmId();
         String schedulingShiftsId = schedulingAuto.getSchedulingShiftsId();

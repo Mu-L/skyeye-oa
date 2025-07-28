@@ -390,9 +390,9 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void createPostpose(ExamSurveyDirectory entity, String userId) {
         String id = entity.getId();
         String reader = entity.getReaderList();
-        List<String> readerIds = Arrays.asList(reader.split(","));
+        List<String> readerIds = Arrays.asList(reader.split(CommonCharConstants.COMMA_MARK));
         String classId = entity.getClassId();
-        List<String> classIds = Arrays.asList(classId.split(","));
+        List<String> classIds = Arrays.asList(classId.split(CommonCharConstants.COMMA_MARK));
         examSurveyClassService.createExamSurveyClass(id, classIds, userId);
         examSurveyMarkExamService.createExamSurveyMarkExam(id, readerIds, userId);
         List<Question> questionList = entity.getQuestionMation();
