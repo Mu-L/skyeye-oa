@@ -22,6 +22,10 @@ public class SchedulingLeave extends OperatorUserInfo {
     @ApiModelProperty(value = "员工id", required = "required")
     private String employeeId;
 
+    @TableField(value = "farm_id")
+    @ApiModelProperty(value = "车间id", required = "required")
+    private String farmId;
+
     @TableField(value = "start_time")
     @ApiModelProperty(value = "请假开始时间(yyyy-MM-dd HH:mm:ss)", required = "required")
     private String startTime;

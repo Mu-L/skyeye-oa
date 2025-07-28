@@ -90,7 +90,7 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         String userId = inputObject.getLogParams().get("id").toString();
         // 过滤掉已经存在的员工
         List<Map<String, Object>> notExitList = farmStaffVO.getStaffIdAndStationIdList().stream()
-                .filter(bean -> !farmStaffIdList.contains(bean.get("staffId").toString())).collect(Collectors.toList());
+            .filter(bean -> !farmStaffIdList.contains(bean.get("staffId").toString())).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(notExitList)) {
             return;
         }
@@ -177,6 +177,7 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
 
     /**
      * 根据车间id列表和员工id列表查询
+     *
      * @param farmIds  车间id列表
      * @param staffIds 员工id列表
      * @return FarmStaff列表
@@ -184,18 +185,34 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
     @Override
     public List<FarmStaff> queryListByFarmIdsAndStaffIds(List<String> farmIds, List<String> staffIds) {
         QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
-        if (CollectionUtil.isNotEmpty(farmIds)){
+        if (CollectionUtil.isNotEmpty(farmIds)) {
             queryWrapper.in(MybatisPlusUtil.toColumns(FarmStaff::getFarmId), farmIds);
         }
-        if (CollectionUtil.isNotEmpty(staffIds)){
+        if (CollectionUtil.isNotEmpty(staffIds)) {
             queryWrapper.in(MybatisPlusUtil.toColumns(FarmStaff::getStaffId), staffIds);
         }
         return list(queryWrapper);
     }
+
     @Override
     public List<FarmStaff> queryFarmsStaffByStaffId(String staffId) {
         QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FarmStaff::getStaffId), staffId);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void queryStaffByFarmId(InputObject inputObject, OutputObject outputObject) {
+        String framId = inputObject.getParams().get("farmId").toString();
+        QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FarmStaff::getFarmId), framId);
+        List<FarmStaff> list = list(queryWrapper);
+        List<String> staffId = list.stream().map(FarmStaff::getStaffId).collect(Collectors.toList());
+        Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffId);
+        List<Map<String, Object>> staffList = new ArrayList<>(stringMapMap.values());
+        List<Map<String, Object>> staffMation = staffList.stream().filter(
+            staff -> staff.get("workstationType").equals(CommonNumConstants.NUM_ONE)).collect(Collectors.toList());
+        outputObject.setBeans(staffMation);
+        outputObject.settotal(staffMation.size());
     }
 }

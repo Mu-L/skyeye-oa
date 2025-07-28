@@ -110,4 +110,18 @@ public class FarmStaffController {
         farmStaffService.deleteFarmStaffByStaffId(inputObject, outputObject);
     }
 
+    /**
+     * 根据车间id获取临时工
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryStaffByFarmId", value = "根据车间id获取临时工", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "farmId", name = "farmId", value = "车间id", required = "required")})
+    @RequestMapping("/post/FarmStaffController/queryStaffByFarmId")
+    public void queryStaffByFarmId(InputObject inputObject, OutputObject outputObject) {
+        farmStaffService.queryStaffByFarmId(inputObject, outputObject);
+    }
+
 }

@@ -55,10 +55,16 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
     public void querySchedulingLeaveList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 状态
         String state = commonPageInfo.getState();
+        // 车间id
+        String holderId = commonPageInfo.getHolderId();
         QueryWrapper<SchedulingLeave> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(state)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getStatus), state);
+        }
+        if (StrUtil.isNotEmpty(holderId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getFarmId), holderId);
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
         List<SchedulingLeave> schedulingLeaves = list(queryWrapper);

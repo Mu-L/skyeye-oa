@@ -32,4 +32,6 @@ public interface FarmStaffService extends SkyeyeBusinessService<FarmStaff> {
     List<FarmStaff> queryListByFarmIdsAndStaffIds(List<String> farmIds, List<String> staffIds);
 
     List<FarmStaff> queryFarmsStaffByStaffId(String staffId);
+
+    void queryStaffByFarmId(InputObject inputObject, OutputObject outputObject);
 }
