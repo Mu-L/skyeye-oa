@@ -23,7 +23,7 @@ public class SchedulingTimeWorkPeopleController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "startTime", name = "startTime", value = "开始时间（年月日）", required = "required"),
         @ApiImplicitParam(id = "endTime", name = "endTime", value = "结束时间（年月日）", required = "required"),
-        @ApiImplicitParam(id = "employeeId", name = "employeeId", value = "员工Id", required = "required")})
+        @ApiImplicitParam(id = "farmId", name = "farmId", value = "车间id", required = "required")})
     @RequestMapping("/post/SchedulingTimeWorkPeopleController/trackEmployeeAttendanceLeaveTime")
     public void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject) {
         schedulingTimeWorkPeopleService.trackEmployeeAttendanceLeaveTime(inputObject, outputObject);
