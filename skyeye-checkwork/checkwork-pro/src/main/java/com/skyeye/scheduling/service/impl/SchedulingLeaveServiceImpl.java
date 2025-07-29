@@ -1,6 +1,7 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
@@ -70,6 +71,18 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         List<SchedulingLeave> schedulingLeaves = list(queryWrapper);
         iAuthUserService.setName(schedulingLeaves, "createId", "createName");
         iAuthUserService.setName(schedulingLeaves, "lastUpdateId", "lastUpdateName");
+        List<String> employIdlist = schedulingLeaves.stream().map(SchedulingLeave::getEmployeeId).collect(Collectors.toList());
+        Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(employIdlist);
+        List<Map<String, Object>> staffMation = stringMapMap.values().stream().collect(Collectors.toList());
+        Map<String, Map<String, Object>> mapId = staffMation.stream().collect(Collectors.toMap(
+            map -> map.get("id").toString(),
+            map -> map));
+        schedulingLeaves.forEach(leave -> {
+            Map<String, Object> map = mapId.get(leave.getEmployeeId());
+            if (ObjectUtil.isNotEmpty(map)) {
+                leave.setEmployeeName(map.get("userName").toString());
+            }
+        });
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(schedulingLeaves);
     }
