@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.scheduling.classenum.ScheduleLeaveType;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class SchedulingLeave extends OperatorUserInfo {
     @TableField(value = "employee_id")
     @ApiModelProperty(value = "员工id", required = "required")
     private String employeeId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "员工姓名")
+    private String employeeName;
 
     @TableField(value = "farm_id")
     @ApiModelProperty(value = "车间id", required = "required")
