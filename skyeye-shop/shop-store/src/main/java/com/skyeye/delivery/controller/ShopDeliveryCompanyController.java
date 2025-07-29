@@ -38,8 +38,9 @@ public class ShopDeliveryCompanyController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryDeliveryList", value = "分页获取快递公司信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiOperation(id = "queryDeliveryPageList", value = "分页获取快递公司信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopDeliveryCompanyController/queryDeliveryList")
     public void queryMemberLevelList(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryCompanyService.queryPageList(inputObject, outputObject);
