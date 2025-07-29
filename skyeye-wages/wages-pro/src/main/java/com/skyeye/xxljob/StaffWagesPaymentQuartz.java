@@ -4,13 +4,14 @@
 
 package com.skyeye.xxljob;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.payment.classenum.PaymentHistoryState;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.jedis.util.RedisLock;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -39,6 +40,9 @@ public class StaffWagesPaymentQuartz {
     @Autowired
     private WagesPaymentHistoryService wagesPaymentHistoryService;
 
+    @Autowired
+    private ITenantService iTenantService;
+
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
@@ -50,10 +54,24 @@ public class StaffWagesPaymentQuartz {
         LOGGER.info("staff wagesPayment month is start");
         String param = XxlJobHelper.getJobParam();
         Map<String, String> paramMap = JSONUtil.toBean(param, null);
-        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
         if (tenantEnable) {
-            TenantContext.setTenantId(tenantId);
+            //  开启多租户
+            List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+            if (CollectionUtil.isEmpty(tenantList)) {
+                return;
+            }
+            tenantList.forEach(tenant -> {
+                String tenantId = tenant.get("id").toString();
+                TenantContext.setTenantId(tenantId);
+                paymentWages(tenantId);
+            });
+        } else {
+            paymentWages(null);
         }
+        LOGGER.info("staff wagesPayment month is end");
+    }
+
+    private void paymentWages(String tenantId) {
         // 获取上个月的年月
         String lastMonthDate = DateUtil.getLastMonthDate();
         String lockKey = String.format("inWagesPaymentStaffRedisKey:%s", lastMonthDate);
@@ -72,7 +90,6 @@ public class StaffWagesPaymentQuartz {
         } finally {
             lock.unlock();
         }
-        LOGGER.info("staff wagesPayment month is end");
     }
 
     /**

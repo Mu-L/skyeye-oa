@@ -4,11 +4,7 @@
 
 package com.skyeye.xxljob;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
-import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @ClassName: TemporaryFileDeleteQuartz
@@ -34,9 +29,6 @@ public class TemporaryFileDeleteQuartz {
     @Value("${IMAGES_PATH}")
     private String tPath;
 
-    @Value("${skyeye.tenant.enable}")
-    protected boolean tenantEnable;
-
     private long DAY_MINUTE_TIME = 24 * 60;
 
 
@@ -46,12 +38,6 @@ public class TemporaryFileDeleteQuartz {
     @XxlJob("temporaryFileDeleteQuartz")
     public void deleteTemporaryFile() {
         log.info("TemporaryFileDeleteQuartz start");
-        String param = XxlJobHelper.getJobParam();
-        Map<String, String> paramMap = JSONUtil.toBean(param, null);
-        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
-        if (tenantEnable) {
-            TenantContext.setTenantId(tenantId);
-        }
         try {
             // 临时文件存储路径
             String basePath = tPath + "\\upload\\fileconsole\\temporaryfile\\";

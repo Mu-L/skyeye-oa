@@ -43,7 +43,7 @@ public class DataSyncXxlJob {
     /**
      * 每天凌晨2点执行广西科技师范学院数据同步任务
      */
-    @XxlJob("gksDataSyncJob")
+//    @XxlJob("gksDataSyncJob")
     public void gksDataSync() {
         LOGGER.info("gksDataSync start.");
         String param = XxlJobHelper.getJobParam();
