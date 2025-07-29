@@ -165,7 +165,9 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
                 // 周几
                 int weekDay = DateUtil.getWeek(day);
                 int weekType = DateUtil.getWeekType(day);
-                CheckWorkTimeWeek simpleDay = days.stream().filter(item -> item.getWeekNumber() == weekDay).findFirst().orElse(null);
+                CheckWorkTimeWeek simpleDay = days.stream()
+                    .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
+                    .findFirst().orElse(null);
                 if (ObjectUtil.isEmpty(simpleDay)) {
                     continue;
                 }
