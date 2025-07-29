@@ -119,7 +119,7 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     }
 
     @Override
-    public void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject) {
+    public void queryLessonReviewModel(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<LessonReviewModel> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LessonReviewModel::getCreateTime));
         LessonReviewModel lessonReviewModel = getOne(queryWrapper, false);
