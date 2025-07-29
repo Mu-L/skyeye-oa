@@ -36,7 +36,7 @@ public class LessonReviewModelController {
         lessonReviewModelService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryLessonReviewModelList", value = "获取听评课模型信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryLessonReviewModel001", value = "获取听评课模型信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LessonReviewModelController/queryLessonReviewModelList")
     public void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject) {
