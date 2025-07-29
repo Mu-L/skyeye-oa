@@ -624,7 +624,8 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
                 int weekDay = DateUtil.getWeek(day);
                 int weekType = DateUtil.getWeekType(day);
                 CheckWorkTimeWeek simpleDay = checkWorkTime.getCheckWorkTimeWeekList()
-                    .stream().filter(item -> item.getWeekNumber() == weekDay).findFirst().orElse(null);
+                    .stream().filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
+                    .findFirst().orElse(null);
                 if (ObjectUtil.isEmpty(simpleDay)) {
                     continue;
                 }
@@ -765,7 +766,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         if (ObjectUtil.isEmpty(timeMation) || CollectionUtil.isEmpty(timeMation.getCheckWorkTimeWeekList())) {
             return false;
         }
-        CheckWorkTimeWeek simpleDay = timeMation.getCheckWorkTimeWeekList().stream().filter(item -> item.getWeekNumber() == weekDay).findFirst().orElse(null);
+        CheckWorkTimeWeek simpleDay = timeMation.getCheckWorkTimeWeekList().stream()
+            .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
+            .findFirst().orElse(null);
         if (ObjectUtil.isEmpty(simpleDay)) {
             return false;
         }

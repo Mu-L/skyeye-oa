@@ -23,7 +23,8 @@ import lombok.NoArgsConstructor;
 public enum CheckWorkTimeWeekType implements SkyeyeEnumClass {
 
     DAY(1, "每周的当天都上班", true, false),
-    SINGLE_DAY(2, "单周上班，双周休假", true, false);
+    SINGLE_DAY(2, "单周上班，双周休假", true, false),
+    DOUBLE(3, "不上班", true, false);
 
     private Integer key;
 

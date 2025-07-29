@@ -4,7 +4,7 @@
 
 package com.skyeye.sys.quartz;
 
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.WinterVacationType;
@@ -13,6 +13,7 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import com.xxl.job.core.context.XxlJobHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +47,9 @@ public class AnnualLeaveStatisticsQuartz {
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
+    @Autowired
+    private ITenantService iTenantService;
+
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
@@ -56,12 +59,24 @@ public class AnnualLeaveStatisticsQuartz {
     @XxlJob("annualLeaveStatisticsQuartz")
     public void annualLeaveStatistics() {
         LOGGER.info("annualLeaveStatistics start.");
-        String param = XxlJobHelper.getJobParam();
-        Map<String, String> paramMap = JSONUtil.toBean(param, null);
-        String tenantId = tenantEnable ? paramMap.get("tenantId") : StrUtil.EMPTY;
         if (tenantEnable) {
-            TenantContext.setTenantId(tenantId);
+            //  开启多租户
+            List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
+            if (CollectionUtil.isEmpty(tenantList)) {
+                return;
+            }
+            tenantList.forEach(tenant -> {
+                String tenantId = tenant.get("id").toString();
+                TenantContext.setTenantId(tenantId);
+                calcUserAnnualLeave(tenantId);
+            });
+        } else {
+            calcUserAnnualLeave(null);
         }
+        LOGGER.info("annualLeaveStatistics end.");
+    }
+
+    private void calcUserAnnualLeave(String tenantId) {
         try {
             // 1.获取年假信息
             List<Map<String, Object>> yearHolidaysMation = getSystemYearHolidaysMation();
@@ -92,7 +107,6 @@ public class AnnualLeaveStatisticsQuartz {
         } catch (Exception e) {
             LOGGER.warn("AnnualLeaveStatisticsQuartz error.", e);
         }
-        LOGGER.info("annualLeaveStatistics end.");
     }
 
     /**
@@ -106,8 +120,8 @@ public class AnnualLeaveStatisticsQuartz {
         for (WinterVacationType q : WinterVacationType.values()) {
             if (q.getMin() <= differYear && differYear < q.getMax()) {
                 List<Map<String, Object>> fillterMation = yearHolidaysMation.stream()
-                        .filter(bean -> bean.get("yearType").toString().equals(q.getKey().toString()))
-                        .collect(Collectors.toList());
+                    .filter(bean -> bean.get("yearType").toString().equals(q.getKey().toString()))
+                    .collect(Collectors.toList());
                 if (fillterMation == null || fillterMation.isEmpty()) {
                     return null;
                 }

@@ -8,5 +8,5 @@ import com.skyeye.school.lesson.entity.LessonReviewModel;
 public interface LessonReviewModelService extends SkyeyeBusinessService<LessonReviewModel> {
     LessonReviewModel queryByModelId(String modelId);
 
-    void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject);
+    void queryLessonReviewModel(InputObject inputObject, OutputObject outputObject);
 }
