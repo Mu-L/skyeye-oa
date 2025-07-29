@@ -5,11 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.common.entity.features.Version;
 import lombok.Data;
-import org.nutz.dao.impl.sql.ValueEscaper;
 
 import java.util.List;
 
@@ -126,12 +123,20 @@ public class LecturesAttenanceRecored extends OperatorUserInfo {
     @ApiModelProperty("模型名称")
     private String modelName;
 
-    @TableField(exist = false) // 非数据库字段
+    @TableField(exist = false)
     @ApiModelProperty("听课教师完整信息")
-    private String attendLectureTeacherMation; // 类型根据实际需要调整
+    private String attendLectureTeacherMation;
+
+    @TableField("school_id")
+    @ApiModelProperty("学校id")
+    private String schoolId;
+
+    @TableField("school_name")
+    @ApiModelProperty("学校名称")
+    private String schoolName;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "听课记录表管理",required = "json")
+    @ApiModelProperty(value = "听课记录表管理", required = "json")
     private List<LecturesAttenanceRecoredChild> LecturesAttenanceRecoredChildList;
 
 }
