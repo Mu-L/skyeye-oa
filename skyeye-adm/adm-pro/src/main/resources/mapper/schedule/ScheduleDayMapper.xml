@@ -38,10 +38,10 @@
 		WHERE a.type = 3 
 		AND b.type = 3
 		AND ((#{startTime} >= a.start_time AND a.end_time >= #{startTime}) OR (#{endTime} >= b.start_time AND b.end_time >= #{endTime}))
-		ORDER BY a.start_time DESC, b.start_time DESC
 		<if test="tenantId != '' and tenantId != null">
 			AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
 		</if>
+		ORDER BY a.start_time DESC, b.start_time DESC
 		LIMIT 1
 	</select>
 	
