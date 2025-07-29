@@ -1,6 +1,5 @@
 package com.skyeye.product.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -29,8 +28,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "借出申请", groupName = "借出申请", flowable = true)
@@ -84,31 +81,12 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
 
     @Override
     protected void updatePostpose(ProductLead entity, String userId) {
+        productLeadChildService.deleteByParentId(entity.getId());
         List<ProductLeadChild> erpOrderItemList = entity.getErpOrderItemList();
-        List<ProductLeadChild> productLeadChildren = productLeadChildService.selectByPId(entity.getId());
-        // id为空的数据为新增数据
-        List<ProductLeadChild> NoIdProductLeadChild = erpOrderItemList.stream().filter(
-            child -> StrUtil.isEmpty(child.getId())
-        ).collect(Collectors.toList());
-        // id不为空的数据为修改数据
-        List<ProductLeadChild> hasIdProductLeadChild = erpOrderItemList.stream().filter(
-            child -> StrUtil.isNotEmpty(child.getId())
-        ).collect(Collectors.toList());
-        Set<String> hasIdSet = hasIdProductLeadChild.stream().map(ProductLeadChild::getId).collect(Collectors.toSet());
-        List<String> idsToDelete = productLeadChildren.stream().map(ProductLeadChild::getId)
-            .filter(id -> !hasIdSet.contains(id))
-            .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(idsToDelete)) {
-            productLeadChildService.deleteById(idsToDelete);
-        }
-        if (CollectionUtil.isNotEmpty(NoIdProductLeadChild)) {
-            productLeadChildService.createEntity(NoIdProductLeadChild, userId);
-        }
-        if (CollectionUtil.isNotEmpty(hasIdProductLeadChild)) {
-            productLeadChildService.updateEntity(hasIdProductLeadChild, userId);
-        }
-
+        erpOrderItemList.forEach(child -> child.setParentId(entity.getId()));
+        productLeadChildService.createEntity(erpOrderItemList, userId);
     }
+
 
     private void getTotalPrice(ProductLead entity) {
         String totalPrice = productLeadChildService.calcOrderAllTotalPrice(entity.getErpOrderItemList());

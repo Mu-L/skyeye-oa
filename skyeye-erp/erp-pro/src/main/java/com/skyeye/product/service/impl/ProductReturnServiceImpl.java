@@ -1,6 +1,5 @@
 package com.skyeye.product.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -32,8 +31,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
@@ -99,30 +96,10 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
 
     @Override
     protected void updatePostpose(ProductReturn entity, String userId) {
+        productReturnChildService.deleteByParentId(entity.getId());
         List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
-        List<ProductReturnChild> productLeadChildren = productReturnChildService.selectByPId(entity.getId());
-        // id为空的数据为新增数据
-        List<ProductReturnChild> NoIdProductLeadChild = erpOrderItemList.stream().filter(
-            child -> StrUtil.isEmpty(child.getId())
-        ).collect(Collectors.toList());
-        // id不为空的数据为修改数据
-        List<ProductReturnChild> hasIdProductLeadChild = erpOrderItemList.stream().filter(
-            child -> StrUtil.isNotEmpty(child.getId())
-        ).collect(Collectors.toList());
-        Set<String> hasIdSet = hasIdProductLeadChild.stream().map(ProductReturnChild::getId).collect(Collectors.toSet());
-        List<String> idsToDelete = productLeadChildren.stream().map(ProductReturnChild::getId)
-            .filter(id -> !hasIdSet.contains(id))
-            .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(idsToDelete)) {
-            productReturnChildService.deleteById(idsToDelete);
-        }
-        if (CollectionUtil.isNotEmpty(NoIdProductLeadChild)) {
-            productReturnChildService.createEntity(NoIdProductLeadChild, userId);
-        }
-        if (CollectionUtil.isNotEmpty(hasIdProductLeadChild)) {
-            productReturnChildService.updateEntity(hasIdProductLeadChild, userId);
-        }
-
+        erpOrderItemList.forEach(child -> child.setParentId(entity.getId()));
+        productReturnChildService.createEntity(erpOrderItemList, userId);
     }
 
     private void checkForLentOutItems(ProductReturn entity) {
