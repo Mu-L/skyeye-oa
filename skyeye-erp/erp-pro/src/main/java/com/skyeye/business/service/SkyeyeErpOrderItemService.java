@@ -31,5 +31,5 @@ public interface SkyeyeErpOrderItemService extends SkyeyeLinkDataService<ErpOrde
 
     List<ErpOrderItem> queryErpOrderItemByPIds(List<String> pIds);
 
-    List<ErpOrderItem> queryHolderOutPutNormsList(String holderKey, String type, String holderId);
+    List<ErpOrderItem> queryHolderOutPutNormsList(String holderKey, String type, String holderId, String keyword);
 }

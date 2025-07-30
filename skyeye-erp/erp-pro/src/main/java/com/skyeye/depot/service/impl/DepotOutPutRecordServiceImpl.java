@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
@@ -25,6 +26,7 @@ import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.entity.ProductLead;
@@ -241,7 +243,7 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
         if(StrUtil.isEmpty(commonPageInfo.getType())) {
             throw new CustomException("type不能为空");
         }
-        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(),commonPageInfo.getHolderId());
+        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(),commonPageInfo.getHolderId(),commonPageInfo.getKeyword());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
                 .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));
