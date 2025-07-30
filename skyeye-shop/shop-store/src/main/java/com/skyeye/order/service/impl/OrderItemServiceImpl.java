@@ -25,6 +25,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.order.dao.OrderItemDao;
+import com.skyeye.order.entity.ItemDeliverHistory;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderComment;
 import com.skyeye.order.entity.OrderItem;
@@ -299,10 +300,6 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         Map<String, Object> params = inputObject.getParams();
         String orderId = params.get("orderId").toString();
         String itemId = params.get("itemId").toString();
-        int num = Integer.parseInt(params.get("num").toString());
-        if (num <= CommonNumConstants.NUM_ZERO) {
-            throw new CustomException("签收数量不可为负数或零");
-        }
         QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), orderId);
         List<OrderItem> orderItemList = list(queryWrapper);
@@ -318,20 +315,18 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         if (!orderItem.getCreateId().equals(currenUserId)) {
             throw new CustomException("该订单子单不属于当前账号");
         }
-        // 计算剩余可签收数
-        int remainingNum = orderItem.getDeliverNum() - orderItem.getSignNum() - num;
-        if (remainingNum < CommonNumConstants.NUM_ZERO) {
-            throw new CustomException("该订单子单可签收数量不足" + num);
+        if (orderItem.getState() == ShopOrderItemOtherState.WAIT_PAY.getKey() || orderItem.getState() == ShopOrderItemOtherState.WAIT_DELIVER.getKey()) {
+            throw new CustomException("该订单未支付或未发货");
         }
-        // 能签收则说明已经有发货数量
-        if (orderItem.getCount() == orderItem.getDeliverNum() && remainingNum == CommonNumConstants.NUM_ZERO) {
-            // 此次签收后，就全部签收了
+        List<ItemDeliverHistory> itemDeliverHistoryList = itemDeliverHistoryService.queryListByItemId(itemId);
+        // 算出已发货总数
+        int num = itemDeliverHistoryList.stream().map(idh -> Integer.parseInt(idh.getNum())).reduce(CommonNumConstants.NUM_ZERO, Integer::sum);
+        // 计算未发货数量
+        int remainingNum = orderItem.getCount() - num;
+        if (remainingNum == CommonNumConstants.NUM_ZERO) {
             orderItem.setSignState(ItemSignState.ALL_SIGN.getKey());
-            orderItem.setSignNum(orderItem.getCount());
         } else {
-            // 未全部发货
             orderItem.setSignState(ItemSignState.PART_SIGN.getKey());
-            orderItem.setSignNum(orderItem.getSignNum() + num);
         }
         super.updateEntity(orderItem, currenUserId);
         // 判断所有子单是否全部签收
