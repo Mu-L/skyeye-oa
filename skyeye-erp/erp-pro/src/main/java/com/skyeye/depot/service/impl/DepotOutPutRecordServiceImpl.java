@@ -232,7 +232,7 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
     public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+        if(StrUtil.isEmpty(commonPageInfo.getHolderId())) {
             throw new CustomException("holderId不能为空");
         }
         if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
