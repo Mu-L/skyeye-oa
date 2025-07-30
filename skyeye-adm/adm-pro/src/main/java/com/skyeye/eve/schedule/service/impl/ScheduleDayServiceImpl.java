@@ -487,14 +487,13 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
         String id = map.get("id").toString();
         ScheduleDay scheduleDay = selectById(id);
         int remindType = Integer.parseInt(map.get("remindType").toString());
-        String scheduleStartTime = map.get("scheduleStartTime").toString();
-        String remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindType, scheduleStartTime, DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
+        String remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindType, scheduleDay.getStartTime(), DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
         if (StrUtil.isNotEmpty(remindTime)) {
             if (DateUtil.compare(remindTime, DateUtil.getTimeAndToString())) {
                 // 日程提醒时间早于当前时间
                 outputObject.setreturnMessage("日程提醒时间不能早于当前时间");
             } else {
-                if (DateUtil.compare(scheduleDay.getEndTime(), scheduleStartTime)) {
+                if (DateUtil.compare(scheduleDay.getEndTime(), scheduleDay.getStartTime())) {
                     // 结束时间早于开始时间
                     outputObject.setreturnMessage("日程结束时间不能早于开始时间");
                 } else {
