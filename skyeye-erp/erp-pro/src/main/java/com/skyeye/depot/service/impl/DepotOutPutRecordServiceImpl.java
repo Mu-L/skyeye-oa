@@ -35,6 +35,7 @@ import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
+import com.skyeye.supplier.service.SupplierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +77,6 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
 
     @Autowired
     private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
-
-    @Override
-    protected QueryWrapper<DepotOutPutRecord> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<DepotOutPutRecord> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getObjectId), commonPageInfo.getObjectId());
-        return queryWrapper;
-    }
 
     @Override
     public List<DepotOutPutRecord> selectByNormCodes(List<String> codeList) {
@@ -227,6 +221,8 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getMaterialId), commonPageInfo.getFirstTypeId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getNormsId), commonPageInfo.getSecondTypeId());
         List<DepotOutPutRecord> bean = list(queryWrapper);
+        materialService.setDataMation(bean, DepotOutPutRecord::getMaterialId);
+        iMaterialNormsService.setDataMation(bean, DepotOutPutRecord::getNormsId);
 
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(bean);
@@ -236,13 +232,16 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
     public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        if(StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            throw new CustomException("holderId不能为空");
+        }
         if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
             throw new CustomException("holderKey不能为空");
         }
         if(StrUtil.isEmpty(commonPageInfo.getType())) {
             throw new CustomException("type不能为空");
         }
-        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType());
+        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(),commonPageInfo.getHolderId());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
                 .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));

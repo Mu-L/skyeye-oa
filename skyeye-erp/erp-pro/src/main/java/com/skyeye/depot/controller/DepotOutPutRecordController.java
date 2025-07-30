@@ -27,13 +27,6 @@ public class DepotOutPutRecordController {
     @Autowired
     private DepotOutPutRecordService depotOutPutRecordService;
 
-    @ApiOperation(id = "queryOutPutRecordList", value = "获取借出/归还记录列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DepotOutPutRecordController/queryOutPutRecordList")
-    public void queryOutPutRecordList(InputObject inputObject, OutputObject outputObject) {
-        depotOutPutRecordService.queryPageList(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "queryOutPutRecordDetailList", value = "获取借出/归还记录明细", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotOutPutRecordController/queryOutPutRecordDetailList")

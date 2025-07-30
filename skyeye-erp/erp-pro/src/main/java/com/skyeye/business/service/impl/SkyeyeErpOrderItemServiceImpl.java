@@ -27,7 +27,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -87,11 +86,12 @@ public class SkyeyeErpOrderItemServiceImpl extends SkyeyeLinkDataServiceImpl<Erp
 
     @Override
     @IgnoreTenant
-    public List<ErpOrderItem> queryHolderOutPutNormsList(String holderKey,String type) {
+    public List<ErpOrderItem> queryHolderOutPutNormsList(String holderKey, String type, String holderId) {
         MPJLambdaWrapper<ErpOrderItem> mpjLambdaWrapper = JoinWrappers.lambda("i", ErpOrderItem.class)
                 .innerJoin(DepotPut.class, "t", DepotPut::getId, ErpOrderItem::getParentId);
         mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(DepotPut::getHolderKey), holderKey);
         mpjLambdaWrapper.eq("t." + MybatisPlusUtil.toColumns(DepotPut::getState), FlowableStateEnum.PASS.getKey());
+        mpjLambdaWrapper.eq("t." + MybatisPlusUtil.toColumns(DepotPut::getHolderId), holderId);
         if (Integer.parseInt(type) == DepotIdKeyEnum.DEPOT_OUT.getKey()) {
             mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(DepotPut::getIdKey), DepotIdKeyEnum.DEPOT_OUT.getIdKey());
             mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(DepotPut::getFromTypeId), DepotOutFromType.LOANOUT.getKey());
