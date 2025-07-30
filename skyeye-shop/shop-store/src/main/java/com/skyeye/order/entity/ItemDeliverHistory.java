@@ -9,7 +9,6 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.delivery.entity.ShopDeliveryCompany;
-import com.skyeye.order.enums.ItemDeliverHistoryState;
 import lombok.Data;
 
 /**
@@ -65,8 +64,4 @@ public class ItemDeliverHistory extends OperatorUserInfo {
     @TableField(value = "price")
     @ApiModelProperty(value = "总价")
     private String price;
-
-    @TableField(value = "state")
-    @ApiModelProperty(value = "状态", enumClass = ItemDeliverHistoryState.class)
-    private Integer state;
 }
