@@ -6,6 +6,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.order.entity.ItemDeliverHistory;
 import com.skyeye.order.entity.OrderItem;
 
+import java.util.List;
+
 /**
  * @ClassName: ItemDeliverHistoryService
  * @Description: 商品订单子单项快递信息管理
@@ -18,4 +20,6 @@ public interface ItemDeliverHistoryService extends SkyeyeBusinessService<ItemDel
     void queryMyItemDeliverHistoryPageList(InputObject inputObject, OutputObject outputObject);
 
     void insertEntity(OrderItem orderItem, String deliverNumber, String deliveryTemplateChargeId, String deliveryCompanyId, Integer num);
+
+    List<ItemDeliverHistory> queryListByItemId(String itemId);
 }

@@ -150,6 +150,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         String machinProcedureId = inputObject.getParams().get("machinProcedureId").toString();
         // 查询工序信息
         MachinProcedure machinProcedure = machinProcedureService.selectById(machinProcedureId);
+        if (machinProcedure.getState() != MachinProcedureState.ALL_COMPLETED.getKey()) {
+            throw new RuntimeException("当前工序未全部完成");
+        }
         // 查询所有工序验收单信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureId(machinProcedureId);
         List<String> farmIdList = acceptList.stream().map(MachinProcedureAccept::getFarmId).distinct().collect(Collectors.toList());
