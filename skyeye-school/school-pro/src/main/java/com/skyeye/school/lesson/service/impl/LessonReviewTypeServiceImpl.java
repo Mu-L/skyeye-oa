@@ -1,5 +1,6 @@
 package com.skyeye.school.lesson.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -83,6 +84,31 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
         }
         List<LessonReviewTypeChild> lessonReviewTypeChildren = JSONUtil.toList(JSONUtil.toJsonStr(reviewTypeList), LessonReviewTypeChild.class);
         lessonReviewTypeChildService.createEntity(lessonReviewTypeChildren, userId);
+    }
+
+    @Override
+    protected void updatePostpose(List<LessonReviewType> entityList, String userId) {
+        List<String> parentIds = new ArrayList<>();
+        List<LessonReviewTypeChild> allChildrenEntities = new ArrayList<>();
+        for (LessonReviewType entity : entityList) {
+            String parentId = entity.getId();
+            parentIds.add(parentId);
+
+            List<LessonReviewType> children = entity.getTypeChildrenMation();
+            if (CollectionUtil.isNotEmpty(children)) {
+                children.forEach(child -> {
+                    child.setParentId(parentId);
+                    child.setModelId(entity.getModelId());
+                });
+                allChildrenEntities.addAll(JSONUtil.toList(JSONUtil.toJsonStr(children), LessonReviewTypeChild.class));
+            }
+        }
+        if (CollectionUtil.isNotEmpty(parentIds)) {
+            lessonReviewTypeChildService.deleteReviewTypeChildByParentIdList(parentIds);
+        }
+        if (CollectionUtil.isNotEmpty(allChildrenEntities)) {
+            lessonReviewTypeChildService.createEntity(allChildrenEntities, userId);
+        }
     }
 
     @Override
