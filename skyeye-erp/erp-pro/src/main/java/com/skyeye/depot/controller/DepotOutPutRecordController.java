@@ -34,7 +34,7 @@ public class DepotOutPutRecordController {
         depotOutPutRecordService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryOutPutRecordDetailList", value = "获取借出/归还记录明细", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryOutPutRecordDetailList", value = "获取借出/归还记录明细", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotOutPutRecordController/queryOutPutRecordDetailList")
     public void queryOutPutRecordDetailList(InputObject inputObject, OutputObject outputObject) {
