@@ -132,7 +132,7 @@ public class LecturesAttenanceRecored extends OperatorUserInfo {
     private String schoolId;
 
     @TableField("school_name")
-    @ApiModelProperty("学校名称")
+    @ApiModelProperty("学校名称(不可修改)")
     private String schoolName;
 
     @TableField(exist = false)
