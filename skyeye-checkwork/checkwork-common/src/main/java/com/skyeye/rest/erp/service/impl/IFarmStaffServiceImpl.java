@@ -17,8 +17,7 @@ public class IFarmStaffServiceImpl extends IServiceImpl implements IFarmStaffSer
     private IFarmStaffRest iFarmStaffRest;
 
     @Override
-    public List<Map<String, Object>> queryAllFarmStaffList() {
-        return ExecuteFeignClient.get(() -> iFarmStaffRest.queryAllFarmStaffList()).getRows();
+    public List<Map<String, Object>> queryStaffByFarmId(String farmId) {
+        return ExecuteFeignClient.get(() -> iFarmStaffRest.queryStaffByFarmId(farmId)).getRows();
     }
-
 }

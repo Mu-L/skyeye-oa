@@ -28,7 +28,6 @@ import com.skyeye.order.dao.ItemDeliverHistoryDao;
 import com.skyeye.order.entity.ItemDeliverHistory;
 import com.skyeye.order.entity.Order;
 import com.skyeye.order.entity.OrderItem;
-import com.skyeye.order.enums.ItemDeliverHistoryState;
 import com.skyeye.order.service.ItemDeliverHistoryService;
 import com.skyeye.order.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,10 +79,6 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             wrapper.eq(MybatisPlusUtil.toColumns(ItemDeliverHistory::getOrderItemId), commonPageInfo.getObjectId());
         }
-        // 状态判断
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
-            wrapper.eq(MybatisPlusUtil.toColumns(ItemDeliverHistory::getState), Integer.parseInt(commonPageInfo.getState()));
-        }
     }
 
     @Override
@@ -93,19 +88,9 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         String deliverCompanyId = commonPageInfo.getCompanyId();
         String orderId = commonPageInfo.getTypeId();
         String orderItemId = commonPageInfo.getObjectId();
-        String state = commonPageInfo.getState();
         String currenUserId = inputObject.getLogParams().get("id").toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         MPJLambdaWrapper<ItemDeliverHistory> wrapper = JoinWrappers.lambda("idh", ItemDeliverHistory.class);
-        // 状态判断
-        if (StrUtil.isNotEmpty(state)) {
-            if (StrUtil.isEmpty(orderItemId) && StrUtil.isEmpty(orderId) && StrUtil.isEmpty(deliverCompanyId)) {
-                // 只根据快递状态做筛选
-                wrapper.innerJoin(OrderItem.class, "oi", OrderItem::getId, ItemDeliverHistory::getOrderItemId)
-                        .eq("oi." + MybatisPlusUtil.toColumns(OrderItem::getCreateId), currenUserId);
-            }
-            wrapper.eq("idh." + MybatisPlusUtil.toColumns(ItemDeliverHistory::getState), Integer.parseInt(state));
-        }
         // 订单单子项判断
         if (StrUtil.isNotEmpty(orderItemId)) {
             wrapper.innerJoin(OrderItem.class, "oi", OrderItem::getId, ItemDeliverHistory::getOrderItemId)
@@ -137,41 +122,6 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         outputObject.settotal(page.getTotal());
     }
 
-    @Override
-    public void changeDeliverHistoryState(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String deliverNumber = params.get("deliverNumber").toString();
-        int state = Integer.parseInt(params.get("state").toString());
-        UpdateWrapper<ItemDeliverHistory> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ItemDeliverHistory::getDeliverNumber), deliverNumber);
-        ItemDeliverHistory one = getOne(updateWrapper);
-        if (ObjectUtil.isEmpty(one)) {
-            throw new CustomException("该快递信息不存在");
-        }
-        if (state == ItemDeliverHistoryState.IN_TRANSIT.getKey()) {
-            // 要改为运输中状态
-            if (one.getState() != ItemDeliverHistoryState.WAIT_DELIVER.getKey()) {
-                throw new CustomException("该快递信息不处于待发货状态，不可修改为运输中状态");
-            }
-        } else if (state == ItemDeliverHistoryState.ARRIVED.getKey()) {
-            // 要改为已送达状态
-            if (one.getState() != ItemDeliverHistoryState.IN_TRANSIT.getKey()) {
-                throw new CustomException("该快递信息不处于运输中状态，不可改为已送达状态");
-            }
-        } else if (state == ItemDeliverHistoryState.SIGN.getKey()) {
-            // 要改为已签收状态
-            if (one.getState() != ItemDeliverHistoryState.ARRIVED.getKey()) {
-                throw new CustomException("该快递信息不处于已送达状态，不可签收");
-            }
-            orderItemService.changeOrderItemSignState(one.getOrderId(), one.getOrderItemId(), one.getNum());
-        } else {
-            throw new CustomException("非法状态,只可改为运输中、已送达和已签收");
-        }
-        updateWrapper.set(MybatisPlusUtil.toColumns(ItemDeliverHistory::getState), state);
-        update(updateWrapper);
-        refreshCache(one.getId());
-    }
-
     /**
      * 订单子单发货时，创建快递信息
      *
@@ -194,7 +144,6 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         itemDeliverHistory.setDeliverTemplateChargeId(deliveryTemplateChargeId);
         itemDeliverHistory.setDeliverNumber(deliverNumber);
         itemDeliverHistory.setNum(String.valueOf(num));
-        itemDeliverHistory.setState(ItemDeliverHistoryState.WAIT_DELIVER.getKey());
         itemDeliverHistory.setPrice(shopDeliveryTemplateCharge.getStartPrice());
         if (num > CommonNumConstants.NUM_ONE) {
             String extraPrice = CalculationUtil.multiply(shopDeliveryTemplateCharge.getExtraPrice(), String.valueOf(num - shopDeliveryTemplateCharge.getStartCount()), CommonNumConstants.NUM_SIX);

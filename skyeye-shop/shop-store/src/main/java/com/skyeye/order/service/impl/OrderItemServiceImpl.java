@@ -295,19 +295,22 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
     }
 
     @Override
-    public void changeOrderItemSignState(String orderId, String orderItemId, String num) {
-        double numDouble = Double.parseDouble(num);
-        if (numDouble <= CommonNumConstants.NUM_ZERO) {
+    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String orderId = params.get("orderId").toString();
+        String itemId = params.get("itemId").toString();
+        int num = Integer.parseInt(params.get("num").toString());
+        if (num <= CommonNumConstants.NUM_ZERO) {
             throw new CustomException("签收数量不可为负数或零");
         }
-        UpdateWrapper<OrderItem> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), orderId);
-        List<OrderItem> orderItemList = list(updateWrapper);
+        QueryWrapper<OrderItem> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(OrderItem::getParentId), orderId);
+        List<OrderItem> orderItemList = list(queryWrapper);
         if (CollectionUtil.isEmpty(orderItemList)) {
-            throw new CustomException("该订单不存在");
+            throw new CustomException("总单据id不存在");
         }
         // 取出要签收的子单
-        OrderItem orderItem = orderItemList.stream().filter(item -> item.getId().equals(orderItemId)).findFirst().orElse(null);
+        OrderItem orderItem = orderItemList.stream().filter(item -> item.getId().equals(itemId)).findFirst().orElse(null);
         if (ObjectUtil.isEmpty(orderItem)) {
             throw new CustomException("该订单子单不存在");
         }
@@ -316,7 +319,7 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
             throw new CustomException("该订单子单不属于当前账号");
         }
         // 计算剩余可签收数
-        int remainingNum = (int) (orderItem.getDeliverNum() - orderItem.getSignNum() - numDouble);
+        int remainingNum = orderItem.getDeliverNum() - orderItem.getSignNum() - num;
         if (remainingNum < CommonNumConstants.NUM_ZERO) {
             throw new CustomException("该订单子单可签收数量不足" + num);
         }
@@ -328,17 +331,11 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         } else {
             // 未全部发货
             orderItem.setSignState(ItemSignState.PART_SIGN.getKey());
-            orderItem.setSignNum((int) (orderItem.getSignNum() + numDouble));
+            orderItem.setSignNum(orderItem.getSignNum() + num);
         }
         super.updateEntity(orderItem, currenUserId);
         // 判断所有子单是否全部签收
-        boolean allMatch = orderItemList.stream().map(item -> {
-            // 如果是当前签收的子单，则返回当前签收状态
-            if (item.getId().equals(orderItemId)) {
-                return orderItem.getSignState();
-            }
-            return item.getSignState();
-        }).allMatch(signState -> signState == ItemSignState.ALL_SIGN.getKey());
+        boolean allMatch = orderItemList.stream().map(OrderItem::getSignState).allMatch(signState -> Objects.equals(signState, ItemSignState.ALL_SIGN.getKey()));
         // 修改总单签收状态
         orderService.changeSignStateById(orderId, allMatch ? ItemSignState.ALL_SIGN.getKey() : ItemSignState.PART_SIGN.getKey());
     }

@@ -54,4 +54,14 @@ public class OrderItemController {
     public void selectOrderItemById(InputObject inputObject, OutputObject outputObject) {
         orderItemService.selectById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "signOrderItem", value = "签收订单子单", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "orderId", name = "orderId", value = "订单总单id", required = "required"),
+            @ApiImplicitParam(id = "itemId", name = "itemId", value = "订单子单id", required = "required"),
+            @ApiImplicitParam(id = "num", name = "num", value = "签收数量", required = "required,num")})
+    @RequestMapping("/post/OrderItemController/signOrderItem")
+    public void signOrderItem(InputObject inputObject, OutputObject outputObject) {
+        orderItemService.signOrderItem(inputObject, outputObject);
+    }
 }

@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface IFarmStaffService extends IService {
 
-    List<Map<String, Object>> queryAllFarmStaffList();
+    List<Map<String, Object>> queryStaffByFarmId(String farmId);
 }

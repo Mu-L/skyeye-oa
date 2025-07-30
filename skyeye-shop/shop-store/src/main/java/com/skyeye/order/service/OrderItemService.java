@@ -41,5 +41,5 @@ public interface OrderItemService extends SkyeyeBusinessService<OrderItem> {
 
     void changeOrderItemAdjustPrice(InputObject inputObject, OutputObject outputObject);
 
-    void changeOrderItemSignState(String orderId, String orderItemId, String num);
+    void signOrderItem(InputObject inputObject, OutputObject outputObject);
 }

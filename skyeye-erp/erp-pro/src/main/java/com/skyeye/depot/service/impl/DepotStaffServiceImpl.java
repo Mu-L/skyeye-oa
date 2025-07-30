@@ -5,6 +5,7 @@
 package com.skyeye.depot.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -72,23 +73,27 @@ public class DepotStaffServiceImpl extends SkyeyeBusinessServiceImpl<DepotStaffD
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void insertDepotStaff(InputObject inputObject, OutputObject outputObject) {
-        DepotStaffVO DepotStaffVO = inputObject.getParams(DepotStaffVO.class);
+        DepotStaffVO depotStaffVO = inputObject.getParams(DepotStaffVO.class);
+        Depot depot = erpDepotService.selectById(depotStaffVO.getDepotId());
+        if (ObjectUtil.isEmpty(depot) || StrUtil.isEmpty(depot.getId())) {
+            throw new IllegalArgumentException("仓库不存在");
+        }
 
         QueryWrapper<DepotStaff> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotStaff::getDepotId), DepotStaffVO.getDepotId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotStaff::getDepotId), depotStaffVO.getDepotId());
         List<DepotStaff> list = list(queryWrapper);
         List<String> DepotStaffIdList = list.stream().map(DepotStaff::getStaffId).collect(Collectors.toList());
 
         List<DepotStaff> beans = new ArrayList<>();
         String userId = inputObject.getLogParams().get("id").toString();
-        for (String str : DepotStaffVO.getStaffId()) {
+        for (String str : depotStaffVO.getStaffId()) {
             if (DepotStaffIdList.contains(str)) {
                 // 如果该仓库已经存在这个员工，则跳过
                 continue;
             }
             if (StrUtil.isNotEmpty(str)) {
                 DepotStaff item = new DepotStaff();
-                item.setDepotId(DepotStaffVO.getDepotId());
+                item.setDepotId(depotStaffVO.getDepotId());
                 item.setStaffId(str);
                 beans.add(item);
             }

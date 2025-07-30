@@ -43,13 +43,6 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     @Autowired
     private LecturesAttenanceRecoredChildService lecturesAttenanceRecoredChildService;
 
-
-    @Override
-    protected void validatorEntity(LessonReviewModel entity) {
-        super.validatorEntity(entity);
-    }
-
-
     @Override
     public String createEntity(LessonReviewModel entity, String userId) {
         entity.setStartSmallVersion(false);
@@ -73,7 +66,7 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     protected void createPostpose(LessonReviewModel entity, String userId) {
         // 1. 新增LessonReviewType
         List<LessonReviewType> reviewTypeList = entity.getLessonReviewTypeList();
-        if (ObjectUtil.isNotEmpty(reviewTypeList)) {
+        if (CollectionUtil.isNotEmpty(reviewTypeList)) {
             for (LessonReviewType reviewType : reviewTypeList) {
                 reviewType.setModelId(entity.getId());
             }
@@ -89,7 +82,6 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
             lecturesAttenanceRecoredService.createEntity(attenanceRecoredList, userId);
         }
     }
-
 
     @Override
     protected void updatePostpose(LessonReviewModel entity, String userId) {
@@ -119,7 +111,7 @@ public class LessonReviewModelServiceImpl extends SkyeyeBusinessServiceImpl<Less
     }
 
     @Override
-    public void queryLessonReviewModelList(InputObject inputObject, OutputObject outputObject) {
+    public void queryLessonReviewModel(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<LessonReviewModel> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LessonReviewModel::getCreateTime));
         LessonReviewModel lessonReviewModel = getOne(queryWrapper, false);

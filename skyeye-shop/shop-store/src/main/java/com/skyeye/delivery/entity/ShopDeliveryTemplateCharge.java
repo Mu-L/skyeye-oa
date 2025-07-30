@@ -36,6 +36,10 @@ public class ShopDeliveryTemplateCharge extends OperatorUserInfo {
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
+    @TableField(value = "`name`")
+    @ApiModelProperty(value = "名称", fuzzyLike = true)
+    private String name;
+
     @TableField(value = "`template_id`")
     @ApiModelProperty(value = "模板ID", required = "required")
     private String templateId;

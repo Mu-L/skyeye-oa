@@ -17,7 +17,5 @@ import com.skyeye.order.entity.OrderItem;
 public interface ItemDeliverHistoryService extends SkyeyeBusinessService<ItemDeliverHistory> {
     void queryMyItemDeliverHistoryPageList(InputObject inputObject, OutputObject outputObject);
 
-    void changeDeliverHistoryState(InputObject inputObject, OutputObject outputObject);
-
     void insertEntity(OrderItem orderItem, String deliverNumber, String deliveryTemplateChargeId, String deliveryCompanyId, Integer num);
 }
