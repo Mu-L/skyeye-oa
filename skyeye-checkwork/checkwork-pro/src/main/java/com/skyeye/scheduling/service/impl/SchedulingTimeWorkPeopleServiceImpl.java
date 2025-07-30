@@ -148,7 +148,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         // 创建员工ID到姓名的映射
         Map<String, String> employeeNameMap = satffMation.stream()
             .collect(Collectors.toMap(
-                staff -> staff.get("id").toString(),
+                staff -> staff.get("staffId").toString(),
                 staff -> staff.get("userName").toString()
             ));
 
@@ -157,7 +157,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
         // 遍历每个员工进行统计
         for (Map<String, Object> staff : satffMation) {
-            String employeeId = staff.get("id").toString();
+            String employeeId = staff.get("staffId").toString();
             String employeeName = employeeNameMap.get(employeeId);
 
             // 为当前员工创建统计结果
