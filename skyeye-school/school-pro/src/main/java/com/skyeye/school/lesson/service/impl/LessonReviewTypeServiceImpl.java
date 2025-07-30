@@ -2,6 +2,7 @@ package com.skyeye.school.lesson.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -12,7 +13,9 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.school.lesson.dao.LessonReviewTypeDao;
 import com.skyeye.school.lesson.entity.LessonReviewModel;
 import com.skyeye.school.lesson.entity.LessonReviewType;
+import com.skyeye.school.lesson.entity.LessonReviewTypeChild;
 import com.skyeye.school.lesson.service.LessonReviewModelService;
+import com.skyeye.school.lesson.service.LessonReviewTypeChildService;
 import com.skyeye.school.lesson.service.LessonReviewTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,9 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
 
     @Autowired
     private LessonReviewModelService lessonReviewModelService;
+
+    @Autowired
+    private LessonReviewTypeChildService lessonReviewTypeChildService;
 
     @Override
     protected void validatorEntity(LessonReviewType entity) {
@@ -61,6 +67,22 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
                 throw new CustomException("该父级角色不存在");
             }
         }
+    }
+
+    @Override
+    protected void createPostpose(List<LessonReviewType> entity, String userId) {
+        List<LessonReviewType> reviewTypeList = new ArrayList<>();
+        for (LessonReviewType reviewType : entity) {
+            List<LessonReviewType> typeChildrenMation = reviewType.getTypeChildrenMation();
+            typeChildrenMation.forEach(
+                    type -> {
+                        type.setParentId(reviewType.getId());
+                        type.setModelId(reviewType.getModelId());
+                    });
+            reviewTypeList.addAll(typeChildrenMation);
+        }
+        List<LessonReviewTypeChild> lessonReviewTypeChildren = JSONUtil.toList(JSONUtil.toJsonStr(reviewTypeList), LessonReviewTypeChild.class);
+        lessonReviewTypeChildService.createEntity(lessonReviewTypeChildren, userId);
     }
 
     @Override
