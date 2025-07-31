@@ -5,7 +5,6 @@
 package com.skyeye.xxljob;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.eve.payment.classenum.PaymentHistoryState;
@@ -13,7 +12,6 @@ import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.jedis.util.RedisLock;
-import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +50,6 @@ public class StaffWagesPaymentQuartz {
     @XxlJob("staffWagesPaymentQuartz")
     public void staffWagesPayment() {
         LOGGER.info("staff wagesPayment month is start");
-        String param = XxlJobHelper.getJobParam();
-        Map<String, String> paramMap = JSONUtil.toBean(param, null);
         if (tenantEnable) {
             //  开启多租户
             List<Map<String, Object>> tenantList = iTenantService.queryAllTenantList();
