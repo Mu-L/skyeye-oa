@@ -62,17 +62,11 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     @Override
     protected void createPostpose(Schedule entity, String userId) {
         super.createPostpose(entity, userId);
-        ScheduleChild scheduleChildMation = entity.getScheduleChildMation();
-        scheduleChildMation.setParentId(entity.getId());
-        scheduleChildService.createEntity(scheduleChildMation,null);
     }
 
     @Override
     protected void updatePostpose(Schedule entity, String userId) {
         super.updatePostpose(entity, userId);
-        ScheduleChild scheduleChildMation = entity.getScheduleChildMation();
-        scheduleChildMation.setParentId(entity.getId());
-        scheduleChildService.updateEntity(scheduleChildMation,null);
     }
 
     @Override
@@ -87,14 +81,11 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         String teacherId = (String) params.get("teacherId");
         String classroomId = (String) params.get("classroomId");
         MPJLambdaWrapper<Schedule> queryWrapper = new MPJLambdaWrapper<>();
-        queryWrapper.innerJoin(ScheduleChild.class, ScheduleChild::getParentId, Schedule::getId);
         // 老师
         if(StrUtil.isNotEmpty(teacherId)){
-            queryWrapper.eq(Schedule::getTeacherId,teacherId);
         }
         // 教室
         if(StrUtil.isNotEmpty(classroomId)){
-            queryWrapper.eq(Schedule::getClassroomId, classroomId);
         }
         List<Map<String, Object>> beans = skyeyeBaseMapper.selectJoinMaps(queryWrapper);
         // 设置信息

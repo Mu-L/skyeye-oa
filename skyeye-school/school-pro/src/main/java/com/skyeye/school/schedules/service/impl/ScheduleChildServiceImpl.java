@@ -22,7 +22,6 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
     @Override
     public void deleteByScheduleId(String id) {
         QueryWrapper<ScheduleChild> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getParentId), id);
         remove(queryWrapper);
     }
 }

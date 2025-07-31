@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,54 +24,33 @@ import java.util.Map;
 @Data
 @TableName(value = "school_lectures_schedules")
 @ApiModel(value = "排课表实体类")
-public class Schedule extends OperatorUserInfo {
+public class Schedule extends CommonInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("course_id")
-    @ApiModelProperty("课程id")
-    private String courseId;
+    @TableField("school_id")
+    @ApiModelProperty("学校id")
+    private String schoolId;
 
-    @TableField("teacher_id")
-    @ApiModelProperty("教师id")
-    private String teacherId;
+    @TableField("faculty_id")
+    @ApiModelProperty("院系id")
+    private String facultyId;
 
-    @TableField("classroom_id")
-    @ApiModelProperty("教室id")
-    private String classroomId;
+    @TableField("major_id")
+    @ApiModelProperty("专业id")
+    private String majorId;
 
-    @TableField("week_day")
-    @ApiModelProperty("星期几 2、3、4、5、6、7、1")
-    private Integer weekDay;
+    @TableField("semester_id")
+    @ApiModelProperty("学期id")
+    private String semesterId;
 
-    @TableField("start_time")
-    @ApiModelProperty("开始时间")
-    private String startTime;
-
-    @TableField("end_time")
-    @ApiModelProperty("结束时间")
-    private String endTime;
-
-    @TableField("start_week")
-    @ApiModelProperty("开始周")
-    private Integer startWeek;
-
-    @TableField("end_week")
-    @ApiModelProperty("结束周")
-    private Integer endWeek;
-
-    @TableField("start_num")
-    @ApiModelProperty("开始节数")
-    private Integer startNum;
-
-    @TableField("end_num")
-    @ApiModelProperty("结束节数")
-    private Integer endNum;
+    @TableField("class_id")
+    @ApiModelProperty("班级id")
+    private String classId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "课表额外信息",required = "json")
-    private ScheduleChild scheduleChildMation;
-
+    @ApiModelProperty(value = "课程信息",required = "json")
+    private List<ScheduleChild> scheduleChildList;
 }
