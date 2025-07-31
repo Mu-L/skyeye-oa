@@ -65,7 +65,7 @@ public class OrderItem extends OperatorUserInfo {
     private Map<String, Object> normsMation;
 
     @TableField("odd_number")
-    @Property(value = "订单子单编号")
+    @Property(value = "订单子单编号", fuzzyLike = true)
     private String oddNumber;
 
     @TableField("material_store_id")
