@@ -179,8 +179,8 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
 
     private List<ScheduleDay> getScheduleDayList(String userId, String timeHms) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", timeHms)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", timeHms);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", timeHms)
+            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", timeHms);
         queryWrapper.ne(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getCreateId), userId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime));
@@ -360,8 +360,8 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
      */
     private boolean judgeISHoliday(String day) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", day)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", day);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", day)
+            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", day);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         List<ScheduleDay> scheduleDays = list(queryWrapper);
         if (CollectionUtil.isEmpty(scheduleDays)) {

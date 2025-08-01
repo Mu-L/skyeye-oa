@@ -273,8 +273,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         // 总工单数
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
-            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getEndTime())
-                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getStartTime());
+            queryWrapper.apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " <= {0}", tableSelectInfo.getEndTime())
+                .apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " >= {0}", tableSelectInfo.getStartTime());
         }
         Long totalOrders = count(queryWrapper);
         resultMap.put("totalOrders", totalOrders);
@@ -298,8 +298,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
-            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime);
+            queryWrapper.apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " <= {0}", endTime)
+                .apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " >= {0}", startTime);
         }
         if (CollectionUtil.isNotEmpty(userIds)) {
             queryWrapper.in(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), userIds);
@@ -314,8 +314,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         // 根据typeId进行分组统计
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
-            queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getEndTime())
-                .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", tableSelectInfo.getStartTime());
+            queryWrapper.apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " <= {0}", tableSelectInfo.getEndTime())
+                .apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " >= {0}", tableSelectInfo.getStartTime());
         }
         List<AfterSeal> resultList = list(queryWrapper);
         iSysDictDataService.setDataMation(resultList, AfterSeal::getTypeId);
@@ -362,8 +362,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         List<String> dayList = DateUtil.getDays(startTime, endTime);
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime));
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " <= {0}", endTime)
+            .apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " >= {0}", startTime);
         queryWrapper.groupBy(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime));
         // 1. 新增的工单
         List<AfterSeal> afterSealList = list(queryWrapper);

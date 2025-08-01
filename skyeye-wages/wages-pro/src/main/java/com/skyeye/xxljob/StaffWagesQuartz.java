@@ -5,6 +5,7 @@
 package com.skyeye.xxljob;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.client.ExecuteFeignClient;
@@ -140,7 +141,8 @@ public class StaffWagesQuartz {
 
     private void calcUserStaffWages(String tenantId) {
         // 获取上个月的年月
-        String lastMonthDate = DateUtil.getLastMonthDate();
+//        String lastMonthDate = DateUtil.getLastMonthDate();
+        String lastMonthDate = "2025-06";
         LOGGER.info("statistics staff wages month is {}", lastMonthDate);
         // 个人所得税缴纳比例
         Map<String, List<Map<String, Object>>> taxRate = getTaxRate(tenantId);
@@ -182,6 +184,7 @@ public class StaffWagesQuartz {
                 // 将指定员工月度清零的薪资字段设置为0
                 wagesStaffMationDao.editStaffMonthlyClearingWagesByStaffId(staffId, tenantId);
             } catch (Exception e) {
+                e.printStackTrace();
                 LOGGER.warn("deal with staff failed, staffId is {}", staffId, e);
                 break;
             } finally {
@@ -205,7 +208,7 @@ public class StaffWagesQuartz {
      */
     private void calcStaffWages(Map<String, Object> staff, List<WagesModel> wagesModelList, List<SocialSecurityFund> socialSecurityFund,
                                 Map<String, Object> systemFoundationSettings, List<Map<String, Object>> workTime, String lastMonthDate, Map<String,
-        List<Map<String, Object>>> taxRate, String tenantId) {
+            List<Map<String, Object>>> taxRate, String tenantId) {
         String companyId = staff.getOrDefault("companyId", StrUtil.EMPTY).toString();
         String departmentId = staff.getOrDefault("departmentId", StrUtil.EMPTY).toString();
         String staffId = staff.get("id").toString();
@@ -237,7 +240,10 @@ public class StaffWagesQuartz {
         List<String> temIds = CollectionUtil.newArrayList(companyId, departmentId, staffId).stream()
             .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
         List<String> modelIds = wagesModelList.stream().filter(bean -> {
-            List<String> objectIds = bean.getApplicableObjectsList().stream().map(ModelApplicableObjects::getObjectId).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(bean.getApplicableObjectsList())) {
+                return false;
+            }
+            List<String> objectIds = bean.getApplicableObjectsList().stream().filter(item -> ObjectUtil.isNotEmpty(item)).map(ModelApplicableObjects::getObjectId).collect(Collectors.toList());
             return objectIds.stream().anyMatch(str -> temIds.contains(str));
         }).map(WagesModel::getId).distinct().collect(Collectors.toList());
         return modelIds;
@@ -817,7 +823,10 @@ public class StaffWagesQuartz {
                                               Map<String, String> staffModelFieldMap) {
         // 根据公司id，部门id，员工id找到适用该员工的社保公积金缴纳信息
         List<SocialSecurityFund> applyThisUserStaffSocialSecurityFund = socialSecurityFund.stream().filter(bean -> {
-            List<String> objectIds = bean.getApplicableObjectsList().stream().map(ApplicableObjects::getObjectId).collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(bean.getApplicableObjectsList())) {
+                return false;
+            }
+            List<String> objectIds = bean.getApplicableObjectsList().stream().filter(item -> ObjectUtil.isNotEmpty(item)).map(ApplicableObjects::getObjectId).collect(Collectors.toList());
             return (objectIds.indexOf(companyId) > -1 || objectIds.indexOf(departmentId) > -1
                 || objectIds.indexOf(staffId) > -1);
         }).collect(Collectors.toList());

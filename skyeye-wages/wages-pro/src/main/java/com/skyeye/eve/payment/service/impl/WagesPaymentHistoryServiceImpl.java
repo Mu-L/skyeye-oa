@@ -21,6 +21,8 @@ import com.skyeye.eve.payment.classenum.PaymentHistoryState;
 import com.skyeye.eve.payment.dao.WagesPaymentHistoryDao;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
+import com.skyeye.xxljob.StaffWagesQuartz;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +40,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "薪资发放历史", groupName = "薪资发放历史")
 public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<WagesPaymentHistoryDao, WagesPaymentHistory> implements WagesPaymentHistoryService {
+
+    @Autowired
+    private StaffWagesQuartz staffWagesQuartz;
 
     private void queryList(CommonPageInfo pageInfo, OutputObject outputObject) {
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
@@ -64,6 +69,7 @@ public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Wa
     public void queryAllGrantWagesPaymentHistoryList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setState(PaymentHistoryState.ISSUED.getKey().toString());
+        staffWagesQuartz.statisticsStaffWages();
         queryList(pageInfo, outputObject);
     }
 

@@ -130,8 +130,8 @@ public class WagesSocialSecurityFundServiceImpl extends SkyeyeBusinessServiceImp
         }
         QueryWrapper<SocialSecurityFund> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SocialSecurityFund::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(SocialSecurityFund::getStartTime) + ", '%Y-%m') <= date_format({0}, '%Y-%m')", date)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(SocialSecurityFund::getEndTime) + ", '%Y-%m') >= date_format({0}, '%Y-%m')", date);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(SocialSecurityFund::getStartTime) + " <= {0}", date)
+            .apply(MybatisPlusUtil.toColumns(SocialSecurityFund::getEndTime) + " >= {0}", date);
         queryWrapper.eq(MybatisPlusUtil.toColumns(SocialSecurityFund::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<SocialSecurityFund> socialSecurityFundList = list(queryWrapper);
         List<String> ids = socialSecurityFundList.stream().map(SocialSecurityFund::getId).collect(Collectors.toList());
