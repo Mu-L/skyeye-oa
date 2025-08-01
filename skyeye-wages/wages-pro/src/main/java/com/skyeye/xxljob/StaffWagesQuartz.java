@@ -141,8 +141,8 @@ public class StaffWagesQuartz {
 
     private void calcUserStaffWages(String tenantId) {
         // 获取上个月的年月
-//        String lastMonthDate = DateUtil.getLastMonthDate();
-        String lastMonthDate = "2025-06";
+        String lastMonthDate = DateUtil.getLastMonthDate();
+//        String lastMonthDate = "2025-06";
         LOGGER.info("statistics staff wages month is {}", lastMonthDate);
         // 个人所得税缴纳比例
         Map<String, List<Map<String, Object>>> taxRate = getTaxRate(tenantId);

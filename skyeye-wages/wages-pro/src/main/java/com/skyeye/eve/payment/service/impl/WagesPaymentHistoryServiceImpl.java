@@ -21,8 +21,6 @@ import com.skyeye.eve.payment.classenum.PaymentHistoryState;
 import com.skyeye.eve.payment.dao.WagesPaymentHistoryDao;
 import com.skyeye.eve.payment.entity.WagesPaymentHistory;
 import com.skyeye.eve.payment.service.WagesPaymentHistoryService;
-import com.skyeye.xxljob.StaffWagesQuartz;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,15 +39,12 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "薪资发放历史", groupName = "薪资发放历史")
 public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<WagesPaymentHistoryDao, WagesPaymentHistory> implements WagesPaymentHistoryService {
 
-    @Autowired
-    private StaffWagesQuartz staffWagesQuartz;
-
     private void queryList(CommonPageInfo pageInfo, OutputObject outputObject) {
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryWagesPaymentHistoryList(pageInfo);
         // 设置员工信息
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
-                .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
+            .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         beans.forEach(bean -> {
             String staffId = bean.get("staffId").toString();
@@ -69,7 +64,6 @@ public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Wa
     public void queryAllGrantWagesPaymentHistoryList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setState(PaymentHistoryState.ISSUED.getKey().toString());
-        staffWagesQuartz.statisticsStaffWages();
         queryList(pageInfo, outputObject);
     }
 
