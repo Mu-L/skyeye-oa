@@ -42,7 +42,8 @@ public enum ShopOrderState implements SkyeyeEnumClass {
     EXCHANGED(17, "已换货", true, false),
     PARTIALLYDONE(18,"部分完成",true,false),
     PARTIALEVALUATION(19,"部分评价",true,false),
-    PART_DELIVERY(20,"部分发货",true,false);
+    PART_DELIVERY(20,"部分发货",true,false),
+    PART_SIGN(21,"部分签收",true,false),;
 
     private Integer key;
 

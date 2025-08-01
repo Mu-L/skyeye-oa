@@ -31,4 +31,6 @@ public interface CouponUseService extends SkyeyeBusinessService<CouponUse> {
     void UpdateUsedCount(String couponUseId);
 
     void deleteByCouponIds(List<String> ids);
+
+    List<CouponUse> queryUnUseByCouponIdList(List<String> termCouponIds);
 }

@@ -29,11 +29,14 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponUse;
 import com.skyeye.coupon.entity.CouponUseMaterial;
 import com.skyeye.coupon.enums.CouponUseState;
+import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
+import com.skyeye.coupon.service.CouponService;
 import com.skyeye.coupon.service.CouponUseMaterialService;
 import com.skyeye.coupon.service.CouponUseService;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
@@ -221,6 +224,19 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             }
             orderItem = newOrderItemList.stream().max(Comparator.comparing(OrderItem::getPrice)).orElse(null);// 获取优惠券使用商品列表中，价格最高的商品
             setOrderAndOrderItem(couponUse, order, orderItem);// 操作订单和子单的优惠券
+        }
+        // 删除优惠券定时任务
+        deleteJobForCouponUse(couponUse);
+    }
+
+    @Autowired
+    private CouponService couponService;
+
+    private void deleteJobForCouponUse(CouponUse couponUse) {
+        Coupon coupon = couponService.getById(couponUse.getCouponId());
+        if (coupon.getValidityType() == CouponValidityType.TERM.getKey()) {
+            // 删除优惠券定时任务
+            iQuartzService.stopAndDeleteTaskQuartz(couponUse.getId());
         }
     }
 
