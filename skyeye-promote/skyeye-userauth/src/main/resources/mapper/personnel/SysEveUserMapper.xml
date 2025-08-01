@@ -56,6 +56,8 @@
 			b.win_bg_pic_vague_value winBgPicVagueValue,
 			b.win_bottom_menu_icon winBottomMenuIcon,
 			c.id staffId,
+			c.phone,
+			c.email,
 			c.job_number jobNumber,
 			c.user_name userName,
 			c.user_photo userPhoto,

@@ -836,7 +836,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         }
         String userId = userMation.get("id").toString();
         String roleIds = userMation.get("roleId").toString();
-        userMation.remove("roleId");
+        removeUserLoginRedisMation(userMation);
 
         // 获取动态token
         String userToken = GetUserToken.createNewToken(userId, password);
@@ -848,6 +848,12 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         setUserLoginRedisMation(appUserId, userMation, false);
         jedisClientService.set(ObjectConstant.getUserHasRoleIds(appUserId), roleIds);
         outputObject.setBean(userMation);
+    }
+
+    private void removeUserLoginRedisMation(Map<String, Object> userMation) {
+        userMation.remove("roleId");
+        userMation.remove("pwdNum");
+        userMation.remove("password");
     }
 
     /**
