@@ -272,7 +272,10 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
         if (CollectionUtil.isNotEmpty(couponUseList)) {
                 deleteObjectIds.addAll(couponUseList.stream().map(CouponUse::getId).collect(Collectors.toList()));
         }
-        // todo 等待批量删除定时任务接口
+        // 删除定时任务
+        log.info("批量删除优惠券：" + couponIdList.toString() + "-- 开始");
+        iQuartzService.batchStopAndDeleteTaskQuartz(deleteObjectIds);
+        log.info("批量删除优惠券：------- 结束");
     }
     @Override
     public Coupon getDataFromDb(String id) {
