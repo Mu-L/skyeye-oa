@@ -8,6 +8,8 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -133,10 +135,10 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
     @Override
     public void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String startTime = map.get("startTime").toString();
-        String endTime = map.get("endTime").toString();
-        String farmId = map.get("farmId").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String startTime = commonPageInfo.getStartTime();
+        String endTime = commonPageInfo.getEndTime();
+        String farmId = commonPageInfo.getFromId();
 
         // 获取农场所有员工信息
         List<Map<String, Object>> satffMation = iFarmStaffService.queryStaffByFarmId(farmId);
@@ -281,12 +283,21 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             employeeResult.put("result", Collections.singletonList(stats));
             finalResult.add(employeeResult);
         }
-        String name = map.get("name").toString();
+        String name = commonPageInfo.getKeyword();
+        Integer pageNum = commonPageInfo.getPage();
+        Integer pageSize = commonPageInfo.getLimit();
+        if (pageNum == null || pageNum <= CommonNumConstants.NUM_ZERO) {
+            pageNum = CommonNumConstants.NUM_ONE;
+        }
+        if (pageSize == null || pageSize <= CommonNumConstants.NUM_ZERO) {
+            pageSize = CommonNumConstants.NUM_TEN;
+        }
+        List<Map<String, Object>> filteredList = new ArrayList<>();
         //对name模糊查询
         if (StrUtil.isEmpty(name)) {
-            outputObject.setBeans(finalResult);
+            filteredList =new ArrayList<>(finalResult);
         } else {
-            List<Map<String, Object>> mapList = finalResult.stream().filter(
+            filteredList = finalResult.stream().filter(
                     map1 -> {
                         Object employeeName = map1.get("employeeName");
                         if (ObjectUtil.isEmpty(employeeName)) {
@@ -296,8 +307,21 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                         return stringName.contains(name);
                     }
             ).collect(Collectors.toList());
-            outputObject.setBeans(mapList);
+
         }
+        Integer total = filteredList.size();
+        List<Map<String, Object>> paginatedList = new ArrayList<>();
+        if (total > CommonNumConstants.NUM_ZERO) {
+            // 计算起始索引
+            int startIndex = (pageNum - CommonNumConstants.NUM_ONE) * pageSize;
+            startIndex = Math.max(startIndex, CommonNumConstants.NUM_ZERO);
+            // 计算结束索引
+            int endIndex = Math.min(startIndex + pageSize, total);
+            // 截取集合，得到分页数据
+            paginatedList = filteredList.subList(startIndex, endIndex);
+        }
+        outputObject.setBeans(paginatedList);
+        outputObject.settotal(total);
     }
 
     private List<LocalDate> getOverlapDates(String scheduleStart, String scheduleEnd, String queryStart, String queryEnd) {
