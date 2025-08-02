@@ -4,6 +4,7 @@ import com.xxl.job.admin.controller.annotation.PermissionLimit;
 import com.xxl.job.admin.core.exception.XxlJobException;
 import com.xxl.job.admin.core.model.XxlJobGroup;
 import com.xxl.job.admin.core.model.XxlJobInfo;
+import com.xxl.job.admin.core.model.XxlJobInfoBatchDelete;
 import com.xxl.job.admin.core.model.XxlJobUser;
 import com.xxl.job.admin.core.route.ExecutorRouteStrategyEnum;
 import com.xxl.job.admin.core.scheduler.MisfireStrategyEnum;
@@ -192,6 +193,13 @@ public class JobInfoController {
     @PermissionLimit(limit = false)
     public ReturnT<String> removeJob(@RequestParam("objectId") String objectId) {
         return xxlJobService.deleteByObjectId(objectId);
+    }
+
+    @RequestMapping("/batchRemoveJob")
+    @ResponseBody
+    @PermissionLimit(limit = false)
+    public ReturnT<String> batchRemoveJob(@RequestBody XxlJobInfoBatchDelete xxlJobInfoBatchDelete) {
+        return xxlJobService.batchDeleteByObjectId(xxlJobInfoBatchDelete);
     }
 
     @RequestMapping("/pauseJob")

@@ -49,5 +49,5 @@ public interface XxlJobInfoDao {
 
     int deleteByObjectId(@Param("objectId") String objectId);
 
-
+    int deleteByObjectIds(@Param("objectIds") List<String> objectIds);
 }
