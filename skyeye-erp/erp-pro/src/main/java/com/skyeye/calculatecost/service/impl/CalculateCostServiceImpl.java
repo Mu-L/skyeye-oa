@@ -28,6 +28,8 @@ import com.skyeye.machinprocedure.entity.*;
 import com.skyeye.machinprocedure.service.*;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.procedure.entity.WorkProcedure;
+import com.skyeye.procedure.service.WorkProcedureService;
 import com.skyeye.rest.checkwork.checkwork.ICheckWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -100,6 +102,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return productNumMap;
     }
 
+    @Autowired
+    private WorkProcedureService workProcedureService;
+
     @Override
     public void calculateMachinProcedureAcceptCost(InputObject inputObject, OutputObject outputObject) {
         String machinProcedureAcceptId = inputObject.getParams().get("machinProcedureAcceptId").toString();
@@ -108,8 +113,11 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         if (StrUtil.isEmpty(machinProcedureAccept.getId())) {
             throw new RuntimeException("工序验收单信息不存在");
         }
-        // 加工单子单据工序信息
+        // 加工单子单据工序信息----没有详细的工序信息
         MachinProcedure machinProcedure = machinProcedureService.selectById(machinProcedureAccept.getMachinProcedureId());
+        // 详细工序信息
+        WorkProcedure workProcedure = workProcedureService.selectById(machinProcedure.getProcedureId());
+        machinProcedure.setProcedureMation(workProcedure);
         // 获取商品信息和规格信息
         materialService.setDataMation(machinProcedure, MachinProcedure::getMaterialId);
         materialNormsService.setDataMation(machinProcedure, MachinProcedure::getNormsId);
@@ -145,8 +153,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     @Override
     public void calculateMachinProcedureCost(InputObject inputObject, OutputObject outputObject) {
         String machinProcedureId = inputObject.getParams().get("machinProcedureId").toString();
-        // 查询工序信息
+        // 查询加工单子单据工序信息----没有详细的工序信息
         MachinProcedure machinProcedure = machinProcedureService.selectById(machinProcedureId);
+        WorkProcedure workProcedure = workProcedureService.selectById(machinProcedure.getProcedureId());
+        machinProcedure.setProcedureMation(workProcedure);
         // 查询所有工序验收单信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureId(machinProcedureId);
         if (CollectionUtil.isEmpty(acceptList)) {
@@ -184,7 +194,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
                 machinProcedure, acceptList, productNumMap, staffMap,
                 workHoursMap, acceptChildMap, farmStaffMap);
         MachinProcedureCost bean = setMachinProcedureDate(acceptCostList);
-        bean.setMachinProcedureMation(machinProcedure);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -199,7 +208,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         MachinPut machinPut = machinPutService.selectById(machinPutId);
         // 车间任务信息
         MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(machinPut.getFromId());
-        // 加工单子单据的所有工序信息
+        // 加工单子单据的所有工序信息-----没有详细的工序信息
         List<MachinProcedure> machinProcedureList = machinProcedureService.querySameListById(machinProcedureFarm.getMachinProcedureId());
         List<String> MPIdList = machinProcedureList.stream().map(MachinProcedure::getId).collect(Collectors.toList());
 
@@ -604,7 +613,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinProcedureCost.setQualifiedNum(CommonNumConstants.NUM_ZERO);
         machinProcedureCost.setReworkNum(CommonNumConstants.NUM_ZERO);
         machinProcedureCost.setScrapNum(CommonNumConstants.NUM_ZERO);
-        machinProcedureCost.setMachinProcedureMation(machinProcedure);
+        machinProcedureCost.setProcedureName(machinProcedure.getProcedureMation().getName());
+        machinProcedureCost.setProcedureNumber(machinProcedure.getProcedureMation().getNumber());
         machinProcedureCost.setProductNumMationList(new ArrayList<>());
         // 获取所有耗材的成本
         String consumablePrice = calculateChildCost(childList);

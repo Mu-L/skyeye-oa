@@ -7,6 +7,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAcceptProductNum;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 工序核算实体类
@@ -17,8 +18,11 @@ public class MachinProcedureAcceptCost {
     @ApiModelProperty(value = "员工生产数量信息列表")
     private List<MachinProcedureAcceptProductNum> productNumMationList;
 
-    @ApiModelProperty(value = "工序信息")
-    private MachinProcedure machinProcedureMation;
+    @ApiModelProperty(value = "工序编号")
+    private String procedureNumber;
+
+    @ApiModelProperty(value = "工序名称")
+    private String procedureName;
 
     @ApiModelProperty(value = "报废耗材信息列表")
     private List<MachinProcedureAcceptChild> scrapChildLIst;

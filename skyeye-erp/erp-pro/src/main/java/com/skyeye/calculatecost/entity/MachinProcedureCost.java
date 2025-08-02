@@ -11,8 +11,11 @@ import java.util.List;
 @Data
 public class MachinProcedureCost {
 
-    @ApiModelProperty(value = "工序信息")
-    private MachinProcedure machinProcedureMation;
+    @ApiModelProperty(value = "工序编号")
+    private String procedureNumber;
+
+    @ApiModelProperty(value = "工序名称")
+    private String procedureName;
 
     @ApiModelProperty(value = "验收的成本信息")
     private List<MachinProcedureAcceptCost> acceptCostList;

@@ -187,7 +187,9 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getParentId), machinId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(MachinProcedure::getOrderBy));
-        return list(queryWrapper);
+        List<MachinProcedure> beans = list(queryWrapper);
+        workProcedureService.setDataMation(beans, MachinProcedure::getWayProcedureId);
+        return beans;
     }
 
     /**
@@ -204,6 +206,7 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getChildId), procedure.getChildId());
         List<MachinProcedure> list = list(queryWrapper);
+        workProcedureService.setDataMation(list, MachinProcedure::getProcedureId);
         return list;
     }
 
