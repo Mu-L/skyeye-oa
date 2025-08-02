@@ -1,5 +1,6 @@
 package com.skyeye.calculatecost.entity;
 
+import com.mchange.lang.StringUtils;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.machinprocedure.entity.MachinProcedure;
 import com.skyeye.machinprocedure.entity.MachinProcedureAcceptChild;
@@ -10,17 +11,23 @@ import java.util.List;
 @Data
 public class MachinProcedureCost {
 
-    @ApiModelProperty(value = "工序信息")
-    private MachinProcedure MachinProcedureMation;
+    @ApiModelProperty(value = "工序编号")
+    private String procedureNumber;
 
-    @ApiModelProperty(value = "耗材信息列表")
-    private List<MachinProcedureAcceptChild> childList;
+    @ApiModelProperty(value = "工序名称")
+    private String procedureName;
 
     @ApiModelProperty(value = "验收的成本信息")
     private List<MachinProcedureAcceptCost> acceptCostList;
 
     @ApiModelProperty(value = "耗材成本")
     private String consumablePrice;
+
+    @ApiModelProperty(value = "报废耗材成本")
+    private String scrapConsumablePrice;
+
+    @ApiModelProperty(value = "正常耗材成本")
+    private String normalConsumablePrice;
 
     @ApiModelProperty(value = "总数量")
     private Integer allNum;

@@ -40,7 +40,7 @@ public class ScheduleController {
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id",name = "id", value = "排课表id", required = "required")
     })
-    @RequestMapping("/post/ScheduleController/writeSchedules")
+    @RequestMapping("/post/ScheduleController/querySchedulesById")
     public void querySchedulesById(InputObject inputObject, OutputObject outputObject) {
         scheduleService.selectById(inputObject, outputObject);
     }

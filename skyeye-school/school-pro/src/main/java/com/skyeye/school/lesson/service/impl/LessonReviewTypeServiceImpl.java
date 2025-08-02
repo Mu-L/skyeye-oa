@@ -51,9 +51,17 @@ public class LessonReviewTypeServiceImpl extends SkyeyeBusinessServiceImpl<Lesso
     }
 
     private void NonClassHourOrId(LessonReviewType entity) {
-        Integer classHour = entity.getClassHour();
-        if (classHour == null || classHour < CommonNumConstants.NUM_ZERO) {
-            throw new RuntimeException("学时不能为空");
+        //判断子表的学时不为空
+        List<LessonReviewTypeChild> allChildrenEntity = new ArrayList<>();
+        List<LessonReviewType> children = entity.getTypeChildrenMation();
+        if (CollectionUtil.isNotEmpty(children)) {
+            allChildrenEntity.addAll(JSONUtil.toList(JSONUtil.toJsonStr(children), LessonReviewTypeChild.class));
+        }
+        for (LessonReviewTypeChild child : allChildrenEntity) {
+            Integer classHour = child.getClassHour();
+            if (classHour == null || classHour < CommonNumConstants.NUM_ZERO) {
+                throw new RuntimeException("学时不能为空");
+            }
         }
         String modelId = entity.getModelId();
         LessonReviewModel lessonReviewModel = lessonReviewModelService.queryByModelId(modelId);

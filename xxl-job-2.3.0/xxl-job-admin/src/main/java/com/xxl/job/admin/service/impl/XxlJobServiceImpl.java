@@ -3,6 +3,7 @@ package com.xxl.job.admin.service.impl;
 import com.xxl.job.admin.core.cron.CronExpression;
 import com.xxl.job.admin.core.model.XxlJobGroup;
 import com.xxl.job.admin.core.model.XxlJobInfo;
+import com.xxl.job.admin.core.model.XxlJobInfoBatchDelete;
 import com.xxl.job.admin.core.model.XxlJobLogReport;
 import com.xxl.job.admin.core.route.ExecutorRouteStrategyEnum;
 import com.xxl.job.admin.core.scheduler.MisfireStrategyEnum;
@@ -18,6 +19,7 @@ import com.xxl.job.core.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.MessageFormat;
@@ -435,6 +437,15 @@ public class XxlJobServiceImpl implements XxlJobService {
     @Override
     public ReturnT<String> deleteByObjectId(String objectId) {
         xxlJobInfoDao.deleteByObjectId(objectId);
+        return ReturnT.SUCCESS;
+    }
+
+    @Override
+    public ReturnT<String> batchDeleteByObjectId(XxlJobInfoBatchDelete xxlJobInfoBatchDelete) {
+        if (CollectionUtils.isEmpty(xxlJobInfoBatchDelete.getObjectIds())) {
+            return ReturnT.SUCCESS;
+        }
+        xxlJobInfoDao.deleteByObjectIds(xxlJobInfoBatchDelete.getObjectIds());
         return ReturnT.SUCCESS;
     }
 

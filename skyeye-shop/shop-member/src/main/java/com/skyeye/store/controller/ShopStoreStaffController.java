@@ -32,12 +32,6 @@ public class ShopStoreStaffController {
     @Autowired
     private ShopStoreStaffService shopStoreStaffService;
 
-    /**
-     * 获取门店下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storeStaff001", value = "获取门店下的员工信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ShopStoreStaffController/queryStoreStaffList")
@@ -45,12 +39,6 @@ public class ShopStoreStaffController {
         shopStoreStaffService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 删除门店下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storeStaff002", value = "删除门店下的员工信息", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "门店与员工的关系表主键id", required = "required")})
@@ -59,12 +47,6 @@ public class ShopStoreStaffController {
         shopStoreStaffService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 新增门店下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storeStaff003", value = "新增门店下的员工信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopStoreStaffVO.class)
     @RequestMapping("/post/ShopStoreStaffController/insertStoreStaffMation")
@@ -72,36 +54,18 @@ public class ShopStoreStaffController {
         shopStoreStaffService.insertStoreStaffMation(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登陆用户所属的区域列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storeStaff004", value = "获取当前登陆用户所属的区域列表", method = "GET", allUse = "2")
     @RequestMapping("/post/ShopStoreStaffController/queryStaffBelongAreaList")
     public void queryStaffBelongAreaList(InputObject inputObject, OutputObject outputObject) {
         shopStoreStaffService.queryStaffBelongAreaList(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登陆用户所属的门店列表(只包含已启用门店)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "storeStaff005", value = "获取当前登陆用户所属的门店列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "storeStaff005", value = "获取当前登陆用户所属的门店列表(只包含已启用门店)", method = "GET", allUse = "2")
     @RequestMapping("/post/ShopStoreStaffController/queryStaffBelongStoreList")
     public void queryStaffBelongStoreList(InputObject inputObject, OutputObject outputObject) {
         shopStoreStaffService.queryStaffBelongStoreList(inputObject, outputObject);
     }
 
-    /**
-     * 根据员工id删除所有的所属门店信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteStoreStaffMationByStaffId", value = "根据员工id删除所有的所属门店信息", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "员工id", required = "required")})

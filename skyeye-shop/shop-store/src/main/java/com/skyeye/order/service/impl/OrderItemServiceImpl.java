@@ -244,7 +244,15 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         super.updateEntity(targetItem, inputObject.getLogParams().get("id").toString());
         // 修改总单状态
         boolean allMatch = orderItemList.stream().allMatch(item -> item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey());
-        orderService.updateOrderItemDeliverState(targetItem.getParentId(), allMatch ? ShopOrderState.DELIVERED.getKey() : ShopOrderState.PART_DELIVERY.getKey());
+        Order order = orderService.getById(orderId);
+        if (allMatch && order.getState() == ShopOrderState.PART_DELIVERY.getKey()) {
+            // 所有子单全部发货，并且总单本来就是待发货状态
+            orderService.updateOrderItemDeliverState(targetItem.getParentId(), ShopOrderState.DELIVERED.getKey());
+        }
+        if (order.getState() == ShopOrderState.UNDELIVERED.getKey()) {
+            // 总单是待发货状态(此次发货为第一次发货)
+            orderService.updateOrderItemDeliverState(targetItem.getParentId(), ShopOrderState.PART_DELIVERY.getKey());
+        }
         // 创建快递信息
         itemDeliverHistoryService.insertEntity(targetItem, deliverNumber, deliveryTemplateChargeId, deliveryCompanyId, num);
     }
@@ -324,15 +332,24 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         // 计算未发货数量
         int remainingNum = orderItem.getCount() - num;
         if (remainingNum == CommonNumConstants.NUM_ZERO) {
+            orderItem.setSignNum(orderItem.getCount());
             orderItem.setSignState(ItemSignState.ALL_SIGN.getKey());
         } else {
+            orderItem.setSignNum(num);
             orderItem.setSignState(ItemSignState.PART_SIGN.getKey());
         }
         super.updateEntity(orderItem, currenUserId);
         // 判断所有子单是否全部签收
         boolean allMatch = orderItemList.stream().map(OrderItem::getSignState).allMatch(signState -> Objects.equals(signState, ItemSignState.ALL_SIGN.getKey()));
-        // 修改总单签收状态
-        orderService.changeSignStateById(orderId, allMatch ? ItemSignState.ALL_SIGN.getKey() : ItemSignState.PART_SIGN.getKey());
+        Order order = orderService.getById(orderId);
+        if (allMatch && order.getState() == ShopOrderState.PART_SIGN.getKey()) {
+            // 所有子单签收，并且总单本来的状态为部分签收，则修改总单状态为已签收
+            orderService.updateOrderState(orderId, ShopOrderState.SIGN.getKey());
+        }
+        if (order.getState() == ShopOrderState.PART_DELIVERY.getKey() || order.getState() == ShopOrderState.DELIVERED.getKey()) {
+            // 总单本来是部分发货或者已发货，则修改总单状态为部分签收
+            orderService.updateOrderState(orderId, ShopOrderState.PART_SIGN.getKey());
+        }
     }
 
     @Override

@@ -5,14 +5,17 @@
 package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.xxljob.XxlJobInfo;
+import com.skyeye.eve.entity.xxljob.XxlJobInfoBatchDelete;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
 import com.skyeye.eve.rest.xxljob.XxlJobService;
 import com.skyeye.eve.service.IAuthUserService;
@@ -23,8 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysQuartzServiceImpl
@@ -114,6 +120,24 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         String objectId = map.get("objectId").toString();
         LOGGER.info("stop quartz, name is {}", objectId);
         ExecuteFeignClient.get(() -> xxlJobService.removeJob(objectId));
+    }
+
+    @Override
+    public void batchStopAndDeleteTaskQuartz(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String objectIds = map.get("objectIds").toString();
+        if (StrUtil.isEmpty(objectIds)) {
+            return;
+        }
+        List<String> objectIdList = Arrays.asList(objectIds.split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(objectIdList)) {
+            return;
+        }
+        LOGGER.info("batch stop quartz, objectIds is {}", objectIds);
+        XxlJobInfoBatchDelete xxlJobInfoBatchDelete = new XxlJobInfoBatchDelete();
+        xxlJobInfoBatchDelete.setObjectIds(objectIdList);
+        ExecuteFeignClient.get(() -> xxlJobService.batchRemoveJob(xxlJobInfoBatchDelete));
     }
 
 }

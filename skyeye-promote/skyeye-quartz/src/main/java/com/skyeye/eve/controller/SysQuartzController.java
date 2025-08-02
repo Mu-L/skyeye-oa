@@ -38,4 +38,12 @@ public class SysQuartzController {
         sysQuartzService.stopAndDeleteTaskQuartz(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "batchStopAndDeleteTaskQuartz", value = "批量停止并删除定时任务", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "objectIds", name = "objectIds", value = "任务的唯一值，例如：工作计划的id等，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/SysQuartzController/batchStopAndDeleteTaskQuartz")
+    public void batchStopAndDeleteTaskQuartz(InputObject inputObject, OutputObject outputObject) {
+        sysQuartzService.batchStopAndDeleteTaskQuartz(inputObject, outputObject);
+    }
+
 }

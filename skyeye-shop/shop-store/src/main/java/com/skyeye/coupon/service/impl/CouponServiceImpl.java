@@ -26,6 +26,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
+import com.skyeye.coupon.entity.CouponUse;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
@@ -43,10 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -253,9 +251,32 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     public void deletePostpose(List<String> ids) {
         couponMaterialService.deleteByCouponId(ids);// 删除优惠券的适用对象
         couponStoreService.deleteByCouponIds(ids);// 删除优惠券与门店关联的信息
+        // 删除定时任务
+        deleteJobByCouponIdList(ids);
         couponUseService.deleteByCouponIds(ids);  // 删除已领取的但是未使用的优惠券
     }
 
+    private void deleteJobByCouponIdList(List<String> couponIdList) {
+        QueryWrapper<Coupon> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, couponIdList);
+        List<Coupon> list = list(queryWrapper);
+        // 固定日期类型的优惠券
+        List<String> deleteObjectIds = new ArrayList<>();
+        List<String> dateCouponIds = list.stream().filter(coupon -> Objects.equals(coupon.getValidityType(), CouponValidityType.DATE.getKey())).map(Coupon::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(dateCouponIds)) {
+            deleteObjectIds.addAll(dateCouponIds);
+        }
+        // 领取之后类型的优惠券
+        List<String> termCouponIds = list.stream().filter(coupon -> Objects.equals(coupon.getValidityType(), CouponValidityType.TERM.getKey())).map(Coupon::getId).collect(Collectors.toList());
+        List<CouponUse> couponUseList = couponUseService.queryUnUseByCouponIdList(termCouponIds);
+        if (CollectionUtil.isNotEmpty(couponUseList)) {
+                deleteObjectIds.addAll(couponUseList.stream().map(CouponUse::getId).collect(Collectors.toList()));
+        }
+        // 删除定时任务
+        log.info("批量删除优惠券：" + couponIdList.toString() + "-- 开始");
+        iQuartzService.batchStopAndDeleteTaskQuartz(deleteObjectIds);
+        log.info("批量删除优惠券：------- 结束");
+    }
     @Override
     public Coupon getDataFromDb(String id) {
         Coupon coupon = super.getDataFromDb(id);
