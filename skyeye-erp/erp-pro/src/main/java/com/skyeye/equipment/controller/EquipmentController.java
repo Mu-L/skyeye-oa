@@ -38,7 +38,7 @@ public class EquipmentController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "queryEquipmentList", value = "分页获取设备列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryEquipmentList", value = "分页获取设备列表(objectId项目id)", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EquipmentController/queryEquipmentList")
     public void queryEquipmentList(InputObject inputObject, OutputObject outputObject) {
@@ -94,13 +94,6 @@ public class EquipmentController {
     @RequestMapping("/post/EquipmentController/queryLastMonthEquipmentCost")
     public void queryLastMonthEquipmentCost(InputObject inputObject, OutputObject outputObject) {
         equipmentService.queryLastMonthEquipmentCost(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryLastMonthEquipmentList", value = "根据objectId(项目id)分页获取上个月设备列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/EquipmentController/queryLastMonthEquipmentList")
-    public void queryLastMonthEquipmentList(InputObject inputObject, OutputObject outputObject) {
-        equipmentService.queryLastMonthEquipmentList(inputObject, outputObject);
     }
 
 }

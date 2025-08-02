@@ -79,4 +79,8 @@ public class ScheduleChild extends OperatorUserInfo {
     @TableField("student_hour")
     @ApiModelProperty("学时")
     private Integer studentHour;
+
+    @TableField("class_id")
+    @ApiModelProperty("班级id")
+    private String classId;
 }

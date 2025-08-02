@@ -38,6 +38,10 @@ public class ForumComment extends OperatorUserInfo {
     @ApiModelProperty(value = "帖子id", required = "required")
     private String forumId;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "帖子信息")
+    private Map<String,Object> forumMation;
+
     @TableField(value = "content")
     @ApiModelProperty(value = "评论内容", required = "required")
     private String content;

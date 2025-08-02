@@ -46,10 +46,6 @@ public class Schedule extends CommonInfo {
     @ApiModelProperty("学期id")
     private String semesterId;
 
-    @TableField("class_id")
-    @ApiModelProperty("班级id")
-    private String classId;
-
     @TableField(exist = false)
     @ApiModelProperty(value = "课程信息",required = "json")
     private List<ScheduleChild> scheduleChildList;

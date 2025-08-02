@@ -1,12 +1,15 @@
 package com.skyeye.school.schedules.service.impl;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -62,11 +65,13 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     @Override
     protected void createPostpose(Schedule entity, String userId) {
         super.createPostpose(entity, userId);
+        scheduleChildService.writeScheduleChildList(entity.getId(), entity.getScheduleChildList());
     }
 
     @Override
     protected void updatePostpose(Schedule entity, String userId) {
         super.updatePostpose(entity, userId);
+        scheduleChildService.updateScheduleChildList(entity.getId(), entity.getScheduleChildList());
     }
 
     @Override

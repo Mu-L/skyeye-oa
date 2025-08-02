@@ -100,8 +100,6 @@ public class PurchaseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<Purchase
             queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getFromId), commonPageInfo.getFromId());
         }
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
-            String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(PurchaseOrder::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
             queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getProjectId), commonPageInfo.getObjectId());
             queryWrapper.and(w -> {
                 w.eq(MybatisPlusUtil.toColumns(PurchaseOrder::getState), FlowableStateEnum.PASS.getKey())
