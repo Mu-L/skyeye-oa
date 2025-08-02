@@ -8,6 +8,12 @@ import java.util.List;
 @Data
 public class MachinCost {
 
+    @ApiModelProperty(value = "报废耗材成本")
+    private String scrapConsumablePrice;
+
+    @ApiModelProperty(value = "正常耗材成本")
+    private String normalConsumablePrice;
+
     @ApiModelProperty(value = "耗材成本")
     private String consumablePrice;
 

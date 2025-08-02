@@ -18,10 +18,19 @@ public class MachinProcedureAcceptCost {
     private List<MachinProcedureAcceptProductNum> productNumMationList;
 
     @ApiModelProperty(value = "工序信息")
-    private MachinProcedure MachinProcedureMation;
+    private MachinProcedure machinProcedureMation;
 
-    @ApiModelProperty(value = "耗材信息列表")
-    private List<MachinProcedureAcceptChild> childList;
+    @ApiModelProperty(value = "报废耗材信息列表")
+    private List<MachinProcedureAcceptChild> scrapChildLIst;
+
+    @ApiModelProperty(value = "报废耗材成本")
+    private String scrapConsumablePrice;
+
+    @ApiModelProperty(value = "正常耗材信息列表")
+    private List<MachinProcedureAcceptChild> normalChildLIst;
+
+    @ApiModelProperty(value = "正常耗材成本")
+    private String normalConsumablePrice;
 
     @ApiModelProperty(value = "耗材成本")
     private String consumablePrice;
@@ -40,9 +49,6 @@ public class MachinProcedureAcceptCost {
 
     @ApiModelProperty(value = "加工单价")
     private String price;
-
-    @ApiModelProperty(value = "工序金额") // 未计算
-    private String MachinProcedurePrice;
 
     @ApiModelProperty(value = "工资金额")
     private String wage;
