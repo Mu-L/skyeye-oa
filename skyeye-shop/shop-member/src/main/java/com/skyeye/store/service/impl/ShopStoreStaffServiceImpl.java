@@ -71,17 +71,15 @@ public class ShopStoreStaffServiceImpl extends SkyeyeBusinessServiceImpl<ShopSto
         return queryWrapper;
     }
 
-    /**
-     * 新增门店下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void insertStoreStaffMation(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String storeId = params.get("storeId").toString();
+        ShopStore shopStore = shopStoreService.selectById(storeId);
+        if (ObjectUtil.isEmpty(shopStore) || StrUtil.isEmpty(shopStore.getId())) {
+            throw new IllegalArgumentException("门店不存在");
+        }
         List<String> staffId = (List<String>) params.get("staffId");
 
         QueryWrapper<ShopStoreStaff> queryWrapper = new QueryWrapper<>();
