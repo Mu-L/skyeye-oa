@@ -411,6 +411,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         MachinPutCost machinPutCost = new MachinPutCost();
         machinPutCost.setMachinProcedureCostList(MPCostList);
         machinPutCost.setConsumablePrice("0");
+        machinPutCost.setScrapConsumablePrice("0");
+        machinPutCost.setNormalConsumablePrice("0");
         machinPutCost.setAllNum(machinChild.getOperNumber());
         machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
@@ -418,6 +420,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         for (MachinProcedureCost machinProcedureCost : MPCostList) {
             // 耗材成本
             machinPutCost.setConsumablePrice(CalculationUtil.add(machinPutCost.getConsumablePrice(), machinProcedureCost.getConsumablePrice(), CommonNumConstants.NUM_SIX));
+            // 报废耗材成本
+            machinPutCost.setScrapConsumablePrice(CalculationUtil.add(machinPutCost.getScrapConsumablePrice(), machinProcedureCost.getScrapConsumablePrice(), CommonNumConstants.NUM_SIX));
+            // 正常耗材成本
+            machinPutCost.setNormalConsumablePrice(CalculationUtil.add(machinPutCost.getNormalConsumablePrice(), machinProcedureCost.getNormalConsumablePrice(), CommonNumConstants.NUM_SIX));
             // 加工单价
             machinPutCost.setPrice(CalculationUtil.add(machinPutCost.getPrice(), machinProcedureCost.getPrice(), CommonNumConstants.NUM_SIX));
             // 工资金额

@@ -188,7 +188,7 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getParentId), machinId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(MachinProcedure::getOrderBy));
         List<MachinProcedure> beans = list(queryWrapper);
-        workProcedureService.setDataMation(beans, MachinProcedure::getWayProcedureId);
+        workProcedureService.setDataMation(beans, MachinProcedure::getProcedureId);
         return beans;
     }
 
