@@ -118,7 +118,6 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
     public void queryProCostAccountList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        String todayMonth = DateUtil.getPointTime(DateUtil.YYYY_MM);
         QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getCostType), Integer.parseInt(commonPageInfo.getType()));
@@ -127,7 +126,6 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
             queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getProjectId), commonPageInfo.getObjectId());
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CostAccount::getTotalPrice));
-        queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m') = {0}", todayMonth);
         List<CostAccount> bean = list(queryWrapper);
         proProjectService.setDataMation(bean, CostAccount::getProjectId);
         iAuthUserService.setDataMation(bean, CostAccount::getCreateId);
@@ -140,7 +138,9 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
         Map<String, Object> params = inputObject.getParams();
         String startTime = params.get("startTime").toString();
         String endTime = params.get("endTime").toString();
+        String projectId = params.get("projectId").toString();
         QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getProjectId), projectId);
         queryWrapper.apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " >= {0}", startTime)
                 .apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " <= {0}", endTime);
         List<CostAccount> bean = list(queryWrapper);

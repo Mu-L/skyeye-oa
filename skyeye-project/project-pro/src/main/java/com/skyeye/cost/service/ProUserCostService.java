@@ -1,0 +1,16 @@
+package com.skyeye.cost.service;
+
+import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.cost.entity.ProUserCost;
+
+
+/**
+ * @ClassName: ProUserCostService
+ * @Description: 人力成本管理服务接口层
+ * @author: skyeye云系列--卫志强
+ * @date: 2023/8/1 16:24
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
+ */
+public interface ProUserCostService extends SkyeyeBusinessService<ProUserCost> {
+}

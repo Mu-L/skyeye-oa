@@ -63,7 +63,8 @@ public class ProCostAccountController {
     @ApiOperation(id = "queryCostAccountViews", value = "成本概览", method = "POST", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "startTime",name = "startTime", value = "开始日期",required = "required"),
-            @ApiImplicitParam(id = "endTime",name = "endTime", value = "结束日期",required = "required")
+            @ApiImplicitParam(id = "endTime",name = "endTime", value = "结束日期",required = "required"),
+            @ApiImplicitParam(id = "projectId",name = "projectId", value = "项目id",required = "required")
     })
     @RequestMapping("/post/ProCostAccountController/queryCostAccountViews")
     public void queryCostView(InputObject inputObject, OutputObject outputObject) {
