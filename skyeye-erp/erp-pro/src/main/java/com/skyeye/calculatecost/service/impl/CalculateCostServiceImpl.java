@@ -596,7 +596,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         }
         for (MachinProcedureAcceptChild child : childList) {
             // 计算每一个耗材的成本     数量 * 采购价
-            String multiply = CalculationUtil.multiply(String.valueOf(child.getOperNumber()), child.getNormsMation().getEstimatePurchasePrice(), CommonNumConstants.NUM_SIX);
+            String operNumber = child.getOperNumber() == null ? "0" :String.valueOf(child.getOperNumber());
+            String estimatePurchasePrice = ObjectUtil.isEmpty(child.getNormsMation()) ? "0" : child.getNormsMation().getEstimatePurchasePrice();
+            String multiply = CalculationUtil.multiply(operNumber, estimatePurchasePrice, CommonNumConstants.NUM_SIX);
             result = CalculationUtil.add(result, multiply, CommonNumConstants.NUM_SIX);
         }
         return result;
