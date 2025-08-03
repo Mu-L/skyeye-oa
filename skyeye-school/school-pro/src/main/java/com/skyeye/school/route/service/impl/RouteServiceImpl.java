@@ -59,6 +59,21 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         if (entity.getStartId().equals(entity.getEndId())) {
             throw new CustomException("起始地点和终点地点不能相同");
         }
+        // 根据路线中的途径点信息计算总长度
+        List<RouteStop> routeStops = entity.getRouteStopList();
+        double totalLength = 0;
+        for (int i = 0; i < routeStops.size() - 1; i++) {
+            RouteStop currentStop = routeStops.get(i);
+            RouteStop nextStop = routeStops.get(i + 1);
+            double distance = ToolUtil.haversine(
+                Double.parseDouble(currentStop.getLatitude()),
+                Double.parseDouble(currentStop.getLongitude()),
+                Double.parseDouble(nextStop.getLatitude()),
+                Double.parseDouble(nextStop.getLongitude())
+            );
+            totalLength += distance;
+        }
+        entity.setRouteLength(totalLength);
     }
 
     @Override
@@ -159,58 +174,463 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         QueryWrapper<Routes> queryWrapper = new QueryWrapper<>();
 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), schoolId)
-            .eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
+            .and(wrapper ->
+                wrapper.eq(MybatisPlusUtil.toColumns(Routes::getEndId), endId)
+                    .or().eq(MybatisPlusUtil.toColumns(Routes::getStartId), endId))
             .eq(MybatisPlusUtil.toColumns(Routes::getRouteType), routeType)
             .eq(MybatisPlusUtil.toColumns(Routes::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<Routes> routesList = list(queryWrapper);
         if (CollectionUtil.isEmpty(routesList)) {
-            throw new CustomException("暂无去无改地点的路线");
+            throw new CustomException("暂无去该地点的路线");
         }
-        Map<String, Double> map = new HashMap<>();
+
+        // 获取路线ID列表
+        List<String> routeIds = routesList.stream().map(Routes::getId).collect(Collectors.toList());
+
+        // 获取所有路线的站点信息
+        Map<String, List<RouteStop>> routeStopListMap = routeStopService.queryStopListGroupByRoteIds(routeIds);
+
+        // 获取终点地点信息
+        teachBuildingService.setDataMation(routesList, Routes::getEndId);
+
+        // 计算每条路线的最优路径并排序
+        List<RouteRecommendation> recommendations = new ArrayList<>();
+
         for (Routes route : routesList) {
-            QueryWrapper<RouteStop> routeStopQueryWrapper = new QueryWrapper<>();
-            routeStopQueryWrapper.eq(MybatisPlusUtil.toColumns(RouteStop::getRouteId), route.getId());
-            routeStopQueryWrapper.orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
-            List<RouteStop> routeStopList = routeStopService.list(routeStopQueryWrapper);
-            Double start = ToolUtil.haversine(latitude, longitude,
-                Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLatitude()),
-                Double.parseDouble(routeStopList.get(CommonNumConstants.NUM_ZERO).getLongitude()));
-            Double end = ToolUtil.haversine(latitude, longitude,
-                Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLatitude()),
-                Double.parseDouble(routeStopList.get(routeStopList.size() - 1).getLongitude()));
-            // 将当前位置作为停靠点的第一个点
-            RouteStop routeStop = new RouteStop();
-            routeStop.setLatitude(String.valueOf(latitude));
-            routeStop.setLongitude(String.valueOf(longitude));
-            routeStop.setStopOrder(CommonNumConstants.NUM_ZERO);
-            routeStopList.add(CommonNumConstants.NUM_ZERO, routeStop);
-
-            route.setRouteStopList(routeStopList);
-            map.put(route.getId(), start + end);
-        }
-        if (map.size() <= CommonNumConstants.NUM_THREE) {
-            schoolService.setDataMation(routesList, Routes::getSchoolId);
-            outputObject.setBeans(routesList);
-            outputObject.settotal(routesList.size());
-        } else {
-            // 根据距离排序
-            List<Routes> beans = new ArrayList<>();
-            List<Map.Entry<String, Double>> list = new ArrayList<>(map.entrySet());
-            list.sort(Map.Entry.comparingByValue());
-            for (Map.Entry<String, Double> entry : list) {
-                for (Routes route : routesList) {
-                    if (entry.getKey().equals(route.getId())) {
-                        beans.add(route);
-                        break;
-                    }
-                }
-                if (beans.size() == CommonNumConstants.NUM_THREE) break;
+            List<RouteStop> stops = routeStopListMap.get(route.getId());
+            if (CollectionUtil.isEmpty(stops)) {
+                continue;
             }
-            schoolService.setDataMation(beans, Routes::getSchoolId);
-            outputObject.setBeans(beans);
-            outputObject.settotal(beans.size());
+
+            // 计算从当前位置到该路线的最短路径
+            RoutePathInfo optimalPath = calculateOptimalPath(latitude, longitude, stops);
+
+            if (optimalPath == null) {
+                continue;
+            }
+
+            // 计算综合评分
+            double score = calculateRouteScore(optimalPath.getTotalDistance(), optimalPath.getOptimizedStops().size(), route.getRouteType(), optimalPath.getDistanceToFirstStop());
+
+            // 创建推荐对象
+            RouteRecommendation recommendation = new RouteRecommendation();
+            recommendation.setRoute(route);
+            recommendation.setStops(optimalPath.getOptimizedStops());
+            recommendation.setDistanceToFirstStop(optimalPath.getDistanceToFirstStop());
+            recommendation.setTotalDistance(optimalPath.getTotalDistance());
+            recommendation.setRouteDistance(optimalPath.getRouteDistance());
+            recommendation.setScore(score);
+            recommendation.setStopCount(optimalPath.getOptimizedStops().size());
+            recommendation.setStartStopIndex(optimalPath.getStartStopIndex());
+
+            recommendations.add(recommendation);
         }
 
+        // 按综合评分排序，取前三个最优路线
+        recommendations.sort((r1, r2) -> Double.compare(r2.getScore(), r1.getScore())); // 评分越高越好
+
+        List<RouteRecommendation> topThreeRoutes = recommendations.stream()
+            .limit(3)
+            .collect(Collectors.toList());
+
+        // 设置路线信息
+        for (RouteRecommendation rec : topThreeRoutes) {
+            Routes route = rec.getRoute();
+            route.setRouteStopList(rec.getStops());
+            teachBuildingService.setDataMation(route, Routes::getStartId);
+            iAuthUserService.setName(route, "createId", "createName");
+            iAuthUserService.setName(route, "lastUpdateId", "lastUpdateName");
+        }
+
+        // 构建返回结果
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (int i = 0; i < topThreeRoutes.size(); i++) {
+            RouteRecommendation rec = topThreeRoutes.get(i);
+            Map<String, Object> routeInfo = new HashMap<>();
+            routeInfo.put("route", rec.getRoute());
+            routeInfo.put("rank", i + 1);
+            routeInfo.put("distanceToFirstStop", Math.round(rec.getDistanceToFirstStop() * 100.0) / 100.0);
+            routeInfo.put("routeDistance", rec.getRouteDistance());
+            routeInfo.put("totalDistance", Math.round(rec.getTotalDistance() * 100.0) / 100.0);
+            routeInfo.put("score", Math.round(rec.getScore() * 100.0) / 100.0);
+            routeInfo.put("stopCount", rec.getStopCount());
+            routeInfo.put("startStopIndex", rec.getStartStopIndex());
+            routeInfo.put("recommendationReason", getRecommendationReason(rec, i + 1));
+            resultList.add(routeInfo);
+        }
+
+        outputObject.setBeans(resultList);
+        outputObject.settotal(resultList.size());
+    }
+
+    /**
+     * 计算路线综合评分
+     *
+     * @param totalDistance       总距离
+     * @param stopCount           站点数量
+     * @param routeType           路线类型
+     * @param distanceToFirstStop 到第一个站点的距离
+     * @return 综合评分
+     */
+    private double calculateRouteScore(double totalDistance, int stopCount, Integer routeType, double distanceToFirstStop) {
+        // 基础评分（距离越短评分越高）
+        double distanceScore = 100.0 / (1 + totalDistance);
+
+        // 站点数量评分（站点越少评分越高，避免过多转乘）
+        double stopScore = 100.0 / (1 + stopCount * 0.5);
+
+        // 到第一个站点的距离评分（距离越近评分越高）
+        double firstStopScore = 100.0 / (1 + distanceToFirstStop * 2);
+
+        // 路线类型评分（可以根据实际需求调整）
+        double typeScore = 100.0;
+        if (routeType != null) {
+            switch (routeType) {
+                case 1: // 步行路线
+                    typeScore = 90.0;
+                    break;
+                case 2: // 自行车路线
+                    typeScore = 85.0;
+                    break;
+                case 3: // 公交路线
+                    typeScore = 80.0;
+                    break;
+                default:
+                    typeScore = 70.0;
+            }
+        }
+
+        // 综合评分权重
+        double finalScore = distanceScore * 0.4 + stopScore * 0.3 + firstStopScore * 0.2 + typeScore * 0.1;
+
+        return finalScore;
+    }
+
+    /**
+     * 获取推荐理由
+     *
+     * @param recommendation 路线推荐
+     * @param rank           排名
+     * @return 推荐理由
+     */
+    private String getRecommendationReason(RouteRecommendation recommendation, int rank) {
+        List<String> reasons = new ArrayList<>();
+
+        if (rank == 1) {
+            reasons.add("综合评分最高");
+        }
+
+        // 根据起始站点位置给出建议
+        if (recommendation.getStartStopIndex() == 0) {
+            reasons.add("从路线起点开始");
+        } else if (recommendation.getStartStopIndex() > 0) {
+            reasons.add("从路线中途站点开始");
+        }
+
+        if (recommendation.getDistanceToFirstStop() < 0.3) {
+            reasons.add("距离路线很近");
+        } else if (recommendation.getDistanceToFirstStop() < 0.8) {
+            reasons.add("距离路线较近");
+        }
+
+        if (recommendation.getStopCount() <= 3) {
+            reasons.add("站点较少，路径简洁");
+        } else if (recommendation.getStopCount() <= 5) {
+            reasons.add("站点适中");
+        }
+
+        if (recommendation.getTotalDistance() < 1.5) {
+            reasons.add("总距离很短");
+        } else if (recommendation.getTotalDistance() < 3.0) {
+            reasons.add("总距离较短");
+        }
+
+        // 根据路线类型给出建议
+        if (recommendation.getRoute().getRouteType() != null) {
+            switch (recommendation.getRoute().getRouteType()) {
+                case 1:
+                    reasons.add("步行路线，健康环保");
+                    break;
+                case 2:
+                    reasons.add("自行车路线，快速便捷");
+                    break;
+                case 3:
+                    reasons.add("公交路线，舒适省力");
+                    break;
+            }
+        }
+
+        if (reasons.isEmpty()) {
+            reasons.add("路线合理");
+        }
+
+        return String.join("，", reasons);
+    }
+
+    /**
+     * 路线推荐内部类
+     */
+    private static class RouteRecommendation {
+        private Routes route;
+        private List<RouteStop> stops;
+        private double distanceToFirstStop;
+        private double totalDistance;
+        private double routeDistance;
+        private double score;
+        private int stopCount;
+        private int startStopIndex; // 新增：记录最优起始站点在原始列表中的索引
+
+        // Getters and Setters
+        public Routes getRoute() {
+            return route;
+        }
+
+        public void setRoute(Routes route) {
+            this.route = route;
+        }
+
+        public List<RouteStop> getStops() {
+            return stops;
+        }
+
+        public void setStops(List<RouteStop> stops) {
+            this.stops = stops;
+        }
+
+        public double getDistanceToFirstStop() {
+            return distanceToFirstStop;
+        }
+
+        public void setDistanceToFirstStop(double distanceToFirstStop) {
+            this.distanceToFirstStop = distanceToFirstStop;
+        }
+
+        public double getTotalDistance() {
+            return totalDistance;
+        }
+
+        public void setTotalDistance(double totalDistance) {
+            this.totalDistance = totalDistance;
+        }
+
+        public double getRouteDistance() {
+            return routeDistance;
+        }
+
+        public void setRouteDistance(double routeDistance) {
+            this.routeDistance = routeDistance;
+        }
+
+        public double getScore() {
+            return score;
+        }
+
+        public void setScore(double score) {
+            this.score = score;
+        }
+
+        public int getStopCount() {
+            return stopCount;
+        }
+
+        public void setStopCount(int stopCount) {
+            this.stopCount = stopCount;
+        }
+
+        public int getStartStopIndex() {
+            return startStopIndex;
+        }
+
+        public void setStartStopIndex(int startStopIndex) {
+            this.startStopIndex = startStopIndex;
+        }
+    }
+
+    /**
+     * 路线路径信息内部类
+     */
+    private static class RoutePathInfo {
+        private double totalDistance;
+        private double distanceToFirstStop;
+        private double routeDistance;
+        private List<RouteStop> optimizedStops;
+        private int startStopIndex;
+
+        // Getters and Setters
+        public double getTotalDistance() {
+            return totalDistance;
+        }
+
+        public void setTotalDistance(double totalDistance) {
+            this.totalDistance = totalDistance;
+        }
+
+        public double getDistanceToFirstStop() {
+            return distanceToFirstStop;
+        }
+
+        public void setDistanceToFirstStop(double distanceToFirstStop) {
+            this.distanceToFirstStop = distanceToFirstStop;
+        }
+
+        public double getRouteDistance() {
+            return routeDistance;
+        }
+
+        public void setRouteDistance(double routeDistance) {
+            this.routeDistance = routeDistance;
+        }
+
+        public List<RouteStop> getOptimizedStops() {
+            return optimizedStops;
+        }
+
+        public void setOptimizedStops(List<RouteStop> optimizedStops) {
+            this.optimizedStops = optimizedStops;
+        }
+
+        public int getStartStopIndex() {
+            return startStopIndex;
+        }
+
+        public void setStartStopIndex(int startStopIndex) {
+            this.startStopIndex = startStopIndex;
+        }
+    }
+
+    /**
+     * 计算从当前位置到路线的最优路径
+     *
+     * @param currentLat 当前位置纬度
+     * @param currentLng 当前位置经度
+     * @param stops      路线站点列表
+     * @return 最优路径信息
+     */
+    private RoutePathInfo calculateOptimalPath(double currentLat, double currentLng, List<RouteStop> stops) {
+        if (CollectionUtil.isEmpty(stops)) {
+            return null;
+        }
+
+        double minTotalDistance = Double.MAX_VALUE;
+        int optimalStartIndex = 0;
+        List<RouteStop> optimizedStops = new ArrayList<>();
+
+        // 遍历所有可能的起始站点
+        for (int startIndex = 0; startIndex < stops.size(); startIndex++) {
+            RouteStop startStop = stops.get(startIndex);
+
+            // 计算从当前位置到起始站点的距离
+            double distanceToStart = ToolUtil.haversine(
+                currentLat, currentLng,
+                Double.parseDouble(startStop.getLatitude()),
+                Double.parseDouble(startStop.getLongitude())
+            );
+
+            // 计算从起始站点到终点的路线距离
+            double routeDistance = calculateRouteDistanceFromIndex(stops, startIndex);
+
+            double totalDistance = distanceToStart + routeDistance;
+
+            // 如果这条路径更短，更新最优路径
+            if (totalDistance < minTotalDistance) {
+                minTotalDistance = totalDistance;
+                optimalStartIndex = startIndex;
+
+                // 优化站点列表：从起始站点开始，过滤掉不必要的途径点
+                optimizedStops = optimizeStops(stops, startIndex);
+            }
+        }
+
+        if (minTotalDistance == Double.MAX_VALUE) {
+            return null;
+        }
+
+        RoutePathInfo pathInfo = new RoutePathInfo();
+        pathInfo.setTotalDistance(minTotalDistance);
+        pathInfo.setDistanceToFirstStop(ToolUtil.haversine(
+            currentLat, currentLng,
+            Double.parseDouble(stops.get(optimalStartIndex).getLatitude()),
+            Double.parseDouble(stops.get(optimalStartIndex).getLongitude())
+        ));
+        pathInfo.setRouteDistance(calculateRouteDistanceFromIndex(stops, optimalStartIndex));
+        pathInfo.setOptimizedStops(optimizedStops);
+        pathInfo.setStartStopIndex(optimalStartIndex);
+
+        return pathInfo;
+    }
+
+    /**
+     * 计算从指定索引开始的路线距离
+     *
+     * @param stops      站点列表
+     * @param startIndex 起始索引
+     * @return 路线距离
+     */
+    private double calculateRouteDistanceFromIndex(List<RouteStop> stops, int startIndex) {
+        double distance = 0;
+        for (int i = startIndex; i < stops.size() - 1; i++) {
+            RouteStop current = stops.get(i);
+            RouteStop next = stops.get(i + 1);
+            distance += ToolUtil.haversine(
+                Double.parseDouble(current.getLatitude()),
+                Double.parseDouble(current.getLongitude()),
+                Double.parseDouble(next.getLatitude()),
+                Double.parseDouble(next.getLongitude())
+            );
+        }
+        return distance;
+    }
+
+    /**
+     * 优化站点列表，过滤掉不必要的途径点
+     *
+     * @param stops      原始站点列表
+     * @param startIndex 起始索引
+     * @return 优化后的站点列表
+     */
+    private List<RouteStop> optimizeStops(List<RouteStop> stops, int startIndex) {
+        List<RouteStop> optimized = new ArrayList<>();
+
+        // 添加起始站点
+        optimized.add(stops.get(startIndex));
+
+        // 从起始站点开始，选择关键站点（避免过多的小站点）
+        for (int i = startIndex + 1; i < stops.size(); i++) {
+            RouteStop current = stops.get(i);
+
+            // 如果是最后一个站点，或者距离上一个站点足够远，则保留
+            if (i == stops.size() - 1 || isSignificantStop(stops, i)) {
+                optimized.add(current);
+            }
+        }
+
+        return optimized;
+    }
+
+    /**
+     * 判断是否为重要站点（距离上一个站点足够远）
+     *
+     * @param stops 站点列表
+     * @param index 当前站点索引
+     * @return 是否为重要站点
+     */
+    private boolean isSignificantStop(List<RouteStop> stops, int index) {
+        if (index <= 0) {
+            return true;
+        }
+
+        RouteStop previous = stops.get(index - 1);
+        RouteStop current = stops.get(index);
+
+        double distance = ToolUtil.haversine(
+            Double.parseDouble(previous.getLatitude()),
+            Double.parseDouble(previous.getLongitude()),
+            Double.parseDouble(current.getLatitude()),
+            Double.parseDouble(current.getLongitude())
+        );
+
+        // 如果距离超过100米，认为是重要站点
+        return distance > 0.1;
     }
 
     @Override
