@@ -167,7 +167,21 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getEmployeeId), employeeId);
             List<SchedulingTimeWorkPeople> workPeopleList = list(queryWrapper);
-
+            if (CollectionUtil.isNotEmpty(workPeopleList)) {
+                workPeopleList = workPeopleList.stream()
+                    .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                            p -> Arrays.asList(
+                                p.getSchedulingTimeWorkId(),
+                                p.getEmployeeId(),
+                                p.getSchedulingId(),
+                                p.getSchedulingTimeId()),
+                            p -> p,
+                            (existing, replacement) -> existing
+                        ),
+                        map -> new ArrayList<>(map.values())
+                    ));
+            }
             // 初始化工作统计变量
             long totalSeconds = 0;
             int totalShifts = 0;
