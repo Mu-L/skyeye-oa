@@ -4,6 +4,7 @@
 
 package com.skyeye.personrequire.classenum;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,20 @@ public enum PersonRequireStateEnum implements SkyeyeEnumClass {
 
     public static List<Class> dependOnEnum() {
         return Arrays.asList(FlowableStateEnum.class);
+    }
+
+    public static String getStateName(String status) {
+        for (FlowableStateEnum q : FlowableStateEnum.values()) {
+            if (q.getKey().equals(status)) {
+                return q.getValue();
+            }
+        }
+        for (PersonRequireStateEnum q : PersonRequireStateEnum.values()) {
+            if (q.getKey().equals(status)) {
+                return q.getValue();
+            }
+        }
+        return StrUtil.EMPTY;
     }
 
 }

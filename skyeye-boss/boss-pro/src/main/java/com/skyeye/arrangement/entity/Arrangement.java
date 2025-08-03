@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.arrangement.classenum.ArrangementState;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.interviewee.entity.Interviewee;
 import com.skyeye.personrequire.entity.PersonRequire;
@@ -75,7 +76,7 @@ public class Arrangement extends OperatorUserInfo {
     private Map<String, Object> jobScoreMation;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "状态，参考#ArrangementState")
+    @ApiModelProperty(value = "状态", enumClass = ArrangementState.class)
     private Integer state;
 
     @TableField(value = "evaluation")
