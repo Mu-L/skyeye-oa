@@ -10,6 +10,9 @@ import java.util.List;
 @Data
 public class MachinPutCost {
 
+    @ApiModelProperty(value = "商品名")
+    private String materialName;
+
     @ApiModelProperty(value = "工序成本信息")
     private List<MachinProcedureCost> machinProcedureCostList;
 

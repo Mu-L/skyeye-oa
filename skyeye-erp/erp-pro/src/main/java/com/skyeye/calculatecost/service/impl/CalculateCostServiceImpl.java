@@ -27,6 +27,7 @@ import com.skyeye.machin.service.MachinService;
 import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.machinprocedure.entity.*;
 import com.skyeye.machinprocedure.service.*;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.procedure.entity.WorkProcedure;
@@ -77,6 +78,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
 
     @Autowired
     private MachinService machinService;
+
+    @Autowired
+    private MachinChildService machinChildService;
 
 
     /**
@@ -198,9 +202,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
-
-    @Autowired
-    private MachinChildService machinChildService;
 
     @Override
     public void calculateMachinPutCost(InputObject inputObject, OutputObject outputObject) {
@@ -369,7 +370,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
 
     private MachinPutCost setMachinPutDate(MachinPut machinPut, List<MachinProcedureCost> MPCostList, MachinChild machinChild) {
         Integer currentOperNumber = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber();
+        Material materialMation = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getMaterialMation();
+        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null :materialMation.getName();
         MachinPutCost machinPutCost = new MachinPutCost();
+        machinPutCost.setMaterialName(materialName);
         machinPutCost.setMachinProcedureCostList(MPCostList);
         machinPutCost.setConsumablePrice("0");
         machinPutCost.setScrapConsumablePrice("0");
@@ -408,7 +412,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     private MachinPutCost setMachinPutDate(MachinChild machinChild, List<MachinProcedureCost> MPCostList) {
+        Material materialMation = machinChild.getMaterialMation();
+        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null :materialMation.getName();
         MachinPutCost machinPutCost = new MachinPutCost();
+        machinPutCost.setMaterialName(materialName);
         machinPutCost.setMachinProcedureCostList(MPCostList);
         machinPutCost.setConsumablePrice("0");
         machinPutCost.setScrapConsumablePrice("0");
