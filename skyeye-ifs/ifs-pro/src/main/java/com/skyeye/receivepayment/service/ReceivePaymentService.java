@@ -20,4 +20,6 @@ public interface ReceivePaymentService extends SkyeyeBusinessService<ReceivePaym
     void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject);
 
     List<ReceivePayment> getBeforeThirtyDaysReceivePayment(String tenantId);
+
+    void updateReceivePayment(InputObject inputObject, OutputObject outputObject);
 }
