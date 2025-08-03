@@ -263,8 +263,12 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
         }
         // 设置员工生产数量信息列表
         List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentIdOnly(id);
+        List<String> staffIdList = productNumList.stream().map(MachinProcedureAcceptProductNum::getStaffId).filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
+        productNumList.forEach(productNum -> {
+            productNum.setStaffMation(staffMap.getOrDefault(productNum.getStaffId(), new HashMap<>()));
+        });
         machinProcedureAccept.setMachinProcedureAcceptProductNumList(productNumList);
-        iAuthUserService.setDataMation(machinProcedureAccept, MachinProcedureAccept::getAcceptUserId);
         machinProcedureAccept.setFarmMation(farmService.selectById(machinProcedureAccept.getFarmId()));
         return machinProcedureAccept;
     }

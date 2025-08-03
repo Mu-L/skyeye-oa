@@ -130,7 +130,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         // 获取员工信息
         List<String> staffIdList = productNumList.stream()
                 .map(MachinProcedureAcceptProductNum::getStaffId).collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
+        Map<String, Map<String, Object>> staffMap = productNumList.stream().collect(Collectors.toMap(MachinProcedureAcceptProductNum::getStaffId, MachinProcedureAcceptProductNum::getStaffMation));
         // 获取日期间的所有日期值
         List<String> betweenDates = getBetweenDates(machinProcedure.getPlanStartTime(), machinProcedure.getPlanEndTime());
         // 查询考勤信息
