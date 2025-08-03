@@ -7,7 +7,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -44,6 +43,9 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
     @Autowired
     private SchedulingTimeService schedulingTimeService;
+
+    @Autowired
+    private IFarmStaffService iFarmStaffService;
 
     @Override
     public List<SchedulingTimeWorkPeople> queryTimeWorkByThreeId(String id, List<String> timeIds, List<String> timeWorkIds) {
@@ -128,9 +130,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         return list(queryWrapper);
     }
 
-    @Autowired
-    private IFarmStaffService iFarmStaffService;
-
     @Override
     public void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -144,8 +143,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             outputObject.setBean(Collections.emptyList());
             return;
         }
-
-        // 创建员工ID到姓名的映射
         Map<String, String> employeeNameMap = satffMation.stream()
             .collect(Collectors.toMap(
                 staff -> staff.get("staffId").toString(),
@@ -155,7 +152,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         // 存储所有员工的统计结果
         List<Map<String, Object>> finalResult = new ArrayList<>();
 
-        // 遍历每个员工进行统计
         for (Map<String, Object> staff : satffMation) {
             String employeeId = staff.get("staffId").toString();
             String employeeName = employeeNameMap.get(employeeId);
@@ -214,8 +210,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                     for (SchedulingTimeWorkPeople workPeople : yesTimeWorkPeople) {
                         Scheduling schedule = scheduleMap.get(workPeople.getSchedulingId());
                         SchedulingTime time = timeMap.get(workPeople.getSchedulingTimeId());
-                        if (schedule == null || time == null) continue;
-
+                        if (ObjectUtil.isEmpty(schedule) || ObjectUtil.isEmpty(time)) continue;
                         List<LocalDate> workDates = getOverlapDates(
                             schedule.getStartTime(), schedule.getEndTime(),
                             startTime, endTime
@@ -267,11 +262,9 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                 }
             }
 
-            // 4. 格式化结果
             double totalWorkHours = Math.round(totalSeconds / 3600.0 * 100) / 100.0;
             totalLeaveHours = Math.round(totalLeaveHours * 100) / 100.0;
 
-            // 构建结果对象
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalWorkHours", totalWorkHours);
             stats.put("totalShifts", totalShifts);

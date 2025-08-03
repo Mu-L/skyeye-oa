@@ -8,8 +8,6 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
-import java.util.Map;
-
 /**
  * @ClassName: Schedule
  * @Description: 排课表实体类
@@ -69,7 +67,7 @@ public class Schedule extends OperatorUserInfo {
     private Integer endNum;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "课表额外信息",required = "json")
+    @ApiModelProperty(value = "课表额外信息", required = "json")
     private ScheduleChild scheduleChildMation;
 
 }

@@ -35,8 +35,6 @@ public class ExamXxlJob {
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
-    private static Logger log = LoggerFactory.getLogger(ExamXxlJob.class);
-
     @XxlJob("createExam")
     public void createExam() {
         String param = XxlJobHelper.getJobParam();
