@@ -54,7 +54,7 @@ public class ShopDeliveryCompany extends OperatorUserInfo {
     private String enabled;
 
     @TableField(value = "`order_by`")
-    @ApiModelProperty(value = "排序", required = "required")
+    @ApiModelProperty(value = "排序(数字大的在前面)", required = "required")
     private Integer orderBy;
 
     @TableField(value = "`store_id`")

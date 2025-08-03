@@ -149,9 +149,7 @@ public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<Paym
             receivableService.updateReceivablePaidPrice(entity.getReceivableId(), entity.getPrice());
         }
         // 远程调用新增收付款信息
-        PaymentCollection paymentCollection = selectById(entity.getId());
-        Map<String, Object> map = BeanUtil.beanToMap(paymentCollection);
-        map.put("invoicePrice",paymentCollection.getInvoicePrice());
+        Map<String, Object> map = BeanUtil.beanToMap(entity);
         map.put("fromId",entity.getId());
         map.put("fromChildId",entity.getReceivableId());
         ifsReceivePaymentService.addIFsReceivePayment(map);

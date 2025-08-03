@@ -14,6 +14,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.delivery.dao.ShopDeliveryCompanyDao;
 import com.skyeye.delivery.entity.ShopDeliveryCompany;
@@ -115,5 +116,17 @@ public class ShopDeliveryCompanyServiceImpl extends SkyeyeBusinessServiceImpl<Sh
             shopStoreService.setDataMation(shopDeliveryCompany, ShopDeliveryCompany::getStoreId);
         }
         return shopDeliveryCompany;
+    }
+
+    @Override
+    public void queryDeliveryByStoreId(InputObject inputObject, OutputObject outputObject) {
+        String storeId = inputObject.getParams().get("storeId").toString();
+        QueryWrapper<ShopDeliveryCompany> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getStoreId), storeId)
+                .eq(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getEnabled), EnableEnum.ENABLE_USING.getKey())
+                .orderByDesc(MybatisPlusUtil.toColumns(ShopDeliveryCompany::getOrderBy));
+        List<ShopDeliveryCompany> beans = list(queryWrapper);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
     }
 }

@@ -15,4 +15,6 @@ import java.util.Map;
 public interface IfsReceivePaymentService extends IService {
 
     Map<String, Object> addIFsReceivePayment(Map<String, Object> map);
+
+    Map<String, Object> updateReceivePayment(Map<String, Object> map);
 }

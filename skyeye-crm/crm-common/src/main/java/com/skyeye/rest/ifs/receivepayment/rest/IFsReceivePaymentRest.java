@@ -15,4 +15,11 @@ public interface IFsReceivePaymentRest {
      * */
     @PostMapping("/addReceivePayment")
     String addIFsReceivePayment(@RequestBody Map<String, Object> map);
+
+    /**
+     * 编辑 发票审批成功后 编辑收款管理
+     * */
+    @PostMapping("/updateReceivePayment")
+    String updateReceivePayment(@RequestBody Map<String, Object> map);
+
 }

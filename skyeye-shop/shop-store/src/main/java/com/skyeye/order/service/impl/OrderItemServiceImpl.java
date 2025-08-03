@@ -245,11 +245,11 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         // 修改总单状态
         boolean allMatch = orderItemList.stream().allMatch(item -> item.getState() == ShopOrderItemOtherState.ALL_DELIVERED.getKey());
         Order order = orderService.getById(orderId);
-        if (allMatch && order.getState() == ShopOrderState.PART_DELIVERY.getKey()) {
+        if (allMatch && (order.getState() == ShopOrderState.PART_DELIVERY.getKey() || order.getState() == ShopOrderState.UNDELIVERED.getKey())) {
             // 所有子单全部发货，并且总单本来就是待发货状态
             orderService.updateOrderItemDeliverState(targetItem.getParentId(), ShopOrderState.DELIVERED.getKey());
         }
-        if (order.getState() == ShopOrderState.UNDELIVERED.getKey()) {
+        if (!allMatch && order.getState() == ShopOrderState.UNDELIVERED.getKey()) {
             // 总单是待发货状态(此次发货为第一次发货)
             orderService.updateOrderItemDeliverState(targetItem.getParentId(), ShopOrderState.PART_DELIVERY.getKey());
         }

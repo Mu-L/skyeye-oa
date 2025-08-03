@@ -34,6 +34,7 @@ import com.skyeye.invoice.service.SupplierInvoiceHeaderService;
 import com.skyeye.invoice.service.SupplierInvoiceService;
 
 import com.skyeye.payment.service.PaymentService;
+import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,9 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private IfsReceivePaymentService ifsReceivePaymentService;
 
     @Override
     public Class getAuthEnumClass() {
@@ -133,6 +137,11 @@ public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<Suppli
     public void approvalEndIsSuccess(SupplierInvoice entity) {
         // 修改付款的开票金额
         paymentService.updateInvoicePrice(entity.getPaymentCollectionId(), entity.getPrice());
+        // 远程调用修改——ifs管理--收付款管理 已开发票金额
+        Map<String, Object> map = new HashMap<>();
+        map.put("fromId", entity.getPaymentCollectionId());
+        map.put("invoicePrice", entity.getPrice());
+        ifsReceivePaymentService.updateReceivePayment(map);
     }
 
     @Override

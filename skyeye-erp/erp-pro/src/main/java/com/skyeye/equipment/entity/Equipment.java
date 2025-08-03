@@ -15,6 +15,8 @@ import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.farm.entity.Farm;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: Equipment
  * @Description: 设备管理实体类
@@ -72,7 +74,7 @@ public class Equipment extends BaseGeneralInfo {
 
     @TableField(exist = false)
     @Property(value = "项目信息")
-    private String projectMation;
+    private Map<String,Object> projectMation;
 
     @TableField(exist = false)
     @Property(value = "车间信息")
