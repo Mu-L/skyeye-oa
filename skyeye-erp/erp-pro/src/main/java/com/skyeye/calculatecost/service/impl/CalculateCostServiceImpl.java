@@ -1,6 +1,7 @@
 package com.skyeye.calculatecost.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.google.common.base.Joiner;
 import com.skyeye.calculatecost.entity.MachinCost;
@@ -377,6 +378,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
+        if (currentOperNumber <= CommonNumConstants.NUM_ZERO) {
+            return machinPutCost;
+        }
         for (MachinProcedureCost machinProcedureCost : MPCostList) {
             // 耗材总成本
             machinPutCost.setConsumablePrice(CalculationUtil.add(machinPutCost.getConsumablePrice(), machinProcedureCost.getConsumablePrice(), CommonNumConstants.NUM_SIX));
@@ -673,10 +677,13 @@ public class CalculateCostServiceImpl implements CalculateCostService {
      */
     private String calculateOneStaffCost(MachinProcedureAcceptProductNum staffNumMap, Map<String, Object> staffMation
             , Map<String, String> workHoursMap, String pieceWorkPrice, String startTime, String endTime) {
-        if (staffMation.get("workstationType").toString().equals("1")) {
+        if (staffMation.getOrDefault("workstationType", -1).toString().equals("1")) {
             // 合同工 月薪 / 30 * 工序时长
-            if (staffMation.get("designWages").toString().equals("1")) {
+            if (staffMation.getOrDefault("designWages", CommonNumConstants.NUM_ONE).toString().equals("1")) {
                 // 薪资未定
+                return "0";
+            }
+            if (staffMation.getOrDefault("actWages", StrUtil.EMPTY).toString().isEmpty()) {
                 return "0";
             }
             String actWages = CalculationUtil.divide(staffMation.get("actWages").toString(), "30", CommonNumConstants.NUM_SIX);
@@ -684,8 +691,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             return CalculationUtil.multiply(actWages, String.valueOf(actualDuration), CommonNumConstants.NUM_SIX);
         } else if (staffMation.get("workstationType").toString().equals("2")) {
             // 小时工      小时工的小时单价 * 工时
-            String hourlyPrice = staffMation.get("hourlyPrice").toString();
-            String workHour = workHoursMap.get(staffMation.get("id").toString());
+            String hourlyPrice = staffMation.getOrDefault("hourlyPrice", CommonNumConstants.NUM_ZERO).toString();
+            String workHour = workHoursMap.getOrDefault(staffMation.get("id").toString(), CommonNumConstants.NUM_ZERO.toString());
             return CalculationUtil.multiply(hourlyPrice, workHour, CommonNumConstants.NUM_SIX);
         } else if (staffMation.get("workstationType").toString().equals("3")) {
             // 计件工
