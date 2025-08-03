@@ -80,15 +80,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
     @Override
     protected void updatePrepose(ReceivePayment entity) {
         super.updatePrepose(entity);
-        QueryWrapper<ReceivePayment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getFromId), entity.getFromId());
-        ReceivePayment payment = getOne(queryWrapper);
-        String invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                StrUtil.isEmpty(payment.getInvoicePrice()) ? "0" : payment.getInvoicePrice(),
-                entity.getInvoicePrice());
-        payment.setInvoicePrice(invoicePrice);
-        // 拷贝到entity中
-        BeanUtil.copyProperties(entity, payment);
+        ;
     }
 
     @Override
@@ -113,50 +105,50 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         Map<String, List<Map<String, Object>>> map = beans.stream().collect(Collectors.groupingBy(m -> m.get("objectKey").toString()));
         List<Map<String, Object>> erpBeans = map.getOrDefault(CorrespondentEnterEnum.SUPPLIER.getKey(), new ArrayList<>());
         List<Map<String, Object>> customerBeans = map.getOrDefault(CorrespondentEnterEnum.CUSTOM.getKey(), new ArrayList<>());
-        if(CollectionUtil.isNotEmpty(erpBeans)){
+        if (CollectionUtil.isNotEmpty(erpBeans)) {
             // 供应商信息
             List<String> supplierIdList = erpBeans.stream().map(m -> m.get("objectId").toString()).distinct().collect(Collectors.toList());
             String supplierIds = String.join(StrUtil.COMMA, supplierIdList);
             List<Map<String, Object>> supplierList = iErpSupplierService.querySupplierListByIds(supplierIds);
-            Map<String,Map<String, Object>> supplierMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> supplierMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // erp合同信息
             List<String> contractIdList = erpBeans.stream().map(m -> m.get("contractId").toString()).distinct().collect(Collectors.toList());
             String contractIds = String.join(StrUtil.COMMA, contractIdList);
             List<Map<String, Object>> erpContractMations = iErpContractService.querySupplierContractByIds(contractIds);
-            Map<String,Map<String, Object>> erpContractMap = erpContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> erpContractMap = erpContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // 付款信息
             List<String> erpPayIdList = erpBeans.stream().map(m -> m.get("fromId").toString()).distinct().collect(Collectors.toList());
             String erpPayIds = String.join(StrUtil.COMMA, erpPayIdList);
             List<Map<String, Object>> erpPayMations = iErpPaymentCollectionService.queryPaymentCollectionById(erpPayIds);
-            Map<String,Map<String, Object>> erpPayMap = erpPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> erpPayMap = erpPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // 设置信息
             for (Map<String, Object> item : beans) {
-                if(CorrespondentEnterEnum.SUPPLIER.getKey().equals(item.get("objectKey").toString())){
+                if (CorrespondentEnterEnum.SUPPLIER.getKey().equals(item.get("objectKey").toString())) {
                     item.put("objectMation", supplierMap.get(item.get("objectId").toString()));
                     item.put("contractMation", erpContractMap.get(item.get("contractId").toString()));
                     item.put("fromMation", erpPayMap.get(item.get("fromId").toString()));
                 }
             }
         }
-        if(CollectionUtil.isNotEmpty(customerBeans)){
-           // 客户信息
+        if (CollectionUtil.isNotEmpty(customerBeans)) {
+            // 客户信息
             List<String> customerIdList = customerBeans.stream().map(m -> m.get("objectId").toString()).distinct().collect(Collectors.toList());
             String customerIds = String.join(StrUtil.COMMA, customerIdList);
             List<Map<String, Object>> supplierList = iCrmCustomerService.queryCustomerListByIds(customerIds);
-            Map<String,Map<String, Object>> customerMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> customerMap = supplierList.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // crm合同信息
             List<String> contractIdList = customerBeans.stream().map(m -> m.get("contractId").toString()).distinct().collect(Collectors.toList());
             String contractIds = String.join(StrUtil.COMMA, contractIdList);
             List<Map<String, Object>> crmContractMations = iCrmContractService.queryCrmContractByIds(contractIds);
-            Map<String,Map<String, Object>> crmContractMap = crmContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> crmContractMap = crmContractMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // 回款款信息
             List<String> crmPayIdList = customerBeans.stream().map(m -> m.get("fromId").toString()).distinct().collect(Collectors.toList());
             String crmPayIds = String.join(StrUtil.COMMA, crmPayIdList);
             List<Map<String, Object>> crmPayMations = iCrmPaymentCollectionService.queryPaymentCollectionById(crmPayIds);
-            Map<String,Map<String, Object>> crmPayMap = crmPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
+            Map<String, Map<String, Object>> crmPayMap = crmPayMations.stream().collect(Collectors.toMap(m -> m.get("id").toString(), m -> m));
             // 设置信息
             for (Map<String, Object> item : beans) {
-                if(CorrespondentEnterEnum.CUSTOM.getKey().equals(item.get("objectKey").toString())){
+                if (CorrespondentEnterEnum.CUSTOM.getKey().equals(item.get("objectKey").toString())) {
                     item.put("objectMation", customerMap.get(item.get("objectId").toString()));
                     item.put("contractMation", crmContractMap.get(item.get("contractId").toString()));
                     item.put("fromMation", crmPayMap.get(item.get("fromId").toString()));
@@ -182,6 +174,23 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         return list(queryWrapper);
     }
 
+    @Override
+    public void updateReceivePayment(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String fromId = (String) params.get("fromId");
+        String invoicePrice = (String) params.get("invoicePrice");
+
+        QueryWrapper<ReceivePayment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getFromId), fromId);
+        ReceivePayment payment = getOne(queryWrapper);
+        invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                StrUtil.isEmpty(payment.getInvoicePrice()) ? "0" : payment.getInvoicePrice(),
+                invoicePrice);
+        payment.setInvoicePrice(invoicePrice);
+
+        updateEntity(payment, null);
+    }
+
     public String getBeforeOrFutureDay(int num) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
@@ -204,7 +213,7 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getState), FlowableStateEnum.PASS.getKey());
         List<ReceivePayment> list = list(queryWrapper);
         // 转为List<Map<String, Object>>
-        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list),null);
+        List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
         setMationForMaps(beans);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
