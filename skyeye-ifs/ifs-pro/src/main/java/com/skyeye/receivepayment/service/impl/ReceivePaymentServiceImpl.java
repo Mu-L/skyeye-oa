@@ -1,5 +1,6 @@
 package com.skyeye.receivepayment.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -14,6 +15,7 @@ import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.contacts.service.IContactsService;
@@ -73,6 +75,20 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
         super.createPrepose(entity);
         entity.setId(StrUtil.EMPTY);
         entity.setState(FlowableStateEnum.PASS.getKey());
+    }
+
+    @Override
+    protected void updatePrepose(ReceivePayment entity) {
+        super.updatePrepose(entity);
+        QueryWrapper<ReceivePayment> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReceivePayment::getFromId), entity.getFromId());
+        ReceivePayment payment = getOne(queryWrapper);
+        String invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                StrUtil.isEmpty(payment.getInvoicePrice()) ? "0" : payment.getInvoicePrice(),
+                entity.getInvoicePrice());
+        payment.setInvoicePrice(invoicePrice);
+        // 拷贝到entity中
+        BeanUtil.copyProperties(entity, payment);
     }
 
     @Override

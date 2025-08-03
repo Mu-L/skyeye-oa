@@ -28,6 +28,7 @@ import com.skyeye.invoice.entity.Invoice;
 import com.skyeye.invoice.service.InvoiceHeaderService;
 import com.skyeye.invoice.service.InvoiceService;
 import com.skyeye.payment.service.PaymentCollectionService;
+import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,9 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
 
     @Autowired
     private IAreaService iAreaService;
+
+    @Autowired
+    private IfsReceivePaymentService ifsReceivePaymentService;
 
     @Override
     public Class getAuthEnumClass() {
@@ -121,6 +125,11 @@ public class InvoiceServiceImpl extends SkyeyeFlowableServiceImpl<InvoiceDao, In
     public void approvalEndIsSuccess(Invoice entity) {
         // 修改回款的开票金额
         paymentCollectionService.updateInvoicePrice(entity.getPaymentCollectionId(), entity.getPrice());
+        // 远程调用：修改回款单的开票金额
+        Map<String,Object> map = new HashMap<>();
+        map.put("fromId", entity.getPaymentCollectionId());
+        map.put("invoicePrice", entity.getPrice());
+        ifsReceivePaymentService.updateReceivePayment(map);
     }
 
     @Override

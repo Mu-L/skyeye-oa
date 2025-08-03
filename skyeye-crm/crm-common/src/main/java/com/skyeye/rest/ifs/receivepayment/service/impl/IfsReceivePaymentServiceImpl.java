@@ -7,6 +7,7 @@ import com.skyeye.rest.ifs.receivepayment.service.IfsReceivePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -26,5 +27,10 @@ public class IfsReceivePaymentServiceImpl extends IServiceImpl implements IfsRec
     @Override
     public Map<String, Object> addIFsReceivePayment(Map<String, Object> map) {
         return ExecuteFeignClient.get(() -> iFsReceivePaymentRest.addIFsReceivePayment(map)).getBean();
+    }
+
+    @Override
+    public Map<String, Object> updateReceivePayment(Map<String, Object> map) {
+        return ExecuteFeignClient.get(() -> iFsReceivePaymentRest.updateReceivePayment(map)).getBean();
     }
 }
