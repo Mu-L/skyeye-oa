@@ -87,17 +87,17 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                 // 获取员工信息
                 Map<String, Object> staffMation = stringMapMap.get(staffId);
                 if (ObjectUtil.isEmpty(staffMation)) continue;
-
+                // 获取当天工种类型
+                Integer workstationType = Integer.valueOf(staffMation.get("workstationType").toString());
+                if (workstationType.equals(CommonNumConstants.NUM_ONE)) {
+                    continue;
+                }
                 // 初始化变量
                 int currentWorkType = 0;
                 String dayValue = "";
                 boolean hasWorkRecord = false;
                 String hourlyPrice = ""; // 声明小时工单价变量
                 BigDecimal piecePriceDecimal = BigDecimal.ZERO; // 声明计件工单价变量
-
-                // 获取当天工种类型
-                Integer workstationType = Integer.valueOf(staffMation.get("workstationType").toString());
-
                 if (workstationType.equals(CommonNumConstants.NUM_TWO)) {
                     // 小时工逻辑 - 获取小时工单价
                     hourlyPrice = staffMation.get("hourlyPrice").toString();
