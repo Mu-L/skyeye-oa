@@ -26,15 +26,17 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "路线站点服务", groupName = "路线站点服务")
 public class RouteStopServiceImpl extends SkyeyeBusinessServiceImpl<RouteStopDao, RouteStop> implements RouteStopService {
+
     @Override
     public Map<String, List<RouteStop>> queryStopListGroupByRoteIds(List<String> routeIds) {
-        if(CollectionUtil.isEmpty(routeIds)){
+        if (CollectionUtil.isEmpty(routeIds)) {
             return Collections.emptyMap();
         }
         QueryWrapper<RouteStop> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(RouteStop::getRouteId), routeIds);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(RouteStop::getStopOrder));
         List<RouteStop> routeStops = list(queryWrapper);
         return routeStops.stream().collect(Collectors.groupingBy(RouteStop::getRouteId));
     }
+
 }
