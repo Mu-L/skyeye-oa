@@ -31,12 +31,6 @@ public class WagesPaymentHistoryController {
     @Autowired
     private WagesPaymentHistoryService wagesPaymentHistoryService;
 
-    /**
-     * 获取所有已发放薪资发放历史列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wagespaymenthistory001", value = "获取所有已发放薪资发放历史列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesPaymentHistoryController/queryAllGrantWagesPaymentHistoryList")
@@ -44,12 +38,6 @@ public class WagesPaymentHistoryController {
         wagesPaymentHistoryService.queryAllGrantWagesPaymentHistoryList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的薪资发放历史列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wagespaymenthistory002", value = "获取我的薪资发放历史列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesPaymentHistoryController/queryMyWagesPaymentHistoryList")
@@ -57,12 +45,6 @@ public class WagesPaymentHistoryController {
         wagesPaymentHistoryService.queryMyWagesPaymentHistoryList(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有待发放薪资列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "wagespaymenthistory003", value = "获取所有待发放薪资列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WagesPaymentHistoryController/queryAllNotGrantWagesPaymentHistoryList")
@@ -70,12 +52,6 @@ public class WagesPaymentHistoryController {
         wagesPaymentHistoryService.queryAllNotGrantWagesPaymentHistoryList(inputObject, outputObject);
     }
 
-    /**
-     * 获取员工薪资条薪资
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryWagesStaffPaymentDetail", value = "获取员工薪资条薪资", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "staffId", name = "staffId", value = "员工id", required = "required"),

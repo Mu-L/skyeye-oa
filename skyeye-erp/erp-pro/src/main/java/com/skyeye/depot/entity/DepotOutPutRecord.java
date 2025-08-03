@@ -9,6 +9,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: DepotOutPutRecord
  * @Description: 仓库出入库记录实体类
@@ -38,9 +40,17 @@ public class DepotOutPutRecord extends CommonInfo {
     @ApiModelProperty(value = "商品id", required = "required")
     private String materialId;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "商品信息")
+    private Map<String, Object> materialMation;
+
     @TableField("norms_id")
     @ApiModelProperty(value = "商品规格id", required = "required")
     private String normsId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "商品规格信息")
+    private Map<String, Object> normsMation;
 
     @TableField("borrow_id")
     @ApiModelProperty(value = "借出申请单id")

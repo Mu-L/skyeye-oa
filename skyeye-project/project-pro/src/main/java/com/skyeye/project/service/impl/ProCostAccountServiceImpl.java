@@ -141,8 +141,8 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
         String startTime = params.get("startTime").toString();
         String endTime = params.get("endTime").toString();
         QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", startTime)
-                .apply("date_format(" + MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", endTime);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " >= {0}", startTime)
+                .apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " <= {0}", endTime);
         List<CostAccount> bean = list(queryWrapper);
         Map<String, Object> result = new HashMap<>();
         result.put(ProCostAccountEnum.HUMAN.getCode(), 0);

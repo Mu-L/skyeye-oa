@@ -6,6 +6,7 @@ package com.skyeye.eve.rest.xxljob;
 
 import com.skyeye.common.client.ClientConfiguration;
 import com.skyeye.eve.entity.xxljob.XxlJobInfo;
+import com.skyeye.eve.entity.xxljob.XxlJobInfoBatchDelete;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,4 +46,11 @@ public interface XxlJobService {
     @PostMapping("/xxl-job-admin/jobinfo/removeJob")
     String removeJob(@RequestParam("objectId") String objectId);
 
+    /**
+     * 删除定时任务
+     *
+     * @param xxlJobInfoBatchDelete 日程id,工作计划id等
+     */
+    @PostMapping("/xxl-job-admin/jobinfo/batchRemoveJob")
+    String batchRemoveJob(XxlJobInfoBatchDelete xxlJobInfoBatchDelete);
 }

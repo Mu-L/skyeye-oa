@@ -45,13 +45,6 @@ public class MachinProcedureAcceptProductNumServiceImpl extends SkyeyeBusinessSe
     }
 
     @Override
-    public List<MachinProcedureAcceptProductNum> queryListByParentId(String parentId) {
-        List<MachinProcedureAcceptProductNum> productNumList = queryListByParentIdOnly(parentId);
-        iAuthUserService.setDataMation(productNumList, MachinProcedureAcceptProductNum::getStaffId);
-        return productNumList;
-    }
-
-    @Override
     public void deleteByParentId(String parentId) {
         QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getParentId), parentId);
@@ -75,6 +68,7 @@ public class MachinProcedureAcceptProductNumServiceImpl extends SkyeyeBusinessSe
         return list(queryWrapper);
     }
 
+    @Override
     public List<MachinProcedureAcceptProductNum> queryListByParentIdOnly(String parentId) {
         QueryWrapper<MachinProcedureAcceptProductNum> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAcceptProductNum::getParentId), parentId);

@@ -34,7 +34,7 @@ public class ItemDeliverHistory extends OperatorUserInfo {
     private String orderId;
 
     @TableField(value = "order_item_id")
-    @ApiModelProperty(value = "订单id", required = "required")
+    @ApiModelProperty(value = "订单子单id", required = "required")
     private String orderItemId;
 
     @TableField(exist = false)

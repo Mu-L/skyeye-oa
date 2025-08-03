@@ -245,4 +245,17 @@
 		WHERE object_id = #{objectId}
 	</delete>
 
+	<delete id="deleteByObjectIds">
+		DELETE
+		FROM xxl_job_info
+		<where>
+			AND object_id IS NOT NULL
+			<if test="objectIds != null and objectIds.size() &gt; 0">
+				<foreach collection="objectIds" item="objectId" separator="," open=" AND object_id in(" close=")">
+					#{objectId}
+				</foreach>
+			</if>
+		</where>
+	</delete>
+
 </mapper>

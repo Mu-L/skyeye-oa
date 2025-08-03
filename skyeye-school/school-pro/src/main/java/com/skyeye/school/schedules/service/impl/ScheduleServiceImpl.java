@@ -1,12 +1,15 @@
 package com.skyeye.school.schedules.service.impl;
 
+import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.yulichang.query.MPJQueryWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -62,17 +65,13 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     @Override
     protected void createPostpose(Schedule entity, String userId) {
         super.createPostpose(entity, userId);
-        ScheduleChild scheduleChildMation = entity.getScheduleChildMation();
-        scheduleChildMation.setParentId(entity.getId());
-        scheduleChildService.createEntity(scheduleChildMation,null);
+        scheduleChildService.writeScheduleChildList(entity.getId(), entity.getScheduleChildList());
     }
 
     @Override
     protected void updatePostpose(Schedule entity, String userId) {
         super.updatePostpose(entity, userId);
-        ScheduleChild scheduleChildMation = entity.getScheduleChildMation();
-        scheduleChildMation.setParentId(entity.getId());
-        scheduleChildService.updateEntity(scheduleChildMation,null);
+        scheduleChildService.updateScheduleChildList(entity.getId(), entity.getScheduleChildList());
     }
 
     @Override
@@ -87,14 +86,11 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         String teacherId = (String) params.get("teacherId");
         String classroomId = (String) params.get("classroomId");
         MPJLambdaWrapper<Schedule> queryWrapper = new MPJLambdaWrapper<>();
-        queryWrapper.innerJoin(ScheduleChild.class, ScheduleChild::getParentId, Schedule::getId);
         // 老师
         if(StrUtil.isNotEmpty(teacherId)){
-            queryWrapper.eq(Schedule::getTeacherId,teacherId);
         }
         // 教室
         if(StrUtil.isNotEmpty(classroomId)){
-            queryWrapper.eq(Schedule::getClassroomId, classroomId);
         }
         List<Map<String, Object>> beans = skyeyeBaseMapper.selectJoinMaps(queryWrapper);
         // 设置信息

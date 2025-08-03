@@ -33,6 +33,7 @@ import com.skyeye.order.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -150,5 +151,15 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
             itemDeliverHistory.setPrice(CalculationUtil.add(shopDeliveryTemplateCharge.getStartPrice(), extraPrice, CommonNumConstants.NUM_SIX));
         }
         super.createEntity(itemDeliverHistory, InputObject.getLogParamsStatic().get("id").toString());
+    }
+
+    @Override
+    public List<ItemDeliverHistory> queryListByItemId(String itemId) {
+        if (StrUtil.isEmpty(itemId)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<ItemDeliverHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ItemDeliverHistory::getOrderItemId), itemId);
+        return list(queryWrapper);
     }
 }

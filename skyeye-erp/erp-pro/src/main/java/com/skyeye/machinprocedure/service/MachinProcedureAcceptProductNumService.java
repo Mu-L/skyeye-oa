@@ -8,11 +8,11 @@ import java.util.List;
 public interface MachinProcedureAcceptProductNumService extends SkyeyeBusinessService<MachinProcedureAcceptProductNum> {
     void writeList(String parentId, List<MachinProcedureAcceptProductNum> machinProcedureAcceptProductNumList);
 
-    List<MachinProcedureAcceptProductNum> queryListByParentId(String parentId);
-
     void deleteByParentId(String parentId);
 
     List<MachinProcedureAcceptProductNum> queryListByParentIds(List<String> acceptIdList);
 
     List<MachinProcedureAcceptProductNum> queryMachinProcedureAcceptProductNumByStaffId(String staffId);
+
+    List<MachinProcedureAcceptProductNum> queryListByParentIdOnly(String parentId);
 }

@@ -74,8 +74,6 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
         queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getIdKey), getServiceClassName());
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(AssetPurchase::getProjectId), commonPageInfo.getObjectId());
-            String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT(" + MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime) + ", '%Y-%m') = {0}", lastMonth);
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(AssetPurchase::getCreateTime));
             queryWrapper.and(w -> {
                 w.eq(MybatisPlusUtil.toColumns(AssetPurchase::getState), FlowableStateEnum.PASS.getKey())

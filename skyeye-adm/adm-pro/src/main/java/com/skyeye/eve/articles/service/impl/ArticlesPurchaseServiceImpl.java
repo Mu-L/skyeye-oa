@@ -61,8 +61,6 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
     protected QueryWrapper<ArticlesPurchase> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ArticlesPurchase> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
-            String lastMonth = DateUtil.getLastMonthDate();
-            queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
             queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getProjectId), commonPageInfo.getObjectId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(ArticlesPurchase::getState), FlowableStateEnum.PASS.getKey());
             queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ArticlesPurchase::getCreateTime));

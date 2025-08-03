@@ -202,8 +202,8 @@ public class WagesModelServiceImpl extends SkyeyeBusinessServiceImpl<WagesModelD
             return CollectionUtil.newArrayList();
         }
         QueryWrapper<WagesModel> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(WagesModel::getStartTime) + ", '%Y-%m') <= date_format({0}, '%Y-%m')", date)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(WagesModel::getEndTime) + ", '%Y-%m') >= date_format({0}, '%Y-%m')", date);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(WagesModel::getStartTime) + " <= {0}", date)
+            .apply(MybatisPlusUtil.toColumns(WagesModel::getEndTime) + " >= {0}", date);
         queryWrapper.eq(MybatisPlusUtil.toColumns(WagesModel::getEnabled), EnableEnum.ENABLE_USING.getKey());
         List<WagesModel> wagesModelList = list(queryWrapper);
         List<String> ids = wagesModelList.stream().map(WagesModel::getId).collect(Collectors.toList());

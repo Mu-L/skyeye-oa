@@ -179,8 +179,8 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
 
     private List<ScheduleDay> getScheduleDayList(String userId, String timeHms) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", timeHms)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", timeHms);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", timeHms)
+            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", timeHms);
         queryWrapper.ne(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getCreateId), userId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime));
@@ -360,8 +360,8 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
      */
     private boolean judgeISHoliday(String day) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ", '%Y-%m-%d') <= date_format({0}, '%Y-%m-%d')", day)
-            .apply("date_format(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ", '%Y-%m-%d') >= date_format({0}, '%Y-%m-%d')", day);
+        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", day)
+            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", day);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         List<ScheduleDay> scheduleDays = list(queryWrapper);
         if (CollectionUtil.isEmpty(scheduleDays)) {
@@ -487,14 +487,13 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
         String id = map.get("id").toString();
         ScheduleDay scheduleDay = selectById(id);
         int remindType = Integer.parseInt(map.get("remindType").toString());
-        String scheduleStartTime = map.get("scheduleStartTime").toString();
-        String remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindType, scheduleStartTime, DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
+        String remindTime = DateAfterSpacePointTime.getSpecifiedTime(remindType, scheduleDay.getStartTime(), DateUtil.YYYY_MM_DD_HH_MM_SS, DateAfterSpacePointTime.AroundType.BEFORE);
         if (StrUtil.isNotEmpty(remindTime)) {
             if (DateUtil.compare(remindTime, DateUtil.getTimeAndToString())) {
                 // 日程提醒时间早于当前时间
                 outputObject.setreturnMessage("日程提醒时间不能早于当前时间");
             } else {
-                if (DateUtil.compare(scheduleDay.getEndTime(), scheduleStartTime)) {
+                if (DateUtil.compare(scheduleDay.getEndTime(), scheduleDay.getStartTime())) {
                     // 结束时间早于开始时间
                     outputObject.setreturnMessage("日程结束时间不能早于开始时间");
                 } else {

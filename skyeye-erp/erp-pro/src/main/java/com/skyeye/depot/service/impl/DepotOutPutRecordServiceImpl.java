@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
@@ -25,6 +26,7 @@ import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.entity.ProductLead;
@@ -35,6 +37,7 @@ import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
+import com.skyeye.supplier.service.SupplierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +79,6 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
 
     @Autowired
     private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
-
-    @Override
-    protected QueryWrapper<DepotOutPutRecord> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<DepotOutPutRecord> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getObjectId), commonPageInfo.getObjectId());
-        return queryWrapper;
-    }
 
     @Override
     public List<DepotOutPutRecord> selectByNormCodes(List<String> codeList) {
@@ -227,6 +223,8 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getMaterialId), commonPageInfo.getFirstTypeId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepotOutPutRecord::getNormsId), commonPageInfo.getSecondTypeId());
         List<DepotOutPutRecord> bean = list(queryWrapper);
+        materialService.setDataMation(bean, DepotOutPutRecord::getMaterialId);
+        iMaterialNormsService.setDataMation(bean, DepotOutPutRecord::getNormsId);
 
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(bean);
@@ -236,13 +234,16 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
     public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        if(StrUtil.isEmpty(commonPageInfo.getHolderId())) {
+            throw new CustomException("holderId不能为空");
+        }
         if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
             throw new CustomException("holderKey不能为空");
         }
         if(StrUtil.isEmpty(commonPageInfo.getType())) {
             throw new CustomException("type不能为空");
         }
-        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType());
+        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(),commonPageInfo.getHolderId(),commonPageInfo.getKeyword());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
                 .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));

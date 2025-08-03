@@ -44,7 +44,7 @@ public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Wa
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryWagesPaymentHistoryList(pageInfo);
         // 设置员工信息
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
-                .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
+            .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         beans.forEach(bean -> {
             String staffId = bean.get("staffId").toString();

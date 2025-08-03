@@ -320,4 +320,15 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.UNUSED.getKey());
         remove(queryWrapper);
     }
+
+    @Override
+    public List<CouponUse> queryUnUseByCouponIdList(List<String> termCouponIds) {
+        if (CollectionUtil.isEmpty(termCouponIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(CouponUse::getCouponId), termCouponIds)
+                .eq(MybatisPlusUtil.toColumns(CouponUse::getState), CouponUseState.UNUSED.getKey());
+        return list(queryWrapper);
+    }
 }

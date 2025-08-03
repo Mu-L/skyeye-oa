@@ -3,6 +3,8 @@ package com.skyeye.school.schedules.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.school.schedules.entity.ScheduleChild;
 
+import java.util.List;
+
 
 /**
  * @ClassName: ScheduleChildService
@@ -14,4 +16,8 @@ import com.skyeye.school.schedules.entity.ScheduleChild;
  */
 public interface ScheduleChildService extends SkyeyeBusinessService<ScheduleChild> {
     void deleteByScheduleId(String id);
+
+    void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList);
+
+    void updateScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList);
 }

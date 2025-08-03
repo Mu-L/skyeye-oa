@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 public enum KeepFitOrderUserType implements SkyeyeEnumClass {
 
     ANONYMOUS_USER(1, "匿名用户","cyan", true, false),
-    MEMBER(2, "会员","gold" ,true, true);
+    MEMBER(2, "会员","purple" ,true, true);
 
     private Integer key;
 

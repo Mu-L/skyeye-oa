@@ -4,9 +4,9 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.scheduling.service.SchedulingService;
 import com.skyeye.scheduling.service.SchedulingTimeWorkPeopleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,10 +20,7 @@ public class SchedulingTimeWorkPeopleController {
     private SchedulingTimeWorkPeopleService schedulingTimeWorkPeopleService;
 
     @ApiOperation(id = "trackEmployeeAttendanceLeaveTime", value = "统计员工上班和请假时间", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "startTime", name = "startTime", value = "开始时间（年月日）", required = "required"),
-        @ApiImplicitParam(id = "endTime", name = "endTime", value = "结束时间（年月日）", required = "required"),
-        @ApiImplicitParam(id = "farmId", name = "farmId", value = "车间id", required = "required")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SchedulingTimeWorkPeopleController/trackEmployeeAttendanceLeaveTime")
     public void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject) {
         schedulingTimeWorkPeopleService.trackEmployeeAttendanceLeaveTime(inputObject, outputObject);

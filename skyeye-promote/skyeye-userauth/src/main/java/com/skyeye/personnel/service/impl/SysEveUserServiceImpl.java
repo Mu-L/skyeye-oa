@@ -52,6 +52,7 @@ import com.skyeye.win.entity.SysWin;
 import com.skyeye.win.service.SysEveUserCustomParentService;
 import com.skyeye.win.service.SysEveWinDragDropService;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,48 +241,55 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryUserToLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
+        Map<String, Object> userMation = checkLogin(map);
+
+        String userId = userMation.get("id").toString();
+        if (!tenantEnable) {
+            // 单租户模式
+            LOGGER.info("set userMation to redis cache start.");
+            setMenuToRedis(userMation, userId);
+        } else {
+            // TODO 多租户模式挤掉同类型终端的其他登录信息
+        }
+        removeUserLoginRedisMation(userMation);
+        setUserLoginRedisMation(userId, userMation, false);
+        LOGGER.info("set userMation to redis cache end.");
+        outputObject.setBean(userMation);
+    }
+
+    @Nullable
+    private Map<String, Object> checkLogin(Map<String, Object> map) {
         String userCode = map.get("userCode").toString();
         Map<String, Object> userMation = sysEveUserDao.queryMationByUserCode(userCode);
         if (userMation == null) {
-            outputObject.setreturnMessage("请确保用户名输入无误！");
-            return;
+            throw new CustomException("请确保用户名输入无误！");
         }
         int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
         String password = map.get("password").toString();
         for (int i = 0; i < pwdNum; i++) {
             password = ToolUtil.MD5(password);
         }
-        String userDBPassword = userMation.get("password").toString();
-        if (!password.equals(userDBPassword)) {
-            outputObject.setreturnMessage("密码输入错误！");
-            return;
+        if (!password.equals(userMation.get("password").toString())) {
+            throw new CustomException("密码输入错误！");
         }
 
         int userLock = Integer.parseInt(userMation.get("userLock").toString());
         if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
-            outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
-            return;
+            throw new CustomException("您的账号已被锁定，请联系管理员解除！");
         }
         // 校验用户有效期
         chectUserEffectiveDate(userMation);
-
         String userId = userMation.get("id").toString();
+        String userToken = GetUserToken.createNewToken(userId, password);
+        userMation.put("userToken", userToken);
         if (!tenantEnable) {
             // 单租户模式
-            setUserOtherMation(userMation);
-            LOGGER.info("set userMation to redis cache start.");
-            setMenuToRedis(userMation, userId);
+            companyMationService.setNameMationForMap(userMation, "companyId", "companyName", StrUtil.EMPTY);
+            companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
+            companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
             judgeAndGetSchoolMation(userMation, userId);
-        } else {
-            // TODO 多租户模式挤掉同类型终端的其他登录信息
-
         }
-
-        setUserLoginRedisMation(userId, userMation, false);
-        LOGGER.info("set userMation to redis cache end.");
-        String userToken = GetUserToken.createNewToken(userId, userDBPassword);
-        userMation.put("userToken", userToken);
-        outputObject.setBean(userMation);
+        return userMation;
     }
 
     private void chectUserEffectiveDate(Map<String, Object> userMation) {
@@ -310,12 +318,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         } else {
             SysUserAuthConstants.setUserLoginRedisCache(userTokenId.replace(SysUserAuthConstants.APP_IDENTIFYING, StrUtil.EMPTY), userMation);
         }
-    }
-
-    private void setUserOtherMation(Map<String, Object> userMation) {
-        companyMationService.setNameMationForMap(userMation, "companyId", "companyName", StrUtil.EMPTY);
-        companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
-        companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
     }
 
     /**
@@ -348,8 +350,8 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         // 处理学校权限信息
         // 当前登录帐号包含某所学校的id
         Map<String, Object> schoolMation = sysEveUserDao.queryUserSchoolMationByUserId(userId);
-        if (schoolMation != null && !schoolMation.isEmpty()) {
-            if (schoolMation.containsKey("schoolId") && !ToolUtil.isBlank(schoolMation.get("schoolId").toString())) {
+        if (CollectionUtil.isNotEmpty(schoolMation)) {
+            if (StrUtil.isNotBlank(schoolMation.getOrDefault("schoolId", StrUtil.EMPTY).toString())) {
                 // 判断该用户的学校的数据权限-----数据权限  1.查看所有  2.查看本校
                 int power = schoolMation.containsKey("schoolPower") ? Integer.parseInt(schoolMation.get("schoolPower").toString()) : 2;
                 if (power == 2) {
@@ -813,41 +815,26 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryPhoneToLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String userCode = map.get("userCode").toString();
-        Map<String, Object> userMation = sysEveUserDao.queryMationByUserCode(userCode);
-        if (userMation == null) {
-            outputObject.setreturnMessage("请确保用户名输入无误！");
-            return;
-        }
-        int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
-        String password = map.get("password").toString();
-        for (int i = 0; i < pwdNum; i++) {
-            password = ToolUtil.MD5(password);
-        }
-        if (!password.equals(userMation.get("password").toString())) {
-            outputObject.setreturnMessage("密码输入错误！");
-            return;
-        }
-        // 判断用户是否被锁定
-        int userLock = Integer.parseInt(userMation.get("userLock").toString());
-        if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
-            outputObject.setreturnMessage("您的账号已被锁定，请联系管理员解除！");
-            return;
-        }
-        String userId = userMation.get("id").toString();
-        String roleIds = userMation.get("roleId").toString();
-        userMation.remove("roleId");
+        Map<String, Object> userMation = checkLogin(map);
 
-        // 获取动态token
-        String userToken = GetUserToken.createNewToken(userId, password);
-        userMation.put("userToken", userToken);
-
-        String appUserId = userId + SysUserAuthConstants.APP_IDENTIFYING;
-        companyDepartmentService.setNameMationForMap(userMation, "departmentId", "departmentName", StrUtil.EMPTY);
-        companyJobService.setNameMationForMap(userMation, "jobId", "jobName", StrUtil.EMPTY);
+        String appUserId = userMation.get("id").toString() + SysUserAuthConstants.APP_IDENTIFYING;
+        if (!tenantEnable) {
+            // 单租户模式
+            LOGGER.info("set userMation to redis cache start.");
+            String roleIds = userMation.get("roleId").toString();
+            jedisClientService.set(ObjectConstant.getUserHasRoleIds(appUserId), roleIds);
+        } else {
+            // TODO 多租户模式挤掉同类型终端的其他登录信息
+        }
+        removeUserLoginRedisMation(userMation);
         setUserLoginRedisMation(appUserId, userMation, false);
-        jedisClientService.set(ObjectConstant.getUserHasRoleIds(appUserId), roleIds);
         outputObject.setBean(userMation);
+    }
+
+    private void removeUserLoginRedisMation(Map<String, Object> userMation) {
+        userMation.remove("roleId");
+        userMation.remove("pwdNum");
+        userMation.remove("password");
     }
 
     /**

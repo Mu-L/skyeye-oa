@@ -383,12 +383,9 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
     public void setAnonymous(List<ForumContent> forumContentList) {
         for (ForumContent forumContent : forumContentList) {
             if (forumContent.getAnonymous() == WhetherEnum.ENABLE_USING.getKey()) {
-                Map<String, Object> createMation = forumContent.getCreateMation();
-                if (createMation == null) {
-                    continue;
-                }
+                Map<String, Object> createMation = new HashMap<>();
                 createMation.put("name", "匿名用户");
-                createMation.put("picture", "/images/upload/wallPost/1726212288676.jpg");
+                createMation.put("picture", "/images/util/assest/common/img/anonymous.png");
                 forumContent.setCreateMation(createMation);
             }
         }

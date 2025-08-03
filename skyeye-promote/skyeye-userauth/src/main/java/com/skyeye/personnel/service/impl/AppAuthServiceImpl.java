@@ -187,6 +187,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         user.put("isAdmin", isAdmin ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
         user.put("companyId", tenantUser.getCompanyId());
+        user.put("email", tenantUser.getEmail());
         user.put("departmentId", tenantUser.getDepartmentId());
         user.put("jobId", tenantUser.getJobId());
         user.put("jobScoreId", tenantUser.getJobScoreId());

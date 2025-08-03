@@ -76,4 +76,8 @@ public class ForumContent extends OperatorUserInfo {
     @TableField(value = "comment_num")
     @ApiModelProperty(value = "评论量(默认0)",defaultValue = "0")
     private String commentNum;
+
+    @TableField(value = "remark")
+    @ApiModelProperty(value = "简介")
+    private String remark;
 }

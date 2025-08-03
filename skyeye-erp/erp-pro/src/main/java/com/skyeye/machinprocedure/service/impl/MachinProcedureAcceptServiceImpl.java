@@ -152,6 +152,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             productNum.setMaterialId(productNum.getMaterialId());
             productNum.setNormsId(productNum.getNormsId());
         });
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            // 更新操作删除原有员工生产数量信息
+            machinProcedureAcceptProductNumService.deleteByParentId(entity.getId());
+        }
         machinProcedureAcceptProductNumService.writeList(entity.getId(), entity.getMachinProcedureAcceptProductNumList());
         super.writePostpose(entity, userId);
     }
@@ -258,7 +262,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             });
         }
         // 设置员工生产数量信息列表
-        List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentId(id);
+        List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentIdOnly(id);
         machinProcedureAccept.setMachinProcedureAcceptProductNumList(productNumList);
         iAuthUserService.setDataMation(machinProcedureAccept, MachinProcedureAccept::getAcceptUserId);
         machinProcedureAccept.setFarmMation(farmService.selectById(machinProcedureAccept.getFarmId()));

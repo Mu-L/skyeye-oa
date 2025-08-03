@@ -7,11 +7,8 @@ package com.skyeye.equipment.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -25,11 +22,9 @@ import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.rest.project.service.IProProjectService;
-import com.skyeye.whole.entity.WholeOrderOut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +45,16 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
 
     @Autowired
     private IProProjectService iProProjectService;
+
+    @Override
+    protected QueryWrapper<Equipment> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Equipment> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if(StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Equipment::getProjectId), commonPageInfo.getObjectId());
+        }
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Equipment::getCreateTime));
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -110,26 +115,6 @@ public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao
             result.add(map);
         }
         outputObject.setBeans(result);
-    }
-
-    @Override
-    public void queryLastMonthEquipmentList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        if(StrUtil.isEmpty(commonPageInfo.getObjectId())){
-            throw new CustomException("项目id不能为空");
-        }
-        String lastMonth = DateUtil.getLastMonthDate();
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<Equipment> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(Equipment::getBuyTime)+", '%Y-%m') = ?",lastMonth);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Equipment::getProjectId),commonPageInfo.getObjectId());
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Equipment::getUnitPrice));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Equipment::getCreateTime));
-        List<Equipment> bean = list(queryWrapper);
-        farmService.setDataMation(bean, Equipment::getFarmId);
-        iProProjectService.setDataMation(bean, Equipment::getProjectId);
-        outputObject.setBeans(bean);
-        outputObject.settotal(page.getTotal());
     }
 
 }

@@ -16,6 +16,12 @@ public class MachinPutCost {
     @ApiModelProperty(value = "耗材成本")
     private String consumablePrice;
 
+    @ApiModelProperty(value = "报废耗材成本")
+    private String scrapConsumablePrice;
+
+    @ApiModelProperty(value = "正常耗材成本")
+    private String normalConsumablePrice;
+
     @ApiModelProperty(value = "总数量")
     private Integer allNum;
 
