@@ -1,22 +1,32 @@
 package com.skyeye.piecework.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Data
 @TableName(value = "erp_piecework_system")
 @ApiModel("计件数量或工时统计实体类")
-public class PieceworkSystem extends BaseGeneralInfo {
+public class PieceworkSystem extends OperatorUserInfo {
 
-    @TableField("job_number")
-    @ApiModelProperty("员工工号")
-    private String jobNumber;
+    @TableId("id")
+    @ApiModelProperty("主键id")
+    private String id;
+
+    @TableField("staff_id")
+    @ApiModelProperty("员工id")
+    private String staffId;
+
+    @TableField(exist = false)
+    @ApiModelProperty("员工信息")
+    private Map<String, Object> staffMation;
 
     @TableField("department_id")
     @ApiModelProperty("部门id")
@@ -35,7 +45,7 @@ public class PieceworkSystem extends BaseGeneralInfo {
     private String dayMouth;
 
     @TableField("is_num_time")
-    @ApiModelProperty("1 按照计件数量 2 按照工时")
+    @ApiModelProperty("A 1 按照计件数量 B 2按照工时 ")
     private Integer isNumTime;
 
     @TableField("total_num_price")

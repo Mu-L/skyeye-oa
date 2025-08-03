@@ -47,6 +47,9 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
     @Autowired
     private SchedulingTimeService schedulingTimeService;
 
+    @Autowired
+    private IFarmStaffService iFarmStaffService;
+
     @Override
     public List<SchedulingTimeWorkPeople> queryTimeWorkByThreeId(String id, List<String> timeIds, List<String> timeWorkIds) {
         QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
@@ -55,16 +58,16 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         queryWrapper.in(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingTimeWorkId), timeWorkIds);
         List<SchedulingTimeWorkPeople> timeWorkPeopleList = list(queryWrapper);
         String employIds = String.join(CommonCharConstants.COMMA_MARK, timeWorkPeopleList.stream()
-                .map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList()));
+            .map(SchedulingTimeWorkPeople::getEmployeeId).collect(Collectors.toList()));
         List<Map<String, Object>> allStaffList = iAuthUserService.queryDataMationByIds(employIds);
         timeWorkPeopleList.forEach(
-                staff -> {
-                    String employeeId = staff.getEmployeeId();
-                    Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
-                    if (ObjectUtil.isNotEmpty(staffMap)) {
-                        staff.setStaffMation(staffMap);
-                    }
+            staff -> {
+                String employeeId = staff.getEmployeeId();
+                Map<String, Object> staffMap = allStaffList.stream().filter(map -> ObjectUtil.equal(map.get("id"), employeeId)).findFirst().orElse(null);
+                if (ObjectUtil.isNotEmpty(staffMap)) {
+                    staff.setStaffMation(staffMap);
                 }
+            }
         );
         iAuthUserService.setName(timeWorkPeopleList, "createId", "createName");
         iAuthUserService.setName(timeWorkPeopleList, "lastUpdateId", "lastUpdateName");
@@ -80,7 +83,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
     @Override
     public List<SchedulingTimeWorkPeople> queryPeopleByThreeId(String id, String schedulingId, String
-            schedulingTimeId) {
+        schedulingTimeId) {
         QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingId), schedulingId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getSchedulingTimeId), schedulingTimeId);
@@ -130,9 +133,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         return list(queryWrapper);
     }
 
-    @Autowired
-    private IFarmStaffService iFarmStaffService;
-
     @Override
     public void trackEmployeeAttendanceLeaveTime(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -146,18 +146,15 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             outputObject.setBean(Collections.emptyList());
             return;
         }
-
-        // 创建员工ID到姓名的映射
         Map<String, String> employeeNameMap = satffMation.stream()
-                .collect(Collectors.toMap(
-                        staff -> staff.get("staffId").toString(),
-                        staff -> staff.get("userName").toString()
-                ));
+            .collect(Collectors.toMap(
+                staff -> staff.get("staffId").toString(),
+                staff -> staff.get("userName").toString()
+            ));
 
         // 存储所有员工的统计结果
         List<Map<String, Object>> finalResult = new ArrayList<>();
 
-        // 遍历每个员工进行统计
         for (Map<String, Object> staff : satffMation) {
             String employeeId = staff.get("staffId").toString();
             String employeeName = employeeNameMap.get(employeeId);
@@ -182,45 +179,44 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             if (CollectionUtil.isNotEmpty(workPeopleList)) {
                 // 获取排班ID并查询排班信息
                 List<String> schedulingIds = workPeopleList.stream()
-                        .map(SchedulingTimeWorkPeople::getSchedulingId)
-                        .distinct()
-                        .collect(Collectors.toList());
+                    .map(SchedulingTimeWorkPeople::getSchedulingId)
+                    .distinct()
+                    .collect(Collectors.toList());
                 List<Scheduling> schedulingList = schedulingService.querySchedulingByIdList(schedulingIds);
 
                 // 筛选日期范围内有交集的排班
                 List<Scheduling> filteredSchedules = schedulingList.stream()
-                        .filter(s -> s.getStartTime().compareTo(endTime) <= 0 &&
-                                s.getEndTime().compareTo(startTime) >= 0)
-                        .collect(Collectors.toList());
+                    .filter(s -> s.getStartTime().compareTo(endTime) <= 0 &&
+                        s.getEndTime().compareTo(startTime) >= 0)
+                    .collect(Collectors.toList());
 
                 if (CollectionUtil.isNotEmpty(filteredSchedules)) {
                     // 获取有效排班下的员工记录
                     List<SchedulingTimeWorkPeople> yesTimeWorkPeople = workPeopleList.stream()
-                            .filter(wp -> filteredSchedules.stream()
-                                    .anyMatch(s -> s.getId().equals(wp.getSchedulingId())))
-                            .collect(Collectors.toList());
+                        .filter(wp -> filteredSchedules.stream()
+                            .anyMatch(s -> s.getId().equals(wp.getSchedulingId())))
+                        .collect(Collectors.toList());
 
                     // 获取排班时间段并构建快速查找Map
                     List<String> timeIds = yesTimeWorkPeople.stream()
-                            .map(SchedulingTimeWorkPeople::getSchedulingTimeId)
-                            .distinct()
-                            .collect(Collectors.toList());
+                        .map(SchedulingTimeWorkPeople::getSchedulingTimeId)
+                        .distinct()
+                        .collect(Collectors.toList());
                     List<SchedulingTime> schedulingTimes = schedulingTimeService.querySchedulingTimeByIds(timeIds);
 
                     Map<String, Scheduling> scheduleMap = filteredSchedules.stream()
-                            .collect(Collectors.toMap(Scheduling::getId, s -> s));
+                        .collect(Collectors.toMap(Scheduling::getId, s -> s));
                     Map<String, SchedulingTime> timeMap = schedulingTimes.stream()
-                            .collect(Collectors.toMap(SchedulingTime::getId, t -> t));
+                        .collect(Collectors.toMap(SchedulingTime::getId, t -> t));
 
                     // 计算工作时间和班次
                     for (SchedulingTimeWorkPeople workPeople : yesTimeWorkPeople) {
                         Scheduling schedule = scheduleMap.get(workPeople.getSchedulingId());
                         SchedulingTime time = timeMap.get(workPeople.getSchedulingTimeId());
-                        if (schedule == null || time == null) continue;
-
+                        if (ObjectUtil.isEmpty(schedule) || ObjectUtil.isEmpty(time)) continue;
                         List<LocalDate> workDates = getOverlapDates(
-                                schedule.getStartTime(), schedule.getEndTime(),
-                                startTime, endTime
+                            schedule.getStartTime(), schedule.getEndTime(),
+                            startTime, endTime
                         );
                         long durationSeconds = calculateDuration(time);
                         totalSeconds += durationSeconds * workDates.size();
@@ -237,9 +233,9 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
                 for (SchedulingLeave leave : schedulingLeaveList) {
                     LocalDateTime leaveStart = LocalDateTime.parse(leave.getStartTime(),
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     LocalDateTime leaveEnd = LocalDateTime.parse(leave.getEndTime(),
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
                     LocalDate leaveStartDate = leaveStart.toLocalDate();
                     LocalDate leaveEndDate = leaveEnd.toLocalDate();
@@ -251,12 +247,12 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
 
                     // 计算实际请假时间
                     LocalDateTime effectiveStart = leaveStart.isBefore(queryStartDate.atStartOfDay())
-                            ? queryStartDate.atStartOfDay()
-                            : leaveStart;
+                        ? queryStartDate.atStartOfDay()
+                        : leaveStart;
 
                     LocalDateTime effectiveEnd = leaveEnd.isAfter(queryEndDate.atTime(23, 59, 59))
-                            ? queryEndDate.atTime(23, 59, 59)
-                            : leaveEnd;
+                        ? queryEndDate.atTime(23, 59, 59)
+                        : leaveEnd;
 
                     // 计算时长并累加
                     long seconds = Duration.between(effectiveStart, effectiveEnd).getSeconds();
@@ -269,11 +265,9 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                 }
             }
 
-            // 4. 格式化结果
             double totalWorkHours = Math.round(totalSeconds / 3600.0 * 100) / 100.0;
             totalLeaveHours = Math.round(totalLeaveHours * 100) / 100.0;
 
-            // 构建结果对象
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalWorkHours", totalWorkHours);
             stats.put("totalShifts", totalShifts);
@@ -295,17 +289,17 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         List<Map<String, Object>> filteredList = new ArrayList<>();
         //对name模糊查询
         if (StrUtil.isEmpty(name)) {
-            filteredList =new ArrayList<>(finalResult);
+            filteredList = new ArrayList<>(finalResult);
         } else {
             filteredList = finalResult.stream().filter(
-                    map1 -> {
-                        Object employeeName = map1.get("employeeName");
-                        if (ObjectUtil.isEmpty(employeeName)) {
-                            return false;
-                        }
-                        String stringName = employeeName.toString();
-                        return stringName.contains(name);
+                map1 -> {
+                    Object employeeName = map1.get("employeeName");
+                    if (ObjectUtil.isEmpty(employeeName)) {
+                        return false;
                     }
+                    String stringName = employeeName.toString();
+                    return stringName.contains(name);
+                }
             ).collect(Collectors.toList());
 
         }
@@ -346,7 +340,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         if (end.isBefore(start) || time.getIsNextDay() == 1) {
             // 跨天时间段：从开始时间到24:00 + 00:00到结束时间
             return Duration.between(start, LocalTime.MAX).getSeconds() + 1
-                    + Duration.between(LocalTime.MIN, end).getSeconds();
+                + Duration.between(LocalTime.MIN, end).getSeconds();
         } else {
             // 当天时间段：直接计算持续时间
             return Duration.between(start, end).getSeconds();

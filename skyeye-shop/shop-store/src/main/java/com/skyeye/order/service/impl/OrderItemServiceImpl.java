@@ -342,11 +342,12 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         // 判断所有子单是否全部签收
         boolean allMatch = orderItemList.stream().map(OrderItem::getSignState).allMatch(signState -> Objects.equals(signState, ItemSignState.ALL_SIGN.getKey()));
         Order order = orderService.getById(orderId);
-        if (allMatch && order.getState() == ShopOrderState.PART_SIGN.getKey()) {
-            // 所有子单签收，并且总单本来的状态为部分签收，则修改总单状态为已签收
+        if (allMatch && (order.getState() == ShopOrderState.PART_SIGN.getKey() || order.getState() == ShopOrderState.DELIVERED.getKey())) {
+            // 所有子单签收，并且总单本来的状态为部分签收/全部发货，则修改总单状态为已签收
             orderService.updateOrderState(orderId, ShopOrderState.SIGN.getKey());
+            return;
         }
-        if (order.getState() == ShopOrderState.PART_DELIVERY.getKey() || order.getState() == ShopOrderState.DELIVERED.getKey()) {
+        if (!allMatch && order.getState() == ShopOrderState.PART_DELIVERY.getKey()) {
             // 总单本来是部分发货或者已发货，则修改总单状态为部分签收
             orderService.updateOrderState(orderId, ShopOrderState.PART_SIGN.getKey());
         }

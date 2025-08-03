@@ -7,7 +7,7 @@ import com.skyeye.piecework.entity.PieceworkSystem;
 
 public interface PieceworkSystemService extends SkyeyeBusinessService<PieceworkSystem> {
 
-    void writePieceworkSystem(InputObject inputObject, OutputObject outputObject);
+    void writePieceworkSystem();
 
-    void queryPieceworkSystemByUserId(InputObject inputObject, OutputObject outputObject);
+    void queryPieceworkSystem(InputObject inputObject, OutputObject outputObject);
 }

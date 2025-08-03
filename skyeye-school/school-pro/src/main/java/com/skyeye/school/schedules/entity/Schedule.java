@@ -6,11 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
-import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: Schedule
@@ -47,6 +45,9 @@ public class Schedule extends CommonInfo {
     private String semesterId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "课程信息",required = "json")
+    @ApiModelProperty(value = "课表额外信息", required = "json")
+    private ScheduleChild scheduleChildMation;
+
+    @ApiModelProperty(value = "课程信息", required = "json")
     private List<ScheduleChild> scheduleChildList;
 }
