@@ -61,7 +61,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
 
     @Override
     public void writePieceworkSystem() {
-        List<FarmStaff> farmStaffList1 = farmStaffService.queryAllData();
+        List<FarmStaff> farmStaffList1 = farmStaffService.queryFarmStaffList();
         List<String> staffIdList = farmStaffList1.stream().map(FarmStaff::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
 
@@ -71,12 +71,13 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                 m -> m.get("staffId").toString(),
                 m -> {
                     Object type = m.get("workstationType");
-                    return (type != null) ? Integer.parseInt(type.toString()) : -1;
+                    return (type != null) ? Integer.parseInt(type.toString()) : null;
                 }
             ));
 
         Set<String> tempStaffIds = staffWorkTypeMap.entrySet().stream()
-            .filter(e -> e.getValue() != CommonNumConstants.NUM_ONE)
+            .filter(e -> e.getValue().equals(CommonNumConstants.NUM_TWO)
+                || e.getValue().equals(CommonNumConstants.NUM_THREE))
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
 
@@ -117,7 +118,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     continue;
                 }
 
-                // 关键修复：跳过正式工并清理历史记录
+                // 跳过正式工并清理历史记录
                 if (workstationType.equals(CommonNumConstants.NUM_ONE)) {
                     PieceworkSystem existingRecord = queryByStaffIdAndMonth(staffId, farmId, month);
                     if (ObjectUtil.isNotEmpty(existingRecord)) {
