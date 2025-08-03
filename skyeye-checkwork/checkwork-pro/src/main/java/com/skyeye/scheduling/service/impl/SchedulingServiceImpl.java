@@ -149,6 +149,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                 Map<String, SchedulingTime> schedulingTimeIdToEntity = schedulingTimes.stream().collect(Collectors.toMap(SchedulingTime::getId, t -> t));
                 for (SchedulingTimeWorkPeople exist : existingSchedules) {
                     String employeeId = exist.getEmployeeId();
+                    Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(Collections.singletonList(employeeId));
                     Scheduling scheduling = schedulingIdToEntity.get(exist.getSchedulingId());
                     SchedulingTime schedulingTime = schedulingTimeIdToEntity.get(exist.getSchedulingTimeId());
                     if (scheduling == null || schedulingTime == null) continue;
@@ -164,7 +165,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                         String existEnd = schedulingTime.getEndTime();
                         boolean timeOverlap = isTimeOverlap(newStart, newEnd, existStart, existEnd);
                         if (timeOverlap) {
-                            throw new CustomException("员工 " + employeeId + " 在排班日期[" + scheduling.getStartTime() + "," + scheduling.getEndTime() + "]的时间段[" + existStart + "-" + existEnd + "]已被排班，请勿重复安排！");
+                            throw new CustomException("员工 " + stringMapMap.get(employeeId).get("userName") + " 在排班日期[" + scheduling.getStartTime() + "," + scheduling.getEndTime() + "]的时间段[" + existStart + "-" + existEnd + "]已被排班，请勿重复安排！");
                         }
                     }
                 }
@@ -327,8 +328,6 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         // 9. 创建排班时间列表
         List<SchedulingTime> schedulingTimeList = new ArrayList<>();
 
-        // 用于跟踪每个时间段已分配的员工
-        Map<String, Set<String>> timeSlotAssignedStaffMap = new HashMap<>();
         // 用于跟踪全局已分配的员工
         Set<String> globalAssignedStaffIds = new HashSet<>();
 
@@ -927,7 +926,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     private List<LocalDate> generateDateRange(String startTime, String endTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate start = LocalDate.parse(startTime, formatter);
         LocalDate end = LocalDate.parse(endTime, formatter);
         List<LocalDate> dates = new ArrayList<>();
