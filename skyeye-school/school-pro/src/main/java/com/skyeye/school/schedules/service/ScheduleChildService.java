@@ -20,4 +20,6 @@ public interface ScheduleChildService extends SkyeyeBusinessService<ScheduleChil
     void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList);
 
     void updateScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList);
+
+    List<ScheduleChild> queryMyScheduleBySemesterIdAndWeek(String userId, String semesterId, Integer week);
 }

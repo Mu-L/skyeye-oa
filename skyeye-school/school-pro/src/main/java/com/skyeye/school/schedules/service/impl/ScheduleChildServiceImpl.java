@@ -2,11 +2,13 @@ package com.skyeye.school.schedules.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.schedules.dao.ScheduleChildDao;
@@ -59,7 +61,7 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
         scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
         list.addAll(scheduleChildList);
         // 校验
-         validateScheduleConflicts( list);
+        validateScheduleConflicts(list);
         // 过滤出id为空的数据
         List<ScheduleChild> collect = list.stream().filter(course -> StrUtil.isEmpty(course.getId())).collect(Collectors.toList());
         createEntity(collect, userId);
@@ -172,5 +174,33 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
 
         // 只有周次和节数都交叉才算时间冲突
         return weekOverlap && numOverlap;
+    }
+
+    /**
+     * 根据学期ID和周次查询排课表
+     *
+     * @param userId     教师ID
+     * @param semesterId 学期ID
+     * @param week       周次
+     * @return 排课表
+     */
+    @Override
+    public List<ScheduleChild> queryMyScheduleBySemesterIdAndWeek(String userId, String semesterId, Integer week) {
+        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class)
+                .innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
+        if (StrUtil.isNotEmpty(semesterId)) {
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), semesterId);
+        }
+        if (week != null) {
+            // 大于
+            mpjLambdaWrapper.ge(MybatisPlusUtil.toColumns(ScheduleChild::getStartWeek), week);
+            // 小于
+            mpjLambdaWrapper.le(MybatisPlusUtil.toColumns(ScheduleChild::getEndWeek), week);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return baseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
     }
 }

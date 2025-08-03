@@ -16,4 +16,6 @@ import com.skyeye.school.schedules.entity.Schedule;
 
 public interface ScheduleService extends SkyeyeBusinessService<Schedule> {
     void querySchedulesList(InputObject inputObject, OutputObject outputObject);
+
+    void queryMySchedulesList(InputObject inputObject, OutputObject outputObject);
 }
