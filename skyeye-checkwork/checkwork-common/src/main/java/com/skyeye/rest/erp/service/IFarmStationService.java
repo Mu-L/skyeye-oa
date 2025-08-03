@@ -9,4 +9,5 @@ public interface IFarmStationService extends IService {
 
     List<Map<String, Object>> queryFarmStationById(String workId);
 
+    List<Map<String, Object>> queryFarmStationByIds(String workIds);
 }

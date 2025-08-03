@@ -115,6 +115,7 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
     public List<SchedulingLeave> querySchedulingLeaveByEmployeeId(String employeeId) {
         QueryWrapper<SchedulingLeave> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getEmployeeId), employeeId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getStatus), ScheduleLeaveType.APPROVED.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
         return list(queryWrapper);
     }

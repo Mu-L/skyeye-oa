@@ -1,18 +1,21 @@
 package com.skyeye.scheduling.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.rest.erp.service.IFarmStationService;
 import com.skyeye.scheduling.dao.SchedulingShiftsDao;
 import com.skyeye.scheduling.entity.SchedulingShifts;
 import com.skyeye.scheduling.entity.SchedulingShiftsTime;
@@ -35,6 +38,9 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
 
     @Autowired
     private SchedulingShiftsTimeWorkService schedulingShiftsTimeWorkService;
+
+    @Autowired
+    private IFarmStationService iFarmStationService;
 
     @Override
     protected void createPostpose(SchedulingShifts entity, String userId) {
@@ -177,6 +183,27 @@ public class SchedulingShiftsServiceImpl extends SkyeyeBusinessServiceImpl<Sched
         List<SchedulingShiftsTime> schedulingShiftsTimes = schedulingShiftsTimeService.queryTimeByShiftId(id);
         List<String> shiftsTimeIds = schedulingShiftsTimes.stream().map(SchedulingShiftsTime::getId).collect(Collectors.toList());
         List<SchedulingShiftsTimeWork> schedulingShiftsTimeWorks = schedulingShiftsTimeWorkService.queryShiftsTimeWorkByShiftsTimeIds(shiftsTimeIds);
+        List<String> workIds = schedulingShiftsTimeWorks.stream().map(SchedulingShiftsTimeWork::getWorkId).collect(Collectors.toList());
+        String workIdsStr = String.join(CommonCharConstants.COMMA_MARK, workIds);
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        if (StrUtil.isNotEmpty(workIdsStr)) {
+            mapList = iFarmStationService.queryFarmStationByIds(workIdsStr);
+        }
+        Map<String, Map<String, Object>> mapMap = mapList.stream()
+            .collect(Collectors.toMap(
+                k -> {
+                    Object id1 = k.get("id");
+                    return ObjectUtil.isEmpty(id1) ? null : id1.toString();
+                },
+                v -> v));
+        schedulingShiftsTimeWorks.forEach(
+            schedulingShift -> {
+                Map<String, Object> map = mapMap.get(schedulingShift.getWorkId());
+                if (CollectionUtil.isNotEmpty(map)) {
+                    schedulingShift.setWorkMation(map);
+                }
+            }
+        );
         Map<String, List<SchedulingShiftsTimeWork>> ShiftsTimeWorkMap = schedulingShiftsTimeWorks.stream().collect(Collectors.groupingBy(SchedulingShiftsTimeWork::getShiftsTimeId));
         for (SchedulingShiftsTime schedulingShiftsTime : schedulingShiftsTimes) {
             schedulingShiftsTime.setShiftsTimeWorkMation(ShiftsTimeWorkMap.get(schedulingShiftsTime.getId()));

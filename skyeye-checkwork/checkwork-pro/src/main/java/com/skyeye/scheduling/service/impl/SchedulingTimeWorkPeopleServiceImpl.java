@@ -139,8 +139,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         String startTime = commonPageInfo.getStartTime();
         String endTime = commonPageInfo.getEndTime();
         String farmId = commonPageInfo.getFromId();
-
-        // 获取农场所有员工信息
+        // 获取所有员工信息
         List<Map<String, Object>> satffMation = iFarmStaffService.queryStaffByFarmId(farmId);
         if (CollectionUtil.isEmpty(satffMation)) {
             outputObject.setBean(Collections.emptyList());

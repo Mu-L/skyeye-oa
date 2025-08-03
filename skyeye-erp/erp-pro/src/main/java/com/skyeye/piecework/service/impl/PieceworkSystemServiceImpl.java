@@ -25,6 +25,8 @@ import com.skyeye.piecework.dao.PieceworkSystemDao;
 import com.skyeye.piecework.entity.PieceworkSystem;
 import com.skyeye.piecework.service.PieceworkSystemService;
 import com.skyeye.rest.checkwork.checkwork.ICheckWorkService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +45,8 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "计件数量或工时统计信息", groupName = "计件数量或工时统计信息", manageShow = false)
 public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<PieceworkSystemDao, PieceworkSystem> implements PieceworkSystemService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PieceworkSystemServiceImpl.class);
+
     @Autowired
     private FarmStaffService farmStaffService;
 
@@ -60,19 +64,30 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         List<FarmStaff> farmStaffList1 = farmStaffService.queryFarmStaffList();
         List<String> staffIdList = farmStaffList1.stream().map(FarmStaff::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
-        List<Map<String, Object>> satffMationList = stringMapMap.values().stream().collect(Collectors.toList());
-        // 所有临时员工的信息
-        List<Map<String, Object>> mapList = satffMationList.stream().filter(
-            m -> !Integer.valueOf(m.get("workstationType").toString()).equals(CommonNumConstants.NUM_ONE)).collect(Collectors.toList());
-        Set<String> whiteSet = mapList.stream().map(m -> m.get("staffId").toString()).collect(Collectors.toSet());
-        // 车间id对应员工id列表只包含临时员工）farmId-->staffIdList
-        Map<String, List<String>> farmStaffMap = farmStaffList1.stream().filter(
-                staff -> whiteSet.contains(staff.getStaffId()))
+
+        // 构建员工ID到工种类型的映射
+        Map<String, Integer> staffWorkTypeMap = stringMapMap.values().stream()
+            .collect(Collectors.toMap(
+                m -> m.get("staffId").toString(),
+                m -> {
+                    Object type = m.get("workstationType");
+                    return (type != null) ? Integer.parseInt(type.toString()) : -1;
+                }
+            ));
+
+        Set<String> tempStaffIds = staffWorkTypeMap.entrySet().stream()
+            .filter(e -> e.getValue() != CommonNumConstants.NUM_ONE)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
+
+        // 车间id→员工id列表（只含临时工）
+        Map<String, List<String>> farmStaffMap = farmStaffList1.stream()
+            .filter(staff -> tempStaffIds.contains(staff.getStaffId()))
             .collect(Collectors.groupingBy(
-                    FarmStaff::getFarmId,
-                    Collectors.mapping(FarmStaff::getStaffId, Collectors.toList())
-                )
-            );
+                FarmStaff::getFarmId,
+                Collectors.mapping(FarmStaff::getStaffId, Collectors.toList())
+            ));
+
         // 获取前一天日期
         LocalDate yesterday = LocalDate.now().minusDays(CommonNumConstants.NUM_ONE);
         int dayOfMonth = yesterday.getDayOfMonth();
@@ -84,31 +99,49 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         for (Map.Entry<String, List<String>> entry : farmStaffMap.entrySet()) {
             String farmId = entry.getKey();
             for (String staffId : entry.getValue()) {
-                // 获取员工信息
                 Map<String, Object> staffMation = stringMapMap.get(staffId);
                 if (ObjectUtil.isEmpty(staffMation)) continue;
-                // 获取当天工种类型
-                Integer workstationType = Integer.valueOf(staffMation.get("workstationType").toString());
-                if (workstationType.equals(CommonNumConstants.NUM_ONE)) {
+
+                // 安全获取工种类型
+                Object typeObj = staffMation.get("workstationType");
+                if (typeObj == null) {
+                    LOGGER.warn("工种类型为空: staffId={}", staffId);
                     continue;
                 }
+
+                Integer workstationType;
+                try {
+                    workstationType = Integer.valueOf(typeObj.toString());
+                } catch (NumberFormatException e) {
+                    LOGGER.error("无效的工种类型: staffId={}, value={}", staffId, typeObj);
+                    continue;
+                }
+
+                // 关键修复：跳过正式工并清理历史记录
+                if (workstationType.equals(CommonNumConstants.NUM_ONE)) {
+                    PieceworkSystem existingRecord = queryByStaffIdAndMonth(staffId, farmId, month);
+                    if (ObjectUtil.isNotEmpty(existingRecord)) {
+                        deleteById(existingRecord.getId());
+                        LOGGER.info("删除正式工历史记录: staffId={}", staffId);
+                    }
+                    continue;
+                }
+
                 // 初始化变量
                 int currentWorkType = 0;
                 String dayValue = "";
                 boolean hasWorkRecord = false;
-                String hourlyPrice = ""; // 声明小时工单价变量
-                BigDecimal piecePriceDecimal = BigDecimal.ZERO; // 声明计件工单价变量
+                String hourlyPrice = "";
+                BigDecimal piecePriceDecimal = BigDecimal.ZERO;
+
                 if (workstationType.equals(CommonNumConstants.NUM_TWO)) {
-                    // 小时工逻辑 - 获取小时工单价
+                    // 小时工逻辑
                     hourlyPrice = staffMation.get("hourlyPrice").toString();
 
-                    // 查询前一天考勤记录
                     List<Map<String, Object>> checkWorkList = iCheckWorkService.queryInfoByStaffIdsAndDates(
-                        staffId,
-                        yesterdayStr
+                        staffId, yesterdayStr
                     );
 
-                    // 计算前一天总工时
                     long totalMilliseconds = 0;
                     for (Map<String, Object> checkWork : checkWorkList) {
                         String workHours = MapUtil.getStr(checkWork, "workHours");
@@ -124,37 +157,28 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     // 计件工逻辑
                     List<FarmStaff> farmStaffList = farmStaffService.queryFarmsStaffByStaffId(staffId);
                     if (CollectionUtil.isNotEmpty(farmStaffList)) {
-                        // 获取计件单价
                         String piecePrice = farmStaffList.get(CommonNumConstants.NUM_ZERO).getPieceWorkPrice();
+                        piecePriceDecimal = (piecePrice == null || piecePrice.trim().isEmpty())
+                            ? BigDecimal.ZERO : new BigDecimal(piecePrice.trim());
 
-                        // 转换为BigDecimal并保存
-                        piecePriceDecimal = (piecePrice == null || piecePrice.trim().isEmpty()) ?
-                            BigDecimal.ZERO : new BigDecimal(piecePrice.trim());
-
-                        // 获取员工所有的计件记录
                         List<MachinProcedureAcceptProductNum> allPieces =
                             machinProcedureAcceptProductNumService.queryMachinProcedureAcceptProductNumByStaffId(staffId);
 
                         if (CollectionUtil.isNotEmpty(allPieces)) {
-                            // 提取所有验收单ID
                             List<String> parentIds = allPieces.stream()
                                 .map(MachinProcedureAcceptProductNum::getParentId)
                                 .distinct()
                                 .collect(Collectors.toList());
 
-                            // 获取这些验收单的信息
                             List<MachinProcedureAccept> acceptList =
                                 machinProcedureAcceptService.queryProcedureAcceptByIds(parentIds);
 
-                            // 创建验收单ID到创建日期的映射
                             Map<String, String> acceptCreateDateMap = new HashMap<>();
                             for (MachinProcedureAccept accept : acceptList) {
-                                // 取日期部分（yyyy-MM-dd）
                                 String createDate = accept.getCreateTime().substring(0, 10);
                                 acceptCreateDateMap.put(accept.getId(), createDate);
                             }
 
-                            // 计算前一天的计件总数
                             int totalPieces = 0;
                             for (MachinProcedureAcceptProductNum piece : allPieces) {
                                 String createDate = acceptCreateDateMap.get(piece.getParentId());
@@ -179,26 +203,20 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     record.setDepartmentId(staffMation.get("departmentId").toString());
                     record.setFarmId(farmId);
 
-                    // 设置工位ID
                     List<FarmStaff> farmStaffList = farmStaffService.queryFarmsStaffByStaffId(staffId);
                     if (CollectionUtil.isNotEmpty(farmStaffList)) {
                         record.setFarmStationId(farmStaffList.get(CommonNumConstants.NUM_ZERO).getFarmStationId());
                     }
 
                     record.setDayMouth(month);
-                    // 初始化所有天数为空字符串
                     for (int i = 1; i <= 31; i++) {
                         setFieldValue(record, getDayFieldName(i), "");
                     }
-                    // 设置默认值
                     record.setTotalNumPrice(BigDecimal.ZERO);
                     record.setTotalTimePrice("0");
 
-                    // 创建时立即设置工种类型和单价
                     if (currentWorkType == 1 || currentWorkType == 2) {
                         record.setIsNumTime(currentWorkType);
-
-                        // 设置对应的单价
                         if (currentWorkType == 2) {
                             record.setTotalTimePrice(hourlyPrice);
                         } else if (currentWorkType == 1) {
@@ -207,14 +225,12 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     }
                 }
 
-                // 如果记录不存在且没有工作记录，跳过此员工
                 if (record == null) continue;
 
                 // 更新当天的值
                 if (!dayValue.isEmpty()) {
                     setFieldValue(record, getDayFieldName(dayOfMonth), dayValue);
 
-                    // 更新单价（如果尚未设置）
                     if (currentWorkType == 2) {
                         if (StrUtil.isBlank(record.getTotalTimePrice()) || "0".equals(record.getTotalTimePrice())) {
                             record.setTotalTimePrice(hourlyPrice);
@@ -234,7 +250,6 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                         String value = (String) getFieldValue(record, getDayFieldName(i));
                         if (value != null && !value.isEmpty()) {
                             if (value.startsWith("A-")) {
-                                // 计件数据 - 使用piecePriceDecimal计算
                                 BigDecimal pieces = new BigDecimal(value.substring(2));
                                 totalPieces = totalPieces.add(pieces);
                                 if (record.getTotalNumPrice() != null) {
@@ -243,7 +258,6 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                                     );
                                 }
                             } else if (value.startsWith("B-")) {
-                                // 工时数据 - 使用hourlyPrice计算
                                 double hours = Double.parseDouble(value.substring(2));
                                 totalHours += hours;
                                 if (record.getTotalTimePrice() != null) {
@@ -255,12 +269,10 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                         }
                     }
 
-                    // 更新汇总字段
                     record.setAllNum(totalPieces);
                     record.setAllTime(String.valueOf(totalHours));
                     record.setAllPrice(totalAmount.toString());
 
-                    // 确保 isNumTime 有值（如果尚未设置）
                     if (record.getIsNumTime() == null && (currentWorkType == 1 || currentWorkType == 2)) {
                         record.setIsNumTime(currentWorkType);
                     }
@@ -268,9 +280,9 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
 
                 // 保存记录
                 if (StrUtil.isEmpty(record.getId())) {
-                    // 只有在有工种类型时才创建记录
                     if (record.getIsNumTime() != null) {
                         super.createEntity(record, StrUtil.EMPTY);
+                        LOGGER.debug("创建计件记录: staffId={}, type={}", staffId, record.getIsNumTime());
                     }
                 } else {
                     super.updateEntity(record, StrUtil.EMPTY);

@@ -20,4 +20,9 @@ public class IFarmStationServiceImpl extends IServiceImpl implements IFarmStatio
     public List<Map<String, Object>> queryFarmStationById(String workId) {
         return ExecuteFeignClient.get(() -> iFarmStationRest.queryFarmStationById(workId)).getRows();
     }
+
+    @Override
+    public List<Map<String, Object>> queryFarmStationByIds(String workIds) {
+        return ExecuteFeignClient.get(() -> iFarmStationRest.queryFarmStationByIds(workIds)).getRows();
+    }
 }

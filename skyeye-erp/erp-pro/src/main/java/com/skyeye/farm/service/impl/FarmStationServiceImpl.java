@@ -4,8 +4,11 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.farm.dao.FarmStationDao;
 import com.skyeye.farm.entity.FarmStation;
@@ -13,6 +16,9 @@ import com.skyeye.farm.service.FarmStationService;
 import com.skyeye.rest.checkwork.scheduling.ISchedulingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @ClassName: FarmStationServiceImpl
@@ -32,7 +38,7 @@ public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStatio
     @Override
     public void getQueryWrapper(InputObject inputObject, QueryWrapper<FarmStation> wrapper) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())){
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             wrapper.eq(MybatisPlusUtil.toColumns(FarmStation::getWorkProcedureId), commonPageInfo.getObjectId());
         }
     }
@@ -40,5 +46,15 @@ public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStatio
     @Override
     protected void deletePreExecution(String id) {
         iSchedulingService.deleteSchedulingByWorkId(id);
+    }
+
+    @Override
+    public void queryFarmStationByIds(InputObject inputObject, OutputObject outputObject) {
+        String workIds = inputObject.getParams().get("workIds").toString();
+        List<String> workIdList = Arrays.asList(workIds.split(CommonCharConstants.COMMA_MARK));
+        QueryWrapper<FarmStation> wrapper = new QueryWrapper<>();
+        wrapper.in(CommonConstants.ID, workIdList);
+        outputObject.setBeans(list(wrapper));
+        outputObject.settotal(list(wrapper).size());
     }
 }
