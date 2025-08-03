@@ -61,7 +61,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
 
     @Override
     public void writePieceworkSystem() {
-        List<FarmStaff> farmStaffList1 = farmStaffService.queryFarmStaffList();
+        List<FarmStaff> farmStaffList1 = farmStaffService.queryAllData();
         List<String> staffIdList = farmStaffList1.stream().map(FarmStaff::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
 

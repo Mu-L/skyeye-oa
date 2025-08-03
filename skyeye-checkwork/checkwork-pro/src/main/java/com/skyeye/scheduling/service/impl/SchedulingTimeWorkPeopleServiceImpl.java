@@ -270,7 +270,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                     // 计算时长并累加
                     long seconds = Duration.between(effectiveStart, effectiveEnd).getSeconds();
                     double hours = seconds / 3600.0;
-                    // 修正：避免重复累加
                     if (hours > 0) {
                         totalLeaveHours += hours;
                         leaveCount++;

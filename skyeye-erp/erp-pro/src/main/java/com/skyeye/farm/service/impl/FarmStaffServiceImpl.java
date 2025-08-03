@@ -221,9 +221,4 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         outputObject.settotal(staffMation.size());
     }
 
-    @Override
-    public List<FarmStaff> queryFarmStaffList() {
-        QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
-        return list(queryWrapper);
-    }
 }
