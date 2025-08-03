@@ -54,7 +54,7 @@ public class PieceworkSystemXxlJob {
                 pieceworkSystemService.writePieceworkSystem();
             }
         } catch (Exception e) {
-            LOGGER.warn("xxljob writeLoanBorrowAnalysisRecord error:{0}", e);
+            LOGGER.warn("xxljob createPieceworkSystem error:{0}", e);
         }
     }
 }
