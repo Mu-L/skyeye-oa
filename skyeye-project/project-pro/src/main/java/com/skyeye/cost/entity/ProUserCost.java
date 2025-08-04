@@ -57,11 +57,11 @@ public class ProUserCost extends OperatorUserInfo {
     private Map<String, Object> userMation;
 
     @TableField("man_hours")
-    @ApiModelProperty(value = "工时", required = "double")
+    @ApiModelProperty(value = "工时", required = "required,double")
     private String manHours;
 
     @TableField("work_hours")
-    @ApiModelProperty(value = "时长", required = "double")
+    @ApiModelProperty(value = "时长", required = "required,double")
     private String workHours;
 
     @TableField("state")

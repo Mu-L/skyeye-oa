@@ -42,4 +42,6 @@ public interface ForumContentService extends SkyeyeBusinessService<ForumContent>
     void updateCommentCount(String id, String count);
 
     List<ForumContent> queryForumContentListByForumIds(List<String> forumIds);
+
+    List<ForumContent> getTodayHotForumList(String today);
 }
