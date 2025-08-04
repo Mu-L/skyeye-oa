@@ -62,6 +62,7 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
         String today = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
         List<ForumContent> beans = forumContentService.getTodayHotForumList(today);
         forumContentService.setAnonymous(beans);
+        forumTagService.setTagMationForContentList(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
         outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
