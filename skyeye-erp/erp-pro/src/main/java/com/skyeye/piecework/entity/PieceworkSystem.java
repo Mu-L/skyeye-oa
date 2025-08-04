@@ -5,7 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.entity.FarmStation;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,7 +17,7 @@ import java.util.Map;
 @Data
 @TableName(value = "erp_piecework_system")
 @ApiModel("计件数量或工时统计实体类")
-public class PieceworkSystem extends OperatorUserInfo {
+public class PieceworkSystem extends CommonInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id")
@@ -36,9 +39,17 @@ public class PieceworkSystem extends OperatorUserInfo {
     @ApiModelProperty("车间id")
     private String farmId;
 
+    @TableField(exist = false)
+    @ApiModelProperty("车间信息")
+    private Farm farmMation;
+
     @TableField("farm_station_id")
     @ApiModelProperty("车间工位id")
     private String farmStationId;
+
+    @TableField(exist = false)
+    @ApiModelProperty("车间工位信息")
+    private FarmStation farmStationMation;
 
     @TableField("day_mouth")
     @ApiModelProperty("年月（yyyy-MM）")
@@ -191,4 +202,8 @@ public class PieceworkSystem extends OperatorUserInfo {
     @TableField("thirty_one_day_num")
     @ApiModelProperty("31日报工数量/工时")
     private String thirtyOneDayNum;
+
+    @TableField("create_time")
+    @ApiModelProperty("创建时间")
+    private String createTime;
 }

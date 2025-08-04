@@ -5,6 +5,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.farm.entity.FarmStation;
 
+import java.util.List;
+
 /**
  * @ClassName: FarmStationService
  * @Description: 车间工位管理服务接口层
@@ -15,5 +17,7 @@ import com.skyeye.farm.entity.FarmStation;
  */
 public interface FarmStationService extends SkyeyeBusinessService<FarmStation> {
     void queryFarmStationByIds(InputObject inputObject, OutputObject outputObject);
+
+    List<FarmStation> queryFarmStationListByIds(List<String> farmStationIds);
 
 }
