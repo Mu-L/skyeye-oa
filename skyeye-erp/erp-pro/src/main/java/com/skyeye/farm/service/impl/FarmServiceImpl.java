@@ -135,4 +135,14 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
         return farmList;
     }
 
+    @Override
+    public List<Farm> queryFarmListByIds(List<String> farmIds) {
+        if (CollectionUtil.isEmpty(farmIds)){
+            return null;
+        }
+        QueryWrapper<Farm> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(CommonConstants.ID, farmIds);
+        return list(queryWrapper);
+    }
+
 }

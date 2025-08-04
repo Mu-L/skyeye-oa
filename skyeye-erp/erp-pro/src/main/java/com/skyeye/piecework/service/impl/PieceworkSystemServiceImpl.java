@@ -17,8 +17,12 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.farm.entity.Farm;
 import com.skyeye.farm.entity.FarmStaff;
+import com.skyeye.farm.entity.FarmStation;
+import com.skyeye.farm.service.FarmService;
 import com.skyeye.farm.service.FarmStaffService;
+import com.skyeye.farm.service.FarmStationService;
 import com.skyeye.machinprocedure.entity.MachinProcedureAccept;
 import com.skyeye.machinprocedure.entity.MachinProcedureAcceptProductNum;
 import com.skyeye.machinprocedure.service.MachinProcedureAcceptProductNumService;
@@ -294,6 +298,12 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         }
     }
 
+    @Autowired
+    private FarmService farmService;
+
+    @Autowired
+    private FarmStationService farmStationService;
+
     @Override
     public void queryPieceworkSystem(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -317,16 +327,27 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
             queryWrapper.between(MybatisPlusUtil.toColumns(PieceworkSystem::getDayMouth), startTime, endTime);
         }
         List<PieceworkSystem> pieceworkSystemList = list(queryWrapper);
+        List<String> farmIds = pieceworkSystemList.stream().map(PieceworkSystem::getFarmId).collect(Collectors.toList());
+        Map<String, Farm> farmMap = farmService.queryFarmListByIds(farmIds).stream().collect(Collectors.toMap(Farm::getId, Farm -> Farm));
+        List<String> farmStationIds = pieceworkSystemList.stream().map(PieceworkSystem::getFarmStationId).collect(Collectors.toList());
+        Map<String, FarmStation> stationMap = farmStationService.queryFarmStationListByIds(farmStationIds).stream().collect(Collectors.toMap(FarmStation::getId, Farm -> Farm));
         List<String> staffIds = pieceworkSystemList.stream().map(PieceworkSystem::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> stringMapMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         pieceworkSystemList.forEach(
             pieceworkSystem -> {
+                FarmStation farmStation = stationMap.get(pieceworkSystem.getFarmStationId());
+                if (farmStation != null) {
+                    pieceworkSystem.setFarmStationMation(farmStation);
+                }
+                Farm farmMation = farmMap.get(pieceworkSystem.getFarmId());
+                if (farmMation != null) {
+                    pieceworkSystem.setFarmMation(farmMation);
+                }
                 Map<String, Object> staffMation = stringMapMap.get(pieceworkSystem.getStaffId());
                 if (staffMation != null) {
                     pieceworkSystem.setStaffMation(staffMation);
                 }
             }
-
         );
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(pieceworkSystemList);

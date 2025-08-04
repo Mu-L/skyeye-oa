@@ -1,5 +1,6 @@
 package com.skyeye.farm.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -56,5 +57,15 @@ public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStatio
         wrapper.in(CommonConstants.ID, workIdList);
         outputObject.setBeans(list(wrapper));
         outputObject.settotal(list(wrapper).size());
+    }
+
+    @Override
+    public List<FarmStation> queryFarmStationListByIds(List<String> farmStationIds) {
+        if (CollectionUtil.isEmpty(farmStationIds)) {
+            return null;
+        }
+        QueryWrapper<FarmStation> wrapper = new QueryWrapper<>();
+        wrapper.in(CommonConstants.ID, farmStationIds);
+        return list(wrapper);
     }
 }

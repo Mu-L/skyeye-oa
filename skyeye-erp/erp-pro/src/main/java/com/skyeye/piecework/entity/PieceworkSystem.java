@@ -7,6 +7,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.entity.FarmStation;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -37,9 +39,17 @@ public class PieceworkSystem extends CommonInfo {
     @ApiModelProperty("车间id")
     private String farmId;
 
+    @TableField(exist = false)
+    @ApiModelProperty("车间信息")
+    private Farm farmMation;
+
     @TableField("farm_station_id")
     @ApiModelProperty("车间工位id")
     private String farmStationId;
+
+    @TableField(exist = false)
+    @ApiModelProperty("车间工位信息")
+    private FarmStation farmStationMation;
 
     @TableField("day_mouth")
     @ApiModelProperty("年月（yyyy-MM）")

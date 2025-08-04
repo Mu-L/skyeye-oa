@@ -30,4 +30,7 @@ public interface FarmService extends SkyeyeBusinessService<Farm> {
     void queryEnabledFarmList(InputObject inputObject, OutputObject outputObject);
 
     List<Farm> queryEnabledFarmList();
+
+    List<Farm> queryFarmListByIds(List<String> farmIds);
+
 }
