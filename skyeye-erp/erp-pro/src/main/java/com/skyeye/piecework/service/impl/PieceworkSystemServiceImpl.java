@@ -12,8 +12,10 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.farm.entity.FarmStaff;
 import com.skyeye.farm.service.FarmStaffService;
@@ -76,8 +78,8 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
             ));
 
         Set<String> tempStaffIds = staffWorkTypeMap.entrySet().stream()
-            .filter(e -> e.getValue().equals(CommonNumConstants.NUM_TWO)
-                || e.getValue().equals(CommonNumConstants.NUM_THREE))
+            .filter(e -> e.getValue().equals(UserStaffWorkstationType.HOURLY_WORKER.getKey())
+                || e.getValue().equals(UserStaffWorkstationType.PIECE_WORKER.getKey()))
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
 
@@ -119,7 +121,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                 }
 
                 // 跳过正式工并清理历史记录
-                if (workstationType.equals(CommonNumConstants.NUM_ONE)) {
+                if (workstationType.equals(UserStaffWorkstationType.CONTRACT_WORKER.getKey())) {
                     PieceworkSystem existingRecord = queryByStaffIdAndMonth(staffId, farmId, month);
                     if (ObjectUtil.isNotEmpty(existingRecord)) {
                         deleteById(existingRecord.getId());
@@ -135,7 +137,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                 String hourlyPrice = "";
                 BigDecimal piecePriceDecimal = BigDecimal.ZERO;
 
-                if (workstationType.equals(CommonNumConstants.NUM_TWO)) {
+                if (workstationType.equals(UserStaffWorkstationType.HOURLY_WORKER.getKey())) {
                     // 小时工逻辑
                     hourlyPrice = staffMation.get("hourlyPrice").toString();
 
@@ -154,7 +156,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     dayValue = "B-" + hours;
                     currentWorkType = 2;
                     hasWorkRecord = true;
-                } else if (workstationType.equals(CommonNumConstants.NUM_THREE)) {
+                } else if (workstationType.equals(UserStaffWorkstationType.PIECE_WORKER.getKey())) {
                     // 计件工逻辑
                     List<FarmStaff> farmStaffList = farmStaffService.queryFarmsStaffByStaffId(staffId);
                     if (CollectionUtil.isNotEmpty(farmStaffList)) {
@@ -166,10 +168,8 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                             machinProcedureAcceptProductNumService.queryMachinProcedureAcceptProductNumByStaffId(staffId);
 
                         if (CollectionUtil.isNotEmpty(allPieces)) {
-                            List<String> parentIds = allPieces.stream()
-                                .map(MachinProcedureAcceptProductNum::getParentId)
-                                .distinct()
-                                .collect(Collectors.toList());
+                            List<String> parentIds = allPieces.stream().map(MachinProcedureAcceptProductNum::getParentId)
+                                .distinct().collect(Collectors.toList());
 
                             List<MachinProcedureAccept> acceptList =
                                 machinProcedureAcceptService.queryProcedureAcceptByIds(parentIds);
@@ -266,6 +266,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                                         new BigDecimal(record.getTotalTimePrice()).multiply(BigDecimal.valueOf(hours))
                                     );
                                 }
+
                             }
                         }
                     }
@@ -273,6 +274,7 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                     record.setAllNum(totalPieces);
                     record.setAllTime(String.valueOf(totalHours));
                     record.setAllPrice(totalAmount.toString());
+                    record.setCreateTime(DateUtil.getTimeAndToString());
 
                     if (record.getIsNumTime() == null && (currentWorkType == 1 || currentWorkType == 2)) {
                         record.setIsNumTime(currentWorkType);
