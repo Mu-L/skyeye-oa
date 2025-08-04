@@ -144,39 +144,70 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
         queryWrapper.apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " >= {0}", startTime)
                 .apply(MybatisPlusUtil.toColumns(CostAccount::getCreateTime) + " <= {0}", endTime);
         List<CostAccount> bean = list(queryWrapper);
-        Map<String, Object> result = new HashMap<>();
-        result.put(ProCostAccountEnum.HUMAN.getCode(), 0);
-        result.put(ProCostAccountEnum.MATERIAL.getCode(), 0);
-        result.put(ProCostAccountEnum.EQUIPMENT.getCode(), 0);
-        result.put(ProCostAccountEnum.OUTSOURCING.getCode(), 0);
-        result.put(ProCostAccountEnum.OTHER.getCode(), 0);
-        result.put("totalCost", 0);
+        List<Map<String, Object>> beans = new ArrayList<>();
         if (CollectionUtil.isEmpty(bean)) {
-            outputObject.setBean(result);
+            for (ProCostAccountEnum proCostAccountEnum : ProCostAccountEnum.values()){
+                Map<String,Object> temp = new HashMap<>();
+                temp.put("size",0);
+                temp.put(proCostAccountEnum.getCode(),0);
+                beans.add(temp);
+            }
+            Map<String,Object> temp = new HashMap<>();
+            temp.put("size",0);
+            temp.put("totalPrice",0);
+            beans.add(temp);
+            outputObject.setBean(beans);
             return;
         }
         // 根据costType分组
         Map<Integer, List<CostAccount>> group = bean.stream().collect(Collectors.groupingBy(CostAccount::getCostType));
         // 循环枚举ProCostAccountEnum
         for (ProCostAccountEnum proCostAccountEnum : ProCostAccountEnum.values()) {
+            Map<String,Object> temp = new HashMap<>();
             List<CostAccount> list = group.getOrDefault(proCostAccountEnum.getKey(), new ArrayList<>());
-            if (CollectionUtil.isEmpty(list)) continue;
-            // 计算金额
-            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
-            for (CostAccount costAccount : list) {
-                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                        StrUtil.isEmpty(costAccount.getTotalPrice()) ? "0" : costAccount.getTotalPrice(),
-                        price);
+            temp.put("size",list.size());
+            if (CollectionUtil.isEmpty(list)) {
+                temp.put(proCostAccountEnum.getCode(),0);
+            }else {
+                // 计算金额
+                String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+                for (CostAccount costAccount : list) {
+                    price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                            StrUtil.isEmpty(costAccount.getTotalPrice()) ? "0" : costAccount.getTotalPrice(),
+                            price);
+                }
+                temp.put(proCostAccountEnum.getCode(),price);
             }
-            result.put(proCostAccountEnum.getCode(), price);
+           beans.add(temp);
         }
         // 计算总金额 循环result
-        String totalPrice = String.valueOf(CommonNumConstants.NUM_ZERO);
-        for (Map.Entry<String, Object> entry : result.entrySet()) {
-            totalPrice = CalculationUtil.add(CommonNumConstants.NUM_TWO, entry.getValue().toString(), totalPrice);
+        double totalPrice = bean.stream().mapToDouble(item -> Double.parseDouble(item.getTotalPrice())).sum();
+        Map<String, Object> temp = new HashMap<>();
+        temp.put("totalPrice", totalPrice);
+        temp.put("size", bean.size());
+        beans.add(temp);
+        outputObject.setBeans(beans);
+    }
+
+    @Override
+    public void queryAllProCostAccountList(InputObject inputObject, OutputObject outputObject) {
+        String projectId = inputObject.getParams().get("projectId").toString();
+        QueryWrapper<CostAccount> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CostAccount::getProjectId), projectId);
+        List<CostAccount> bean = list(queryWrapper);
+        // 根据类型分组
+        Map<Integer, List<CostAccount>> costAcooutMap = bean.stream().collect(Collectors.groupingBy(CostAccount::getCostType));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ProCostAccountEnum proCostAccountEnum : ProCostAccountEnum.values()) {
+            Map<String, Object> temp = new HashMap<>();
+            List<CostAccount> list = costAcooutMap.getOrDefault(proCostAccountEnum.getKey(), new ArrayList<>());
+            temp.put("costType", proCostAccountEnum.getKey());
+            temp.put("costTypeName", proCostAccountEnum.getValue());
+            temp.put("costList", list);
+            result.add(temp);
         }
-        result.put("totalCost", totalPrice);
-        outputObject.setBean(result);
+        outputObject.setBeans( result);
+        outputObject.settotal(result.size());
     }
 
     @Override

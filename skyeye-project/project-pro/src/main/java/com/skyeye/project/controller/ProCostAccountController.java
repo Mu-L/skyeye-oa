@@ -35,6 +35,15 @@ public class ProCostAccountController {
         proCostAccountService.queryProCostAccountList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryAllProCostAccountList", value = "获取各类成本的趋势图", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id="projectId",name = "projectId", value = "项目id", required = "required")
+    })
+    @RequestMapping("/post/ProCostAccountController/queryAllProCostAccountList")
+    public void queryAllProCostAccountList(InputObject inputObject, OutputObject outputObject) {
+        proCostAccountService.queryAllProCostAccountList(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "writeProCostAccount", value = "新增/编辑成本核算", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CostAccount.class)
     @RequestMapping("/post/ProCostAccountController/writeProCostAccount")
