@@ -44,7 +44,7 @@ public class RouteController {
 
     @ApiOperation(id = "deleteRouteById", value = "根据id删除路线", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")
+        @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")
     })
     @RequestMapping("/post/RouteController/deleteRouteById")
     public void deleteRouteById(InputObject inputObject, OutputObject outputObject) {
@@ -53,7 +53,7 @@ public class RouteController {
 
     @ApiOperation(id = "queryRouteById", value = "根据id查询路线信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")
+        @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")
     })
     @RequestMapping("/post/RouteController/queryRouteById")
     public void queryRouteById(InputObject inputObject, OutputObject outputObject) {
@@ -62,10 +62,10 @@ public class RouteController {
 
     @ApiOperation(id = "queryRoutesByStartAndEnd", value = "根据起点id--终点id 根据路线长度升序排序", method = "GET", allUse = "0")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "startId", name = "startId", value = "起点id", required = "required"),
-            @ApiImplicitParam(id = "endId", name = "endId", value = "终点id", required = "required"),
-            @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
-            @ApiImplicitParam(id = "typeId", name = "typeId", value = "路线类型")
+        @ApiImplicitParam(id = "startId", name = "startId", value = "起点id", required = "required"),
+        @ApiImplicitParam(id = "endId", name = "endId", value = "终点id", required = "required"),
+        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
+        @ApiImplicitParam(id = "typeId", name = "typeId", value = "路线类型")
     })
     @RequestMapping("/post/RouteController/queryRoutesByStartAndEnd")
     public void queryRoutesByStartAndEnd(InputObject inputObject, OutputObject outputObject) {
@@ -74,11 +74,11 @@ public class RouteController {
 
     @ApiOperation(id = "queryRoutesNavigationLists", value = "根据当前位置到终点的导航路线查询前3条路线（<=3）", method = "POST", allUse = "0")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "latitude", name = "latitude", value = "纬度", required = "required"),
-            @ApiImplicitParam(id = "longitude", name = "longitude", value = "经度", required = "required"),
-            @ApiImplicitParam(id = "endId", name = "endId", value = "终点id", required = "required"),
-            @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
-            @ApiImplicitParam(id = "typeId", name = "typeId", value = "路线类型")
+        @ApiImplicitParam(id = "latitude", name = "latitude", value = "纬度", required = "required"),
+        @ApiImplicitParam(id = "longitude", name = "longitude", value = "经度", required = "required"),
+        @ApiImplicitParam(id = "endId", name = "endId", value = "终点id", required = "required"),
+        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
+        @ApiImplicitParam(id = "typeId", name = "typeId", value = "路线类型")
     })
     @RequestMapping("/post/RouteController/queryRoutesNavigationLists")
     public void queryRoutesNavigationLists(InputObject inputObject, OutputObject outputObject) {

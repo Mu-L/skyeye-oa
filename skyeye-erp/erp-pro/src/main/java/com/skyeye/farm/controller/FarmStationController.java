@@ -73,6 +73,20 @@ public class FarmStationController {
     }
 
     /**
+     * 根据ids批量获取车间工位信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryFarmStationByIds", value = "根据ids批量获取车间工位信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "workIds", name = "workIds", value = "工位ids（逗号隔开）", required = "required")})
+    @RequestMapping("/post/FarmStationController/queryFarmStationByIds")
+    public void queryFarmStationByIds(InputObject inputObject, OutputObject outputObject) {
+        farmStationService.queryFarmStationByIds(inputObject, outputObject);
+    }
+
+    /**
      * 根据ID删除车间工位信息
      *
      * @param inputObject  入参以及用户信息等获取对象

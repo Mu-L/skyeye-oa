@@ -96,4 +96,17 @@ public class ShopDeliveryCompanyController {
     public void queryDeliveryById(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryCompanyService.selectById(inputObject, outputObject);
     }
+
+    /**
+     * 根据门店id获取快递公司信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "queryDeliveryByStoreId", value = "根据门店id获取快递公司信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({@ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopDeliveryCompanyController/queryDeliveryByStoreId")
+    public void queryDeliveryByStoreId(InputObject inputObject, OutputObject outputObject) {
+        shopDeliveryCompanyService.queryDeliveryByStoreId(inputObject, outputObject);
+    }
 }

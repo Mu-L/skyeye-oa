@@ -139,8 +139,7 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
         String startTime = commonPageInfo.getStartTime();
         String endTime = commonPageInfo.getEndTime();
         String farmId = commonPageInfo.getFromId();
-
-        // 获取农场所有员工信息
+        // 获取所有员工信息
         List<Map<String, Object>> satffMation = iFarmStaffService.queryStaffByFarmId(farmId);
         if (CollectionUtil.isEmpty(satffMation)) {
             outputObject.setBean(Collections.emptyList());
@@ -168,7 +167,21 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
             QueryWrapper<SchedulingTimeWorkPeople> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingTimeWorkPeople::getEmployeeId), employeeId);
             List<SchedulingTimeWorkPeople> workPeopleList = list(queryWrapper);
-
+            if (CollectionUtil.isNotEmpty(workPeopleList)) {
+                workPeopleList = workPeopleList.stream()
+                    .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                            p -> Arrays.asList(
+                                p.getSchedulingTimeWorkId(),
+                                p.getEmployeeId(),
+                                p.getSchedulingId(),
+                                p.getSchedulingTimeId()),
+                            p -> p,
+                            (existing, replacement) -> existing
+                        ),
+                        map -> new ArrayList<>(map.values())
+                    ));
+            }
             // 初始化工作统计变量
             long totalSeconds = 0;
             int totalShifts = 0;
@@ -257,7 +270,6 @@ public class SchedulingTimeWorkPeopleServiceImpl extends SkyeyeBusinessServiceIm
                     // 计算时长并累加
                     long seconds = Duration.between(effectiveStart, effectiveEnd).getSeconds();
                     double hours = seconds / 3600.0;
-                    // 修正：避免重复累加
                     if (hours > 0) {
                         totalLeaveHours += hours;
                         leaveCount++;

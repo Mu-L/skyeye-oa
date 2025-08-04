@@ -15,6 +15,7 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.interviewee.classenum.IntervieweeStatusEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -74,7 +75,7 @@ public class Interviewee extends OperatorUserInfo implements EnclosureFace {
     private String workYears;
 
     @TableField(value = "state")
-    @Property(value = "状态，参考#IntervieweeStatusEnum")
+    @Property(value = "状态", enumClass = IntervieweeStatusEnum.class)
     private Integer state;
 
     @TableField(value = "charge_person_id")

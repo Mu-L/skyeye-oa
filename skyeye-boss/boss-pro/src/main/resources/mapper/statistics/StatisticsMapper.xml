@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.skyeye.statistics.dao.StatisticsDao">
+
+    <!-- 获取招聘数据概览统计 -->
+    <select id="getRecruitmentOverview" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            (SELECT COUNT(1) FROM boss_interview <where>
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as totalInterviewees, # 总面试者数量
+            (SELECT COUNT(1) FROM boss_interview_arrangement <where>
+                state in (4, 6, 7, 9)
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND interview_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND interview_time &lt;= #{endDate}
+                </if>
+			</where>) as hiredCount, # 通过面试的数量
+            (SELECT COUNT(1) FROM boss_interview_arrangement <where>
+                state = 3
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND interview_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND interview_time &lt;= #{endDate}
+                </if>
+			</where>) as pendingInterviewCount, # 待面试的数量
+            (SELECT COUNT(1) FROM boss_interview <where>
+                state = 1
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as interviewingCount, # 待面试者数量
+            (SELECT COUNT(1) FROM boss_interview_arrangement <where>
+                state = 5
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND interview_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND interview_time &lt;= #{endDate}
+                </if>
+			</where>) as failedCount, # 面试失败数量
+            (SELECT COUNT(1) FROM boss_interview_arrangement <where>
+                state = 7
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND interview_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND interview_time &lt;= #{endDate}
+                </if>
+			</where>) as rejectedCount, # 拒绝入职的数量
+            (SELECT COUNT(1) FROM boss_person_require <where>
+                state in ('inRecruitment', 'pass')
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as totalRequirements, # 总需求数量
+            (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
+                state = 'pass'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND regular_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND regular_time &lt;= #{endDate}
+                </if>
+			</where>) as regularWorkerCount, # 转正的数量
+            (SELECT COUNT(1) FROM boss_interview_quit <where>
+                state = 'pass'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND leave_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND leave_time &lt;= #{endDate}
+                </if>
+			</where>) as quitCount # 离职的数量
+    </select>
+
+    <!-- 获取面试者状态分布统计 -->
+    <select id="getIntervieweeStatusDistribution" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            state,
+            COUNT(1) as count,
+            ROUND(COUNT(1) * 100.0 / (SELECT COUNT(1) FROM boss_interview
+            <where>
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+            </where>), 2) as percentage
+        FROM boss_interview 
+        <where>
+            <if test="tenantId != null and tenantId != ''">
+                AND tenant_id = #{tenantId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND create_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND create_time &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY state
+        ORDER BY state
+    </select>
+
+    <!-- 获取人员需求完成情况统计 -->
+    <select id="getPersonRequireCompletion" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+            pr.odd_number oddNumber,
+            pr.recruit_department_id recruitDepartmentId,
+            pr.recruit_job_id recruitJobId,
+            pr.recruit_num recruitNum,
+            pr.recruited_num recruitedNum,
+            ROUND(pr.recruited_num * 100.0 / pr.recruit_num, 2) as completionRate,
+            pr.state
+        FROM boss_person_require pr
+        <where>
+            pr.state in ('inRecruitment', 'pass', 'endRecruitment')
+            <if test="tenantId != null and tenantId != ''">
+                AND pr.tenant_id = #{tenantId}
+            </if>
+            <if test="departmentId != null and departmentId != ''">
+                AND pr.recruit_department_id = #{departmentId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND pr.create_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND pr.create_time &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY pr.create_time DESC
+    </select>
+
+    <!-- 获取招聘渠道效果统计 -->
+    <select id="getRecruitmentChannelEffect" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            f.name as channelName,
+            COUNT(i.id) as totalCount,
+            SUM(CASE WHEN i.state = 2 THEN 1 ELSE 0 END) as hiredCount, # 面试通过数量
+            SUM(CASE WHEN i.state = 4 THEN 1 ELSE 0 END) as rejectedCount, # 拒绝入职数量
+            ROUND(SUM(CASE WHEN i.state = 2 THEN 1 ELSE 0 END) * 100.0 / COUNT(i.id), 2) as successRate # 成功率
+        FROM boss_interview i
+        LEFT JOIN boss_interviewee_from f ON i.from_id = f.id
+        <where>
+            <if test="tenantId != null and tenantId != ''">
+                AND i.tenant_id = #{tenantId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND i.create_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND i.create_time &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY f.id
+        HAVING COUNT(i.id) > 0
+    </select>
+
+    <!-- 获取部门招聘统计 -->
+    <select id="getDepartmentRecruitmentStats" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            pr.recruit_department_id recruitDepartmentId,
+            COUNT(pr.id) as requirementCount, # 需求数量
+            SUM(pr.recruit_num) as totalNeedCount, # 总招聘数量
+            SUM(pr.recruited_num) as totalRecruitedCount, # 已招聘数量
+            ROUND(SUM(pr.recruited_num) * 100.0 / SUM(pr.recruit_num), 2) as overallCompletionRate # 整体完成率
+        FROM boss_person_require pr
+        <where>
+            pr.state in ('inRecruitment', 'pass', 'endRecruitment')
+            <if test="tenantId != null and tenantId != ''">
+                AND pr.tenant_id = #{tenantId}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND pr.create_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND pr.create_time &lt;= #{endDate}
+            </if>
+        </where>
+        GROUP BY pr.recruit_department_id
+        ORDER BY totalNeedCount DESC
+    </select>
+
+    <!-- 获取月度招聘趋势统计 -->
+    <select id="getMonthlyRecruitmentTrend" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            a.`year_month` yearMonth,
+            COUNT(1) as totalInterviewees,
+            SUM(CASE WHEN b.state = 2 THEN 1 ELSE 0 END) as hiredCount, # 面试通过数量
+            SUM(CASE WHEN b.state = 0 THEN 1 ELSE 0 END) as pendingCount, # 待面试数量
+            SUM(CASE WHEN b.state = 1 THEN 1 ELSE 0 END) as interviewingCount, # 面试中数量
+            SUM(CASE WHEN b.state = 3 THEN 1 ELSE 0 END) as failedCount, # 面试失败数量
+            SUM(CASE WHEN b.state = 4 THEN 1 ELSE 0 END) as rejectedCount # 拒绝入职数量
+        FROM
+            (SELECT CONCAT(#{year}, '-01') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-02') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-03') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-04') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-05') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-06') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-07') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-08') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-09') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-10') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-11') AS `year_month`
+			UNION SELECT CONCAT(#{year}, '-12') AS `year_month`) a
+            LEFT JOIN boss_interview b ON date_format(b.create_time, '%Y-%m') = a.`year_month`
+            <if test="tenantId != null and tenantId != ''">
+                AND b.tenant_id = #{tenantId}
+            </if>
+        GROUP BY a.`year_month`
+    </select>
+
+    <!-- 获取转正和离职统计 -->
+    <select id="getRegularAndQuitStats" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT 
+            (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
+                state in ('pass', 'inExamine')
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as totalRegularCount, # 总转正申请数量
+            (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
+                state = 'pass'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as approvedRegularCount, # 已通过转正数量
+            (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
+                state = 'inExamine'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as pendingRegularCount, # 待审核转正数量
+            (SELECT COUNT(1) FROM boss_interview_quit <where>
+                state in ('pass', 'inExamine')
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as totalQuitCount, # 总离职申请数量
+            (SELECT COUNT(1) FROM boss_interview_quit <where>
+                state = 'pass'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as approvedQuitCount, # 已通过离职数量
+            (SELECT COUNT(1) FROM boss_interview_quit <where>
+                state = 'inExamine'
+                <if test="tenantId != null and tenantId != ''">
+                    AND tenant_id = #{tenantId}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND create_time >= #{startDate}
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND create_time &lt;= #{endDate}
+                </if>
+			</where>) as pendingQuitCount # 待审核离职数量
+    </select>
+
+</mapper> 

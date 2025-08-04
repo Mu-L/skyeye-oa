@@ -26,7 +26,7 @@ public enum IntervieweeStatusEnum implements SkyeyeEnumClass {
     PENDING_INTERVIEW_STATUS(0, "待面试", true, false),
     INTERVIEW_STATUS(1, "面试中", true, false),
     INTERVIEW_PASS_STATUS(2, "面试通过", true, false),
-    INTERVIEW_FAILED_STATUS(3, "待面试", true, false),
+    INTERVIEW_FAILED_STATUS(3, "面试失败", true, false),
     REJECTED_STATUS(4, "拒绝入职", true, false);
 
     private Integer key;

@@ -17,8 +17,6 @@ import com.skyeye.scheduling.classenum.ScheduleLeaveType;
 import com.skyeye.scheduling.dao.SchedulingLeaveDao;
 import com.skyeye.scheduling.entity.SchedulingLeave;
 import com.skyeye.scheduling.service.SchedulingLeaveService;
-import com.skyeye.scheduling.service.SchedulingService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -30,16 +28,13 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "排班请假管理", groupName = "排班请假管理")
 public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingLeaveDao, SchedulingLeave> implements SchedulingLeaveService {
 
-    @Autowired
-    private SchedulingService schedulingService;
-
     @Override
     protected void createPrepose(SchedulingLeave entity) {
         String startTime = entity.getStartTime();
         String endTime = entity.getEndTime();
-        boolean compare = DateUtil.compare(startTime, endTime);
-        if (!compare) {
-            throw new RuntimeException("开始时间不能大于结束时间");
+        boolean ok = DateUtil.compare(startTime, endTime) && !startTime.equals(endTime);
+        if (!ok) {
+            throw new RuntimeException("开始时间必须早于结束时间");
         }
         entity.setStatus(ScheduleLeaveType.APPLIED.getKey());
     }
@@ -115,6 +110,7 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
     public List<SchedulingLeave> querySchedulingLeaveByEmployeeId(String employeeId) {
         QueryWrapper<SchedulingLeave> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getEmployeeId), employeeId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SchedulingLeave::getStatus), ScheduleLeaveType.APPROVED.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SchedulingLeave::getCreateTime));
         return list(queryWrapper);
     }

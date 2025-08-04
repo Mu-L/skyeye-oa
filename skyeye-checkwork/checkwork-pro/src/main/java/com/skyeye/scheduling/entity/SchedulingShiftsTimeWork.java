@@ -5,9 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.Map;
 
 @Data
 @TableName(value = "check_work_scheduling_shifts_time_work", autoResultMap = true)
@@ -33,5 +34,9 @@ public class SchedulingShiftsTimeWork extends OperatorUserInfo {
     @TableField(value = "work_id")
     @ApiModelProperty(value = "工位Id")
     private String workId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "工位信息")
+    private Map<String, Object> workMation;
 
 }

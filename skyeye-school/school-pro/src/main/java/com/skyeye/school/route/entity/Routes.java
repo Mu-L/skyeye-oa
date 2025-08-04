@@ -44,7 +44,7 @@ public class Routes extends OperatorUserInfo {
 
     @TableField("route_length")
     @ApiModelProperty(value = "路线长度", required = "required")
-    private Float routeLength;
+    private Double routeLength;
 
     @TableField("route_type")
     @ApiModelProperty(value = "路线类型")
@@ -64,13 +64,13 @@ public class Routes extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "学校信息")
-    private Map<String,Object> schoolMation;
+    private Map<String, Object> schoolMation;
 
     @TableField(exist = false)
     @Property(value = "起始地点信息")
-    private Map<String,Object> startMation;
+    private Map<String, Object> startMation;
 
     @TableField(exist = false)
     @Property(value = "终点地点信息")
-    private Map<String,Object> endMation;
+    private Map<String, Object> endMation;
 }
