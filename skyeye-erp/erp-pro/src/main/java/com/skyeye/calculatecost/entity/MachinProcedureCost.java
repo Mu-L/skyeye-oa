@@ -11,6 +11,9 @@ import java.util.List;
 @Data
 public class MachinProcedureCost {
 
+    @ApiModelProperty(value = "该工序生产的商品名称")
+    private String materialName;
+
     @ApiModelProperty(value = "工序编号")
     private String procedureNumber;
 

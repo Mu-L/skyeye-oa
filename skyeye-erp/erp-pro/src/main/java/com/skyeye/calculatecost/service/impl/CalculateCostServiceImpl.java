@@ -162,10 +162,11 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         MachinProcedure machinProcedure = machinProcedureService.selectById(machinProcedureId);
         WorkProcedure workProcedure = workProcedureService.selectById(machinProcedure.getProcedureId());
         machinProcedure.setProcedureMation(workProcedure);
+        materialService.setDataMation(machinProcedure, MachinProcedure::getMaterialId);
         // 查询所有工序验收单信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureId(machinProcedureId);
         if (CollectionUtil.isEmpty(acceptList)) {
-            MachinProcedureCost bean = setMachinProcedureDate(new ArrayList<>());
+            MachinProcedureCost bean = setMachinProcedureDate(new ArrayList<>(), machinProcedure);
             outputObject.setBean(bean);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
             return;
@@ -198,7 +199,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         List<MachinProcedureAcceptCost> acceptCostList = calculateMachinProcedureCost(
                 machinProcedure, acceptList, productNumMap, staffMap,
                 workHoursMap, acceptChildMap, farmStaffMap);
-        MachinProcedureCost bean = setMachinProcedureDate(acceptCostList);
+        MachinProcedureCost bean = setMachinProcedureDate(acceptCostList, machinProcedure);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -213,6 +214,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         // 加工单子单据的所有工序信息-----没有详细的工序信息
         List<MachinProcedure> machinProcedureList = machinProcedureService.querySameListById(machinProcedureFarm.getMachinProcedureId());
         List<String> MPIdList = machinProcedureList.stream().map(MachinProcedure::getId).collect(Collectors.toList());
+        materialService.setDataMation(machinProcedureList, MachinProcedure::getMaterialId);
 
         // 加工单子单据信息
         MachinChild machinChild = machinChildService.getById(machinProcedureList.get(CommonNumConstants.NUM_ZERO).getChildId());
@@ -271,7 +273,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         List<MachinProcedure> machinProcedureList = machinProcedureService.queryListByMachinId(machin.getId());
         List<String> MPIdList = machinProcedureList.stream().map(MachinProcedure::getId).collect(Collectors.toList());
         Map<String, List<MachinProcedure>> childIdMPMap = machinProcedureList.stream().collect(Collectors.groupingBy(MachinProcedure::getChildId));
-
+        materialService.setDataMation(machinProcedureList, MachinProcedure::getMaterialId);
         // 验收信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureIdList(MPIdList);
         if (CollectionUtil.isEmpty(acceptList)) {
@@ -362,7 +364,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             List<MachinProcedureAcceptCost> acceptCostList = calculateMachinProcedureCost(machinProcedure, acceptMap.getOrDefault(machinProcedureId, new ArrayList<>()),
                     productNumMap, staffMap, workHourMap, acceptChildMap, farmStaffMap);
             // 设置工序成本信息
-            MachinProcedureCost bean = setMachinProcedureDate(acceptCostList);
+            MachinProcedureCost bean = setMachinProcedureDate(acceptCostList, machinProcedure);
             machinProcedureCostList.add(bean);
         }
         return machinProcedureCostList;
@@ -371,7 +373,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     private MachinPutCost setMachinPutDate(MachinPut machinPut, List<MachinProcedureCost> MPCostList, MachinChild machinChild) {
         Integer currentOperNumber = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber();
         Material materialMation = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getMaterialMation();
-        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null :materialMation.getName();
+        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null : materialMation.getName();
         MachinPutCost machinPutCost = new MachinPutCost();
         machinPutCost.setMaterialName(materialName);
         machinPutCost.setMachinProcedureCostList(MPCostList);
@@ -413,7 +415,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
 
     private MachinPutCost setMachinPutDate(MachinChild machinChild, List<MachinProcedureCost> MPCostList) {
         Material materialMation = machinChild.getMaterialMation();
-        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null :materialMation.getName();
+        String materialName = StrUtil.isEmpty(materialMation.getId()) ? null : materialMation.getName();
         MachinPutCost machinPutCost = new MachinPutCost();
         machinPutCost.setMaterialName(materialName);
         machinPutCost.setMachinProcedureCostList(MPCostList);
@@ -498,8 +500,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
      * @param acceptCostList 验收单成本信息
      * @return 工序成本信息
      */
-    private MachinProcedureCost setMachinProcedureDate(List<MachinProcedureAcceptCost> acceptCostList) {
+    private MachinProcedureCost setMachinProcedureDate(List<MachinProcedureAcceptCost> acceptCostList, MachinProcedure machinProcedure) {
+        Material materialMation = machinProcedure.getMaterialMation();
         MachinProcedureCost bean = new MachinProcedureCost();
+        bean.setMaterialName(StrUtil.isEmpty(materialMation.getId()) ? "" : materialMation.getName());
         bean.setConsumablePrice("0");
         bean.setNormalConsumablePrice("0");
         bean.setScrapConsumablePrice("0");
@@ -603,7 +607,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         }
         for (MachinProcedureAcceptChild child : childList) {
             // 计算每一个耗材的成本     数量 * 采购价
-            String operNumber = child.getOperNumber() == null ? "0" :String.valueOf(child.getOperNumber());
+            String operNumber = child.getOperNumber() == null ? "0" : String.valueOf(child.getOperNumber());
             String estimatePurchasePrice = ObjectUtil.isEmpty(child.getNormsMation()) ? "0" : child.getNormsMation().getEstimatePurchasePrice();
             String multiply = CalculationUtil.multiply(operNumber, estimatePurchasePrice, CommonNumConstants.NUM_SIX);
             result = CalculationUtil.add(result, multiply, CommonNumConstants.NUM_SIX);
