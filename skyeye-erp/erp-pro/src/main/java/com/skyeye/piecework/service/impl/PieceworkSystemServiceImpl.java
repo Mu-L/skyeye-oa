@@ -310,8 +310,8 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 车间ID
         String farmId = commonPageInfo.getFromId();
-        // 员工ID
-        String staffId = commonPageInfo.getHolderId();
+        // 员工信息
+        String keyword = commonPageInfo.getKeyword();
         // 开始时间
         String startTime = commonPageInfo.getStartTime();
         // 结束时间
@@ -319,9 +319,6 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         QueryWrapper<PieceworkSystem> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(farmId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(PieceworkSystem::getFarmId), farmId);
-        }
-        if (StrUtil.isNotEmpty(staffId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(PieceworkSystem::getStaffId), staffId);
         }
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             queryWrapper.between(MybatisPlusUtil.toColumns(PieceworkSystem::getDayMouth), startTime, endTime);
@@ -349,6 +346,12 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                 }
             }
         );
+        if (StrUtil.isNotEmpty(keyword)) {
+            pieceworkSystemList = pieceworkSystemList.stream()
+                .filter(p -> p.getStaffMation() != null
+                    && StrUtil.containsIgnoreCase(p.getStaffMation().get("userName").toString(), keyword))
+                .collect(Collectors.toList());
+        }
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(pieceworkSystemList);
     }
