@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -58,27 +59,12 @@ public class ForumHotServiceImpl extends SkyeyeBusinessServiceImpl<ForumHotDao, 
     public void queryHotForumList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        LocalDate today = LocalDate.now();
-        LocalDate beforeMonth = today.minusMonths(1);
-        String start = beforeMonth.format(DateTimeFormatter.ISO_DATE);
-        String end = today.format(DateTimeFormatter.ISO_DATE);
-        QueryWrapper<ForumHot> queryWrapper = new QueryWrapper<>();
-        queryWrapper.between(MybatisPlusUtil.toColumns(ForumHot::getUpdateTime), start, end)
-            .eq(MybatisPlusUtil.toColumns(ForumHot::getTagId), StrUtil.EMPTY)
-            .orderByDesc(MybatisPlusUtil.toColumns(ForumHot::getOrderBy));
-        List<ForumHot> bean = list(queryWrapper);
-        List<String> ids = new ArrayList<>();
-        for (ForumHot forumHot : bean) {
-            ids.add(forumHot.getForumId());
-        }
-        List<ForumContent> forumContentList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(ids)) {
-            String[] array = ids.toArray(new String[0]);
-            forumContentList = forumContentService.selectByIds(array);
-            forumContentService.setAnonymous(forumContentList);
-        }
-        iAuthUserService.setDataMation(forumContentList, ForumContent::getCreateId);
-        outputObject.setBeans(forumContentList);
+        String today = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
+        List<ForumContent> beans = forumContentService.getTodayHotForumList(today);
+        forumContentService.setAnonymous(beans);
+        forumTagService.setTagMationForContentList(beans);
+        iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        outputObject.setBeans(beans);
         outputObject.settotal(page.getTotal());
     }
 
