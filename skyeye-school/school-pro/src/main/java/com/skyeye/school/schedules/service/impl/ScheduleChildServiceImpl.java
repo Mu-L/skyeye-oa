@@ -5,17 +5,22 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.school.building.service.FloorInfoService;
+import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.schedules.dao.ScheduleChildDao;
 import com.skyeye.school.schedules.entity.Schedule;
 import com.skyeye.school.schedules.entity.ScheduleChild;
 import com.skyeye.school.schedules.service.ScheduleChildService;
 import com.skyeye.school.schedules.service.ScheduleService;
+import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +44,37 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
     @Autowired
     private ScheduleService scheduleService;
 
+    @Autowired
+    private FloorInfoService floorInfoService;
+
+    @Autowired
+    private ClassesService classesService;
+
+    @Autowired
+    private SubjectService subjectService;
+
+    @Override
+    protected void validatorEntity(List<ScheduleChild> entity) {
+        super.validatorEntity(entity);
+        for (ScheduleChild scheduleChild : entity) {
+            if (scheduleChild.getStartWeek() < 0 || scheduleChild.getEndWeek() < 0 || scheduleChild.getStartNum() < 0 || scheduleChild.getEndNum() < 0 || scheduleChild.getWeekDay() < 0) {
+                throw new CustomException("请输入正确的周次和节次");
+            }
+            if (scheduleChild.getStartWeek() > scheduleChild.getEndWeek() || scheduleChild.getStartNum() > scheduleChild.getEndNum()) {
+                throw new CustomException("请输入正确的周次和节次");
+            }
+            if (scheduleChild.getWeekDay() > 7) {
+                throw new CustomException("请输入正确的星期几");
+            }
+            boolean compare = DateUtil.compare(scheduleChild.getStartTime(), scheduleChild.getEndTime());
+            if (!compare) {
+                throw new CustomException("请输入正确的开始时间和结束时间");
+            }
+            if (scheduleChild.getCredits() < 0 || scheduleChild.getStudentHour() < 0) {
+                throw new CustomException("请输入正确的学分和学时");
+            }
+        }
+    }
 
     @Override
     public void deleteByScheduleId(String id) {
@@ -185,6 +221,7 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
      * @return 排课表
      */
     @Override
+    @IgnoreTenant
     public List<ScheduleChild> queryMyScheduleBySemesterIdAndWeek(String userId, String semesterId, Integer week) {
         MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class)
                 .innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
@@ -200,7 +237,15 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
         if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
             mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
-        return baseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
+        List<ScheduleChild> beans = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
+        // 设置信息
+        floorInfoService.setDataMation(beans, ScheduleChild::getClassroomId);
+        subjectService.setDataMation(beans, ScheduleChild::getCourseId);
+        classesService.setDataMation(beans, ScheduleChild::getClassId);
+        iAuthUserService.setDataMation(beans, ScheduleChild::getTeacherId);
+        return beans;
+
     }
 }

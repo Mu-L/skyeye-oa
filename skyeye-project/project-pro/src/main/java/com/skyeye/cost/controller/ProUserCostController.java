@@ -51,7 +51,7 @@ public class ProUserCostController {
         proUserCostService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteProUserCostsById", value = "删除人力成本", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteProUserCostsById", value = "删除人力成本", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })

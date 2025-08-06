@@ -36,9 +36,21 @@ public class ScheduleController {
         scheduleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "querySchedulesInfoList", value = "获取课表主信息列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+            @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校"),
+            @ApiImplicitParam(id = "facultyId", name = "facultyId", value = "院系"),
+            @ApiImplicitParam(id = "majorId", name = "majorId", value = "年级"),
+            @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期")
+    })
+    @RequestMapping("/post/ScheduleController/querySchedulesInfoList")
+    public void querySchedulesInfoList(InputObject inputObject, OutputObject outputObject) {
+        scheduleService.querySchedulesInfoList(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "querySchedulesById", value = "根据id获课表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id",name = "id", value = "排课表id", required = "required")
+            @ApiImplicitParam(id = "id", name = "id", value = "排课表id", required = "required")
     })
     @RequestMapping("/post/ScheduleController/querySchedulesById")
     public void querySchedulesById(InputObject inputObject, OutputObject outputObject) {
@@ -47,7 +59,7 @@ public class ScheduleController {
 
     @ApiOperation(id = "deleteSchedulesById", value = "根据id删除课表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id",name = "id", value = "排课表id", required = "required")
+            @ApiImplicitParam(id = "id", name = "id", value = "排课表id", required = "required")
     })
     @RequestMapping("/post/ScheduleController/deleteSchedulesById")
     public void deleteSchedulesById(InputObject inputObject, OutputObject outputObject) {
@@ -56,8 +68,8 @@ public class ScheduleController {
 
     @ApiOperation(id = "querySchedulesList", value = "获取课表列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "teacherId",name = "teacherId", value = "老师id"),
-        @ApiImplicitParam(id = "classroomId",name = "classroomId", value = "教室id"),
+            @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "老师id"),
+            @ApiImplicitParam(id = "classroomId", name = "classroomId", value = "教室id"),
     })
     @RequestMapping("/post/ScheduleController/querySchedulesList")
     public void querySchedulesList(InputObject inputObject, OutputObject outputObject) {
@@ -66,8 +78,8 @@ public class ScheduleController {
 
     @ApiOperation(id = "queryMySchedulesList", value = "获取自己的课表信息(质评--老师)", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(id = "semesterId",name = "semesterId", value = "学期id"),
-            @ApiImplicitParam(id = "week",name = "week", value = "第几周", required = "num")})
+            @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期id"),
+            @ApiImplicitParam(id = "week", name = "week", value = "第几周", required = "num")})
     @RequestMapping("/post/ScheduleController/queryMySchedulesList")
     public void queryMySchedulesList(InputObject inputObject, OutputObject outputObject) {
         scheduleService.queryMySchedulesList(inputObject, outputObject);

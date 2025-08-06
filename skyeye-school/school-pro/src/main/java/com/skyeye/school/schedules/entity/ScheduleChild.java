@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
+
+import java.util.Map;
 
 
 /**
@@ -29,58 +31,75 @@ public class ScheduleChild extends OperatorUserInfo {
     private String id;
 
     @TableField("parent_id")
-    @ApiModelProperty("父表id,排课表id")
+    @ApiModelProperty(value = "父表id,排课表id", required = "required")
     private String parentId;
 
     @TableField("course_id")
-    @ApiModelProperty("课程id")
+    @ApiModelProperty(value = "课程id", required = "required")
     private String courseId;
 
+    @TableField(exist = false)
+    @Property(value = "课程名称")
+    private String courseMation;
+
     @TableField("teacher_id")
-    @ApiModelProperty("教师id")
+    @ApiModelProperty(value = "教师id", required = "required")
     private String teacherId;
 
+    @TableField(exist = false)
+    @Property(value = "教师信息")
+    private Map<String, Object> teacherMation;
+
     @TableField("classroom_id")
-    @ApiModelProperty("教室id")
+    @ApiModelProperty(value = "教室id", required = "required")
     private String classroomId;
 
+    @TableField(exist = false)
+    @Property("教室信息")
+    private Map<String, Object> classroomMation;
+
     @TableField("week_day")
-    @ApiModelProperty("星期几 2、3、4、5、6、7、1")
+    @ApiModelProperty(value = "星期几 2、3、4、5、6、7、1", required = "required,num")
     private Integer weekDay;
 
     @TableField("start_time")
-    @ApiModelProperty("开始时间")
+    @ApiModelProperty(value = "开始时间", required = "required")
     private String startTime;
 
     @TableField("end_time")
-    @ApiModelProperty("结束时间")
+    @ApiModelProperty(value = "结束时间", required = "required")
     private String endTime;
 
     @TableField("start_week")
-    @ApiModelProperty("开始周")
+    @ApiModelProperty(value = "开始周", required = "required,num")
     private Integer startWeek;
 
     @TableField("end_week")
-    @ApiModelProperty("结束周")
+    @ApiModelProperty(value = "结束周", required = "required,num")
     private Integer endWeek;
 
     @TableField("start_num")
-    @ApiModelProperty("开始节数")
+    @ApiModelProperty(value = "开始节数", required = "required,num")
     private Integer startNum;
 
     @TableField("end_num")
-    @ApiModelProperty("结束节数")
+    @ApiModelProperty(value = "结束节数", required = "required,num")
     private Integer endNum;
 
     @TableField("credits")
-    @ApiModelProperty("学分")
+    @ApiModelProperty(value = "学分", required = "required,num")
     private Integer credits;
 
     @TableField("student_hour")
-    @ApiModelProperty("学时")
+    @ApiModelProperty(value = "学时", required = "required,num")
     private Integer studentHour;
 
     @TableField("class_id")
-    @ApiModelProperty("班级id")
+    @ApiModelProperty(value = "班级id", required = "required")
     private String classId;
+
+    @TableField(exist = false)
+    @Property("班级信息")
+    private Map<String, Object> classMation;
+
 }

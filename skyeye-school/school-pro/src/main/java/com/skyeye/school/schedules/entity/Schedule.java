@@ -5,10 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: Schedule
@@ -29,25 +31,38 @@ public class Schedule extends CommonInfo {
     private String id;
 
     @TableField("school_id")
-    @ApiModelProperty("学校id")
+    @ApiModelProperty(value = "学校id", required = "required")
     private String schoolId;
 
+    @TableField(exist = false)
+    @Property(value = "学校信息")
+    private Map<String, Object> schoolMation;
+
     @TableField("faculty_id")
-    @ApiModelProperty("院系id")
+    @ApiModelProperty(value = "院系id", required = "required")
     private String facultyId;
 
+    @TableField(exist = false)
+    @Property(value = "院系信息")
+    private Map<String, Object> facultyMation;
+
     @TableField("major_id")
-    @ApiModelProperty("专业id")
+    @ApiModelProperty(value = "专业id", required = "required")
     private String majorId;
 
+    @TableField(exist = false)
+    @Property(value = "专业信息")
+    private Map<String, Object> majorMation;
+
     @TableField("semester_id")
-    @ApiModelProperty("学期id")
+    @ApiModelProperty(value = "学期id", required = "required")
     private String semesterId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "课表额外信息", required = "json")
-    private ScheduleChild scheduleChildMation;
+    @Property(value = "学期信息")
+    private Map<String, Object> semesterMation;
 
-    @ApiModelProperty(value = "课程信息", required = "json")
+    @TableField(exist = false)
+    @ApiModelProperty(value = "课程信息", required = "required,json")
     private List<ScheduleChild> scheduleChildList;
 }
