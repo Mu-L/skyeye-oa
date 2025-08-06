@@ -14,7 +14,9 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.feeapplication.entity.FeeApplication;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.reimbursement.dao.ReimbursementChildDao;
@@ -40,6 +42,17 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
 
     @Autowired
     private IDepmentService iDepmentService;
+
+    @Override
+    protected void validatorEntity(List<ReimbursementChild> entity) {
+        super.validatorEntity(entity);
+        String month = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
+        for (ReimbursementChild item : entity) {
+            if(!month.equals(item.getOccurTime())){
+                throw new CustomException("报销发生日期必须为当前月份");
+            }
+        }
+    }
 
     @Override
     public String calcOrderAllTotalPrice(List<ReimbursementChild> orderItemList) {

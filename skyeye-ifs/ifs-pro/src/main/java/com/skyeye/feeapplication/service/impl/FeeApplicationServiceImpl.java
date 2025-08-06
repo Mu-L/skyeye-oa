@@ -10,7 +10,9 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.feeapplication.dao.FeeApplicationDao;
 import com.skyeye.feeapplication.entity.FeeAnalysis;
 import com.skyeye.feeapplication.entity.FeeApplication;
@@ -37,6 +39,15 @@ public class FeeApplicationServiceImpl extends SkyeyeFlowableServiceImpl<FeeAppl
 
     @Autowired
     private IDepmentService iDepmentService;
+
+    @Override
+    protected void validatorEntity(FeeApplication entity) {
+        super.validatorEntity(entity);
+        String month = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
+        if(!month.equals(entity.getInvoiceDate())){
+            throw new CustomException("申请日期只能为当月日期");
+        }
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
