@@ -46,10 +46,11 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
     @Override
     protected void validatorEntity(List<ReimbursementChild> entity) {
         super.validatorEntity(entity);
-        String month = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
+        String month = DateUtil.getPointTime(DateUtil.YYYY_MM);
         for (ReimbursementChild item : entity) {
-            if(!month.equals(item.getOccurTime())){
-                throw new CustomException("报销发生日期必须为当前月份");
+            String pointTime = DateUtil.getPointTime(item.getOccurTime(), DateUtil.YYYY_MM).toString();
+            if (!month.equals(pointTime)) {
+                throw new CustomException("只能申请当前月份的费用");
             }
         }
     }

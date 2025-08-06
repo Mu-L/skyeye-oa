@@ -43,10 +43,12 @@ public class FeeApplicationServiceImpl extends SkyeyeFlowableServiceImpl<FeeAppl
     @Override
     protected void validatorEntity(FeeApplication entity) {
         super.validatorEntity(entity);
-        String month = DateUtil.getPointTime(DateUtil.YYYY_MM_DD);
-        if(!month.equals(entity.getInvoiceDate())){
-            throw new CustomException("申请日期只能为当月日期");
+        String month = DateUtil.getPointTime(DateUtil.YYYY_MM);
+        String pointTime = DateUtil.getPointTime(entity.getInvoiceDate(), DateUtil.YYYY_MM).toString();
+        if (!month.equals(pointTime)) {
+            throw new CustomException("只能申请当前月份的费用");
         }
+
     }
 
     @Override
