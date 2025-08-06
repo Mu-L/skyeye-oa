@@ -45,7 +45,7 @@ public class OfficeXxlJob {
      * 1. 清理超过10分钟未活动的WebSocket会话
      * 2. 清理超过10分钟未更新的在线用户记录
      */
-    @XxlJob("deleteOfficeDocumentOnlineUserService")
+//    @XxlJob("deleteOfficeDocumentOnlineUserService")
     public void cleanInactiveUsers() {
 
         if (tenantEnable) {

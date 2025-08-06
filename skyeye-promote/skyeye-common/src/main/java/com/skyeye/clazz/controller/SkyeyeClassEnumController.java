@@ -50,7 +50,7 @@ public class SkyeyeClassEnumController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "getEnumDataByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "getEnumDataByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "className", required = "required"),
         @ApiImplicitParam(id = "filterKey", name = "filterKey", value = "指定需要匹配的key"),
@@ -66,7 +66,7 @@ public class SkyeyeClassEnumController {
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
-    @ApiOperation(id = "getEnumDataMapByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "getEnumDataMapByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "classNameList", name = "classNameList", value = "className的集合", required = "required")})
     @RequestMapping("/post/SkyeyeClassEnumController/getEnumDataMapByClassName")
