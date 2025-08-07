@@ -325,7 +325,8 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
         }
         List<PieceworkSystem> pieceworkSystemList = list(queryWrapper);
         List<String> farmIds = pieceworkSystemList.stream().map(PieceworkSystem::getFarmId).collect(Collectors.toList());
-        Map<String, Farm> farmMap = farmService.queryFarmListByIds(farmIds).stream().collect(Collectors.toMap(Farm::getId, Farm -> Farm));
+        List<Farm> farmList = farmService.queryFarmListByIds(farmIds);
+        Map<String, Farm> farmMap = farmList.stream().collect(Collectors.toMap(Farm::getId, Farm -> Farm));
         List<String> farmStationIds = pieceworkSystemList.stream().map(PieceworkSystem::getFarmStationId).collect(Collectors.toList());
         Map<String, FarmStation> stationMap = farmStationService.queryFarmStationListByIds(farmStationIds).stream().collect(Collectors.toMap(FarmStation::getId, Farm -> Farm));
         List<String> staffIds = pieceworkSystemList.stream().map(PieceworkSystem::getStaffId).collect(Collectors.toList());

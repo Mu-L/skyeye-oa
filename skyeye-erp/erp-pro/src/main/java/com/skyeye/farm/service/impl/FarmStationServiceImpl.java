@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,10 +63,10 @@ public class FarmStationServiceImpl extends SkyeyeBusinessServiceImpl<FarmStatio
     @Override
     public List<FarmStation> queryFarmStationListByIds(List<String> farmStationIds) {
         if (CollectionUtil.isEmpty(farmStationIds)) {
-            return null;
+            return Collections.emptyList();
         }
         QueryWrapper<FarmStation> wrapper = new QueryWrapper<>();
         wrapper.in(CommonConstants.ID, farmStationIds);
-        return list(wrapper);
+        return list(wrapper) == null ? Collections.emptyList() : list(wrapper);
     }
 }

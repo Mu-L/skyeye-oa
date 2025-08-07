@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -137,12 +138,12 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
 
     @Override
     public List<Farm> queryFarmListByIds(List<String> farmIds) {
-        if (CollectionUtil.isEmpty(farmIds)){
-            return null;
+        if (CollectionUtil.isEmpty(farmIds)) {
+            return Collections.emptyList();
         }
         QueryWrapper<Farm> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, farmIds);
-        return list(queryWrapper);
+        return list(queryWrapper) == null ? Collections.emptyList() : list(queryWrapper);
     }
 
 }
