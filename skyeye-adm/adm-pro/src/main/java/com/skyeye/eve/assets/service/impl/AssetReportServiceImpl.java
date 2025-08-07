@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.PropertiesUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.assets.classenum.AssetReportState;
@@ -199,6 +200,7 @@ public class AssetReportServiceImpl extends SkyeyeBusinessServiceImpl<AssetRepor
         jobBody.put("userId", inputObject.getLogParams().get("id").toString());
         String topic = PropertiesUtil.getPropertiesValue("${topic.asset-generate-barcode}");
         jobBody.put("topic", topic);
+        jobBody.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         JobMateMation jobMateMation = new JobMateMation();
         jobMateMation.setJsonStr(JSONUtil.toJsonStr(jobBody));
         jobMateMation.setUserId(inputObject.getLogParams().get("id").toString());
