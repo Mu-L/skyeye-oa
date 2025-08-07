@@ -11,7 +11,9 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.servey.dao.DwSurveyAnswerDao;
 import com.skyeye.eve.servey.entity.DwSurveyAnswer;
@@ -22,8 +24,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +40,8 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     protected void createPrepose(DwSurveyAnswer entity) {
         String bgAnDate = entity.getBgAnDate();
         String endAnDate = entity.getEndAnDate();
-        try {
-            String Ip = InetAddress.getLocalHost().getHostAddress();
-            entity.setIp(Ip);
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        }
+        String Ip = ToolUtil.getIpByRequest(PutObject.getRequest());
+        entity.setIp(Ip);
 
         if (StrUtil.isNotEmpty(bgAnDate) && StrUtil.isNotEmpty(endAnDate)) {
             boolean compare = DateUtil.compare(bgAnDate, endAnDate);
