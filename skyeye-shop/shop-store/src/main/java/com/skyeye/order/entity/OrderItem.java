@@ -17,6 +17,7 @@ import com.skyeye.order.enums.ShopOrderItemOtherState;
 import com.skyeye.order.enums.ShopOrderItemState;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -159,5 +160,9 @@ public class OrderItem extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "是否已经追评")
     private Boolean isAdditionalReview;
+
+    @TableField(exist = false)
+    @Property(value = "快递单号列表")
+    private List<String> deliverNumberList;
 
 }
