@@ -30,17 +30,22 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
 
     @Override
     protected void createPrepose(SchedulingLeave entity) {
+        time(entity);
+        entity.setStatus(ScheduleLeaveType.APPLIED.getKey());
+    }
+
+    private static void time(SchedulingLeave entity) {
         String startTime = entity.getStartTime();
         String endTime = entity.getEndTime();
         boolean ok = DateUtil.compare(startTime, endTime) && !startTime.equals(endTime);
         if (!ok) {
             throw new RuntimeException("开始时间必须早于结束时间");
         }
-        entity.setStatus(ScheduleLeaveType.APPLIED.getKey());
     }
 
     @Override
     protected void updatePrepose(SchedulingLeave entity) {
+        time(entity);
         SchedulingLeave schedulingLeave = selectById(entity.getId());
         if (schedulingLeave.getStatus().equals(ScheduleLeaveType.APPROVED.getKey())) {
             throw new RuntimeException("该请假记录已审核，无法修改");
