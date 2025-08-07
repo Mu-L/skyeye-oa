@@ -35,11 +35,14 @@ import com.skyeye.organization.service.CompanyJobService;
 import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.personnel.classenum.UserIsTermOfValidity;
 import com.skyeye.personnel.classenum.UserLockState;
+import com.skyeye.personnel.classenum.UserLoginLogDeviceType;
+import com.skyeye.personnel.classenum.UserLoginLogStatus;
 import com.skyeye.personnel.dao.SysEveUserDao;
 import com.skyeye.personnel.entity.SysEveUser;
 import com.skyeye.personnel.entity.SysEveUserInstall;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserInstallService;
+import com.skyeye.personnel.service.SysEveUserLoginLogService;
 import com.skyeye.personnel.service.SysEveUserService;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.role.service.SysEveRoleService;
@@ -115,6 +118,9 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
 
     @Autowired
     private SysEveUserCustomParentService sysEveUserCustomParentService;
+
+    @Autowired
+    private SysEveUserLoginLogService sysEveUserLoginLogService;
 
     @Override
     public void querySysUserList(InputObject inputObject, OutputObject outputObject) {
@@ -241,7 +247,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryUserToLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> userMation = checkLogin(map);
+        Map<String, Object> userMation = checkLogin(map, StrUtil.EMPTY);
 
         String userId = userMation.get("id").toString();
         if (!tenantEnable) {
@@ -254,32 +260,54 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         removeUserLoginRedisMation(userMation);
         setUserLoginRedisMation(userId, userMation, false);
         LOGGER.info("set userMation to redis cache end.");
+
+        // 异步记录登录日志
+        try {
+            sysEveUserLoginLogService.recordLoginLogAsync(userId, map.get("userCode").toString(),
+                UserLoginLogDeviceType.PC.getKey(), UserLoginLogStatus.SUCCESS.getKey(), "登录成功");
+        } catch (Exception e) {
+            LOGGER.error("记录登录日志失败，用户ID：{}，错误信息：{}", userId, e.getMessage(), e);
+        }
+
         outputObject.setBean(userMation);
     }
 
     @Nullable
-    private Map<String, Object> checkLogin(Map<String, Object> map) {
+    private Map<String, Object> checkLogin(Map<String, Object> map, String appIdentifying) {
         String userCode = map.get("userCode").toString();
+        Integer deviceType = StrUtil.equals(appIdentifying, SysUserAuthConstants.APP_IDENTIFYING) ? UserLoginLogDeviceType.MOBILE.getKey() : UserLoginLogDeviceType.PC.getKey();
         Map<String, Object> userMation = sysEveUserDao.queryMationByUserCode(userCode);
         if (userMation == null) {
+            // 异步记录登录失败日志
+            recordLoginFailureLog("unknown", userCode, deviceType, "用户不存在");
             throw new CustomException("请确保用户名输入无误！");
         }
+        String userId = userMation.get("id").toString();
         int pwdNum = Integer.parseInt(userMation.get("pwdNum").toString());
         String password = map.get("password").toString();
         for (int i = 0; i < pwdNum; i++) {
             password = ToolUtil.MD5(password);
         }
         if (!password.equals(userMation.get("password").toString())) {
+            // 异步记录登录失败日志
+            recordLoginFailureLog(userId, userCode, deviceType, "密码错误");
             throw new CustomException("密码输入错误！");
         }
 
         int userLock = Integer.parseInt(userMation.get("userLock").toString());
         if (UserLockState.SYS_USER_LOCK_STATE_ISLOCK.getKey() == userLock) {
+            // 异步记录登录失败日志
+            recordLoginFailureLog(userId, userCode, deviceType, "账号已被锁定");
             throw new CustomException("您的账号已被锁定，请联系管理员解除！");
         }
         // 校验用户有效期
-        chectUserEffectiveDate(userMation);
-        String userId = userMation.get("id").toString();
+        try {
+            chectUserEffectiveDate(userMation);
+        } catch (CustomException e) {
+            // 异步记录登录失败日志
+            recordLoginFailureLog(userId, userCode, deviceType, e.getMessage());
+            throw e;
+        }
         String userToken = GetUserToken.createNewToken(userId, password);
         userMation.put("userToken", userToken);
         if (!tenantEnable) {
@@ -290,6 +318,16 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
             judgeAndGetSchoolMation(userMation, userId);
         }
         return userMation;
+    }
+
+    /**
+     * 记录登录失败日志
+     *
+     * @param userCode      用户账号
+     * @param failureReason 失败原因
+     */
+    private void recordLoginFailureLog(String userId, String userCode, Integer deviceType, String failureReason) {
+        sysEveUserLoginLogService.recordLoginLogAsync(userId, userCode, deviceType, UserLoginLogStatus.FAIL.getKey(), failureReason);
     }
 
     private void chectUserEffectiveDate(Map<String, Object> userMation) {
@@ -815,7 +853,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void queryPhoneToLogin(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> userMation = checkLogin(map);
+        Map<String, Object> userMation = checkLogin(map, SysUserAuthConstants.APP_IDENTIFYING);
 
         String appUserId = userMation.get("id").toString() + SysUserAuthConstants.APP_IDENTIFYING;
         if (!tenantEnable) {
@@ -828,6 +866,10 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         }
         removeUserLoginRedisMation(userMation);
         setUserLoginRedisMation(appUserId, userMation, false);
+
+        // 异步记录登录日志
+        sysEveUserLoginLogService.recordLoginLogAsync(userMation.get("id").toString(), map.get("userCode").toString(),
+            UserLoginLogDeviceType.MOBILE.getKey(), UserLoginLogStatus.SUCCESS.getKey(), "登录成功");
         outputObject.setBean(userMation);
     }
 

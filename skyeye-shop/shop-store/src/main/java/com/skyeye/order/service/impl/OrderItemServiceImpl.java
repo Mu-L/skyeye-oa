@@ -133,6 +133,17 @@ public class OrderItemServiceImpl extends SkyeyeBusinessServiceImpl<OrderItemDao
         list.forEach(map -> {
             map.setShopMaterial(materialStoreMap.containsKey(map.getMaterialStoreId()) ? materialStoreMap.get(map.getMaterialStoreId()) : new HashMap<>());
         });
+        // 快递单号操作
+        List<ItemDeliverHistory> itemDeliverHistories = itemDeliverHistoryService.queryListByItemId(orderItemIds);
+        Map<String, List<String>> deliverMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(itemDeliverHistories)) {
+            // 只收集快递单号
+            deliverMap = itemDeliverHistories.stream().filter(bean -> StrUtil.isNotEmpty(bean.getDeliverNumber()))
+                    .collect(Collectors.groupingBy(ItemDeliverHistory::getOrderItemId, Collectors.mapping(ItemDeliverHistory::getDeliverNumber, Collectors.toList())));
+        }
+        for (OrderItem orderItem : list) {
+            orderItem.setDeliverNumberList(deliverMap.getOrDefault(orderItem.getId(), new ArrayList<>()));
+        }
         return list;
     }
 

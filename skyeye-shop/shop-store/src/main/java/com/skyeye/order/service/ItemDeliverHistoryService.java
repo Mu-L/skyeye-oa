@@ -22,4 +22,6 @@ public interface ItemDeliverHistoryService extends SkyeyeBusinessService<ItemDel
     void insertEntity(OrderItem orderItem, String deliverNumber, String deliveryTemplateChargeId, String deliveryCompanyId, Integer num);
 
     List<ItemDeliverHistory> queryListByItemId(String itemId);
+
+    List<ItemDeliverHistory> queryListByItemId(List<String> itemIdList);
 }

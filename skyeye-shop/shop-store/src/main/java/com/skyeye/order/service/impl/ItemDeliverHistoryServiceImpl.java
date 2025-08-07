@@ -1,5 +1,6 @@
 package com.skyeye.order.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -160,6 +161,16 @@ public class ItemDeliverHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Ite
         }
         QueryWrapper<ItemDeliverHistory> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ItemDeliverHistory::getOrderItemId), itemId);
+        return list(queryWrapper);
+    }
+
+    @Override
+    public List<ItemDeliverHistory> queryListByItemId(List<String> itemIdList) {
+        if (CollectionUtil.isEmpty(itemIdList)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<ItemDeliverHistory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ItemDeliverHistory::getOrderItemId), itemIdList);
         return list(queryWrapper);
     }
 }

@@ -32,4 +32,14 @@ public class ExecutorConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "userLoginLogExecutor")
+    public Executor getUserLoginLogAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setQueueCapacity(1000000);
+        executor.setThreadNamePrefix("userLoginLogExecutor-");
+        executor.initialize();
+        return executor;
+    }
 }
