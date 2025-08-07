@@ -344,22 +344,61 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             for (DwQuestion question : questionList) {
                 String id = question.getId();
                 question.setCopyFromId(id);
-                stringListMap.get(id);
                 List<DwQuestionLogic> dwQuestionLogics = stringListMap.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuestionLogics)) {
+                    dwQuestionLogics.forEach(
+                        dwQuestionLogic -> dwQuestionLogic.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setQuestionLogic(dwQuestionLogics);
                 List<DwQuRadio> dwQuRadioList = stringListMap1.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuRadioList)) {
+                    dwQuRadioList.forEach(
+                        dwQuRadio -> dwQuRadio.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setRadioTd(dwQuRadioList);
                 List<DwQuScore> dwQuScoreList = stringListMap2.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuScoreList)) {
+                    dwQuScoreList.forEach(
+                        dwQuScore -> dwQuScore.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setScoreTd(dwQuScoreList);
                 List<DwQuCheckbox> dwQuCheckboxList = stringListMap3.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuCheckboxList)) {
+                    dwQuCheckboxList.forEach(
+                        dwQuCheckbox -> dwQuCheckbox.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setCheckboxTd(dwQuCheckboxList);
                 List<DwQuMultiFillblank> dwQuMultiFillblankList = stringListMap4.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuMultiFillblankList)) {
+                    dwQuMultiFillblankList.forEach(
+                        dwQuMultiFillblank -> dwQuMultiFillblank.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setMultifillblankTd(dwQuMultiFillblankList);
                 List<DwQuOrderby> dwQuOrderbyList = stringListMap5.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuOrderbyList)) {
+                    dwQuOrderbyList.forEach(
+                        dwQuOrderby -> dwQuOrderby.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setOrderByTd(dwQuOrderbyList);
                 List<DwQuChenColumn> dwQuChenColumnList = stringListMap6.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuChenColumnList)) {
+                    dwQuChenColumnList.forEach(
+                        dwQuChenColumn -> dwQuChenColumn.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setColumnTd(dwQuChenColumnList);
                 List<DwQuChenRow> dwQuChenRowList = stringListMap7.get(id);
+                if (CollectionUtil.isNotEmpty(dwQuChenRowList)) {
+                    dwQuChenRowList.forEach(
+                        dwQuChenRow -> dwQuChenRow.setId(StrUtil.EMPTY)
+                    );
+                }
                 question.setRowTd(dwQuChenRowList);
                 question.setBelongId(examSurveyDirectory.getId());
             }
