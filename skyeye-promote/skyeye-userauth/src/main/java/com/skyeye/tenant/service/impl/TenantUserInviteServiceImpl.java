@@ -246,7 +246,7 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         sysEveUserStaff.setUserName(params.get("userName").toString());
         sysEveUserStaff.setUserSex(Integer.parseInt(params.get("userSex").toString()));
         sysEveUserStaff.setPhone(tenantUserInvite.getPhone());
-        sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
+        sysEveUserStaff.setUserPhoto("/images/util/assest/common/img/anonymous.png");
         sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
         sysEveUserStaff.setPassword(params.get("password").toString());
         // 开启自动注册账号

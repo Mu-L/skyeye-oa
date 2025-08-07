@@ -355,7 +355,7 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
         sysUserStaff.setUserName(arrangement.getInterviewMation().getName());
         sysUserStaff.setUserSex(arrangement.getInterviewMation().getSex());
         sysUserStaff.setPhone(arrangement.getInterviewMation().getPhone());
-        sysUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
+        sysUserStaff.setUserPhoto("/images/util/assest/common/img/anonymous.png");
         sysUserStaff.setUserIdCard(map.get("userIdCard").toString());
         String departmentId = arrangement.getPersonRequireMation().getRecruitDepartmentId();
         Map<String, Object> department = iDepmentService.queryDataMationById(departmentId);

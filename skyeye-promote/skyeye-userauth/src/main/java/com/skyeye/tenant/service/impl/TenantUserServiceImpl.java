@@ -447,7 +447,7 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         sysEveUserStaff.setUserName(params.get("userName").toString());
         sysEveUserStaff.setUserSex(Integer.parseInt(params.get("userSex").toString()));
         sysEveUserStaff.setPhone(params.get("phone").toString());
-        sysEveUserStaff.setUserPhoto("../../assets/images/anonymousphoto.jpg");
+        sysEveUserStaff.setUserPhoto("/images/util/assest/common/img/anonymous.png");
         sysEveUserStaff.setUserIdCard(params.get("userIdCard").toString());
         sysEveUserStaff.setPassword(params.get("password").toString());
         // 开启自动注册账号

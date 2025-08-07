@@ -209,7 +209,8 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
         final String[] allPrice = {"0"};
         if (CollectionUtil.isNotEmpty(beans)) {
             Map<String, String> countMap = beans.stream().collect(Collectors
-                .toMap(ShopTradeCart::getNormsId, shopTradeCart -> shopTradeCart.getCount().toString()));
+                .toMap(bean -> String.format("%s_%s", bean.getStoreId(), bean.getNormsId()),
+                    shopTradeCart -> shopTradeCart.getCount().toString()));
             // 收集规格id列表，获得规格信息
             List<String> normsIdList = beans.stream().map(ShopTradeCart::getNormsId).collect(Collectors.toList());
             List<Map<String, Object>> normsListMap = iShopMaterialNormsService
