@@ -269,6 +269,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<
             productNum.setStaffMation(staffMap.getOrDefault(productNum.getStaffId(), new HashMap<>()));
         });
         machinProcedureAccept.setMachinProcedureAcceptProductNumList(productNumList);
+        iAuthUserService.setDataMation(machinProcedureAccept, MachinProcedureAccept::getAcceptUserId);
         machinProcedureAccept.setFarmMation(farmService.selectById(machinProcedureAccept.getFarmId()));
         return machinProcedureAccept;
     }
