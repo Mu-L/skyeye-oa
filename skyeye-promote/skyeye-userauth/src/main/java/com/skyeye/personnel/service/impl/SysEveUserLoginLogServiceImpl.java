@@ -8,12 +8,13 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.IPSeeker;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.personnel.dao.SysEveUserLoginLogDao;
 import com.skyeye.personnel.entity.SysEveUserLoginLog;
-import com.skyeye.personnel.service.IpCityUtil;
 import com.skyeye.personnel.service.SysEveUserLoginLogService;
-import com.xxl.job.core.util.IpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,15 +48,16 @@ public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<Sys
                 loginLog.setUserId(userId);
                 loginLog.setUserCode(userCode);
                 // 设置登录信息
-                String loginIp = IpUtil.getIp();
-                loginLog.setLoginIp(loginIp);
+                String clientIp = ToolUtil.getIpByRequest(PutObject.getRequest());
+                loginLog.setLoginIp(clientIp);
                 loginLog.setLoginTime(DateUtil.getTimeAndToString());
                 loginLog.setLoginStatus(loginStatus);
                 loginLog.setLoginMessage(loginMessage);
                 loginLog.setDeviceType(deviceType);
 
                 // 获取IP对应的城市信息
-                String city = IpCityUtil.getCityByIp(loginIp);
+                String address = IPSeeker.getCountry(clientIp);
+                String city = IPSeeker.getCurCityByCountry(address);
                 loginLog.setLoginCity(city);
 
                 // 保存登录日志

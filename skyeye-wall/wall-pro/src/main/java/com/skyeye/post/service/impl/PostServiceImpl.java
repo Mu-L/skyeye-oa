@@ -45,13 +45,11 @@ import com.skyeye.upvote.entity.Upvote;
 import com.skyeye.upvote.service.UpvoteService;
 import com.skyeye.user.service.UserService;
 import com.skyeye.user.userenum.LoginIdentity;
-import com.xxl.job.core.util.IpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -194,7 +192,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), type);
             } else {
                 queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId), StrUtil.EMPTY)
-                        .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
+                    .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
             }
             bean = list(queryWrapper);
         } else if (StrUtil.isNotEmpty(objectId)) {
@@ -205,14 +203,14 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
             List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCreateId), objectId);
-            if(CollectionUtil.isNotEmpty(circleIds)){
+            if (CollectionUtil.isNotEmpty(circleIds)) {
                 queryWrapper.and(wrapper -> wrapper.in(MybatisPlusUtil.toColumns(Post::getCircleId), circleIds)
-                        .or().eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
-            }else {
+                    .or().eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
+            } else {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             }
             bean = list(queryWrapper);
-            circleService.setDataMation(bean,Post::getCircleId);
+            circleService.setDataMation(bean, Post::getCircleId);
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             bean = list(queryWrapper);
@@ -229,7 +227,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = queryPostList(inputObject);
         List<String> postIds = beans.stream()
-                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         // 获取评论信息
         Map<String, List<Comment>> commentMap = commentService.getCommentMapListByIds(postIds);
         // 获取帖子图片信息
@@ -251,10 +249,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         String userIdentity = PutObject.getRequest().getHeader(WallConstants.USER_IDENTITY_KEY);
         entity.setLoginIdentity(userIdentity);
         entity.setCreateId(userId);
-        entity.setIp(IpUtil.getLocalAddress().toString());
-        HttpServletRequest request = PutObject.getRequest();
-        String ipAddress = ToolUtil.getIpByRequest(request);
-        String address = IPSeeker.getCountry(ipAddress);
+        String clientIp = ToolUtil.getIpByRequest(PutObject.getRequest());
+        entity.setIp(clientIp);
+        String address = IPSeeker.getCountry(clientIp);
         entity.setAddress(address);
         String city = IPSeeker.getCurCityByCountry(address);
         entity.setCity(city);
@@ -391,8 +388,8 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
         } else {
             queryWrapper.and(wrapper -> wrapper.in(MybatisPlusUtil.toColumns(Post::getCircleId), circleIds)
-                    .or()
-                    .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
+                .or()
+                .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
@@ -403,7 +400,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         bean.forEach(post -> {
             post.setPictureList(pictureMap.get(post.getId()));
             post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
-                    CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
+                CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
             String serviceClassName = getServiceClassName();
             post.setObjectKey(serviceClassName);
         });
@@ -419,11 +416,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         //查询近三十天的帖子
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         queryWrapper
-                // 取浏览量超过1的帖子
-                .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
-                // 取前三十天以内的帖子
-                .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
-                .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
+            // 取浏览量超过1的帖子
+            .ge(MybatisPlusUtil.toColumns(Post::getViewNum), "1")
+            // 取前三十天以内的帖子
+            .between(MybatisPlusUtil.toColumns(Post::getCreateTime), beforeDay, today)
+            .orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
         if (tenantEnable) {
             queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
         }
@@ -445,7 +442,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), circleId);
         List<Post> postList = list(queryWrapper);
         List<String> postIds = postList.stream()
-                .map(Post::getId).collect(Collectors.toList());
+            .map(Post::getId).collect(Collectors.toList());
         pictureService.deleteByPostIds(postIds);
         commentService.deleteByPostIds(postIds);
         historyPostService.deleteHisPostByPostIds(postIds);
@@ -456,7 +453,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
     public void queryHotPostList(InputObject inputObject, OutputObject outputObject) {
         List<PopularPost> popularPostList = popularPostService.queryTodayHourPopularPostList();
         List<String> postIds = popularPostList.stream()
-                .map(PopularPost::getPostId).collect(Collectors.toList());
+            .map(PopularPost::getPostId).collect(Collectors.toList());
         QueryWrapper<Post> queryWrapper = new QueryWrapper<>();
         if (CollectionUtil.isEmpty(postIds)) {
             return;

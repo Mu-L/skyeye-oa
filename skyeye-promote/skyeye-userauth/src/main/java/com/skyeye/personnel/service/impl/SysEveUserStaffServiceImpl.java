@@ -104,9 +104,9 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
         } else {
             SysEveUserStaffQuery sysEveUserStaffQuery = inputObject.getParams(SysEveUserStaffQuery.class);
             Page page = PageHelper.startPage(sysEveUserStaffQuery.getPage(), sysEveUserStaffQuery.getLimit());
-            MPJLambdaWrapper<SysEveUserStaff> wrapper = JoinWrappers.lambda("userStaff", SysEveUserStaff.class)
-                .innerJoin(TenantUser.class, "tru", TenantUser::getStaffId, SysEveUserStaff::getId);
+            MPJLambdaWrapper<SysEveUserStaff> wrapper = JoinWrappers.lambda("userStaff", SysEveUserStaff.class);
             if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
+                wrapper.innerJoin(TenantUser.class, "tru", TenantUser::getStaffId, SysEveUserStaff::getId);
                 // 要适配人事下的员工管理
                 wrapper.eq("tru." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
             }
@@ -119,8 +119,10 @@ public class SysEveUserStaffServiceImpl extends SkyeyeBusinessServiceImpl<SysEve
             }
             if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getKeyword())) {
                 wrapper.and(item -> {
-                    item.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), sysEveUserStaffQuery.getKeyword())
-                        .or().like("tru.job_number ", sysEveUserStaffQuery.getKeyword());
+                    item.like(MybatisPlusUtil.toColumns(SysEveUserStaff::getUserName), sysEveUserStaffQuery.getKeyword());
+                    if (StrUtil.isNotEmpty(sysEveUserStaffQuery.getTenantId())) {
+                        item.or().like("tru.job_number ", sysEveUserStaffQuery.getKeyword());
+                    }
                 });
             }
             wrapper.orderByDesc(MybatisPlusUtil.toColumns(SysEveUserStaff::getCreateTime));

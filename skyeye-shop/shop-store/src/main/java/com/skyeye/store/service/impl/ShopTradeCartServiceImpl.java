@@ -208,8 +208,9 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
         Map<String, String> result = new HashMap<>();
         final String[] allPrice = {"0"};
         if (CollectionUtil.isNotEmpty(beans)) {
-            Map<String, String> countMap = beans.stream().collect(Collectors
-                .toMap(ShopTradeCart::getNormsId, shopTradeCart -> shopTradeCart.getCount().toString()));
+            // 遇到规格id相同的商品，就累加数量
+            Map<String, Integer> countMap = beans.stream().collect(Collectors
+                .toMap(ShopTradeCart::getNormsId, ShopTradeCart::getCount, Integer::sum));
             // 收集规格id列表，获得规格信息
             List<String> normsIdList = beans.stream().map(ShopTradeCart::getNormsId).collect(Collectors.toList());
             List<Map<String, Object>> normsListMap = iShopMaterialNormsService
@@ -217,7 +218,7 @@ public class ShopTradeCartServiceImpl extends SkyeyeBusinessServiceImpl<ShopTrad
             // 计算价格
             normsListMap.forEach(map -> {
                 String id = map.get("normsId").toString();
-                String count = countMap.get(id);
+                String count = StrUtil.toString(countMap.getOrDefault(id, CommonNumConstants.NUM_ZERO));
                 String salePrice = map.get("salePrice").toString();
                 String flagPrice = CalculationUtil.multiply(count, salePrice, CommonNumConstants.NUM_TWO);
                 allPrice[0] = CalculationUtil.add(allPrice[0], flagPrice);
