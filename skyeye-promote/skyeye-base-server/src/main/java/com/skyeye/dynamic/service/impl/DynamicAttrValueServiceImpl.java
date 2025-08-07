@@ -4,6 +4,7 @@
 
 package com.skyeye.dynamic.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DynamicAttrValueServiceImpl
@@ -104,14 +106,18 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
     public void queryBatchDynamicAttrValueList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         List<Map<String, Object>> list = JSONUtil.toList(params.get("list").toString(), null);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        String objectAppId = list.get(0).get("objectAppId").toString();
+        String objectKey = list.get(0).get("objectKey").toString();
+        List<String> objectIdList = list.stream()
+            .map(map -> map.get("objectId").toString()).distinct()
+            .collect(Collectors.toList());
         QueryWrapper<DynamicAttrValue> queryWrapper = new QueryWrapper<>();
-        queryWrapper.or(wrapper -> {
-            for (Map<String, Object> dynamicAttrValue : list) {
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.get("objectAppId").toString());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.get("objectId").toString());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.get("objectKey").toString());
-            }
-        });
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), objectAppId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
+        queryWrapper.in(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), objectIdList);
         List<DynamicAttrValue> dynamicAttrValueList = list(queryWrapper);
         outputObject.setBeans(dynamicAttrValueList);
         outputObject.settotal(dynamicAttrValueList.size());
