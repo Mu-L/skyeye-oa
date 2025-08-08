@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.Executor;
 
 /**
@@ -40,6 +41,7 @@ public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<Sys
     @Override
     @IgnoreTenant
     public void recordLoginLogAsync(String userId, String userCode, Integer deviceType, Integer loginStatus, String loginMessage) {
+        HttpServletRequest request = PutObject.getRequest();
         userLoginLogExecutor.execute(() -> {
             try {
                 SysEveUserLoginLog loginLog = new SysEveUserLoginLog();
@@ -48,7 +50,7 @@ public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<Sys
                 loginLog.setUserId(userId);
                 loginLog.setUserCode(userCode);
                 // 设置登录信息
-                String clientIp = ToolUtil.getIpByRequest(PutObject.getRequest());
+                String clientIp = ToolUtil.getIpByRequest(request);
                 loginLog.setLoginIp(clientIp);
                 loginLog.setLoginTime(DateUtil.getTimeAndToString());
                 loginLog.setLoginStatus(loginStatus);
