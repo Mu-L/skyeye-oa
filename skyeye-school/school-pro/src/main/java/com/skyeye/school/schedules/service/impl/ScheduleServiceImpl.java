@@ -77,6 +77,7 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getFacultyId), entity.getFacultyId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getMajorId), entity.getMajorId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), entity.getSemesterId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getClassId), entity.getClassId());
         Schedule one = getOne(queryWrapper);
         if (StrUtil.isEmpty(entity.getId()) && ObjectUtil.isNotEmpty(one)) {
             throw new CustomException("该学校院系专业已存在该学期课表");
@@ -104,6 +105,22 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     protected void deletePostpose(Schedule entity) {
         super.deletePostpose(entity);
         scheduleChildService.deleteByScheduleId(entity.getId());
+    }
+
+    @Override
+    public Schedule selectById(String id) {
+        Schedule schedule = super.selectById(id);
+        schoolService.setDataMation(schedule, Schedule::getSchoolId);
+        facultyService.setDataMation(schedule, Schedule::getFacultyId);
+        majorService.setDataMation(schedule, Schedule::getMajorId);
+        semesterService.setDataMation(schedule, Schedule::getSemesterId);
+        classesService.setDataMation(schedule, Schedule::getClassId);
+        iAuthUserService.setDataMation(schedule, Schedule::getCreateId);
+        iAuthUserService.setDataMation(schedule, Schedule::getLastUpdateId);
+        // 根据父id查找课表信息
+        List<ScheduleChild> scheduleChildList =  scheduleChildService.queryScheduleChildListByScheduleId(id);
+        schedule.setScheduleChildList(scheduleChildList);
+        return schedule;
     }
 
     @Override
@@ -159,6 +176,7 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         String semesterId = params.getOrDefault("semesterId", StrUtil.EMPTY).toString();
         String facultyId = params.getOrDefault("facultyId", StrUtil.EMPTY).toString();
         String majorId = params.getOrDefault("majorId", StrUtil.EMPTY).toString();
+        String classId = params.getOrDefault("classId", StrUtil.EMPTY).toString();
         Page page = PageHelper.startPage(pageNum, limit);
         QueryWrapper<Schedule> queryWrapper = new QueryWrapper<>();
         if (StrUtil.isNotEmpty(schoolId)) {
@@ -173,11 +191,17 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         if (StrUtil.isNotEmpty(semesterId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), semesterId);
         }
+        if (StrUtil.isNotEmpty(classId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getClassId), classId);
+        }
         List<Schedule> beans = list(queryWrapper);
         schoolService.setDataMation(beans, Schedule::getSchoolId);
         facultyService.setDataMation(beans, Schedule::getFacultyId);
         majorService.setDataMation(beans, Schedule::getMajorId);
         semesterService.setDataMation(beans, Schedule::getSemesterId);
+        classesService.setDataMation(beans, Schedule::getClassId);
+        iAuthUserService.setDataMation(beans, Schedule::getCreateId);
+        iAuthUserService.setDataMation(beans, Schedule::getLastUpdateId);
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(beans);
     }

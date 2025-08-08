@@ -48,23 +48,23 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
     public void createPrepose(FloorInfo floorInfo) {
         Integer nodeType = floorInfo.getNodeType();
         String parentId = floorInfo.getParentId();
-        if(nodeType == FloorInfoEnum.ClASS_INFO_ENUM.getKey()) {
+        if (nodeType == FloorInfoEnum.ClASS_INFO_ENUM.getKey()) {
             // 新增的节点是教室
             setDisabledStatus(floorInfo, parentId, FloorInfoEnum.ClASS_INFO_ENUM.getKey());
-        }else if(nodeType == FloorInfoEnum.SERVICE_INFO_ENUM.getKey()) {
+        } else if (nodeType == FloorInfoEnum.SERVICE_INFO_ENUM.getKey()) {
             // 新增的节点是服务
             setDisabledStatus(floorInfo, parentId, FloorInfoEnum.SERVICE_INFO_ENUM.getKey());
-        }else {
+        } else {
             // 新增的节点是楼层
             floorInfo.setLevel(FloorInfoEnum.FLOOR_INFO_ENUM.getKey());
         }
     }
 
-    private void setDisabledStatus(FloorInfo floorInfo, String parentId,Integer level) {
+    private void setDisabledStatus(FloorInfo floorInfo, String parentId, Integer level) {
         QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(CommonConstants.ID, parentId);
         FloorInfo one = getOne(queryWrapper);
-        if(one.getStatus() == EnableEnum.DISABLE_USING.getKey()){
+        if (one.getStatus() == EnableEnum.DISABLE_USING.getKey()) {
             floorInfo.setStatus(EnableEnum.DISABLE_USING.getKey());
         }
         floorInfo.setLevel(level);
@@ -194,5 +194,21 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         iAuthUserService.setName(list, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());
+    }
+
+    @Override
+    public void queryFloorClassList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String keyword = (String) params.get("keyword");
+        QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotEmpty(keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(FloorInfo::getName), keyword);
+        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getNodeType), FloorInfoEnum.ClASS_INFO_ENUM.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getStatus),EnableEnum.ENABLE_USING.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FloorInfo::getCreateTime));
+        List<FloorInfo> bean = list(queryWrapper);
+        outputObject.setBeans(bean);
+        outputObject.settotal(bean.size());
     }
 }

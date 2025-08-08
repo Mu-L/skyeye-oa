@@ -320,6 +320,19 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
         return stringListMap;
     }
 
+    @Override
+    public void queryAllSubjectList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String keyword = ( String) params.get("keyword");
+        QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
+        if(StrUtil.isNotEmpty( keyword)){
+            queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), keyword);
+        }
+        List<Subject> beans = list(queryWrapper);
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
     private List<Subject> querySubjectListByUserId(String userId) {
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Subject::getCreateId), userId);

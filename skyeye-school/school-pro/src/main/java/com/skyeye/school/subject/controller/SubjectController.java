@@ -90,4 +90,13 @@ public class SubjectController {
     public void queryMySubjectList(InputObject inputObject, OutputObject outputObject) {
         subjectService.queryMySubjectListOnly(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryAllSubjectList", value = "获取所有科目信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id="keyword", name="keyword", value="关键字")
+    })
+    @RequestMapping("/post/SubjectController/queryAllSubjectList")
+    public void queryAllSubjectList(InputObject inputObject, OutputObject outputObject) {
+        subjectService.queryAllSubjectList(inputObject, outputObject);
+    }
 }

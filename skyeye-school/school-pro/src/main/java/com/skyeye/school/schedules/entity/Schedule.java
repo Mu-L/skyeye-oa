@@ -7,6 +7,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.Map;
 @Data
 @TableName(value = "school_lectures_schedules")
 @ApiModel(value = "排课表实体类")
-public class Schedule extends CommonInfo {
+public class Schedule extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty("主键id。为空时新增，不为空时编辑")
@@ -65,4 +66,12 @@ public class Schedule extends CommonInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "课程信息", required = "required,json")
     private List<ScheduleChild> scheduleChildList;
+
+    @TableField("class_id")
+    @ApiModelProperty(value = "班级id", required = "required")
+    private String classId;
+
+    @TableField(exist = false)
+    @Property("班级信息")
+    private Map<String, Object> classMation;
 }

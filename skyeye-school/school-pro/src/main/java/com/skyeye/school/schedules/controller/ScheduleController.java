@@ -41,7 +41,8 @@ public class ScheduleController {
             @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校"),
             @ApiImplicitParam(id = "facultyId", name = "facultyId", value = "院系"),
             @ApiImplicitParam(id = "majorId", name = "majorId", value = "年级"),
-            @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期")
+            @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期"),
+            @ApiImplicitParam(id = "classId", name = "classId", value = "班级")
     })
     @RequestMapping("/post/ScheduleController/querySchedulesInfoList")
     public void querySchedulesInfoList(InputObject inputObject, OutputObject outputObject) {

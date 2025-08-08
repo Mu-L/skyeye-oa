@@ -31,7 +31,7 @@ public class ScheduleChild extends OperatorUserInfo {
     private String id;
 
     @TableField("parent_id")
-    @ApiModelProperty(value = "父表id,排课表id", required = "required")
+    @ApiModelProperty(value = "父表id,排课表id")
     private String parentId;
 
     @TableField("course_id")
@@ -93,13 +93,5 @@ public class ScheduleChild extends OperatorUserInfo {
     @TableField("student_hour")
     @ApiModelProperty(value = "学时", required = "required,num")
     private Integer studentHour;
-
-    @TableField("class_id")
-    @ApiModelProperty(value = "班级id", required = "required")
-    private String classId;
-
-    @TableField(exist = false)
-    @Property("班级信息")
-    private Map<String, Object> classMation;
 
 }
