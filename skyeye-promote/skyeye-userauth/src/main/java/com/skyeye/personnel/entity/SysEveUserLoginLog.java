@@ -36,7 +36,7 @@ public class SysEveUserLoginLog extends CommonInfo {
     private String userId;
 
     @TableField(value = "user_code")
-    @ApiModelProperty(value = "用户账号", required = "required")
+    @ApiModelProperty(value = "用户账号", required = "required", fuzzyLike = true)
     private String userCode;
 
     @TableField(value = "login_ip")
