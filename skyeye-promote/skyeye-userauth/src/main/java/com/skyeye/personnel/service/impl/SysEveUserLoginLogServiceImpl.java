@@ -4,14 +4,17 @@
 
 package com.skyeye.personnel.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.IPSeeker;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.personnel.dao.SysEveUserLoginLogDao;
 import com.skyeye.personnel.entity.SysEveUserLoginLog;
 import com.skyeye.personnel.service.SysEveUserLoginLogService;
@@ -71,4 +74,10 @@ public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<Sys
         });
     }
 
+    @Override
+    protected QueryWrapper<SysEveUserLoginLog> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<SysEveUserLoginLog> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SysEveUserLoginLog::getLoginTime));
+        return queryWrapper;
+    }
 }
