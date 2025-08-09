@@ -226,4 +226,5 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
         return list(queryWrapper);
     }
+
 }

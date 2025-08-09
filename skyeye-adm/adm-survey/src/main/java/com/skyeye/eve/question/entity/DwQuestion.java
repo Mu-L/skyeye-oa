@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.chen.entity.*;
