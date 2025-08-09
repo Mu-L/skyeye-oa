@@ -16,4 +16,6 @@ import com.skyeye.school.building.entity.FloorInfo;
 
 public interface FloorInfoService extends SkyeyeBusinessService<FloorInfo> {
     void queryFloorInfosByLocationId(InputObject inputObject, OutputObject outputObject);
+
+    void queryFloorClassList(InputObject inputObject, OutputObject outputObject);
 }

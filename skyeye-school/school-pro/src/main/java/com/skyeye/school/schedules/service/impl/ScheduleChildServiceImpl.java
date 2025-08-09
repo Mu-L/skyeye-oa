@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,9 +47,6 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
 
     @Autowired
     private FloorInfoService floorInfoService;
-
-    @Autowired
-    private ClassesService classesService;
 
     @Autowired
     private SubjectService subjectService;
@@ -84,14 +82,19 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
     }
 
     @Override
+    @IgnoreTenant
     public void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         // 查出这个学校-学期的所有课表
         Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = new MPJLambdaWrapper<>();
-        mpjLambdaWrapper.innerJoin(Schedule.class, Schedule::getId, ScheduleChild::getParentId);
+        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
+        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
         mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
         mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
+        if (tenantEnable) {
+            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+        }
         List<ScheduleChild> list = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
 
         scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
@@ -104,17 +107,22 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
     }
 
     @Override
+    @IgnoreTenant
     public void updateScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
 
         // 查出这个学校-学期的所有课表（不包括当前正在编辑的课表）
         Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = new MPJLambdaWrapper<>();
-        mpjLambdaWrapper.innerJoin(Schedule.class, Schedule::getId, ScheduleChild::getParentId);
+        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
+        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
         mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
         mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
         // 排除当前正在编辑的课表，避免与自己冲突
         mpjLambdaWrapper.ne(MybatisPlusUtil.toColumns(ScheduleChild::getParentId), parentId);
+        if (tenantEnable) {
+            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+        }
         List<ScheduleChild> existingList = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
 
         // 设置父ID
@@ -243,9 +251,19 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
         // 设置信息
         floorInfoService.setDataMation(beans, ScheduleChild::getClassroomId);
         subjectService.setDataMation(beans, ScheduleChild::getCourseId);
-        classesService.setDataMation(beans, ScheduleChild::getClassId);
         iAuthUserService.setDataMation(beans, ScheduleChild::getTeacherId);
         return beans;
 
+    }
+
+    @Override
+    public List<ScheduleChild> queryScheduleChildListByScheduleId(String id) {
+        QueryWrapper<ScheduleChild> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getParentId), id);
+        List<ScheduleChild> beans = list(queryWrapper);
+        floorInfoService.setDataMation(beans, ScheduleChild::getClassroomId);
+        subjectService.setDataMation(beans, ScheduleChild::getCourseId);
+        iAuthUserService.setDataMation(beans, ScheduleChild::getTeacherId);
+        return beans;
     }
 }

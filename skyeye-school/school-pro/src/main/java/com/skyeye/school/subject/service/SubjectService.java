@@ -32,5 +32,7 @@ public interface SubjectService extends SkyeyeBusinessService<Subject> {
 
     Map<String, List<Subject>> selectByIdList(List<String> subjectIds);
 
+    void queryAllSubjectList(InputObject inputObject, OutputObject outputObject);
+
 //    void queryTeacherMessage(InputObject inputObject, OutputObject outputObject);
 }

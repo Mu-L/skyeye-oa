@@ -62,4 +62,15 @@ public class FloorInfoController {
     public void queryFloorInfoById(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.selectById(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryFloorClassList", value = "获取所有的教室", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字")
+    })
+    @RequestMapping("/post/FloorInfoController/queryFloorClassList")
+    public void queryFloorClassList(InputObject inputObject, OutputObject outputObject) {
+        floorInfoService.queryFloorClassList(inputObject, outputObject);
+    }
+
+
 }
