@@ -106,56 +106,6 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
         createEntity(collect, userId);
     }
 
-    @Override
-    @IgnoreTenant
-    public void updateScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-
-        // 查出这个学校-学期的所有课表（不包括当前正在编辑的课表）
-        Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
-        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
-        // 排除当前正在编辑的课表，避免与自己冲突
-        mpjLambdaWrapper.ne(MybatisPlusUtil.toColumns(ScheduleChild::getParentId), parentId);
-        if (tenantEnable) {
-            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-        }
-        List<ScheduleChild> existingList = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
-
-        // 设置父ID
-        scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
-
-        // 合并现有课程和当前编辑的课程
-        List<ScheduleChild> allScheduleList = new ArrayList<>(existingList);
-        allScheduleList.addAll(scheduleChildList);
-
-        // 校验冲突
-        validateScheduleConflicts(allScheduleList);
-
-        // 分离新增和更新的数据
-        List<ScheduleChild> toCreateList = scheduleChildList.stream()
-                .filter(course -> StrUtil.isEmpty(course.getId()))
-                .collect(Collectors.toList());
-
-        List<ScheduleChild> toUpdateList = scheduleChildList.stream()
-                .filter(course -> StrUtil.isNotEmpty(course.getId()))
-                .collect(Collectors.toList());
-
-        // 批量创建新增的数据
-        if (!toCreateList.isEmpty()) {
-            createEntity(toCreateList, userId);
-        }
-
-        // 批量更新已有的数据
-        if (!toUpdateList.isEmpty()) {
-            updateEntity(toUpdateList, userId);
-        }
-    }
-
-
     /**
      * 校验排课冲突
      */
