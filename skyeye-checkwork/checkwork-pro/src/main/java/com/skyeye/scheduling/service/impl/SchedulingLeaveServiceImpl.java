@@ -13,10 +13,13 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
+import com.skyeye.rest.erp.service.IFarmStaffService;
 import com.skyeye.scheduling.classenum.ScheduleLeaveType;
 import com.skyeye.scheduling.dao.SchedulingLeaveDao;
 import com.skyeye.scheduling.entity.SchedulingLeave;
 import com.skyeye.scheduling.service.SchedulingLeaveService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -43,12 +46,23 @@ public class SchedulingLeaveServiceImpl extends SkyeyeBusinessServiceImpl<Schedu
         }
     }
 
+    @Autowired
+    private IFarmStaffService iFarmStaffService;
+
     @Override
     protected void updatePrepose(SchedulingLeave entity) {
         time(entity);
         SchedulingLeave schedulingLeave = selectById(entity.getId());
         if (schedulingLeave.getStatus().equals(ScheduleLeaveType.APPROVED.getKey())) {
             throw new RuntimeException("该请假记录已审核，无法修改");
+        }
+        List<Map<String, Object>> maps = iFarmStaffService.queryStaffByFarmId(entity.getFarmId());
+        List<String> staffIds = maps.stream()
+            .filter(m -> m.get("staffId") != null)
+            .map(m -> m.get("staffId").toString())
+            .collect(Collectors.toList());
+        if (!staffIds.contains(entity.getEmployeeId())) {
+            throw new CustomException("该员工已不属于该车间");
         }
     }
 
