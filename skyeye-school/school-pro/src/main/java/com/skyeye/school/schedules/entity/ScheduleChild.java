@@ -40,7 +40,7 @@ public class ScheduleChild extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "课程名称")
-    private String courseMation;
+    private Map<String,Object> courseMation;
 
     @TableField("teacher_id")
     @ApiModelProperty(value = "教师id", required = "required")

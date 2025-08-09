@@ -194,6 +194,7 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         if (StrUtil.isNotEmpty(classId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getClassId), classId);
         }
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Schedule::getCreateTime));
         List<Schedule> beans = list(queryWrapper);
         schoolService.setDataMation(beans, Schedule::getSchoolId);
         facultyService.setDataMation(beans, Schedule::getFacultyId);

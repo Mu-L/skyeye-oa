@@ -201,6 +201,19 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
                                     courseA.getTeacherId()
                             ));
                         }
+
+                        // 检查班级冲突
+                        if (courseA.getParentId().equals(courseB.getParentId())) {
+                            throw new CustomException(String.format(
+                                    "班级冲突：星期%d，%d-%d周，第%d-%d节，班级[%s]时间冲突",
+                                    courseA.getWeekDay(),
+                                    Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
+                                    Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
+                                    Math.max(courseA.getStartNum(), courseB.getStartNum()),
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
+                                    courseA.getParentId()
+                            ));
+                        }
                     }
                 }
             }
