@@ -90,16 +90,15 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     }
 
     @Override
-    protected void createPostpose(Schedule entity, String userId) {
-        super.createPostpose(entity, userId);
-        scheduleChildService.writeScheduleChildList(entity.getId(), entity.getScheduleChildList());
-    }
-
-    @Override
     protected void updatePostpose(Schedule entity, String userId) {
         super.updatePostpose(entity, userId);
         scheduleChildService.deleteByScheduleId(entity.getId());
-        scheduleChildService.writeScheduleChildList(entity.getId(), entity.getScheduleChildList());
+    }
+
+    @Override
+    protected void writePostpose(Schedule entity, String userId) {
+        super.writePostpose(entity, userId);
+        scheduleChildService.writeScheduleChildList(entity,userId);
     }
 
     @Override

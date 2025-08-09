@@ -1,6 +1,7 @@
 package com.skyeye.school.schedules.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.school.schedules.entity.Schedule;
 import com.skyeye.school.schedules.entity.ScheduleChild;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import java.util.List;
 public interface ScheduleChildService extends SkyeyeBusinessService<ScheduleChild> {
     void deleteByScheduleId(String id);
 
-    void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList);
+    void writeScheduleChildList(Schedule entity, String userId);
 
     List<ScheduleChild> queryMyScheduleBySemesterIdAndWeek(String userId, String semesterId, Integer week);
 

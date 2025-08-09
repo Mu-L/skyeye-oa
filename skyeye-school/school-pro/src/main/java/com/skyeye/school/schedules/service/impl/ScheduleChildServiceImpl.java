@@ -13,8 +13,8 @@ import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.building.service.FloorInfoService;
-import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.schedules.dao.ScheduleChildDao;
 import com.skyeye.school.schedules.entity.Schedule;
 import com.skyeye.school.schedules.entity.ScheduleChild;
@@ -24,8 +24,6 @@ import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,13 +41,12 @@ import java.util.stream.Collectors;
 public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleChildDao, ScheduleChild> implements ScheduleChildService {
 
     @Autowired
-    private ScheduleService scheduleService;
-
-    @Autowired
     private FloorInfoService floorInfoService;
 
     @Autowired
     private SubjectService subjectService;
+
+    private static final String LOCK_KEY = "schedule:";
 
     @Override
     protected void validatorEntity(List<ScheduleChild> entity) {
@@ -83,27 +80,42 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
 
     @Override
     @IgnoreTenant
-    public void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        // 查出这个学校-学期的所有课表
-        Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
-        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
-        if (tenantEnable) {
-            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-        }
-        List<ScheduleChild> list = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
+    public void writeScheduleChildList(Schedule entity, String userId) {
+        List<ScheduleChild> scheduleChildList = entity.getScheduleChildList();
+        String lockKey = tenantEnable ? LOCK_KEY + entity.getSchoolId() + ":" + entity.getSemesterId() + ":" + TenantContext.getTenantId()
+                : LOCK_KEY + entity.getSchoolId() + ":" + entity.getSemesterId();
+        RedisLock lock = new RedisLock(lockKey);
+        try {
+            if (!lock.lock()) {
+                //  加锁失败
+                return;
+            }
+            // 查出这个学校-学期的所有课表
+            MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
+            mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), entity.getSchoolId());
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), entity.getSemesterId());
+            if (tenantEnable) {
+                mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+                mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+            }
+            List<ScheduleChild> list = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
 
-        scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
-        list.addAll(scheduleChildList);
-        // 校验
-        validateScheduleConflicts(list);
-        // 过滤出id为空的数据
-        List<ScheduleChild> collect = list.stream().filter(course -> StrUtil.isEmpty(course.getId())).collect(Collectors.toList());
-        createEntity(collect, userId);
+            scheduleChildList.forEach(scheduleChild -> {
+                scheduleChild.setParentId(entity.getId());
+                scheduleChild.setId(StrUtil.EMPTY);
+            });
+            list.addAll(scheduleChildList);
+            // 校验
+            validateScheduleConflicts(list);
+            // 过滤出id为空的数据
+            createEntity(scheduleChildList, userId);
+        } catch (Exception e) {
+            throw new CustomException("新增课表失败:" + e);
+        } finally {
+            // 释放锁
+            lock.unlock();
+        }
     }
 
     /**
