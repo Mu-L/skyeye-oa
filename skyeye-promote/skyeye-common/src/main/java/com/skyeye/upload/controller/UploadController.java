@@ -94,6 +94,20 @@ public class UploadController {
     }
 
     /**
+     * 上传Markdown压缩包并解析图片
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    @ApiOperation(id = "markdownZipUploadAndParse", value = "上传Markdown压缩包并解析图片", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "type", name = "type", value = "文件类型", required = "required,num")})
+    @RequestMapping("/post/UploadController/markdownZipUploadAndParse")
+    public void markdownZipUploadAndParse(InputObject inputObject, OutputObject outputObject) {
+        uploadService.markdownZipUploadAndParse(inputObject, outputObject);
+    }
+
+    /**
      * 上传文件Base64
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -139,7 +153,7 @@ public class UploadController {
     /**
      * 获取文件预签名地址，模式二：前端上传文件：用于前端直接上传七牛、阿里云 OSS 等文件存储器
      *
-     * @param inputObject 入参以及用户信息等获取对象
+     * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @ApiOperation(id = "getFilePresignedUrl", value = "获取文件预签名地址，模式二：前端上传文件：用于前端直接上传七牛、阿里云 OSS 等文件存储器", method = "GET", allUse = "2")
