@@ -36,12 +36,6 @@ public class QualityInspectionController {
     @Autowired
     private QualityInspectionService qualityInspectionService;
 
-    /**
-     * 获取质检单信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryQualityInspectionList", value = "获取质检单信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QualityInspectionController/queryQualityInspectionList")
@@ -49,12 +43,6 @@ public class QualityInspectionController {
         qualityInspectionService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑质检单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeQualityInspection", value = "新增/编辑质检单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = QualityInspection.class)
     @RequestMapping("/post/QualityInspectionController/writeQualityInspection")
@@ -62,12 +50,6 @@ public class QualityInspectionController {
         qualityInspectionService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 质检申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitQualityInspectionToApproval", value = "质检申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/QualityInspectionController/submitToApproval")
@@ -75,12 +57,6 @@ public class QualityInspectionController {
         qualityInspectionService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 删除质检申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteQualityInspection", value = "删除质检申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -89,12 +65,6 @@ public class QualityInspectionController {
         qualityInspectionService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销质检申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeQualityInspection", value = "撤销质检申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -103,12 +73,6 @@ public class QualityInspectionController {
         qualityInspectionService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 转采购入库单时，根据id查询质检单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryQualityInspectionTransById", value = "转采购入库单时，根据id查询质检单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -117,12 +81,6 @@ public class QualityInspectionController {
         qualityInspectionService.queryQualityInspectionTransById(inputObject, outputObject);
     }
 
-    /**
-     * 质检单转采购入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "qualityInspectionToPurchasePut", value = "质检单转采购入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchasePut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -131,12 +89,6 @@ public class QualityInspectionController {
         qualityInspectionService.qualityInspectionToPurchasePut(inputObject, outputObject);
     }
 
-    /**
-     * 转采购退货单时，根据id查询质检单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryQualityInspectionTransReturnById", value = "转采购退货单时，根据id查询质检单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -145,12 +97,6 @@ public class QualityInspectionController {
         qualityInspectionService.queryQualityInspectionTransReturnById(inputObject, outputObject);
     }
 
-    /**
-     * 质检单转采购退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "qualityInspectionToPurchaseReturn", value = "质检单转采购退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseReturn.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -159,29 +105,17 @@ public class QualityInspectionController {
         qualityInspectionService.qualityInspectionToPurchaseReturn(inputObject, outputObject);
     }
 
-    /**
-     * 转采购换货单时，根据id查询质检单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryQualityInspectionTransExchangesById", value = "转采购换货单时，根据id查询质检单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/QualityInspectionController/queryQualityInspectionTransExchangesById")
     public void queryQualityInspectionTransExchangesById(InputObject inputObject, OutputObject outputObject) {
         qualityInspectionService.queryQualityInspectionTransExchangesById(inputObject, outputObject);
     }
 
-    /**
-     * 质检单转采购换货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "qualityInspectionToPurchaseExchanges", value = "质检单转采购换货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/QualityInspectionController/qualityInspectionToPurchaseExchanges")
     public void qualityInspectionToPurchaseExchanges(InputObject inputObject, OutputObject outputObject) {
         qualityInspectionService.qualityInspectionToPurchaseExchanges(inputObject, outputObject);
