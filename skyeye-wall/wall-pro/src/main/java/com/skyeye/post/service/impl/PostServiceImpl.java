@@ -180,7 +180,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (StrUtil.isNotEmpty(holderId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), holderId);
             // 设置用户信息--和点赞信息
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
             setUserMations(bean);
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
@@ -194,7 +196,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId), StrUtil.EMPTY)
                     .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
             }
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
@@ -215,7 +219,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             outputObject.settotal(page.getTotal());
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
         }
         if (CollectionUtil.isEmpty(bean)) {
             return new ArrayList<>();
@@ -504,14 +510,11 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         List<Map<String, Object>> beans = queryPostList(inputObject,outputObject);
         List<String> postIds = beans.stream()
                 .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
-        // 获取评论信息
-        Map<String, List<Comment>> commentMap = commentService.getCommentMapListByIds(postIds);
+
         // 获取帖子图片信息
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
         beans.forEach(bean -> {
             String id = bean.get("id").toString();
-            // 设置评论信息
-            bean.put("commentList", CollectionUtil.sub(commentMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
             // 设置图片信息
             bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
             bean.put("pictureSize", pictureMap.size());
