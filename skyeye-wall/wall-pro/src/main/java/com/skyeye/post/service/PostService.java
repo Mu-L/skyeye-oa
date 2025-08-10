@@ -46,4 +46,6 @@ public interface PostService extends SkyeyeBusinessService<Post> {
     List<Post> queryPostListByIds(List<String> postIds);
 
     void updatePostShareNum(String postId, int num);
+
+    void queryPostLists(InputObject inputObject, OutputObject outputObject);
 }
