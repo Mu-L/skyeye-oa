@@ -108,7 +108,8 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
             validateScheduleConflicts(list);
             // 过滤出id为空的数据
             createEntity(scheduleChildList, userId);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            throw new CustomException(e);
         } finally {
             // 释放锁
             lock.unlock();
@@ -170,6 +171,16 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
                                     Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
+
+                        // 同一时间片不能被两个不同的课程占用（即使教室、教师、班级都不同）
+                        throw new CustomException(String.format(
+                                "时间冲突：星期%d，%d-%d周，第%d-%d节，该时间段已被占用",
+                                courseA.getWeekDay(),
+                                Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
+                                Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
+                                Math.max(courseA.getStartNum(), courseB.getStartNum()),
+                                Math.min(courseA.getEndNum(), courseB.getEndNum())
+                        ));
                     }
                 }
             }
