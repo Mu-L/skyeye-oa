@@ -27,10 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -139,6 +136,21 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
     }
 
     @Override
+    public Map<String, Map<String, MachinProcedure>> queryMachinProcedureMapByMachinIds(List<String> machinIds) {
+        if (CollectionUtil.isEmpty(machinIds)) {
+            return Collections.emptyMap();
+        }
+        QueryWrapper<MachinProcedure> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedure::getParentId), machinIds);
+        List<MachinProcedure> machinProcedureList = list(queryWrapper);
+        Map<String, Map<String, MachinProcedure>> machinProcedureMap = machinProcedureList.stream()
+            .collect(Collectors.groupingBy(MachinProcedure::getParentId, Collectors.toMap(bean ->
+                String.format(Locale.ROOT, "%s-%s-%s-%s-%s-%s",
+                    bean.getChildId(), bean.getBomChildId(), bean.getMaterialId(), bean.getNormsId(), bean.getWayProcedureId(), bean.getProcedureId()), bean -> bean)));
+        return machinProcedureMap;
+    }
+
+    @Override
     public void editStateById(String id, Integer state) {
         UpdateWrapper<MachinProcedure> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
@@ -194,6 +206,7 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
 
     /**
      * 根据加工单子单据工序信息id查询同一加工单子单据工序信息
+     *
      * @param machinProcedureId 加工单子单据工序信息id
      * @return 同一加工单子单据工序信息
      */

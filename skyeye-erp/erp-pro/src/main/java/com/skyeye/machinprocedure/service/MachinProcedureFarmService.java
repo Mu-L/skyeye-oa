@@ -24,6 +24,8 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
 
     Map<String, List<MachinProcedureFarm>> queryMachinProcedureFarmMapByMachinId(String machinId);
 
+    Map<String, Map<String, List<MachinProcedureFarm>>> queryMachinProcedureFarmMapByMachinIds(List<String> machinIds);
+
     void receiveMachinProcedureFarm(InputObject inputObject, OutputObject outputObject);
 
     void receptionReceiveMachinProcedureFarm(InputObject inputObject, OutputObject outputObject);

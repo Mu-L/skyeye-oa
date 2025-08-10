@@ -21,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
+import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinChild;
 import com.skyeye.machin.service.MachinPutService;
 import com.skyeye.machin.service.MachinService;
@@ -36,10 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,12 +90,16 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        machinService.setMachinMationByFromId(beans, "machinId", "machinMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         machinProcedureService.setMationForMap(beans, "machinProcedureId", "machinProcedureMation");
+        // 获取加工单信息
+        List<String> machinIds = beans.stream().map(bean -> MapUtil.getStr(bean, "machinId"))
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String, Machin> machinMap = machinService.selectMapByIds(machinIds);
         // 判断是否是最后一条工序
         beans.forEach(bean -> {
             String machinId = MapUtil.getStr(bean, "machinId");
+            bean.put("machinMation", machinMap.get(machinId));
             Map<String, Object> machinProcedureMation = (Map<String, Object>) bean.get("machinProcedureMation");
             if (MapUtil.isNotEmpty(machinProcedureMation)) {
                 String childId = MapUtil.getStr(machinProcedureMation, "childId");
@@ -106,7 +108,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
                 String materialId = MapUtil.getStr(machinProcedureMation, "materialId");
                 String normsId = MapUtil.getStr(machinProcedureMation, "normsId");
                 String procedureId = MapUtil.getStr(machinProcedureMation, "procedureId");
-                Boolean isLastProcedure = machinService.checkIsLastProcedure(machinId, childId, bomChildId, wayProcedureId,
+                Boolean isLastProcedure = machinService.checkIsLastProcedure(machinMap.get(machinId), childId, bomChildId, wayProcedureId,
                     materialId, normsId, procedureId);
                 bean.put("isLastProcedure", isLastProcedure);
             } else {
@@ -166,6 +168,29 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         });
         Map<String, List<MachinProcedureFarm>> machinProcedureFarmMap = machinProcedureFarmList.stream()
             .collect(Collectors.groupingBy(MachinProcedureFarm::getMachinProcedureId));
+        return machinProcedureFarmMap;
+    }
+
+    @Override
+    public Map<String, Map<String, List<MachinProcedureFarm>>> queryMachinProcedureFarmMapByMachinIds(List<String> machinIds) {
+        if (CollectionUtil.isEmpty(machinIds)) {
+            return Collections.emptyMap();
+        }
+        QueryWrapper<MachinProcedureFarm> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinId), machinIds);
+        List<MachinProcedureFarm> machinProcedureFarmList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(machinProcedureFarmList)) {
+            return MapUtil.newHashMap();
+        }
+        // 设置车间的工序验收单信息
+        List<String> ids = machinProcedureFarmList.stream().map(MachinProcedureFarm::getId).collect(Collectors.toList());
+        Map<String, List<MachinProcedureAccept>> machinProcedureAcceptMap = machinProcedureAcceptService
+            .queryMachinProcedureAcceptByMachinProcedureFarmId(ids.toArray(new String[]{}));
+        machinProcedureFarmList.forEach(machinProcedureFarm -> {
+            machinProcedureFarm.setMachinProcedureAcceptList(machinProcedureAcceptMap.get(machinProcedureFarm.getId()));
+        });
+        Map<String, Map<String, List<MachinProcedureFarm>>> machinProcedureFarmMap = machinProcedureFarmList.stream()
+            .collect(Collectors.groupingBy(MachinProcedureFarm::getMachinId, Collectors.groupingBy(MachinProcedureFarm::getMachinProcedureId)));
         return machinProcedureFarmMap;
     }
 
