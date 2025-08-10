@@ -30,6 +30,8 @@ public interface MachinProcedureService extends SkyeyeBusinessService<MachinProc
 
     Map<String, MachinProcedure> queryMachinProcedureMapByMachinId(String machinId);
 
+    Map<String, Map<String, MachinProcedure>> queryMachinProcedureMapByMachinIds(List<String> machinIds);
+
     void editStateById(String id, Integer state);
 
     /**
@@ -43,5 +45,6 @@ public interface MachinProcedureService extends SkyeyeBusinessService<MachinProc
     List<MachinProcedure> queryListByMachinId(String machinId);
 
     List<MachinProcedure> querySameListById(String machinProcedureId);
+
     List<MachinProcedure> queryMachinProcedureByIds(List<String> machinProcedureIdList);
 }
