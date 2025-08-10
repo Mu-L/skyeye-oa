@@ -263,6 +263,9 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         majorService.setMationForMap(resultBeans, "majorId", "majorMation");
         semesterService.setMationForMap(resultBeans, "semesterId", "semesterMation");
         classesService.setMationForMap(resultBeans, "classId", "classMation");
+        subjectService.setMationForMap(resultBeans, "courseId", "courseMation");
+        floorInfoService.setMationForMap(resultBeans, "classroomId", "classroomMation");
+        iAuthUserService.setMationForMap(resultBeans, "teacherId", "teacherMation");
         outputObject.setBeans(resultBeans);
         outputObject.settotal(resultBeans.size());
     }
