@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -445,7 +446,7 @@ public class UploadServiceImpl implements UploadService {
         try {
             // 使用系统临时目录
             String userId = InputObject.getLogParamsStatic().get("id").toString();
-            String basePath = "E:" + FileConstants.FileUploadPath.getSavePath(type, userId)
+            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type, userId)
                 + CommonCharConstants.SLASH_MARK + "temp";
             FileUtil.createDirs(basePath);
             // 保存临时文件
@@ -492,8 +493,35 @@ public class UploadServiceImpl implements UploadService {
             }
         }
 
+        // 尝试多种编码方式解压ZIP文件
+        Exception lastException = null;
+        Charset[] charsets = {
+            StandardCharsets.UTF_8,
+            StandardCharsets.ISO_8859_1,
+            Charset.forName("GBK"),
+            Charset.forName("GB2312"),
+            Charset.forName("GB18030")
+        };
+
+        for (Charset charset : charsets) {
+            try {
+                unzipWithCharset(zipFile, destPath, charset);
+                LOGGER.info("成功使用编码 {} 解压ZIP文件: {}", charset.name(), zipPath);
+                return; // 成功解压，退出方法
+            } catch (Exception e) {
+                lastException = e;
+                LOGGER.warn("使用编码 {} 解压ZIP文件失败: {}, 错误: {}", charset.name(), zipPath, e.getMessage());
+                // 继续尝试下一个编码
+            }
+        }
+
+        // 所有编码都失败，抛出最后一个异常
+        throw new IOException("无法解压ZIP文件，已尝试多种编码方式: " + zipPath, lastException);
+    }
+
+    private void unzipWithCharset(File zipFile, Path destPath, Charset charset) throws IOException {
         try (InputStream fis = Files.newInputStream(zipFile.toPath());
-             ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
+             ZipInputStream zis = new ZipInputStream(fis, charset)) {
             ZipEntry entry;
             int entryCount = 0;
             while ((entry = zis.getNextEntry()) != null) {
@@ -503,7 +531,10 @@ public class UploadServiceImpl implements UploadService {
                         throw new IOException("ZIP文件包含过多条目，可能存在安全风险");
                     }
 
-                    Path newPath = resolveZipEntry(destPath, entry);
+                    // 安全处理文件名，避免编码问题
+                    String entryName = getSafeEntryName(entry, charset);
+                    Path newPath = resolveZipEntry(destPath, entryName);
+
                     if (entry.isDirectory()) {
                         Files.createDirectories(newPath);
                     } else {
@@ -512,7 +543,8 @@ public class UploadServiceImpl implements UploadService {
                     }
                 } catch (Exception e) {
                     LOGGER.error("解压条目失败: " + entry.getName(), e);
-                    throw new IOException("解压条目失败: " + entry.getName() + ", 原因: " + e.getMessage());
+                    // 不立即抛出异常，继续处理其他条目
+                    continue;
                 } finally {
                     zis.closeEntry();
                 }
@@ -526,12 +558,39 @@ public class UploadServiceImpl implements UploadService {
         }
     }
 
-    private Path resolveZipEntry(Path destDir, ZipEntry entry) throws IOException {
-        Path normalizedPath = destDir.resolve(entry.getName()).normalize();
+    private String getSafeEntryName(ZipEntry entry, Charset charset) {
+        try {
+            // 尝试获取原始字节数据
+            byte[] nameBytes = entry.getName().getBytes(charset);
+            // 重新解码，确保编码一致性
+            return new String(nameBytes, charset);
+        } catch (Exception e) {
+            LOGGER.warn("处理ZIP条目名称时出现编码问题: {}, 使用原始名称", entry.getName());
+            // 如果编码处理失败，返回原始名称
+            return entry.getName();
+        }
+    }
+
+    private Path resolveZipEntry(Path destDir, String entryName) throws IOException {
+        // 清理文件名，移除或替换不安全的字符
+        String safeEntryName = sanitizeFileName(entryName);
+        Path normalizedPath = destDir.resolve(safeEntryName).normalize();
         if (!normalizedPath.startsWith(destDir)) {
-            throw new IOException("不安全的zip条目: " + entry.getName());
+            throw new IOException("不安全的zip条目: " + safeEntryName);
         }
         return normalizedPath;
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return "unnamed_file";
+        }
+
+        // 移除或替换不安全的字符
+        return fileName
+            .replaceAll("[<>:\"/\\\\|?*]", "_")  // 替换Windows不允许的字符
+            .replaceAll("\\s+", "_")             // 替换多个空格为下划线
+            .trim();
     }
 
     private List<Map<String, Object>> processMarkdownDirectory(String rootDir, int type) throws IOException {
@@ -628,24 +687,6 @@ public class UploadServiceImpl implements UploadService {
             }
         }
         fileService.createEntity(file, userId);
-    }
-
-    private void deleteRecursively(File file) {
-        if (file == null || !file.exists()) {
-            return;
-        }
-        if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null) {
-                for (File c : children) {
-                    deleteRecursively(c);
-                }
-            }
-        }
-        try {
-            file.delete();
-        } catch (Exception ignore) {
-        }
     }
 
 }
