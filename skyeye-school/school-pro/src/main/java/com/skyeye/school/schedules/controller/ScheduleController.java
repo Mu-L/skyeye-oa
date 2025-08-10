@@ -90,6 +90,7 @@ public class ScheduleController {
     @ApiImplicitParams(value = {
             @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期id", required = "required"),
             @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id"),
+            @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
             @ApiImplicitParam(id = "classroomId", name = "classroomId", value = "教室id"),
             @ApiImplicitParam(id = "week", name = "week", value = "周次", required = "num")})
     @RequestMapping("/post/ScheduleController/queryScheduleList")
