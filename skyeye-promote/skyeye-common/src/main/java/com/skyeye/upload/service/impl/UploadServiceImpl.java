@@ -445,7 +445,7 @@ public class UploadServiceImpl implements UploadService {
         try {
             // 使用系统临时目录
             String userId = InputObject.getLogParamsStatic().get("id").toString();
-            String basePath = "E:" + FileConstants.FileUploadPath.getSavePath(type, userId)
+            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type, userId)
                 + CommonCharConstants.SLASH_MARK + "temp";
             FileUtil.createDirs(basePath);
             // 保存临时文件
