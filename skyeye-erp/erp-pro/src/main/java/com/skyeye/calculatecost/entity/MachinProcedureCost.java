@@ -1,15 +1,25 @@
 package com.skyeye.calculatecost.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.mchange.lang.StringUtils;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.machinprocedure.entity.MachinProcedure;
 import com.skyeye.machinprocedure.entity.MachinProcedureAcceptChild;
+import com.skyeye.material.entity.Material;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class MachinProcedureCost {
+
+    @ApiModelProperty(value = "商品id")
+    private String materialId;
+
+    @ApiModelProperty(value = "规格id")
+    private String normsId;
 
     @ApiModelProperty(value = "该工序生产的商品名称")
     private String materialName;

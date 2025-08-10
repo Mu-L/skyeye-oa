@@ -47,6 +47,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -444,7 +445,7 @@ public class UploadServiceImpl implements UploadService {
         try {
             // 使用系统临时目录
             String userId = InputObject.getLogParamsStatic().get("id").toString();
-            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type, userId)
+            String basePath = "E:" + FileConstants.FileUploadPath.getSavePath(type, userId)
                 + CommonCharConstants.SLASH_MARK + "temp";
             FileUtil.createDirs(basePath);
             // 保存临时文件
@@ -474,18 +475,54 @@ public class UploadServiceImpl implements UploadService {
 
     private void unzip(String zipPath, String destDir) throws IOException {
         Path destPath = new File(destDir).toPath();
-        try (InputStream fis = Files.newInputStream(new File(zipPath).toPath()); ZipInputStream zis = new ZipInputStream(fis)) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                Path newPath = resolveZipEntry(destPath, entry);
-                if (entry.isDirectory()) {
-                    Files.createDirectories(newPath);
-                } else {
-                    Files.createDirectories(newPath.getParent());
-                    Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
-                }
-                zis.closeEntry();
+
+        // 验证ZIP文件
+        File zipFile = new File(zipPath);
+        if (!zipFile.exists() || !zipFile.canRead()) {
+            throw new IOException("ZIP文件不存在或无法读取: " + zipPath);
+        }
+
+        // 验证ZIP文件格式
+        try (FileInputStream fis = new FileInputStream(zipFile)) {
+            byte[] header = new byte[4];
+            if (fis.read(header) != 4 ||
+                header[0] != 0x50 || header[1] != 0x4B ||
+                header[2] != 0x03 || header[3] != 0x04) {
+                throw new IOException("不是有效的ZIP文件格式");
             }
+        }
+
+        try (InputStream fis = Files.newInputStream(zipFile.toPath());
+             ZipInputStream zis = new ZipInputStream(fis, StandardCharsets.UTF_8)) {
+            ZipEntry entry;
+            int entryCount = 0;
+            while ((entry = zis.getNextEntry()) != null) {
+                try {
+                    entryCount++;
+                    if (entryCount > 1000) { // 防止ZIP炸弹
+                        throw new IOException("ZIP文件包含过多条目，可能存在安全风险");
+                    }
+
+                    Path newPath = resolveZipEntry(destPath, entry);
+                    if (entry.isDirectory()) {
+                        Files.createDirectories(newPath);
+                    } else {
+                        Files.createDirectories(newPath.getParent());
+                        Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("解压条目失败: " + entry.getName(), e);
+                    throw new IOException("解压条目失败: " + entry.getName() + ", 原因: " + e.getMessage());
+                } finally {
+                    zis.closeEntry();
+                }
+            }
+
+            if (entryCount == 0) {
+                throw new IOException("ZIP文件为空或损坏");
+            }
+        } catch (ZipException e) {
+            throw new IOException("ZIP文件格式错误: " + e.getMessage(), e);
         }
     }
 
