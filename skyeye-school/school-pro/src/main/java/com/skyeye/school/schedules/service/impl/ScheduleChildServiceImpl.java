@@ -8,7 +8,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.object.InputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -19,7 +18,6 @@ import com.skyeye.school.schedules.dao.ScheduleChildDao;
 import com.skyeye.school.schedules.entity.Schedule;
 import com.skyeye.school.schedules.entity.ScheduleChild;
 import com.skyeye.school.schedules.service.ScheduleChildService;
-import com.skyeye.school.schedules.service.ScheduleService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -110,8 +108,7 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
             validateScheduleConflicts(list);
             // 过滤出id为空的数据
             createEntity(scheduleChildList, userId);
-        } catch (Exception e) {
-            throw new CustomException("新增课表失败:" + e);
+        } catch (Exception ignored) {
         } finally {
             // 释放锁
             lock.unlock();
@@ -141,39 +138,36 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
                         // 检查教室冲突
                         if (courseA.getClassroomId().equals(courseB.getClassroomId())) {
                             throw new CustomException(String.format(
-                                    "教室冲突：星期%d，%d-%d周，第%d-%d节，教室[%s]被重复使用",
+                                    "教室冲突：星期%d，%d-%d周，第%d-%d节，教室被重复使用",
                                     courseA.getWeekDay(),
                                     Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
                                     Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
                                     Math.max(courseA.getStartNum(), courseB.getStartNum()),
-                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
-                                    courseA.getClassroomId()
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
 
                         // 检查教师冲突
                         if (courseA.getTeacherId().equals(courseB.getTeacherId())) {
                             throw new CustomException(String.format(
-                                    "教师冲突：星期%d，%d-%d周，第%d-%d节，教师[%s]时间冲突",
+                                    "教师冲突：星期%d，%d-%d周，第%d-%d节，教师时间冲突",
                                     courseA.getWeekDay(),
                                     Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
                                     Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
                                     Math.max(courseA.getStartNum(), courseB.getStartNum()),
-                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
-                                    courseA.getTeacherId()
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
 
                         // 检查班级冲突
                         if (courseA.getParentId().equals(courseB.getParentId())) {
                             throw new CustomException(String.format(
-                                    "班级冲突：星期%d，%d-%d周，第%d-%d节，班级[%s]时间冲突",
+                                    "班级冲突：星期%d，%d-%d周，第%d-%d节，班级时间冲突",
                                     courseA.getWeekDay(),
                                     Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
                                     Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
                                     Math.max(courseA.getStartNum(), courseB.getStartNum()),
-                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
-                                    courseA.getParentId()
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
                     }
