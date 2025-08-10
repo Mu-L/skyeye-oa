@@ -23,7 +23,7 @@ import java.util.Map;
  */
 
 @Data
-@TableName(value = "school_lectures_schedules")
+@TableName(value = "school_lectures_schedules", autoResultMap = true)
 @ApiModel(value = "排课表实体类")
 public class Schedule extends OperatorUserInfo {
 
