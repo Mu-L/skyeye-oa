@@ -54,9 +54,6 @@ public class MachinProcedureCost {
     @ApiModelProperty(value = "报废数量")
     private Integer scrapNum;
 
-    @ApiModelProperty(value = "加工单价")
-    private String price;
-
     @ApiModelProperty(value = "工资金额")
     private String wage;
 
