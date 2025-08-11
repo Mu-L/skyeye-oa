@@ -22,12 +22,6 @@ public class SalesExchangesController {
     @Autowired
     private SalesExchangesService sealExchangesService;
 
-    /**
-     * 获取销售换货单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySalesExchangesList", value = "获取销售换货单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SealExchangesController/querySalesExchangesList")
@@ -35,12 +29,6 @@ public class SalesExchangesController {
         sealExchangesService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑销售换货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSalesExchanges", value = "新增/编辑销售换货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesExchanges.class)
     @RequestMapping("/post/SealExchangesController/writeSalesExchanges")
@@ -48,57 +36,33 @@ public class SalesExchangesController {
         sealExchangesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库入库单时，根据id查询销售换货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySalesExchangesToDepotPutById", value = "转仓库入库单时，根据id查询销售换货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SealExchangesController/querySalesExchangesToDepotPutById")
     public void querySalesExchangesToDepotPutById(InputObject inputObject, OutputObject outputObject) {
         sealExchangesService.querySalesExchangesToDepotPutById(inputObject, outputObject);
     }
 
-    /**
-     * 销售换货单信息转仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSalesExchangesToTurnDepot", value = "销售换货单信息转仓库入库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotPut.class, value = {
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SealExchangesController/insertSalesExchangesToTurnDepot")
     public void insertSalesExchangesToTurnDepot(InputObject inputObject, OutputObject outputObject) {
         sealExchangesService.insertSalesExchangesToTurnDepot(inputObject, outputObject);
     }
 
-    /**
-     * 转销售出库单时，根据id查询销售换货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySalesExchangesToSalesOutLetById", value = "转销售出库单时，根据id查询销售换货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SealExchangesController/querySalesExchangesToSalesOutLetById")
     public void querySalesExchangesToSalesOutLetById(InputObject inputObject, OutputObject outputObject) {
         sealExchangesService.querySalesExchangesToSalesOutLetById(inputObject, outputObject);
     }
 
-    /**
-     * 销售换货单信息转销售出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSalesExchangesToSalesOutLet", value = "销售换货单信息转销售出库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SalesOutLet.class, value = {
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/SealExchangesController/insertSalesExchangesToSalesOutLet")
     public void insertSalesExchangesToSalesOutLet(InputObject inputObject, OutputObject outputObject) {
         sealExchangesService.insertSalesExchangesToSalesOutLet(inputObject, outputObject);

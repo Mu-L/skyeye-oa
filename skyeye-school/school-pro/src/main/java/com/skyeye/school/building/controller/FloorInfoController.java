@@ -63,10 +63,10 @@ public class FloorInfoController {
         floorInfoService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryFloorClassList", value = "获取所有的教室", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFloorClassList", value = "根据学校id和教室关键字获取教室信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字")
-    })
+            @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字"),
+            @ApiImplicitParam(id= "schoolId",name = "schoolId", value = "学校id", required = "required")})
     @RequestMapping("/post/FloorInfoController/queryFloorClassList")
     public void queryFloorClassList(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.queryFloorClassList(inputObject, outputObject);

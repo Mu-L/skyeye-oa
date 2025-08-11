@@ -229,10 +229,12 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         String semesterId = params.get("semesterId").toString();
         String teacherId = params.getOrDefault("teacherId", StrUtil.EMPTY).toString();
         String classroomId = params.getOrDefault("classroomId", StrUtil.EMPTY).toString();
+        String schoolId = params.get("schoolId").toString();
         String week = params.get("week").toString();
         MPJLambdaWrapper<Schedule> queryWrapper = JoinWrappers.lambda("s", Schedule.class);
             queryWrapper.innerJoin(ScheduleChild.class, "sc", ScheduleChild::getParentId, Schedule::getId)
-                    .eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), semesterId);
+                    .eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), semesterId)
+                    .eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schoolId);
         if (StrUtil.isNotEmpty(teacherId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getTeacherId), teacherId);
         }
