@@ -1,11 +1,15 @@
 package com.skyeye.cost.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.cost.dao.ProUserCostDao;
 import com.skyeye.cost.entity.ProUserCost;
@@ -15,9 +19,7 @@ import com.skyeye.organization.service.IDepmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,5 +79,34 @@ public class ProUserCostServiceImpl extends SkyeyeBusinessServiceImpl<ProUserCos
         proUserCost.setUserMation(staffMap);
         iDepmentService.setDataMation(proUserCost, ProUserCost::getDepartmentId);
         return proUserCost;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryLastMonthHumanCost() {
+        QueryWrapper<ProUserCost> queryWrapper = new QueryWrapper<>();
+        //获取上个月日期
+        String lastMonth = DateUtil.getLastMonthDate();
+        queryWrapper.apply("DATE_FORMAT("+MybatisPlusUtil.toColumns(ProUserCost::getCreateTime)+", '%Y-%m') = {0}",lastMonth);
+        queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ProUserCost::getProjectId));
+        List<ProUserCost> bean = list(queryWrapper);
+        List<Map<String,Object>> result = new ArrayList<>();
+        if(CollectionUtil.isEmpty(bean)){
+            return result;
+        }
+        // 根据projectId分组
+        Map<String, List<ProUserCost>> groupMap = bean.stream().collect(Collectors.groupingBy(ProUserCost::getProjectId));
+        for (Map.Entry<String, List<ProUserCost>> entry : groupMap.entrySet()) {
+            Map<String,Object> map = new HashMap<>();
+            String price = String.valueOf(CommonNumConstants.NUM_ZERO);
+            map.put("projectId",entry.getKey());
+            for (ProUserCost proUserCost : entry.getValue()) {
+                price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
+                        StrUtil.isEmpty(proUserCost.getTotalPrice()) ? "0" : proUserCost.getTotalPrice(),
+                        price);
+            }
+            map.put("price",price);
+            result.add(map);
+        }
+        return result;
     }
 }
