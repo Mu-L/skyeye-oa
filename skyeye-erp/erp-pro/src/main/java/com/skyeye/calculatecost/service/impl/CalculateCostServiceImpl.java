@@ -386,7 +386,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
         machinPutCost.setAllNum(currentOperNumber);
-        machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
         if (currentOperNumber <= CommonNumConstants.NUM_ZERO) {
@@ -410,7 +409,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setConsumablePrice(CalculationUtil.multiply(machinPutCost.getConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setScrapConsumablePrice(CalculationUtil.multiply(machinPutCost.getScrapConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setNormalConsumablePrice(CalculationUtil.multiply(machinPutCost.getNormalConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
-        machinPutCost.setPrice(CalculationUtil.multiply(machinPutCost.getPrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setWage(CalculationUtil.multiply(machinPutCost.getWage(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setTotalPrice(CalculationUtil.multiply(machinPutCost.getTotalPrice(), proportion, CommonNumConstants.NUM_SIX));
         return machinPutCost;
@@ -426,7 +424,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
         machinPutCost.setAllNum(machinChild.getOperNumber());
-        machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
         machinPutCost.setNowNum(CommonNumConstants.NUM_ZERO);
@@ -440,7 +437,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             // 工资金额
             machinPutCost.setWage(CalculationUtil.add(machinPutCost.getWage(), machinProcedureCost.getWage(), CommonNumConstants.NUM_SIX));
             // 总价
-            machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinPutCost.getPrice(), CommonNumConstants.NUM_SIX));
+            machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinProcedureCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
             // 当前已经生产的数量
             if (machinChild.getMaterialId().equals(machinProcedureCost.getMaterialId()) && machinChild.getNormsId().equals(machinProcedureCost.getNormsId())) {
                 machinPutCost.setNowNum(machinPutCost.getNowNum() + machinProcedureCost.getAllNum());

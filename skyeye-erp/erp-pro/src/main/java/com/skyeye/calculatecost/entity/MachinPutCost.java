@@ -28,9 +28,6 @@ public class MachinPutCost {
     @ApiModelProperty(value = "目标生产数量")
     private Integer allNum;
 
-    @ApiModelProperty(value = "加工单价")
-    private String price;
-
     @ApiModelProperty(value = "工资金额")
     private String wage;
 
