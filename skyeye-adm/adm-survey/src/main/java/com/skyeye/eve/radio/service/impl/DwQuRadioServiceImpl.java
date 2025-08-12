@@ -18,6 +18,8 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.entity.DwQuestionLogic;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.dao.DwQuRadioDao;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.radio.service.DwQuRadioService;
@@ -42,6 +44,9 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
 
     @Autowired
     private DwQuRadioService dwQuRadioService;
+
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
 
     @Override
     protected QueryWrapper<DwQuRadio> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -128,7 +133,8 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
                 if (radio.getCheckType() != null && !ToolUtil.isNumeric(radio.getCheckType().toString())) {
                     bean.setCheckType(CheckType.valueOf(radio.getCheckType().toString()).getIndex());
                 }
-                if (ToolUtil.isBlank(radio.getId())) {
+                if (StrUtil.isEmpty(radio.getId())) {
+                    bean.setId(StrUtil.EMPTY);
                     bean.setQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
@@ -142,14 +148,12 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            List<String> entity = super.createEntity(insertList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
-            return selectByIds(join);
+            createEntity(insertList, userId);
+            return insertList;
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            List<String> strings = super.updateEntity(updateList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
-            return selectByIds(join);
+            updateEntity(updateList, userId);
+            return updateList;
         }
         return Collections.emptyList();
     }
@@ -219,6 +223,13 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         }
         createRadios(dwQuestionList, userId);
 
+    }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
     }
 
     @Override

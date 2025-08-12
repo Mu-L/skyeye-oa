@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -25,8 +24,10 @@ import com.skyeye.eve.checkbox.dao.DwQuCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwQuCheckbox;
 import com.skyeye.eve.checkbox.service.DwQuCheckboxService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -43,6 +44,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "多选题选项管理", groupName = "多选题选项管理", manageShow = false)
 public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheckboxDao, DwQuCheckbox> implements DwQuCheckboxService {
+
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
 
     @Override
     protected QueryWrapper<DwQuCheckbox> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -176,18 +180,15 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
         }
 
         if (!insertList.isEmpty()) {
-            List<String> entity = super.createEntity(insertList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
-            return selectByIds(join);
+            super.createEntity(insertList, userId);
+            return insertList;
         }
         if (!updateList.isEmpty()) {
-            List<String> strings = super.updateEntity(updateList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
-            return selectByIds(join);
+            super.updateEntity(updateList, userId);
+            return updateList;
         }
         return Collections.emptyList();
     }
-
 
     @Override
     public void updateCheckboxs(List<DwQuestion> dwQuestionList, String userId) {
@@ -225,6 +226,13 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
             deleteById(needDeleteIdList);
         }
         createCheckboxs(dwQuestionList, userId);
+    }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
     }
 
     @Override

@@ -70,14 +70,6 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
     }
 
     @Override
-    public List<DwQuestionLogic> selectByQuestionId(String ckQuId) {
-        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), ckQuId);
-        List<DwQuestionLogic> list = list(queryWrapper);
-        return list;
-    }
-
-    @Override
     public Map<String, List<DwQuestionLogic>> selectByQuestionIds(List<String> questionIds) {
         if (CollectionUtil.isEmpty(questionIds)) {
             return new HashMap<>();
@@ -147,7 +139,6 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
                     bean.setGeLe(logic.getGeLe());
                 }
                 if (ToolUtil.isBlank(logic.getId())) {
-                    bean.setSkQuId(quId);
                     bean.setVisibility(1);
                     bean.setCreateId(userId);
                     bean.setCreateTime(DateUtil.getTimeAndToString());
@@ -188,6 +179,20 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), id);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getVisibility), 1);
         return getOne(queryWrapper);
+    }
+
+    @Override
+    public void removeByQuIds(List<String> ids) {
+        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), ids);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void deleteByCkQuId(List<String> ids) {
+        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), ids);
+        remove(queryWrapper);
     }
 }
 

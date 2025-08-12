@@ -17,11 +17,14 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.entity.DwQuestionLogic;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import com.skyeye.eve.score.dao.DwQuScoreDao;
 import com.skyeye.eve.score.entity.DwQuScore;
 import com.skyeye.eve.score.service.DwQuScoreService;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,6 +41,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "评分题选项管理", groupName = "评分题选项管理")
 public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao, DwQuScore> implements DwQuScoreService {
+
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
 
     @Override
     protected QueryWrapper<DwQuScore> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -78,14 +84,6 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         }
         quScore.addAll(editquScore);
     }
-
-//    @Override
-//    protected void deletePreExecution(DwQuScore entity) {
-//        Integer visibility = entity.getVisibility();
-//        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-//            throw new CustomException("该选项已显示，请先隐藏再删除");
-//        }
-//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
@@ -149,14 +147,12 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         }
 
         if (!insertList.isEmpty()) {
-            List<String> entity = super.createEntity(insertList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
-            return selectByIds(join);
+            super.createEntity(insertList, userId);
+            return insertList;
         }
         if (!updateList.isEmpty()) {
-            List<String> strings = super.updateEntity(updateList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
-            return selectByIds(join);
+            super.updateEntity(updateList, userId);
+            return updateList;
 
         }
         return Collections.emptyList();
@@ -207,6 +203,14 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         }
         createScores(dwQuestionList, userId);
     }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
+    }
+
 
     @Override
     public void removeByQuIds(List<String> dwQuestionIds) {

@@ -19,6 +19,7 @@ import com.skyeye.eve.chen.dao.DwQuChenRowDao;
 import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +43,13 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     @Autowired
     private DwQuChenRowService dwQuChenRowService;
 
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
+
     @Override
     public void saveRowEntity(List<DwQuChenRow> quRow, String userId) {
         createEntity(quRow, userId);
     }
-
 
     @Override
     public void updateRowEntity(List<DwQuChenRow> editquRow, String userId) {
@@ -180,6 +183,13 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
             deleteById(needDeleteIdList);
         }
         createChenRows(dwQuestionList, userId);
+    }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
     }
 
     @Override

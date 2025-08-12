@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -20,7 +19,9 @@ import com.skyeye.eve.orderby.dao.DwQuOrderbyDao;
 import com.skyeye.eve.orderby.entity.DwQuOrderby;
 import com.skyeye.eve.orderby.service.DwQuOrderbyService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,6 +30,9 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "排序题行选项管理", groupName = "排序题行选项管理")
 public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderbyDao, DwQuOrderby> implements DwQuOrderbyService {
+
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
 
     @Override
     protected QueryWrapper<DwQuOrderby> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -70,14 +74,6 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
         quOrderBy.addAll(editquOrderBy);
     }
 
-//    @Override
-//    protected void deletePreExecution(DwQuOrderby entity) {
-//        Integer visibility = entity.getVisibility();
-//        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-//            throw new CustomException("该选项已显示，请先隐藏再删除");
-//        }
-//    }
-
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -118,14 +114,12 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
         }
 
         if (!insertList.isEmpty()) {
-            List<String> entity = super.createEntity(insertList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
-            return selectByIds(join);
+            super.createEntity(insertList, userId);
+            return insertList;
         }
         if (!updateList.isEmpty()) {
-            List<String> strings = super.updateEntity(updateList, userId);
-            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
-            return selectByIds(join);
+            super.updateEntity(updateList, userId);
+            return updateList;
 
         }
         return Collections.emptyList();
@@ -196,6 +190,13 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
             deleteById(needDeleteIdList);
         }
         createOrderbys(dwQuestionList, userId);
+    }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
     }
 
     @Override

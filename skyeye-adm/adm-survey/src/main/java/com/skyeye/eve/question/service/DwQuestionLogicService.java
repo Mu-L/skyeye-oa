@@ -12,8 +12,6 @@ import java.util.Map;
 public interface DwQuestionLogicService extends SkyeyeBusinessService<DwQuestionLogic> {
     List<DwQuestionLogic> setLogics(String quId, List<DwQuestionLogic> questionLogic, String userId);
 
-    List<DwQuestionLogic> selectByQuestionId(String ckQuId);
-
     Map<String, List<DwQuestionLogic>> selectByQuestionIds(List<String> questionIds);
 
     void queryDwQuestionLogicList(InputObject inputObject, OutputObject outputObject);
@@ -25,5 +23,9 @@ public interface DwQuestionLogicService extends SkyeyeBusinessService<DwQuestion
     List<DwQuestionLogic> selectByDwQuestionIdList(List<String> dwQuestionIdList);
 
     DwQuestionLogic selectLogicByIdByQuId(String id);
+
+    void removeByQuIds(List<String> ids);
+
+    void deleteByCkQuId(List<String> ids);
 
 }

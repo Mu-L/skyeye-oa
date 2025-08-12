@@ -21,6 +21,7 @@ import com.skyeye.eve.chen.entity.DwQuChenRow;
 import com.skyeye.eve.chen.service.DwQuChenColumnService;
 import com.skyeye.eve.chen.service.DwQuChenRowService;
 import com.skyeye.eve.question.entity.DwQuestion;
+import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.entity.DwQuRadio;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,9 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
 
     @Autowired
     private DwQuChenRowService dwQuChenRowService;
+
+    @Autowired
+    private DwQuestionLogicService dwQuestionLogicService;
 
     @Override
     protected QueryWrapper<DwQuChenColumn> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -109,17 +113,6 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
             dwQuChenRowService.updateRowEntity(editquRow, userId);
         }
     }
-
-//    @Override
-//    protected void deletePreExecution(DwQuChenColumn entity) {
-//        String createId = entity.getCreateId();
-//        String quId = entity.getQuId();
-//        Integer queryvisibility = dwQuChenRowService.QueryvisibilityInRow(quId, createId);
-////        Integer visibility = entity.getVisibility();
-////        if (visibility.equals(CommonNumConstants.NUM_ONE) && queryvisibility.equals(CommonNumConstants.NUM_ONE)) {
-////            throw new CustomException("该选项已显示，请先隐藏再删除");
-////        }
-//    }
 
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
@@ -248,6 +241,13 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
             deleteById(needDeleteIdList);
         }
         createChenColumns(dwQuestionList, userId);
+    }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            dwQuestionLogicService.deleteByCkQuId(ids);
+        }
     }
 
     @Override
