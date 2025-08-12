@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -119,7 +120,7 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
     }
 
     @Override
-    public void createScores(List<DwQuestion> dwQuestionList, String userId) {
+    public List<DwQuScore> createScores(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuScore> insertList = new ArrayList<>();
         List<DwQuScore> updateList = new ArrayList<>();
         Map<String, List<DwQuScore>> quRadioMap = new HashMap<>();
@@ -148,11 +149,17 @@ public class DwQuScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwQuScoreDao
         }
 
         if (!insertList.isEmpty()) {
-            createEntity(insertList, userId);
+            List<String> entity = super.createEntity(insertList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
+            return selectByIds(join);
         }
         if (!updateList.isEmpty()) {
-            updateEntity(updateList, userId);
+            List<String> strings = super.updateEntity(updateList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
+            return selectByIds(join);
+
         }
+        return Collections.emptyList();
     }
 
     @Override

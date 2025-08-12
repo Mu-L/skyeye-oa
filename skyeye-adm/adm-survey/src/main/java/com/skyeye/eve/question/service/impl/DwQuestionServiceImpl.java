@@ -51,6 +51,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -123,6 +124,12 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
 
     }
 
+    public List<DwQuestion> filterByQutype(List<DwQuestion> dwQuestionList, Integer qutype) {
+        return dwQuestionList.stream()
+            .filter(q -> q.getQuType() != null && q.getQuType().equals(qutype))
+            .collect(Collectors.toList());
+    }
+
     @Override
     public void createPostpose(List<DwQuestion> dwQuestionList, String userId) {
         for (DwQuestion entity : dwQuestionList) {
@@ -133,13 +140,316 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 throw new CustomException("题目标记值不正确");
             }
         }
+
+        List<DwQuRadio> radios = dwQuRadioService.createRadios(dwQuestionList, userId);
+        List<DwQuestion> dwRadioQuestions = filterByQutype(dwQuestionList, QuType.RADIO.getIndex());
+        List<DwQuScore> scores = dwQuScoreService.createScores(dwQuestionList, userId);
+        List<DwQuestion> dwScoreQuestions = filterByQutype(dwQuestionList, QuType.SCORE.getIndex());
+        List<DwQuCheckbox> checkboxs = dwQuCheckboxService.createCheckboxs(dwQuestionList, userId);
+        List<DwQuestion> dwCheckboxQuestions = filterByQutype(dwQuestionList, QuType.CHECKBOX.getIndex());
+        List<DwQuMultiFillblank> multiFillblanks = dwQuMultiFillblankService.createMultiFillblanks(dwQuestionList, userId);
+        List<DwQuestion> dwMultiFillblankQuestions = filterByQutype(dwQuestionList, QuType.MULTIFILLBLANK.getIndex());
+        List<DwQuOrderby> orderbys = dwQuOrderbyService.createOrderbys(dwQuestionList, userId);
+        List<DwQuestion> dwOrderbyQuestions = filterByQutype(dwQuestionList, QuType.ORDERQU.getIndex());
+        List<DwQuestion> dwQuestionChenRadioList = filterByQutype(dwQuestionList, QuType.CHENRADIO.getIndex());
+        List<DwQuestion> dwQuestionChenCheckboxList = filterByQutype(dwQuestionList, QuType.CHENCHECKBOX.getIndex());
+        List<DwQuestion> dwQuestionChenFbkList = filterByQutype(dwQuestionList, QuType.CHENFBK.getIndex());
+        List<DwQuestion> dwQuestionChenScoreList = filterByQutype(dwQuestionList, QuType.CHENSCORE.getIndex());
+        List<String> copyIdList = dwQuestionList.stream().map(DwQuestion::getCopyFromId).collect(Collectors.toList());
+        // 复制题目时的复制逻辑
+        if (CollectionUtil.isNotEmpty(copyIdList)) {
+            for (DwQuestion dwQuestion : dwQuestionList) {
+                // 设置逻辑
+                List<DwQuestionLogic> questionLogic = dwQuestion.getQuestionLogic();
+                Integer quType = dwQuestion.getQuType();
+                if (quType.equals(QuType.RADIO.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
+                            Integer orderByQuId = dwQuestion2.getOrderById();
+                            DwQuestion target1 = dwRadioQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
+                            dwQuestionLogic.setCkQuId(target1.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
+                                dwQuestionLogic.setCgQuItemId(String.valueOf(CommonNumConstants.NUM_ZERO));
+                            }
+                            DwQuRadio dwQuRadio = dwQuRadioService.selectById(cgQuItemId);
+                            // 选项的序号
+                            Integer orderById = dwQuRadio.getOrderById();
+                            DwQuRadio order1Radio = radios.stream().filter(
+                                r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
+                            dwQuestionLogic.setCgQuItemId(order1Radio.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion1.getOrderById();
+                            DwQuestion target = dwRadioQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(target.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.SCORE.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
+                            Integer orderByQuId = dwQuestion2.getOrderById();
+                            DwQuestion target1 = dwScoreQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
+                            dwQuestionLogic.setCkQuId(target1.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
+                                dwQuestionLogic.setCgQuItemId(String.valueOf(CommonNumConstants.NUM_ZERO));
+                            }
+                            DwQuScore dwQuScore = dwQuScoreService.selectById(cgQuItemId);
+                            // 选项的序号
+                            Integer orderById = dwQuScore.getOrderById();
+                            DwQuScore order1Score = scores.stream().filter(
+                                r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
+                            dwQuestionLogic.setCgQuItemId(order1Score.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion1.getOrderById();
+                            DwQuestion target = dwScoreQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(target.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.CHECKBOX.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
+                            Integer orderByQuId = dwQuestion2.getOrderById();
+                            DwQuestion target1 = dwCheckboxQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
+                            dwQuestionLogic.setCkQuId(target1.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
+                                dwQuestionLogic.setCgQuItemId(String.valueOf(CommonNumConstants.NUM_ZERO));
+                            }
+                            DwQuCheckbox dwQuCheckbox = dwQuCheckboxService.selectById(cgQuItemId);
+                            // 选项的序号
+                            Integer orderById = dwQuCheckbox.getOrderById();
+                            DwQuCheckbox order1Checkbox = checkboxs.stream().filter(
+                                r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
+                            dwQuestionLogic.setCgQuItemId(order1Checkbox.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion1.getOrderById();
+                            DwQuestion target = dwCheckboxQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(target.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
+                            Integer orderByQuId = dwQuestion2.getOrderById();
+                            DwQuestion target1 = dwMultiFillblankQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
+                            dwQuestionLogic.setCkQuId(target1.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
+                                dwQuestionLogic.setCgQuItemId(String.valueOf(CommonNumConstants.NUM_ZERO));
+                            }
+                            DwQuMultiFillblank dwQuMultiFillblank = dwQuMultiFillblankService.selectById(cgQuItemId);
+                            // 选项的序号
+                            Integer orderById = dwQuMultiFillblank.getOrderById();
+                            DwQuMultiFillblank order1MultiFillblank = multiFillblanks.stream().filter(
+                                r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
+                            dwQuestionLogic.setCgQuItemId(order1MultiFillblank.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion1.getOrderById();
+                            DwQuestion target = dwMultiFillblankQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(target.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.ORDERQU.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
+                            Integer orderByQuId = dwQuestion2.getOrderById();
+                            DwQuestion target1 = dwOrderbyQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
+                            dwQuestionLogic.setCkQuId(target1.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
+                                dwQuestionLogic.setCgQuItemId(String.valueOf(CommonNumConstants.NUM_ZERO));
+                            }
+                            DwQuOrderby dwQuOrderby = dwQuOrderbyService.selectById(cgQuItemId);
+                            // 选项的序号
+                            Integer orderById = dwQuOrderby.getOrderById();
+                            DwQuOrderby order1Orderby = orderbys.stream().filter(
+                                r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
+                            dwQuestionLogic.setCgQuItemId(order1Orderby.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion1.getOrderById();
+                            DwQuestion target = dwOrderbyQuestions.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(target.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.CHENRADIO.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(ckQuId);
+                            Integer orderById = dwQuestion1.getOrderById();
+                            DwQuestion dwQuestion2 = dwQuestionChenRadioList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
+                            // 插入当前逻辑题目Id
+                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            String[] parts = cgQuItemId.split("_");
+                            String rowId = parts[0];
+                            String cloumnId = parts[1];
+                            DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
+                            List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                            DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
+                            List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                            Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
+                            Integer orderByIdRow = dwQuChenRow.getOrderById();
+                            // 需要插入的列Id
+                            DwQuChenColumn dwQuChenColumn1 = dwQuChenColumnList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdCloumn)).findFirst().orElse(null);
+                            DwQuChenRow dwQuChenRow1 = dwQuChenRowList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdRow)).findFirst().orElse(null);
+                            // 插入当前逻辑选项Id
+                            dwQuestionLogic.setCgQuItemId(dwQuChenRow1.getId() + "_" + dwQuChenColumn1.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion3 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion3.getOrderById();
+                            DwQuestion dwQuestion4 = dwQuestionChenRadioList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(dwQuestion4.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String ckQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(ckQuId);
+                            Integer orderById = dwQuestion1.getOrderById();
+                            DwQuestion dwQuestion2 = dwQuestionChenCheckboxList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
+                            // 插入当前逻辑题目Id
+                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            String[] parts = cgQuItemId.split("_");
+                            String rowId = parts[0];
+                            String cloumnId = parts[1];
+                            DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
+                            List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                            DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
+                            List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                            Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
+                            Integer orderByIdRow = dwQuChenRow.getOrderById();
+                            // 需要插入的列Id
+                            DwQuChenColumn dwQuChenColumn1 = dwQuChenColumnList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdCloumn)).findFirst().orElse(null);
+                            DwQuChenRow dwQuChenRow1 = dwQuChenRowList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdRow)).findFirst().orElse(null);
+                            // 插入当前逻辑选项Id
+                            dwQuestionLogic.setCgQuItemId(dwQuChenRow1.getId() + "_" + dwQuChenColumn1.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion3 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion3.getOrderById();
+                            DwQuestion dwQuestion4 = dwQuestionChenCheckboxList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(dwQuestion4.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.CHENFBK.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String fbkQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(fbkQuId);
+                            Integer orderById = dwQuestion1.getOrderById();
+                            DwQuestion dwQuestion2 = dwQuestionChenFbkList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
+                            // 插入当前逻辑题目Id
+                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            String[] parts = cgQuItemId.split("_");
+                            String rowId = parts[0];
+                            String cloumnId = parts[1];
+                            DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
+                            List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                            DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
+                            List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                            Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
+                            Integer orderByIdRow = dwQuChenRow.getOrderById();
+                            // 需要插入的列Id
+                            DwQuChenColumn dwQuChenColumn1 = dwQuChenColumnList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdCloumn)).findFirst().orElse(null);
+                            DwQuChenRow dwQuChenRow1 = dwQuChenRowList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdRow)).findFirst().orElse(null);
+                            // 插入当前逻辑选项Id
+                            dwQuestionLogic.setCgQuItemId(dwQuChenRow1.getId() + "_" + dwQuChenColumn1.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion3 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion3.getOrderById();
+                            DwQuestion dwQuestion4 = dwQuestionChenFbkList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(dwQuestion4.getId());
+                        }
+                    }
+                }
+                if (quType.equals(QuType.CHENSCORE.getIndex())) {
+                    if (CollectionUtils.isNotEmpty(questionLogic)) {
+                        for (DwQuestionLogic dwQuestionLogic : questionLogic) {
+                            String fbkQuId = dwQuestionLogic.getCkQuId();
+                            DwQuestion dwQuestion1 = super.selectById(fbkQuId);
+                            Integer orderById = dwQuestion1.getOrderById();
+                            DwQuestion dwQuestion2 = dwQuestionChenScoreList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
+                            // 插入当前逻辑题目Id
+                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            String cgQuItemId = dwQuestionLogic.getCgQuItemId();
+                            String[] parts = cgQuItemId.split("_");
+                            String rowId = parts[0];
+                            String cloumnId = parts[1];
+                            DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
+                            List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                            DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
+                            List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                            Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
+                            Integer orderByIdRow = dwQuChenRow.getOrderById();
+                            // 需要插入的列Id
+                            DwQuChenColumn dwQuChenColumn1 = dwQuChenColumnList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdCloumn)).findFirst().orElse(null);
+                            DwQuChenRow dwQuChenRow1 = dwQuChenRowList1.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderByIdRow)).findFirst().orElse(null);
+                            // 插入当前逻辑选项Id
+                            dwQuestionLogic.setCgQuItemId(dwQuChenRow1.getId() + "_" + dwQuChenColumn1.getId());
+                            String skQuId = dwQuestionLogic.getSkQuId();
+                            DwQuestion dwQuestion3 = super.selectById(skQuId);
+                            Integer orderById1 = dwQuestion3.getOrderById();
+                            DwQuestion dwQuestion4 = dwQuestionChenScoreList.stream()
+                                .filter(q -> Objects.equals(q.getOrderById(), orderById1)).findFirst().orElse(null);
+                            dwQuestionLogic.setSkQuId(dwQuestion4.getId());
+                        }
+                    }
+                }
+            }
+        }
         dwQuestionLogicService.createLogics(dwQuestionList, userId);
-        dwQuRadioService.createRadios(dwQuestionList, userId);
-        dwQuScoreService.createScores(dwQuestionList, userId);
-        dwQuCheckboxService.createCheckboxs(dwQuestionList, userId);
-        dwQuMultiFillblankService.createMultiFillblanks(dwQuestionList, userId);
-        dwQuOrderbyService.createOrderbys(dwQuestionList, userId);
-        dwQuChenColumnService.createChenColumns(dwQuestionList, userId);
+
     }
 
 

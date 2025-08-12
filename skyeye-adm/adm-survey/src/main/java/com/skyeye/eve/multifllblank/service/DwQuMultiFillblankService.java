@@ -24,5 +24,5 @@ public interface DwQuMultiFillblankService extends SkyeyeBusinessService<DwQuMul
 
     void removeByQuIds(List<String> dwQuestionIds);
 
-    void createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId);
+    List<DwQuMultiFillblank> createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId);
 }

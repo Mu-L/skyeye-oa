@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -109,7 +110,7 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         update(updateWrapper);
     }
 
-    public void createRadios(List<DwQuestion> dwQuestionList, String userId) {
+    public List<DwQuRadio> createRadios(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuRadio> insertList = new ArrayList<>();
         List<DwQuRadio> updateList = new ArrayList<>();
         Map<String, List<DwQuRadio>> quRadioMap = new HashMap<>();
@@ -141,11 +142,16 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            super.createEntity(insertList, userId);
+            List<String> entity = super.createEntity(insertList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
+            return selectByIds(join);
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            super.updateEntity(updateList, userId);
+            List<String> strings = super.updateEntity(updateList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
+            return selectByIds(join);
         }
+        return Collections.emptyList();
     }
 
     @Override

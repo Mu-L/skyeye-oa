@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -88,7 +89,7 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
     }
 
     @Override
-    public void createOrderbys(List<DwQuestion> questionList, String userId) {
+    public List<DwQuOrderby> createOrderbys(List<DwQuestion> questionList, String userId) {
         List<DwQuOrderby> insertList = new ArrayList<>();
         List<DwQuOrderby> updateList = new ArrayList<>();
         Map<String, List<DwQuOrderby>> quRadioMap = new HashMap<>();
@@ -117,11 +118,17 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
         }
 
         if (!insertList.isEmpty()) {
-            createEntity(insertList, userId);
+            List<String> entity = super.createEntity(insertList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
+            return selectByIds(join);
         }
         if (!updateList.isEmpty()) {
-            updateEntity(updateList, userId);
+            List<String> strings = super.updateEntity(updateList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
+            return selectByIds(join);
+
         }
+        return Collections.emptyList();
     }
 
 

@@ -1167,6 +1167,15 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     }
 
     @Override
+    public void addAnswerNum(String surveyId) {
+        DwSurveyDirectory dwSurveyDirectory = super.selectById(surveyId);
+        UpdateWrapper<DwSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, surveyId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(DwSurveyDirectory::getAnswerNum), dwSurveyDirectory.getAnswerNum() + CommonNumConstants.NUM_ONE);
+        update(updateWrapper);
+    }
+
+    @Override
     public Map<String, DwSurveyDirectory> selectMapBydwSurveyIds(List<String> dwSurveyIds) {
         if (CollectionUtil.isEmpty(dwSurveyIds)) {
             return new HashMap<>();

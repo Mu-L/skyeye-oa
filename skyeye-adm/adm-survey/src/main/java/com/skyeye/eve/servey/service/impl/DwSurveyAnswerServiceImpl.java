@@ -52,6 +52,11 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     }
 
     @Override
+    protected void createPostpose(DwSurveyAnswer entity, String userId) {
+        dwSurveyDirectoryService.addAnswerNum(entity.getSurveyId());
+    }
+
+    @Override
     protected void updatePrepose(DwSurveyAnswer entity) {
         //  将时间差转换为总小时数（浮点数）
         String endAnDate = entity.getEndAnDate();

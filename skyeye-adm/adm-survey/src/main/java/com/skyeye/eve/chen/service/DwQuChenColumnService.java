@@ -33,9 +33,13 @@ public interface DwQuChenColumnService extends SkyeyeBusinessService<DwQuChenCol
     List<DwQuChenColumn> selectQuChenColumn(String copyFromId);
 
     Map<String, List<DwQuChenColumn>> selectByBelongId(List<String> id);
-    void createChenColumns(List<DwQuestion> dwQuestionList, String userId);
+
+    Map<String, List<String>> createChenColumns(List<DwQuestion> dwQuestionList, String userId);
 
     void updateChenColumn(List<DwQuestion> dwQuestionList, String userId);
 
     void removeByQuIds(List<String> dwQuestionIds);
+
+    List<DwQuChenColumn> queryChenCloumnByQuId(String id);
+
 }

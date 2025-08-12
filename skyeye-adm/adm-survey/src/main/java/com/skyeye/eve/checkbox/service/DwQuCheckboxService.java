@@ -37,7 +37,7 @@ public interface DwQuCheckboxService extends SkyeyeBusinessService<DwQuCheckbox>
 
     void removeByQuIds(List<String> dwQuestionIds);
 
-    void createCheckboxs(List<DwQuestion> dwQuestionList, String userId);
+    List<DwQuCheckbox> createCheckboxs(List<DwQuestion> dwQuestionList, String userId);
 }
 
 

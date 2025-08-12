@@ -32,4 +32,7 @@ public interface DwSurveyDirectoryService extends SkyeyeBusinessService<DwSurvey
     DwSurveyDirectory selectBySurAndStuIds(String surveyId, String createId, String id);
 
     DwSurveyDirectory selectDirectoryAndAnswerById(String surveyId, String userId, String id);
+
+    void addAnswerNum(String surveyId);
+
 }

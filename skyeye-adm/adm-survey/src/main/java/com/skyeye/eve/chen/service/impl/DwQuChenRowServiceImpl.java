@@ -107,7 +107,7 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
     }
 
     @Override
-    public void createChenRows(List<DwQuestion> dwQuestionList, String userId) {
+    public List<String> createChenRows(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuChenRow> insertList = new ArrayList<>();
         List<DwQuChenRow> updateList = new ArrayList<>();
         Map<String, List<DwQuChenRow>> quRadioMap = new HashMap<>();
@@ -136,11 +136,12 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            super.createEntity(insertList, userId);
+            return super.createEntity(insertList, userId);
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            super.updateEntity(updateList, userId);
+            return super.updateEntity(updateList, userId);
         }
+        return Collections.emptyList();
     }
 
     @Override
@@ -186,6 +187,13 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
         QueryWrapper<DwQuChenRow> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuChenRow::getQuId), dwQuestionIds);
         remove(queryWrapper);
+    }
+
+    @Override
+    public List<DwQuChenRow> queryChenRowByQuId(String id) {
+        QueryWrapper<DwQuChenRow> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenRow::getQuId), id);
+        return list(queryWrapper);
     }
 
 

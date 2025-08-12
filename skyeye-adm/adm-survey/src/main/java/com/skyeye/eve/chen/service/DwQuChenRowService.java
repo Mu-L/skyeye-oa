@@ -38,10 +38,11 @@ public interface DwQuChenRowService  extends SkyeyeBusinessService<DwQuChenRow>{
 
     Map<String, List<DwQuChenRow>> selectByBelongId(List<String> id);
 
-    void createChenRows(List<DwQuestion> dwQuestionList, String userId);
+    List<String> createChenRows(List<DwQuestion> dwQuestionList, String userId);
 
     void updateChenRow(List<DwQuestion> dwQuestionList, String userId);
     void removeByQuIds(List<String> dwQuestionIds);
 
 
+    List<DwQuChenRow> queryChenRowByQuId(String id);
 }

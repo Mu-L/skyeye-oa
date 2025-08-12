@@ -125,6 +125,16 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
             String quId = dwQuestion.getId();
             List<DwQuestionLogic> logics = dwQuestion.getQuestionLogic();
             if (CollectionUtils.isEmpty(logics)) continue;
+            List<DwQuestionLogic> yesIds = logics.stream().filter(
+                logic -> StrUtil.isNotEmpty(logic.getId())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(yesIds)) {
+                List<DwQuestionLogic> dwQuestionLogics = queryLogicByQuId(quId);
+                List<String> IdList = dwQuestionLogics.stream().map(DwQuestionLogic::getId).collect(Collectors.toList());
+                List<String> notInYesIds = IdList.stream()
+                    .filter(id -> !yesIds.contains(id))
+                    .collect(Collectors.toList());
+                super.deleteById(notInYesIds);
+            }
             processedQuIds.add(quId);
             for (DwQuestionLogic logic : logics) {
                 DwQuestionLogic bean = new DwQuestionLogic();
@@ -154,6 +164,12 @@ public class DwQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<DwQues
             updateEntity(updateList, userId);
         }
 
+    }
+
+    private List<DwQuestionLogic> queryLogicByQuId(String quId) {
+        QueryWrapper<DwQuestionLogic> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuestionLogic::getCkQuId), quId);
+        return list(queryWrapper);
     }
 
     @Override

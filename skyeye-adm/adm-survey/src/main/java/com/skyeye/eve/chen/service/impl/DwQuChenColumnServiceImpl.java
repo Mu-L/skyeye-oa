@@ -135,7 +135,7 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
     }
 
     @Override
-    public void createChenColumns(List<DwQuestion> dwQuestionList, String userId) {
+    public Map<String, List<String>> createChenColumns(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuChenColumn> insertList = new ArrayList<>();
         List<DwQuChenColumn> updateList = new ArrayList<>();
         Map<String, List<DwQuChenColumn>> quRadioMap = new HashMap<>();
@@ -164,12 +164,22 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            super.createEntity(insertList, userId);
+            List<String> entity = super.createEntity(insertList, userId);
+            List<String> chenRows = dwQuChenRowService.createChenRows(dwQuestionList, userId);
+            Map<String, List<String>> map = new HashMap<>();
+            map.put("cloumnId", entity);
+            map.put("rowId", chenRows);
+            return map;
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            super.updateEntity(updateList, userId);
+            List<String> strings = super.updateEntity(updateList, userId);
+            List<String> chenRows = dwQuChenRowService.createChenRows(dwQuestionList, userId);
+            Map<String, List<String>> map = new HashMap<>();
+            map.put("cloumnId", strings);
+            map.put("rowId", chenRows);
+            return map;
         }
-        dwQuChenRowService.createChenRows(dwQuestionList, userId);
+        return Collections.emptyMap();
     }
 
     @Override
@@ -246,6 +256,13 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         QueryWrapper<DwQuChenColumn> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(DwQuChenColumn::getQuId), dwQuestionIds);
         remove(queryWrapper);
+    }
+
+    @Override
+    public List<DwQuChenColumn> queryChenCloumnByQuId(String id) {
+        QueryWrapper<DwQuChenColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenColumn::getQuId), id);
+        return list(queryWrapper);
     }
 
     private Map<String, List<DwQuChenColumn>> loadExistingRadios(List<DwQuestion> dwQuestions) {

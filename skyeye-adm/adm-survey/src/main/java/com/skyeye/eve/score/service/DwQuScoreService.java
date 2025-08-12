@@ -35,6 +35,6 @@ public interface DwQuScoreService extends SkyeyeBusinessService<DwQuScore> {
 
     void removeByquId(String entityId);
 
-    void createScores(List<DwQuestion> dwQuestionList, String userId);
+    List<DwQuScore> createScores(List<DwQuestion> dwQuestionList, String userId);
 }
 

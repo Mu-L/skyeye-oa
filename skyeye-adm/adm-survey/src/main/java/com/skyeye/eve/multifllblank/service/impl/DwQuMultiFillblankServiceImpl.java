@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -92,7 +93,7 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
     }
 
     @Override
-    public void createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId) {
+    public List<DwQuMultiFillblank> createMultiFillblanks(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuMultiFillblank> insertList = new ArrayList<>();
         List<DwQuMultiFillblank> updateList = new ArrayList<>();
         Map<String, List<DwQuMultiFillblank>> quRadioMap = new HashMap<>();
@@ -124,11 +125,16 @@ public class DwQuMultiFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwQ
         }
 
         if (!insertList.isEmpty()) {
-            createEntity(insertList, userId);
+            List<String> entity = super.createEntity(insertList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, entity);
+            return selectByIds(join);
         }
         if (!updateList.isEmpty()) {
-            updateEntity(updateList, userId);
+            List<String> strings = super.updateEntity(updateList, userId);
+            String join = String.join(CommonCharConstants.COMMA_MARK, strings);
+            return selectByIds(join);
         }
+        return Collections.emptyList();
     }
 
     @Override
