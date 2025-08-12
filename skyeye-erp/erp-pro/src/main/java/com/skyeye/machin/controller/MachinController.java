@@ -36,12 +36,6 @@ public class MachinController {
     @Autowired
     private MachinService machinService;
 
-    /**
-     * 获取加工单列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpmachin001", value = "获取加工单列表信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MachinController/queryMachinOrderList")
@@ -49,12 +43,6 @@ public class MachinController {
         machinService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑加工单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMachin", value = "新增/编辑加工单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Machin.class)
     @RequestMapping("/post/MachinController/writeMachin")
@@ -62,12 +50,6 @@ public class MachinController {
         machinService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询加工单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinById", value = "根据id查询加工单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "加工单id", required = "required")})
@@ -76,12 +58,6 @@ public class MachinController {
         machinService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除加工单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMachinById", value = "删除加工单信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -90,12 +66,6 @@ public class MachinController {
         machinService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 加工单提交审核
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpmachin007", value = "提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/MachinController/submitToApproval")
@@ -103,12 +73,6 @@ public class MachinController {
         machinService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 撤销加工单申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeMachin", value = "撤销加工单申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -117,12 +81,6 @@ public class MachinController {
         machinService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询加工单信息(甘特图)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinForGanttById", value = "根据id查询加工单信息(甘特图)", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "加工单id", required = "required")})
@@ -131,12 +89,6 @@ public class MachinController {
         machinService.queryMachinForGanttById(inputObject, outputObject);
     }
 
-    /**
-     * 转领料单/补料单时，根据id查询加工单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinTransRequestById", value = "转领料单/补料单时，根据id查询加工单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -145,12 +97,6 @@ public class MachinController {
         machinService.queryMachinTransRequestById(inputObject, outputObject);
     }
 
-    /**
-     * 加工单信息转领料单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertMachinToPickRequest", value = "加工单信息转领料单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = RequisitionMaterial.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -159,12 +105,6 @@ public class MachinController {
         machinService.insertMachinToPickRequest(inputObject, outputObject);
     }
 
-    /**
-     * 加工单信息转补料单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertMachinToPickPatch", value = "加工单信息转补料单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PatchMaterial.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -173,12 +113,6 @@ public class MachinController {
         machinService.insertMachinToPickPatch(inputObject, outputObject);
     }
 
-    /**
-     * 转退料单时，根据id查询加工单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinTransReturnById", value = "转退料单时，根据id查询加工单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -187,12 +121,6 @@ public class MachinController {
         machinService.queryMachinTransReturnById(inputObject, outputObject);
     }
 
-    /**
-     * 加工单信息转退料单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertMachinToPickReturn", value = "加工单信息转退料单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ReturnMaterial.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

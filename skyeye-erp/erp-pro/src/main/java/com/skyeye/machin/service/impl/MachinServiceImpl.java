@@ -39,6 +39,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAccept;
 import com.skyeye.machinprocedure.entity.MachinProcedureFarm;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
+import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
@@ -224,6 +225,124 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
         });
 
         return machin;
+    }
+
+    @Override
+    public List<Machin> selectByIds(String... ids) {
+        // 获取基础数据
+        List<Machin> machinList = super.selectByIds(ids);
+        if (CollectionUtil.isEmpty(machinList)) {
+            return machinList;
+        }
+        // 部门信息
+        iDepmentService.setDataMation(machinList, Machin::getDepartmentId);
+
+        List<String> machinIdList = machinList.stream().map(Machin::getId).collect(Collectors.toList());
+
+        // 批量查询子单据信息
+        Map<String, List<MachinChild>> childListMap = machinChildService.selectMapByParentId(machinIdList);
+
+        // 收集所有需要查询的ID
+        List<String> materialIds = new ArrayList<>();
+        List<String> normsIds = new ArrayList<>();
+        List<String> bomIds = new ArrayList<>();
+        List<String> fromIds = new ArrayList<>();
+
+        for (Machin machin : machinList) {
+            // 设置子单据列表
+            machin.setMachinChildList(childListMap.get(machin.getId()));
+            // 收集来源单据ID
+            if (StrUtil.isNotEmpty(machin.getFromId())) {
+                fromIds.add(machin.getFromId());
+            }
+            // 收集子单据相关的ID
+            if (CollectionUtil.isNotEmpty(machin.getMachinChildList())) {
+                for (MachinChild child : machin.getMachinChildList()) {
+                    materialIds.add(child.getMaterialId());
+                    normsIds.add(child.getNormsId());
+                    bomIds.add(child.getBomId());
+                }
+            }
+        }
+        materialIds = materialIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        normsIds = normsIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        bomIds = bomIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        fromIds = fromIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+
+        // 批量查询关联数据
+        Map<String, Material> materialMap = materialService.selectMapByIds(materialIds);
+        Map<String, MaterialNorms> normsMap = materialNormsService.selectMapByIds(normsIds);
+        Map<String, Bom> bomMap = bomService.selectMapByIds(bomIds);
+        Map<String, Map<String, Object>> productionMap = productionService.selectValIsMapByIds(fromIds);
+
+        // 获取规格对应的所有bom信息
+        Map<String, List<Bom>> normsBomMap = bomService.getBomListByNormsId(normsIds.stream().distinct()
+            .collect(Collectors.toList()).toArray(new String[]{}));
+
+        Map<String, Map<String, MachinProcedure>> machinProcedureListMap = machinProcedureService.queryMachinProcedureMapByMachinIds(machinIdList);
+        Map<String, Map<String, List<MachinProcedureFarm>>> machinProcedureFarmListMap = machinProcedureFarmService.queryMachinProcedureFarmMapByMachinIds(machinIdList);
+
+        // 为每个加工单设置完整信息
+        machinList.forEach(machin -> {
+            // 设置来源单据信息
+            if (StrUtil.isNotEmpty(machin.getFromId()) && machin.getFromTypeId() == MachinFromType.PRODUCTION.getKey()) {
+                machin.setFromMation(productionMap.get(machin.getFromId()));
+            }
+
+            // 设置子单据信息
+            if (CollectionUtil.isNotEmpty(machin.getMachinChildList())) {
+                machin.getMachinChildList().forEach(machinChild -> {
+                    // 设置配件商品信息
+                    if (StrUtil.isNotEmpty(machinChild.getMaterialId())) {
+                        machinChild.setMaterialMation(materialMap.get(machinChild.getMaterialId()));
+                    }
+                    // 设置规格信息
+                    if (StrUtil.isNotEmpty(machinChild.getNormsId())) {
+                        machinChild.setNormsMation(normsMap.get(machinChild.getNormsId()));
+                    }
+                    // 设置BOM信息
+                    if (StrUtil.isNotEmpty(machinChild.getBomId())) {
+                        machinChild.setBomMation(bomMap.get(machinChild.getBomId()));
+                    }
+                    // 设置规格对应的BOM列表
+                    if (StrUtil.isNotEmpty(machinChild.getNormsId())) {
+                        machinChild.setBomList(normsBomMap.get(machinChild.getNormsId()));
+                    }
+                });
+
+                // 为每个加工单单独查询工序信息（因为现有方法只支持单条查询）
+                Map<String, MachinProcedure> machinProcedureMap = machinProcedureListMap.get(machin.getId());
+                Map<String, List<MachinProcedureFarm>> procedureFarmMap = machinProcedureFarmListMap.get(machin.getId());
+
+                if (machinProcedureMap != null && procedureFarmMap != null) {
+                    machin.getMachinChildList().forEach(machinChild -> {
+                        // 判断产品的所有工序是否已完成
+                        Boolean[] checkComplateFlag = new Boolean[]{true};
+                        // 最后一个工序所完成的数量
+                        Integer[] lastProcedureNum = new Integer[]{0};
+
+                        // 1. 设置加工单子单据bom清单的工序信息
+                        if (StrUtil.isNotEmpty(machinChild.getBomId()) && machinChild.getBomMation() != null) {
+                            Bom bom = machinChild.getBomMation();
+                            bom.getBomChildList().forEach(bomChild -> {
+                                WayProcedure bomWayProcedure = resetMachinProcedure(bomChild.getWayProcedureId(), bomChild.getMaterialId(), bomChild.getNormsId(),
+                                    machinChild.getId(), bomChild.getId(), machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
+                                bomChild.setWayProcedureMation(bomWayProcedure);
+                            });
+                        }
+
+                        // 2. 设置加工单子单据的工序信息
+                        WayProcedure wayProcedure = resetMachinProcedure(machinChild.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
+                            machinChild.getId(), StrUtil.EMPTY, machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
+                        machinChild.setWayProcedureMation(wayProcedure);
+                        machinChild.setCheckComplateFlag(checkComplateFlag[0]);
+                        machinChild.setLastProcedureNum(lastProcedureNum[0]);
+                    });
+                }
+            }
+        });
+
+        return machinList;
     }
 
     private WayProcedure resetMachinProcedure(String wayProcedureId, String materialId, String normsId, String childId,
@@ -739,13 +858,9 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
     }
 
     @Override
-    public boolean checkIsLastProcedure(String machinId, String childId, String bomChildId, String wayProcedureId, String materialId, String normsId, String procedureId) {
-        if (StrUtil.isEmpty(machinId) || StrUtil.isEmpty(childId)
+    public boolean checkIsLastProcedure(Machin machin, String childId, String bomChildId, String wayProcedureId, String materialId, String normsId, String procedureId) {
+        if (ObjectUtil.isEmpty(machin) || StrUtil.isEmpty(childId)
             || StrUtil.isEmpty(materialId) || StrUtil.isEmpty(normsId) || StrUtil.isEmpty(procedureId)) {
-            return false;
-        }
-        Machin machin = selectById(machinId);
-        if (ObjectUtil.isEmpty(machin)) {
             return false;
         }
         // 获取子单据信息

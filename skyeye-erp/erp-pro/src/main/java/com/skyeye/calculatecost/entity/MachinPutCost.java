@@ -25,15 +25,15 @@ public class MachinPutCost {
     @ApiModelProperty(value = "正常耗材成本")
     private String normalConsumablePrice;
 
-    @ApiModelProperty(value = "总数量")
+    @ApiModelProperty(value = "目标生产数量")
     private Integer allNum;
-
-    @ApiModelProperty(value = "加工单价")
-    private String price;
 
     @ApiModelProperty(value = "工资金额")
     private String wage;
 
     @ApiModelProperty(value = "总价")
     private String totalPrice;
+
+    @ApiModelProperty(value = "当前生产数量")
+    private Integer nowNum;
 }

@@ -3,6 +3,9 @@ package com.skyeye.cost.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.cost.entity.ProUserCost;
 
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * @ClassName: ProUserCostService
@@ -13,4 +16,6 @@ import com.skyeye.cost.entity.ProUserCost;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 public interface ProUserCostService extends SkyeyeBusinessService<ProUserCost> {
+
+    List<Map<String, Object>> queryLastMonthHumanCost();
 }

@@ -15,7 +15,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.FileUtil;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.framework.file.core.client.FileClient;
 import com.skyeye.framework.file.core.client.s3.FilePresignedUrlRespDTO;
@@ -38,12 +37,19 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipInputStream;
 
 /**
  * @ClassName: UploadServiceImpl
@@ -231,68 +237,45 @@ public class UploadServiceImpl implements UploadService {
     @Override
     public void uploadFile(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        // 将当前上下文初始化给 CommonsMutipartResolver （多部分解析器）
-        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(PutObject.getRequest().getSession().getServletContext());
-        // 检查form中是否有enctype="multipart/form-data"
-        if (!multipartResolver.isMultipart(PutObject.getRequest())) {
-            return;
-        }
-        // 将request变成多部分request
-        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) PutObject.getRequest();
-        // 获取multiRequest 中所有的文件名
-        Iterator iter = multiRequest.getFileNames();
         int type = Integer.parseInt(map.get("type").toString());
         String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type);
         Map<String, Object> bean = new HashMap<>();
-        StringBuffer trueFileName = new StringBuffer();
-        String fileName = "";
 // TODO 上传到文件存储器待测试
 //        // 上传到文件存储器
 //        FileClient client = fileConfigService.getMasterFileClient();
 //        if (client == null) {
 //            throw new CustomException("客户端(master) 不能为空");
 //        }
-
-        byte[] content = null;
-        while (iter.hasNext()) {
-            MultipartFile file = multiRequest.getFile(iter.next().toString());
-            if (file == null) {
-                break;
-            }
-            // 文件名称
-            fileName = file.getOriginalFilename();
-            // 得到文件扩展名
-            String fileExtName = fileName.substring(fileName.lastIndexOf(".") + 1);
-            // 自定义的文件名称
-            String newFileName = String.format(Locale.ROOT, "%s.%s", System.currentTimeMillis(), fileExtName);
-            bean.put("fileExtName", fileExtName);
-            bean.put("size", file.getSize());
-            bean.put("fileSizeType", "bytes");
-            String path = basePath + "/" + newFileName;
+//        byte[] content = null;
+        // 检查上传文件
+        MultipartFile file = checkUploadFile();
+        // 文件名称
+        String fileName = file.getOriginalFilename();
+        // 得到文件扩展名
+        String fileExtName = fileName.substring(fileName.lastIndexOf(".") + 1);
+        // 自定义的文件名称
+        String newFileName = String.format(Locale.ROOT, "%s.%s", System.currentTimeMillis(), fileExtName);
+        bean.put("fileExtName", fileExtName);
+        bean.put("size", file.getSize());
+        bean.put("fileSizeType", "bytes");
+        String path = basePath + "/" + newFileName;
 //            try {
 //                content = IoUtil.readBytes(file.getInputStream());
 //                String url = client.upload(content, path, fileExtName);
 //            } catch (Exception e) {
 //                throw new RuntimeException(e);
 //            }
-            FileUtil.createDirs(basePath);
-            LOGGER.info("upload file type is: {}, path is: {}", type, path);
-            // 上传
-            try {
-                file.transferTo(new File(path));
-            } catch (IOException ex) {
-                throw new CustomException(ex);
-            }
-            newFileName = FileConstants.FileUploadPath.getVisitPath(type) + newFileName;
-            if (ToolUtil.isBlank(trueFileName.toString())) {
-                trueFileName.append(newFileName);
-            } else {
-                trueFileName.append(",").append(newFileName);
-            }
-            saveFile(file, trueFileName.toString(), type);
-            break;
+        FileUtil.createDirs(basePath);
+        LOGGER.info("upload file type is: {}, path is: {}", type, path);
+        // 上传
+        try {
+            file.transferTo(new File(path));
+        } catch (IOException ex) {
+            throw new CustomException(ex);
         }
-        bean.put("picUrl", trueFileName.toString());
+        newFileName = FileConstants.FileUploadPath.getVisitPath(type) + newFileName;
+        saveFile(file, newFileName, type);
+        bean.put("picUrl", newFileName);
         bean.put("type", type);
         bean.put("fileName", fileName);
 
@@ -424,5 +407,286 @@ public class UploadServiceImpl implements UploadService {
         }
     }
 
+    private MultipartFile checkUploadFile() {
+        // 初始化多部分解析器
+        CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(PutObject.getRequest().getSession().getServletContext());
+        if (!multipartResolver.isMultipart(PutObject.getRequest())) {
+            throw new CustomException("请求必须为multipart/form-data");
+        }
+        MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) PutObject.getRequest();
+        Iterator iter = multiRequest.getFileNames();
+        if (!iter.hasNext()) {
+            throw new CustomException("未选择文件");
+        }
+        MultipartFile zipFilePart = multiRequest.getFile(iter.next().toString());
+        if (zipFilePart == null || zipFilePart.isEmpty()) {
+            throw new CustomException("上传文件为空");
+        }
+        return zipFilePart;
+    }
+
+
+    /**
+     * 上传Markdown压缩包并解析图片
+     */
+    @Override
+    public void markdownZipUploadAndParse(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        // 检查上传文件
+        MultipartFile zipFilePart = checkUploadFile();
+        // 获取上传文件
+        String originalZipName = zipFilePart.getOriginalFilename();
+        if (originalZipName == null || !originalZipName.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+            throw new CustomException("仅支持zip格式");
+        }
+        int type = Integer.parseInt(map.get("type").toString());
+
+        String tempZipPath = null;
+        String unzipDir = null;
+        try {
+            // 使用系统临时目录
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type, userId)
+                + CommonCharConstants.SLASH_MARK + "temp";
+            FileUtil.createDirs(basePath);
+            // 保存临时文件
+            tempZipPath = basePath + CommonCharConstants.SLASH_MARK + UUID.randomUUID() + ".zip";
+            zipFilePart.transferTo(new File(tempZipPath));
+
+            // 解压文件
+            unzipDir = basePath + CommonCharConstants.SLASH_MARK + UUID.randomUUID();
+            FileUtil.createDirs(unzipDir);
+            unzip(tempZipPath, unzipDir);
+
+            List<Map<String, Object>> resultList = processMarkdownDirectory(unzipDir, type);
+            outputObject.setBeans(resultList);
+            outputObject.settotal(resultList.size());
+        } catch (IOException e) {
+            throw new CustomException(e);
+        } finally {
+            // 删除临时文件
+            if (StrUtil.isNotEmpty(tempZipPath)) {
+                FileUtil.deleteFile(tempZipPath);
+            }
+            if (StrUtil.isNotEmpty(unzipDir)) {
+                FileUtil.deleteFile(unzipDir);
+            }
+        }
+    }
+
+    private void unzip(String zipPath, String destDir) throws IOException {
+        Path destPath = new File(destDir).toPath();
+
+        // 验证ZIP文件
+        File zipFile = new File(zipPath);
+        if (!zipFile.exists() || !zipFile.canRead()) {
+            throw new IOException("ZIP文件不存在或无法读取: " + zipPath);
+        }
+
+        // 验证ZIP文件格式
+        try (FileInputStream fis = new FileInputStream(zipFile)) {
+            byte[] header = new byte[4];
+            if (fis.read(header) != 4 ||
+                header[0] != 0x50 || header[1] != 0x4B ||
+                header[2] != 0x03 || header[3] != 0x04) {
+                throw new IOException("不是有效的ZIP文件格式");
+            }
+        }
+
+        // 尝试多种编码方式解压ZIP文件
+        Exception lastException = null;
+        Charset[] charsets = {
+            StandardCharsets.UTF_8,
+            StandardCharsets.ISO_8859_1,
+            Charset.forName("GBK"),
+            Charset.forName("GB2312"),
+            Charset.forName("GB18030")
+        };
+
+        for (Charset charset : charsets) {
+            try {
+                unzipWithCharset(zipFile, destPath, charset);
+                LOGGER.info("成功使用编码 {} 解压ZIP文件: {}", charset.name(), zipPath);
+                return; // 成功解压，退出方法
+            } catch (Exception e) {
+                lastException = e;
+                LOGGER.warn("使用编码 {} 解压ZIP文件失败: {}, 错误: {}", charset.name(), zipPath, e.getMessage());
+                // 继续尝试下一个编码
+            }
+        }
+
+        // 所有编码都失败，抛出最后一个异常
+        throw new IOException("无法解压ZIP文件，已尝试多种编码方式: " + zipPath, lastException);
+    }
+
+    private void unzipWithCharset(File zipFile, Path destPath, Charset charset) throws IOException {
+        try (InputStream fis = Files.newInputStream(zipFile.toPath());
+             ZipInputStream zis = new ZipInputStream(fis, charset)) {
+            ZipEntry entry;
+            int entryCount = 0;
+            while ((entry = zis.getNextEntry()) != null) {
+                try {
+                    entryCount++;
+                    if (entryCount > 1000) { // 防止ZIP炸弹
+                        throw new IOException("ZIP文件包含过多条目，可能存在安全风险");
+                    }
+
+                    // 安全处理文件名，避免编码问题
+                    String entryName = getSafeEntryName(entry, charset);
+                    Path newPath = resolveZipEntry(destPath, entryName);
+
+                    if (entry.isDirectory()) {
+                        Files.createDirectories(newPath);
+                    } else {
+                        Files.createDirectories(newPath.getParent());
+                        Files.copy(zis, newPath, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("解压条目失败: " + entry.getName(), e);
+                    // 不立即抛出异常，继续处理其他条目
+                    continue;
+                } finally {
+                    zis.closeEntry();
+                }
+            }
+
+            if (entryCount == 0) {
+                throw new IOException("ZIP文件为空或损坏");
+            }
+        } catch (ZipException e) {
+            throw new IOException("ZIP文件格式错误: " + e.getMessage(), e);
+        }
+    }
+
+    private String getSafeEntryName(ZipEntry entry, Charset charset) {
+        try {
+            // 尝试获取原始字节数据
+            byte[] nameBytes = entry.getName().getBytes(charset);
+            // 重新解码，确保编码一致性
+            return new String(nameBytes, charset);
+        } catch (Exception e) {
+            LOGGER.warn("处理ZIP条目名称时出现编码问题: {}, 使用原始名称", entry.getName());
+            // 如果编码处理失败，返回原始名称
+            return entry.getName();
+        }
+    }
+
+    private Path resolveZipEntry(Path destDir, String entryName) throws IOException {
+        // 清理文件名，移除或替换不安全的字符
+        String safeEntryName = sanitizeFileName(entryName);
+        Path normalizedPath = destDir.resolve(safeEntryName).normalize();
+        if (!normalizedPath.startsWith(destDir)) {
+            throw new IOException("不安全的zip条目: " + safeEntryName);
+        }
+        return normalizedPath;
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return "unnamed_file";
+        }
+
+        // 移除或替换不安全的字符
+        return fileName
+            .replaceAll("[<>:\"/\\\\|?*]", "_")  // 替换Windows不允许的字符
+            .replaceAll("\\s+", "_")             // 替换多个空格为下划线
+            .trim();
+    }
+
+    private List<Map<String, Object>> processMarkdownDirectory(String rootDir, int type) throws IOException {
+        Path root = new File(rootDir).toPath();
+        List<Map<String, Object>> results = new ArrayList<>();
+        Files.walk(root)
+            .filter(p -> Files.isRegularFile(p) && isMarkdownFile(p.getFileName().toString()))
+            .forEach(mdPath -> {
+                try {
+                    String content = new String(Files.readAllBytes(mdPath), StandardCharsets.UTF_8);
+                    String updated = replaceImageRefs(mdPath.getParent(), content, type);
+                    Map<String, Object> one = new HashMap<>();
+                    one.put("fileName", root.relativize(mdPath).toString());
+                    one.put("content", updated);
+                    results.add(one);
+                } catch (IOException e) {
+                    throw new CustomException(e);
+                }
+            });
+        return results;
+    }
+
+    private boolean isMarkdownFile(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return lower.endsWith(".md") || lower.endsWith(".markdown");
+    }
+
+    private String replaceImageRefs(Path baseDir, String content, int type) throws IOException {
+        // 处理 Markdown 图片: ![alt](url)
+        Pattern mdImg = Pattern.compile("!\\[[^\\]]*]\\(([^)]+)\\)");
+        // 处理 HTML 图片: <img src="url">
+        Pattern htmlImg = Pattern.compile("<img[^>]+src=\\\"([^\\\"]+)\\\"[\\s\\S]*?>", Pattern.CASE_INSENSITIVE);
+
+        String afterMd = replaceWithMatcher(content, mdImg, baseDir, type);
+        String afterHtml = replaceWithMatcher(afterMd, htmlImg, baseDir, type);
+        return afterHtml;
+    }
+
+    private String replaceWithMatcher(String text, Pattern pattern, Path baseDir, int type) throws IOException {
+        Matcher matcher = pattern.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            String src = matcher.group(1).trim();
+            String newUrl = src;
+            if (!isHttpLike(src) && !src.startsWith("data:")) {
+                Path imgPath = baseDir.resolve(src).normalize();
+                if (Files.exists(imgPath) && Files.isRegularFile(imgPath)) {
+                    newUrl = saveImageAndGetVisitUrl(imgPath.toFile(), type);
+                }
+            }
+            String replacement = matcher.group(0).replace(src, Matcher.quoteReplacement(newUrl));
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+
+    private boolean isHttpLike(String s) {
+        String lower = s.toLowerCase(Locale.ROOT);
+        return lower.startsWith("http://") || lower.startsWith("https://");
+    }
+
+    private String saveImageAndGetVisitUrl(File source, int type) throws IOException {
+        String originalName = source.getName();
+        String ext = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf('.') + 1) : "";
+        String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type);
+        FileUtil.createDirs(basePath);
+        String newFileName = String.format(Locale.ROOT, "%s.%s", System.currentTimeMillis(), ext);
+        String targetPath = basePath + "/" + newFileName;
+        Files.copy(source.toPath(), new java.io.File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        String visitPath = FileConstants.FileUploadPath.getVisitPath(type) + newFileName;
+        // 记录文件
+        savePhysicalFileRecord(originalName, visitPath, type, source.length());
+        return visitPath;
+    }
+
+    private void savePhysicalFileRecord(String originalName, String visitPath, Integer fileType, long size) {
+        com.skyeye.upload.entity.File file = new com.skyeye.upload.entity.File();
+        file.setName(originalName);
+        file.setPath(visitPath);
+        file.setUrl(visitPath);
+        file.setType(FileUtil.getMineType(originalName));
+        file.setFileType(fileType);
+        file.setSize(size);
+
+        String userId = StrUtil.EMPTY;
+        String userToken = GetUserToken.getUserToken(InputObject.getRequest());
+        if (StrUtil.isNotEmpty(userToken)) {
+            String userTokenUserId = GetUserToken.getUserTokenUserId(InputObject.getRequest());
+            Boolean aBoolean = SysUserAuthConstants.exitUserLoginRedisCache(userTokenUserId);
+            if (aBoolean) {
+                userId = InputObject.getLogParamsStatic().get("id").toString();
+            }
+        }
+        fileService.createEntity(file, userId);
+    }
 
 }

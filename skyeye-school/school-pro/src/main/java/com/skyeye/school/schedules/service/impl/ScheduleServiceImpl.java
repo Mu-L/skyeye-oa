@@ -1,16 +1,23 @@
 package com.skyeye.school.schedules.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
@@ -29,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,15 +98,15 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     }
 
     @Override
-    protected void createPostpose(Schedule entity, String userId) {
-        super.createPostpose(entity, userId);
-        scheduleChildService.writeScheduleChildList(entity.getId(), entity.getScheduleChildList());
+    protected void updatePostpose(Schedule entity, String userId) {
+        super.updatePostpose(entity, userId);
+        scheduleChildService.deleteByScheduleId(entity.getId());
     }
 
     @Override
-    protected void updatePostpose(Schedule entity, String userId) {
-        super.updatePostpose(entity, userId);
-        scheduleChildService.updateScheduleChildList(entity.getId(), entity.getScheduleChildList());
+    protected void writePostpose(Schedule entity, String userId) {
+        super.writePostpose(entity, userId);
+        scheduleChildService.writeScheduleChildList(entity,userId);
     }
 
     @Override
@@ -124,6 +132,7 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
     }
 
     @Override
+    @IgnoreTenant
     public void querySchedulesList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String teacherId = params.getOrDefault("teacherId", StrUtil.EMPTY).toString();
@@ -133,19 +142,25 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getTeacherId), teacherId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getClassroomId), classroomId);
         List<Map<String, Object>> beans = skyeyeBaseMapper.selectJoinMaps(queryWrapper);
+
+        if (CollectionUtil.isEmpty( beans)) {
+            return;
+        }
+        List<Map<String, Object>> resultBeans = beans.stream().map(bean -> convertMapKeysToCamelCase(bean)).collect(Collectors.toList());
+
         // 设置信息
-        schoolService.setMationForMap(beans, "schoolId", "schoolMation");
-        facultyService.setMationForMap(beans, "facultyId", "facultyMation");
-        majorService.setMationForMap(beans, "majorId", "majorMation");
-        semesterService.setMationForMap(beans, "semesterId", "semesterMation");
+        schoolService.setMationForMap(resultBeans, "schoolId", "schoolMation");
+        facultyService.setMationForMap(resultBeans, "facultyId", "facultyMation");
+        majorService.setMationForMap(resultBeans, "majorId", "majorMation");
+        semesterService.setMationForMap(resultBeans, "semesterId", "semesterMation");
         classesService.setMationForMap(beans, "classId", "classMation");
 
-        subjectService.setMationForMap(beans, "courseId", "courseMation");
-        floorInfoService.setMationForMap(beans, "classroomId", "classroomMation");
-        iAuthUserService.setMationForMap(beans, "teacherId", "teacherMation");
+        subjectService.setMationForMap(resultBeans, "courseId", "courseMation");
+        floorInfoService.setMationForMap(resultBeans, "classroomId", "classroomMation");
+        iAuthUserService.setMationForMap(resultBeans, "teacherId", "teacherMation");
 
-        outputObject.settotal(beans.size());
-        outputObject.setBeans(beans);
+        outputObject.settotal(resultBeans.size());
+        outputObject.setBeans(resultBeans);
     }
 
     @Override
@@ -194,6 +209,7 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         if (StrUtil.isNotEmpty(classId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getClassId), classId);
         }
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Schedule::getCreateTime));
         List<Schedule> beans = list(queryWrapper);
         schoolService.setDataMation(beans, Schedule::getSchoolId);
         facultyService.setDataMation(beans, Schedule::getFacultyId);
@@ -204,5 +220,96 @@ public class ScheduleServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDao, 
         iAuthUserService.setDataMation(beans, Schedule::getLastUpdateId);
         outputObject.settotal(page.getTotal());
         outputObject.setBeans(beans);
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryScheduleList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String semesterId = params.get("semesterId").toString();
+        String teacherId = params.getOrDefault("teacherId", StrUtil.EMPTY).toString();
+        String classroomId = params.getOrDefault("classroomId", StrUtil.EMPTY).toString();
+        String schoolId = params.get("schoolId").toString();
+        String week = params.get("week").toString();
+        MPJLambdaWrapper<Schedule> queryWrapper = JoinWrappers.lambda("s", Schedule.class);
+            queryWrapper.innerJoin(ScheduleChild.class, "sc", ScheduleChild::getParentId, Schedule::getId)
+                    .eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), semesterId)
+                    .eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schoolId);
+        if (StrUtil.isNotEmpty(teacherId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getTeacherId), teacherId);
+        }
+        if (StrUtil.isNotEmpty(classroomId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleChild::getClassroomId), classroomId);
+        }
+        if (StrUtil.isNotEmpty(week)) {
+            Integer weekInt = Integer.parseInt(week);
+            // 大于
+            queryWrapper.le(MybatisPlusUtil.toColumns(ScheduleChild::getStartWeek), weekInt);
+            // 小于
+            queryWrapper.ge(MybatisPlusUtil.toColumns(ScheduleChild::getEndWeek), weekInt);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            queryWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        // 查所有字段
+        queryWrapper.selectAll(Schedule.class)
+                .selectAll(ScheduleChild.class);
+        List<Map<String, Object>> beans = skyeyeBaseMapper.selectJoinMaps(queryWrapper);
+        if (CollectionUtil.isEmpty( beans)) {
+            return;
+        }
+        List<Map<String, Object>> resultBeans = beans.stream().map(bean -> convertMapKeysToCamelCase(bean)).collect(Collectors.toList());
+        schoolService.setMationForMap(resultBeans, "schoolId", "schoolMation");
+        facultyService.setMationForMap(resultBeans, "facultyId", "facultyMation");
+        majorService.setMationForMap(resultBeans, "majorId", "majorMation");
+        semesterService.setMationForMap(resultBeans, "semesterId", "semesterMation");
+        classesService.setMationForMap(resultBeans, "classId", "classMation");
+        subjectService.setMationForMap(resultBeans, "courseId", "courseMation");
+        floorInfoService.setMationForMap(resultBeans, "classroomId", "classroomMation");
+        iAuthUserService.setMationForMap(resultBeans, "teacherId", "teacherMation");
+        outputObject.setBeans(resultBeans);
+        outputObject.settotal(resultBeans.size());
+    }
+
+    /**
+     * 将单个Map中的键从下划线转为驼峰式
+     */
+    public static Map<String, Object> convertMapKeysToCamelCase(Map<String, Object> map) {
+        if (map == null) return null;
+        Map<String, Object> newMap = new HashMap<>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String camelKey = underlineToCamel(entry.getKey());
+            newMap.put(camelKey, entry.getValue());
+        }
+        map.clear();
+        map.putAll(newMap);
+        return map;
+    }
+    /**
+     * 下划线命名转驼峰命名
+     */
+    public static String underlineToCamel(String underline) {
+        if (underline == null || underline.isEmpty()) {
+            return underline;
+        }
+        StringBuilder result = new StringBuilder();
+        boolean nextUpper = false;
+        underline = underline.toLowerCase();
+        for (int i = 0; i < underline.length(); i++) {
+            char currentChar = underline.charAt(i);
+
+            if (currentChar == '_') {
+                nextUpper = true;
+            } else {
+                if (nextUpper) {
+                    result.append(Character.toUpperCase(currentChar));
+                    nextUpper = false;
+                } else {
+                    result.append(currentChar);
+                }
+            }
+        }
+        return result.toString();
     }
 }

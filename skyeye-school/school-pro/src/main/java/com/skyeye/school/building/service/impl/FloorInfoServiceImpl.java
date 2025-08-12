@@ -1,13 +1,14 @@
 package com.skyeye.school.building.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -15,11 +16,13 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.building.dao.FloorInfoDao;
 import com.skyeye.school.building.entity.FloorInfo;
+import com.skyeye.school.building.entity.TeachBuilding;
 import com.skyeye.school.building.floorenum.FloorInfoEnum;
 import com.skyeye.school.building.service.FloorInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -197,17 +200,26 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
     }
 
     @Override
+    @IgnoreTenant
     public void queryFloorClassList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String keyword = (String) params.get("keyword");
-        QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
-        if(StrUtil.isNotEmpty(keyword)){
-            queryWrapper.like(MybatisPlusUtil.toColumns(FloorInfo::getName), keyword);
+        String schoolId = params.get("schoolId").toString();
+        MPJLambdaWrapper<FloorInfo> queryWrapper = JoinWrappers.lambda("flw", FloorInfo.class)
+                .innerJoin(TeachBuilding.class, "tb", TeachBuilding::getId, FloorInfo::getLocationId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
+        if (StrUtil.isNotEmpty(keyword)) {
+            queryWrapper.like("flw." + MybatisPlusUtil.toColumns(FloorInfo::getName), keyword);
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getNodeType), FloorInfoEnum.ClASS_INFO_ENUM.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getStatus),EnableEnum.ENABLE_USING.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getStatus), EnableEnum.ENABLE_USING.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FloorInfo::getCreateTime));
-        List<FloorInfo> bean = list(queryWrapper);
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            queryWrapper.eq("flw." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            queryWrapper.eq("tb." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        List<FloorInfo> bean = skyeyeBaseMapper.selectJoinList(FloorInfo.class, queryWrapper);
         outputObject.setBeans(bean);
         outputObject.settotal(bean.size());
     }

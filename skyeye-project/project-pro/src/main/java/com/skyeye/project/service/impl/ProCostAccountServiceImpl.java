@@ -14,6 +14,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.cost.service.ProUserCostService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.project.classenum.ProAddFlagEnum;
 import com.skyeye.project.classenum.ProCostAccountEnum;
@@ -62,6 +63,9 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
     @Autowired
     private ProProjectService proProjectService;
 
+    @Autowired
+    private ProUserCostService proUserCostService;
+
 
     @Override
     public void validatorEntity(CostAccount entity) {
@@ -95,6 +99,10 @@ public class ProCostAccountServiceImpl extends SkyeyeBusinessServiceImpl<ProCost
         // 资产采购
         List<Map<String, Object>> assetPurchaseCost = iAdmAssetPurchaseService.queryLastMonthAssetPurchaseCost();
         addCostAccountList(costAccountList, assetPurchaseCost, ProCostAccountEnum.OTHER.getKey());
+
+        //人力成本
+        List<Map<String, Object>> humanCost = proUserCostService.queryLastMonthHumanCost();
+        addCostAccountList(costAccountList, humanCost, ProCostAccountEnum.HUMAN.getKey());
 
         createEntity(costAccountList, null);
     }

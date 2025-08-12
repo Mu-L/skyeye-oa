@@ -158,7 +158,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         }
     }
 
-    private List<Map<String, Object>> queryPostList(InputObject inputObject) {
+    private List<Map<String, Object>> queryPostList(InputObject inputObject,OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String keyword = commonPageInfo.getKeyword();
         String objectId = commonPageInfo.getObjectId();
@@ -180,7 +180,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (StrUtil.isNotEmpty(holderId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), holderId);
             // 设置用户信息--和点赞信息
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
             setUserMations(bean);
             List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
             //  传holderId时，判断是否已加入该圈子
@@ -194,7 +196,9 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 queryWrapper.ne(MybatisPlusUtil.toColumns(Post::getTypeId), StrUtil.EMPTY)
                     .eq(MybatisPlusUtil.toColumns(Post::getTypeId), type);
             }
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
         } else if (StrUtil.isNotEmpty(objectId)) {
             if (!objectId.equals(userId)) {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getAnonymity), WhetherEnum.DISABLE_USING.getKey());
@@ -209,37 +213,21 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
             } else {
                 queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
             }
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
             circleService.setDataMation(bean, Post::getCircleId);
+            outputObject.settotal(page.getTotal());
         } else {
             queryWrapper.eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY);
+            Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
             bean = list(queryWrapper);
+            outputObject.settotal(page.getTotal());
         }
         if (CollectionUtil.isEmpty(bean)) {
             return new ArrayList<>();
         }
         setUserMations(bean);
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(bean), null);
-        return beans;
-    }
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = queryPostList(inputObject);
-        List<String> postIds = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
-        // 获取评论信息
-        Map<String, List<Comment>> commentMap = commentService.getCommentMapListByIds(postIds);
-        // 获取帖子图片信息
-        Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
-        beans.forEach(bean -> {
-            String id = bean.get("id").toString();
-            // 设置评论信息
-            bean.put("commentList", CollectionUtil.sub(commentMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
-            // 设置图片信息
-            bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
-            bean.put("pictureSize", pictureMap.size());
-        });
         return beans;
     }
 
@@ -348,7 +336,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (CollectionUtil.isEmpty(upvoteList)) {
             return;
         }
-        List<String> postIds = upvoteList.stream().map(Upvote::getObjectId).collect(Collectors.toList());
+        List<String> postIds = upvoteList.stream().map(Upvote::getObjectId).distinct().collect(Collectors.toList());
         // 获取用户加入的圈子
         List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
         List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
@@ -368,7 +356,7 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         if (CollectionUtil.isEmpty(myCommentList)) {
             return;
         }
-        List<String> postIds = myCommentList.stream().map(Comment::getPostId).collect(Collectors.toList());
+        List<String> postIds = myCommentList.stream().map(Comment::getPostId).distinct().collect(Collectors.toList());
         // 获取用户加入的圈子
         List<JoinCircle> joinCircleList = joinCircleService.queryMyJoinCircle(userId);
         List<String> circleIds = joinCircleList.stream().map(JoinCircle::getCircleId).collect(Collectors.toList());
@@ -392,17 +380,15 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
                 .eq(MybatisPlusUtil.toColumns(Post::getCircleId), StrUtil.EMPTY));
         }
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Post::getCreateTime));
-        List<Post> bean = list(queryWrapper).stream().map(this::setUserMation).collect(Collectors.toList());
-        //查询PictureList、commentList
+        List<Post> bean = list(queryWrapper);
+        //查询PictureList
         Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
-        Map<String, List<Comment>> commentListMap = commentService.getCommentMapListByIds(postIds);
-        //设置PictureList、commentList
+        //设置PictureList
         bean.forEach(post -> {
             post.setPictureList(pictureMap.get(post.getId()));
-            post.setCommentList(CollectionUtil.sub(commentListMap.get(post.getId()),
-                CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_FIVE));
             String serviceClassName = getServiceClassName();
             post.setObjectKey(serviceClassName);
+            setUserMation(post);
         });
         circleService.setDataMation(bean, Post::getCircleId);
         return bean;
@@ -518,4 +504,23 @@ public class PostServiceImpl extends SkyeyeBusinessServiceImpl<PostDao, Post> im
         updateById(post);
         refreshCache(postId);
     }
+
+    @Override
+    public void queryPostLists(InputObject inputObject, OutputObject outputObject) {
+        List<Map<String, Object>> beans = queryPostList(inputObject,outputObject);
+        List<String> postIds = beans.stream()
+                .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+
+        // 获取帖子图片信息
+        Map<String, List<Picture>> pictureMap = pictureService.getPictureMapListByIds(postIds);
+        beans.forEach(bean -> {
+            String id = bean.get("id").toString();
+            // 设置图片信息
+            bean.put("pictureList", CollectionUtil.sub(pictureMap.get(id), CommonNumConstants.NUM_ZERO, CommonNumConstants.NUM_NINE));
+            bean.put("pictureSize", pictureMap.size());
+        });
+
+        outputObject.setBeans(beans);
+    }
+
 }

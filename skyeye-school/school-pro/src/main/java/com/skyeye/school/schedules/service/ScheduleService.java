@@ -20,4 +20,6 @@ public interface ScheduleService extends SkyeyeBusinessService<Schedule> {
     void queryMySchedulesList(InputObject inputObject, OutputObject outputObject);
 
     void querySchedulesInfoList(InputObject inputObject, OutputObject outputObject);
+
+    void queryScheduleList(InputObject inputObject, OutputObject outputObject);
 }

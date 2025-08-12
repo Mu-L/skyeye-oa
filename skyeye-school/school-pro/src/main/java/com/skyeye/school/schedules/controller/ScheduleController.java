@@ -85,4 +85,16 @@ public class ScheduleController {
     public void queryMySchedulesList(InputObject inputObject, OutputObject outputObject) {
         scheduleService.queryMySchedulesList(inputObject, outputObject);
     }
+
+    @ApiOperation(id = "queryScheduleList", value = "获取课表列表(学期，老师，教室，周次)", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+            @ApiImplicitParam(id = "semesterId", name = "semesterId", value = "学期id", required = "required"),
+            @ApiImplicitParam(id = "teacherId", name = "teacherId", value = "教师id"),
+            @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required"),
+            @ApiImplicitParam(id = "classroomId", name = "classroomId", value = "教室id"),
+            @ApiImplicitParam(id = "week", name = "week", value = "周次", required = "num")})
+    @RequestMapping("/post/ScheduleController/queryScheduleList")
+    public void queryScheduleList(InputObject inputObject, OutputObject outputObject) {
+        scheduleService.queryScheduleList(inputObject, outputObject);
+    }
 }

@@ -42,7 +42,7 @@ public class PostController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PostController/queryPostList")
     public void queryPostList(InputObject inputObject, OutputObject outputObject) {
-        postService.queryPageList(inputObject, outputObject);
+        postService.queryPostLists(inputObject, outputObject);
     }
 
     /**

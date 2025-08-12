@@ -36,12 +36,6 @@ public class WholeOrderOutController {
     @Autowired
     private WholeOrderOutService wholeOrderOutService;
 
-    /**
-     * 获取整单委外单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryWholeOrderOutList", value = "获取整单委外单列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WholeOrderOutController/queryWholeOrderOutList")
@@ -49,12 +43,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑整单委外单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeWholeOrderOut", value = "新增/编辑整单委外单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = WholeOrderOut.class)
     @RequestMapping("/post/WholeOrderOutController/writeWholeOrderOut")
@@ -62,12 +50,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转采购入库单/到货单/采购退货单时，根据id查询整单委外单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryWholeOrderOutTransById", value = "转采购入库单/到货单/采购退货单/采购换货单时，根据id查询整单委外单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -76,12 +58,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.queryWholeOrderOutTransById(inputObject, outputObject);
     }
 
-    /**
-     * 整单委外单信息转采购入库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertWholeOrderOutToTurnPut", value = "整单委外单信息转采购入库", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchasePut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -90,12 +66,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.insertWholeOrderOutToTurnPut(inputObject, outputObject);
     }
 
-    /**
-     * 整单委外单信息转到货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertWholeOrderOutToTurnDelivery", value = "整单委外单信息转到货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseDelivery.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -104,12 +74,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.insertWholeOrderOutToTurnDelivery(inputObject, outputObject);
     }
 
-    /**
-     * 整单委外单信息转采购退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertWholeOrderOutToReturns", value = "整单委外单信息转采购退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseReturn.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -118,12 +82,6 @@ public class WholeOrderOutController {
         wholeOrderOutService.insertWholeOrderOutToReturns(inputObject, outputObject);
     }
 
-    /**
-     * 整单委外单信息转采购换货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertWholeOrderOutToExchanges", value = "整单委外单信息转采购换货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseExchange.class, value = {
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

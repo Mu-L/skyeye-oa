@@ -22,7 +22,7 @@ import java.util.Map;
  */
 
 @Data
-@TableName(value = "school_lectures_schedules_child")
+@TableName(value = "school_lectures_schedules_child", autoResultMap = true)
 @ApiModel(value = "排课表子表实体类")
 public class ScheduleChild extends OperatorUserInfo {
 
@@ -40,7 +40,7 @@ public class ScheduleChild extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "课程名称")
-    private String courseMation;
+    private Map<String,Object> courseMation;
 
     @TableField("teacher_id")
     @ApiModelProperty(value = "教师id", required = "required")

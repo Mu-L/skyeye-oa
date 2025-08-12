@@ -36,12 +36,6 @@ public class SalesOrderController {
     @Autowired
     private SalesOrderService salesOrderService;
 
-    /**
-     * 获取销售订单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesorder001", value = "获取销售订单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SalesOrderController/querySalesOrderToList")
@@ -49,12 +43,6 @@ public class SalesOrderController {
         salesOrderService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑销售订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSalesOrder", value = "新增/编辑销售订单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesOrder.class)
     @RequestMapping("/post/SalesOrderController/writeSalesOrder")
@@ -62,24 +50,12 @@ public class SalesOrderController {
         salesOrderService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取审核通过的销售单列表展示为树
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesorder011", value = "获取审核通过的销售单列表展示为树", method = "GET", allUse = "2")
     @RequestMapping("/post/SalesOrderController/querySalesOrderListToTree")
     public void querySalesOrderListToTree(InputObject inputObject, OutputObject outputObject) {
         salesOrderService.querySalesOrderListToTree(inputObject, outputObject);
     }
 
-    /**
-     * 根据销售单id获取子单据列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesorder012", value = "根据销售单id获取子单据列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -88,12 +64,6 @@ public class SalesOrderController {
         salesOrderService.querySalesOrderMaterialListByOrderId(inputObject, outputObject);
     }
 
-    /**
-     * 转销售出库单/销售退货单时，根据id查询销售订单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySealsOrderTransById", value = "转销售出库单/销售退货单/销售换货单时，根据id查询销售订单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -102,12 +72,6 @@ public class SalesOrderController {
         salesOrderService.querySealsOrderTransById(inputObject, outputObject);
     }
 
-    /**
-     * 销售订单转销售出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesorder009", value = "销售订单转销售出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesOutLet.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -116,12 +80,6 @@ public class SalesOrderController {
         salesOrderService.insertSalesOrderToTurnPut(inputObject, outputObject);
     }
 
-    /**
-     * 销售订单转销售退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSealsOrderToSealsReturns", value = "销售订单转销售退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesReturns.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -130,12 +88,6 @@ public class SalesOrderController {
         salesOrderService.insertSealsOrderToSealsReturns(inputObject, outputObject);
     }
 
-    /**
-     * 销售订单转换货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSealsOrderToSealExchanges", value = "销售订单转换货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesExchanges.class, value = {
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -159,12 +111,6 @@ public class SalesOrderController {
         salesOrderService.queryCrmContractTransById(inputObject, outputObject);
     }
 
-    /**
-     * 客户合同转销售订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertCrmContractToSealsOrder", value = "客户合同转销售订单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesOrder.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -173,12 +119,6 @@ public class SalesOrderController {
         salesOrderService.insertCrmContractToSealsOrder(inputObject, outputObject);
     }
 
-    /**
-     * 转出货计划单时，根据id查询销售订单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySealsOrderTransProductionPlanById", value = "转出货计划单时，根据id查询销售订单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -187,12 +127,6 @@ public class SalesOrderController {
         salesOrderService.querySealsOrderTransProductionPlanById(inputObject, outputObject);
     }
 
-    /**
-     * 销售订单转出货计划单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSealsOrderToProductionPlan", value = "销售订单转出货计划单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ProductionPlan.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

@@ -8,24 +8,20 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.object.InputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.school.building.service.FloorInfoService;
-import com.skyeye.school.grade.service.ClassesService;
 import com.skyeye.school.schedules.dao.ScheduleChildDao;
 import com.skyeye.school.schedules.entity.Schedule;
 import com.skyeye.school.schedules.entity.ScheduleChild;
 import com.skyeye.school.schedules.service.ScheduleChildService;
-import com.skyeye.school.schedules.service.ScheduleService;
 import com.skyeye.school.subject.service.SubjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -43,13 +39,12 @@ import java.util.stream.Collectors;
 public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleChildDao, ScheduleChild> implements ScheduleChildService {
 
     @Autowired
-    private ScheduleService scheduleService;
-
-    @Autowired
     private FloorInfoService floorInfoService;
 
     @Autowired
     private SubjectService subjectService;
+
+    private static final String LOCK_KEY = "schedule:";
 
     @Override
     protected void validatorEntity(List<ScheduleChild> entity) {
@@ -83,78 +78,43 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
 
     @Override
     @IgnoreTenant
-    public void writeScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-        // 查出这个学校-学期的所有课表
-        Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
-        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
-        if (tenantEnable) {
-            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-        }
-        List<ScheduleChild> list = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
+    public void writeScheduleChildList(Schedule entity, String userId) {
+        List<ScheduleChild> scheduleChildList = entity.getScheduleChildList();
+        String lockKey = tenantEnable ? LOCK_KEY + entity.getSchoolId() + ":" + entity.getSemesterId() + ":" + TenantContext.getTenantId()
+                : LOCK_KEY + entity.getSchoolId() + ":" + entity.getSemesterId();
+        RedisLock lock = new RedisLock(lockKey);
+        try {
+            if (!lock.lock()) {
+                //  加锁失败
+                return;
+            }
+            // 查出这个学校-学期的所有课表
+            MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
+            mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), entity.getSchoolId());
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), entity.getSemesterId());
+            if (tenantEnable) {
+                mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+                mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
+            }
+            List<ScheduleChild> list = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
 
-        scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
-        list.addAll(scheduleChildList);
-        // 校验
-        validateScheduleConflicts(list);
-        // 过滤出id为空的数据
-        List<ScheduleChild> collect = list.stream().filter(course -> StrUtil.isEmpty(course.getId())).collect(Collectors.toList());
-        createEntity(collect, userId);
-    }
-
-    @Override
-    @IgnoreTenant
-    public void updateScheduleChildList(String parentId, List<ScheduleChild> scheduleChildList) {
-        String userId = InputObject.getLogParamsStatic().get("id").toString();
-
-        // 查出这个学校-学期的所有课表（不包括当前正在编辑的课表）
-        Schedule schedule = scheduleService.selectById(parentId);
-        MPJLambdaWrapper<ScheduleChild> mpjLambdaWrapper = JoinWrappers.lambda("sc", ScheduleChild.class);
-        mpjLambdaWrapper.innerJoin(Schedule.class, "s", Schedule::getId, ScheduleChild::getParentId);
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSchoolId), schedule.getSchoolId());
-        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(Schedule::getSemesterId), schedule.getSemesterId());
-        // 排除当前正在编辑的课表，避免与自己冲突
-        mpjLambdaWrapper.ne(MybatisPlusUtil.toColumns(ScheduleChild::getParentId), parentId);
-        if (tenantEnable) {
-            mpjLambdaWrapper.eq("sc." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-            mpjLambdaWrapper.eq("s." + CommonConstants.TENANT_ID_FIELD, TenantContext.getTenantId());
-        }
-        List<ScheduleChild> existingList = skyeyeBaseMapper.selectJoinList(ScheduleChild.class, mpjLambdaWrapper);
-
-        // 设置父ID
-        scheduleChildList.forEach(scheduleChild -> scheduleChild.setParentId(parentId));
-
-        // 合并现有课程和当前编辑的课程
-        List<ScheduleChild> allScheduleList = new ArrayList<>(existingList);
-        allScheduleList.addAll(scheduleChildList);
-
-        // 校验冲突
-        validateScheduleConflicts(allScheduleList);
-
-        // 分离新增和更新的数据
-        List<ScheduleChild> toCreateList = scheduleChildList.stream()
-                .filter(course -> StrUtil.isEmpty(course.getId()))
-                .collect(Collectors.toList());
-
-        List<ScheduleChild> toUpdateList = scheduleChildList.stream()
-                .filter(course -> StrUtil.isNotEmpty(course.getId()))
-                .collect(Collectors.toList());
-
-        // 批量创建新增的数据
-        if (!toCreateList.isEmpty()) {
-            createEntity(toCreateList, userId);
-        }
-
-        // 批量更新已有的数据
-        if (!toUpdateList.isEmpty()) {
-            updateEntity(toUpdateList, userId);
+            scheduleChildList.forEach(scheduleChild -> {
+                scheduleChild.setParentId(entity.getId());
+                scheduleChild.setId(StrUtil.EMPTY);
+            });
+            list.addAll(scheduleChildList);
+            // 校验
+            validateScheduleConflicts(list);
+            // 过滤出id为空的数据
+            createEntity(scheduleChildList, userId);
+        } catch (Exception e) {
+            throw new CustomException(e);
+        } finally {
+            // 释放锁
+            lock.unlock();
         }
     }
-
 
     /**
      * 校验排课冲突
@@ -179,28 +139,48 @@ public class ScheduleChildServiceImpl extends SkyeyeBusinessServiceImpl<Schedule
                         // 检查教室冲突
                         if (courseA.getClassroomId().equals(courseB.getClassroomId())) {
                             throw new CustomException(String.format(
-                                    "教室冲突：星期%d，%d-%d周，第%d-%d节，教室[%s]被重复使用",
+                                    "教室冲突：星期%d，%d-%d周，第%d-%d节，教室被重复使用",
                                     courseA.getWeekDay(),
                                     Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
                                     Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
                                     Math.max(courseA.getStartNum(), courseB.getStartNum()),
-                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
-                                    courseA.getClassroomId()
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
 
                         // 检查教师冲突
                         if (courseA.getTeacherId().equals(courseB.getTeacherId())) {
                             throw new CustomException(String.format(
-                                    "教师冲突：星期%d，%d-%d周，第%d-%d节，教师[%s]时间冲突",
+                                    "教师冲突：星期%d，%d-%d周，第%d-%d节，教师时间冲突",
                                     courseA.getWeekDay(),
                                     Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
                                     Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
                                     Math.max(courseA.getStartNum(), courseB.getStartNum()),
-                                    Math.min(courseA.getEndNum(), courseB.getEndNum()),
-                                    courseA.getTeacherId()
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
                             ));
                         }
+
+                        // 检查班级冲突
+                        if (courseA.getParentId().equals(courseB.getParentId())) {
+                            throw new CustomException(String.format(
+                                    "班级冲突：星期%d，%d-%d周，第%d-%d节，班级时间冲突",
+                                    courseA.getWeekDay(),
+                                    Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
+                                    Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
+                                    Math.max(courseA.getStartNum(), courseB.getStartNum()),
+                                    Math.min(courseA.getEndNum(), courseB.getEndNum())
+                            ));
+                        }
+
+                        // 同一时间片不能被两个不同的课程占用（即使教室、教师、班级都不同）
+                        throw new CustomException(String.format(
+                                "时间冲突：星期%d，%d-%d周，第%d-%d节，该时间段已被占用",
+                                courseA.getWeekDay(),
+                                Math.max(courseA.getStartWeek(), courseB.getStartWeek()),
+                                Math.min(courseA.getEndWeek(), courseB.getEndWeek()),
+                                Math.max(courseA.getStartNum(), courseB.getStartNum()),
+                                Math.min(courseA.getEndNum(), courseB.getEndNum())
+                        ));
                     }
                 }
             }

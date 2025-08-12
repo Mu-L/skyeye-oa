@@ -35,4 +35,6 @@ public interface UploadService {
     void deleteFileByPath(InputObject inputObject, OutputObject outputObject);
 
     void getFilePresignedUrl(InputObject inputObject, OutputObject outputObject);
+
+    void markdownZipUploadAndParse(InputObject inputObject, OutputObject outputObject);
 }

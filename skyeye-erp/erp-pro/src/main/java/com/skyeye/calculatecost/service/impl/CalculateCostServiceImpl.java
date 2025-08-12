@@ -211,6 +211,11 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         MachinPut machinPut = machinPutService.selectById(machinPutId);
         // 车间任务信息
         MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(machinPut.getFromId());
+        if (StrUtil.isEmpty(machinProcedureFarm.getId())) {
+            outputObject.setBean(setMachinPutDate(machinPut, new ArrayList<>(), new MachinChild()));
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
+            return;
+        }
         // 加工单子单据的所有工序信息-----没有详细的工序信息
         List<MachinProcedure> machinProcedureList = machinProcedureService.querySameListById(machinProcedureFarm.getMachinProcedureId());
         List<String> MPIdList = machinProcedureList.stream().map(MachinProcedure::getId).collect(Collectors.toList());
@@ -277,7 +282,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         // 验收信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureIdList(MPIdList);
         if (CollectionUtil.isEmpty(acceptList)) {
-            MachinCost machinCost = setMachinCost(new ArrayList<>());
+            MachinCost machinCost = setMachinCost(machin, new ArrayList<>());
             outputObject.setBean(machinCost);
             outputObject.settotal(CommonNumConstants.NUM_ONE);
             return;
@@ -313,7 +318,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         Map<String, Map<String, String>> farmStaffMap = farmStaffList.stream().collect(Collectors.groupingBy(FarmStaff::getFarmId,
                 Collectors.toMap(FarmStaff::getStaffId, f -> StrUtil.isEmpty(f.getPieceWorkPrice()) ? "0" : f.getPieceWorkPrice())));
         List<MachinPutCost> machinPutCosts = calculateMachinCost(machin.getMachinChildList(), childIdMPMap, MPIdAcceptMap, acceptNumMap, acceptChildMap, staffMap, dateWorkHoursMap, farmStaffMap);
-        MachinCost machinCost = setMachinCost(machinPutCosts);
+        MachinCost machinCost = setMachinCost(machin, machinPutCosts);
         outputObject.setBean(machinCost);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -334,7 +339,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return machinPutCostList;
     }
 
-    private MachinCost setMachinCost(List<MachinPutCost> machinPutCosts) {
+    private MachinCost setMachinCost(Machin machin, List<MachinPutCost> machinPutCosts) {
         MachinCost machinCost = new MachinCost();
         machinCost.setNormalConsumablePrice("0");
         machinCost.setScrapConsumablePrice("0");
@@ -381,7 +386,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
         machinPutCost.setAllNum(currentOperNumber);
-        machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
         if (currentOperNumber <= CommonNumConstants.NUM_ZERO) {
@@ -394,8 +398,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinPutCost.setNormalConsumablePrice(CalculationUtil.add(machinPutCost.getNormalConsumablePrice(), machinProcedureCost.getNormalConsumablePrice(), CommonNumConstants.NUM_SIX));
             // 报废耗材成本
             machinPutCost.setScrapConsumablePrice(CalculationUtil.add(machinPutCost.getScrapConsumablePrice(), machinProcedureCost.getScrapConsumablePrice(), CommonNumConstants.NUM_SIX));
-            // 加工单价
-            machinPutCost.setPrice(CalculationUtil.add(machinPutCost.getPrice(), machinProcedureCost.getPrice(), CommonNumConstants.NUM_SIX));
             // 工资金额
             machinPutCost.setWage(CalculationUtil.add(machinPutCost.getWage(), machinProcedureCost.getWage(), CommonNumConstants.NUM_SIX));
             // 总价
@@ -407,7 +409,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setConsumablePrice(CalculationUtil.multiply(machinPutCost.getConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setScrapConsumablePrice(CalculationUtil.multiply(machinPutCost.getScrapConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setNormalConsumablePrice(CalculationUtil.multiply(machinPutCost.getNormalConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
-        machinPutCost.setPrice(CalculationUtil.multiply(machinPutCost.getPrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setWage(CalculationUtil.multiply(machinPutCost.getWage(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setTotalPrice(CalculationUtil.multiply(machinPutCost.getTotalPrice(), proportion, CommonNumConstants.NUM_SIX));
         return machinPutCost;
@@ -423,9 +424,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
         machinPutCost.setAllNum(machinChild.getOperNumber());
-        machinPutCost.setPrice("0");
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
+        machinPutCost.setNowNum(CommonNumConstants.NUM_ZERO);
         for (MachinProcedureCost machinProcedureCost : MPCostList) {
             // 耗材成本
             machinPutCost.setConsumablePrice(CalculationUtil.add(machinPutCost.getConsumablePrice(), machinProcedureCost.getConsumablePrice(), CommonNumConstants.NUM_SIX));
@@ -433,12 +434,14 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinPutCost.setScrapConsumablePrice(CalculationUtil.add(machinPutCost.getScrapConsumablePrice(), machinProcedureCost.getScrapConsumablePrice(), CommonNumConstants.NUM_SIX));
             // 正常耗材成本
             machinPutCost.setNormalConsumablePrice(CalculationUtil.add(machinPutCost.getNormalConsumablePrice(), machinProcedureCost.getNormalConsumablePrice(), CommonNumConstants.NUM_SIX));
-            // 加工单价
-            machinPutCost.setPrice(CalculationUtil.add(machinPutCost.getPrice(), machinProcedureCost.getPrice(), CommonNumConstants.NUM_SIX));
             // 工资金额
             machinPutCost.setWage(CalculationUtil.add(machinPutCost.getWage(), machinProcedureCost.getWage(), CommonNumConstants.NUM_SIX));
             // 总价
-            machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinPutCost.getPrice(), CommonNumConstants.NUM_SIX));
+            machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinProcedureCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
+            // 当前已经生产的数量
+            if (machinChild.getMaterialId().equals(machinProcedureCost.getMaterialId()) && machinChild.getNormsId().equals(machinProcedureCost.getNormsId())) {
+                machinPutCost.setNowNum(machinPutCost.getNowNum() + machinProcedureCost.getAllNum());
+            }
         }
         return machinPutCost;
     }
@@ -503,6 +506,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     private MachinProcedureCost setMachinProcedureDate(List<MachinProcedureAcceptCost> acceptCostList, MachinProcedure machinProcedure) {
         Material materialMation = machinProcedure.getMaterialMation();
         MachinProcedureCost bean = new MachinProcedureCost();
+        bean.setMaterialId(StrUtil.isEmpty(machinProcedure.getMaterialId()) ? "":machinProcedure.getMaterialId());
+        bean.setNormsId(StrUtil.isEmpty(machinProcedure.getNormsId()) ? "" :machinProcedure.getNormsId());
         bean.setMaterialName(StrUtil.isEmpty(materialMation.getId()) ? "" : materialMation.getName());
         bean.setConsumablePrice("0");
         bean.setNormalConsumablePrice("0");
@@ -511,7 +516,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         bean.setQualifiedNum(0);
         bean.setReworkNum(0);
         bean.setScrapNum(0);
-        bean.setPrice("0");
         bean.setWage("0");
         bean.setTotalPrice("0");
         bean.setAcceptCostList(acceptCostList);
@@ -523,7 +527,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             bean.setQualifiedNum(bean.getQualifiedNum() + acceptCost.getQualifiedNum());
             bean.setReworkNum(bean.getReworkNum() + acceptCost.getReworkNum());
             bean.setScrapNum(bean.getScrapNum() + acceptCost.getScrapNum());
-            bean.setPrice(CalculationUtil.add(bean.getPrice(), acceptCost.getPrice(), CommonNumConstants.NUM_SIX));
             bean.setWage(CalculationUtil.add(bean.getWage(), acceptCost.getWage(), CommonNumConstants.NUM_SIX));
             bean.setTotalPrice(CalculationUtil.add(bean.getTotalPrice(), acceptCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
         }
@@ -677,9 +680,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinProcedureCost.setWage(staffCost);
         // 总价 = 耗材成本 + 工资成本
         machinProcedureCost.setTotalPrice(CalculationUtil.add(consumablePrice, staffCost, CommonNumConstants.NUM_SIX));
-        // 加工单价 = 总价 / 合格数量
-        machinProcedureCost.setPrice(Double.valueOf(machinProcedureCost.getTotalPrice()) == 0 ?
-                "0" : CalculationUtil.divide(machinProcedureCost.getTotalPrice(), String.valueOf(machinProcedureCost.getQualifiedNum()), CommonNumConstants.NUM_SIX));
         return machinProcedureCost;
     }
 
