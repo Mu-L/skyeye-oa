@@ -7,7 +7,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.school.lectures.entity.LecturesAttenanceRecoredChild;
 import com.skyeye.school.lectures.service.LecturesAttenanceRecoredChildService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,8 +29,11 @@ public class LecturesAttenanceRecoredChildController {
     @Autowired
     private LecturesAttenanceRecoredChildService lecturesAttenanceRecoredChildService;
 
-    @ApiOperation(id = "writeLecturesAttenanceRecoredChild", value = "新增/编辑授课成绩表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = LecturesAttenanceRecoredChild.class)
+    @ApiOperation(id = "writeLecturesAttenanceRecoredChild", value = " 编辑授课成绩表的得分", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+            @ApiImplicitParam(id = "attenanceRecordId", name = "attenanceRecordId", value = "听课记录表id", required = "required"),
+            @ApiImplicitParam(id = "getScore", name = "getScore", value = "得分", required = "required")})
     @RequestMapping("/post/LecturesAttenanceRecoredChildCotroller/writeLecturesAttenanceRecoredChild")
     public void writeLecturesAttenanceRecoredChild(InputObject inputObject, OutputObject outputObject) {
         lecturesAttenanceRecoredChildService.saveOrUpdateEntity(inputObject, outputObject);
