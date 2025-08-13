@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.answer.entity.DwAnAnswer;
 import com.skyeye.eve.checkbox.dao.DwAnCheckboxDao;
 import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.checkbox.service.DwAnCheckboxService;
@@ -36,6 +37,15 @@ public class DwAnCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnCheck
 
     @Override
     protected void createPrepose(DwAnCheckbox entity) {
+        QueryWrapper<DwAnCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnCheckbox::getBelongId), entity.getBelongId());
+        List<DwAnCheckbox> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
+
         String quItemId = entity.getQuItemId();
         String[] splitArray = quItemId.split(CommonCharConstants.COMMA_MARK);
         List<String> resultList = Arrays.asList(splitArray);

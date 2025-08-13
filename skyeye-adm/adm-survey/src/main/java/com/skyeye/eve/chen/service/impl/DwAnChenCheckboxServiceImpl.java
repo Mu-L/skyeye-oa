@@ -13,6 +13,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.checkbox.entity.DwAnCheckbox;
 import com.skyeye.eve.chen.dao.DwAnChenCheckboxDao;
 import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
 import com.skyeye.eve.chen.service.DwAnChenCheckboxService;
@@ -41,6 +42,18 @@ public class DwAnChenCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwAnC
         List<DwAnChenCheckbox> dFillblankAn = entity.getDwChenCheckboxAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnChenCheckbox entity) {
+        QueryWrapper<DwAnChenCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenCheckbox::getBelongId), entity.getBelongId());
+        List<DwAnChenCheckbox> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

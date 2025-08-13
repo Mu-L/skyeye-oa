@@ -14,6 +14,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwAnChenRadioDao;
+import com.skyeye.eve.chen.entity.DwAnChenFbk;
 import com.skyeye.eve.chen.entity.DwAnChenRadio;
 import com.skyeye.eve.chen.service.DwAnChenRadioService;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,18 @@ public class DwAnChenRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         List<DwAnChenRadio> dFillblankAn = entity.getDwChenRadioAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnChenRadio entity) {
+        QueryWrapper<DwAnChenRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenRadio::getBelongId), entity.getBelongId());
+        List<DwAnChenRadio> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

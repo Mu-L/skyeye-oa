@@ -138,15 +138,10 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
             }
         }
         List<DwQuRadio> radios = dwQuRadioService.createRadios(dwQuestionList, userId);
-        List<DwQuestion> dwRadioQuestions = filterByQutype(dwQuestionList, QuType.RADIO.getIndex());
         List<DwQuScore> scores = dwQuScoreService.createScores(dwQuestionList, userId);
-        List<DwQuestion> dwScoreQuestions = filterByQutype(dwQuestionList, QuType.SCORE.getIndex());
         List<DwQuCheckbox> checkboxs = dwQuCheckboxService.createCheckboxs(dwQuestionList, userId);
-        List<DwQuestion> dwCheckboxQuestions = filterByQutype(dwQuestionList, QuType.CHECKBOX.getIndex());
         List<DwQuMultiFillblank> multiFillblanks = dwQuMultiFillblankService.createMultiFillblanks(dwQuestionList, userId);
-        List<DwQuestion> dwMultiFillblankQuestions = filterByQutype(dwQuestionList, QuType.MULTIFILLBLANK.getIndex());
         List<DwQuOrderby> orderbys = dwQuOrderbyService.createOrderbys(dwQuestionList, userId);
-        List<DwQuestion> dwOrderbyQuestions = filterByQutype(dwQuestionList, QuType.ORDERQU.getIndex());
         List<DwQuestion> dwQuestionChenRadioList = filterByQutype(dwQuestionList, QuType.CHENRADIO.getIndex());
         List<DwQuestion> dwQuestionChenCheckboxList = filterByQutype(dwQuestionList, QuType.CHENCHECKBOX.getIndex());
         List<DwQuestion> dwQuestionChenFbkList = filterByQutype(dwQuestionList, QuType.CHENFBK.getIndex());
@@ -161,12 +156,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.RADIO.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
-                            Integer orderByQuId = dwQuestion2.getOrderById();
-                            DwQuestion target1 = dwRadioQuestions.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
-                            dwQuestionLogic.setCkQuId(target1.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -195,12 +185,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.SCORE.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
-                            Integer orderByQuId = dwQuestion2.getOrderById();
-                            DwQuestion target1 = dwScoreQuestions.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
-                            dwQuestionLogic.setCkQuId(target1.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -229,12 +214,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.CHECKBOX.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
-                            Integer orderByQuId = dwQuestion2.getOrderById();
-                            DwQuestion target1 = dwCheckboxQuestions.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
-                            dwQuestionLogic.setCkQuId(target1.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -263,12 +243,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.MULTIFILLBLANK.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
-                            Integer orderByQuId = dwQuestion2.getOrderById();
-                            DwQuestion target1 = dwMultiFillblankQuestions.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
-                            dwQuestionLogic.setCkQuId(target1.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -297,12 +272,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.ORDERQU.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion2 = super.selectById(ckQuId);
-                            Integer orderByQuId = dwQuestion2.getOrderById();
-                            DwQuestion target1 = dwOrderbyQuestions.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderByQuId)).findFirst().orElse(null);
-                            dwQuestionLogic.setCkQuId(target1.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -337,7 +307,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                             DwQuestion dwQuestion2 = dwQuestionChenRadioList.stream()
                                 .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
-                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -382,7 +352,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                             DwQuestion dwQuestion2 = dwQuestionChenCheckboxList.stream()
                                 .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
-                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -427,7 +397,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                             DwQuestion dwQuestion2 = dwQuestionChenFbkList.stream()
                                 .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
-                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {
@@ -472,7 +442,7 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                             DwQuestion dwQuestion2 = dwQuestionChenScoreList.stream()
                                 .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
-                            dwQuestionLogic.setCkQuId(dwQuestion2.getId());
+                            dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
                             if (cgQuItemId != null && cgQuItemId.matches("\\d+")) {
                                 if (Integer.valueOf(cgQuItemId).equals(CommonNumConstants.NUM_ZERO)) {

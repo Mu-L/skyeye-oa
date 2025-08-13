@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.order.dao.DwAnOrderDao;
 import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.order.service.DwAnOrderService;
@@ -37,6 +38,18 @@ public class DwAnOrderServiceImpl extends SkyeyeBusinessServiceImpl<DwAnOrderDao
         List<DwAnOrder> dFillblankAn = entity.getOrderByAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnOrder entity) {
+        QueryWrapper<DwAnOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnOrder::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnOrder::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnOrder::getBelongId), entity.getBelongId());
+        List<DwAnOrder> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

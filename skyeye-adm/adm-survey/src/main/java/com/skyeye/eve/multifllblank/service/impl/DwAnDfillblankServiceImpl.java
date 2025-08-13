@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.enumqu.entity.DwAnEnumqu;
 import com.skyeye.eve.multifllblank.dao.DwAnDfillblankDao;
 import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.service.DwAnDfillblankService;
@@ -26,6 +27,14 @@ public class DwAnDfillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnDfi
 
     @Override
     protected void createPrepose(DwAnDfillblank entity) {
+        QueryWrapper<DwAnDfillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnDfillblank::getBelongId), entity.getBelongId());
+        List<DwAnDfillblank> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
         List<DwAnDfillblank> dFillblankAn = entity.getDFillblankAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, InputObject.getLogParamsStatic().get("id").toString());

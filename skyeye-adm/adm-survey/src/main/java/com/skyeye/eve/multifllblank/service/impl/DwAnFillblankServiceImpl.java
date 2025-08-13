@@ -9,6 +9,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.multifllblank.dao.DwAnFillblankDao;
+import com.skyeye.eve.multifllblank.entity.DwAnDfillblank;
 import com.skyeye.eve.multifllblank.entity.DwAnFillblank;
 import com.skyeye.eve.multifllblank.service.DwAnFillblankService;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,18 @@ public class DwAnFillblankServiceImpl extends SkyeyeBusinessServiceImpl<DwAnFill
 
         outputObject.setBean(dwAnFillblankList);
         outputObject.settotal(dwAnFillblankList.size());
+    }
+
+    @Override
+    protected void createPrepose(DwAnFillblank entity) {
+        QueryWrapper<DwAnFillblank> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnFillblank::getBelongId), entity.getBelongId());
+        List<DwAnFillblank> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
     }
 
     @Override

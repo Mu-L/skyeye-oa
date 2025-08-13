@@ -1,5 +1,6 @@
 package com.skyeye.eve.enumqu.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -7,6 +8,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.chen.entity.DwAnCompChenRadio;
 import com.skyeye.eve.enumqu.dao.DwAnEnumquDao;
 import com.skyeye.eve.enumqu.entity.DwAnEnumqu;
 import com.skyeye.eve.enumqu.service.DwAnEnumquService;
@@ -36,6 +38,18 @@ public class DwAnEnumquServiceImpl extends SkyeyeBusinessServiceImpl<DwAnEnumquD
         List<DwAnEnumqu> dwAnEnumquList = list(queryWrapper);
         outputObject.setBean(dwAnEnumquList);
         outputObject.settotal(dwAnEnumquList.size());
+    }
+
+    @Override
+    protected void createPrepose(DwAnEnumqu entity) {
+        QueryWrapper<DwAnEnumqu> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnEnumqu::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnEnumqu::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnEnumqu::getBelongId), entity.getBelongId());
+        List<DwAnEnumqu> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
     }
 
     @Override

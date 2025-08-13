@@ -14,6 +14,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwAnChenFbkDao;
+import com.skyeye.eve.chen.entity.DwAnChenCheckbox;
 import com.skyeye.eve.chen.entity.DwAnChenFbk;
 import com.skyeye.eve.chen.service.DwAnChenFbkService;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,18 @@ public class DwAnChenFbkServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChenFb
         List<DwAnChenFbk> dFillblankAn = entity.getDwChenFbkAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnChenFbk entity) {
+        QueryWrapper<DwAnChenFbk> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenFbk::getBelongId), entity.getBelongId());
+        List<DwAnChenFbk> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

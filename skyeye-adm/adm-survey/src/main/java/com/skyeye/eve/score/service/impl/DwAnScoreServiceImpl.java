@@ -9,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.score.dao.DwAnScoreDao;
 import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.score.service.DwAnScoreService;
@@ -29,6 +30,18 @@ public class DwAnScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnScoreDao
         List<DwAnScore> dFillblankAn = examAnOrder.getScoreAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnScore entity) {
+        QueryWrapper<DwAnScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnScore::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnScore::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnScore::getBelongId), entity.getBelongId());
+        List<DwAnScore> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.skyeye.eve.yesno.service.impl;
 
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -8,6 +9,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.score.entity.DwAnScore;
 import com.skyeye.eve.yesno.dao.DwAnYesnoDao;
 import com.skyeye.eve.yesno.entity.DwAnYesno;
 import com.skyeye.eve.yesno.service.DwAnYesnoService;
@@ -26,6 +28,18 @@ public class DwAnYesnoServiceImpl extends SkyeyeBusinessServiceImpl<DwAnYesnoDao
         List<DwAnYesno> dwAnYesnoList = list(queryWrapper);
         outputObject.setBean(dwAnYesnoList);
         outputObject.settotal(dwAnYesnoList.size());
+    }
+
+    @Override
+    protected void createPrepose(DwAnYesno entity) {
+        QueryWrapper<DwAnYesno> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnYesno::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnYesno::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnYesno::getBelongId), entity.getBelongId());
+        List<DwAnYesno> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
     }
 
     @Override

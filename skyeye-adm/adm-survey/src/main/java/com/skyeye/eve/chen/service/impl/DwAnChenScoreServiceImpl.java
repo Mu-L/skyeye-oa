@@ -10,6 +10,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.chen.dao.DwAnChenScoreDao;
+import com.skyeye.eve.chen.entity.DwAnChenRadio;
 import com.skyeye.eve.chen.entity.DwAnChenScore;
 import com.skyeye.eve.chen.service.DwAnChenScoreService;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,18 @@ public class DwAnChenScoreServiceImpl extends SkyeyeBusinessServiceImpl<DwAnChen
         List<DwAnChenScore> dFillblankAn = entity.getDwChenScoreAn();
         if (CollectionUtil.isNotEmpty(dFillblankAn)) {
             super.createEntity(dFillblankAn, userId);
+        }
+    }
+
+    @Override
+    protected void createPrepose(DwAnChenScore entity) {
+        QueryWrapper<DwAnChenScore> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnChenScore::getBelongId), entity.getBelongId());
+        List<DwAnChenScore> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
         }
     }
 

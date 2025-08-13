@@ -8,6 +8,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.order.entity.DwAnOrder;
 import com.skyeye.eve.radio.dao.DwAnRadioDao;
 import com.skyeye.eve.radio.entity.DwAnRadio;
 import com.skyeye.eve.radio.service.DwAnRadioService;
@@ -29,6 +30,18 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "答卷单选题保存", groupName = "答卷单选题保存")
 public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao, DwAnRadio> implements DwAnRadioService {
+
+    @Override
+    protected void createPrepose(DwAnRadio entity) {
+        QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getQuId), entity.getQuId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getBelongAnswerId), entity.getBelongAnswerId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwAnRadio::getBelongId), entity.getBelongId());
+        List<DwAnRadio> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            remove(queryWrapper);
+        }
+    }
 
     @Override
     public void queryDwAnRadioListById(InputObject inputObject, OutputObject outputObject) {
@@ -56,7 +69,7 @@ public class DwAnRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwAnRadioDao
 
     @Override
     public Map<String, List<DwAnRadio>> selectByQuIdAndStuId(List<String> radioIds, String studentId, String id) {
-        if (CollectionUtil.isEmpty(radioIds)){
+        if (CollectionUtil.isEmpty(radioIds)) {
             return new HashMap<>();
         }
         QueryWrapper<DwAnRadio> queryWrapper = new QueryWrapper<>();
