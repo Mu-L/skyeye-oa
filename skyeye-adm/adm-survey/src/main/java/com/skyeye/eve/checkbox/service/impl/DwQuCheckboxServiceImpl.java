@@ -191,6 +191,13 @@ public class DwQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<DwQuCheck
     }
 
     @Override
+    public List<DwQuCheckbox> selectByQuId(String id) {
+        QueryWrapper<DwQuCheckbox> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuCheckbox::getQuId), id);
+        return list(queryWrapper);
+    }
+
+    @Override
     public void updateCheckboxs(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuCheckbox> insertList = new ArrayList<>();
         List<DwQuCheckbox> updateList = new ArrayList<>();

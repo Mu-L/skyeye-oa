@@ -206,6 +206,13 @@ public class DwQuOrderbyServiceImpl extends SkyeyeBusinessServiceImpl<DwQuOrderb
         remove(queryWrapper);
     }
 
+    @Override
+    public List<DwQuOrderby> selectByQuId(String id) {
+        QueryWrapper<DwQuOrderby> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuOrderby::getQuId), id);
+        return list(queryWrapper);
+    }
+
     private Map<String, List<DwQuOrderby>> loadExistingRadios(List<DwQuestion> dwQuestions) {
         List<String> quIds = dwQuestions.stream()
             .map(DwQuestion::getId)

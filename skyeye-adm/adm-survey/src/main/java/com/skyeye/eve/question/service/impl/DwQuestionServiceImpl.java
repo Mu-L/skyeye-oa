@@ -137,15 +137,13 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 throw new CustomException("题目标记值不正确");
             }
         }
-        List<DwQuRadio> radios = dwQuRadioService.createRadios(dwQuestionList, userId);
-        List<DwQuScore> scores = dwQuScoreService.createScores(dwQuestionList, userId);
-        List<DwQuCheckbox> checkboxs = dwQuCheckboxService.createCheckboxs(dwQuestionList, userId);
-        List<DwQuMultiFillblank> multiFillblanks = dwQuMultiFillblankService.createMultiFillblanks(dwQuestionList, userId);
-        List<DwQuOrderby> orderbys = dwQuOrderbyService.createOrderbys(dwQuestionList, userId);
-        List<DwQuestion> dwQuestionChenRadioList = filterByQutype(dwQuestionList, QuType.CHENRADIO.getIndex());
-        List<DwQuestion> dwQuestionChenCheckboxList = filterByQutype(dwQuestionList, QuType.CHENCHECKBOX.getIndex());
-        List<DwQuestion> dwQuestionChenFbkList = filterByQutype(dwQuestionList, QuType.CHENFBK.getIndex());
-        List<DwQuestion> dwQuestionChenScoreList = filterByQutype(dwQuestionList, QuType.CHENSCORE.getIndex());
+        dwQuRadioService.createRadios(dwQuestionList, userId);
+        dwQuScoreService.createScores(dwQuestionList, userId);
+        dwQuCheckboxService.createCheckboxs(dwQuestionList, userId);
+        dwQuMultiFillblankService.createMultiFillblanks(dwQuestionList, userId);
+        dwQuOrderbyService.createOrderbys(dwQuestionList, userId);
+        dwQuChenColumnService.createChenColumns(dwQuestionList, userId);
+        dwQuChenRowService.createChenRows(dwQuestionList, userId);
         List<String> copyIdList = dwQuestionList.stream().map(DwQuestion::getCopyFromId).collect(Collectors.toList());
         // 复制题目时的复制逻辑
         if (CollectionUtil.isNotEmpty(copyIdList)) {
@@ -166,7 +164,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 DwQuRadio dwQuRadio = dwQuRadioService.selectById(cgQuItemId);
                                 // 选项的序号
                                 Integer orderById = dwQuRadio.getOrderById();
-                                DwQuRadio order1Radio = radios.stream().filter(
+                                List<DwQuRadio> dwQuRadioList = dwQuRadioService.selectByQuId(dwQuestion.getId());
+                                DwQuRadio order1Radio = dwQuRadioList.stream().filter(
                                     r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
                                 dwQuestionLogic.setCgQuItemId(order1Radio.getId());
                             }
@@ -195,7 +194,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 DwQuScore dwQuScore = dwQuScoreService.selectById(cgQuItemId);
                                 // 选项的序号
                                 Integer orderById = dwQuScore.getOrderById();
-                                DwQuScore order1Score = scores.stream().filter(
+                                List<DwQuScore> dwQuScoreList = dwQuScoreService.selectByQuId(dwQuestion.getId());
+                                DwQuScore order1Score = dwQuScoreList.stream().filter(
                                     r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
                                 dwQuestionLogic.setCgQuItemId(order1Score.getId());
                             }
@@ -224,7 +224,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 DwQuCheckbox dwQuCheckbox = dwQuCheckboxService.selectById(cgQuItemId);
                                 // 选项的序号
                                 Integer orderById = dwQuCheckbox.getOrderById();
-                                DwQuCheckbox order1Checkbox = checkboxs.stream().filter(
+                                List<DwQuCheckbox> dwQuCheckboxList = dwQuCheckboxService.selectByQuId(dwQuestion.getId());
+                                DwQuCheckbox order1Checkbox = dwQuCheckboxList.stream().filter(
                                     r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
                                 dwQuestionLogic.setCgQuItemId(order1Checkbox.getId());
                             }
@@ -253,7 +254,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 DwQuMultiFillblank dwQuMultiFillblank = dwQuMultiFillblankService.selectById(cgQuItemId);
                                 // 选项的序号
                                 Integer orderById = dwQuMultiFillblank.getOrderById();
-                                DwQuMultiFillblank order1MultiFillblank = multiFillblanks.stream().filter(
+                                List<DwQuMultiFillblank> dwQuMultiFillblanks = dwQuMultiFillblankService.selectByQuId(dwQuestion.getId());
+                                DwQuMultiFillblank order1MultiFillblank = dwQuMultiFillblanks.stream().filter(
                                     r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
                                 dwQuestionLogic.setCgQuItemId(order1MultiFillblank.getId());
                             }
@@ -282,7 +284,8 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 DwQuOrderby dwQuOrderby = dwQuOrderbyService.selectById(cgQuItemId);
                                 // 选项的序号
                                 Integer orderById = dwQuOrderby.getOrderById();
-                                DwQuOrderby order1Orderby = orderbys.stream().filter(
+                                List<DwQuOrderby> dwQuOrderbyList = dwQuOrderbyService.selectByQuId(dwQuestion.getId());
+                                DwQuOrderby order1Orderby = dwQuOrderbyList.stream().filter(
                                     r -> orderById.equals(r.getOrderById())).findFirst().orElse(null);
                                 dwQuestionLogic.setCgQuItemId(order1Orderby.getId());
                             }
@@ -301,11 +304,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.CHENRADIO.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion1 = super.selectById(ckQuId);
-                            Integer orderById = dwQuestion1.getOrderById();
-                            DwQuestion dwQuestion2 = dwQuestionChenRadioList.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
                             dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
@@ -318,9 +316,9 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 String rowId = parts[0];
                                 String cloumnId = parts[1];
                                 DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
-                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion.getId());
                                 DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
-                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion.getId());
                                 Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
                                 Integer orderByIdRow = dwQuChenRow.getOrderById();
                                 // 需要插入的列Id
@@ -346,11 +344,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.CHENCHECKBOX.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String ckQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion1 = super.selectById(ckQuId);
-                            Integer orderById = dwQuestion1.getOrderById();
-                            DwQuestion dwQuestion2 = dwQuestionChenCheckboxList.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
                             dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
@@ -363,11 +356,11 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 String rowId = parts[0];
                                 String cloumnId = parts[1];
                                 DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
-                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
                                 DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
-                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
                                 Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
                                 Integer orderByIdRow = dwQuChenRow.getOrderById();
+                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion.getId());
+                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion.getId());
                                 // 需要插入的列Id
                                 DwQuChenColumn dwQuChenColumn1 = dwQuChenColumnList1.stream()
                                     .filter(q -> Objects.equals(q.getOrderById(), orderByIdCloumn)).findFirst().orElse(null);
@@ -391,11 +384,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.CHENFBK.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String fbkQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion1 = super.selectById(fbkQuId);
-                            Integer orderById = dwQuestion1.getOrderById();
-                            DwQuestion dwQuestion2 = dwQuestionChenFbkList.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
                             dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
@@ -408,9 +396,9 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 String rowId = parts[0];
                                 String cloumnId = parts[1];
                                 DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
-                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion.getId());
                                 DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
-                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion.getId());
                                 Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
                                 Integer orderByIdRow = dwQuChenRow.getOrderById();
                                 // 需要插入的列Id
@@ -436,11 +424,6 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                 if (quType.equals(QuType.CHENSCORE.getIndex())) {
                     if (CollectionUtils.isNotEmpty(questionLogic)) {
                         for (DwQuestionLogic dwQuestionLogic : questionLogic) {
-                            String fbkQuId = dwQuestionLogic.getCkQuId();
-                            DwQuestion dwQuestion1 = super.selectById(fbkQuId);
-                            Integer orderById = dwQuestion1.getOrderById();
-                            DwQuestion dwQuestion2 = dwQuestionChenScoreList.stream()
-                                .filter(q -> Objects.equals(q.getOrderById(), orderById)).findFirst().orElse(null);
                             // 插入当前逻辑题目Id
                             dwQuestionLogic.setCkQuId(dwQuestion.getId());
                             String cgQuItemId = dwQuestionLogic.getCgQuItemId();
@@ -453,9 +436,9 @@ public class DwQuestionServiceImpl extends SkyeyeBusinessServiceImpl<DwQuestionD
                                 String rowId = parts[0];
                                 String cloumnId = parts[1];
                                 DwQuChenColumn dwQuChenColumn = dwQuChenColumnService.selectById(cloumnId);
-                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion2.getId());
+                                List<DwQuChenColumn> dwQuChenColumnList1 = dwQuChenColumnService.queryChenCloumnByQuId(dwQuestion.getId());
                                 DwQuChenRow dwQuChenRow = dwQuChenRowService.selectById(rowId);
-                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion2.getId());
+                                List<DwQuChenRow> dwQuChenRowList1 = dwQuChenRowService.queryChenRowByQuId(dwQuestion.getId());
                                 Integer orderByIdCloumn = dwQuChenColumn.getOrderById();
                                 Integer orderByIdRow = dwQuChenRow.getOrderById();
                                 // 需要插入的列Id

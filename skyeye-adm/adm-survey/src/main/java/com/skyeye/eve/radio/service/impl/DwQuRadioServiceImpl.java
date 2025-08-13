@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -18,7 +17,6 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
 import com.skyeye.eve.question.entity.DwQuestion;
-import com.skyeye.eve.question.entity.DwQuestionLogic;
 import com.skyeye.eve.question.service.DwQuestionLogicService;
 import com.skyeye.eve.radio.dao.DwQuRadioDao;
 import com.skyeye.eve.radio.entity.DwQuRadio;
@@ -97,14 +95,6 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
         }
     }
 
-//    @Override
-//    protected void deletePreExecution(DwQuRadio entity) {
-//        Integer visibility = entity.getVisibility();
-//        if (visibility.equals(CommonNumConstants.NUM_ONE)) {
-//            throw new CustomException("该选项已显示，请先隐藏再删除");
-//        }
-//    }
-
     @Override
     public void changeVisibility(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -156,6 +146,13 @@ public class DwQuRadioServiceImpl extends SkyeyeBusinessServiceImpl<DwQuRadioDao
             return updateList;
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public List<DwQuRadio> selectByQuId(String id) {
+        QueryWrapper<DwQuRadio> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuRadio::getQuId), id);
+        return list(queryWrapper);
     }
 
     @Override

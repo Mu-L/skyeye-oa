@@ -33,4 +33,6 @@ public interface DwQuRadioService extends SkyeyeBusinessService<DwQuRadio> {
     void removeByQuIds(List<String> dwQuestionIds);
 
     List<DwQuRadio> createRadios(List<DwQuestion> dwQuestionList, String userId);
+
+    List<DwQuRadio> selectByQuId(String id);
 }

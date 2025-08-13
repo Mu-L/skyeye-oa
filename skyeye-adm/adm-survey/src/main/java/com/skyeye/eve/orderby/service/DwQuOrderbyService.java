@@ -26,4 +26,6 @@ public interface DwQuOrderbyService extends SkyeyeBusinessService<DwQuOrderby> {
     void updateOrderbys(List<DwQuestion> dwQuestionList, String userId);
 
     void removeByQuIds(List<String> dwQuestionIds);
+
+    List<DwQuOrderby> selectByQuId(String id);
 }
