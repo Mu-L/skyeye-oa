@@ -5,8 +5,16 @@
 package com.skyeye.doc.code.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.doc.code.entity.CodePackage;
 import com.skyeye.doc.code.service.CodePackageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -23,5 +31,27 @@ public class CodePackageController {
 
     @Autowired
     private CodePackageService codePackageService;
+
+    @ApiOperation(id = "queryCodePackageList", value = "查询源代码包列表", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/CodePackageController/queryCodePackageList")
+    public void queryCodePackageList(InputObject inputObject, OutputObject outputObject) {
+        codePackageService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "writeCodePackage", value = "新增/编辑员工源代码包", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CodePackage.class)
+    @RequestMapping("/post/CodePackageController/writeCodePackage")
+    public void writeCodePackage(InputObject inputObject, OutputObject outputObject) {
+        codePackageService.saveOrUpdateEntity(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deleteCodePackageById", value = "根据id删除员工源代码包", method = "DELETE", allUse = "1")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/CodePackageController/deleteCodePackageById")
+    public void deleteCodePackageById(InputObject inputObject, OutputObject outputObject) {
+        codePackageService.deleteById(inputObject, outputObject);
+    }
 
 }

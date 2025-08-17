@@ -23,7 +23,7 @@ import lombok.Data;
 @Data
 @UniqueField
 @RedisCacheField(name = "code:package", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
-@TableName(value = "sys_staff_archives")
+@TableName(value = "code_package")
 @ApiModel("源代码包")
 public class CodePackage extends BaseGeneralInfo {
 

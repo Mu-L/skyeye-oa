@@ -32,12 +32,6 @@ public class LanguageController {
     @Autowired
     private LanguageService languageService;
 
-    /**
-     * 查询语言能力列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLanguageList", value = "查询语言能力列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LanguageController/queryLanguageList")
@@ -45,12 +39,6 @@ public class LanguageController {
         languageService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑员工语言能力
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeLanguage", value = "新增/编辑员工语言能力", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Language.class)
     @RequestMapping("/post/LanguageController/writeLanguage")
@@ -58,12 +46,6 @@ public class LanguageController {
         languageService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除员工语言能力
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteLanguageById", value = "根据id删除员工语言能力", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
