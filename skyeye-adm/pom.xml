@@ -11,7 +11,6 @@
         <module>adm-survey</module>
         <module>adm-ehr</module>
         <module>adm-ai</module>
-        <module>adm-doc</module>
     </modules>
 
     <parent>
