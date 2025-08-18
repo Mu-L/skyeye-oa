@@ -4,12 +4,17 @@
 
 package com.skyeye.doc.code.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.doc.code.dao.CodePackageDao;
 import com.skyeye.doc.code.entity.CodePackage;
+import com.skyeye.doc.code.entity.CodeVersion;
 import com.skyeye.doc.code.service.CodePackageService;
+import com.skyeye.doc.code.service.CodeVersionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,5 +29,15 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "源代码包管理", groupName = "源代码包管理", tenant = TenantEnum.PLATE)
 public class CodePackageServiceImpl extends SkyeyeBusinessServiceImpl<CodePackageDao, CodePackage> implements CodePackageService {
 
+    @Autowired
+    private CodeVersionService codeVersionService;
 
+    @Override
+    protected void validatorEntity(CodePackage entity) {
+        super.validatorEntity(entity);
+        CodeVersion codeVersion = codeVersionService.selectById(entity.getStartVersionId());
+        if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
+            throw new IllegalArgumentException("开始版本信息不存在");
+        }
+    }
 }

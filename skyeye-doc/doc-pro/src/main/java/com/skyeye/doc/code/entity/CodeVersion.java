@@ -8,33 +8,33 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 /**
- * @ClassName: CodePackage
- * @Description: 代码包实体类
+ * @ClassName: CodeVersion
+ * @Description: 代码版本实体类
  * @author: skyeye云系列--卫志强
- * @date: 2025/8/17 17:34
+ * @date: 2025/8/17 21:12
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Data
 @UniqueField
-@RedisCacheField(name = "code:package")
-@TableName(value = "code_package")
-@ApiModel("源代码包")
-public class CodePackage extends BaseGeneralInfo {
+@RedisCacheField(name = "code:version")
+@TableName(value = "code_version")
+@ApiModel("源代码版本")
+public class CodeVersion extends BaseGeneralInfo {
 
-    @TableField("start_version_id")
-    @ApiModelProperty(value = "起始版本id，从哪个版本开始的", required = "required")
-    private String startVersionId;
+    @TableField("release_state")
+    @ApiModelProperty(value = "是否发布", enumClass = WhetherEnum.class, required = "required,num")
+    private Integer releaseState;
 
-    @TableField(exist = false)
-    @Property(value = "起始版本信息")
-    private CodeVersion startVersionMation;
+    @TableField("release_time")
+    @ApiModelProperty(value = "发布时间，年月日时分秒，例如：2025-08-17 10:10:10，发布状态必填")
+    private String releaseTime;
 
 }

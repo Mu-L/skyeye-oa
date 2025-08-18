@@ -39,14 +39,14 @@ public class CodePackageController {
         codePackageService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeCodePackage", value = "新增/编辑员工源代码包", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeCodePackage", value = "新增/编辑源代码包", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CodePackage.class)
     @RequestMapping("/post/CodePackageController/writeCodePackage")
     public void writeCodePackage(InputObject inputObject, OutputObject outputObject) {
         codePackageService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteCodePackageById", value = "根据id删除员工源代码包", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteCodePackageById", value = "根据id删除源代码包", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/CodePackageController/deleteCodePackageById")
