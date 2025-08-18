@@ -19,7 +19,9 @@ import com.skyeye.doc.code.entity.CodeVersion;
 import com.skyeye.doc.code.service.CodeVersionService;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: CodeVersionServiceImpl
@@ -40,6 +42,9 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
             if (StrUtil.isEmpty(entity.getReleaseTime())) {
                 throw new IllegalArgumentException("请选择发布时间");
             }
+            SimpleDateFormat sdf1 = new SimpleDateFormat(DateUtil.YYYY);
+            String yearTime = sdf1.format(DateUtil.getPointTime(entity.getReleaseTime(), DateUtil.YYYY));
+            entity.setReleaseYear(yearTime);
         }
     }
 
@@ -54,13 +59,17 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
 
     @Override
     public void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String year = map.get("year").toString();
         String currentTime = DateUtil.getTimeAndToString();
         QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
         // 状态为已发布
         queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseState), WhetherEnum.ENABLE_USING.getKey());
         // 发布时间小于当前时间
         queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime), currentTime);
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
+        // 发布年份等于当前年份
+        queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
         List<CodeVersion> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());

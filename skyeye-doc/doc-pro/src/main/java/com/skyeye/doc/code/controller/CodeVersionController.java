@@ -61,6 +61,8 @@ public class CodeVersionController {
     }
 
     @ApiOperation(id = "queryAllReleaseCodeVersionList", value = "查询所有已经发布并且时间有效的代码版本", method = "GET", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "year", name = "year", value = "年份,格式yyyy", required = "required")})
     @RequestMapping("/post/CodeVersionController/queryAllReleaseCodeVersionList")
     public void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject) {
         codeVersionService.queryAllReleaseCodeVersionList(inputObject, outputObject);

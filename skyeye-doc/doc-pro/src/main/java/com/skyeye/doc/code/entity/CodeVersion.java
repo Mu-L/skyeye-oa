@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
@@ -36,5 +37,9 @@ public class CodeVersion extends BaseGeneralInfo {
     @TableField("release_time")
     @ApiModelProperty(value = "发布时间，年月日时分秒，例如：2025-08-17 10:10:10，发布状态必填")
     private String releaseTime;
+
+    @TableField("release_year")
+    @Property(value = "发布年份")
+    private String releaseYear;
 
 }
