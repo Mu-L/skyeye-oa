@@ -8,6 +8,8 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cache.redis.RedisCache;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -17,11 +19,12 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.doc.code.dao.CodeVersionDao;
 import com.skyeye.doc.code.entity.CodeVersion;
 import com.skyeye.doc.code.service.CodeVersionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 
 /**
  * @ClassName: CodeVersionServiceImpl
@@ -34,6 +37,9 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "代码版本管理", groupName = "代码版本管理", tenant = TenantEnum.PLATE)
 public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersionDao, CodeVersion> implements CodeVersionService {
+
+    @Autowired
+    private RedisCache redisCache;
 
     @Override
     protected void validatorEntity(CodeVersion entity) {
@@ -58,20 +64,25 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     }
 
     @Override
-    public void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String year = map.get("year").toString();
+    public List<CodeVersion> queryAllReleaseCodeVersionList(String year) {
         String currentTime = DateUtil.getTimeAndToString();
-        QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
-        // 状态为已发布
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseState), WhetherEnum.ENABLE_USING.getKey());
-        // 发布时间小于当前时间
-        queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime), currentTime);
-        // 发布年份等于当前年份
-        queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
-        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
-        List<CodeVersion> list = list(queryWrapper);
-        outputObject.setBeans(list);
-        outputObject.settotal(list.size());
+        String cacheKey = getCacheKey(year);
+        List<CodeVersion> tableColumns = redisCache.getList(cacheKey, key -> {
+            QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
+            // 状态为已发布
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseState), WhetherEnum.ENABLE_USING.getKey());
+            // 发布年份等于当前年份
+            queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
+            queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
+            List<CodeVersion> list = list(queryWrapper);
+            return list;
+        }, RedisConstants.A_YEAR_SECONDS, CodeVersion.class);
+        // 过滤出发布时间小于当前时间
+        tableColumns.removeIf(codeVersion -> !DateUtil.compare(codeVersion.getReleaseTime(), currentTime));
+        return tableColumns;
+    }
+
+    private String getCacheKey(String year) {
+        return String.format(Locale.ROOT, "doc:code:version:%s", year);
     }
 }

@@ -8,6 +8,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cache.redis.RedisCache;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.doc.code.dao.CodePackageDao;
 import com.skyeye.doc.code.entity.CodePackage;
@@ -16,6 +18,9 @@ import com.skyeye.doc.code.service.CodePackageService;
 import com.skyeye.doc.code.service.CodeVersionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @ClassName: CodePackageServiceImpl
@@ -32,6 +37,9 @@ public class CodePackageServiceImpl extends SkyeyeBusinessServiceImpl<CodePackag
     @Autowired
     private CodeVersionService codeVersionService;
 
+    @Autowired
+    private RedisCache redisCache;
+
     @Override
     protected void validatorEntity(CodePackage entity) {
         super.validatorEntity(entity);
@@ -39,5 +47,19 @@ public class CodePackageServiceImpl extends SkyeyeBusinessServiceImpl<CodePackag
         if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
             throw new IllegalArgumentException("开始版本信息不存在");
         }
+    }
+
+    @Override
+    public List<CodePackage> queryAllCodePackage() {
+        String cacheKey = getCacheKey();
+        List<CodePackage> tableColumns = redisCache.getList(cacheKey, key -> {
+            List<CodePackage> list = list();
+            return list;
+        }, RedisConstants.A_YEAR_SECONDS, CodeVersion.class);
+        return tableColumns;
+    }
+
+    private String getCacheKey() {
+        return String.format(Locale.ROOT, "doc:code:package");
     }
 }

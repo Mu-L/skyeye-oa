@@ -2,23 +2,19 @@
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
 
-package com.skyeye.doc.code.service;
+package com.skyeye.doc.code.dao;
 
-import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.doc.code.entity.CodePackage;
-
-import java.util.List;
+import com.skyeye.doc.code.entity.CodeSource;
+import com.skyeye.eve.dao.SkyeyeBaseMapper;
 
 /**
- * @ClassName: CodePackageService
- * @Description: 代码包服务接口类--平台隔离
+ * @ClassName: CodeSourceDao
+ * @Description: 源代码数据层
  * @author: skyeye云系列--卫志强
- * @date: 2025/8/17 17:36
+ * @date: 2025/8/19 8:25
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
-public interface CodePackageService extends SkyeyeBusinessService<CodePackage> {
-
-    List<CodePackage> queryAllCodePackage();
+public interface CodeSourceDao extends SkyeyeBaseMapper<CodeSource> {
 
 }

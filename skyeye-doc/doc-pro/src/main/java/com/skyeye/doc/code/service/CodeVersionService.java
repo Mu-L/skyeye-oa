@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.doc.code.entity.CodeVersion;
 
+import java.util.List;
+
 /**
  * @ClassName: CodeVersionService
  * @Description: 代码版本管理服务接口
@@ -21,5 +23,5 @@ public interface CodeVersionService extends SkyeyeBusinessService<CodeVersion> {
 
     void queryAllCodeVersionList(InputObject inputObject, OutputObject outputObject);
 
-    void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject);
+    List<CodeVersion> queryAllReleaseCodeVersionList(String year);
 }
