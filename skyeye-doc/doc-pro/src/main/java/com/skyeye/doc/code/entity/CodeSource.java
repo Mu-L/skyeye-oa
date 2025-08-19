@@ -11,7 +11,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -24,7 +23,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Data
-@UniqueField
 @RedisCacheField(name = "code:source")
 @TableName(value = "code_source")
 @ApiModel("源代码")
@@ -53,5 +51,9 @@ public class CodeSource extends OperatorUserInfo {
     @TableField("file_path")
     @ApiModelProperty(value = "文件地址", required = "required")
     private String filePath;
+
+    @TableField(exist = false)
+    @Property(value = "所属年份")
+    private String year;
 
 }

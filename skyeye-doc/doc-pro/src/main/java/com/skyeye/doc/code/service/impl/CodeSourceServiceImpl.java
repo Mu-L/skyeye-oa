@@ -5,10 +5,14 @@
 package com.skyeye.doc.code.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -24,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -45,13 +50,35 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
     @Autowired
     private CodeVersionService codeVersionService;
 
+    @Autowired
+    private RedisCache redisCache;
+
     @Override
     protected void createPrepose(CodeSource entity) {
+        CodeVersion codeVersion = codeVersionService.selectById(entity.getVersionId());
+        if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
+            throw new IllegalArgumentException("版本信息不存在");
+        }
+        CodePackage codePackage = codePackageService.selectById(entity.getPachageId());
+        if (ObjectUtil.isEmpty(codePackage) || StrUtil.isEmpty(codePackage.getId())) {
+            throw new IllegalArgumentException("源代码包信息不存在");
+        }
+        entity.setYear(codeVersion.getReleaseYear());
         // 先删除之前上传的源代码包
         QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getVersionId), entity.getVersionId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getPachageId), entity.getPachageId());
         remove(queryWrapper);
+    }
+
+    @Override
+    protected void createPostpose(CodeSource entity, String userId) {
+        jedisClientService.del(getCacheKey(entity.getYear()));
+    }
+
+    @Override
+    protected void deletePostpose(CodeSource entity) {
+        jedisClientService.del(getCacheKey(entity.getYear()));
     }
 
     @Override
@@ -65,15 +92,25 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         List<CodePackage> codePackageList = codePackageService.queryAllCodePackage();
         // 封装数据
         if (CollectionUtil.isNotEmpty(codeVersionList)) {
+            String cacheKey = getCacheKey(year);
             List<String> versionIdList = codeVersionList.stream().map(CodeVersion::getId).collect(Collectors.toList());
-            QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
-            queryWrapper.in(MybatisPlusUtil.toColumns(CodeSource::getVersionId), versionIdList);
-            List<CodeSource> codeSourceList = list(queryWrapper);
-            result.put("codeSourceList", codeSourceList);
+            List<CodeSource> tableColumns = redisCache.getList(cacheKey, key -> {
+                QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
+                queryWrapper.in(MybatisPlusUtil.toColumns(CodeSource::getVersionId), versionIdList);
+                List<CodeSource> codeSourceList = list(queryWrapper);
+                return codeSourceList;
+            }, RedisConstants.A_YEAR_SECONDS, CodeSource.class);
+            // 根据版本id过滤源代码包，因为版本的状态信息变化不会影响源代码，所以需要过滤一下
+            tableColumns.removeIf(codeSource -> !versionIdList.contains(codeSource.getVersionId()));
+            result.put("codeSourceList", tableColumns);
         }
         result.put("codeVersionList", codeVersionList);
         result.put("codePackageList", codePackageList);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    private String getCacheKey(String year) {
+        return String.format(Locale.ROOT, "doc:code:source:%s", year);
     }
 }

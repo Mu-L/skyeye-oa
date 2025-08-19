@@ -55,6 +55,18 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     }
 
     @Override
+    protected void writePostpose(CodeVersion entity, String userId) {
+        super.writePostpose(entity, userId);
+        String cacheKey = getCacheKey(entity.getReleaseYear());
+        jedisClientService.del(cacheKey);
+    }
+
+    @Override
+    protected void deletePostpose(CodeVersion entity) {
+        jedisClientService.del(getCacheKey(entity.getReleaseYear()));
+    }
+
+    @Override
     public void queryAllCodeVersionList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getCreateTime));

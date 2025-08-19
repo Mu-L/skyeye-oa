@@ -4,7 +4,9 @@
 
 package com.skyeye.db.config;
 
+import com.baomidou.mybatisplus.core.config.GlobalConfig;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
+import com.github.yulichang.injector.MPJSqlInjector;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.collections.CollectionUtils;
@@ -76,6 +78,10 @@ public class BaseDataSourceConfig {
     @Bean(name = "baseSqlSessionFactory")
     public SqlSessionFactory baseSqlSessionFactory(@Qualifier("baseDataSource") DataSource dataSource) {
         MybatisSqlSessionFactoryBean sqlSessionFactoryBean = new MybatisSqlSessionFactoryBean();
+
+        GlobalConfig globalConfig = new GlobalConfig();
+        globalConfig.setSqlInjector(new MPJSqlInjector());
+        sqlSessionFactoryBean.setGlobalConfig(globalConfig);
 
         sqlSessionFactoryBean.setDataSource(dataSource);
         String databaseType = this.initDatabaseType(dataSource);

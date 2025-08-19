@@ -50,6 +50,17 @@ public class CodePackageServiceImpl extends SkyeyeBusinessServiceImpl<CodePackag
     }
 
     @Override
+    protected void writePostpose(CodePackage entity, String userId) {
+        super.writePostpose(entity, userId);
+        jedisClientService.del(getCacheKey());
+    }
+
+    @Override
+    protected void deletePostpose(CodePackage entity) {
+        jedisClientService.del(getCacheKey());
+    }
+
+    @Override
     public List<CodePackage> queryAllCodePackage() {
         String cacheKey = getCacheKey();
         List<CodePackage> tableColumns = redisCache.getList(cacheKey, key -> {

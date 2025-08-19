@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 /**
@@ -36,5 +37,17 @@ public class CodePackage extends BaseGeneralInfo {
     @TableField(exist = false)
     @Property(value = "起始版本信息")
     private CodeVersion startVersionMation;
+
+    @TableField("end_version_id")
+    @ApiModelProperty(value = "结束版本id，从哪个版本结束的")
+    private String endVersionId;
+
+    @TableField(exist = false)
+    @Property(value = "结束版本信息")
+    private CodeVersion endVersionMation;
+
+    @TableField("need_buy")
+    @ApiModelProperty(value = "是否需要单独购买", enumClass = WhetherEnum.class, required = "required,num")
+    private Integer needBuy;
 
 }
