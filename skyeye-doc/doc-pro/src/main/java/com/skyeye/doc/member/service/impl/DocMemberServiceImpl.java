@@ -106,6 +106,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         if (!StrUtil.equals(password, member.getPassword())) {
             throw new CustomException("密码错误！");
         }
+
         member = getMember(RequestType.PC.getKey(), member, password);
         outputObject.setBean(member);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -123,6 +124,8 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         member.setPassword(null);
         member.setPwdNumEnc(null);
         String userToken;
+        // 一个账号最多可同时登录的设备数：1
+        GetUserToken.setDefaultMaxDevicesPerUser(CommonNumConstants.NUM_ONE);
         if (RequestType.APP.getKey().equals(requestType)) {
             userToken = GetUserToken.createNewToken(member.getId() + SysUserAuthConstants.APP_IDENTIFYING, password);
             SysUserAuthConstants.setUserLoginRedisCache(member.getId() + SysUserAuthConstants.APP_IDENTIFYING, BeanUtil.beanToMap(member));
