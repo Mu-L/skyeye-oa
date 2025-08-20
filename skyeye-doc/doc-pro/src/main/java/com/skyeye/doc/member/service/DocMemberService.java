@@ -5,6 +5,8 @@
 package com.skyeye.doc.member.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.doc.member.entity.DocMember;
 
 /**
@@ -17,4 +19,11 @@ import com.skyeye.doc.member.entity.DocMember;
  */
 public interface DocMemberService extends SkyeyeBusinessService<DocMember> {
 
+    void loginDocMember(InputObject inputObject, OutputObject outputObject);
+
+    void logoutDocMember(InputObject inputObject, OutputObject outputObject);
+
+    void editDocMemberPassword(InputObject inputObject, OutputObject outputObject);
+
+    void docMemberLoginMation(InputObject inputObject, OutputObject outputObject);
 }
