@@ -86,89 +86,36 @@
 	
 	<select id="queryDeskTopsMenuByUserId" resultType="java.util.Map">
 		SELECT
-			a.*
-		FROM 
-			(SELECT
-				c.id,
-				c.`name`,
-				c.icon,
-				c.page_type pageType,
-				c.page_url pageUrl,
-				c.path,
-				c.open_type openType,
-				c.type menuType,
-				'-1' maxOpen,
-				'false' extend,
-				null childs,
-				IFNULL(e.parent_id, c.parent_id) parentId,
-				IFNULL(e.level, c.level) menuLevel,
-				c.icon_color iconColor,
-				c.icon_bg iconBg,
-				c.icon_pic iconPic,
-				c.icon_type iconType,
-				IFNULL(c.desktop_id, '') desktopId,
-			    IFNULL(g.sys_url, '') sysWinUrl
-			FROM
-				sys_eve_user a,
-				sys_eve_role_menu b,
-				sys_eve_menu c
-				LEFT JOIN sys_eve_user_custom_parent e ON e.menu_id = c.id AND e.create_id = #{userId},
-				sys_eve_win g
-			WHERE a.id = #{userId}
-			AND INSTR(CONCAT(',', a.role_id, ','), CONCAT(',', b.role_id, ','))
-			AND b.menu_id = c.id AND c.sys_type = '1'
-			AND g.id = c.sys_win_id
-			GROUP BY c.id
-			ORDER BY c.order_num ASC) a
-		UNION
-			SELECT
-				a.id,
-				a.`name`,
-				a.icon,
-				'1' pageType,
-				a.url pageUrl,
-				'' path,
-				a.open_type openType,
-				a.type menuType,
-				'-1' maxOpen,
-				'false' extend,
-				null childs,
-				IFNULL(e.parent_id, a.parent_id) parentId,
-				IFNULL(e.level, 1) menuLevel,
-				a.icon_color iconColor,
-				a.icon_bg iconBg,
-				a.icon_pic iconPic,
-				a.icon_type iconType,
-				IFNULL(a.desktop_id, '') desktopId,
-			    '' sysWinUrl
-			FROM
-				sys_eve_user_custom_menu a
-				LEFT JOIN sys_eve_user_custom_parent e ON e.menu_id = a.id AND e.create_id = #{userId}
-			WHERE a.create_id = #{userId}
-		UNION
-			SELECT
-				a.id,
-				a.`name`,
-				'' icon,
-				'1' pageType,
-				'--' pageUrl,
-				'' path,
-				2 openType,
-				'' menuType,
-				'-1' maxOpen,
-				'false' extend,
-				null childs,
-				'0' parentId,
-				0 menuLevel,
-				'' iconColor,
-				'' iconBg,
-				'' iconPic,
-				'' iconType,
-				IFNULL(a.desktop_id, '') desktopId,
-			    '' sysWinUrl
-			FROM
-				sys_eve_user_custom_menubox a
-			WHERE a.create_id = #{userId}
+			c.id,
+			c.`name`,
+			c.icon,
+			c.page_type pageType,
+			c.page_url pageUrl,
+			c.path,
+			c.open_type openType,
+			c.type menuType,
+			'-1' maxOpen,
+			'false' extend,
+			null childs,
+			c.parent_id parentId,
+			c.level menuLevel,
+			c.icon_color iconColor,
+			c.icon_bg iconBg,
+			c.icon_pic iconPic,
+			c.icon_type iconType,
+			IFNULL(c.desktop_id, '') desktopId,
+			IFNULL(g.sys_url, '') sysWinUrl
+		FROM
+			sys_eve_user a,
+			sys_eve_role_menu b,
+			sys_eve_menu c,
+			sys_eve_win g
+		WHERE a.id = #{userId}
+		AND INSTR(CONCAT(',', a.role_id, ','), CONCAT(',', b.role_id, ','))
+		AND b.menu_id = c.id AND c.sys_type = '1'
+		AND g.id = c.sys_win_id
+		GROUP BY c.id
+		ORDER BY c.order_num ASC
 	</select>
 	
 	<select id="queryUserDetailsMationByUserId" resultType="java.util.Map">

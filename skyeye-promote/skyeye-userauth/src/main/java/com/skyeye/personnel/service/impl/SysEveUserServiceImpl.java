@@ -50,10 +50,6 @@ import com.skyeye.tenant.classenum.TenantAppMenuType;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserService;
-import com.skyeye.win.entity.SysEveUserCustomParent;
-import com.skyeye.win.entity.SysWin;
-import com.skyeye.win.service.SysEveUserCustomParentService;
-import com.skyeye.win.service.SysEveWinDragDropService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -63,8 +59,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: SysEveUserServiceImpl
@@ -111,13 +105,7 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     private TenantUserService tenantUserService;
 
     @Autowired
-    private SysEveWinDragDropService sysEveWinDragDropService;
-
-    @Autowired
     private TenantService tenantService;
-
-    @Autowired
-    private SysEveUserCustomParentService sysEveUserCustomParentService;
 
     @Autowired
     private SysEveUserLoginLogService sysEveUserLoginLogService;
@@ -372,7 +360,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         deskTops = ToolUtil.listToTree(deskTops, "id", "parentId", "childs");
 
         LOGGER.info("set menu mation to redis cache start.");
-        jedisClientService.set(ObjectConstant.getDeskTopsCacheKey(userId), JSONUtil.toJsonStr(deskTops));
         jedisClientService.set(ObjectConstant.getUserHasRoleIds(userId), roleIds);
         LOGGER.info("set menu mation to redis cache end.");
         userMation.remove("roleId");
@@ -439,7 +426,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     @Override
     public void removeLogin(String userTokenId, boolean removeAll) {
         SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
-        jedisClientService.del(ObjectConstant.getDeskTopsCacheKey(userTokenId));
         jedisClientService.del(ObjectConstant.getUserHasRoleIds(userTokenId));
         if (!removeAll) {
             return;
@@ -505,58 +491,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     public void editRoleIdsByUserId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         sysEveUserDao.editRoleIdsByUserId(map);
-    }
-
-    @Override
-    public void queryDeskTopMenuBySession(InputObject inputObject, OutputObject outputObject) {
-        List<Map<String, Object>> deskTops;
-        if (!tenantEnable) {
-            // 单租户模式
-            deskTops = inputObject.getLogDeskTopMenuParams();
-        } else {
-            // 多租户模式
-            String userId = InputObject.getLogParamsStatic().get("id").toString();
-            String userIdAndType = GetUserToken.getUserTokenUserId(PutObject.getRequest());
-            deskTops = getMenuListForSaas(userIdAndType);
-            // 获取用户自定义的菜单和盒子
-            List<Map<String, Object>> customMenuAndBox = sysEveWinDragDropService.queryCustomDeskTopsMenuByUserId(userId);
-            if (CollectionUtil.isNotEmpty(customMenuAndBox)) {
-                deskTops.addAll(customMenuAndBox);
-                deskTops = ToolUtil.listToTree(deskTops, "id", "parentId", "childs");
-            }
-            // 获取用户自定义的父级菜单
-            List<SysEveUserCustomParent> sysEveUserCustomParents = sysEveUserCustomParentService.querySysEveUserCustomParentByUserId(userId);
-            Map<String, SysEveUserCustomParent> userCustomParentMap = sysEveUserCustomParents.stream()
-                .collect(Collectors.toMap(SysEveUserCustomParent::getMenuId, Function.identity(), (k1, k2) -> k1));
-            // 递归给deskTops里面的每一个子项添加额外的属性
-            setWin10OtherAttr(deskTops, userCustomParentMap);
-        }
-        outputObject.setBeans(deskTops);
-    }
-
-    private void setWin10OtherAttr(List<Map<String, Object>> deskTops, Map<String, SysEveUserCustomParent> userCustomParentMap) {
-        if (CollectionUtil.isEmpty(deskTops)) {
-            return;
-        }
-        for (Map<String, Object> deskTop : deskTops) {
-            List<Map<String, Object>> childs = (List<Map<String, Object>>) deskTop.get("childs");
-            if (CollectionUtil.isNotEmpty(childs)) {
-                setWin10OtherAttr(childs, userCustomParentMap);
-            }
-            deskTop.put("maxOpen", "-1");
-            deskTop.put("extend", "false");
-            deskTop.put("menuLevel", deskTop.get("level"));
-            deskTop.put("menuType", deskTop.get("type"));
-            if (userCustomParentMap.containsKey(deskTop.get("id").toString())) {
-                SysEveUserCustomParent sysEveUserCustomParent = userCustomParentMap.get(deskTop.get("id").toString());
-                deskTop.put("parentId", sysEveUserCustomParent.getParentId());
-                deskTop.put("menuLevel", sysEveUserCustomParent.getLevel());
-            }
-            SysWin sysWinMation = (SysWin) deskTop.get("sysWinMation");
-            if (ObjectUtil.isNotEmpty(sysWinMation)) {
-                deskTop.put("sysWinUrl", sysWinMation.getSysUrl());
-            }
-        }
     }
 
     @Override
@@ -637,26 +571,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
     }
 
     /**
-     * 锁屏密码解锁
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void queryUserLockByLockPwd(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        Map<String, Object> user = inputObject.getLogParams();
-        int pwdNum = Integer.parseInt(user.get("pwdNum").toString());
-        String password = map.get("password").toString();
-        for (int i = 0; i < pwdNum; i++) {
-            password = ToolUtil.MD5(password);
-        }
-        if (!password.equals(user.get("password").toString())) {
-            outputObject.setreturnMessage("密码输入错误。");
-        }
-    }
-
-    /**
      * 修改个人信息时获取数据回显
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -687,16 +601,6 @@ public class SysEveUserServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserD
         Map<String, Object> user = inputObject.getLogParams();
         map.put("userId", user.get("id"));
         sysEveUserDao.editUserDetailsMationByUserId(map);
-    }
-
-    @Override
-    public void queryDeskTopsMenuByUserId(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> map = inputObject.getParams();
-        String userId = map.get("userId").toString();
-        // 桌面菜单列表
-        List<Map<String, Object>> deskTops = sysEveUserDao.queryDeskTopsMenuByUserId(userId);
-        outputObject.setBeans(deskTops);
-        outputObject.settotal(deskTops.size());
     }
 
     @Override

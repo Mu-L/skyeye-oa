@@ -95,24 +95,10 @@ public class SysEveUserController {
         sysEveUserService.editRoleIdsByUserId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "login004", value = "获取当前登录用户的桌面菜单列表", method = "GET", allUse = "2")
-    @RequestMapping("/post/SysEveUserController/queryDeskTopMenuBySession")
-    public void queryDeskTopMenuBySession(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserService.queryDeskTopMenuBySession(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "login005", value = "获取当前登录用户的所有菜单列表", method = "GET", allUse = "2")
     @RequestMapping("/post/SysEveUserController/queryAllMenuBySession")
     public void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.queryAllMenuBySession(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "login008", value = "锁屏密码解锁", method = "POST", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "password", name = "password", value = "密码", required = "required")})
-    @RequestMapping("/post/SysEveUserController/queryUserLockByLockPwd")
-    public void queryUserLockByLockPwd(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserService.queryUserLockByLockPwd(inputObject, outputObject);
     }
 
     @ApiOperation(id = "sys032", value = "修改个人信息时获取数据回显", method = "POST", allUse = "2")
@@ -130,14 +116,6 @@ public class SysEveUserController {
     @RequestMapping("/post/SysEveUserController/editUserDetailsMationByUserId")
     public void editUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject) {
         sysEveUserService.editUserDetailsMationByUserId(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryDeskTopsMenuByUserId", value = "根据用户id获取桌面菜单信息", method = "GET", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "userId", name = "userId", value = "用户id(账号ID)", required = "required")})
-    @RequestMapping("/post/SysEveUserController/queryDeskTopsMenuByUserId")
-    public void queryDeskTopsMenuByUserId(InputObject inputObject, OutputObject outputObject) {
-        sysEveUserService.queryDeskTopsMenuByUserId(inputObject, outputObject);
     }
 
     @ApiOperation(id = "commonselpeople001", value = "人员选择获取所有公司和人--公司为空的不显示", method = "GET", allUse = "2")

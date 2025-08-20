@@ -46,8 +46,6 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
 
     void editRoleIdsByUserId(InputObject inputObject, OutputObject outputObject);
 
-    void queryDeskTopMenuBySession(InputObject inputObject, OutputObject outputObject);
-
     void queryAllMenuBySession(InputObject inputObject, OutputObject outputObject);
 
     void setUserLoginRedisMation(String userId, Map<String, Object> userMation, boolean editAll);
@@ -58,13 +56,9 @@ public interface SysEveUserService extends SkyeyeBusinessService<SysEveUser> {
 
     void editUserPassword(InputObject inputObject, OutputObject outputObject);
 
-    void queryUserLockByLockPwd(InputObject inputObject, OutputObject outputObject);
-
     void queryUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject);
 
     void editUserDetailsMationByUserId(InputObject inputObject, OutputObject outputObject);
-
-    void queryDeskTopsMenuByUserId(InputObject inputObject, OutputObject outputObject);
 
     void queryAllPeopleToTree(InputObject inputObject, OutputObject outputObject);
 
