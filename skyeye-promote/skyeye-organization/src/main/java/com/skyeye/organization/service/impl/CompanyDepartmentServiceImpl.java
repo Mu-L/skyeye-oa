@@ -85,6 +85,13 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
         }
     }
 
+    @Override
+    public List<Department> selectByIds(String... ids) {
+        List<Department> departments = super.selectByIds(ids);
+        companyMationService.setDataMation(departments, Department::getCompanyId);
+        return departments;
+    }
+
     /**
      * 获取公司部门信息列表展示为树根据公司id
      *

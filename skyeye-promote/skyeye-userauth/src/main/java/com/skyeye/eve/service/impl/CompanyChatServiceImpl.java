@@ -12,9 +12,9 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.eve.dao.CompanyChatDao;
 import com.skyeye.eve.service.CompanyChatService;
-import com.skyeye.organization.service.ICompanyJobService;
-import com.skyeye.organization.service.ICompanyService;
-import com.skyeye.organization.service.IDepmentService;
+import com.skyeye.organization.service.CompanyDepartmentService;
+import com.skyeye.organization.service.CompanyJobService;
+import com.skyeye.organization.service.CompanyMationService;
 import com.skyeye.tenant.service.TenantUserService;
 import com.skyeye.websocket.TalkWebSocket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +43,13 @@ public class CompanyChatServiceImpl implements CompanyChatService {
     private CompanyChatDao companyChatDao;
 
     @Autowired
-    private ICompanyService iCompanyService;
+    private CompanyDepartmentService companyDepartmentService;
 
     @Autowired
-    private IDepmentService iDepmentService;
+    private CompanyMationService companyMationService;
 
     @Autowired
-    private ICompanyJobService iCompanyJobService;
+    private CompanyJobService companyJobService;
 
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
@@ -77,14 +77,14 @@ public class CompanyChatServiceImpl implements CompanyChatService {
             tenantUserService.setThisTenantUserToDefault(mine);
             map.put("tenantId", TenantContext.getTenantId());
         }
-        iCompanyService.setNameForMap(mine, "companyId", "companyName");
-        iDepmentService.setNameForMap(mine, "departmentId", "departmentName");
+        companyMationService.setNameMationForMap(mine, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(mine, "departmentId", "departmentName", StrUtil.EMPTY);
 
         // 获取聊天组
         List<Map<String, Object>> group = companyChatDao.queryUserGroupByUserId(map);
 
         // 获取公司部门
-        List<Map<String, Object>> companyDepartment = companyChatDao.queryCompanyDepartmentByUserId(map);
+        List<Map<String, Object>> companyDepartment = companyDepartmentService.queryAllDataForMap();
         if (CollectionUtil.isNotEmpty(companyDepartment)) {
             List<String> departIds = companyDepartment.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
             List<String> notInUserIds = Arrays.asList(CommonConstants.ADMIN_USER_ID, userId);
@@ -93,9 +93,9 @@ public class CompanyChatServiceImpl implements CompanyChatService {
                 // 多租户模式下，获取当前租户下的用户信息
                 userList = tenantUserService.setThisTenantUserToDefault(userList, "staffId");
             }
-            iCompanyService.setNameForMap(userList, "companyId", "companyName");
-            iDepmentService.setNameForMap(userList, "departmentId", "departmentName");
-            iCompanyJobService.setNameForMap(userList, "jobId", "jobName");
+            companyMationService.setNameMationForMap(userList, "companyId", "companyName", StrUtil.EMPTY);
+            companyDepartmentService.setNameMationForMap(userList, "departmentId", "departmentName", StrUtil.EMPTY);
+            companyJobService.setNameMationForMap(userList, "jobId", "jobName", StrUtil.EMPTY);
             if (CollectionUtil.isNotEmpty(userList)) {
                 Set<String> uId = TalkWebSocket.getOnlineUserId();
                 for (Map<String, Object> u : userList) {

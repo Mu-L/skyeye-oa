@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
@@ -37,6 +38,10 @@ public class Department extends OperatorUserInfo {
     @TableField("company_id")
     @ApiModelProperty(value = "所属公司id", required = "required")
     private String companyId;
+
+    @TableField(exist = false)
+    @Property(value = "所属公司信息")
+    private Company companyMation;
 
     @TableField("`name`")
     @ApiModelProperty(value = "部门名称", required = "required")

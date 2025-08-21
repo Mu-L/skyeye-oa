@@ -35,24 +35,7 @@
 			AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
 		</if>
 	</select>
-	
-	<select id="queryCompanyDepartmentByUserId" parameterType="java.util.Map" resultType="java.util.Map">
-		SELECT
-			b.id,
-			b.`name` groupname,
-			@rownum := @rownum + 1 AS `online`,
-			#{userId} thisUserId
-		FROM
-			sys_eve_user_staff a,
-			company_department b,
-			( SELECT @rownum := 0 ) r
-		WHERE a.user_id = #{userId}
-		AND a.company_id = b.company_id
-		<if test="tenantId != '' and tenantId != null">
-			AND b.tenant_id = #{tenantId}
-		</if>
-	</select>
-	
+
 	<select id="queryDepartmentUserByDepartId" parameterType="java.util.Map" resultType="java.util.Map">
 		SELECT
 			a.user_name username,

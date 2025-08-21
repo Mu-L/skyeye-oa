@@ -16,9 +16,6 @@ public interface CompanyChatDao {
     Map<String, Object> queryUserMineByUserId(Map<String, Object> map);
 
     @IgnoreTenant
-    List<Map<String, Object>> queryCompanyDepartmentByUserId(Map<String, Object> map);
-
-    @IgnoreTenant
     List<Map<String, Object>> queryDepartmentUserByDepartId(@Param("departIds") List<String> departIds,
                                                             @Param("notInUserIds") List<String> notInUserIds,
                                                             @Param("tenantId") String tenantId);
