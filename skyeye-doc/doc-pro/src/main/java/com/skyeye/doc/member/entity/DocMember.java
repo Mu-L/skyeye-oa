@@ -10,11 +10,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
+import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.doc.member.enums.MemberPlanetEnterEnum;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: DocMember
@@ -26,6 +29,7 @@ import lombok.Data;
  */
 @Data
 @UniqueField(value = {"phone"})
+@RedisCacheField(name = "code:docMember")
 @TableName(value = "member", autoResultMap = true)
 @ApiModel("文档会员实体类")
 public class DocMember extends OperatorUserInfo {
@@ -82,4 +86,19 @@ public class DocMember extends OperatorUserInfo {
     @Property(value = "会员等级信息")
     private DocMemverLevel levelMation;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "会员购买的版本id", required = "json")
+    private List<String> versionIds;
+
+    @TableField(exist = false)
+    @Property(value = "会员购买的版本信息")
+    private List<DocMemberVersion> versionList;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "会员购买的源代码包id", required = "json")
+    private List<String> packageIds;
+
+    @TableField(exist = false)
+    @Property(value = "会员购买的源代码包信息")
+    private List<DocMemberPackage> packageList;
 }

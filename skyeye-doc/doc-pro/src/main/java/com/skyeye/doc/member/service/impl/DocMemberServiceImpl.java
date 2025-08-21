@@ -26,13 +26,17 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.doc.member.dao.DocMemberDao;
 import com.skyeye.doc.member.entity.DocMember;
-import com.skyeye.doc.member.service.DocMemberService;
-import com.skyeye.doc.member.service.DocMemverLevelService;
+import com.skyeye.doc.member.entity.DocMemberPackage;
+import com.skyeye.doc.member.entity.DocMemberVersion;
+import com.skyeye.doc.member.enums.DocMemberLoginLogDeviceType;
+import com.skyeye.doc.member.enums.DocMemberLoginLogStatus;
+import com.skyeye.doc.member.service.*;
 import com.skyeye.exception.CustomException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +54,15 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     @Autowired
     private DocMemverLevelService docMemverLevelService;
 
+    @Autowired
+    private DocMemberVersionService docMemberVersionService;
+
+    @Autowired
+    private DocMemberPackageService docMemberPackageService;
+
+    @Autowired
+    private DocMemberLoginLogService docMemberLoginLogService;
+
     @Override
     protected void updatePrepose(DocMember entity) {
         DocMember oldMember = selectById(entity.getId());
@@ -60,6 +73,10 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     @Override
     protected void writePostpose(DocMember entity, String userId) {
         super.writePostpose(entity, userId);
+        // 保存购买的版本信息
+        docMemberVersionService.saveList(entity.getId(), entity.getVersionIds());
+        // 保存购买的源代码包信息
+        docMemberPackageService.saveList(entity.getId(), entity.getPackageIds());
         if (EnableEnum.DISABLE_USING.getKey().equals(entity.getEnabled())) {
             // 如果禁用了，则清除登录缓存
             SysUserAuthConstants.delUserLoginRedisCache(entity.getId());
@@ -80,6 +97,18 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         }
     }
 
+    @Override
+    public DocMember getDataFromDb(String id) {
+        DocMember member = super.getDataFromDb(id);
+        // 版本信息
+        List<DocMemberVersion> docMemberVersionList = docMemberVersionService.selectByMemberId(member.getId());
+        member.setVersionList(docMemberVersionList);
+        // 包信息
+        List<DocMemberPackage> docMemberPackageList = docMemberPackageService.selectByMemberId(member.getId());
+        member.setPackageList(docMemberPackageList);
+        return member;
+    }
+
     private static void setLoginMation(DocMember entity, Map<String, Object> userLoginRedisCache) {
         userLoginRedisCache.put("joinTime", entity.getJoinTime());
         userLoginRedisCache.put("planetNum", entity.getPlanetNum());
@@ -94,9 +123,11 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         String phone = map.get("phone").toString();
         DocMember member = queryMemberByPhone(phone);
         if (ObjectUtil.isEmpty(member)) {
+            recordLoginFailureLog("unknown", phone, DocMemberLoginLogDeviceType.PC.getKey(), "用户不存在");
             throw new CustomException("手机号码不存在，请先注册！");
         }
         if (EnableEnum.DISABLE_USING.getKey().equals(member.getEnabled())) {
+            recordLoginFailureLog("unknown", phone, DocMemberLoginLogDeviceType.PC.getKey(), "账号已被禁用，请联系客服！");
             throw new CustomException("账号已被禁用，请联系客服！");
         }
         String password = map.get("password").toString();
@@ -104,10 +135,14 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
             password = ToolUtil.MD5(password);
         }
         if (!StrUtil.equals(password, member.getPassword())) {
+            recordLoginFailureLog(member.getId(), phone, DocMemberLoginLogDeviceType.PC.getKey(), "密码错误");
             throw new CustomException("密码错误！");
         }
 
         member = getMember(RequestType.PC.getKey(), member, password);
+        // 异步记录登录日志
+        docMemberLoginLogService.recordLoginLogAsync(member.getId(), phone,
+            DocMemberLoginLogDeviceType.PC.getKey(), DocMemberLoginLogStatus.SUCCESS.getKey(), "登录成功");
         outputObject.setBean(member);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -135,6 +170,16 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         }
         member.setUserToken(userToken);
         return member;
+    }
+
+    /**
+     * 记录登录失败日志
+     *
+     * @param userCode      用户账号
+     * @param failureReason 失败原因
+     */
+    private void recordLoginFailureLog(String userId, String userCode, Integer deviceType, String failureReason) {
+        docMemberLoginLogService.recordLoginLogAsync(userId, userCode, deviceType, DocMemberLoginLogStatus.FAIL.getKey(), failureReason);
     }
 
     @Override
