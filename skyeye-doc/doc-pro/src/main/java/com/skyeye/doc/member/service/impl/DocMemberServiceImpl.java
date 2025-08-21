@@ -52,7 +52,7 @@ import java.util.Map;
 public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao, DocMember> implements DocMemberService {
 
     @Autowired
-    private DocMemverLevelService docMemverLevelService;
+    private DocMemberLevelService docMemberLevelService;
 
     @Autowired
     private DocMemberVersionService docMemberVersionService;
@@ -188,7 +188,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         if (userMation == null) {
             outputObject.setreturnMessage("登录超时，请重新登录。");
         } else {
-            docMemverLevelService.setMationForMap(userMation, "levelId", "levelMation");
+            docMemberLevelService.setMationForMap(userMation, "levelId", "levelMation");
             outputObject.setBean(userMation);
         }
     }

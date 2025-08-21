@@ -84,7 +84,7 @@ public class DocMember extends OperatorUserInfo {
 
     @TableField(exist = false)
     @Property(value = "会员等级信息")
-    private DocMemverLevel levelMation;
+    private DocMemberLevel levelMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "会员购买的版本id", required = "json")

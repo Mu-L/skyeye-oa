@@ -27,7 +27,7 @@ import lombok.Data;
 @RedisCacheField(name = "member:level")
 @TableName(value = "member_level", autoResultMap = true)
 @ApiModel("文档会员等级实体类")
-public class DocMemverLevel extends BaseGeneralInfo {
+public class DocMemberLevel extends BaseGeneralInfo {
 
     @TableField(value = "get_permanent")
     @ApiModelProperty(value = "是否永久获取所有版本", enumClass = WhetherEnum.class, required = "required,num")

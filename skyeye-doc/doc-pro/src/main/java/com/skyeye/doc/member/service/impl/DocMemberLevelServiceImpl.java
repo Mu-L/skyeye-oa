@@ -9,15 +9,15 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.doc.member.dao.DocMemverLevelDao;
-import com.skyeye.doc.member.entity.DocMemverLevel;
-import com.skyeye.doc.member.service.DocMemverLevelService;
+import com.skyeye.doc.member.dao.DocMemberLevelDao;
+import com.skyeye.doc.member.entity.DocMemberLevel;
+import com.skyeye.doc.member.service.DocMemberLevelService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * @ClassName: DocMemverLevelServiceImpl
+ * @ClassName: DocMemberLevelServiceImpl
  * @Description: 会员等级服务实现类
  * @author: skyeye云系列--卫志强
  * @date: 2025/8/20 9:11
@@ -26,11 +26,11 @@ import java.util.List;
  */
 @Service
 @SkyeyeService(name = "会员等级管理", groupName = "会员等级管理", tenant = TenantEnum.PLATE)
-public class DocMemverLevelServiceImpl extends SkyeyeBusinessServiceImpl<DocMemverLevelDao, DocMemverLevel> implements DocMemverLevelService {
+public class DocMemberLevelServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberLevelDao, DocMemberLevel> implements DocMemberLevelService {
 
     @Override
-    public void queryAllDocMemverLevelList(InputObject inputObject, OutputObject outputObject) {
-        List<DocMemverLevel> docMemverLevelList = queryAllData();
+    public void queryAllDocMemberLevelList(InputObject inputObject, OutputObject outputObject) {
+        List<DocMemberLevel> docMemverLevelList = queryAllData();
         outputObject.setBeans(docMemverLevelList);
         outputObject.settotal(docMemverLevelList.size());
     }
