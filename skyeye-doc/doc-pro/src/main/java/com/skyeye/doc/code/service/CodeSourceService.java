@@ -20,4 +20,6 @@ import com.skyeye.doc.code.entity.CodeSource;
 public interface CodeSourceService extends SkyeyeBusinessService<CodeSource> {
 
     void queryAllReleaseCodeList(InputObject inputObject, OutputObject outputObject);
+
+    void removeCodeSource(InputObject inputObject, OutputObject outputObject);
 }

@@ -84,7 +84,7 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
             // 状态为已发布
             queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseState), WhetherEnum.ENABLE_USING.getKey());
             // 发布年份等于当前年份
-            queryWrapper.le(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
             queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
             List<CodeVersion> list = list(queryWrapper);
             return list;

@@ -40,13 +40,13 @@ public class CodeSource extends OperatorUserInfo {
     @Property(value = "所属版本信息")
     private CodeVersion versionMation;
 
-    @TableField("pachage_id")
+    @TableField("package_id")
     @ApiModelProperty(value = "所属源代码包id", required = "required")
-    private String pachageId;
+    private String packageId;
 
     @TableField(exist = false)
     @Property(value = "所属源代码包信息")
-    private CodePackage pachageMation;
+    private CodePackage packageMation;
 
     @TableField("file_path")
     @ApiModelProperty(value = "文件地址", required = "required")

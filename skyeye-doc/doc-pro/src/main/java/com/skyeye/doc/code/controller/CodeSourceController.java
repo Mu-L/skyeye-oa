@@ -38,12 +38,13 @@ public class CodeSourceController {
         codeSourceService.createEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteCodeSourceById", value = "根据id删除源代码", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "removeCodeSource", value = "删除源代码", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/CodeSourceController/deleteCodeSourceById")
-    public void deleteCodeSourceById(InputObject inputObject, OutputObject outputObject) {
-        codeSourceService.deleteById(inputObject, outputObject);
+        @ApiImplicitParam(id = "versionId", name = "versionId", value = "版本id", required = "required"),
+        @ApiImplicitParam(id = "packageId", name = "packageId", value = "源代码包id", required = "required")})
+    @RequestMapping("/post/CodeSourceController/removeCodeSource")
+    public void removeCodeSource(InputObject inputObject, OutputObject outputObject) {
+        codeSourceService.removeCodeSource(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryAllReleaseCodeList", value = "查询所有已经发布并且时间有效的代码版本/源代码包/源代码", method = "GET", allUse = "2")

@@ -59,7 +59,7 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
             throw new IllegalArgumentException("版本信息不存在");
         }
-        CodePackage codePackage = codePackageService.selectById(entity.getPachageId());
+        CodePackage codePackage = codePackageService.selectById(entity.getPackageId());
         if (ObjectUtil.isEmpty(codePackage) || StrUtil.isEmpty(codePackage.getId())) {
             throw new IllegalArgumentException("源代码包信息不存在");
         }
@@ -67,13 +67,28 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         // 先删除之前上传的源代码包
         QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getVersionId), entity.getVersionId());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getPachageId), entity.getPachageId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getPackageId), entity.getPackageId());
         remove(queryWrapper);
     }
 
     @Override
     protected void createPostpose(CodeSource entity, String userId) {
         jedisClientService.del(getCacheKey(entity.getYear()));
+    }
+
+    @Override
+    public void removeCodeSource(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String versionId = map.get("versionId").toString();
+        String packageId = map.get("packageId").toString();
+        QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getVersionId), versionId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getPackageId), packageId);
+        CodeSource codeSource = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(codeSource)) {
+            return;
+        }
+        deleteById(codeSource.getId());
     }
 
     @Override
