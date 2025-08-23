@@ -22,4 +22,6 @@ public interface CodeSourceService extends SkyeyeBusinessService<CodeSource> {
     void queryAllReleaseCodeList(InputObject inputObject, OutputObject outputObject);
 
     void removeCodeSource(InputObject inputObject, OutputObject outputObject);
+
+    String getCacheKey(String year);
 }

@@ -18,6 +18,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.doc.code.dao.CodeVersionDao;
 import com.skyeye.doc.code.entity.CodeVersion;
+import com.skyeye.doc.code.service.CodeSourceService;
 import com.skyeye.doc.code.service.CodeVersionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     @Autowired
     private RedisCache redisCache;
 
+    @Autowired
+    private CodeSourceService codeSourceService;
+
     @Override
     protected void validatorEntity(CodeVersion entity) {
         super.validatorEntity(entity);
@@ -55,15 +59,32 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     }
 
     @Override
+    protected void updatePrepose(CodeVersion entity) {
+        CodeVersion oldCodeVersion = selectById(entity.getId());
+        // 删除旧的年份缓存，防止年份修改了，缓存没修改
+        String cacheKey = getCacheKey(oldCodeVersion.getReleaseYear());
+        jedisClientService.del(cacheKey);
+        // 删除对应的源代码缓存
+        String sourceCodeCacheKey = codeSourceService.getCacheKey(oldCodeVersion.getReleaseYear());
+        jedisClientService.del(sourceCodeCacheKey);
+    }
+
+    @Override
     protected void writePostpose(CodeVersion entity, String userId) {
         super.writePostpose(entity, userId);
         String cacheKey = getCacheKey(entity.getReleaseYear());
         jedisClientService.del(cacheKey);
+        // 删除对应的源代码缓存
+        String sourceCodeCacheKey = codeSourceService.getCacheKey(entity.getReleaseYear());
+        jedisClientService.del(sourceCodeCacheKey);
     }
 
     @Override
     protected void deletePostpose(CodeVersion entity) {
         jedisClientService.del(getCacheKey(entity.getReleaseYear()));
+        // 删除对应的源代码缓存
+        String sourceCodeCacheKey = codeSourceService.getCacheKey(entity.getReleaseYear());
+        jedisClientService.del(sourceCodeCacheKey);
     }
 
     @Override

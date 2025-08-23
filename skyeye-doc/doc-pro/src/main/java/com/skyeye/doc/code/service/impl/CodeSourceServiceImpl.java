@@ -14,6 +14,7 @@ import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -59,6 +60,9 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
             throw new IllegalArgumentException("版本信息不存在");
         }
+        if (WhetherEnum.DISABLE_USING.getKey().equals(codeVersion.getReleaseState())) {
+            throw new IllegalArgumentException("版本未发布");
+        }
         CodePackage codePackage = codePackageService.selectById(entity.getPackageId());
         if (ObjectUtil.isEmpty(codePackage) || StrUtil.isEmpty(codePackage.getId())) {
             throw new IllegalArgumentException("源代码包信息不存在");
@@ -89,11 +93,9 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
             return;
         }
         deleteById(codeSource.getId());
-    }
 
-    @Override
-    protected void deletePostpose(CodeSource entity) {
-        jedisClientService.del(getCacheKey(entity.getYear()));
+        CodeVersion codeVersion = codeVersionService.selectById(versionId);
+        jedisClientService.del(getCacheKey(codeVersion.getReleaseYear()));
     }
 
     @Override
@@ -105,6 +107,9 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         List<CodeVersion> codeVersionList = codeVersionService.queryAllReleaseCodeVersionList(year);
         // 查询源代码包
         List<CodePackage> codePackageList = codePackageService.queryAllCodePackage();
+        codeVersionService.setDataMation(codePackageList, CodePackage::getStartVersionId);
+        codeVersionService.setDataMation(codePackageList, CodePackage::getEndVersionId);
+
         // 封装数据
         if (CollectionUtil.isNotEmpty(codeVersionList)) {
             String cacheKey = getCacheKey(year);
@@ -125,7 +130,8 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    private String getCacheKey(String year) {
+    @Override
+    public String getCacheKey(String year) {
         return String.format(Locale.ROOT, "doc:code:source:%s", year);
     }
 }
