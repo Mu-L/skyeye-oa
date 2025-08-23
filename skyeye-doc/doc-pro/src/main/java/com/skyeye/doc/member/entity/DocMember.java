@@ -39,7 +39,7 @@ public class DocMember extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "姓名", required = "required")
+    @ApiModelProperty(value = "姓名", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "remark")
@@ -47,11 +47,11 @@ public class DocMember extends OperatorUserInfo {
     private String remark;
 
     @TableField(value = "phone")
-    @ApiModelProperty(value = "联系电话", required = "required,phone")
+    @ApiModelProperty(value = "联系电话", required = "required,phone", fuzzyLike = true)
     private String phone;
 
     @TableField(value = "password")
-    @ApiModelProperty(value = "密码", required = "required")
+    @ApiModelProperty(value = "密码")
     private String password;
 
     @TableField("pwd_num_enc")

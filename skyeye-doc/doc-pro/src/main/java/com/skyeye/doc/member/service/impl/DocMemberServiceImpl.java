@@ -64,6 +64,30 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     private DocMemberLoginLogService docMemberLoginLogService;
 
     @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        docMemberLevelService.setMationForMap(beans, "levelId", "levelMation");
+        return beans;
+    }
+
+    @Override
+    protected void createPrepose(DocMember entity) {
+        if (StrUtil.isEmpty(entity.getPassword())) {
+            throw new CustomException("密码不能为空！");
+        }
+        int pwdNum = (int) (Math.random() * 100);
+        entity.setPwdNumEnc(pwdNum);
+        entity.setPassword(getCalcPaswword(entity.getPassword(), pwdNum));
+    }
+
+    private String getCalcPaswword(String password, int pwdNum) {
+        for (int i = 0; i < pwdNum; i++) {
+            password = ToolUtil.MD5(password);
+        }
+        return password;
+    }
+
+    @Override
     protected void updatePrepose(DocMember entity) {
         DocMember oldMember = selectById(entity.getId());
         entity.setPassword(oldMember.getPassword());

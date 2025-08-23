@@ -5,6 +5,8 @@
 package com.skyeye.doc.code.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.doc.code.entity.CodePackage;
 
 import java.util.List;
@@ -21,4 +23,5 @@ public interface CodePackageService extends SkyeyeBusinessService<CodePackage> {
 
     List<CodePackage> queryAllCodePackage();
 
+    void queryAllCodePackageList(InputObject inputObject, OutputObject outputObject);
 }

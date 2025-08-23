@@ -90,7 +90,9 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     @Override
     public void queryAllCodeVersionList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getCreateTime));
+        // 先根据发布时间进行倒序，再根据创建时间进行倒序
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime))
+            .orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getCreateTime));
         List<CodeVersion> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());

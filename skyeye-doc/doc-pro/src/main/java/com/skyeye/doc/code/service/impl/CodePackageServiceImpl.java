@@ -6,11 +6,15 @@ package com.skyeye.doc.code.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.doc.code.dao.CodePackageDao;
 import com.skyeye.doc.code.entity.CodePackage;
 import com.skyeye.doc.code.entity.CodeVersion;
@@ -66,8 +70,17 @@ public class CodePackageServiceImpl extends SkyeyeBusinessServiceImpl<CodePackag
         List<CodePackage> tableColumns = redisCache.getList(cacheKey, key -> {
             List<CodePackage> list = list();
             return list;
-        }, RedisConstants.A_YEAR_SECONDS, CodeVersion.class);
+        }, RedisConstants.A_YEAR_SECONDS, CodePackage.class);
         return tableColumns;
+    }
+
+    @Override
+    public void queryAllCodePackageList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<CodePackage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodePackage::getCreateTime));
+        List<CodePackage> list = list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     private String getCacheKey() {

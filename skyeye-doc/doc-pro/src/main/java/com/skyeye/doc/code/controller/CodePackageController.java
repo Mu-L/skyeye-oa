@@ -54,4 +54,10 @@ public class CodePackageController {
         codePackageService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryAllCodePackageList", value = "根据id删除源代码包", method = "GET", allUse = "2")
+    @RequestMapping("/post/CodePackageController/queryAllCodePackageList")
+    public void queryAllCodePackageList(InputObject inputObject, OutputObject outputObject) {
+        codePackageService.queryAllCodePackageList(inputObject, outputObject);
+    }
+
 }
