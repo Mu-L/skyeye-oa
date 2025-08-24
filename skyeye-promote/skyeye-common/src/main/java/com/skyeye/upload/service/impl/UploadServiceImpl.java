@@ -25,6 +25,7 @@ import com.skyeye.upload.service.FileConfigService;
 import com.skyeye.upload.service.FileService;
 import com.skyeye.upload.service.UploadService;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -445,9 +446,7 @@ public class UploadServiceImpl implements UploadService {
         String unzipDir = null;
         try {
             // 使用系统临时目录
-            String userId = InputObject.getLogParamsStatic().get("id").toString();
-            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type, userId)
-                + CommonCharConstants.SLASH_MARK + "temp";
+            String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type);
             FileUtil.createDirs(basePath);
             // 保存临时文件
             tempZipPath = basePath + CommonCharConstants.SLASH_MARK + UUID.randomUUID() + ".zip";
@@ -469,7 +468,11 @@ public class UploadServiceImpl implements UploadService {
                 FileUtil.deleteFile(tempZipPath);
             }
             if (StrUtil.isNotEmpty(unzipDir)) {
-                FileUtil.deleteFile(unzipDir);
+                try {
+                    FileUtils.forceDelete(new File(unzipDir));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -588,20 +591,82 @@ public class UploadServiceImpl implements UploadService {
 
         // 移除或替换不安全的字符
         return fileName
-            .replaceAll("[<>:\"/\\\\|?*]", "_")  // 替换Windows不允许的字符
-            .replaceAll("\\s+", "_")             // 替换多个空格为下划线
+            .replaceAll("[<>:\"/\\\\|?*]", CommonCharConstants.SLASH_MARK)  // 替换Windows不允许的字符
+            .replaceAll("\\s+", CommonCharConstants.SLASH_MARK)             // 替换多个空格为下划线
             .trim();
+    }
+
+    /**
+     * 解析图片路径，支持多种相对路径格式
+     */
+    private Path resolveImagePath(Path baseDir, String imagePath) {
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedPath = imagePath.trim();
+
+        // 处理Windows风格的路径分隔符
+        normalizedPath = normalizedPath.replace('\\', '/');
+
+        // 处理相对路径
+        if (normalizedPath.startsWith("./")) {
+            normalizedPath = normalizedPath.substring(2);
+        } else if (normalizedPath.startsWith("../")) {
+            // 处理上级目录，但限制层级防止路径遍历攻击
+            int upLevels = 0;
+            while (normalizedPath.startsWith("../")) {
+                upLevels++;
+                normalizedPath = normalizedPath.substring(3);
+                if (upLevels > 5) { // 限制最多向上5级目录
+                    LOGGER.warn("路径层级过深，可能存在安全风险: {}", imagePath);
+                    return null;
+                }
+            }
+            // 向上级目录查找
+            Path currentDir = baseDir;
+            for (int i = 0; i < upLevels; i++) {
+                currentDir = currentDir.getParent();
+                if (currentDir == null) {
+                    LOGGER.warn("无法解析上级目录路径: {}", imagePath);
+                    return null;
+                }
+            }
+            return currentDir.resolve(normalizedPath).normalize();
+        }
+
+        // 直接相对路径
+        Path resolvedPath = baseDir.resolve(normalizedPath).normalize();
+
+        // 安全检查：确保解析后的路径仍在安全范围内
+        if (!resolvedPath.startsWith(baseDir.getParent() == null ? baseDir : baseDir.getParent())) {
+            LOGGER.warn("图片路径解析后超出安全范围: {} -> {}", imagePath, resolvedPath);
+            return null;
+        }
+
+        return resolvedPath;
+    }
+
+    /**
+     * 测试图片路径解析（可选，用于调试）
+     */
+    private void logImagePathResolution(Path baseDir, String imagePath, Path resolvedPath) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("图片路径解析: baseDir={}, imagePath={}, resolvedPath={}",
+                baseDir, imagePath, resolvedPath);
+        }
     }
 
     private List<Map<String, Object>> processMarkdownDirectory(String rootDir, int type) throws IOException {
         Path root = new File(rootDir).toPath();
         List<Map<String, Object>> results = new ArrayList<>();
+        String uuid = UUID.randomUUID().toString();
         Files.walk(root)
             .filter(p -> Files.isRegularFile(p) && isMarkdownFile(p.getFileName().toString()))
             .forEach(mdPath -> {
                 try {
                     String content = new String(Files.readAllBytes(mdPath), StandardCharsets.UTF_8);
-                    String updated = replaceImageRefs(mdPath.getParent(), content, type);
+                    String updated = replaceImageRefs(mdPath.getParent(), content, type, uuid);
                     Map<String, Object> one = new HashMap<>();
                     one.put("fileName", root.relativize(mdPath).toString());
                     one.put("content", updated);
@@ -618,29 +683,42 @@ public class UploadServiceImpl implements UploadService {
         return lower.endsWith(".md") || lower.endsWith(".markdown");
     }
 
-    private String replaceImageRefs(Path baseDir, String content, int type) throws IOException {
-        // 处理 Markdown 图片: ![alt](url)
+    private String replaceImageRefs(Path baseDir, String content, int type, String uuid) throws IOException {
+        // 处理 Markdown 图片: ![alt](url) - 支持相对路径
         Pattern mdImg = Pattern.compile("!\\[[^\\]]*]\\(([^)]+)\\)");
         // 处理 HTML 图片: <img src="url">
         Pattern htmlImg = Pattern.compile("<img[^>]+src=\\\"([^\\\"]+)\\\"[\\s\\S]*?>", Pattern.CASE_INSENSITIVE);
 
-        String afterMd = replaceWithMatcher(content, mdImg, baseDir, type);
-        String afterHtml = replaceWithMatcher(afterMd, htmlImg, baseDir, type);
+        String afterMd = replaceWithMatcher(content, mdImg, baseDir, type, uuid);
+        String afterHtml = replaceWithMatcher(afterMd, htmlImg, baseDir, type, uuid);
         return afterHtml;
     }
 
-    private String replaceWithMatcher(String text, Pattern pattern, Path baseDir, int type) throws IOException {
+    private String replaceWithMatcher(String text, Pattern pattern, Path baseDir, int type, String uuid) throws IOException {
         Matcher matcher = pattern.matcher(text);
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
             String src = matcher.group(1).trim();
             String newUrl = src;
+
+            // 处理相对路径的图片
             if (!isHttpLike(src) && !src.startsWith("data:")) {
-                Path imgPath = baseDir.resolve(src).normalize();
-                if (Files.exists(imgPath) && Files.isRegularFile(imgPath)) {
-                    newUrl = saveImageAndGetVisitUrl(imgPath.toFile(), type);
+                Path imgPath = resolveImagePath(baseDir, src);
+                logImagePathResolution(baseDir, src, imgPath);
+
+                if (imgPath != null && Files.exists(imgPath) && Files.isRegularFile(imgPath)) {
+                    try {
+                        newUrl = saveImageAndGetVisitUrl(imgPath.toFile(), type, uuid);
+                        LOGGER.info("成功处理图片: {} -> {}", src, newUrl);
+                    } catch (Exception e) {
+                        LOGGER.warn("处理图片失败: {}, 错误: {}", src, e.getMessage());
+                        // 图片处理失败时保持原链接
+                    }
+                } else {
+                    LOGGER.warn("图片文件不存在: {}", imgPath);
                 }
             }
+
             String replacement = matcher.group(0).replace(src, Matcher.quoteReplacement(newUrl));
             matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
@@ -649,20 +727,28 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private boolean isHttpLike(String s) {
-        String lower = s.toLowerCase(Locale.ROOT);
-        return lower.startsWith("http://") || lower.startsWith("https://");
+        if (s == null || s.trim().isEmpty()) {
+            return false;
+        }
+        String lower = s.toLowerCase(Locale.ROOT).trim();
+        return lower.startsWith("http://") ||
+            lower.startsWith("https://") ||
+            lower.startsWith("ftp://") ||
+            lower.startsWith("//") ||  // 协议相对URL
+            lower.startsWith("mailto:") ||
+            lower.startsWith("tel:");
     }
 
-    private String saveImageAndGetVisitUrl(File source, int type) throws IOException {
+    private String saveImageAndGetVisitUrl(File source, int type, String uuid) throws IOException {
         String originalName = source.getName();
         String ext = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf('.') + 1) : "";
-        String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type);
+        String basePath = tPath + FileConstants.FileUploadPath.getSavePath(type) + CommonCharConstants.SLASH_MARK + uuid;
         FileUtil.createDirs(basePath);
         String newFileName = String.format(Locale.ROOT, "%s.%s", System.currentTimeMillis(), ext);
         String targetPath = basePath + "/" + newFileName;
         Files.copy(source.toPath(), new java.io.File(targetPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        String visitPath = FileConstants.FileUploadPath.getVisitPath(type) + newFileName;
+        String visitPath = FileConstants.FileUploadPath.getVisitPath(type) + uuid + CommonCharConstants.SLASH_MARK + newFileName;
         // 记录文件
         savePhysicalFileRecord(originalName, visitPath, type, source.length());
         return visitPath;

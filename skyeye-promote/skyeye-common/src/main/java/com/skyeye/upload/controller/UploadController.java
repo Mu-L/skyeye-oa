@@ -37,12 +37,6 @@ public class UploadController {
     @Autowired
     private UploadService uploadService;
 
-    /**
-     * 断点续传上传文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "skyeyeUploadFile", value = "断点续传上传文件", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Upload.class)
     @RequestMapping("/post/UploadController/uploadFileResume")
@@ -50,12 +44,6 @@ public class UploadController {
         uploadService.uploadFileResume(inputObject, outputObject);
     }
 
-    /**
-     * 上传文件合并块
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "skyeyeUploadFileChunks", value = "上传文件合并块", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = UploadChunks.class)
     @RequestMapping("/post/UploadController/uploadFileChunks")
@@ -63,12 +51,6 @@ public class UploadController {
         uploadService.uploadFileChunks(inputObject, outputObject);
     }
 
-    /**
-     * 文件分块上传检测是否上传
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkUploadFileChunks", value = "文件分块上传检测是否上传", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "md5", name = "md5", value = "文件唯一标示", required = "required"),
@@ -79,12 +61,6 @@ public class UploadController {
         uploadService.checkUploadFileChunks(inputObject, outputObject);
     }
 
-    /**
-     * 上传文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "common003", value = "上传文件", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "type", name = "type", value = "文件类型", required = "required,num")})
@@ -93,12 +69,6 @@ public class UploadController {
         uploadService.uploadFile(inputObject, outputObject);
     }
 
-    /**
-     * 上传Markdown压缩包并解析图片
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "markdownZipUploadAndParse", value = "上传Markdown压缩包并解析图片", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "type", name = "type", value = "文件类型", required = "required,num")})
@@ -107,12 +77,6 @@ public class UploadController {
         uploadService.markdownZipUploadAndParse(inputObject, outputObject);
     }
 
-    /**
-     * 上传文件Base64
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "common004", value = "上传文件Base64", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "type", name = "type", value = "文件类型", required = "required,num"),
@@ -136,12 +100,6 @@ public class UploadController {
         uploadService.getFileContent(request, response, configId);
     }
 
-    /**
-     * 删除文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFileByPath", value = "删除文件", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "path", name = "path", value = "文件路径", required = "required")})
@@ -150,12 +108,6 @@ public class UploadController {
         uploadService.deleteFileByPath(inputObject, outputObject);
     }
 
-    /**
-     * 获取文件预签名地址，模式二：前端上传文件：用于前端直接上传七牛、阿里云 OSS 等文件存储器
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getFilePresignedUrl", value = "获取文件预签名地址，模式二：前端上传文件：用于前端直接上传七牛、阿里云 OSS 等文件存储器", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "path", name = "path", value = "文件路径", required = "required")})
