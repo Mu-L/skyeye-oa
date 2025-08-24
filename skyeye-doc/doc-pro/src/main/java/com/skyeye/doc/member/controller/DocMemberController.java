@@ -69,6 +69,12 @@ public class DocMemberController {
         docMemberService.docMemberLoginMation(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryCurrentLoginMember", value = "获取当前登录会员信息", method = "GET", allUse = "2")
+    @RequestMapping("/post/DocMemberController/queryCurrentLoginMember")
+    public void queryCurrentLoginMember(InputObject inputObject, OutputObject outputObject) {
+        docMemberService.queryCurrentLoginMember(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "logoutDocMember", value = "退出", method = "POST", allUse = "2")
     @RequestMapping("/post/DocMemberController/logoutDocMember")
     public void logoutDocMember(InputObject inputObject, OutputObject outputObject) {

@@ -133,6 +133,13 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         return member;
     }
 
+    @Override
+    public DocMember selectById(String id) {
+        DocMember docMember = super.selectById(id);
+        docMemberLevelService.setDataMation(docMember, DocMember::getLevelId);
+        return docMember;
+    }
+
     private static void setLoginMation(DocMember entity, Map<String, Object> userLoginRedisCache) {
         userLoginRedisCache.put("joinTime", entity.getJoinTime());
         userLoginRedisCache.put("planetNum", entity.getPlanetNum());
@@ -148,11 +155,11 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         DocMember member = queryMemberByPhone(phone);
         if (ObjectUtil.isEmpty(member)) {
             recordLoginFailureLog("unknown", phone, DocMemberLoginLogDeviceType.PC.getKey(), "用户不存在");
-            throw new CustomException("手机号码不存在，请先注册！");
+            throw new CustomException("手机号码不存在，联系作者开通！");
         }
         if (EnableEnum.DISABLE_USING.getKey().equals(member.getEnabled())) {
-            recordLoginFailureLog("unknown", phone, DocMemberLoginLogDeviceType.PC.getKey(), "账号已被禁用，请联系客服！");
-            throw new CustomException("账号已被禁用，请联系客服！");
+            recordLoginFailureLog("unknown", phone, DocMemberLoginLogDeviceType.PC.getKey(), "账号已被禁用，请联系作者！");
+            throw new CustomException("账号已被禁用，请联系作者！");
         }
         String password = map.get("password").toString();
         for (int i = 0; i < member.getPwdNumEnc(); i++) {
@@ -215,6 +222,14 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
             docMemberLevelService.setMationForMap(userMation, "levelId", "levelMation");
             outputObject.setBean(userMation);
         }
+    }
+
+    @Override
+    public void queryCurrentLoginMember(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        DocMember docMember = selectById(userId);
+        outputObject.setBean(docMember);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override

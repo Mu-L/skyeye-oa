@@ -34,7 +34,7 @@ import java.util.concurrent.Executor;
  */
 @Slf4j
 @Service
-@SkyeyeService(name = "用户登录日志", groupName = "用户管理", tenant = TenantEnum.PLATE)
+@SkyeyeService(name = "用户登录日志", groupName = "用户管理", tenant = TenantEnum.NO_ISOLATION)
 public class DocMemberLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberLoginLogDao, DocMemberLoginLog> implements DocMemberLoginLogService {
 
     @Autowired

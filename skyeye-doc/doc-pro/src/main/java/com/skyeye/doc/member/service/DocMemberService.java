@@ -26,4 +26,6 @@ public interface DocMemberService extends SkyeyeBusinessService<DocMember> {
     void editDocMemberPassword(InputObject inputObject, OutputObject outputObject);
 
     void docMemberLoginMation(InputObject inputObject, OutputObject outputObject);
+
+    void queryCurrentLoginMember(InputObject inputObject, OutputObject outputObject);
 }
