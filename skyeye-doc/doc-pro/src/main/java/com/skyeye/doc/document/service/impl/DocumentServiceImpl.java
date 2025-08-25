@@ -55,7 +55,7 @@ public class DocumentServiceImpl extends SkyeyeBusinessServiceImpl<DocumentDao, 
     @Override
     public void queryAllDocumentByList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<Document> queryWrapper = new QueryWrapper<>();
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Document::getOrderBy));
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Document::getOrderBy));
         List<Document> documents = list(queryWrapper);
         iAuthUserService.setName(documents, "createId", "createName");
         iAuthUserService.setName(documents, "lastUpdateId", "lastUpdateName");
@@ -92,8 +92,8 @@ public class DocumentServiceImpl extends SkyeyeBusinessServiceImpl<DocumentDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(Document::getEnabled), EnableEnum.ENABLE_USING.getKey());
         queryWrapper.select(CommonConstants.ID, CommonConstants.NAME, MybatisPlusUtil.toColumns(Document::getType),
             MybatisPlusUtil.toColumns(Document::getOrderBy), MybatisPlusUtil.toColumns(Document::getParentId));
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Document::getOrderBy));
-        List<Document> documents = list();
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Document::getOrderBy));
+        List<Document> documents = list(queryWrapper);
         outputObject.setBeans(documents);
         outputObject.settotal(documents.size());
     }
