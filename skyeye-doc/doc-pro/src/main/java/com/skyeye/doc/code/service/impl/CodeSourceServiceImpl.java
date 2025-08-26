@@ -25,6 +25,10 @@ import com.skyeye.doc.code.entity.CodeVersion;
 import com.skyeye.doc.code.service.CodePackageService;
 import com.skyeye.doc.code.service.CodeSourceService;
 import com.skyeye.doc.code.service.CodeVersionService;
+import com.skyeye.doc.member.entity.DocMember;
+import com.skyeye.doc.member.entity.DocMemberPackage;
+import com.skyeye.doc.member.entity.DocMemberVersion;
+import com.skyeye.doc.member.service.DocMemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +54,9 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
 
     @Autowired
     private CodeVersionService codeVersionService;
+
+    @Autowired
+    private DocMemberService docMemberService;
 
     @Autowired
     private RedisCache redisCache;
@@ -133,5 +140,29 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
     @Override
     public String getCacheKey(String year) {
         return String.format(Locale.ROOT, "doc:code:source:%s", year);
+    }
+
+    @Override
+    public Boolean checkFilePermission(String path) {
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getFilePath), path);
+        CodeSource codeSource = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(codeSource)) {
+            return false;
+        }
+        if (StrUtil.equals(codeSource.getCreateId(), userId)) {
+            return true;
+        }
+        DocMember docMember = docMemberService.selectById(userId);
+        if (ObjectUtil.isEmpty(docMember) || StrUtil.isEmpty(docMember.getId())) {
+            return false;
+        }
+        List<String> packageIds = docMember.getPackageList().stream().map(DocMemberPackage::getPackageId).collect(Collectors.toList());
+        List<String> versionIds = docMember.getVersionList().stream().map(DocMemberVersion::getVersionId).collect(Collectors.toList());
+        if (packageIds.contains(codeSource.getPackageId()) && versionIds.contains(codeSource.getVersionId())) {
+            return true;
+        }
+        return false;
     }
 }
