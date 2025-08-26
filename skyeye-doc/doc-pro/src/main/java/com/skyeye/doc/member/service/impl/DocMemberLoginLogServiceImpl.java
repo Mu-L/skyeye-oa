@@ -6,6 +6,7 @@ package com.skyeye.doc.member.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -38,12 +39,13 @@ import java.util.concurrent.Executor;
 public class DocMemberLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberLoginLogDao, DocMemberLoginLog> implements DocMemberLoginLogService {
 
     @Autowired
-    private Executor docMemverLoginLogExecutor;
+    private Executor docMemberLoginLogExecutor;
 
     @Override
+    @IgnoreTenant
     public void recordLoginLogAsync(String userId, String userCode, Integer deviceType, Integer loginStatus, String loginMessage) {
         HttpServletRequest request = PutObject.getRequest();
-        docMemverLoginLogExecutor.execute(() -> {
+        docMemberLoginLogExecutor.execute(() -> {
             try {
                 DocMemberLoginLog loginLog = new DocMemberLoginLog();
 

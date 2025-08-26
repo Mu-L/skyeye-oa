@@ -23,12 +23,12 @@ import java.util.concurrent.Executor;
 @ManagedResource
 public class ExecutorConfig {
 
-    @Bean(name = "docMemverLoginLogExecutor")
+    @Bean(name = "docMemberLoginLogExecutor")
     public Executor getDetailsAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(10);
         executor.setQueueCapacity(1000000);
-        executor.setThreadNamePrefix("docMemverLoginLogExecutor-");
+        executor.setThreadNamePrefix("docMemberLoginLogExecutor-");
         executor.initialize();
         return executor;
     }
