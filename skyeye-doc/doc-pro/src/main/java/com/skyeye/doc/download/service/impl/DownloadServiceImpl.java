@@ -9,6 +9,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.IPSeeker;
 import com.skyeye.common.util.ToolUtil;
@@ -58,7 +59,7 @@ public class DownloadServiceImpl extends SkyeyeBusinessServiceImpl<DownloadDao, 
     public void createDownloadLog(String userId, String codeSourceId) {
         HttpServletRequest request = PutObject.getRequest();
         docMemberDownloadLogExecutor.execute(() -> {
-            TenantContext.setTenantId(TenantEnum.PLATE.getKey());
+            TenantContext.setTenantId(TenantTypeEnum.PLATFORM.getCode());
             Download download = new Download();
             download.setMemberId(userId);
             download.setCodeSourceId(codeSourceId);
