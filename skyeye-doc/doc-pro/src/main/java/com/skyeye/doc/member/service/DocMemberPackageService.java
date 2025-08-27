@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.doc.member.entity.DocMemberPackage;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DocMemberPackageService
@@ -25,4 +26,5 @@ public interface DocMemberPackageService extends SkyeyeBusinessService<DocMember
 
     List<DocMemberPackage> selectByMemberId(String memberId);
 
+    Map<String, List<DocMemberPackage>> selectByMemberIds(List<String> memberIds);
 }

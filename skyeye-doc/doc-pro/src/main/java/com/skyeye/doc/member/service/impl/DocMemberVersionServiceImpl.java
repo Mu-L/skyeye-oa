@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: DocMemberVersionServiceImpl
@@ -60,5 +62,13 @@ public class DocMemberVersionServiceImpl extends SkyeyeBusinessServiceImpl<DocMe
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocMemberVersion::getMemberId), memberId);
         List<DocMemberVersion> list = list(queryWrapper);
         return list;
+    }
+
+    @Override
+    public Map<String, List<DocMemberVersion>> selectByMemberIds(List<String> memberIds) {
+        QueryWrapper<DocMemberVersion> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DocMemberVersion::getMemberId), memberIds);
+        List<DocMemberVersion> list = list(queryWrapper);
+        return list.stream().collect(Collectors.groupingBy(DocMemberVersion::getMemberId));
     }
 }

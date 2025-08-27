@@ -134,10 +134,32 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     }
 
     @Override
+    protected List<DocMember> getDataFromDb(List<String> idList) {
+        List<DocMember> docMemberList = super.getDataFromDb(idList);
+        // 版本信息
+        Map<String, List<DocMemberVersion>> versionMap = docMemberVersionService.selectByMemberIds(idList);
+        // 包信息
+        Map<String, List<DocMemberPackage>> packageMap = docMemberPackageService.selectByMemberIds(idList);
+        // 合并数据
+        docMemberList.forEach(docMember -> {
+            docMember.setVersionList(versionMap.get(docMember.getId()));
+            docMember.setPackageList(packageMap.get(docMember.getId()));
+        });
+        return docMemberList;
+    }
+
+    @Override
     public DocMember selectById(String id) {
         DocMember docMember = super.selectById(id);
         docMemberLevelService.setDataMation(docMember, DocMember::getLevelId);
         return docMember;
+    }
+
+    @Override
+    public List<DocMember> selectByIds(String... ids) {
+        List<DocMember> docMemberList = super.selectByIds(ids);
+        docMemberLevelService.setDataMation(docMemberList, DocMember::getLevelId);
+        return docMemberList;
     }
 
     private static void setLoginMation(DocMember entity, Map<String, Object> userLoginRedisCache) {

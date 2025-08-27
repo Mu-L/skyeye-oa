@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.doc.member.entity.DocMemberVersion;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: DocMemberVersionService
@@ -24,5 +25,7 @@ public interface DocMemberVersionService extends SkyeyeBusinessService<DocMember
     void deleteByMemberId(String memberId);
 
     List<DocMemberVersion> selectByMemberId(String memberId);
+
+    Map<String, List<DocMemberVersion>> selectByMemberIds(List<String> memberIds);
 
 }
