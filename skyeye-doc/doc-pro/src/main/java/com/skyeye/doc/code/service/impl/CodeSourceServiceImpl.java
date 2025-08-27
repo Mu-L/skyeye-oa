@@ -25,6 +25,7 @@ import com.skyeye.doc.code.entity.CodeVersion;
 import com.skyeye.doc.code.service.CodePackageService;
 import com.skyeye.doc.code.service.CodeSourceService;
 import com.skyeye.doc.code.service.CodeVersionService;
+import com.skyeye.doc.download.service.DownloadService;
 import com.skyeye.doc.member.entity.DocMember;
 import com.skyeye.doc.member.entity.DocMemberPackage;
 import com.skyeye.doc.member.entity.DocMemberVersion;
@@ -61,6 +62,9 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
     @Autowired
     private RedisCache redisCache;
 
+    @Autowired
+    private DownloadService downloadService;
+
     @Override
     protected void createPrepose(CodeSource entity) {
         CodeVersion codeVersion = codeVersionService.selectById(entity.getVersionId());
@@ -85,6 +89,14 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
     @Override
     protected void createPostpose(CodeSource entity, String userId) {
         jedisClientService.del(getCacheKey(entity.getYear()));
+    }
+
+    @Override
+    public List<CodeSource> selectByIds(String... ids) {
+        List<CodeSource> codeSourceList = super.selectByIds(ids);
+        codePackageService.setDataMation(codeSourceList, CodeSource::getPackageId);
+        codeVersionService.setDataMation(codeSourceList, CodeSource::getVersionId);
+        return codeSourceList;
     }
 
     @Override
@@ -161,6 +173,7 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         List<String> packageIds = docMember.getPackageList().stream().map(DocMemberPackage::getPackageId).collect(Collectors.toList());
         List<String> versionIds = docMember.getVersionList().stream().map(DocMemberVersion::getVersionId).collect(Collectors.toList());
         if (packageIds.contains(codeSource.getPackageId()) && versionIds.contains(codeSource.getVersionId())) {
+            downloadService.createDownloadLog(userId, codeSource.getId());
             return true;
         }
         return false;

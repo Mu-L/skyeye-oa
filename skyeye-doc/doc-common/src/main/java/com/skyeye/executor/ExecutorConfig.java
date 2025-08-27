@@ -32,4 +32,14 @@ public class ExecutorConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "docMemberDownloadLogExecutor")
+    public Executor getMemberDownloadLogDetailsAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(6);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("docMemberDownloadLogExecutor-");
+        executor.initialize();
+        return executor;
+    }
 }
