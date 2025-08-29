@@ -28,4 +28,8 @@ public interface DocMemberService extends SkyeyeBusinessService<DocMember> {
     void docMemberLoginMation(InputObject inputObject, OutputObject outputObject);
 
     void queryCurrentLoginMember(InputObject inputObject, OutputObject outputObject);
+
+    void checkUserGitCodeToken(InputObject inputObject, OutputObject outputObject);
+
+    void bingUserGitCodeToken(InputObject inputObject, OutputObject outputObject);
 }

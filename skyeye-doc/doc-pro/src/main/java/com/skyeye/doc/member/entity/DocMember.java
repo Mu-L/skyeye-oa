@@ -101,4 +101,8 @@ public class DocMember extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "会员购买的源代码包信息")
     private List<DocMemberPackage> packageList;
+
+    @TableField(value = "gitcode_token")
+    @ApiModelProperty(value = "gitcode的授权token")
+    private String gitcodeToken;
 }

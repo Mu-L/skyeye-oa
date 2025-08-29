@@ -89,4 +89,18 @@ public class DocMemberController {
         docMemberService.editDocMemberPassword(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "checkUserGitCodeToken", value = "校验用户gitcode的token", method = "POST", allUse = "2")
+    @RequestMapping("/post/DocMemberController/checkUserGitCodeToken")
+    public void checkUserGitCodeToken(InputObject inputObject, OutputObject outputObject) {
+        docMemberService.checkUserGitCodeToken(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "bingUserGitCodeToken", value = "绑定用户gitcode的token", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "gitcodeToken", name = "gitcodeToken", value = "gitcode的token", required = "required")})
+    @RequestMapping("/post/DocMemberController/bingUserGitCodeToken")
+    public void bingUserGitCodeToken(InputObject inputObject, OutputObject outputObject) {
+        docMemberService.bingUserGitCodeToken(inputObject, outputObject);
+    }
+
 }

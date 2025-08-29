@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -211,6 +212,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     private static DocMember getMember(String requestType, DocMember member, String password) {
         member.setPassword(null);
         member.setPwdNumEnc(null);
+        member.setGitcodeToken(null);
         String userToken;
         // 一个账号最多可同时登录的设备数：1
         GetUserToken.setDefaultMaxDevicesPerUser(CommonNumConstants.NUM_ONE);
@@ -250,6 +252,9 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     public void queryCurrentLoginMember(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
         DocMember docMember = selectById(userId);
+        docMember.setPassword(null);
+        docMember.setPwdNumEnc(null);
+        docMember.setGitcodeToken(null);
         outputObject.setBean(docMember);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -274,6 +279,31 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         updateWrapper.eq(CommonConstants.ID, userId);
         updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getPassword), newPassword);
         updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getPwdNumEnc), pwdNum);
+        update(updateWrapper);
+    }
+
+    @Override
+    public void checkUserGitCodeToken(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        DocMember docMember = selectById(userId);
+        if (ObjectUtil.isEmpty(docMember) || StrUtil.isEmpty(docMember.getId())) {
+            outputObject.setreturnMessage("用户不存在！");
+            return;
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("bindGitcodeToken", StrUtil.isEmpty(docMember.getGitcodeToken()) ? false : true);
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void bingUserGitCodeToken(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String gitcodeToken = map.get("gitcodeToken").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
+        UpdateWrapper<DocMember> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, userId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getGitcodeToken), gitcodeToken);
         update(updateWrapper);
     }
 
