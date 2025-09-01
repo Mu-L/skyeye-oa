@@ -24,6 +24,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.doc.gitcode.util.GitCodeApiClient;
 import com.skyeye.doc.member.dao.DocMemberDao;
 import com.skyeye.doc.member.entity.DocMember;
 import com.skyeye.doc.member.entity.DocMemberPackage;
@@ -63,6 +64,9 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
 
     @Autowired
     private DocMemberLoginLogService docMemberLoginLogService;
+
+    @Autowired
+    private GitCodeApiClient gitCodeApiClient;
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -280,6 +284,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getPassword), newPassword);
         updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getPwdNumEnc), pwdNum);
         update(updateWrapper);
+        refreshCache(userId);
     }
 
     @Override
@@ -301,10 +306,16 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         Map<String, Object> map = inputObject.getParams();
         String gitcodeToken = map.get("gitcodeToken").toString();
         String userId = inputObject.getLogParams().get("id").toString();
+        Boolean isBind = gitCodeApiClient.validateAuthorizationToken(gitcodeToken);
+        if (!isBind) {
+            outputObject.setreturnMessage("GitCode授权码无效！");
+            return;
+        }
         UpdateWrapper<DocMember> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, userId);
         updateWrapper.set(MybatisPlusUtil.toColumns(DocMember::getGitcodeToken), gitcodeToken);
         update(updateWrapper);
+        refreshCache(userId);
     }
 
 }

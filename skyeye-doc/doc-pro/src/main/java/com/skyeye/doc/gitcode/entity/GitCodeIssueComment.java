@@ -35,10 +35,10 @@ public class GitCodeIssueComment extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "comment_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "GitCode评论ID", required = "required")
+    @Property(value = "GitCode评论ID")
     private String commentId;
 
-    @TableField(value = "issue_id")
+    @TableField(value = "issue_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "Issue ID", required = "required")
     private String issueId;
 
@@ -46,11 +46,11 @@ public class GitCodeIssueComment extends OperatorUserInfo {
     @Property(value = "项目地址")
     private String projectUrl;
 
-    @TableField(value = "body")
+    @TableField(value = "`body`")
     @ApiModelProperty(value = "评论内容", required = "required")
     private String body;
 
-    @TableField(value = "system")
+    @TableField(value = "`system`")
     @ApiModelProperty(value = "是否为系统评论", enumClass = WhetherEnum.class, defaultValue = "0")
     private Integer system;
 

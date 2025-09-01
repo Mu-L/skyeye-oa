@@ -78,12 +78,6 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     }
 
     @Override
-    protected void deletePostpose(GitCodeIssue entity) {
-        // 调用GitCode API删除Issue
-        gitCodeApiClient.deleteIssue(entity.getIssueId());
-    }
-
-    @Override
     public void updateIssueState(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();

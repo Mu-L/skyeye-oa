@@ -6,10 +6,13 @@ package com.skyeye.doc.gitcode.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.doc.gitcode.dao.GitCodeIssueCommentDao;
 import com.skyeye.doc.gitcode.entity.GitCodeIssue;
 import com.skyeye.doc.gitcode.entity.GitCodeIssueComment;
@@ -43,6 +46,13 @@ public class GitCodeIssueCommentServiceImpl extends SkyeyeBusinessServiceImpl<Gi
 
     @Autowired
     private DocMemberService docMemberService;
+
+    @Override
+    protected QueryWrapper<GitCodeIssueComment> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<GitCodeIssueComment> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssueComment::getIssueId), commonPageInfo.getObjectId());
+        return queryWrapper;
+    }
 
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

@@ -43,7 +43,7 @@ public class GitCodeIssue extends OperatorUserInfo {
     private String projectUrl;
 
     @TableField(value = "title")
-    @ApiModelProperty(value = "Issue标题", required = "required")
+    @ApiModelProperty(value = "Issue标题", required = "required", fuzzyLike = true)
     private String title;
 
     @TableField(value = "description")

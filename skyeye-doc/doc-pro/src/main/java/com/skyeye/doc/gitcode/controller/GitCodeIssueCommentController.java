@@ -41,13 +41,13 @@ public class GitCodeIssueCommentController {
 
     @ApiOperation(id = "deleteIssueCommentById", value = "删除Issue评论", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "commentId", name = "commentId", value = "评论ID", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "评论ID", required = "required")})
     @RequestMapping("/post/GitCodeIssueCommentController/deleteIssueCommentById")
     public void deleteIssueCommentById(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueCommentService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueCommentList", value = "获取Issue评论列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryIssueCommentList", value = "获取Issue评论列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/GitCodeIssueCommentController/queryIssueCommentList")
     public void queryIssueCommentList(InputObject inputObject, OutputObject outputObject) {

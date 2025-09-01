@@ -32,14 +32,14 @@ public class GitCodeIssueController {
     @Autowired
     private GitCodeIssueService gitCodeIssueService;
 
-    @ApiOperation(id = "writeIssue", value = "创建/编辑Issue", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeIssue", value = "创建/编辑Issue", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = GitCodeIssue.class)
     @RequestMapping("/post/GitCodeIssueController/writeIssue")
     public void writeIssue(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteIssueById", value = "删除Issue", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteIssueById", value = "删除Issue", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "Issue ID", required = "required")})
     @RequestMapping("/post/GitCodeIssueController/deleteIssueById")
@@ -47,7 +47,7 @@ public class GitCodeIssueController {
         gitCodeIssueService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateIssueState", value = "更新Issue状态", method = "PUT", allUse = "1")
+    @ApiOperation(id = "updateIssueState", value = "更新Issue状态", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "Issue ID", required = "required"),
         @ApiImplicitParam(id = "state", name = "state", value = "状态", required = "required")})
@@ -71,7 +71,7 @@ public class GitCodeIssueController {
         gitCodeIssueService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "uploadImageToIssue", value = "上传图片到Issue", method = "POST", allUse = "1")
+    @ApiOperation(id = "uploadImageToIssue", value = "上传图片到Issue", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "Issue ID", required = "required"),
         @ApiImplicitParam(id = "images", name = "images", value = "图片Base64", required = "required"),
