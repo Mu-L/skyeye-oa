@@ -9,6 +9,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -81,6 +82,7 @@ public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPag
     }
 
     @Override
+    @IgnoreTenant
     public AppWorkPage selectById(String id) {
         AppWorkPage appWorkPage = super.selectById(id);
         sysEveDesktopService.setDataMation(appWorkPage, AppWorkPage::getDesktopId);
@@ -91,6 +93,7 @@ public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPag
     }
 
     @Override
+    @IgnoreTenant
     public List<AppWorkPage> selectByIds(String... ids) {
         List<AppWorkPage> appWorkPages = super.selectByIds(ids);
         // 桌面信息
