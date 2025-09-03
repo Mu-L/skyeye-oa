@@ -16,6 +16,7 @@ import com.skyeye.exception.CustomException;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -43,6 +44,9 @@ public class GitCodeApiClient {
     public String owner = "doc_wei";
 
     public String repo = "erp-pro";
+
+    @Value("${skyeye.gitCodeToken}")
+    private String getDefaultToken;
 
     public JSONObject get(String endpoint) {
         return sendRequest(HttpMethodEnum.GET_REQUEST.getKey(), endpoint, null);
@@ -94,17 +98,6 @@ public class GitCodeApiClient {
                 }
             }
 
-            // 设置请求头
-//            Map<String, String> headers = new HashMap<>();
-//            headers.put("Content-Type", "application/json");
-//            headers.put("Accept", "application/json");
-//            String userId = InputObject.getLogParamsStatic().get("id").toString();
-//            DocMember docMember = docMemberService.selectById(userId);
-//            if (StrUtil.isNotEmpty(docMember.getGitcodeToken())) {
-//                headers.put("Authorization", "Bearer " + docMember.getGitcodeToken());
-//            }
-//
-//            String responseBody = HttpRequestUtil.getDataByRequest(url, method, headers, JSONUtil.toJsonStr(data));
             log.info("GitCode API请求响应: {}", responseBody);
             return JSONUtil.parseObj(responseBody);
         } catch (Exception e) {
@@ -163,6 +156,7 @@ public class GitCodeApiClient {
             }
         }
         v5Data.put("repo", repo);
+        v5Data.put("state", "reopen");
         return patch(endpoint, v5Data);
     }
 
@@ -204,21 +198,36 @@ public class GitCodeApiClient {
     public JSONObject uploadImage(String base64Data, String fileName) {
         try {
             String endpoint = "/repos/" + owner + "/" + repo + "/img/upload";
-
+            String url = baseUrl + endpoint;
             // 构建上传数据 - 使用base64编码
             Map<String, Object> uploadData = new HashMap<>();
-            uploadData.put("img", base64Data);  // base64编码的图片数据
-            uploadData.put("name", fileName);   // 图片名称
+            uploadData.put("body", base64Data);  // base64编码的图片数据
+            uploadData.put("file_name", fileName);   // 图片名称
 
-            // 调用POST方法上传文件
-            JSONObject result = post(endpoint, uploadData);
+            OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+            MediaType mediaType = MediaType.parse("application/json");
+            RequestBody body = RequestBody.create(mediaType, JSONUtil.toJsonStr(uploadData));
+            Request request = new Request.Builder()
+                .url(url)
+                .method(HttpMethodEnum.POST_REQUEST.getKey(), body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + getDefaultToken)
+                .build();
+            Response response = client.newCall(request).execute();
+            String responseBody = response.body().string();
+            JSONObject result = null;
+            if (response.code() == 200) {
+                result = JSONUtil.parseObj(responseBody);
+            }
 
             if (result != null && !result.isEmpty()) {
                 // 构建返回结果
                 Map<String, Object> responseData = new HashMap<>();
-                responseData.put("url", result.getStr("url"));
-                responseData.put("alt", result.getStr("alt") != null ? result.getStr("alt") : fileName);
-                responseData.put("markdown", result.getStr("markdown") != null ? result.getStr("markdown") : "![图片](" + result.getStr("url") + ")");
+                responseData.put("url", result.getStr("full_path"));
+                responseData.put("alt", fileName);
+                responseData.put("markdown", "![图片](" + result.getStr("full_path") + ")");
 
                 return JSONUtil.parseObj(responseData);
             }

@@ -71,14 +71,13 @@ public class GitCodeIssueController {
         gitCodeIssueService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "uploadImageToIssue", value = "上传图片到Issue", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertUploadImageToIssue", value = "上传图片到Issue", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "Issue ID", required = "required"),
         @ApiImplicitParam(id = "images", name = "images", value = "图片Base64", required = "required"),
         @ApiImplicitParam(id = "fileName", name = "fileName", value = "图片名称", required = "required")})
-    @RequestMapping("/post/GitCodeIssueController/uploadImageToIssue")
-    public void uploadImageToIssue(InputObject inputObject, OutputObject outputObject) {
-        gitCodeIssueService.uploadImageToIssue(inputObject, outputObject);
+    @RequestMapping("/post/GitCodeIssueController/insertUploadImageToIssue")
+    public void insertUploadImageToIssue(InputObject inputObject, OutputObject outputObject) {
+        gitCodeIssueService.insertUploadImageToIssue(inputObject, outputObject);
     }
 
 }

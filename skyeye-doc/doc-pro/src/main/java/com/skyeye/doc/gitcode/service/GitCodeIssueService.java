@@ -24,6 +24,6 @@ public interface GitCodeIssueService extends SkyeyeBusinessService<GitCodeIssue>
     /**
      * 上传图片到Issue
      */
-    void uploadImageToIssue(InputObject inputObject, OutputObject outputObject);
+    void insertUploadImageToIssue(InputObject inputObject, OutputObject outputObject);
 
 }

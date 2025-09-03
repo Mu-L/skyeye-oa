@@ -101,19 +101,11 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     }
 
     @Override
-    public void uploadImageToIssue(InputObject inputObject, OutputObject outputObject) {
+    public void insertUploadImageToIssue(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String id = params.get("id").toString();
         String images = params.get("images").toString();
         String fileName = params.get("fileName").toString();
         try {
-            // 获取Issue信息
-            GitCodeIssue issue = selectById(id);
-            if (ObjectUtil.isEmpty(issue) || StrUtil.isEmpty(issue.getId())) {
-                outputObject.setreturnMessage("Issue不存在");
-                return;
-            }
-
             // 调用GitCode API上传图片（使用base64编码）
             JSONObject result = gitCodeApiClient.uploadImage(images, fileName);
 
@@ -124,7 +116,6 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
                 uploadResult.put("alt", result.getStr("alt"));
                 uploadResult.put("markdown", result.getStr("markdown"));
                 uploadResult.put("fileName", fileName);
-                uploadResult.put("issueId", id);
 
                 outputObject.setBean(uploadResult);
                 outputObject.settotal(1);
