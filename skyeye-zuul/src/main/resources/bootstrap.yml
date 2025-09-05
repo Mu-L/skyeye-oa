@@ -137,6 +137,16 @@ spring:
             - Path=/${spring.profiles.active}/auto/**
           filters:
             - StripPrefix=2
+        - id: protal
+          uri: lb://skyeye-protal-${spring.profiles.active}
+          predicates:
+            - Path=/${spring.profiles.active}/protal/**
+          filters:
+            - StripPrefix=2
+        - id: doc
+          uri: lb://skyeye-doc-${spring.profiles.active}
+          predicates:
+            - Path=/${spring.profiles.active}/doc/**
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin
         - AddResponseHeader=Access-Control-Allow-Origin, *  # 允许跨域
