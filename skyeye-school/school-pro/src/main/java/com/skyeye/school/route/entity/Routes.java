@@ -2,12 +2,13 @@ package com.skyeye.school.route.entity;
 
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.school.route.routeenum.RouteTypeEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -24,39 +25,23 @@ import java.util.Map;
 @Data
 @TableName("school_routes")
 @ApiModel(value = "路线实体类")
-public class Routes extends OperatorUserInfo {
-
-    @TableId("id")
-    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
-    private String id;
+public class Routes extends BaseGeneralInfo {
 
     @TableField("school_id")
     @ApiModelProperty(value = "学校id", required = "required")
     private String schoolId;
 
-    @TableField("start_id")
-    @ApiModelProperty(value = "起始地点id", required = "required")
-    private String startId;
-
-    @TableField("end_id")
-    @ApiModelProperty(value = "终点地点id", required = "required")
-    private String endId;
-
     @TableField("route_length")
-    @ApiModelProperty(value = "路线长度", required = "required")
+    @Property(value = "路线长度")
     private Double routeLength;
 
     @TableField("route_type")
-    @ApiModelProperty(value = "路线类型")
+    @ApiModelProperty(value = "路线类型", enumClass = RouteTypeEnum.class)
     private Integer routeType;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "是否启用,默认启用，1启用，2禁用")
+    @ApiModelProperty(value = "是否启用", enumClass = EnableEnum.class)
     private Integer enabled;
-
-    @TableField("description")
-    @ApiModelProperty(value = "描述")
-    private String description;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "停靠点列表")
@@ -66,11 +51,4 @@ public class Routes extends OperatorUserInfo {
     @Property(value = "学校信息")
     private Map<String, Object> schoolMation;
 
-    @TableField(exist = false)
-    @Property(value = "起始地点信息")
-    private Map<String, Object> startMation;
-
-    @TableField(exist = false)
-    @Property(value = "终点地点信息")
-    private Map<String, Object> endMation;
 }

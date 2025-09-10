@@ -12,7 +12,7 @@ spring:
       repositories:
         enabled: false # 项目未使用到 Spring Data Redis 的 Repository，所以直接禁用，保证启动速度
   profiles:
-    active: public
+    active: dev
   cloud:
     nacos:
       discovery:

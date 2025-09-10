@@ -54,7 +54,7 @@ public class SchoolController {
         schoolService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "querySchoolByIds", value = "根据id批量查询学校信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "querySchoolByIds", value = "根据id批量查询学校信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个用逗号隔开", required = "required")})
     @RequestMapping("/post/SchoolController/querySchoolByIds")
