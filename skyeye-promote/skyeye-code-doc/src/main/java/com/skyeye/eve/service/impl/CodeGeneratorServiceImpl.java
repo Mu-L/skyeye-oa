@@ -6,7 +6,6 @@ package com.skyeye.eve.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.FileConstants;
@@ -32,7 +31,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -64,20 +63,25 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
     }
 
     @Override
-    @IgnoreTenant
+    @TenantIsolation(TenantEnum.PLATE)
     public void getDatabaseTables(InputObject inputObject, OutputObject outputObject) {
         try (Connection connection = dataSource.getConnection()) {
-            DatabaseMetaData metaData = connection.getMetaData();
             String catalog = connection.getCatalog();
-
             List<Map<String, Object>> tables = new ArrayList<>();
-            try (ResultSet rs = metaData.getTables(catalog, null, "%", new String[]{"TABLE"})) {
-                while (rs.next()) {
-                    Map<String, Object> table = new HashMap<>();
-                    table.put("tableName", rs.getString("TABLE_NAME"));
-                    table.put("tableComment", rs.getString("REMARKS"));
-                    table.put("tableType", rs.getString("TABLE_TYPE"));
-                    tables.add(table);
+
+            // 直接使用SQL查询一次性获取所有表信息，包括表注释
+            String sql = "SELECT TABLE_NAME, TABLE_TYPE, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME";
+
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, catalog);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> table = new HashMap<>();
+                        table.put("tableName", rs.getString("TABLE_NAME"));
+                        table.put("tableType", rs.getString("TABLE_TYPE"));
+                        table.put("tableComment", rs.getString("TABLE_COMMENT"));
+                        tables.add(table);
+                    }
                 }
             }
 
@@ -89,46 +93,56 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
     }
 
     @Override
-    @IgnoreTenant
+    @TenantIsolation(TenantEnum.PLATE)
     public void getTableColumns(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String tableName = params.get("tableName").toString();
 
         try (Connection connection = dataSource.getConnection()) {
-            DatabaseMetaData metaData = connection.getMetaData();
             String catalog = connection.getCatalog();
-
             List<Map<String, Object>> columns = new ArrayList<>();
-            try (ResultSet rs = metaData.getColumns(catalog, null, tableName, null)) {
-                while (rs.next()) {
-                    Map<String, Object> column = new HashMap<>();
-                    column.put("columnName", rs.getString("COLUMN_NAME"));
-                    column.put("dataType", rs.getString("TYPE_NAME"));
-                    column.put("columnSize", rs.getInt("COLUMN_SIZE"));
-                    column.put("nullable", rs.getBoolean("NULLABLE"));
-                    column.put("columnDefault", rs.getString("COLUMN_DEF"));
-                    column.put("remarks", rs.getString("REMARKS"));
-                    column.put("ordinalPosition", rs.getInt("ORDINAL_POSITION"));
 
-                    // 转换为Java类型
-                    column.put("javaType", convertToJavaType(rs.getString("TYPE_NAME")));
-                    column.put("propertyName", convertToPropertyName(rs.getString("COLUMN_NAME")));
+            // 使用SQL查询一次性获取所有字段信息，包括字段注释
+            String sql = "SELECT " +
+                "COLUMN_NAME, " +
+                "DATA_TYPE, " +
+                "CHARACTER_MAXIMUM_LENGTH, " +
+                "IS_NULLABLE, " +
+                "COLUMN_DEFAULT, " +
+                "COLUMN_COMMENT, " +
+                "ORDINAL_POSITION, " +
+                "COLUMN_KEY " +
+                "FROM INFORMATION_SCHEMA.COLUMNS " +
+                "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? " +
+                "ORDER BY ORDINAL_POSITION";
 
-                    columns.add(column);
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, catalog);
+                ps.setString(2, tableName);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> column = new HashMap<>();
+                        String columnName = rs.getString("COLUMN_NAME");
+                        String dataType = rs.getString("DATA_TYPE");
+                        String columnKey = rs.getString("COLUMN_KEY");
+
+                        column.put("columnName", columnName);
+                        column.put("columnType", dataType);
+                        column.put("columnSize", rs.getInt("CHARACTER_MAXIMUM_LENGTH"));
+                        column.put("nullable", "YES".equals(rs.getString("IS_NULLABLE")));
+                        column.put("columnDefault", rs.getString("COLUMN_DEFAULT"));
+                        column.put("remarks", rs.getString("COLUMN_COMMENT"));
+                        column.put("ordinalPosition", rs.getInt("ORDINAL_POSITION"));
+                        column.put("isPrimaryKey", "PRI".equals(columnKey));
+                        column.put("isAutoIncrement", false); // 可以通过额外查询获取
+
+                        // 转换为Java类型和属性名
+                        column.put("javaType", convertToJavaType(dataType));
+                        column.put("propertyName", convertToPropertyName(columnName));
+
+                        columns.add(column);
+                    }
                 }
-            }
-
-            // 获取主键信息
-            Set<String> primaryKeys = new HashSet<>();
-            try (ResultSet rs = metaData.getPrimaryKeys(catalog, null, tableName)) {
-                while (rs.next()) {
-                    primaryKeys.add(rs.getString("COLUMN_NAME"));
-                }
-            }
-
-            // 设置主键标识
-            for (Map<String, Object> column : columns) {
-                column.put("isPrimaryKey", primaryKeys.contains(column.get("columnName")));
             }
 
             outputObject.setBeans(columns);
@@ -139,6 +153,7 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
     }
 
     @Override
+    @TenantIsolation(TenantEnum.PLATE)
     public void previewCode(InputObject inputObject, OutputObject outputObject) {
         try {
             CodeGeneratorConfig config = inputObject.getParams(CodeGeneratorConfig.class);

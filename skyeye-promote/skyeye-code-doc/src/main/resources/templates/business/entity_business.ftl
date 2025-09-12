@@ -25,7 +25,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
  */
 @Data
 <#if generate.generateRedisCache>
-@RedisCacheField(name = "gw:model")
+@RedisCacheField(name = "${generate.redisCachePrefix}")
 </#if>
 @ApiModel(value = "${tables[0].entityName}", description = "${tables[0].tableComment!''}")
 @TableName("${tables[0].tableName}")
@@ -35,9 +35,9 @@ public class ${tables[0].entityName} {
     <#if field.isPrimaryKey>
     @TableId(type = IdType.AUTO)
     <#else>
-    @TableField("${field.fieldName}")
+    @TableField("${field.columnName}")
     </#if>
-    @ApiModelProperty(value = "${field.fieldComment!''}", name = "${field.propertyName}")
+    @ApiModelProperty(value = "${field.remarks!''}", name = "${field.propertyName}")
     private ${field.javaType} ${field.propertyName};
 </#list>
 }

@@ -20,7 +20,7 @@ public class ${tables[0].entityName} extends ErpOrderCommon {
 
 <#list tables[0].fields as field>
     /**
-     * ${field.fieldComment!""}
+     * ${field.remarks!""}
      */
     private ${field.javaType} ${field.propertyName};
 

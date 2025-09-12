@@ -64,49 +64,28 @@ public class CodeGeneratorConfig {
     @ApiModel(value = "字段配置")
     public static class FieldConfig {
         @ApiModelProperty(value = "字段名", required = "required")
-        private String fieldName;
+        private String columnName;
 
         @ApiModelProperty(value = "属性名", required = "required")
         private String propertyName;
 
         @ApiModelProperty(value = "字段类型", required = "required")
-        private String fieldType;
+        private String columnType;
 
         @ApiModelProperty(value = "Java类型", required = "required")
         private String javaType;
 
-        @ApiModelProperty(value = "字段注释", required = "required")
-        private String fieldComment;
+        @ApiModelProperty(value = "字段注释")
+        private String remarks;
 
-        @ApiModelProperty(value = "是否主键", required = "required")
+        @ApiModelProperty(value = "是否主键")
         private Boolean isPrimaryKey = false;
 
-        @ApiModelProperty(value = "是否自增", required = "required")
-        private Boolean isAutoIncrement = false;
+        @ApiModelProperty(value = "是否可空")
+        private Boolean nullable = true;
 
-        @ApiModelProperty(value = "是否可空", required = "required")
-        private Boolean isNullable = true;
-
-        @ApiModelProperty(value = "默认值", required = "required")
+        @ApiModelProperty(value = "默认值")
         private String defaultValue;
-
-        @ApiModelProperty(value = "字段长度", required = "required")
-        private Integer fieldLength;
-
-        @ApiModelProperty(value = "是否在列表中显示", required = "required")
-        private Boolean showInList = true;
-
-        @ApiModelProperty(value = "是否在表单中显示", required = "required")
-        private Boolean showInForm = true;
-
-        @ApiModelProperty(value = "是否可搜索", required = "required")
-        private Boolean searchable = false;
-
-        @ApiModelProperty(value = "表单组件类型", required = "required")
-        private String formComponentType = "input";
-
-        @ApiModelProperty(value = "验证规则", required = "required")
-        private List<String> validationRules;
     }
 
     @Data
