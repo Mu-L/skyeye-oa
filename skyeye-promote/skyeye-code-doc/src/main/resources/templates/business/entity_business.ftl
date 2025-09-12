@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.util.Date;
+import ${project.inheritClassPath};
 <#if generate.generateRedisCache>
 import com.skyeye.annotation.cache.RedisCacheField;
 </#if>
@@ -29,7 +30,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 </#if>
 @ApiModel(value = "${tables[0].entityName}", description = "${tables[0].tableComment!''}")
 @TableName("${tables[0].tableName}")
-public class ${tables[0].entityName} {
+public class ${tables[0].entityName} extends ${project.inheritClass} {
 <#list tables[0].fields as field>
     
     <#if field.isPrimaryKey>

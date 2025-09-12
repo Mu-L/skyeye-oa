@@ -42,6 +42,12 @@ public class CodeGeneratorConfig {
 
         @ApiModelProperty(value = "作者", required = "required")
         private String author;
+
+        @ApiModelProperty(value = "父类得包名")
+        private String inheritClassPath;
+
+        @ApiModelProperty(value = "父类得类名")
+        private String inheritClass;
     }
 
     @Data
@@ -58,6 +64,12 @@ public class CodeGeneratorConfig {
 
         @ApiModelProperty(value = "字段列表", required = "json")
         private List<FieldConfig> fields;
+
+        @ApiModelProperty(value = "继承类名")
+        private String inheritClass;
+
+        @ApiModelProperty(value = "继承类路径")
+        private String inheritClassPath;
     }
 
     @Data

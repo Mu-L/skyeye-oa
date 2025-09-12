@@ -296,6 +296,9 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
             dataModel.put("className", tableConfig.getEntityName());
             dataModel.put("entityName", tableConfig.getEntityName());
             dataModel.put("tableComment", tableConfig.getTableComment());
+            // 继承类信息
+            dataModel.put("inheritClass", tableConfig.getInheritClass());
+            dataModel.put("inheritClassPath", tableConfig.getInheritClassPath());
         }
         return dataModel;
     }
