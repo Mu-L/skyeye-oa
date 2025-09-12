@@ -9,8 +9,6 @@ import com.skyeye.common.object.OutputObject;
 
 public interface CommonService {
 
-    void downloadFileByJsonData(InputObject inputObject, OutputObject outputObject);
-
     void querySysWinMationById(InputObject inputObject, OutputObject outputObject);
 
     void queryFilePathByFileType(InputObject inputObject, OutputObject outputObject);

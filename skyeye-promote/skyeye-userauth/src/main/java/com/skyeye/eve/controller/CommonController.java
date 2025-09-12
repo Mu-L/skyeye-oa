@@ -22,11 +22,6 @@ public class CommonController {
     @Autowired
     private CommonService commonService;
 
-    @RequestMapping("/post/CommonController/downloadFileByJsonData")
-    public void downloadFileByJsonData(InputObject inputObject, OutputObject outputObject) {
-        commonService.downloadFileByJsonData(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "sysevewinmation001", value = "获取win系统桌列表信息供展示", method = "POST", allUse = "2")
     @RequestMapping("/post/CommonController/querySysWinMationById")
     public void querySysWinMationById(InputObject inputObject, OutputObject outputObject) {
