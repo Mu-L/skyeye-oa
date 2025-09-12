@@ -120,9 +120,6 @@ public class CodeGeneratorConfig {
 
         @ApiModelProperty(value = "文件名模板", required = "required")
         private String fileNameTemplate;
-
-        @ApiModelProperty(value = "包名", required = "required")
-        private String packageName;
     }
 
     @Data

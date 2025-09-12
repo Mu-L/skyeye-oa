@@ -1,11 +1,13 @@
+/*******************************************************************************
+ * Copyright ${author} QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package ${project.packageName}.controller;
 
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.controller.SkyeyeLinkDataController;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -25,19 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Api(value = "${tables[0].tableComment}", tags = "${tables[0].tableComment}", modelName = "${tables[0].tableComment}")
-@RequestMapping("/${tables[0].entityName?uncap_first}")
-@SkyeyeService(name = "${tables[0].tableComment}", groupName = "${tables[0].tableName}")
-public class ${tables[0].entityName}Controller extends SkyeyeLinkDataController<${tables[0].entityName}Service, ${tables[0].entityName}> {
+public class ${tables[0].entityName}Controller {
 
     @Autowired
     private ${tables[0].entityName}Service ${tables[0].entityName?uncap_first}Service;
 
-    /**
-     * 获取${tables[0].tableComment}列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "query${tables[0].entityName}List", value = "获取${tables[0].tableComment}列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}List")
@@ -45,26 +39,14 @@ public class ${tables[0].entityName}Controller extends SkyeyeLinkDataController<
         ${tables[0].entityName?uncap_first}Service.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "write${tables[0].entityName}Mation", value = "新增/编辑${tables[0].tableComment}信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "write${tables[0].entityName}", value = "新增/编辑${tables[0].tableComment}", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ${tables[0].entityName}.class)
-    @RequestMapping("/post/${tables[0].entityName}Controller/write${tables[0].entityName}Mation")
-    public void write${tables[0].entityName}Mation(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/${tables[0].entityName}Controller/write${tables[0].entityName}")
+    public void write${tables[0].entityName}(InputObject inputObject, OutputObject outputObject) {
         ${tables[0].entityName?uncap_first}Service.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "query${tables[0].entityName}ById", value = "根据id获取${tables[0].tableComment}信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "query${tables[0].entityName}ById", value = "根据id获取${tables[0].tableComment}", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}ById")
@@ -72,12 +54,6 @@ public class ${tables[0].entityName}Controller extends SkyeyeLinkDataController<
         ${tables[0].entityName?uncap_first}Service.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "query${tables[0].entityName}ByIds", value = "根据id批量获取${tables[0].tableComment}信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ${tables[0].entityName}Controller extends SkyeyeLinkDataController<
         ${tables[0].entityName?uncap_first}Service.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 删除${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "delete${tables[0].entityName}ById", value = "删除${tables[0].tableComment}信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,59 +70,10 @@ public class ${tables[0].entityName}Controller extends SkyeyeLinkDataController<
         ${tables[0].entityName?uncap_first}Service.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有${tables[0].tableComment}列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAll${tables[0].entityName}List", value = "获取所有${tables[0].tableComment}列表", method = "GET", allUse = "2")
     @RequestMapping("/post/${tables[0].entityName}Controller/queryAll${tables[0].entityName}List")
     public void queryAll${tables[0].entityName}List(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.queryAllList(inputObject, outputObject);
-    }
-
-    /**
-     * 获取${tables[0].tableComment}关联数据列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "query${tables[0].entityName}LinkDataList", value = "获取${tables[0].tableComment}关联数据列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}LinkDataList")
-    public void query${tables[0].entityName}LinkDataList(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.queryLinkDataList(inputObject, outputObject);
-    }
-
-    /**
-     * 保存${tables[0].tableComment}关联数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "save${tables[0].entityName}LinkData", value = "保存${tables[0].tableComment}关联数据", method = "POST", allUse = "1")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "sourceId", name = "sourceId", value = "源数据id", required = "required"),
-        @ApiImplicitParam(id = "targetId", name = "targetId", value = "目标数据id", required = "required"),
-        @ApiImplicitParam(id = "linkType", name = "linkType", value = "关联类型", required = "required")})
-    @RequestMapping("/post/${tables[0].entityName}Controller/save${tables[0].entityName}LinkData")
-    public void save${tables[0].entityName}LinkData(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.saveLinkData(inputObject, outputObject);
-    }
-
-    /**
-     * 删除${tables[0].tableComment}关联数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "delete${tables[0].entityName}LinkData", value = "删除${tables[0].tableComment}关联数据", method = "DELETE", allUse = "1")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "linkId", name = "linkId", value = "关联id", required = "required")})
-    @RequestMapping("/post/${tables[0].entityName}Controller/delete${tables[0].entityName}LinkData")
-    public void delete${tables[0].entityName}LinkData(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.deleteLinkData(inputObject, outputObject);
+        ${tables[0].entityName?uncap_first}Service.queryList(inputObject, outputObject);
     }
 
 }

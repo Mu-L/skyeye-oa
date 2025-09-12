@@ -207,6 +207,7 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
                 String templateId = template.get("id").toString();
                 String templateContent = template.get("modelContent").toString();
                 String fileNameTemplate = template.get("fileNameTemplate").toString();
+                String outputPath = template.get("outputPath").toString();
 
                 // 渲染模板
                 Template freemarkerTemplate = new Template(templateId, templateContent, freemarkerConfig);
@@ -218,8 +219,9 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
                 String fileName = generateFileName(fileNameTemplate, dataModel);
 
                 // 加入压缩包
+                outputPath = generateFileOutputPath(outputPath, dataModel);
                 ByteArrayInputStream stream = new ByteArrayInputStream(writer.toString().getBytes());
-                out.putNextEntry(new ZipEntry(fileName));
+                out.putNextEntry(new ZipEntry(outputPath + fileName));
                 int len;
                 // 读入需要下载的文件的内容，打包到zip文件
                 while ((len = stream.read(buffer)) > 0) {
@@ -265,7 +267,6 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
             if (CollectionUtil.isNotEmpty(template)) {
                 template.put("fileNameTemplate", config.getFileNameTemplate());
                 template.put("outputPath", config.getOutputPath());
-                template.put("packageName", config.getPackageName());
                 templates.add(template);
             }
         }
@@ -314,6 +315,20 @@ public class CodeGeneratorServiceImpl implements CodeGeneratorService {
             return writer.toString();
         } catch (Exception e) {
             return "generated_file_" + System.currentTimeMillis();
+        }
+    }
+
+    /**
+     * 获取文件输出得真是路径
+     */
+    private String generateFileOutputPath(String fileOutputPath, Map<String, Object> dataModel) {
+        try {
+            Template template = new Template("outputPath", fileOutputPath, freemarkerConfig);
+            StringWriter writer = new StringWriter();
+            template.process(dataModel, writer);
+            return writer.toString();
+        } catch (Exception e) {
+            return "generated_file_outputPath_" + System.currentTimeMillis();
         }
     }
 

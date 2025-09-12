@@ -1,11 +1,14 @@
+/*******************************************************************************
+ * Copyright ${author} QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package ${project.packageName}.controller;
 
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.controller.SkyeyeFlowableController;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -25,19 +28,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Api(value = "${tables[0].tableComment}", tags = "${tables[0].tableComment}", modelName = "${tables[0].tableComment}")
-@RequestMapping("/${tables[0].entityName?uncap_first}")
-@SkyeyeService(name = "${tables[0].tableComment}", groupName = "${tables[0].tableName}", flowable = true)
-public class ${tables[0].entityName}Controller extends SkyeyeFlowableController<${tables[0].entityName}Service, ${tables[0].entityName}> {
+public class ${tables[0].entityName}Controller {
 
     @Autowired
     private ${tables[0].entityName}Service ${tables[0].entityName?uncap_first}Service;
 
-    /**
-     * 获取${tables[0].tableComment}列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "query${tables[0].entityName}List", value = "获取${tables[0].tableComment}列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}List")
@@ -45,26 +40,14 @@ public class ${tables[0].entityName}Controller extends SkyeyeFlowableController<
         ${tables[0].entityName?uncap_first}Service.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "write${tables[0].entityName}Mation", value = "新增/编辑${tables[0].tableComment}信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "write${tables[0].entityName}", value = "新增/编辑${tables[0].tableComment}", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ${tables[0].entityName}.class)
-    @RequestMapping("/post/${tables[0].entityName}Controller/write${tables[0].entityName}Mation")
-    public void write${tables[0].entityName}Mation(InputObject inputObject, OutputObject outputObject) {
+    @RequestMapping("/post/${tables[0].entityName}Controller/write${tables[0].entityName}")
+    public void write${tables[0].entityName}(InputObject inputObject, OutputObject outputObject) {
         ${tables[0].entityName?uncap_first}Service.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "query${tables[0].entityName}ById", value = "根据id获取${tables[0].tableComment}信息", method = "GET", allUse = "2")
+    @ApiOperation(id = "query${tables[0].entityName}ById", value = "根据id获取${tables[0].tableComment}", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}ById")
@@ -72,26 +55,6 @@ public class ${tables[0].entityName}Controller extends SkyeyeFlowableController<
         ${tables[0].entityName?uncap_first}Service.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "query${tables[0].entityName}ByIds", value = "根据id批量获取${tables[0].tableComment}信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
-    @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}ByIds")
-    public void query${tables[0].entityName}ByIds(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.selectByIds(inputObject, outputObject);
-    }
-
-    /**
-     * 删除${tables[0].tableComment}信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "delete${tables[0].entityName}ById", value = "删除${tables[0].tableComment}信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,59 +63,20 @@ public class ${tables[0].entityName}Controller extends SkyeyeFlowableController<
         ${tables[0].entityName?uncap_first}Service.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有${tables[0].tableComment}列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAll${tables[0].entityName}List", value = "获取所有${tables[0].tableComment}列表", method = "GET", allUse = "2")
-    @RequestMapping("/post/${tables[0].entityName}Controller/queryAll${tables[0].entityName}List")
-    public void queryAll${tables[0].entityName}List(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.queryAllList(inputObject, outputObject);
+    @ApiOperation(id = "submit${tables[0].entityName}ToApproval", value = "${tables[0].tableComment}提交审核", method = "PUT", allUse = "1")
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
+    @RequestMapping("/post/${tables[0].entityName}Controller/submit${tables[0].entityName}ToApproval")
+    public void submit${tables[0].entityName}ToApproval(InputObject inputObject, OutputObject outputObject) {
+        ${tables[0].entityName?uncap_first}Service.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 启动${tables[0].tableComment}流程
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "start${tables[0].entityName}Process", value = "启动${tables[0].tableComment}流程", method = "POST", allUse = "1")
+    @ApiOperation(id = "revoke${tables[0].entityName}Approval", value = "撤销${tables[0].tableComment}审批", method = "PUT", allUse = "2")
     @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "processKey", name = "processKey", value = "流程定义key", required = "required")})
-    @RequestMapping("/post/${tables[0].entityName}Controller/start${tables[0].entityName}Process")
-    public void start${tables[0].entityName}Process(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.startProcess(inputObject, outputObject);
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
+    @RequestMapping("/post/${tables[0].entityName}Controller/revoke${tables[0].entityName}Approval")
+    public void revoke${tables[0].entityName}Approval(InputObject inputObject, OutputObject outputObject) {
+        ${tables[0].entityName?uncap_first}Service.revokeApproval(inputObject, outputObject);
     }
 
-    /**
-     * 完成${tables[0].tableComment}任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "complete${tables[0].entityName}Task", value = "完成${tables[0].tableComment}任务", method = "POST", allUse = "1")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "taskId", name = "taskId", value = "任务id", required = "required"),
-        @ApiImplicitParam(id = "comment", name = "comment", value = "审批意见")})
-    @RequestMapping("/post/${tables[0].entityName}Controller/complete${tables[0].entityName}Task")
-    public void complete${tables[0].entityName}Task(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.completeTask(inputObject, outputObject);
-    }
-
-    /**
-     * 获取${tables[0].tableComment}待办任务
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "query${tables[0].entityName}TodoTasks", value = "获取${tables[0].tableComment}待办任务", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/${tables[0].entityName}Controller/query${tables[0].entityName}TodoTasks")
-    public void query${tables[0].entityName}TodoTasks(InputObject inputObject, OutputObject outputObject) {
-        ${tables[0].entityName?uncap_first}Service.queryTodoTasks(inputObject, outputObject);
-    }
 
 }

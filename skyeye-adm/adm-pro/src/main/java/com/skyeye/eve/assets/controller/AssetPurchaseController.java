@@ -35,12 +35,6 @@ public class AssetPurchaseController {
     @Autowired
     private AssetPurchaseService assetPurchaseService;
 
-    /**
-     * 获取资产采购单信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "asset018", value = "获取资产采购单信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AssetPurchaseController/queryAssetPurchaseList")
@@ -54,12 +48,6 @@ public class AssetPurchaseController {
         assetPurchaseService.queryLastMonthAssetPurchaseCost(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑资产采购单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAssetPurchase", value = "新增/编辑资产采购单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AssetPurchase.class)
     @RequestMapping("/post/AssetPurchaseController/writeAssetPurchase")
@@ -67,12 +55,6 @@ public class AssetPurchaseController {
         assetPurchaseService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 资产采购申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "asset020", value = "资产采购申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/AssetPurchaseController/submitToApproval")
@@ -80,12 +62,6 @@ public class AssetPurchaseController {
         assetPurchaseService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废资产采购申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "asset022", value = "作废资产采购申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -94,12 +70,6 @@ public class AssetPurchaseController {
         assetPurchaseService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销资产采购申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "asset037", value = "撤销资产采购申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -108,12 +78,6 @@ public class AssetPurchaseController {
         assetPurchaseService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 转采购入库单/采购退货单时，根据id查询采购订单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAssetPurchaseOrderTransById", value = "转采购入库单/采购退货单时，根据id查询采购订单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -122,12 +86,6 @@ public class AssetPurchaseController {
         assetPurchaseService.queryAssetPurchaseOrderTransById(inputObject, outputObject);
     }
 
-    /**
-     * 采购单信息转采购入库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertAssetPurchaseOrderToTurnPut", value = "采购单信息转采购入库", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AssetPurchasePut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -136,12 +94,6 @@ public class AssetPurchaseController {
         assetPurchaseService.insertAssetPurchaseOrderToTurnPut(inputObject, outputObject);
     }
 
-    /**
-     * 采购单信息转采购退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertAssetPurchaseOrderToReturns", value = "采购单信息转采购退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AssetPurchaseReturn.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

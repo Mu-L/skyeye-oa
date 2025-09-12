@@ -4,14 +4,12 @@
 
 package ${project.packageName}.entity;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.skyeye.annotation.api.ApiModel;
+import com.skyeye.annotation.api.ApiModelProperty;
 import lombok.Data;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import java.util.Date;
 import ${project.inheritClassPath};
 <#if generate.generateRedisCache>
 import com.skyeye.annotation.cache.RedisCacheField;
@@ -28,17 +26,18 @@ import com.skyeye.annotation.cache.RedisCacheField;
 <#if generate.generateRedisCache>
 @RedisCacheField(name = "${generate.redisCachePrefix}")
 </#if>
-@ApiModel(value = "${tables[0].entityName}", description = "${tables[0].tableComment!''}")
-@TableName("${tables[0].tableName}")
+@ApiModel("${tables[0].tableComment!''}")
+@TableName(value = "${tables[0].tableName}", autoResultMap = true)
 public class ${tables[0].entityName} extends ${project.inheritClass} {
 <#list tables[0].fields as field>
     
     <#if field.isPrimaryKey>
-    @TableId(type = IdType.AUTO)
+    @TableId("id")
+    @ApiModelProperty(value = "主键")
     <#else>
-    @TableField("${field.columnName}")
+    @TableField(value = "${field.columnName}")
+    @ApiModelProperty(value = "${field.remarks!''}"<#if !field.nullable>, required = "required"</#if>)
     </#if>
-    @ApiModelProperty(value = "${field.remarks!''}", name = "${field.propertyName}")
     private ${field.javaType} ${field.propertyName};
 </#list>
 }

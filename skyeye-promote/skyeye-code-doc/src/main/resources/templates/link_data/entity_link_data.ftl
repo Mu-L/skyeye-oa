@@ -1,9 +1,19 @@
+/*******************************************************************************
+ * Copyright ${author} QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
 package ${project.packageName}.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.skyeye.annotation.api.ApiModel;
+import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
+<#if generate.generateRedisCache>
+import com.skyeye.annotation.cache.RedisCacheField;
+</#if>
 
 /**
  * @ClassName: ${tables[0].entityName}
@@ -14,15 +24,16 @@ import lombok.EqualsAndHashCode;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@TableName("${tables[0].tableName}")
+<#if generate.generateRedisCache>
+@RedisCacheField(name = "${generate.redisCachePrefix}")
+</#if>
+@ApiModel("${tables[0].tableComment!''}")
+@TableName(value = "${tables[0].tableName}", autoResultMap = true)
 public class ${tables[0].entityName} extends SkyeyeLinkData {
-
 <#list tables[0].fields as field>
-    /**
-     * ${field.remarks!""}
-     */
-    private ${field.javaType} ${field.propertyName};
 
+    @TableField(value = "${field.columnName}")
+    @ApiModelProperty(value = "${field.remarks!''}"<#if !field.nullable>, required = "required"</#if>)
+    private ${field.javaType} ${field.propertyName};
 </#list>
 }
