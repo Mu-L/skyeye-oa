@@ -74,6 +74,7 @@ public class TtsServiceImpl implements TtsService {
             File audioFile = new File(audioFilePath);
             long fileSize = audioFile.length();
             String fileName = audioFile.getName();
+            String visitPath = String.format("%s/tts/%s", FileConstants.FileUploadPath.getVisitPath(100), fileName);
 
             // 1分钟后自动删除临时文件
             scheduleDeleteTempFile(audioFilePath);
@@ -82,7 +83,7 @@ public class TtsServiceImpl implements TtsService {
             Map<String, Object> result = new HashMap<>();
             result.put("fileName", fileName);
             result.put("fileSize", fileSize);
-            result.put("audioFilePath", audioFilePath);
+            result.put("audioFilePath", visitPath);
             result.put("duration", estimateDuration(text));
             result.put("text", text);
             result.put("format", format);
