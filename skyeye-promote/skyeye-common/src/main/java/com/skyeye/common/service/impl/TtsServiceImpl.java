@@ -17,13 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -112,25 +105,12 @@ public class TtsServiceImpl implements TtsService {
         String fileName = "tts_" + System.currentTimeMillis() + "." + format;
         String filePath = outputDir + CommonCharConstants.SLASH_MARK + fileName;
 
-        // 尝试多种TTS方案
-        boolean success = false;
-
-        // 方案1：尝试使用系统TTS
+        // 尝试使用系统TTS
         try {
             log.info("尝试使用系统TTS生成语音");
-            success = generateWithSystemTTS(text, filePath);
+            generateWithSystemTTS(text, filePath);
         } catch (Exception e) {
             log.warn("系统TTS失败: {}", e.getMessage());
-        }
-
-        // 方案2：如果系统TTS失败，使用在线TTS服务
-        if (!success) {
-            try {
-                log.info("尝试使用在线TTS服务");
-                success = generateWithOnlineTTS(text, filePath);
-            } catch (Exception e) {
-                log.warn("在线TTS失败: {}", e.getMessage());
-            }
         }
 
         return filePath;
@@ -200,71 +180,50 @@ public class TtsServiceImpl implements TtsService {
      * Linux系统TTS
      */
     private boolean generateWithLinuxTTS(String text, String filePath) throws Exception {
-        // 尝试使用espeak
-        String command = String.format("espeak -s 150 -w '%s' '%s'", filePath, text.replace("'", "\\'"));
-
-        Process process = Runtime.getRuntime().exec(command);
-        int exitCode = process.waitFor();
-
-        if (exitCode == 0 && new File(filePath).exists()) {
-            log.info("Linux TTS (espeak) 生成成功");
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * 使用在线TTS服务
-     */
-    private boolean generateWithOnlineTTS(String text, String filePath) throws Exception {
         try {
-            // 使用Google Translate TTS (免费)
-            return generateWithGoogleTTS(text, filePath);
-        } catch (Exception e) {
-            log.warn("Google TTS失败: {}", e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * 使用Google Translate TTS
-     */
-    private boolean generateWithGoogleTTS(String text, String filePath) throws Exception {
-        String encodedText = URLEncoder.encode(text, "UTF-8");
-        String url = String.format("https://translate.google.com/translate_tts?ie=UTF-8&tl=zh-cn&client=tw-ob&q=%s", encodedText);
-
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-
-        if (connection.getResponseCode() == 200) {
-            try (InputStream inputStream = connection.getInputStream();
-                 FileOutputStream outputStream = new FileOutputStream(filePath)) {
-
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-
-                log.info("Google TTS 生成成功");
-                return true;
+            // 检查espeak是否安装
+            Process checkProcess = Runtime.getRuntime().exec("which espeak");
+            int checkCode = checkProcess.waitFor();
+            if (checkCode != 0) {
+                log.warn("espeak未安装，请先安装: sudo apt-get install espeak");
+                return false;
             }
-        }
 
-        return false;
-    }
+            // 使用espeak生成语音，添加更多参数确保兼容性
+            String command = String.format("espeak -s 150 -v zh -w '%s' '%s'", filePath, text.replace("'", "\\'"));
+            log.info("执行Linux TTS命令: {}", command);
 
+            Process process = Runtime.getRuntime().exec(command);
+            
+            // 读取错误输出，帮助调试
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getErrorStream()))) {
+                String line;
+                StringBuilder errorOutput = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    errorOutput.append(line).append("\n");
+                }
+                if (errorOutput.length() > 0) {
+                    log.warn("espeak错误输出: {}", errorOutput.toString());
+                }
+            }
 
-    /**
-     * 将文件转换为Base64字符串
-     */
-    private String convertFileToBase64(String filePath) throws Exception {
-        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-            byte[] fileBytes = new byte[(int) new File(filePath).length()];
-            fileInputStream.read(fileBytes);
-            return Base64.getEncoder().encodeToString(fileBytes);
+            int exitCode = process.waitFor();
+            log.info("espeak执行完成，退出码: {}", exitCode);
+
+            // 检查文件是否生成
+            File outputFile = new File(filePath);
+            if (outputFile.exists() && outputFile.length() > 0) {
+                log.info("Linux TTS (espeak) 生成成功，文件大小: {} bytes", outputFile.length());
+                return true;
+            } else {
+                log.warn("Linux TTS (espeak) 文件未生成或为空，文件路径: {}", filePath);
+                return false;
+            }
+
+        } catch (Exception e) {
+            log.error("Linux TTS (espeak) 执行异常: {}", e.getMessage());
+            return false;
         }
     }
 
