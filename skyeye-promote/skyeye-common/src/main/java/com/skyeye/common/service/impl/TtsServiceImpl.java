@@ -38,6 +38,12 @@ public class TtsServiceImpl implements TtsService {
     @Value("${IMAGES_PATH}")
     private String tPath;
 
+    @Value("${skyeye.text2audio.apiKey}")
+    private String API_KEY;
+
+    @Value("${skyeye.text2audio.secretKey}")
+    private String SECRET_KEY;
+
     // 用于延迟删除文件的调度器
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
@@ -177,54 +183,118 @@ public class TtsServiceImpl implements TtsService {
     }
 
     /**
-     * Linux系统TTS
+     * Linux系统TTS - 百度智能云接口
      */
-    private boolean generateWithLinuxTTS(String text, String filePath) throws Exception {
+    private boolean generateWithLinuxTTS(String text, String filePath) {
         try {
-            // 检查espeak是否安装
-            Process checkProcess = Runtime.getRuntime().exec("which espeak");
-            int checkCode = checkProcess.waitFor();
-            if (checkCode != 0) {
-                log.warn("espeak未安装，请先安装: sudo apt-get install espeak");
+            log.info("开始使用百度智能云TTS生成语音");
+            // 获取access_token
+            String accessToken = getBaiduAccessToken(API_KEY, SECRET_KEY);
+            if (accessToken == null) {
+                log.error("获取百度access_token失败");
                 return false;
             }
 
-            // 使用espeak生成语音，添加更多参数确保兼容性
-            String command = String.format("espeak -s 150 -v zh -w '%s' '%s'", filePath, text.replace("'", "\\'"));
-            log.info("执行Linux TTS命令: {}", command);
+            // 构建请求参数
+            Map<String, String> params = new HashMap<>();
+            params.put("tex", text);
+            params.put("tok", accessToken);
+            params.put("cuid", "skyeye-tts");
+            params.put("ctp", "1");
+            params.put("lan", "zh");
+            params.put("spd", "5");        // 语速
+            params.put("pit", "5");        // 音调
+            params.put("vol", "5");        // 音量
+            params.put("per", "0");        // 发音人：0-女声，1-男声，3-度逍遥，4-度小娇
+            params.put("aue", "6");        // 6为wav格式
 
-            Process process = Runtime.getRuntime().exec(command);
-            
-            // 读取错误输出，帮助调试
-            try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(process.getErrorStream()))) {
-                String line;
-                StringBuilder errorOutput = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    errorOutput.append(line).append("\n");
+            // 发送HTTP请求
+            String url = "https://tsn.baidu.com/text2audio";
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36");
+
+            // 构建请求体
+            StringBuilder postData = new StringBuilder();
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                if (postData.length() > 0) {
+                    postData.append("&");
                 }
-                if (errorOutput.length() > 0) {
-                    log.warn("espeak错误输出: {}", errorOutput.toString());
-                }
+                postData.append(entry.getKey()).append("=").append(java.net.URLEncoder.encode(entry.getValue(), "UTF-8"));
             }
 
-            int exitCode = process.waitFor();
-            log.info("espeak执行完成，退出码: {}", exitCode);
+            // 发送请求
+            try (java.io.OutputStream os = connection.getOutputStream()) {
+                os.write(postData.toString().getBytes("UTF-8"));
+            }
 
-            // 检查文件是否生成
-            File outputFile = new File(filePath);
-            if (outputFile.exists() && outputFile.length() > 0) {
-                log.info("Linux TTS (espeak) 生成成功，文件大小: {} bytes", outputFile.length());
-                return true;
+            // 获取响应
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                try (java.io.InputStream inputStream = connection.getInputStream();
+                     java.io.FileOutputStream outputStream = new java.io.FileOutputStream(filePath)) {
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        outputStream.write(buffer, 0, bytesRead);
+                    }
+                    outputStream.flush();
+                }
+
+                File outputFile = new File(filePath);
+                if (outputFile.exists() && outputFile.length() > 0) {
+                    log.info("百度智能云TTS生成成功，文件大小: {} bytes", outputFile.length());
+                    return true;
+                }
             } else {
-                log.warn("Linux TTS (espeak) 文件未生成或为空，文件路径: {}", filePath);
-                return false;
+                log.error("百度智能云TTS请求失败，响应码: {}", responseCode);
             }
 
         } catch (Exception e) {
-            log.error("Linux TTS (espeak) 执行异常: {}", e.getMessage());
-            return false;
+            log.error("百度智能云TTS执行异常: {}", e.getMessage());
         }
+
+        return false;
+    }
+
+    /**
+     * 获取百度access_token
+     */
+    private String getBaiduAccessToken(String apiKey, String secretKey) {
+        try {
+            String url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=" + apiKey + "&client_secret=" + secretKey;
+
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream()))) {
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+
+                    // 简单的JSON解析
+                    String responseBody = response.toString();
+                    if (responseBody.contains("\"access_token\"")) {
+                        int start = responseBody.indexOf("\"access_token\":\"") + 16;
+                        int end = responseBody.indexOf("\"", start);
+                        return responseBody.substring(start, end);
+                    }
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("获取百度access_token失败: {}", e.getMessage());
+        }
+
+        return null;
     }
 
     /**
