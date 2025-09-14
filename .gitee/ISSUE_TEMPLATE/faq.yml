@@ -1,0 +1,14 @@
+name: 提问
+description: 用户对系统或产品的疑问
+labels: ["faq"]
+placeholder: |
+    请输入您的问题，字数在15字左右
+body:
+  - type: textarea
+    id: related-problem
+    attributes:
+      label: 问题
+      placeholder: |
+         请描述您的疑问
+    validations:
+      required: true
