@@ -216,8 +216,6 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
         needGetData.forEach((key, value) -> {
             if (data.containsKey(key)) {
                 result.put(key, data.get(key));
-            } else {
-                result.put(key, value);
             }
         });
         outputObject.setBean(result);
