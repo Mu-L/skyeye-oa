@@ -146,7 +146,6 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
         List<Routes> routes = redisCache.getList(cacheKey, key -> {
             QueryWrapper<Routes> queryWrapper = getQueryWrapper(tableSelectInfo);
             queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getSchoolId), tableSelectInfo.getHolderId());
-            queryWrapper.eq(MybatisPlusUtil.toColumns(Routes::getEnabled), EnableEnum.ENABLE_USING.getKey());
             List<Routes> routesList = list(queryWrapper);
             if (CollectionUtil.isEmpty(routesList)) {
                 return new ArrayList<>();
@@ -159,7 +158,7 @@ public class RouteServiceImpl extends SkyeyeBusinessServiceImpl<RoutesDao, Route
             }
             return routesList;
         }, RedisConstants.A_YEAR_SECONDS, Routes.class);
-        outputObject.setBean(routes);
+        outputObject.setBeans(routes);
         outputObject.settotal(routes.size());
     }
 
