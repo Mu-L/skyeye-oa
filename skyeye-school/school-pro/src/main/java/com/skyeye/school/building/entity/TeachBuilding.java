@@ -4,6 +4,7 @@
 
 package com.skyeye.school.building.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -36,27 +37,27 @@ public class TeachBuilding extends AreaGeneralInfo {
     private String id;
 
     @TableField("type_id")
-    @ApiModelProperty(value = "地点类型id",required = "required")
+    @ApiModelProperty(value = "地点类型id", required = "required")
     private String typeId;
 
-    @TableField("school_id")
+    @TableField(value = "school_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属学校id", required = "required")
     private String schoolId;
 
     @TableField("name")
-    @ApiModelProperty(value = "地点名称",required = "required",fuzzyLike = true)
+    @ApiModelProperty(value = "地点名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField("longitude")
-    @ApiModelProperty(value = "经度",required = "required")
+    @ApiModelProperty(value = "经度", required = "required")
     private String longitude;
 
     @TableField("latitude")
-    @ApiModelProperty(value = "纬度",required = "required")
+    @ApiModelProperty(value = "纬度", required = "required")
     private String latitude;
 
     @TableField("logo")
-    @ApiModelProperty(value = "地点logo" ,required = "required")
+    @ApiModelProperty(value = "地点logo", required = "required")
     private String logo;
 
     @TableField("p_id")

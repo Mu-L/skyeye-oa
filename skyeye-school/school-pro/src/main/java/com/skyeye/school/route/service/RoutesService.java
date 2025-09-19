@@ -16,4 +16,6 @@ import com.skyeye.school.route.entity.Routes;
 public interface RoutesService extends SkyeyeBusinessService<Routes> {
 
     void writeRouteStopList(InputObject inputObject, OutputObject outputObject);
+
+    void queryRouteList(InputObject inputObject, OutputObject outputObject);
 }

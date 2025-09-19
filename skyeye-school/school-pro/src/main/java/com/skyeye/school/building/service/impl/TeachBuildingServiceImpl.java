@@ -8,11 +8,11 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.cache.redis.RedisCache;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.school.building.dao.TeachBuildingDao;
 import com.skyeye.school.building.entity.FloorInfo;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -42,11 +43,10 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
     private SchoolService schoolService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
-
-    @Autowired
     private FloorInfoService floorInfoService;
 
+    @Autowired
+    private RedisCache redisCache;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -65,14 +65,30 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
     }
 
     @Override
+    protected void writePostpose(TeachBuilding entity, String userId) {
+        super.writePostpose(entity, userId);
+        // 删除缓存
+        jedisClientService.del(getCacheKey(entity.getSchoolId()));
+    }
+
+    @Override
+    protected void deletePostpose(TeachBuilding entity) {
+        // 删除缓存
+        jedisClientService.del(getCacheKey(entity.getSchoolId()));
+    }
+
+    @Override
     public void queryTeachBuildingBySchoolId(InputObject inputObject, OutputObject outputObject) {
         String schoolId = inputObject.getParams().get("schoolId").toString();
         if (StrUtil.isEmpty(schoolId)) {
             return;
         }
-        QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
-        List<TeachBuilding> teachBuildingList = list(queryWrapper);
+        String cacheKey = getCacheKey(schoolId);
+        List<TeachBuilding> teachBuildingList = redisCache.getList(cacheKey, key -> {
+            QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
+            return list(queryWrapper);
+        }, RedisConstants.A_YEAR_SECONDS, TeachBuilding.class);
         schoolService.setDataMation(teachBuildingList, TeachBuilding::getSchoolId);
         iAuthUserService.setName(teachBuildingList, "createId", "createName");
         iAuthUserService.setName(teachBuildingList, "lastUpdateId", "lastUpdateName");
@@ -80,6 +96,9 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
         outputObject.settotal(teachBuildingList.size());
     }
 
+    private String getCacheKey(String schoolId) {
+        return String.format(Locale.ROOT, "school:teachBuilding:all:%s", schoolId);
+    }
 
     @Override
     public void queryTeachBuildingByHolderId(InputObject inputObject, OutputObject outputObject) {
@@ -94,8 +113,8 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
         outputObject.settotal(teachBuildingList.size());
     }
 
-    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         deleteById(id);

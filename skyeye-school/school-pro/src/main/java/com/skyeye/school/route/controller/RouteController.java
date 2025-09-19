@@ -39,7 +39,7 @@ public class RouteController {
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/RouteController/queryRouteList")
     public void queryRouteList(InputObject inputObject, OutputObject outputObject) {
-        routeService.queryList(inputObject, outputObject);
+        routeService.queryRouteList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteRouteById", value = "根据id删除路线", method = "DELETE", allUse = "1")
