@@ -30,6 +30,7 @@ import com.skyeye.doc.member.entity.DocMember;
 import com.skyeye.doc.member.entity.DocMemberPackage;
 import com.skyeye.doc.member.entity.DocMemberVersion;
 import com.skyeye.doc.member.service.DocMemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "源代码管理", groupName = "源代码管理", tenant = TenantEnum.PLATE)
 public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceDao, CodeSource> implements CodeSourceService {
@@ -159,8 +161,27 @@ public class CodeSourceServiceImpl extends SkyeyeBusinessServiceImpl<CodeSourceD
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         QueryWrapper<CodeSource> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CodeSource::getFilePath), path);
+        // 判断源代码是否存在
         CodeSource codeSource = getOne(queryWrapper, false);
         if (ObjectUtil.isEmpty(codeSource)) {
+            log.warn("源代码信息不存在");
+            return false;
+        }
+        // 判断版本号是否存在
+        CodeVersion codeVersion = codeVersionService.selectById(codeSource.getVersionId());
+        if (ObjectUtil.isEmpty(codeVersion) || StrUtil.isEmpty(codeVersion.getId())) {
+            log.warn("版本信息不存在");
+            return false;
+        }
+        // 判断版本是否发布
+        if (WhetherEnum.DISABLE_USING.getKey().equals(codeVersion.getReleaseState())) {
+            log.warn("版本未发布");
+            return false;
+        }
+        // 判断源代码包是否存在
+        CodePackage codePackage = codePackageService.selectById(codeSource.getPackageId());
+        if (ObjectUtil.isEmpty(codePackage) || StrUtil.isEmpty(codePackage.getId())) {
+            log.warn("源代码包信息不存在");
             return false;
         }
         if (StrUtil.equals(codeSource.getCreateId(), userId)) {
