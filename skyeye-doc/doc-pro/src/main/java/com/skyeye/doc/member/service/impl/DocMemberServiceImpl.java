@@ -33,6 +33,7 @@ import com.skyeye.doc.member.enums.DocMemberLoginLogDeviceType;
 import com.skyeye.doc.member.enums.DocMemberLoginLogStatus;
 import com.skyeye.doc.member.service.*;
 import com.skyeye.exception.CustomException;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,23 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         docMemberLevelService.setMationForMap(beans, "levelId", "levelMation");
         return beans;
+    }
+
+    @Override
+    protected void validatorEntity(DocMember entity) {
+        super.validatorEntity(entity);
+        if (StrUtil.isNotEmpty(entity.getPlanetNum())) {
+            // 星球编号唯一性验证
+            QueryWrapper<DocMember> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(DocMember::getPlanetNum), entity.getPlanetNum());
+            if (StringUtils.isNotEmpty(entity.getId())) {
+                queryWrapper.ne(CommonConstants.ID, entity.getId());
+            }
+            DocMember docMember = getOne(queryWrapper, false);
+            if (ObjectUtil.isNotEmpty(docMember)) {
+                throw new CustomException("星球编号已存在，请更换！");
+            }
+        }
     }
 
     @Override
