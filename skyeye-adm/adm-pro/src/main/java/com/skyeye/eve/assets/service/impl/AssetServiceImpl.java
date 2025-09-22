@@ -46,9 +46,9 @@ public class AssetServiceImpl extends SkyeyeBusinessServiceImpl<AssetDao, Asset>
         if (StringUtils.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
-        Asset checkAssetMation = getOne(queryWrapper);
+        Asset checkAssetMation = getOne(queryWrapper, false);
         if (ObjectUtil.isNotEmpty(checkAssetMation)) {
-            throw new CustomException("this data is exist.");
+            throw new CustomException("资产名称或编号前缀已存在.");
         }
     }
 
