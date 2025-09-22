@@ -74,14 +74,15 @@ public enum AppReleaseStatusEnum implements SkyeyeEnumClass {
     }
 
     /**
-     * 判断是否为可编辑状态
+     * 判断是否为可编辑/删除状态
      *
      * @param status 状态key
      * @return 是否可编辑
      */
     public static boolean isEditableStatus(String status) {
         return PENDING.getKey().equals(status) ||
-            REJECTED.getKey().equals(status);
+            REJECTED.getKey().equals(status) ||
+            CANCELLED.getKey().equals(status);
     }
 
     /**

@@ -55,7 +55,7 @@ public class AppVersion extends BaseGeneralInfo {
     private Integer isForceUpdate;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "发布得应用商店id", required = "json")
+    @ApiModelProperty(value = "发布得应用商店id", required = "required,json")
     private List<String> storeIdList;
 
 }
