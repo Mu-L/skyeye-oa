@@ -31,12 +31,6 @@ public class AttrDefinitionCustomController {
     @Autowired
     private AttrDefinitionCustomService attrDefinitionCustomService;
 
-    /**
-     * 获取属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAttrDefinitionCustom", value = "获取属性信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
@@ -47,12 +41,6 @@ public class AttrDefinitionCustomController {
         attrDefinitionCustomService.queryAttrDefinitionCustom(inputObject, outputObject);
     }
 
-    /**
-     * 保存自定义属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "saveAttrDefinitionCustom", value = "保存自定义属性信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AttrDefinitionCustom.class)
     @RequestMapping("/post/AttrDefinitionCustomController/saveAttrDefinitionCustom")
@@ -60,12 +48,6 @@ public class AttrDefinitionCustomController {
         attrDefinitionCustomService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除自定义属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAttrDefinitionCustom", value = "删除自定义属性信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
@@ -76,12 +58,6 @@ public class AttrDefinitionCustomController {
         attrDefinitionCustomService.deleteAttrDefinitionCustom(inputObject, outputObject);
     }
 
-    /**
-     * 根据组件id查询正在使用该组件的服务类信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAttrByComponentId", value = "根据组件id查询正在使用该组件的服务类信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "componentId", name = "componentId", value = "组件id", required = "required")})
@@ -90,12 +66,6 @@ public class AttrDefinitionCustomController {
         attrDefinitionCustomService.queryAttrByComponentId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除自定义属性信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAttrDefinitionCustomById", value = "根据id删除自定义属性信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

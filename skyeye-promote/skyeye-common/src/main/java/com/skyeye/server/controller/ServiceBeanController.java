@@ -30,12 +30,6 @@ public class ServiceBeanController {
     @Autowired
     private ServiceBeanService serviceBeanService;
 
-    /**
-     * 服务类注册
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "registerServiceBean", value = "服务类注册", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = ServiceBeanApi.class)
     @RequestMapping("/post/ServiceBeanController/registerServiceBean")
@@ -43,12 +37,6 @@ public class ServiceBeanController {
         serviceBeanService.registerServiceBean(inputObject, outputObject);
     }
 
-    /**
-     * 获取服务类信息(树结构)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryServiceClassForTree", value = "获取服务类信息(树结构)", method = "GET", allUse = "2")
     @RequestMapping("/post/ServiceBeanController/queryServiceClassForTree")
     public void queryServiceClassForTree(InputObject inputObject, OutputObject outputObject) {

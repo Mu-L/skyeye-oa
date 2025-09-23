@@ -66,6 +66,10 @@ public class AttrDefinition extends CommonInfo {
     @ApiModelProperty(value = "是否可以作为入参", enumClass = WhetherEnum.class, required = "required")
     private Integer whetherInputParams;
 
+    @TableField("enum_class_str")
+    @ApiModelProperty(value = "属性对应的枚举类地址，skyeye-pro#com.skyeye.app.enums.AppReleaseStatusEnum")
+    private Integer enumClassStr;
+
     @TableField("required")
     @ApiModelProperty(value = "属性限制条件")
     private String required;
