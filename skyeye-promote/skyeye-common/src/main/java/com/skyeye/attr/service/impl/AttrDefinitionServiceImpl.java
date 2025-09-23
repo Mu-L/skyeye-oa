@@ -155,6 +155,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
                 bean.setRemark(attrDefinition.getRemark());
                 bean.setRequired(attrDefinition.getRequired());
                 bean.setWhetherInputParams(attrDefinition.getWhetherInputParams());
+                bean.setEnumClassStr(attrDefinition.getEnumClassStr());
                 bean.setLastUpdateTime(currentTime);
             });
             updateEntity(editBeans, StrUtil.EMPTY);
