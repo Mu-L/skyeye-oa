@@ -32,12 +32,6 @@ public class ForumNoticeController {
     @Autowired
     private ForumNoticeService forumNoticeService;
 
-    /**
-     * 获取我的通知列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyNoticeList", value = "获取我的通知列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumNoticeController/queryMyNoticeList")
@@ -45,12 +39,6 @@ public class ForumNoticeController {
         forumNoticeService.queryMyNoticeList(inputObject, outputObject);
     }
 
-    /**
-     * 根据通知id删除通知
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteForumNoticeById", value = "根据通知id删除通知", method = "DELETE", allUse = "2")
     @ApiImplicitParams(
             @ApiImplicitParam(id = "id", name = "id",value = "主键id", required = "required"))
