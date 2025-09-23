@@ -68,7 +68,7 @@ public class AttrDefinition extends CommonInfo {
 
     @TableField("enum_class_str")
     @ApiModelProperty(value = "属性对应的枚举类地址，skyeye-pro#com.skyeye.app.enums.AppReleaseStatusEnum")
-    private Integer enumClassStr;
+    private String enumClassStr;
 
     @TableField("required")
     @ApiModelProperty(value = "属性限制条件")
